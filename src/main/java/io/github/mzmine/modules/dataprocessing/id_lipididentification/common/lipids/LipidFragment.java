@@ -45,6 +45,7 @@ public class LipidFragment {
   private static final String XML_LIPID_FRAGMENTATION_RULE_TYPE = "ruletype";
   private static final String XML_LIPID_ANNOTAION_LEVEL = "lipidannotationlevel";
   private static final String XML_MZ_EXACT = "mzexact";
+  private static final String XML_ION_FORMULA = "ionFormula";
   private static final String XML_DATA_POINT_INTENSITY = "datapointintensity";
   private static final String XML_DATA_POINT_MZ = "datapointmz";
   private static final String XML_LIPID_CLASS = "lipidclass";
@@ -55,6 +56,7 @@ public class LipidFragment {
   private final LipidFragmentationRuleType ruleType;
   private final LipidAnnotationLevel lipidFragmentInformationLevelType;
   private final Double mzExact;
+  private final String ionFormula;
   private final DataPoint dataPoint;
   private final ILipidClass lipidClass;
   private final Integer chainLength;
@@ -63,12 +65,13 @@ public class LipidFragment {
   private final Scan msMsScan;
 
   public LipidFragment(LipidFragmentationRuleType ruleType,
-      LipidAnnotationLevel lipidFragmentInformationLevelType, Double mzExact, DataPoint dataPoint,
-      ILipidClass lipidClass, Integer chainLength, Integer numberOfDBEs,
+      LipidAnnotationLevel lipidFragmentInformationLevelType, Double mzExact, String ionFormula,
+      DataPoint dataPoint, ILipidClass lipidClass, Integer chainLength, Integer numberOfDBEs,
       LipidChainType lipidChainType, Scan msMsScan) {
     this.ruleType = ruleType;
     this.lipidFragmentInformationLevelType = lipidFragmentInformationLevelType;
     this.mzExact = mzExact;
+    this.ionFormula = ionFormula;
     this.dataPoint = dataPoint;
     this.lipidClass = lipidClass;
     this.chainLength = chainLength;
@@ -87,6 +90,10 @@ public class LipidFragment {
 
   public Double getMzExact() {
     return mzExact;
+  }
+
+  public String getIonFormula() {
+    return ionFormula;
   }
 
   public DataPoint getDataPoint() {
@@ -124,6 +131,9 @@ public class LipidFragment {
     writer.writeEndElement();
     writer.writeStartElement(XML_MZ_EXACT);
     writer.writeCharacters(mzExact.toString());
+    writer.writeEndElement();
+    writer.writeStartElement(XML_ION_FORMULA);
+    writer.writeCharacters(ionFormula);
     writer.writeEndElement();
     writer.writeStartElement(XML_DATA_POINT_INTENSITY);
     writer.writeCharacters(String.valueOf(dataPoint.getIntensity()));
@@ -172,6 +182,7 @@ public class LipidFragment {
     LipidFragmentationRuleType ruleType = null;
     LipidAnnotationLevel lipidFragmentInformationLevelType = null;
     Double mzExact = null;
+    String ionFormula = null;
     Double intensity = null;
     Double mz = null;
     ILipidClass lipidClass = null;
@@ -196,15 +207,18 @@ public class LipidFragment {
 
       switch (reader.getLocalName()) {
         case XML_LIPID_FRAGMENTATION_RULE_TYPE:
-          ruleType = LipidParsingUtils
-              .lipidFragmentationRuleNameToLipidFragmentationRuleType(reader.getElementText());
+          ruleType = LipidParsingUtils.lipidFragmentationRuleNameToLipidFragmentationRuleType(
+              reader.getElementText());
           break;
         case XML_LIPID_ANNOTAION_LEVEL:
-          lipidFragmentInformationLevelType =
-                  LipidParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(reader.getElementText());
+          lipidFragmentInformationLevelType = LipidParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(
+              reader.getElementText());
           break;
         case XML_MZ_EXACT:
           mzExact = Double.parseDouble(reader.getElementText());
+          break;
+        case XML_ION_FORMULA:
+          ionFormula = reader.getElementText();
           break;
         case XML_DATA_POINT_INTENSITY:
           intensity = Double.parseDouble(reader.getElementText());
@@ -248,7 +262,7 @@ public class LipidFragment {
       }
     }
 
-    return new LipidFragment(ruleType, lipidFragmentInformationLevelType, mzExact,
+    return new LipidFragment(ruleType, lipidFragmentInformationLevelType, mzExact, ionFormula,
         new SimpleDataPoint(mz, intensity), lipidClass, chainLength, numberOfDBEs, lipidChainType,
         msMsScan);
   }

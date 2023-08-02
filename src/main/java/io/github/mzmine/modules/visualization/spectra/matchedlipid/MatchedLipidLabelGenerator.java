@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.matchedlipid;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
 import java.util.List;
@@ -68,27 +69,31 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
 
     // Search for data points higher than this one in the interval
     // from limitLeft to limitRight
-    double limitLeft = originalX - ((POINTS_RESERVE_X / 2) * pixelX);
-    double limitRight = originalX + ((POINTS_RESERVE_X / 2) * pixelX);
+    double limitLeft = originalX - (((double) POINTS_RESERVE_X / 2) * pixelX);
+    double limitRight = originalX + (((double) POINTS_RESERVE_X / 2) * pixelX);
 
     // Iterate data points to the left and right
     for (int i = 1; (item - i > 0) || (item + i < itemCount); i++) {
 
       // If we get out of the limit we can stop searching
-      if ((item - i > 0) && (dataset.getXValue(series, item - i) < limitLeft)
-          && ((item + i >= itemCount) || (dataset.getXValue(series, item + i) > limitRight)))
+      if ((item - i > 0) && (dataset.getXValue(series, item - i) < limitLeft) && (
+          (item + i >= itemCount) || (dataset.getXValue(series, item + i) > limitRight))) {
         break;
+      }
 
-      if ((item + i < itemCount) && (dataset.getXValue(series, item + i) > limitRight)
-          && ((item - i <= 0) || (dataset.getXValue(series, item - i) < limitLeft)))
+      if ((item + i < itemCount) && (dataset.getXValue(series, item + i) > limitRight) && (
+          (item - i <= 0) || (dataset.getXValue(series, item - i) < limitLeft))) {
         break;
+      }
 
       // If we find higher data point, bail out
-      if ((item - i > 0) && (originalY <= dataset.getYValue(series, item - i)))
+      if ((item - i > 0) && (originalY <= dataset.getYValue(series, item - i))) {
         return null;
+      }
 
-      if ((item + i < itemCount) && (originalY <= dataset.getYValue(series, item + i)))
+      if ((item + i < itemCount) && (originalY <= dataset.getYValue(series, item + i))) {
         return null;
+      }
 
     }
 
@@ -109,11 +114,13 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
     StringBuilder sb = new StringBuilder();
     if (lipidFragment.getLipidFragmentInformationLevelType()
         .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
-      sb.append(lipidFragment.getLipidChainType().toString()).append(" ")
+      sb.append(lipidFragment.getLipidChainType().getName()).append("\n")
           .append(lipidFragment.getChainLength()).append(":")
           .append(lipidFragment.getNumberOfDBEs());
     } else {
-      sb.append(lipidFragment.getRuleType().toString()).append(" ").append(lipidFragment.getMzExact());
+      sb.append(lipidFragment.getRuleType().toString()).append(" ")
+          .append(lipidFragment.getIonFormula())
+          .append(MZmineCore.getConfiguration().getMZFormat().format(lipidFragment.getMzExact()));
     }
     return sb.toString();
   }

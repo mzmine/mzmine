@@ -9,7 +9,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.util.FormulaUtils;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public abstract class AbstractLipidFragmentFactory {
@@ -66,7 +66,7 @@ public abstract class AbstractLipidFragmentFactory {
     Double mzFragmentExact = FormulaUtils.calculateMzRatio(fragmentFormula);
     if (mzTolRangeMSMS.contains(mzFragmentExact)) {
       return new LipidFragment(rule.getLipidFragmentationRuleType(),
-          rule.getLipidFragmentInformationLevelType(), mzFragmentExact, dataPoint,
+          rule.getLipidFragmentInformationLevelType(), mzFragmentExact, fragmentFormula, dataPoint,
           lipidAnnotation.getLipidClass(), null, null, null, msMsScan);
     } else {
       return null;
@@ -76,28 +76,38 @@ public abstract class AbstractLipidFragmentFactory {
   private LipidFragment checkForHeadgroupFragmentNL(LipidFragmentationRule rule,
       Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
       Scan msMsScan) {
-    String fragmentFormula = rule.getMolecularFormula();
-    Double mzFragmentExact = FormulaUtils.calculateExactMass(fragmentFormula);
-    Double mzPrecursorExact =
-        MolecularFormulaManipulator.getMass(lipidAnnotation.getMolecularFormula(),
-            AtomContainerManipulator.MonoIsotopic) + rule.getIonizationType().getAddedMass();
-    Double mzExact = mzPrecursorExact - mzFragmentExact;
-    if (mzTolRangeMSMS.contains(mzExact)) {
+    IMolecularFormula formulaNL = FormulaUtils.createMajorIsotopeMolFormula(
+        rule.getMolecularFormula());
+    IMolecularFormula lipidFormula = null;
+    try {
+      lipidFormula = (IMolecularFormula) lipidAnnotation.getMolecularFormula().clone();
+    } catch (CloneNotSupportedException e) {
+      throw new RuntimeException(e);
+    }
+    IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidFormula, formulaNL);
+    rule.getIonizationType().ionizeFormula(fragmentFormula);
+    Double mzFragmentExact = FormulaUtils.calculateMzRatio(fragmentFormula);
+
+    if (mzTolRangeMSMS.contains(mzFragmentExact)) {
       return new LipidFragment(rule.getLipidFragmentationRuleType(),
-          rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
+          rule.getLipidFragmentInformationLevelType(), mzFragmentExact,
+          MolecularFormulaManipulator.getString(fragmentFormula), dataPoint,
           lipidAnnotation.getLipidClass(), null, null, LipidChainType.ACYL_CHAIN, msMsScan);
     } else {
       return null;
     }
   }
 
-  protected double ionizeFragmentBasedOnPolarity(Double mzExact, PolarityType polarityType) {
+  protected IMolecularFormula ionizeFragmentBasedOnPolarity(IMolecularFormula formula,
+      PolarityType polarityType) {
     if (polarityType.equals(PolarityType.NEGATIVE)) {
-      return mzExact + IonizationType.NEGATIVE.getAddedMass();
+      IonizationType.NEGATIVE.ionizeFormula(formula);
+      return formula;
     } else if (polarityType.equals(PolarityType.POSITIVE)) {
-      return mzExact + IonizationType.POSITIVE.getAddedMass();
+      IonizationType.POSITIVE.ionizeFormula(formula);
+      return formula;
     }
-    return mzExact;
+    return formula;
   }
 
 }

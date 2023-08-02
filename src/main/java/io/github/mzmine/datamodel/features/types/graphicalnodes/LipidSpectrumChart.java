@@ -41,7 +41,6 @@ import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidL
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
 
@@ -59,17 +58,17 @@ public class LipidSpectrumChart extends StackPane {
         Scan matchedMsMsScan =
             matchedFragments.stream().map(LipidFragment::getMsMsScan).findFirst().orElse(null);
         if (matchedMsMsScan != null) {
-          PlotXYDataProvider spectrumProvider =
-              new LipidSpectrumProvider(null, matchedMsMsScan, "MS/MS Spectrum",
-                  MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColorAWT());
+          PlotXYDataProvider spectrumProvider = new LipidSpectrumProvider(matchedFragments,
+              matchedMsMsScan, "MS/MS Spectrum",
+              MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColorAWT());
           ColoredXYDataset spectrumDataSet = new ColoredXYDataset(spectrumProvider);
           spectraPlot.addDataSet(spectrumDataSet,
               MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColorAWT(), true,
               null, true);
         }
 
-        List<DataPoint> fragmentScanDps =
-            matchedFragments.stream().map(LipidFragment::getDataPoint).collect(Collectors.toList());
+        List<DataPoint> fragmentScanDps = matchedFragments.stream().map(LipidFragment::getDataPoint)
+            .toList();
         if (!fragmentScanDps.isEmpty()) {
           PlotXYDataProvider fragmentDataProvider = new LipidSpectrumProvider(matchedFragments,
               fragmentScanDps.stream().mapToDouble(DataPoint::getMZ).toArray(),
@@ -77,8 +76,8 @@ public class LipidSpectrumChart extends StackPane {
               "Matched Signals",
               MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT());
           ColoredXYDataset fragmentDataSet = new ColoredXYDataset(fragmentDataProvider);
-          MatchedLipidLabelGenerator matchedLipidLabelGenerator =
-              new MatchedLipidLabelGenerator(spectraPlot, matchedFragments);
+          MatchedLipidLabelGenerator matchedLipidLabelGenerator = new MatchedLipidLabelGenerator(
+              spectraPlot, matchedFragments);
           spectraPlot.getXYPlot().getRenderer().setDefaultItemLabelsVisible(true);
           spectraPlot.getXYPlot().getRenderer()
               .setSeriesItemLabelGenerator(1, matchedLipidLabelGenerator);

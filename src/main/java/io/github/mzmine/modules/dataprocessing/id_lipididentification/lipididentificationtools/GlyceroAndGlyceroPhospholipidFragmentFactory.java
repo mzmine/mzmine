@@ -13,7 +13,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationChainParameters;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.List;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
@@ -135,14 +135,15 @@ public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
           LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
           onlySearchForEvenChains);
       for (ILipidChain lipidChain : fattyAcylChains) {
-        Double mzExact = MolecularFormulaManipulator.getMass(lipidChain.getChainMolecularFormula(),
-            MolecularFormulaManipulator.MonoIsotopic)
-            + IonizationType.NEGATIVE_HYDROGEN.getAddedMass();
+        IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
+        IonizationType.NEGATIVE_HYDROGEN.ionizeFormula(lipidChainFormula);
+        Double mzExact = FormulaUtils.calculateMzRatio(lipidChainFormula);
         if (mzTolRangeMSMS.contains(mzExact)) {
           int chainLength = lipidChain.getNumberOfCarbons();
           int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
           return new LipidFragment(rule.getLipidFragmentationRuleType(),
-              rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
+              rule.getLipidFragmentInformationLevelType(), mzExact,
+              MolecularFormulaManipulator.getString(lipidChainFormula), dataPoint,
               lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
               LipidChainType.ACYL_CHAIN, msMsScan);
         }
@@ -157,18 +158,24 @@ public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
     List<ILipidChain> fattyAcylChains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(
         LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
-    Double mzPrecursorExact =
-        MolecularFormulaManipulator.getMass(lipidAnnotation.getMolecularFormula(),
-            AtomContainerManipulator.MonoIsotopic) + rule.getIonizationType().getAddedMass();
     for (ILipidChain lipidChain : fattyAcylChains) {
-      Double mzFattyAcid = MolecularFormulaManipulator.getMass(
-          lipidChain.getChainMolecularFormula(), MolecularFormulaManipulator.MonoIsotopic);
-      Double mzExact = mzPrecursorExact - mzFattyAcid;
+      IMolecularFormula lipidFormula = null;
+      try {
+        lipidFormula = (IMolecularFormula) lipidAnnotation.getMolecularFormula().clone();
+      } catch (CloneNotSupportedException e) {
+        throw new RuntimeException(e);
+      }
+      rule.getIonizationType().ionizeFormula(lipidFormula);
+      IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
+      IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
+          lipidChainFormula);
+      Double mzExact = FormulaUtils.calculateMzRatio(fragmentFormula);
       if (mzTolRangeMSMS.contains(mzExact)) {
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
         return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
+            rule.getLipidFragmentInformationLevelType(), mzExact,
+            MolecularFormulaManipulator.getString(fragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             LipidChainType.ACYL_CHAIN, msMsScan);
       }
@@ -179,24 +186,31 @@ public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
   private LipidFragment checkForAcylChainMinusFormulaFragmentNL(LipidFragmentationRule rule,
       Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
       Scan msMsScan) {
-    String fragmentFormula = rule.getMolecularFormula();
-    Double mzPrecursorExact =
-        MolecularFormulaManipulator.getMass(lipidAnnotation.getMolecularFormula(),
-            AtomContainerManipulator.MonoIsotopic) + rule.getIonizationType().getAddedMass();
-    Double mzFragmentExact = FormulaUtils.calculateExactMass(fragmentFormula);
+    IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormula(
+        rule.getMolecularFormula());
     List<ILipidChain> fattyAcylChains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(
         LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
     for (ILipidChain lipidChain : fattyAcylChains) {
-      Double mzChainMinusmzFragment =
-          MolecularFormulaManipulator.getMass(lipidChain.getChainMolecularFormula(),
-              MolecularFormulaManipulator.MonoIsotopic) - mzFragmentExact;
-      Double mzExact = mzPrecursorExact - mzChainMinusmzFragment;
+      IMolecularFormula lipidFormula = null;
+      try {
+        lipidFormula = (IMolecularFormula) lipidAnnotation.getMolecularFormula().clone();
+      } catch (CloneNotSupportedException e) {
+        throw new RuntimeException(e);
+      }
+      rule.getIonizationType().ionizeFormula(lipidFormula);
+      IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
+      IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidChainFormula,
+          modificationFormula);
+      IMolecularFormula lipidMinusFragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
+          fragmentFormula);
+      Double mzExact = FormulaUtils.calculateMzRatio(lipidMinusFragmentFormula);
       if (mzTolRangeMSMS.contains(mzExact)) {
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
         return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
+            rule.getLipidFragmentInformationLevelType(), mzExact,
+            MolecularFormulaManipulator.getString(lipidMinusFragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             LipidChainType.ACYL_CHAIN, msMsScan);
       }
@@ -208,21 +222,24 @@ public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
   private LipidFragment checkForAcylChainPlusFormulaFragment(LipidFragmentationRule rule,
       Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
       Scan msMsScan) {
-
-    String fragmentFormula = rule.getMolecularFormula();
-    Double mzFragmentExact = FormulaUtils.calculateExactMass(fragmentFormula);
+    IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormula(
+        rule.getMolecularFormula());
     List<ILipidChain> fattyAcylChains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(
         LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
     for (ILipidChain lipidChain : fattyAcylChains) {
-      Double mzExact = MolecularFormulaManipulator.getMass(lipidChain.getChainMolecularFormula(),
-          MolecularFormulaManipulator.MonoIsotopic) + mzFragmentExact;
-      mzExact = ionizeFragmentBasedOnPolarity(mzExact, rule.getPolarityType());
+      IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
+      IMolecularFormula fragmentFormula = FormulaUtils.addFormula(lipidChainFormula,
+          modificationFormula);
+      IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
+          rule.getPolarityType());
+      Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
       if (mzTolRangeMSMS.contains(mzExact)) {
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
         return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
+            rule.getLipidFragmentInformationLevelType(), mzExact,
+            MolecularFormulaManipulator.getString(ionizedFragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             LipidChainType.ACYL_CHAIN, msMsScan);
       }
@@ -233,24 +250,31 @@ public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
   private LipidFragment checkForAcylChainPlusFormulaFragmentNL(LipidFragmentationRule rule,
       Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
       Scan msMsScan) {
-    String fragmentFormula = rule.getMolecularFormula();
-    Double mzPrecursorExact =
-        MolecularFormulaManipulator.getMass(lipidAnnotation.getMolecularFormula(),
-            AtomContainerManipulator.MonoIsotopic) + rule.getIonizationType().getAddedMass();
-    Double mzFragmentExact = FormulaUtils.calculateExactMass(fragmentFormula);
+    IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormula(
+        rule.getMolecularFormula());
     List<ILipidChain> fattyAcylChains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(
         LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
     for (ILipidChain lipidChain : fattyAcylChains) {
-      Double mzChainPlusmzFragment =
-          MolecularFormulaManipulator.getMass(lipidChain.getChainMolecularFormula(),
-              MolecularFormulaManipulator.MonoIsotopic) + mzFragmentExact;
-      Double mzExact = mzPrecursorExact - mzChainPlusmzFragment;
+      IMolecularFormula lipidFormula = null;
+      try {
+        lipidFormula = (IMolecularFormula) lipidAnnotation.getMolecularFormula().clone();
+      } catch (CloneNotSupportedException e) {
+        throw new RuntimeException(e);
+      }
+      rule.getIonizationType().ionizeFormula(lipidFormula);
+      IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
+      IMolecularFormula fragmentFormula = FormulaUtils.addFormula(lipidChainFormula,
+          modificationFormula);
+      IMolecularFormula lipidMinusFragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
+          fragmentFormula);
+      Double mzExact = FormulaUtils.calculateMzRatio(lipidMinusFragmentFormula);
       if (mzTolRangeMSMS.contains(mzExact)) {
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
         return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
+            rule.getLipidFragmentInformationLevelType(), mzExact,
+            MolecularFormulaManipulator.getString(lipidMinusFragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             LipidChainType.ACYL_CHAIN, msMsScan);
       }
@@ -261,32 +285,33 @@ public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
   private LipidFragment checkForTwoAcylChainsPlusFormulaFragment(LipidFragmentationRule rule,
       Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
       Scan msMsScan) {
-    String fragmentFormula = rule.getMolecularFormula();
-    Double mzFragmentExact = FormulaUtils.calculateExactMass(fragmentFormula);
+    IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormula(
+        rule.getMolecularFormula());
     List<ILipidChain> fattyAcylChainsOne = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(
         LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
     List<ILipidChain> fattyAcylChainsTwo = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(
         LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
-    for (int i = 0; i < fattyAcylChainsOne.size(); i++) {
-      Double mzFattyAcidOne = MolecularFormulaManipulator.getMass(
-          fattyAcylChainsOne.get(i).getChainMolecularFormula(),
-          MolecularFormulaManipulator.MonoIsotopic);
-      for (int j = 0; j < fattyAcylChainsTwo.size(); j++) {
-        Double mzFattyAcidTwo = MolecularFormulaManipulator.getMass(
-            fattyAcylChainsTwo.get(j).getChainMolecularFormula(),
-            MolecularFormulaManipulator.MonoIsotopic);
-        Double mzExact = mzFattyAcidOne + mzFattyAcidTwo + mzFragmentExact;
-        mzExact = ionizeFragmentBasedOnPolarity(mzExact, rule.getPolarityType());
-        if (mzTolRangeMSMS.contains(mzFattyAcidOne + mzFattyAcidTwo + mzFragmentExact)) {
+    for (ILipidChain lipidChain1 : fattyAcylChainsOne) {
+      IMolecularFormula lipidChainFormulaOne = lipidChain1.getChainMolecularFormula();
+      for (ILipidChain lipidChain2 : fattyAcylChainsTwo) {
+        IMolecularFormula lipidChainFormulaTwo = lipidChain2.getChainMolecularFormula();
+        IMolecularFormula combinedChainsFormula = FormulaUtils.addFormula(lipidChainFormulaOne,
+            lipidChainFormulaTwo);
+        IMolecularFormula fragmentFormula = FormulaUtils.addFormula(combinedChainsFormula,
+            modificationFormula);
+        IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
+            rule.getPolarityType());
+        Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
+        if (mzTolRangeMSMS.contains(mzExact)) {
           return new LipidFragment(rule.getLipidFragmentationRuleType(),
-              rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
+              rule.getLipidFragmentInformationLevelType(), mzExact,
+              MolecularFormulaManipulator.getString(ionizedFragmentFormula), dataPoint,
               lipidAnnotation.getLipidClass(),
-              fattyAcylChainsOne.get(i).getNumberOfCarbons() + fattyAcylChainsTwo.get(j)
-                  .getNumberOfCarbons(),
-              fattyAcylChainsOne.get(i).getNumberOfDBEs() + fattyAcylChainsTwo.get(j)
-                  .getNumberOfDBEs(), LipidChainType.TWO_ACYL_CHAINS_COMBINED, msMsScan);
+              lipidChain1.getNumberOfCarbons() + lipidChain2.getNumberOfCarbons(),
+              lipidChain1.getNumberOfDBEs() + lipidChain2.getNumberOfDBEs(),
+              LipidChainType.TWO_ACYL_CHAINS_COMBINED, msMsScan);
         }
       }
     }
@@ -296,22 +321,24 @@ public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
   private LipidFragment checkForAlkylChainPlusFormulaFragment(LipidFragmentationRule rule,
       Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
       Scan msMsScan) {
-
-    String fragmentFormula = rule.getMolecularFormula();
-    Double mzFragmentExact = FormulaUtils.calculateExactMass(fragmentFormula);
+    IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormula(
+        rule.getMolecularFormula());
     List<ILipidChain> alkylChains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(
         LipidChainType.ALKYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
     for (ILipidChain lipidChain : alkylChains) {
-      Double mzExact = MolecularFormulaManipulator.getMass(lipidChain.getChainMolecularFormula(),
-          MolecularFormulaManipulator.MonoIsotopic) + mzFragmentExact;
-      mzExact = ionizeFragmentBasedOnPolarity(mzExact, rule.getPolarityType());
-
+      IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
+      IMolecularFormula fragmentFormula = FormulaUtils.addFormula(lipidChainFormula,
+          modificationFormula);
+      IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
+          rule.getPolarityType());
+      Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
       if (mzTolRangeMSMS.contains(mzExact)) {
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
         return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact, dataPoint,
+            rule.getLipidFragmentInformationLevelType(), mzExact,
+            MolecularFormulaManipulator.getString(ionizedFragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             LipidChainType.ALKYL_CHAIN, msMsScan);
       }
