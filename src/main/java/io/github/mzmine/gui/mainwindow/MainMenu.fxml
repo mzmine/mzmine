@@ -297,6 +297,11 @@
 <!--    </Menu>-->
 
     <Menu text="Export feature list">
+      <Menu text="Graphics">
+        <MenuItem text="Annotations graphics export (pdf, png)" onAction="#runModule"
+          userData="io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule"/>
+      </Menu>
+
       <MenuItem text="CSV" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule"/>
       <MenuItem text="Export compound annotations to csv" onAction="#runModule"
