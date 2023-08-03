@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -92,7 +92,8 @@ public class SpectralLibraryImportTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       setErrorMessage(e.toString());
       return;
-    } setStatus(TaskStatus.FINISHED);
+    }
+    setStatus(TaskStatus.FINISHED);
   }
 
   /**
@@ -104,8 +105,7 @@ public class SpectralLibraryImportTask extends AbstractTask {
       throws UnsupportedFormatException, IOException {
     //
     SpectralLibrary library = new SpectralLibrary(MemoryMapStorage.forMassList(), dataBaseFile);
-    final List<SpectralLibraryEntry> entries = library.getEntries();
-    parser = new AutoLibraryParser(1000, (list, alreadyProcessed) -> entries.addAll(list));
+    parser = new AutoLibraryParser(1000, (list, alreadyProcessed) -> library.addEntries(list));
     // return tasks
     parser.parse(this, dataBaseFile, library);
     return library;

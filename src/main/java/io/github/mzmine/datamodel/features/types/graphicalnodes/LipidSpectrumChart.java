@@ -29,69 +29,81 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.LipidSpectrumProvider;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidLabelGenerator;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LipidSpectrumChart extends StackPane {
 
-  public LipidSpectrumChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
+  private SpectraPlot spectraPlot;
+
+  public LipidSpectrumChart(@Nullable MatchedLipid match, AtomicDouble progress,
+      RunOption runOption) {
+    if (match == null || match.getMatchedFragments() == null || match.getMatchedFragments()
+        .isEmpty()) {
+      return;
+    }
 
     SpectraPlot spectraPlot = new SpectraPlot();
     spectraPlot.setPrefHeight(GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT);
-    List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
-    if (matchedLipids != null && !matchedLipids.isEmpty()) {
-      MatchedLipid match = matchedLipids.get(0);
-      if (match.getMatchedFragments() != null && !match.getMatchedFragments().isEmpty()) {
-        List<LipidFragment> matchedFragments = new ArrayList<>(match.getMatchedFragments());
-        Scan matchedMsMsScan =
-            matchedFragments.stream().map(LipidFragment::getMsMsScan).findFirst().orElse(null);
-        if (matchedMsMsScan != null) {
-          PlotXYDataProvider spectrumProvider = new LipidSpectrumProvider(matchedFragments,
-              matchedMsMsScan, "MS/MS Spectrum",
-              MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColorAWT());
-          ColoredXYDataset spectrumDataSet = new ColoredXYDataset(spectrumProvider);
-          spectraPlot.addDataSet(spectrumDataSet,
-              MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColorAWT(), true,
-              null, true);
-        }
 
-        List<DataPoint> fragmentScanDps = matchedFragments.stream().map(LipidFragment::getDataPoint)
-            .toList();
-        if (!fragmentScanDps.isEmpty()) {
-          PlotXYDataProvider fragmentDataProvider = new LipidSpectrumProvider(matchedFragments,
-              fragmentScanDps.stream().mapToDouble(DataPoint::getMZ).toArray(),
-              fragmentScanDps.stream().mapToDouble(DataPoint::getIntensity).toArray(),
-              "Matched Signals",
-              MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT());
-          ColoredXYDataset fragmentDataSet = new ColoredXYDataset(fragmentDataProvider);
-          MatchedLipidLabelGenerator matchedLipidLabelGenerator = new MatchedLipidLabelGenerator(
-              spectraPlot, matchedFragments);
-          spectraPlot.getXYPlot().getRenderer().setDefaultItemLabelsVisible(true);
-          spectraPlot.getXYPlot().getRenderer()
-              .setSeriesItemLabelGenerator(1, matchedLipidLabelGenerator);
-          spectraPlot.addDataSet(fragmentDataSet,
-              MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), true,
-              matchedLipidLabelGenerator, true);
-        }
-      }
-      MZmineCore.runLater(() -> {
-        getChildren().add(spectraPlot);
-      });
+    List<LipidFragment> matchedFragments = new ArrayList<>(match.getMatchedFragments());
+    Scan matchedMsMsScan = matchedFragments.stream().map(LipidFragment::getMsMsScan).findFirst()
+        .orElse(null);
+    if (matchedMsMsScan != null) {
+      PlotXYDataProvider spectrumProvider = new LipidSpectrumProvider(null, matchedMsMsScan,
+          "MS/MS Spectrum",
+          MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColorAWT());
+      ColoredXYDataset spectrumDataSet = new ColoredXYDataset(spectrumProvider, runOption);
+      spectraPlot.addDataSet(spectrumDataSet,
+          MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColorAWT(), true, null,
+          true);
     }
 
+    List<DataPoint> fragmentScanDps = matchedFragments.stream().map(LipidFragment::getDataPoint)
+        .collect(Collectors.toList());
+    if (!fragmentScanDps.isEmpty()) {
+      PlotXYDataProvider fragmentDataProvider = new LipidSpectrumProvider(matchedFragments,
+          fragmentScanDps.stream().mapToDouble(DataPoint::getMZ).toArray(),
+          fragmentScanDps.stream().mapToDouble(DataPoint::getIntensity).toArray(),
+          "Matched Signals",
+          MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT());
+      ColoredXYDataset fragmentDataSet = new ColoredXYDataset(fragmentDataProvider, runOption);
+      MatchedLipidLabelGenerator matchedLipidLabelGenerator = new MatchedLipidLabelGenerator(
+          spectraPlot, matchedFragments);
+      spectraPlot.getXYPlot().getRenderer().setDefaultItemLabelsVisible(true);
+      spectraPlot.getXYPlot().getRenderer()
+          .setSeriesItemLabelGenerator(1, matchedLipidLabelGenerator);
+      spectraPlot.addDataSet(fragmentDataSet,
+          MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), true,
+          matchedLipidLabelGenerator, true);
+    }
+
+    MZmineCore.runLater(() -> {
+      getChildren().add(spectraPlot);
+    });
   }
 
+  public LipidSpectrumChart(@NotNull ModularFeatureListRow row, AtomicDouble progress) {
+    this(row.getLipidMatches().isEmpty() ? null : row.getLipidMatches().get(0), progress,
+        RunOption.NEW_THREAD);
+  }
 
+  public SpectraPlot getSpectraPlot() {
+    return spectraPlot;
+  }
 }

@@ -116,6 +116,7 @@ import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationM
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
 import io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
+import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportModule;
 import io.github.mzmine.modules.io.export_features_featureML.FeatureMLExportModularModule;
@@ -359,6 +360,7 @@ public class BatchModeModulesList {
       GNPSLibraryBatchExportModule.class, //
       FeatureMLExportModularModule.class, //
       MsMsQualityExportModule.class, //
+      ExportAllIdsGraphicalModule.class, //
 
       /*
        * needed in batch mode?
