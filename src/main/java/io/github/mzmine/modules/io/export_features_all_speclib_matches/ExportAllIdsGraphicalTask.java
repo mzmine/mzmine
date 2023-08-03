@@ -35,7 +35,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralMatchPanelFX;
 import io.github.mzmine.parameters.ParameterSet;
@@ -77,7 +77,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
   private final boolean exportPdf;
   private final int numIds;
   private String desc = "Exporting all identifications.";
-  private NumberFormats form = MZmineCore.getConfiguration().getExportFormats();
+  private final NumberFormats form = MZmineCore.getConfiguration().getExportFormats();
   // buffer png export as this takes long time on fx thread
   final int bufferSize = 100;
   final SpectralMatchPanelFX[] panelBuffer = new SpectralMatchPanelFX[bufferSize];
@@ -86,7 +86,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
 
   // progress
   private int totalIds = 1;
-  private AtomicInteger processed = new AtomicInteger(0);
+  private final AtomicInteger processed = new AtomicInteger(0);
 
   protected ExportAllIdsGraphicalTask(ParameterSet parameters, @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate) {
