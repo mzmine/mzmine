@@ -46,7 +46,6 @@ public class LipidFactory {
     int numberOfOxygens =
         Arrays.stream(lipidClass.getChainTypes()).mapToInt(LipidChainType::getFixNumberOfOxygens)
             .sum() + numberOfAdditionalOxygens;
-    System.out.println("Number of Oxygens:" + numberOfOxygens);
     String annotation = buildAnnotation(lipidClass, numberOfCarbons, numberOfDBEs, numberOfOxygens);
     if (annotation == null) {
       return null;

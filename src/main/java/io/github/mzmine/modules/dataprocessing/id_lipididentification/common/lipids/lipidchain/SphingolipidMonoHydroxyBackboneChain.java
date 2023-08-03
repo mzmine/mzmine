@@ -8,7 +8,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class SphingolipidDiHydroxyBackboneChain implements ILipidChain {
+public class SphingolipidMonoHydroxyBackboneChain implements ILipidChain {
 
   private static final String XML_ELEMENT = "sphingolipiddihydroxybackbonechain";
   private static final String XML_CHAIN_ANNOTATION = "chainannotation";
@@ -22,10 +22,10 @@ public class SphingolipidDiHydroxyBackboneChain implements ILipidChain {
   private final IMolecularFormula molecularFormula;
   private final int numberOfCarbons;
   private final int numberOfDBEs;
-  private static final LipidChainType LIPID_CHAIN_TYPE = LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN;
+  private static final LipidChainType LIPID_CHAIN_TYPE = LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN;
   private final int numberOfOxygens;
 
-  public SphingolipidDiHydroxyBackboneChain(String chainAnnotation,
+  public SphingolipidMonoHydroxyBackboneChain(String chainAnnotation,
       IMolecularFormula molecularFormula, int numberOfCarbons, int numberOfDBEs) {
     this.chainAnnotation = chainAnnotation;
     this.molecularFormula = molecularFormula;
@@ -34,7 +34,7 @@ public class SphingolipidDiHydroxyBackboneChain implements ILipidChain {
     numberOfOxygens = LIPID_CHAIN_TYPE.getFixNumberOfOxygens();
   }
 
-  public SphingolipidDiHydroxyBackboneChain(String chainAnnotation,
+  public SphingolipidMonoHydroxyBackboneChain(String chainAnnotation,
       IMolecularFormula molecularFormula, int numberOfCarbons, int numberOfDBEs,
       int numberOfAdditionalOxygens) {
     this.chainAnnotation = chainAnnotation;
@@ -99,7 +99,7 @@ public class SphingolipidDiHydroxyBackboneChain implements ILipidChain {
   public static ILipidChain loadFromXML(XMLStreamReader reader) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       throw new IllegalStateException(
-          "Cannot load sphingolipid dihydroxy backbone chain from the current element. Wrong name.");
+          "Cannot load sphingolipid monohydroxy backbone chain from the current element. Wrong name.");
     }
 
     String chainAnnotation = null;
@@ -140,8 +140,8 @@ public class SphingolipidDiHydroxyBackboneChain implements ILipidChain {
       }
     }
     if (lipidChainType != null && lipidChainType.equals(
-        LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN)) {
-      return new SphingolipidDiHydroxyBackboneChain(chainAnnotation, molecularFormula,
+        LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN)) {
+      return new SphingolipidMonoHydroxyBackboneChain(chainAnnotation, molecularFormula,
           numberOfCarbons, numberOfDBEs, numberOfOxygens);
     }
     return null;

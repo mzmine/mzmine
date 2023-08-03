@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.lipidannotitationoverview.LipidAnnotationOverviewPaneController">
+  <center>
+    <BorderPane prefHeight="650.0" prefWidth="900.0">
+      <center>
+            <SplitPane BorderPane.alignment="CENTER">
+               <items>
+              <SplitPane prefHeight="200.0" prefWidth="160.0">
+
+        </SplitPane>
+               </items>
+            </SplitPane>
+      </center>
+    </BorderPane>
+  </center>
+</BorderPane>

@@ -31,9 +31,9 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
@@ -53,11 +53,9 @@ public class SphingolipidAnnotationParameters extends SimpleParameterSet {
       LipidClassesProvider.getListOfLipidClassesByLipidCategories(
           List.of(LipidCategories.SPHINGOLIPIDS)).toArray());
 
-  public static final IntRangeParameter chainLength = new IntRangeParameter(
-      "Number of carbon atoms in chains", "Number of carbon atoms in chains");
-
-  public static final IntRangeParameter doubleBonds = new IntRangeParameter(
-      "Number of double bond equivalents in chains", "Number of double bond equivalents in chains");
+  public static final ParameterSetParameter<SphingolipidAnnotationChainParameters> lipidChainParameters = new ParameterSetParameter<SphingolipidAnnotationChainParameters>(
+      "Side chain parameters", "Optionally modify lipid chain parameters",
+      new SphingolipidAnnotationChainParameters());
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
       "m/z tolerance MS1 level:",
@@ -74,7 +72,7 @@ public class SphingolipidAnnotationParameters extends SimpleParameterSet {
 //          new CustomLipidClass[0]));
 
   public SphingolipidAnnotationParameters() {
-    super(new Parameter[]{featureLists, lipidClasses, chainLength, doubleBonds, mzTolerance,
+    super(new Parameter[]{featureLists, lipidClasses, lipidChainParameters, mzTolerance,
             searchForMSMSFragments,
             //customLipidClasses
         },

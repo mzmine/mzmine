@@ -28,9 +28,12 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.li
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AcylLipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AlkylLipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AmidLipidChain;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AmidMonoHydroxyLipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.SphingolipidDiHydroxyBackboneChain;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.SphingolipidMonoHydroxyBackboneChain;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.SphingolipidTriHydroxyBackboneChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.TwoAcylLipidChains;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
@@ -61,16 +64,19 @@ public class LipidChainFactory {
       case ALKYL_CHAIN:
         yield new AlkylLipidChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
       case AMID_CHAIN:
-        yield null;//TODO
-      case AMID_MONO_HYDROXY_CHAIN:
         yield new AmidLipidChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
+      case AMID_MONO_HYDROXY_CHAIN:
+        yield new AmidMonoHydroxyLipidChain(chainAnnotation, chainFormula, chainLength,
+            numberOfDBE);
       case SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN:
-        yield null;//TODO
+        yield new SphingolipidMonoHydroxyBackboneChain(chainAnnotation, chainFormula, chainLength,
+            numberOfDBE);
       case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN:
         yield new SphingolipidDiHydroxyBackboneChain(chainAnnotation, chainFormula, chainLength,
             numberOfDBE);
       case SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN:
-        yield null;//TODO
+        yield new SphingolipidTriHydroxyBackboneChain(chainAnnotation, chainFormula, chainLength,
+            numberOfDBE);
     };
   }
 
@@ -84,8 +90,10 @@ public class LipidChainFactory {
       case ACYL_MONO_HYDROXY_CHAIN -> null; //TODO
       case TWO_ACYL_CHAINS_COMBINED -> calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
       case ALKYL_CHAIN -> calculateMolecularFormulaAlkylChain(chainLength, numberOfDBE);
-      case AMID_CHAIN -> calculateMolecularFormulaAmidChain(chainLength, numberOfDBE);//TODO
-      case AMID_MONO_HYDROXY_CHAIN -> null;//TODO
+      case AMID_CHAIN -> calculateMolecularFormulaAmidChain(chainLength, numberOfDBE);
+      case AMID_MONO_HYDROXY_CHAIN ->
+          calculateMolecularFormulaAmidMonoHydroxyChain(chainLength, numberOfDBE,
+              chainType.getFixNumberOfOxygens());
       case SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN ->
           calculateMolecularFormulaSphingolipidBackboneChain(chainLength, numberOfDBE, chainType);
       case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN ->
@@ -133,6 +141,15 @@ public class LipidChainFactory {
       int numberOfDoubleBonds) {
     int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2 + 1;
     int numberOfOAtoms = 1;
+    int numberOfNAtoms = 1;
+    return FormulaUtils.createMajorIsotopeMolFormula(
+        "C" + chainLength + "H" + numberOfHAtoms + "O" + numberOfOAtoms + "N" + numberOfNAtoms);
+  }
+
+  private IMolecularFormula calculateMolecularFormulaAmidMonoHydroxyChain(int chainLength,
+      int numberOfDoubleBonds, int fixNumberOfOxygens) {
+    int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2 + 1;
+    int numberOfOAtoms = 1 + fixNumberOfOxygens;
     int numberOfNAtoms = 1;
     return FormulaUtils.createMajorIsotopeMolFormula(
         "C" + chainLength + "H" + numberOfHAtoms + "O" + numberOfOAtoms + "N" + numberOfNAtoms);

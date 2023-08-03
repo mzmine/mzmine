@@ -43,8 +43,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GlyceroAndGlycerophospholipidAnnotationModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Lipid annotation";
-  private static final String MODULE_DESCRIPTION = "This method searches and annotates for features which m/z value matches a predicted mass of selected lipids.";
+  private static final String MODULE_NAME = "Glycero- and Glycerophospholipid annotation";
+  private static final String MODULE_DESCRIPTION = "This method searches for Glycero- and Glycerophospholipids.";
 
   @Override
   public @NotNull String getName() {

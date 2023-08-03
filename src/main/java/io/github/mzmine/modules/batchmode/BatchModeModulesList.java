@@ -104,6 +104,7 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refine
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relations.IonNetRelationsModule;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationModule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sphingolipids.SphingolipidAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
@@ -327,6 +328,7 @@ public class BatchModeModulesList {
       FormulaPredictionFeatureListModule.class, //
       IsotopePeakScannerModule.class, //
       GlyceroAndGlycerophospholipidAnnotationModule.class, //
+      SphingolipidAnnotationModule.class, //
       LocalCSVDatabaseSearchModule.class, //
       Ms2SearchModule.class, //
       NistMsSearchModule.class, //

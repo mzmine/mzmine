@@ -466,12 +466,19 @@ class LipidMsOneLevelTest {
 
   @Test
   void molecularFormulaLevelTestSM() {
-
-    //Falsch um C3H6
     Double EXACT_MASS_SM_32_1_O2 = FormulaUtils.calculateExactMass("C37H75N2O6P");
     IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
         LipidClasses.CERAMIDEPHOSPHOCHOLINES, 32, 1, 0).getMolecularFormula();
     assertEquals(NUMBER_FORMAT.format(EXACT_MASS_SM_32_1_O2), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
+  }
+
+  @Test
+  void molecularFormulaLevelTestCer() {
+    Double EXACT_MASS_CER_34_0_O3 = FormulaUtils.calculateExactMass("C34H69NO4");
+    IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.CERAMIDEANDDIHYDROCERAMIDEHYDROXYFATTYACID, 34, 0, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(EXACT_MASS_CER_34_0_O3), NUMBER_FORMAT.format(
         MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
   }
 

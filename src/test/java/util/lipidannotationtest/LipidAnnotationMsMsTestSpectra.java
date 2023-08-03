@@ -455,4 +455,15 @@ public class LipidAnnotationMsMsTestSpectra {
     return CL_16_0_18_1_18_2_18_2MMinusH;
   }
 
+  private final LipidAnnotationMsMsTestResource Cer_18_0_O2_16_0_OMPlusH = new LipidAnnotationMsMsTestResource(
+      new double[]{252.2686, 256.2635, 264.2686, 282.2791, 502.4982, 520.5088, 538.5193}, //
+      IonizationType.POSITIVE_HYDROGEN, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
+          LipidClasses.CERAMIDEANDDIHYDROCERAMIDEHYDROXYFATTYACID, new int[]{18, 16},
+          new int[]{0, 0}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getCer_18_0_O2_16_0_OMPlusH() {
+    return Cer_18_0_O2_16_0_OMPlusH;
+  }
+
 }

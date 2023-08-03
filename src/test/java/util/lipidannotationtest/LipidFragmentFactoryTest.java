@@ -14,6 +14,7 @@ import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.GlyceroAndGlyceroPhospholipidFragmentFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.SphingolipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
@@ -21,6 +22,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationChainParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sphingolipids.SphingolipidAnnotationChainParameters;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.RawDataFileImpl;
@@ -50,7 +52,9 @@ public class LipidFragmentFactoryTest {
   public static final ParameterSetParameter<GlyceroAndGlycerophospholipidAnnotationChainParameters> lipidChainParameters = new ParameterSetParameter<GlyceroAndGlycerophospholipidAnnotationChainParameters>(
       "Side chain parameters", "Optionally modify lipid chain parameters",
       new GlyceroAndGlycerophospholipidAnnotationChainParameters());
-
+  public static final ParameterSetParameter<SphingolipidAnnotationChainParameters> lipidChainParametersSphingolipids = new ParameterSetParameter<SphingolipidAnnotationChainParameters>(
+      "Side chain parameters", "Optionally modify lipid chain parameters",
+      new SphingolipidAnnotationChainParameters());
 
   @Test
   void findCommonLipidFragments() {
@@ -196,10 +200,51 @@ public class LipidFragmentFactoryTest {
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
         LipidFragmentationRuleType.ALKYLCHAIN_PLUS_FORMULA_FRAGMENT,
         LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, 377.2462, "C", testDataPointAcylChain,
-        LipidClasses.ALKYLACYLGLYCEROPHOSPHOINOSITOLS, 16, 0, LipidChainType.ALKYL_CHAIN, TEST_SCAN);
+        LipidClasses.ALKYLACYLGLYCEROPHOSPHOINOSITOLS, 16, 0, LipidChainType.ALKYL_CHAIN,
+        TEST_SCAN);
     compareTestAndBuildLipidFragments(lipidAcylChainFragment, testLipidAcylChainFragment);
   }
 
+  @Test
+  void findSphingolipidSpecificLipidSphingosinChainAndSubstructureNLFragment() {
+    ILipidAnnotation testLipidAnnotationCer_18_1_2O_16_0_4 = LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
+        LipidClasses.CERAMIDEPHOSPHOCHOLINES, new int[]{18, 16}, new int[]{1, 4}, new int[]{0, 0});
+    DataPoint testDataPointAcylChain = new SimpleDataPoint(264.2685, 1);
+    LipidFragmentationRule[] lipidFragmentationRules = LipidClasses.CERAMIDEPHOSPHOCHOLINES.getFragmentationRules();
+    SphingolipidFragmentFactory lipidFragmentFactory = new SphingolipidFragmentFactory(
+        MZ_TOLERANCE.getToleranceRange(testDataPointAcylChain.getMZ()),
+        testLipidAnnotationCer_18_1_2O_16_0_4, IonizationType.POSITIVE_HYDROGEN,
+        lipidFragmentationRules, testDataPointAcylChain, TEST_SCAN,
+        lipidChainParametersSphingolipids.getEmbeddedParameters());
+    LipidFragment lipidAcylChainFragment = lipidFragmentFactory.findLipidFragment();
+    LipidFragment testLipidAcylChainFragment = new LipidFragment(
+        LipidFragmentationRuleType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT,
+        LipidAnnotationLevel.SPECIES_LEVEL, 264.2686, "C", testDataPointAcylChain,
+        LipidClasses.CERAMIDEPHOSPHOCHOLINES, 18, 0,
+        LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN, TEST_SCAN);
+    compareTestAndBuildLipidFragments(lipidAcylChainFragment, testLipidAcylChainFragment);
+  }
+
+  @Test
+  void findSphingolipidSpecificLipidAmidMonoHydroxyChainPlusSubstructureFragment() {
+    ILipidAnnotation testLipidAnnotationCer_18_0_2O_16_0_O = LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
+        LipidClasses.CERAMIDEANDDIHYDROCERAMIDEHYDROXYFATTYACID, new int[]{18, 16}, new int[]{0, 0},
+        new int[]{0, 0});
+    DataPoint testDataPointAcylChain = new SimpleDataPoint(225.2224, 1);
+    LipidFragmentationRule[] lipidFragmentationRules = LipidClasses.CERAMIDEANDDIHYDROCERAMIDEHYDROXYFATTYACID.getFragmentationRules();
+    SphingolipidFragmentFactory lipidFragmentFactory = new SphingolipidFragmentFactory(
+        MZ_TOLERANCE.getToleranceRange(testDataPointAcylChain.getMZ()),
+        testLipidAnnotationCer_18_0_2O_16_0_O, IonizationType.ACETATE, lipidFragmentationRules,
+        testDataPointAcylChain, TEST_SCAN,
+        lipidChainParametersSphingolipids.getEmbeddedParameters());
+    LipidFragment lipidAcylChainFragment = lipidFragmentFactory.findLipidFragment();
+    LipidFragment testLipidAcylChainFragment = new LipidFragment(
+        LipidFragmentationRuleType.AMID_MONO_HYDROXY_CHAIN_PLUS_FORMULA_FRAGMENT,
+        LipidAnnotationLevel.SPECIES_LEVEL, 225.2224, "C", testDataPointAcylChain,
+        LipidClasses.CERAMIDEANDDIHYDROCERAMIDEHYDROXYFATTYACID, 18, 0,
+        LipidChainType.AMID_MONO_HYDROXY_CHAIN, TEST_SCAN);
+    compareTestAndBuildLipidFragments(lipidAcylChainFragment, testLipidAcylChainFragment);
+  }
 
   private static void compareTestAndBuildLipidFragments(LipidFragment buildLipidFragment,
       LipidFragment testLipidFragment) {

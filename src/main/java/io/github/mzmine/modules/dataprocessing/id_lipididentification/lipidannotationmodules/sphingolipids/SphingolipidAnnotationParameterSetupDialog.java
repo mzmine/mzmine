@@ -77,8 +77,8 @@ public class SphingolipidAnnotationParameterSetupDialog extends ParameterSetupDi
             .toArray(LipidClasses[]::new);
 
         Platform.runLater(() -> {
-          FXMLLoader loader = new FXMLLoader((getClass().getResource(
-              "common/lipids/GlyceroAndGlycerophospholipidDatabaseTable.fxml")));
+          FXMLLoader loader = new FXMLLoader(
+              (getClass().getResource("SphingolipidDatabaseTable.fxml")));
           Stage stage = new Stage();
           try {
             BorderPane root = loader.load();

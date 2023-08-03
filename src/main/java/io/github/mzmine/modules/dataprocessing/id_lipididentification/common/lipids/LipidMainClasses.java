@@ -60,22 +60,26 @@ public enum LipidMainClasses {
   CDPGLYCEROLS("CDP-Glycerols", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
 
   // Sphingolipids
+  CERAMIDES("Ceramides", LipidCategories.SPHINGOLIPIDS),//
+
+  NEUTRALGLYCOSPHINGOLIPIDS("Neutral glycosphingolipids", LipidCategories.SPHINGOLIPIDS),//
+
   PHOSPHOSPHINGOLIPIDS("Phosphosphingolipids", LipidCategories.SPHINGOLIPIDS);
 
   private final String name;
-  private final LipidCategories coreClass;
+  private final LipidCategories lipidCategory;
 
-  LipidMainClasses(String name, LipidCategories coreClass) {
+  LipidMainClasses(String name, LipidCategories lipidCategory) {
     this.name = name;
-    this.coreClass = coreClass;
+    this.lipidCategory = lipidCategory;
   }
 
   public String getName() {
     return name;
   }
 
-  public LipidCategories getCoreClass() {
-    return coreClass;
+  public LipidCategories getLipidCategory() {
+    return lipidCategory;
   }
 
   @Override
