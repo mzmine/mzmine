@@ -30,10 +30,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
+import org.jetbrains.annotations.Nullable;
 
 public class IntRangeComponent extends GridPane {
 
-  private TextField minTxtField, maxTxtField;
+  private final TextField minTxtField;
+  private final TextField maxTxtField;
 
   public IntRangeComponent() {
 
@@ -45,7 +47,6 @@ public class IntRangeComponent extends GridPane {
     maxTxtField = new TextField();
     maxTxtField.setPrefColumnCount(8);
 
-
     add(minTxtField, 0, 0);
     add(new Label(" - "), 1, 0);
     add(maxTxtField, 2, 0);
@@ -54,6 +55,9 @@ public class IntRangeComponent extends GridPane {
   public Range<Integer> getValue() {
     String minString = minTxtField.getText();
     String maxString = maxTxtField.getText();
+    if (minString.isBlank() && maxString.isBlank()) {
+      return null;
+    }
 
     try {
       if (!minString.isEmpty() && !maxString.isEmpty()) {
@@ -70,9 +74,14 @@ public class IntRangeComponent extends GridPane {
     }
   }
 
-  public void setValue(Range<Integer> value) {
-    minTxtField.setText(String.valueOf(value.lowerEndpoint()));
-    maxTxtField.setText(String.valueOf(value.upperEndpoint()));
+  public void setValue(@Nullable Range<Integer> value) {
+    if (value == null) {
+      minTxtField.setText("");
+      maxTxtField.setText("");
+    } else {
+      minTxtField.setText(String.valueOf(value.lowerEndpoint()));
+      maxTxtField.setText(String.valueOf(value.upperEndpoint()));
+    }
   }
 
   public void setToolTipText(String toolTip) {

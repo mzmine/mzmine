@@ -28,7 +28,7 @@ package io.github.mzmine.modules.visualization.image;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
-import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
@@ -68,7 +68,7 @@ public class ImagingPlot extends BorderPane {
     this.parameters = parameters;
   }
 
-  public void setData(ModularFeature feature) {
+  public void setData(Feature feature) {
     FeatureImageProvider<ImagingScan> prov = new FeatureImageProvider<>(feature,
         (List<ImagingScan>) feature.getFeatureList().getSeletedScans(feature.getRawDataFile()),
         parameters.getValue(ImageVisualizerParameters.imageNormalization));

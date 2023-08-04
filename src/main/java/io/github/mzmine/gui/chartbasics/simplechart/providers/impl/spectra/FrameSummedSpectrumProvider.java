@@ -32,10 +32,11 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import java.text.NumberFormat;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 
 /**
- * Used to plot a 2d intensity vs m/z spectrum in a {@link io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart}.
+ * Used to plot a 2d intensity vs m/z spectrum in a
+ * {@link io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart}.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -48,8 +49,6 @@ public class FrameSummedSpectrumProvider implements PlotXYDataProvider {
   protected final UnitFormat unitFormat;
   private final Frame frame;
 
-  private double finishedPercentage;
-
   public FrameSummedSpectrumProvider(Frame frame) {
     this.frame = frame;
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -57,8 +56,6 @@ public class FrameSummedSpectrumProvider implements PlotXYDataProvider {
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
-
-    finishedPercentage = 0d;
   }
 
   @Override
@@ -78,19 +75,18 @@ public class FrameSummedSpectrumProvider implements PlotXYDataProvider {
 
   @Override
   public Comparable<?> getSeriesKey() {
-    return frame.getDataFile().getName() + " - Frame " + frame.getFrameId() + " "
-        + rtFormat.format(frame.getRetentionTime()) + " min";
+    return frame.getScanDefinition();
   }
 
   @Override
   public String getToolTipText(int itemIndex) {
     return "Frame #" + frame.getFrameId() + "RT " + frame.getRetentionTime() + "\nm/z "
-        + mzFormat.format(frame.getMzValue(itemIndex)) + "\nIntensity "
-        + intensityFormat.format(frame.getIntensityValue(itemIndex));
+        + mzFormat.format(frame.getMzValue(itemIndex)) + "\nIntensity " + intensityFormat.format(
+        frame.getIntensityValue(itemIndex));
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
 //    dataPoints = ScanUtils.extractDataPoints(frame);
   }
 

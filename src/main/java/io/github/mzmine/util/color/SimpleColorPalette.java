@@ -56,25 +56,39 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
           new Color(1d, 0, 0, 1d)}, "Rainbow");
 
   public static final SimpleColorPalette BLUE_RED_WHITE = new SimpleColorPalette(
-      new Color[]{new Color(0d, 0d, 1d, 1d),
-          new Color(1d, 0, 0, 1d), new Color(1d, 1d, 1d, 1d)}, "Default");
+      new Color[]{new Color(0d, 0d, 1d, 1d), new Color(1d, 0, 0, 1d), new Color(1d, 1d, 1d, 1d)},
+      "Blue-Red-White");
 
-  protected static final SimpleColorPalette DEFAULT_NORMAL =
-      new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.NORMAL_VISION, true), "Normal",
-          ColorsFX.getPositiveColor(Vision.NORMAL_VISION), ColorsFX.getNeutralColor(),
-          ColorsFX.getNegativeColor(Vision.NORMAL_VISION));
-  protected static final SimpleColorPalette DEFAULT_DEUTERANOPIA =
-      new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true),
-          "Deuteranopia", ColorsFX.getPositiveColor(Vision.DEUTERANOPIA),
-          ColorsFX.getNeutralColor(), ColorsFX.getNegativeColor(Vision.DEUTERANOPIA));
-  protected static final SimpleColorPalette DEFAULT_PROTANOPIA =
-      new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.PROTANOPIA, true), "Protanopia",
-          ColorsFX.getPositiveColor(Vision.PROTANOPIA), ColorsFX.getNeutralColor(),
-          ColorsFX.getNegativeColor(Vision.PROTANOPIA));
-  protected static final SimpleColorPalette DEFAULT_TRITANOPIA =
-      new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.TRITANOPIA, true), "Tritanopia",
-          ColorsFX.getPositiveColor(Vision.TRITANOPIA), ColorsFX.getNeutralColor(),
-          ColorsFX.getNegativeColor(Vision.TRITANOPIA));
+  public static final SimpleColorPalette GREEN_YELLOW = new SimpleColorPalette(
+      new Color[]{new Color(0.f, 0.620f, 0.451f, 1f), new Color(0.941f, 0.894f, 0.259f, 1f)},
+      "Green-Yellow (Color blind friendly)");
+
+  public static final SimpleColorPalette BLUE_YELLOW = new SimpleColorPalette(
+      new Color[]{Color.web("#2bb2ff", 1.0f), new Color(0.941f, 0.894f, 0.259f, 1f)},
+      "Blue-Yellow (Color blind friendly)");
+
+  public static final SimpleColorPalette BLUE_ORANGE_WHITE = new SimpleColorPalette(
+      new Color[]{Color.BLACK, Color.web("#1A3399"), Color.web("#D55E00"), Color.WHITE},
+      "Blue-Orange-White");
+
+  public static final List<SimpleColorPalette> DEFAULT_PAINT_SCALES = List.of(BLUE_YELLOW,
+      GREEN_YELLOW, BLUE_RED_WHITE, RAINBOW, BLUE_ORANGE_WHITE);
+  protected static final SimpleColorPalette DEFAULT_NORMAL = new SimpleColorPalette(
+      ColorsFX.getSevenColorPalette(Vision.NORMAL_VISION, true), "Normal",
+      ColorsFX.getPositiveColor(Vision.NORMAL_VISION), ColorsFX.getNeutralColor(),
+      ColorsFX.getNegativeColor(Vision.NORMAL_VISION));
+  protected static final SimpleColorPalette DEFAULT_DEUTERANOPIA = new SimpleColorPalette(
+      ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true), "Deuteranopia",
+      ColorsFX.getPositiveColor(Vision.DEUTERANOPIA), ColorsFX.getNeutralColor(),
+      ColorsFX.getNegativeColor(Vision.DEUTERANOPIA));
+  protected static final SimpleColorPalette DEFAULT_PROTANOPIA = new SimpleColorPalette(
+      ColorsFX.getSevenColorPalette(Vision.PROTANOPIA, true), "Protanopia",
+      ColorsFX.getPositiveColor(Vision.PROTANOPIA), ColorsFX.getNeutralColor(),
+      ColorsFX.getNegativeColor(Vision.PROTANOPIA));
+  protected static final SimpleColorPalette DEFAULT_TRITANOPIA = new SimpleColorPalette(
+      ColorsFX.getSevenColorPalette(Vision.TRITANOPIA, true), "Tritanopia",
+      ColorsFX.getPositiveColor(Vision.TRITANOPIA), ColorsFX.getNeutralColor(),
+      ColorsFX.getNegativeColor(Vision.TRITANOPIA));
   /**
    * Access via {@link Vision}
    */
@@ -169,6 +183,22 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return clr;
   }
 
+  /**
+   * @param exclusion A color to be visually different from.
+   * @return A visually different color.
+   */
+  public synchronized Color getNextColor(@NotNull final Color exclusion) {
+    final int startNext = next;
+
+    do {
+      var clr = getNextColor();
+      if (ColorUtils.getColorDifference(clr, exclusion) > ColorUtils.MIN_REDMEAN_COLOR_DIFF) {
+        return clr; // this color is different
+      }
+    } while (startNext != next);
+    return getNextColor(); // use the color we should use originally
+  }
+
   public java.awt.Color getNextColorAWT() {
     return FxColorUtil.fxColorToAWT(getNextColor());
   }
@@ -256,8 +286,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
   public PaintScale toPaintScale(PaintScaleTransform transform, Range<Double> valueRange) {
     var paintScale = new PaintScale(valueRange);
     PaintScaleFactory psf = new PaintScaleFactory();
-    return psf
-        .createColorsForCustomPaintScaleFX(paintScale, transform, this);
+    return psf.createColorsForCustomPaintScaleFX(paintScale, transform, this);
   }
 
   /**
@@ -392,8 +421,9 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   public void setPositiveColor(Color positiveColor) {
     this.positiveColor = positiveColor;
-    fireChange(new ColorPaletteChangedEvent(this,
-        ColorPaletteChangeEventType.POSITIVE_MARKER_UPDATED, positiveColor));
+    fireChange(
+        new ColorPaletteChangedEvent(this, ColorPaletteChangeEventType.POSITIVE_MARKER_UPDATED,
+            positiveColor));
   }
 
   public java.awt.Color getPositiveColorAWT() {
@@ -406,8 +436,9 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   public void setNegativeColor(Color negativeColor) {
     this.negativeColor = negativeColor;
-    fireChange(new ColorPaletteChangedEvent(this,
-        ColorPaletteChangeEventType.NEGATIVE_MARKER_UPDATED, negativeColor));
+    fireChange(
+        new ColorPaletteChangedEvent(this, ColorPaletteChangeEventType.NEGATIVE_MARKER_UPDATED,
+            negativeColor));
   }
 
   public java.awt.Color getNegativeColorAWT() {
@@ -420,8 +451,9 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
 
   public void setNeutralColor(Color neutralColor) {
     this.neutralColor = neutralColor;
-    fireChange(new ColorPaletteChangedEvent(this,
-        ColorPaletteChangeEventType.NEUTRAL_MARKER_UPDATED, neutralColor));
+    fireChange(
+        new ColorPaletteChangedEvent(this, ColorPaletteChangeEventType.NEUTRAL_MARKER_UPDATED,
+            neutralColor));
   }
 
   public java.awt.Color getNeutralColorAWT() {

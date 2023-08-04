@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,15 +28,21 @@ package io.github.mzmine.util.files;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Simple file operations
@@ -44,6 +50,9 @@ import org.apache.commons.io.FilenameUtils;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class FileAndPathUtil {
+
+  private final static File USER_MZMINE_DIR = new File(FileUtils.getUserDirectory(), ".mzmine/");
+  private static File MZMINE_TEMP_DIR = new File(System.getProperty("java.io.tmpdir"));
 
   /**
    * Count the number of lines in a text file (should be seconds even for large files)
@@ -157,6 +166,21 @@ public class FileAndPathUtil {
     int lastDot = f.getName().lastIndexOf(".");
     if (lastDot != -1) {
       return new File(f.getParent(), f.getName().substring(0, lastDot));
+    } else {
+      return f;
+    }
+  }
+
+  /**
+   * erases the format. "image.png" will be returned as "image" this method is used by
+   * getRealFilePath and getRealFileName
+   *
+   * @return remove format from file
+   */
+  public static String eraseFormat(String f) {
+    int lastDot = f.lastIndexOf(".");
+    if (lastDot != -1) {
+      return f.substring(0, lastDot);
     } else {
       return f;
     }
@@ -482,6 +506,7 @@ public class FileAndPathUtil {
    *
    * @return jar path
    */
+  @Nullable
   public static File getPathOfJar() {
     /*
      * File f = new File(System.getProperty("java.class.path")); File dir =
@@ -493,9 +518,27 @@ public class FileAndPathUtil {
               .getPath());
       return jar.getParentFile();
     } catch (Exception ex) {
-      return new File("");
+      return null;
     }
   }
+
+  /**
+   * The main directory. Only tested on windows
+   *
+   * @return
+   */
+  @Nullable
+  public static File getSoftwareMainDirectory() {
+    File pathOfJar = FileAndPathUtil.getPathOfJar();
+    return pathOfJar == null ? null : pathOfJar.getParentFile();
+  }
+
+
+  @Nullable
+  public static File getUserSettingsDir() {
+    return USER_MZMINE_DIR;
+  }
+
 
   public static File getUniqueFilename(final File parent, final String fileName) {
     final File dir = parent.isDirectory() ? parent : parent.getParentFile();
@@ -536,5 +579,83 @@ public class FileAndPathUtil {
    */
   public static String safePathEncode(String name, String replaceStr) {
     return name.replaceAll("[^a-zA-Z0-9-_()\\.\\s]", replaceStr);
+  }
+
+  /**
+   * Three options:
+   * <p>
+   * 1. a string that defines all files separated by lines \n
+   * <p>
+   * 2. a .txt text file with files listed separated by newline \n
+   * <p>
+   * 3. a wildcard path/*.mzML to grab all files
+   *
+   * @return extracted list of files
+   */
+  public static File[] parseFileInputArgument(final String input) throws IOException {
+    if (input.toLowerCase().endsWith(".txt")) {
+      try (var lines = Files.lines(Paths.get(input))) {
+        return lines.map(File::new).toArray(File[]::new);
+      }
+    }
+
+    if (input.contains("*")) {
+      return searchWithGlob(input);
+    }
+
+    // try to just use the input as files separated by newline
+    // matches all new line characters
+    return Arrays.stream(input.split("\\R")).map(File::new).toArray(File[]::new);
+  }
+
+  /**
+   * @param globPath path like path/*.mzML
+   * @return all matching files
+   */
+  public static @NotNull File[] searchWithGlob(String globPath) throws IOException {
+    var path = new File(globPath);
+//    var path = Paths.get(globPath);
+    return searchWithGlob(path.getParentFile().toPath(), path.getName());
+  }
+
+  /**
+   * @param rootDir parent directory
+   * @param pattern pattern like *.mzML
+   * @return all matching files
+   */
+  public static @NotNull File[] searchWithGlob(Path rootDir, String pattern) throws IOException {
+    PathMatcher matcher = FileSystems.getDefault()
+        .getPathMatcher((pattern.startsWith("glob:") ? "" : "glob:") + pattern);
+
+    try (Stream<Path> stream = Files.walk(rootDir, 1)) {
+      return stream.filter(file -> matcher.matches(file.getFileName())).map(Path::toFile)
+          .toArray(File[]::new);
+    }
+  }
+
+  public static File getTempDir() {
+    return MZMINE_TEMP_DIR;
+  }
+
+  /**
+   * Sets the temp dir.
+   */
+  public static void setTempDir(@NotNull final File path) {
+    MZMINE_TEMP_DIR = path;
+  }
+
+  /**
+   * Creates a temp file in the set mzmine temp directory.
+   */
+  public static File createTempFile(String prefix, String suffix) throws IOException {
+    final File tempFile = Files.createTempFile(MZMINE_TEMP_DIR.toPath(), prefix, suffix).toFile();
+    return tempFile;
+  }
+
+  /**
+   * Creates a temp folder in the set mzmine temp directory.
+   */
+  public static Path createTempDirectory(String name) throws IOException {
+    return Files.createTempDirectory(MZMINE_TEMP_DIR.toPath(), name);
   }
 }

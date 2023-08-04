@@ -42,7 +42,7 @@ import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
@@ -136,7 +136,7 @@ public class MSPEntryGenerator {
   /**
    * Creates a simple MSP nist format DB entry
    */
-  public static String createMSPEntry(SpectralDBEntry entry) {
+  public static String createMSPEntry(SpectralLibraryEntry entry) {
 
     String def = ": ";
     String br = "\n";
@@ -151,10 +151,11 @@ public class MSPEntryGenerator {
       entry.getField(field)
           .ifPresent(value -> s.append(field.getNistMspID()).append(def).append(value).append(br));
     }
-    entry.getField(DBEntryField.POLARITY).ifPresent(p -> {
-      String pol = PolarityType.POSITIVE.equals(p) ? "P" : "N";
+    var polarity = entry.getPolarity();
+    if(polarity.isDefined()) {
+      String pol = PolarityType.POSITIVE.equals(polarity) ? "P" : "N";
       s.append(DBEntryField.POLARITY.getNistMspID()).append(def).append(pol).append(br);
-    });
+    }
 
     // num peaks and data
     DataPoint[] dps = entry.getDataPoints();

@@ -100,4 +100,5 @@ public class CSVUtils {
     return String.format("[%s]",
         Arrays.stream(list).mapToObj(format::format).collect(Collectors.joining(sep)));
   }
+
 }

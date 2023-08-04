@@ -50,17 +50,12 @@ public abstract class FloatType extends NumberType<Float> {
   }
 
   @Override
-  public @NotNull String getFormattedString(Float value) {
-    return value == null ? "" : getFormatter().format(value);
+  public Class<Float> getValueClass() {
+    return Float.class;
   }
 
   public @NotNull String getFormattedString(float value) {
-    return getFormatter().format(value);
-  }
-
-  @Override
-  public Class<Float> getValueClass() {
-    return Float.class;
+    return getFormat().format(value);
   }
 
   @Override

@@ -25,6 +25,8 @@
 
 package io.github.mzmine.parameters.parametertypes.massdefect;
 
+import io.github.mzmine.main.MZmineCore;
+
 public class MassDefectFilter {
 
   public static final MassDefectFilter ALL = new MassDefectFilter(0, 1) {
@@ -74,5 +76,11 @@ public class MassDefectFilter {
 
   public double getUpperEndpoint() {
     return upper;
+  }
+
+  @Override
+  public String toString() {
+    var format = MZmineCore.getConfiguration().getGuiFormats();
+    return format.mz(lower) + ".." + format.mz(upper);
   }
 }

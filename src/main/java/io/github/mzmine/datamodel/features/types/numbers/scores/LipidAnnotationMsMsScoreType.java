@@ -37,7 +37,7 @@ public class LipidAnnotationMsMsScoreType extends ScoreType {
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
     return new DecimalFormat("0.0");
   }
 
@@ -51,5 +51,10 @@ public class LipidAnnotationMsMsScoreType extends ScoreType {
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
     return "lipid_msms_score";
+  }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
   }
 }

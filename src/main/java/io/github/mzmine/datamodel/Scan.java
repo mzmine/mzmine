@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -90,6 +91,10 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
       throw new IllegalStateException("Current element is not a scan element.");
     }
 
+    // this name belongs the raw data file the original feature is from and is usually sufficient.
+    // However, in the case of MALDI-SIMSEF acquisitions, multiple raw files may be used to generate
+    // a merged MS2 spectrum (e.g. multiple collision energies) So we later also pass all the
+    // project files to SimpleMergedMsMsSpectrum.
     final String name = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
     final RawDataFile file = possibleFiles.stream().filter(f -> f.getName().equals(name))
         .findFirst().orElse(null);
@@ -105,14 +110,13 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
         return scan instanceof CachedIMSFrame cached ? cached.getOriginalFrame() : scan;
       }
       case SimpleMergedMsMsSpectrum.XML_SCAN_TYPE -> {
-        return SimpleMergedMsMsSpectrum.loadFromXML(reader, (IMSRawDataFile) file);
+        return SimpleMergedMsMsSpectrum.loadFromXML(reader, (IMSRawDataFile) file, possibleFiles);
       }
       case SimplePseudoSpectrum.XML_SCAN_TYPE -> {
         return SimplePseudoSpectrum.loadFromXML(reader, file);
       }
-      default -> {
-        throw new IllegalArgumentException("Cannot load scan from xml. Scan type not recognized.");
-      }
+      default -> throw new IllegalArgumentException(
+          "Cannot load scan from xml. Scan type not recognized.");
     }
   }
 
@@ -147,13 +151,16 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   @Nullable
   public Float getInjectionTime();
 
+  default boolean hasInjectionTime() {
+    return getInjectionTime() != null && getInjectionTime() >= 0;
+  }
+
   /**
    * @return The actual scanning range of the instrument
    */
   @NotNull Range<Double> getScanningMZRange();
 
   /**
-   *
    * @return The {@link MsMsInfo}. If null, this is not an MSn scan.
    */
   @Nullable MsMsInfo getMsMsInfo();
@@ -196,7 +203,6 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   }
 
   /**
-   *
    * Method to check if the scan m/z range is not empty
    *
    * @return boolean

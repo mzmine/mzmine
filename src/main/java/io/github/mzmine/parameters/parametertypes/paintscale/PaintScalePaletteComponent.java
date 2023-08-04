@@ -92,8 +92,9 @@ public class PaintScalePaletteComponent extends GridPane {
 
     btnEditPalette = new Button("Edit");
     btnEditPalette.setOnAction(e -> {
-      if (SimpleColorPalette.RAINBOW.equals(box.getValue())) {
-        MZmineCore.getDesktop().displayErrorMessage("Cannot edit default palette.");
+      if (SimpleColorPalette.DEFAULT_PAINT_SCALES.contains(box.getValue())) {
+        MZmineCore.getDesktop().displayErrorMessage(
+            "Cannot edit default palette.\n" + "Duplicate this palette first.");
         return;
       }
 
@@ -124,7 +125,7 @@ public class PaintScalePaletteComponent extends GridPane {
 
     btnDeletePalette = new Button("Delete");
     btnDeletePalette.setOnAction(e -> {
-      if (SimpleColorPalette.RAINBOW.equals(box.getValue())) {
+      if (SimpleColorPalette.DEFAULT_PAINT_SCALES.contains(box.getValue())) {
         MZmineCore.getDesktop().displayErrorMessage("Cannot delete default palette.");
         return;
       }
@@ -154,7 +155,7 @@ public class PaintScalePaletteComponent extends GridPane {
   }
 
   public void setValue(SimpleColorPalette value) {
-    if (box.getItems().indexOf(value) == -1) {
+    if (!box.getItems().contains(value)) {
       logger.warning("Value of PaintScalePaletteComponent was set to a value not contained "
           + "in the items. This might lead to unexpected behaviour.");
     }

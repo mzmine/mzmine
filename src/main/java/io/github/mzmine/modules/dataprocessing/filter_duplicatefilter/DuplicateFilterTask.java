@@ -46,6 +46,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
@@ -129,6 +130,9 @@ public class DuplicateFilterTask extends AbstractTask {
             parameters.getParameter(DuplicateFilterParameters.suffix).getValue(),
             parameters.getParameter(DuplicateFilterParameters.mzDifferenceMax).getValue(),
             parameters.getParameter(DuplicateFilterParameters.rtDifferenceMax).getValue(),
+            parameters.getEmbeddedParameterValueIfSelectedOrElseGet(
+                DuplicateFilterParameters.mobilityDifferenceMax,
+                () -> new MobilityTolerance(Float.MAX_VALUE)), // use huge tolerance otherwise
             parameters.getParameter(DuplicateFilterParameters.requireSameIdentification).getValue(),
             parameters.getParameter(DuplicateFilterParameters.filterMode).getValue(),
             originalFeatureListOption == OriginalFeatureListOption.PROCESS_IN_PLACE);
@@ -164,7 +168,8 @@ public class DuplicateFilterTask extends AbstractTask {
    */
   private FeatureList filterDuplicatePeakListRows(final FeatureList origPeakList,
       final String suffix, final MZTolerance mzTolerance, final RTTolerance rtTolerance,
-      final boolean requireSameId, FilterMode mode, Boolean processOriginalList) {
+      final MobilityTolerance mobilityTolerance, final boolean requireSameId, FilterMode mode,
+      Boolean processOriginalList) {
     // Create the new feature list.
     final ModularFeatureList newPeakList;
     if (processOriginalList) {
@@ -183,12 +188,15 @@ public class DuplicateFilterTask extends AbstractTask {
     processedRows = 0;
     // sort rows
     final int removedDuplicates = switch (mode) {
-      case OLD_AVERAGE -> applyOldAverageFilter(mzTolerance, rtTolerance, requireSameId,
-          peakListRows, rowCount);
-      case NEW_AVERAGE -> applyNewMergingFilter(mzTolerance, rtTolerance, requireSameId,
-          newPeakList, peakListRows, rowCount, rawFiles);
-      case SINGLE_FEATURE -> applySingleFeatureMergingFilter(mzTolerance, rtTolerance,
-          requireSameId, newPeakList, peakListRows, rowCount, rawFiles);
+      case OLD_AVERAGE ->
+          applyOldAverageFilter(mzTolerance, rtTolerance, mobilityTolerance, requireSameId,
+              peakListRows, rowCount);
+      case NEW_AVERAGE ->
+          applyNewMergingFilter(mzTolerance, rtTolerance, mobilityTolerance, requireSameId,
+              newPeakList, peakListRows, rowCount, rawFiles);
+      case SINGLE_FEATURE ->
+          applySingleFeatureMergingFilter(mzTolerance, rtTolerance, mobilityTolerance,
+              requireSameId, newPeakList, peakListRows, rowCount, rawFiles);
     };
 
     // finalize
@@ -220,7 +228,8 @@ public class DuplicateFilterTask extends AbstractTask {
   }
 
   private int applyOldAverageFilter(MZTolerance mzTolerance, RTTolerance rtTolerance,
-      boolean requireSameId, ModularFeatureListRow[] peakListRows, int rowCount) {
+      MobilityTolerance mobilityTolerance, boolean requireSameId,
+      ModularFeatureListRow[] peakListRows, int rowCount) {
     Arrays.sort(peakListRows,
         new FeatureListRowSorter(SortingProperty.Area, SortingDirection.Descending));
 
@@ -245,10 +254,13 @@ public class DuplicateFilterTask extends AbstractTask {
             final boolean sameID =
                 !requireSameId || FeatureUtils.compareIdentities(firstRow, secondRow);
 
-            boolean sameMZRT = checkSameAverageRTMZ(firstRow, secondRow, mzTolerance, rtTolerance);
+            final boolean sameMZRT = checkSameAverageRTMZ(firstRow, secondRow, mzTolerance,
+                rtTolerance);
+
+            final boolean sameMobility = checkMobility(firstRow, secondRow, mobilityTolerance);
 
             // Duplicate peaks?
-            if (sameID && sameMZRT) {
+            if (sameID && sameMZRT && sameMobility) {
               // second row deleted
               removedDuplicates++;
               peakListRows[secondRowIndex] = null;
@@ -263,8 +275,8 @@ public class DuplicateFilterTask extends AbstractTask {
 
 
   private int applyNewMergingFilter(MZTolerance mzTolerance, RTTolerance rtTolerance,
-      boolean requireSameId, ModularFeatureList newPeakList, ModularFeatureListRow[] peakListRows,
-      int rowCount, RawDataFile[] rawFiles) {
+      MobilityTolerance mobilityTolerance, boolean requireSameId, ModularFeatureList newPeakList,
+      ModularFeatureListRow[] peakListRows, int rowCount, RawDataFile[] rawFiles) {
     // sort by mz to limit number of iterations
     Arrays.sort(peakListRows,
         new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
@@ -305,11 +317,13 @@ public class DuplicateFilterTask extends AbstractTask {
             final boolean sameID =
                 !requireSameId || FeatureUtils.compareIdentities(firstRow, secondRow);
 
-            boolean sameRT = rtTolerance.checkWithinTolerance(firstRow.getAverageRT(),
+            final boolean sameRT = rtTolerance.checkWithinTolerance(firstRow.getAverageRT(),
                 secondRow.getAverageRT());
 
+            final boolean sameMobility = checkMobility(firstRow, secondRow, mobilityTolerance);
+
             // Duplicate peaks?
-            if (sameID && sameRT) {
+            if (sameID && sameRT && sameMobility) {
               // create consensus row in new filter
               // copy all detected features of row2 into row1
               // to exchange gap-filled against detected
@@ -333,8 +347,8 @@ public class DuplicateFilterTask extends AbstractTask {
    * @return number of duplicates
    */
   private int applySingleFeatureMergingFilter(MZTolerance mzTolerance, RTTolerance rtTolerance,
-      boolean requireSameId, ModularFeatureList newPeakList, ModularFeatureListRow[] peakListRows,
-      int rowCount, RawDataFile[] rawFiles) {
+      MobilityTolerance mobilityTolerance, boolean requireSameId, ModularFeatureList newPeakList,
+      ModularFeatureListRow[] peakListRows, int rowCount, RawDataFile[] rawFiles) {
     // sort by mz to limit number of iterations
     Arrays.sort(peakListRows,
         new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
@@ -388,11 +402,13 @@ public class DuplicateFilterTask extends AbstractTask {
             final boolean sameID =
                 !requireSameId || FeatureUtils.compareIdentities(firstRow, secondRow);
 
-            boolean sameRT = checkSameSingleFeatureRTMZ(rawFiles, firstRow, secondRow, mzTolerance,
-                rtTolerance);
+            final boolean sameRT = checkSameSingleFeatureRTMZ(rawFiles, firstRow, secondRow,
+                mzTolerance, rtTolerance);
+
+            final boolean sameMobility = checkMobility(firstRow, secondRow, mobilityTolerance);
 
             // Duplicate peaks?
-            if (sameID && sameRT) {
+            if (sameID && sameRT && sameMobility) {
               // create consensus row in new filter
               // copy all detected features of row2 into row1
               // to exchange gap-filled against detected
@@ -484,7 +500,13 @@ public class DuplicateFilterTask extends AbstractTask {
       MZTolerance mzTolerance, RTTolerance rtTolerance) {
     // Compare m/z and RT
     return mzTolerance.checkWithinTolerance(firstRow.getAverageMZ(), secondRow.getAverageMZ())
-           && rtTolerance.checkWithinTolerance(firstRow.getAverageRT(), secondRow.getAverageRT());
+        && rtTolerance.checkWithinTolerance(firstRow.getAverageRT(), secondRow.getAverageRT());
+  }
+
+  private boolean checkMobility(@NotNull FeatureListRow rowA, @NotNull FeatureListRow rowB,
+      @NotNull MobilityTolerance tol) {
+    return tol.checkWithinTolerance(Objects.requireNonNullElse(rowA.getAverageMobility(), 1f),
+        Objects.requireNonNullElse(rowB.getAverageMobility(), 1f));
   }
 
 }

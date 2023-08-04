@@ -1,0 +1,185 @@
+name: Development Build Release
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - 'src/main/resources/mzmineversion.properties'
+
+jobs:
+  gradle_dev_build:
+    name: test and build
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '20.0.1'
+          cache: 'gradle'
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+#      in push to master use signed version for macOS defined below
+      - name: Execute Gradle build (unsigned)
+        if: runner.os != 'macOS'
+        run: ./gradlew --stacktrace --info
+
+      # ZIP PORTABLE VERSIONS
+      - name: Zip portable windows
+        if: runner.os == 'Windows'
+        uses: papeloto/action-zip@v1
+        with:
+          files: build/jpackage/MZmine/
+          dest: build/jpackage/MZmine_Windows_portable.zip
+      - name: Zip portable linux
+        if: runner.os == 'Linux'
+        uses: papeloto/action-zip@v1
+        with:
+          files: build/jpackage/MZmine/
+          dest: build/jpackage/MZmine_Linux_portable.zip
+
+      # UPLOAD ALL FILES
+      - name: Upload windows builds
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v2
+        with:
+          name: MZmine_windows_msi_installer
+          path: build/jpackage/*.msi
+          retention-days: 7  # store for 7 days
+      - name: Upload windows portable builds
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v2
+        with:
+          name: MZmine_windows_portable
+          path: build/jpackage/MZmine_Windows_portable.zip
+          retention-days: 7  # store for 7 days
+
+      - name: Upload builds ubuntu deb
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v2
+        with:
+          name: MZmine_linux_deb_package
+          path: build/jpackage/*.deb
+          retention-days: 7  # store for 7 days
+      - name: Upload builds ubuntu rpm
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v2
+        with:
+          name: MZmine_linux_rpm_package
+          path: build/jpackage/*.rpm
+          retention-days: 7  # store for 7 days
+      - name: Upload linux portable builds
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v2
+        with:
+          name: MZmine_linux_portable
+          path: build/jpackage/MZmine_Linux_portable.zip
+          retention-days: 7  # store for 7 days
+
+
+
+      # for macOS:
+      # 1. upload the dmg installer
+      # 2. remove the dmg isntaller from path
+      # 3. zip and upload the jpackage directory
+      # This is needed because zipping of the /jpackage/MZmine.app portable version zips the content
+      # of the folder not the folder itself
+      - name: Setup node for macOS packaging
+        if: runner.os == 'macOS'
+        uses: actions/setup-node@v3  # To install appdmg
+
+      - name: Execute Gradle build on macOS (signed)
+        if: runner.os == 'macOS'
+        run: |
+          echo "$MACOS_DEVELOPER_CERTIFICATE" | base64 --decode > certificate.p12
+          security create-keychain -p abc123 build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p abc123 build.keychain
+          security import certificate.p12 -k build.keychain -P "$MACOS_DEVELOPER_CERTIFICATE_PWD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 build.keychain
+          ./gradlew --stacktrace --info
+        env:
+          MACOS_DEVELOPER_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERTIFICATE }}
+          MACOS_DEVELOPER_CERTIFICATE_PWD: ${{ secrets.MACOS_DEVELOPER_CERTIFICATE_PWD }}
+          MACOS_APPLE_ID_PWD: ${{ secrets.MACOS_APPLE_ID_PWD }}
+          MACOS_APP_IDENTITY_ID: ${{ secrets.MACOS_APP_IDENTITY_ID }}
+          MACOS_APP_IDENTITY_TEAM_ID: ${{ secrets.MACOS_APP_IDENTITY_TEAM_ID }}
+
+      - name: Pack macOS .app to .dmg
+        if: runner.os == 'macOS'
+        run: |
+          npm install -g appdmg
+          appdmg gradle/appdmg.json build/jpackage/MZmine_macOS_installer.dmg
+
+      - name: Upload macOS installer
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v2
+        with:
+          name: MZmine_macOS_installer
+          path: build/jpackage/MZmine_macOS_installer.dmg
+          retention-days: 7  # store for 7 days
+
+#      - name: Remove dmg File and Make .app executable
+#        if: runner.os == 'macOS'
+#        run: |
+#          find ./build/jpackage/ -name '*.dmg' -delete
+#          chmod a+x build/jpackage/MZmine.app/Contents/MacOS/MZmine
+#      - name: Zip portable macos
+#        if: runner.os == 'macOS'
+#        uses: papeloto/action-zip@v1
+#        with:
+#          files: build/jpackage/
+#          dest: build/jpackage/MZmine_macOS_portable.zip
+      - name: Upload macOS portable builds
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v2
+        with:
+          name: MZmine_macos_portable
+          path: build/jpackage/MZmine_macOS_portable.zip
+          retention-days: 7  # store for 7 days
+
+
+  # release dev version
+  release_dev:
+    name: Release dev version
+    needs: gradle_dev_build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v2 # download all artifacts
+        with:
+          path: build/
+      - name: Create development release
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN}}"
+          prerelease: true
+          title: "Latest Development Build"
+          automatic_release_tag: "Development-release"
+          files: build/*/*
+
+  # bump up patch if dev release finished
+  increment_patch:
+    name: Increment patch version
+    needs: release_dev
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }} # only increment if not a tag push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.MZMINE_BOT_ACTIONS_TOKEN }}
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+      - name: Execute Gradle to increment version
+        run: ./gradlew incrementPatch
+      - name: Commit updated patch version
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Increment patch version
+          branch: master
+

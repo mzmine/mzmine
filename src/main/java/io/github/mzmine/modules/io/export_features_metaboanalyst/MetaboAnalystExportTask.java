@@ -25,72 +25,90 @@
 
 package io.github.mzmine.modules.io.export_features_metaboanalyst;
 
-import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.CSVUtils;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 class MetaboAnalystExportTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(MetaboAnalystExportTask.class.getName());
   private static final String fieldSeparator = ",";
 
-  private final MZmineProject project;
   private final FeatureList[] featureLists;
-  private String plNamePattern = "{}";
+  private final @NotNull MetadataTable metadata;
+  private final MetadataColumn<?> metadataColumn;
+  private final String grouping;
+  private final AbundanceMeasure FEATURE_INTENSITY;
   private int processedRows = 0, totalRows = 0;
 
   // parameter values
-  private File fileName;
-  private UserParameter<?, ?> groupParameter;
+  private final File fileName;
 
-  MetaboAnalystExportTask(MZmineProject project, ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  MetaboAnalystExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
-    this.project = project;
-    this.featureLists = parameters.getParameter(MetaboAnalystExportParameters.featureLists).getValue()
+    this.featureLists = parameters.getValue(MetaboAnalystExportParameters.featureLists)
         .getMatchingFeatureLists();
 
-    fileName = parameters.getParameter(MetaboAnalystExportParameters.filename).getValue();
-    groupParameter =
-        parameters.getParameter(MetaboAnalystExportParameters.groupParameter).getValue();
-
+    fileName = parameters.getValue(MetaboAnalystExportParameters.filename);
+    FEATURE_INTENSITY=parameters.getValue(MetaboAnalystExportParameters.FEATURE_INTENSITY);
+//    statsFormat = parameters.getValue(MetaboAnalystExportParameters.format);
+    grouping = parameters.getValue(MetaboAnalystExportParameters.grouping);
+    metadata = MZmineCore.getProjectMetadata();
+    metadataColumn = metadata.getColumnByName(grouping);
   }
 
   @Override
   public double getFinishedPercentage() {
-    if (totalRows == 0) {
-      return 0;
-    }
-    return (double) processedRows / (double) totalRows;
+    return totalRows == 0 ? 0 : processedRows / (double) totalRows;
   }
 
   @Override
   public String getTaskDescription() {
+    if (metadataColumn == null) {
+      return "Error: Metadata column not found for " + grouping;
+    }
     return "Exporting feature list(s) " + Arrays.toString(featureLists)
-        + " to MetaboAnalyst CSV file(s)";
+        + " to MetaboAnalyst CSV file(s) for metadata column " + grouping;
   }
 
   @Override
   public void run() {
+    if (metadataColumn == null) {
+      setErrorMessage("Error: Metadata column not found for " + grouping);
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
 
     setStatus(TaskStatus.PROCESSING);
 
     // Shall export several files?
+    String plNamePattern = "{}";
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
     // Total number of rows
@@ -105,140 +123,116 @@ class MetaboAnalystExportTask extends AbstractTask {
       File curFile = fileName;
       if (substitute) {
         // Cleanup from illegal filename characters
-        String cleanPlName = featureList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
+        String cleanPlName = FileAndPathUtil.safePathEncode(featureList.getName());
         // Substitute
-        String newFilename =
-            fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
+        String newFilename = fileName.getPath()
+            .replaceAll(Pattern.quote(plNamePattern), cleanPlName);
         curFile = new File(newFilename);
       }
 
       // Check the feature list for MetaboAnalyst requirements
       boolean checkResult = checkFeatureList(featureList);
-      if (checkResult == false) {
+      if (!checkResult) {
         MZmineCore.getDesktop().displayErrorMessage("Feature list " + featureList.getName()
             + " does not conform to MetaboAnalyst requirement: at least 3 samples (raw data files) in each group");
       }
 
-      try {
-
-        // Open file
-        FileWriter writer = new FileWriter(curFile);
-
+      // Open file
+      try (BufferedWriter writer = new BufferedWriter(new FileWriter(curFile, false))) {
         // Get number of rows
         totalRows = featureList.getNumberOfRows();
 
         exportFeatureList(featureList, writer);
 
-        // Close file
-        writer.close();
-
       } catch (Exception e) {
-        e.printStackTrace();
+        logger.log(Level.WARNING, "Error during MetaboAnalyst export. " + e.getMessage(), e);
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Could not export feature list to file " + curFile + ": " + e.getMessage());
         return;
       }
     }
 
-    if (getStatus() == TaskStatus.PROCESSING)
+    if (getStatus() == TaskStatus.PROCESSING) {
       setStatus(TaskStatus.FINISHED);
+    }
 
   }
 
   private boolean checkFeatureList(FeatureList featureList) {
-
+    var raws = new HashSet<>(featureList.getRawDataFiles());
     // Check if each sample group has at least 3 samples
-    final RawDataFile rawDataFiles[] = featureList.getRawDataFiles().toArray(RawDataFile[]::new);
-    for (RawDataFile file : rawDataFiles) {
-      final String fileValue = String.valueOf(project.getParameterValue(groupParameter, file));
-      int count = 0;
-      for (RawDataFile countFile : rawDataFiles) {
-        final String countValue =
-            String.valueOf(project.getParameterValue(groupParameter, countFile));
-        if (countValue.equals(fileValue))
-          count++;
-      }
-      if (count < 3)
-        return false;
-    }
-    return true;
+    Map<RawDataFile, Object> data = metadata.getData().get(metadataColumn);
+    Map<Object, Integer> counts = data.entrySet().stream().filter(e -> raws.contains(e.getKey()))
+        .map(Entry::getValue).collect(Collectors.toMap(v -> v, value -> 1, Math::addExact));
+
+    return counts.values().stream().noneMatch(count -> count < 3);
   }
 
-  private void exportFeatureList(FeatureList featureList, FileWriter writer) throws IOException {
+  private void exportFeatureList(FeatureList featureList, BufferedWriter writer)
+      throws IOException {
 
-    final RawDataFile rawDataFiles[] = featureList.getRawDataFiles().toArray(RawDataFile[]::new);
-
-    // Buffer for writing
-    StringBuffer line = new StringBuffer();
+    final RawDataFile[] rawDataFiles = featureList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     // Write sample (raw data file) names
-    line.append("\"Sample\"");
-    for (RawDataFile file : rawDataFiles) {
+    writer.append("\"Filename\"");
+    for (RawDataFile raw : rawDataFiles) {
       // Cancel?
       if (isCanceled()) {
         return;
       }
 
-      line.append(fieldSeparator);
-      final String value = file.getName().replace('"', '\'');
-      line.append("\"");
-      line.append(value);
-      line.append("\"");
+      writer.append(fieldSeparator);
+      final String value = raw.getName().replace('"', '\'');
+      writer.append(CSVUtils.escape(value, fieldSeparator));
     }
+    writer.append("\n");
 
-    line.append("\n");
+    // Write grouping parameter title followed by values
+    writer.append(CSVUtils.escape(metadataColumn.getTitle(), fieldSeparator));
 
-    // Write grouping parameter values
-    line.append("\"");
-    line.append(groupParameter.getName().replace('"', '\''));
-    line.append("\"");
-
-    for (RawDataFile file : rawDataFiles) {
-
+    for (RawDataFile raw : rawDataFiles) {
       // Cancel?
       if (isCanceled()) {
         return;
       }
 
-      line.append(fieldSeparator);
-      String value = String.valueOf(project.getParameterValue(groupParameter, file));
-      value = value.replace('"', '\'');
-      line.append("\"");
-      line.append(value);
-      line.append("\"");
+      writer.append(fieldSeparator);
+      Object value = metadata.getValue(metadataColumn, raw);
+      if (value != null) {
+        writer.append(CSVUtils.escape(value.toString(), fieldSeparator));
+      }
     }
 
-    line.append("\n");
-    writer.write(line.toString());
+    writer.append("\n");
 
     // Write data rows
     for (FeatureListRow featureListRow : featureList.getRows()) {
-
       // Cancel?
       if (isCanceled()) {
         return;
       }
 
-      // Reset the buffer
-      line.setLength(0);
-
       final String rowName = generateUniqueFeatureListRowName(featureListRow);
 
-      line.append("\"" + rowName + "\"");
+      writer.append(CSVUtils.escape(rowName, fieldSeparator));
 
       for (RawDataFile dataFile : rawDataFiles) {
-        line.append(fieldSeparator);
+        writer.append(fieldSeparator);
 
         Feature feature = featureListRow.getFeature(dataFile);
         if (feature != null) {
-          final double area = feature.getArea();
-          line.append(String.valueOf(area));
+          if(FEATURE_INTENSITY==AbundanceMeasure.Area){
+            final double area = feature.getArea();
+            writer.append(String.valueOf(area));
+          }else{
+            final double height = feature.getHeight();
+            writer.append(String.valueOf(height));
+          }
+
         }
       }
 
-      line.append("\n");
-      writer.write(line.toString());
-
+      writer.append("\n");
       processedRows++;
     }
   }
@@ -249,26 +243,31 @@ class MetaboAnalystExportTask extends AbstractTask {
   private String generateUniqueFeatureListRowName(FeatureListRow row) {
 
     final double mz = row.getAverageMZ();
-    final double rt = row.getAverageRT();
+    final Float rt = row.getAverageRT();
+    final Float mobility = row.getAverageMobility();
     final int rowId = row.getID();
 
-    String generatedName = rowId + "/" + MZmineCore.getConfiguration().getMZFormat().format(mz)
-        + "mz/" + MZmineCore.getConfiguration().getRTFormat().format(rt) + "min";
-    FeatureIdentity featureIdentity = row.getPreferredFeatureIdentity();
+    final StringBuilder generatedName = new StringBuilder();
+    generatedName.append(rowId);
 
-    if (featureIdentity == null)
-      return generatedName;
+    String name = row.getPreferredAnnotationName();
+    if (name != null) {
+      generatedName.append("/").append(CSVUtils.escape(name, fieldSeparator));
+    }
 
-    String idName = featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_NAME);
+    generatedName.append("/").append(MZmineCore.getConfiguration().getMZFormat().format(mz))
+        .append("mz");
 
-    if (idName == null)
-      return generatedName;
+    if (rt != null) {
+      generatedName.append("/").append(MZmineCore.getConfiguration().getRTFormat().format(rt))
+          .append("min");
+    }
+    if (mobility != null) {
+      generatedName.append("/")
+          .append(MZmineCore.getConfiguration().getMobilityFormat().format(mobility));
+    }
 
-    idName = idName.replace('"', '\'');
-    generatedName = generatedName + " (" + idName + ")";
-
-    return generatedName;
-
+    return generatedName.toString();
   }
 
 }

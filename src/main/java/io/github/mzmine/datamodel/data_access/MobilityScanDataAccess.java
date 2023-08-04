@@ -45,7 +45,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,10 +55,10 @@ public class MobilityScanDataAccess implements MobilityScan {
   protected final int totalFrames;
 
   protected final List<Frame> eligibleFrames;
-  private final ScanSelection selection;
   protected final double[] mzs;
   protected final double[] intensities;
   protected final Map<Frame, Integer> frameIndexMap = new HashMap<>();
+  private final ScanSelection selection;
   // current data
   protected Frame currentFrame;
   protected MobilityScan currentMobilityScan;
@@ -77,7 +76,7 @@ public class MobilityScanDataAccess implements MobilityScan {
    *
    * @param dataFile  target data file to loop over all scans or mass lists
    * @param type      processed or raw data
-   * @param selection processed or raw data
+   * @param selection Scan selection, can be used to filter specific mobility scans.
    */
   protected MobilityScanDataAccess(IMSRawDataFile dataFile, MobilityScanDataType type,
       ScanSelection selection) {
@@ -89,6 +88,13 @@ public class MobilityScanDataAccess implements MobilityScan {
     this(dataFile, type, frames, null);
   }
 
+  /**
+   * @param dataFile  target data file to loop over all scans or mass lists
+   * @param type      processed or raw data
+   * @param frames    the frames to use.
+   * @param selection Scan selection, can be used to filter specific mobility scans of the given
+   *                  frames.
+   */
   public MobilityScanDataAccess(@NotNull final IMSRawDataFile dataFile,
       @NotNull final MobilityScanDataType type, @NotNull final List<Frame> frames,
       ScanSelection selection) {
@@ -223,8 +229,8 @@ public class MobilityScanDataAccess implements MobilityScan {
   }
 
   /**
-   * Sets the next frame. The mobility scan index is reset to -1, therefore
-   * {@link #nextMobilityScan} has to be called before accessing new scan data.
+   * Sets the next frame. The mobility scan index is reset to -1, therefore {@link
+   * #nextMobilityScan} has to be called before accessing new scan data.
    *
    * @return the next Frame.
    */
@@ -357,10 +363,10 @@ public class MobilityScanDataAccess implements MobilityScan {
    */
   private int getMaxNumberOfDataPoints(List<Frame> frames) {
     return switch (type) {
-      case RAW ->
-          frames.stream().mapToInt(Frame::getTotalMobilityScanRawDataPoints).max().orElse(0);
-      case CENTROID ->
-          frames.stream().mapToInt(Frame::getTotalMobilityScanMassListDataPoints).max().orElse(0);
+      case RAW -> frames.stream().mapToInt(Frame::getTotalMobilityScanRawDataPoints).max()
+          .orElse(0);
+      case CENTROID -> frames.stream().mapToInt(Frame::getTotalMobilityScanMassListDataPoints).max()
+          .orElse(0);
     };
   }
 
@@ -435,12 +441,6 @@ public class MobilityScanDataAccess implements MobilityScan {
 
   @Override
   public double[] getIntensityValues(@NotNull double[] dst) {
-    throw new UnsupportedOperationException(
-        "The intended use of this class is to loop over all scans and data points");
-  }
-
-  @Override
-  public Stream<DataPoint> stream() {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all scans and data points");
   }

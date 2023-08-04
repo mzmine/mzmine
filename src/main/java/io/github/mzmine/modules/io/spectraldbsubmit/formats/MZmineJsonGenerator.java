@@ -41,7 +41,7 @@ import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParamet
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
@@ -176,7 +176,7 @@ public class MZmineJsonGenerator {
     return data.build();
   }
 
-  public static String generateJSON(final SpectralDBEntry entry) {
+  public static String generateJSON(final SpectralLibraryEntry entry) {
     JsonObjectBuilder json = Json.createObjectBuilder();
     // tag spectrum from mzmine3
     json.add(DBEntryField.SOFTWARE.getMZmineJsonID(), "mzmine3");
@@ -197,8 +197,10 @@ public class MZmineJsonGenerator {
         default -> json.add(id, value.toString());
       }
     }
-    entry.getField(DBEntryField.POLARITY)
-        .ifPresent(value -> json.add(DBEntryField.POLARITY.getMZmineJsonID(), value.toString()));
+    var polarity = entry.getPolarity();
+    if(polarity.isDefined()) {
+      json.add(DBEntryField.POLARITY.getMZmineJsonID(), polarity.toString());
+    }
 
     DataPoint[] dps = entry.getDataPoints();
     json.add(DBEntryField.NUM_PEAKS.getMZmineJsonID(), dps.length);

@@ -63,7 +63,6 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureUtils;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -129,8 +128,10 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Deprecated
-  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt, float height, float area, List<Scan> scans, double[] mzs, double[] intensities,
-      FeatureStatus featureStatus, Scan representativeScan, List<Scan> allMS2FragmentScanNumbers, @NotNull Range<Float> rtRange, @NotNull Range<Double> mzRange,
+  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
+      float height, float area, List<Scan> scans, double[] mzs, double[] intensities,
+      FeatureStatus featureStatus, Scan representativeScan, List<Scan> allMS2FragmentScanNumbers,
+      @NotNull Range<Float> rtRange, @NotNull Range<Double> mzRange,
       @NotNull Range<Float> intensityRange) {
     this(flist);
 
@@ -192,7 +193,22 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   /**
-   * Creates a new feature. The properties are determined via {@link FeatureDataUtils#recalculateIonSeriesDependingTypes(ModularFeature)}.
+   * Creates a new feature.
+   *
+   * @param flist         The feature list.
+   * @param dataFile      The raw data file of this feature.
+   */
+  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, FeatureStatus featureStatus) {
+    this(flist);
+    assert dataFile != null;
+
+    set(RawFileType.class, dataFile);
+    set(DetectionType.class, featureStatus);
+  }
+
+  /**
+   * Creates a new feature. The properties are determined via
+   * {@link FeatureDataUtils#recalculateIonSeriesDependingTypes(ModularFeature)}.
    *
    * @param flist         The feature list.
    * @param dataFile      The raw data file of this feature.
@@ -200,15 +216,13 @@ public class ModularFeature implements Feature, ModularDataModel {
    * @param featureStatus The feature status.
    */
   public ModularFeature(ModularFeatureList flist, RawDataFile dataFile,
-      IonTimeSeries<? extends Scan> featureData, FeatureStatus featureStatus) {
-    this(flist);
-    assert dataFile != null;
+      @Nullable IonTimeSeries<? extends Scan> featureData, FeatureStatus featureStatus) {
+    this(flist, dataFile, featureStatus);
 
-    set(RawFileType.class, dataFile);
-    set(DetectionType.class, featureStatus);
-    set(FeatureDataType.class, featureData);
-
-    FeatureDataUtils.recalculateIonSeriesDependingTypes(this);
+    if (featureData != null) {
+      set(FeatureDataType.class, featureData);
+      FeatureDataUtils.recalculateIonSeriesDependingTypes(this);
+    }
   }
 
   /**
@@ -280,23 +294,6 @@ public class ModularFeature implements Feature, ModularDataModel {
     buffertColCharts.clear();
   }
 
-  @Override
-  public <T> boolean set(Class<? extends DataType<T>> tclass, T value) {
-    // type in defined columns?
-    if (!getTypes().containsKey(tclass)) {
-      try {
-        DataType newType = tclass.getConstructor().newInstance();
-        ModularFeatureList flist = (ModularFeatureList) getFeatureList();
-        flist.addFeatureType(newType);
-      } catch (NullPointerException | InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-        e.printStackTrace();
-        return false;
-      }
-    }
-    // access default method
-    return ModularDataModel.super.set(tclass, value);
-  }
-
   /**
    * Maps listeners to their {@link DataType}s. Default returns an empty list.
    */
@@ -317,7 +314,9 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   /**
-   * Use {@link ModularFeature#getFeatureData()} and {@link io.github.mzmine.datamodel.featuredata.IonSpectrumSeries#getIntensityForSpectrum(MassSpectrum)}
+   * Use {@link ModularFeature#getFeatureData()} and
+   * {@link
+   * io.github.mzmine.datamodel.featuredata.IonSpectrumSeries#getIntensityForSpectrum(MassSpectrum)}
    * or {@link io.github.mzmine.datamodel.featuredata.IonSpectrumSeries#getIntensity} instead.
    *
    * @param scan
@@ -375,9 +374,9 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
-  public void setAllMS2FragmentScans(List<Scan> allMS2FragmentScanNumbers) {
-    //    logger.finest("SET MS2 to feature");
-    set(FragmentScanNumbersType.class, allMS2FragmentScanNumbers);
+  public void setAllMS2FragmentScans(List<Scan> allFragmentScans) {
+    boolean empty = allFragmentScans == null || allFragmentScans.isEmpty();
+    set(FragmentScanNumbersType.class, empty ? null : allFragmentScans);
   }
 
   @Nullable

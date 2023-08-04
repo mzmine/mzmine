@@ -25,14 +25,16 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass;
 
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
+import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
-import io.github.mzmine.parameters.UserParameter;
 
 public class CustomLipidClassFragmentationRulesChoiceParameters implements
     UserParameter<LipidFragmentationRule[], CustomLipidClassFragmentationRulesChoiceComponent> {
@@ -71,7 +73,11 @@ public class CustomLipidClassFragmentationRulesChoiceParameters implements
 
   @Override
   public void setValueToComponent(CustomLipidClassFragmentationRulesChoiceComponent component,
-      LipidFragmentationRule[] newValue) {
+      @Nullable LipidFragmentationRule[] newValue) {
+    if (newValue == null) {
+      component.setValue(List.of());
+      return;
+    }
     component.setValue(Arrays.asList(newValue));
   }
 

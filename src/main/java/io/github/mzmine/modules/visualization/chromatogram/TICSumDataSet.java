@@ -25,29 +25,28 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.AbstractTaskXYZDataset;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jfree.data.xy.AbstractXYZDataset;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.scans.ScanUtils;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * TIC visualizer data set. Sum of all TIC
  */
-public class TICSumDataSet extends AbstractXYZDataset implements Task {
+public class TICSumDataSet extends AbstractTaskXYZDataset {
 
   private static final long serialVersionUID = 1L;
 
@@ -68,15 +67,12 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
   private final @NotNull List<SummedTICDataPoint> data;
 
   private final Range<Double> mzRange;
-  private Range<Float> rangeRT;
+  private final Range<Float> rangeRT;
   private double intensityMin;
   private double intensityMax;
 
-  private TaskStatus status;
-  private String errorMessage;
-
   // Plot type
-  private TICPlotType plotType;
+  private final TICPlotType plotType;
 
   private int totalScans;
   private int processedScans;
@@ -84,9 +80,9 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
   /**
    * Create the data set.
    *
-   * @param files data file to plot.
+   * @param files   data file to plot.
    * @param rangeMZ range of m/z to plot.
-   * @param window visualizer window.
+   * @param window  visualizer window.
    */
   public TICSumDataSet(final RawDataFile[] files, final Range<Float> rangeRT,
       final Range<Double> rangeMZ, final TICVisualizerTab window) {
@@ -98,9 +94,9 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
    * Create the data set + possibility to specify a plot type, even outside a "TICVisualizerWindow"
    * context.
    *
-   * @param files data file to plot.
-   * @param rangeMZ range of m/z to plot.
-   * @param window visualizer window.
+   * @param files    data file to plot.
+   * @param rangeMZ  range of m/z to plot.
+   * @param window   visualizer window.
    * @param plotType plot type.
    */
   public TICSumDataSet(final RawDataFile[] files, final Range<Float> rangeRT,
@@ -132,18 +128,8 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
   }
 
   @Override
-  public String getErrorMessage() {
-    return errorMessage;
-  }
-
-  @Override
   public double getFinishedPercentage() {
     return totalScans == 0 ? 0.0 : (double) processedScans / totalScans;
-  }
-
-  @Override
-  public TaskStatus getStatus() {
-    return status;
   }
 
   @Override
@@ -266,8 +252,9 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
             // matches rt
             if (matchesRT(rt, dp.getRetentionTime())) {
               // sum values
-              if (intensityBasePeak > dp.getIntensityBasePeak())
+              if (intensityBasePeak > dp.getIntensityBasePeak()) {
                 dp.setMzBasePeak(mzBasePeak);
+              }
               intensity += dp.getIntensity();
               rt = (rt + dp.getRetentionTime()) / 2.0f;
               dp.setIntensity(intensity);
@@ -318,13 +305,4 @@ public class TICSumDataSet extends AbstractXYZDataset implements Task {
     Platform.runLater(() -> fireDatasetChanged());
   }
 
-  @Override
-  public void cancel() {
-    status = TaskStatus.CANCELED;
-  }
-
-  @Override
-  public TaskPriority getTaskPriority() {
-    return TaskPriority.NORMAL;
-  }
 }

@@ -48,4 +48,8 @@ public class IsotopePatternScoreType extends ScoreType {
     return "Isotope score";
   }
 
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
+  }
 }

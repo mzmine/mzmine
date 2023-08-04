@@ -30,12 +30,11 @@
   ~ OTHER DEALINGS IN THE SOFTWARE.
   -->
 
-<BorderPane fx:id="pnMaster" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0"
-  prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal"
+<BorderPane fx:id="pnMaster" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.2-internal"
   xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController">
   <center>
-    <SplitPane fx:id="pnMainSplit" dividerPositions="0.7" orientation="VERTICAL"
+    <SplitPane fx:id="pnMainSplit" dividerPositions="0.5" orientation="VERTICAL"
       BorderPane.alignment="CENTER">
       <items>
         <ChromatogramAndSpectraVisualizer fx:id="visualizer" orientation="HORIZONTAL"

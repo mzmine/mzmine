@@ -26,7 +26,6 @@
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
 import java.awt.Color;
-import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
@@ -37,8 +36,8 @@ public interface PieXYZDataProvider<T> extends PlotXYZDataProvider {
    * Returns the slice identifiers. In order to support JFreechart's legend generation, the array
    * has to be in the same order, every time this method is called. Therefore, streaming the entries
    * from an undordered collection to an array should not be executed every time this method is
-   * called, but during calculation via {@link #computeValues(SimpleObjectProperty)} and stored
-   * thereafter.
+   * called, but during calculation via
+   * {@link XYValueProvider#computeValues(javafx.beans.property.Property)} and stored thereafter.
    *
    * @return The slice identifiers.
    */
@@ -74,7 +73,7 @@ public interface PieXYZDataProvider<T> extends PlotXYZDataProvider {
     return null;
   }
 
-   String getLabelForSeries(int series);
+  String getLabelForSeries(int series);
 
   @Nullable
   @Override

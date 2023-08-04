@@ -26,11 +26,12 @@
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,14 +40,17 @@ public class SpectraIdentificationResultsModule implements MZmineModule {
   public static final String MODULE_NAME = "Local spectral libraries search results";
 
   public static void showNewTab(List<ModularFeatureListRow> rows) {
+    showNewTab(rows, null);
+  }
+  public static void showNewTab(List<ModularFeatureListRow> rows, FeatureTableFX table) {
     List<SpectralDBAnnotation> spectralID =
         rows.stream().flatMap(row -> row.getSpectralLibraryMatches().stream()).toList();
     if (!spectralID.isEmpty()) {
-      SpectraIdentificationResultsWindowFX window = new SpectraIdentificationResultsWindowFX();
-      window.addMatches(spectralID);
-      window.setTitle("Matched " + spectralID.size() + " compounds for feature list rows "
-          + rows.stream().map(row -> String.valueOf(row.getID())).collect(Collectors.joining(", ")));
-      window.show();
+      SpectraIdentificationResultsWindowFX tab = new SpectraIdentificationResultsWindowFX(table);
+      tab.setTitle(rows);
+      tab.setText("Spectral matches "+spectralID.size());
+      tab.addMatches(spectralID);
+      MZmineCore.getDesktop().addTab(tab);
     }
   }
 

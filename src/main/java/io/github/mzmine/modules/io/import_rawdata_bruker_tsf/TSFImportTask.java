@@ -160,10 +160,14 @@ public class TSFImportTask extends AbstractTask {
       return;
     }
 
+    newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
+
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
+    final boolean tryProfile = MZmineCore.getInstance().isTsfProfile();
     final MassSpectrumType importSpectrumType =
-        metaDataTable.hasLineSpectra() ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
+        tryProfile && metaDataTable.hasProfileSpectra() ? MassSpectrumType.PROFILE
+            : MassSpectrumType.CENTROIDED;
 
     if (!importTSF(tsfUtils, handle, numScans, newMZmineFile, importSpectrumType)) {
       return;

@@ -69,6 +69,19 @@ public class MZTolerance {
     return new MZTolerance(maxAbs, maxPPM);
   }
 
+  /**
+   * Joins an m/z tolerance and ppm and absolute tolerance on the maximum values
+   *
+   * @param mzTol    existing tolerance
+   * @param absolute default max tolerance
+   * @param ppm      default max tolerance
+   * @return a new tolerance of the max values of both
+   */
+  public static MZTolerance max(final MZTolerance mzTol, final double absolute, final double ppm) {
+    return new MZTolerance(Math.max(absolute, mzTol.mzTolerance),
+        Math.max(ppm, mzTol.ppmTolerance));
+  }
+
   public double getMzTolerance() {
     return mzTolerance;
   }

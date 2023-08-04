@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrumType;
@@ -124,7 +125,8 @@ public class DiaMs2CorrTask extends AbstractTask {
     adapFiles.setSpecificFiles(flist.getRawDataFiles().toArray(new RawDataFile[0]));
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.dataFiles, adapFiles);
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.scanSelection, ms2ScanSelection);
-    adapParameters.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan, minCorrPoints);
+    adapParameters.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans,
+        minCorrPoints);
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzTolerance);
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.suffix, "chroms");
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity,
@@ -141,7 +143,7 @@ public class DiaMs2CorrTask extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
     return (adapTask != null ? adapTask.getFinishedPercentage() * 0.5 : 0)
-        + (currentRow / (double) numRows) * 0.5d;
+           + (currentRow / (double) numRows) * 0.5d;
   }
 
   @Override
@@ -239,7 +241,8 @@ public class DiaMs2CorrTask extends AbstractTask {
             .flatMap(s -> ((Frame) s).getMobilityScans().stream())
             .filter(m -> mobilityRange.contains((float) m.getMobility())).toList();
         if (!mobilityScans.isEmpty()) {
-          mergedMobilityScan = SpectraMerging.mergeSpectra(mobilityScans, mzTolerance, null);
+          mergedMobilityScan = SpectraMerging.mergeSpectra(mobilityScans, mzTolerance,
+              MergingType.ALL_ENERGIES, null);
         } else {
           continue; // if we have ims data, and there are no mobility scans to be merged, something is fishy.
         }
@@ -353,8 +356,10 @@ public class DiaMs2CorrTask extends AbstractTask {
   }
 
   private ModularFeatureList buildChromatograms(MZmineProject dummyProject, RawDataFile file) {
-    adapTask = new ModularADAPChromatogramBuilderTask(dummyProject, file, adapParameters,
-        getMemoryMapStorage(), getModuleCallDate());
+    // currently the consecutive scans are used
+    adapTask = ModularADAPChromatogramBuilderTask.forChromatography(dummyProject, file,adapParameters,
+        getMemoryMapStorage(), getModuleCallDate(), DiaMs2CorrModule.class);
+
     adapTask.run();
     adapTask = new FinishedTask(adapTask);
     currentTaksIndex++;

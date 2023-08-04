@@ -55,7 +55,7 @@ public class FeatureListBlankSubtractionModule implements MZmineProcessingModule
 
   @Override
   public String getDescription() {
-    return "Subtracts features appearing in (procedural) blank measurements feature list from an aligned feature list.";
+    return "Subtracts features appearing in (procedural) blank measurements feature list from an aligned feature list. Additionally, removed features can be saved to another feature list for inspection. ";
   }
 
   @Override
@@ -63,7 +63,8 @@ public class FeatureListBlankSubtractionModule implements MZmineProcessingModule
       @NotNull Instant moduleCallDate) {
 
     Task task = new FeatureListBlankSubtractionTask(project,
-        (FeatureListBlankSubtractionParameters) parameters, MemoryMapStorage.forFeatureList(), moduleCallDate);
+        (FeatureListBlankSubtractionParameters) parameters, MemoryMapStorage.forFeatureList(),
+        moduleCallDate);
 
     tasks.add(task);
 

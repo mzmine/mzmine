@@ -34,21 +34,24 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.maths.Weighting;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class MobilityScanMergerParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter rawDataFiles = new RawDataFilesParameter();
 
-  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
-      "Data points below this threshold will be ignored.",
+  public static final DoubleParameter noiseLevel = new DoubleParameter("Frame noise level",
+      "Noise level for the merged frame. Merged signals below this threshold will be ignored.",
       MZmineCore.getConfiguration().getIntensityFormat(), 1E1, 0d, 1E12);
 
   public static final ComboParameter<IntensityMergingType> mergingType = new ComboParameter<>(
-      "Merging type", "Spectra merging algorithm", IntensityMergingType.values(), IntensityMergingType.SUMMED);
+      "Merging type", "Spectra merging algorithm", IntensityMergingType.values(),
+      IntensityMergingType.SUMMED);
 
   public static final ComboParameter<Weighting> weightingType = new ComboParameter<>(
       "m/z weighting", "Weights m/z values by their intensities with the given function.",
@@ -56,8 +59,8 @@ public class MobilityScanMergerParameters extends SimpleParameterSet {
 
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter();
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
-      "", 0.0001, 2, false);
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
+      ToleranceType.SCAN_TO_SCAN, 0.003, 15, false);
 
   public MobilityScanMergerParameters() {
     super(new Parameter[]{rawDataFiles, noiseLevel, mergingType, weightingType, scanSelection,
@@ -77,5 +80,14 @@ public class MobilityScanMergerParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.ONLY;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", mzTolerance);
+    return nameParameterMap;
   }
 }

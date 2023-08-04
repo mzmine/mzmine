@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -41,8 +42,8 @@ import org.w3c.dom.NodeList;
  *
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  */
-public class PaintScalePaletteParameter
-    implements UserParameter<SimpleColorPalette, PaintScalePaletteComponent> {
+public class PaintScalePaletteParameter implements
+    UserParameter<SimpleColorPalette, PaintScalePaletteComponent> {
 
   private static final String PALETTE_ELEMENT = "paintscale_palette";
   private static final String SELECTED_INDEX = "selected";
@@ -59,8 +60,11 @@ public class PaintScalePaletteParameter
     this.descr = descr;
     value = SimpleColorPalette.BLUE_RED_WHITE;
     palettes = new ArrayList<>();
-    palettes.add(value);
+    palettes.add(SimpleColorPalette.BLUE_YELLOW);
+    palettes.add(SimpleColorPalette.BLUE_RED_WHITE);
     palettes.add(SimpleColorPalette.RAINBOW);
+    palettes.add(SimpleColorPalette.GREEN_YELLOW);
+    value = SimpleColorPalette.BLUE_YELLOW;
   }
 
   @Override
@@ -106,22 +110,15 @@ public class PaintScalePaletteParameter
 
     selected = (selected != -1) ? selected : 0;
 
-    if (!palettes.contains(SimpleColorPalette.BLUE_RED_WHITE)) {
-      palettes.add(SimpleColorPalette.BLUE_RED_WHITE);
-      logger.info(
-          "Loaded color palettes did not contain default " + SimpleColorPalette.BLUE_RED_WHITE
-              .getName() + " palette. Adding...");
-    }
-
-    if (!palettes.contains(SimpleColorPalette.RAINBOW)) {
-      palettes.add(SimpleColorPalette.RAINBOW);
-      logger.info(
-          "Loaded color palettes did not contain default " + SimpleColorPalette.RAINBOW.getName()
-              + " palette. Adding...");
+    for (SimpleColorPalette defaultPaintScale : SimpleColorPalette.DEFAULT_PAINT_SCALES) {
+      if (!palettes.contains(defaultPaintScale)) {
+        palettes.add(defaultPaintScale);
+        logger.info("Loaded color palettes did not contain default " + defaultPaintScale.getName()
+            + " palette. Adding...");
+      }
     }
 
     setValue(palettes.get(selected));
-
   }
 
   @Override
@@ -155,13 +152,15 @@ public class PaintScalePaletteParameter
 
   @Override
   public void setValueToComponent(PaintScalePaletteComponent component,
-      SimpleColorPalette newValue) {
+      @Nullable SimpleColorPalette newValue) {
+    if (newValue == null) {
+      return;
+    }
     component.setPalettes(palettes);
     component.setValue(newValue);
   }
 
-  protected @NotNull
-  List<SimpleColorPalette> getPalettes() {
+  protected @NotNull List<SimpleColorPalette> getPalettes() {
     return palettes;
   }
 

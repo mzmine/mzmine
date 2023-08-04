@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.StreamCopy;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -334,14 +335,14 @@ public class ProjectOpeningTask extends AbstractTask {
 
     currentLoadedObjectName = "Configuration";
 
-    File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
+    File tempConfigFile = FileAndPathUtil.createTempFile("mzmineconfig", ".tmp");
     FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
     copyMachine = new StreamCopy();
     copyMachine.copy(is, fileStream);
     fileStream.close();
 
     try {
-      MZmineCore.getConfiguration().loadConfiguration(tempConfigFile);
+      MZmineCore.getConfiguration().loadConfiguration(tempConfigFile, false);
     } catch (Exception e) {
       logger.warning(
           "Could not load configuration from the project: " + ExceptionUtils.exceptionToString(e));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -65,18 +66,15 @@ public class ProjectSavingTask extends AbstractTask {
 
   private final File saveFile;
   private final MZmineProjectImpl savedProject;
-
+  private final int totalSaveItems;
+  private final int finishedSaveItems = 0;
+  // This hashtable maps raw data files to their ID within the saved project
+  private final Hashtable<RawDataFile, String> dataFilesIDMap;
   private RawDataFileSaveHandler rawDataFileSaveHandler;
   private PeakListSaveHandler peakListSaveHandler;
   private UserParameterSaveHandler userParameterSaveHandler;
-
-  private final int totalSaveItems;
-  private final int finishedSaveItems = 0;
   private int currentStage;
   private String currentSavedObjectName;
-
-  // This hashtable maps raw data files to their ID within the saved project
-  private final Hashtable<RawDataFile, String> dataFilesIDMap;
 
   public ProjectSavingTask(MZmineProject project, ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
@@ -253,8 +251,7 @@ public class ProjectSavingTask extends AbstractTask {
 
     } catch (Throwable e) {
 
-      e.printStackTrace();
-
+      logger.log(Level.SEVERE, e.getMessage(), e);
       setStatus(TaskStatus.ERROR);
 
       if (currentSavedObjectName == null) {
@@ -305,7 +302,7 @@ public class ProjectSavingTask extends AbstractTask {
     zipStream.putNextEntry(new ZipEntry(CONFIG_FILENAME));
 
     try {
-      File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
+      File tempConfigFile = FileAndPathUtil.createTempFile("mzmineconfig", ".tmp");
       MZmineCore.getConfiguration().saveConfiguration(tempConfigFile);
       FileInputStream fileStream = new FileInputStream(tempConfigFile);
 
@@ -315,7 +312,7 @@ public class ProjectSavingTask extends AbstractTask {
       fileStream.close();
       tempConfigFile.delete();
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.log(Level.SEVERE, e.getMessage(), e);
       logger.warning("Could not save configuration" + ExceptionUtils.exceptionToString(e));
     }
   }
@@ -353,7 +350,7 @@ public class ProjectSavingTask extends AbstractTask {
       try {
         Thread.sleep(100);
       } catch (InterruptedException e) {
-        e.printStackTrace();
+        logger.log(Level.SEVERE, e.getMessage(), e);
       }
     }
   }
@@ -388,7 +385,7 @@ public class ProjectSavingTask extends AbstractTask {
         try {
           Thread.sleep(50);
         } catch (InterruptedException e) {
-          e.printStackTrace();
+          logger.log(Level.SEVERE, e.getMessage(), e);
         }
       }
 

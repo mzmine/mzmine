@@ -30,6 +30,7 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -75,6 +76,7 @@ public class RegionsParameter implements UserParameter<List<List<Point2D>>, Regi
   public void loadValueFromXML(Element xmlElement) {
     NodeList pathElements = xmlElement.getElementsByTagName(PATH_ELEMENT);
 
+    value.clear();
     for (int i = 0; i < pathElements.getLength(); i++) {
       Element pathElement = (Element) pathElements.item(i);
       NodeList pointElements = pathElement.getElementsByTagName(POINT_ELEMENT);
@@ -106,7 +108,7 @@ public class RegionsParameter implements UserParameter<List<List<Point2D>>, Regi
   }
 
   @Override
-  public boolean checkValue(Collection errorMessages) {
+  public boolean checkValue(Collection<String> errorMessages) {
     if (value == null) {
       errorMessages.add("Regions list is null");
       return false;
@@ -134,7 +136,7 @@ public class RegionsParameter implements UserParameter<List<List<Point2D>>, Regi
   }
 
   @Override
-  public void setValueToComponent(RegionsComponent regionsComponent, List<List<Point2D>> newValue) {
+  public void setValueToComponent(RegionsComponent regionsComponent, @Nullable List<List<Point2D>> newValue) {
 
   }
 

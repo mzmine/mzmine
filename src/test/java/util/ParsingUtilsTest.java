@@ -66,8 +66,10 @@ public class ParsingUtilsTest {
     Assertions.assertEquals(range1, ParsingUtils.stringToDoubleRange(string1));
     Assertions.assertEquals(range2, ParsingUtils.stringToDoubleRange(string2));
 
-    Assertions.assertThrows(IllegalStateException.class, () -> ParsingUtils.stringToDoubleRange(":"));
-    Assertions.assertThrows(NumberFormatException.class, () -> ParsingUtils.stringToDoubleRange("2A3;2E5"));
+    Assertions.assertThrows(IllegalStateException.class,
+        () -> ParsingUtils.stringToDoubleRange(":"));
+    Assertions.assertThrows(NumberFormatException.class,
+        () -> ParsingUtils.stringToDoubleRange("2A3;2E5"));
   }
 
   @Test
@@ -78,14 +80,16 @@ public class ParsingUtilsTest {
     final String string1 = ParsingUtils.rangeToString((Range) range1);
     final String string2 = ParsingUtils.rangeToString((Range) range2);
 
-    Assertions.assertEquals("[5.345;1.73199999E11]", string1);
+    Assertions.assertEquals("[5.345;1.732E11]", string1);
     Assertions.assertEquals("[-3.347E-11;0.3348]", string2);
 
     Assertions.assertEquals(range1, ParsingUtils.stringToFloatRange(string1));
     Assertions.assertEquals(range2, ParsingUtils.stringToFloatRange(string2));
 
-    Assertions.assertThrows(IllegalStateException.class, () -> ParsingUtils.stringToFloatRange(":"));
-    Assertions.assertThrows(NumberFormatException.class, () -> ParsingUtils.stringToFloatRange("2A3;2E5"));
+    Assertions.assertThrows(IllegalStateException.class,
+        () -> ParsingUtils.stringToFloatRange(":"));
+    Assertions.assertThrows(NumberFormatException.class,
+        () -> ParsingUtils.stringToFloatRange("2A3;2E5"));
   }
 
 }

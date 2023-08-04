@@ -25,15 +25,15 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.w3c.dom.Element;
-
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
+import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 /**
  * Parameter for center measure: median, avg, weighted avg
@@ -135,7 +135,7 @@ public class CenterMeasureParameter
   }
 
   @Override
-  public void setValueToComponent(CenterMeasureComponent component, CenterFunction newValue) {
+  public void setValueToComponent(CenterMeasureComponent component, @Nullable CenterFunction newValue) {
     component.setSelectedItem(newValue);
   }
 

@@ -193,7 +193,7 @@ public class TSFUtils {
 
     double[][] mzIntensities = switch (spectrumType) {
       case PROFILE -> loadProfileSpectrum(handle, frameId);
-      case CENTROIDED, THRESHOLDED, MIXED -> loadCentroidSpectrum(handle, frameId);
+      case CENTROIDED, THRESHOLDED, MIXED, ANY -> loadCentroidSpectrum(handle, frameId);
     };
 
     return new SimpleImagingScan(file, Math.toIntExact(frameId), msLevel,

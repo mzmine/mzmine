@@ -25,8 +25,10 @@
 
 package io.github.mzmine.datamodel.features;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.exceptions.TypeColumnUndefinedException;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +47,7 @@ public interface ModularDataModel {
    *
    * @return
    */
-  public ObservableMap<Class<? extends DataType>, DataType> getTypes();
+  ObservableMap<Class<? extends DataType>, DataType> getTypes();
 
   /**
    * The map containing all mappings to the types defined in getTypes
@@ -53,8 +55,11 @@ public interface ModularDataModel {
    * @param
    * @return
    */
-  public ObservableMap<DataType, Object> getMap();
+  ObservableMap<DataType, Object> getMap();
 
+  default boolean isEmpty() {
+    return getMap().isEmpty();
+  }
   /**
    * Get DataType column of this DataModel
    *
@@ -127,6 +132,52 @@ public interface ModularDataModel {
     return (T) getMap().get(type);
   }
 
+
+  /**
+   * Value for this datatype or default value if no value was mapped. So only returns default if
+   * there was no mapping
+   *
+   * @return
+   */
+  @Nullable
+  default <T> T getOrDefault(Class<? extends DataType<T>> tclass, T defaultValue) {
+    DataType<T> type = getTypeColumn(tclass);
+    return getOrDefault(type, defaultValue);
+  }
+
+  /**
+   * Value for this datatype or default value if no value was mapped. So only returns default if
+   * there was no mapping
+   *
+   * @return
+   */
+  @Nullable
+  default <T> T getOrDefault(DataType<T> type, T defaultValue) {
+    return (T) getMap().getOrDefault(type, defaultValue);
+  }
+
+  /**
+   * Value for this datatype or default value if no value was mapped or the mapped value was null
+   *
+   * @return
+   */
+  @NotNull
+  default <T> T getNonNullElse(Class<? extends DataType<T>> tclass, @NotNull T defaultValue) {
+    DataType<T> type = getTypeColumn(tclass);
+    return getNonNullElse(type, defaultValue);
+  }
+
+  /**
+   * Value for this datatype or default value if no value was mapped or the mapped value was null
+   *
+   * @return
+   */
+  @NotNull
+  default <T> T getNonNullElse(DataType<T> type, @NotNull T defaultValue) {
+    return (T) requireNonNullElse(getMap().getOrDefault(type, null), defaultValue);
+  }
+
+
   /**
    * @param type
    * @return true if value is not null
@@ -134,6 +185,15 @@ public interface ModularDataModel {
   @Nullable
   default <T extends Object> boolean hasValueFor(DataType<T> type) {
     return getMap().get(type) != null;
+  }
+
+  /**
+   * @param typeClass the type class
+   * @return true if value is not null
+   */
+  @Nullable
+  default <T> boolean hasValueFor(Class<? extends DataType<T>> typeClass) {
+    return get(typeClass) != null;
   }
 
   /**
@@ -180,10 +240,8 @@ public interface ModularDataModel {
    * @return true if the new value is different than the old
    */
   default <T> boolean set(Class<? extends DataType<T>> tclass, T value) {
-    // type in defined columns?
-    if (!getTypes().containsKey(tclass)) {
-      throw new TypeColumnUndefinedException(this, tclass);
-    }
+    // automatically add columns if new
+    getTypes().computeIfAbsent(tclass, key -> DataTypes.get(tclass));
 
     DataType<T> realType = getTypeColumn(tclass);
     Object old = getMap().put(realType, value);

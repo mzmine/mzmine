@@ -33,9 +33,11 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.text.NumberFormat;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
@@ -48,17 +50,25 @@ import org.jetbrains.annotations.Nullable;
  */
 public class SummedMobilogramXYProvider implements PlotXYDataProvider {
 
-  private static NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-  private final SummedIntensityMobilitySeries data;
+  private static final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private final String seriesKey;
   private final ObjectProperty<Color> color;
   private final boolean swapAxes;
+  private final boolean normalize;
+
+  private final Double normalizationFactor;
+  private SummedIntensityMobilitySeries data;
 
   public SummedMobilogramXYProvider(final Feature f) {
     this(f, false);
   }
 
   public SummedMobilogramXYProvider(final Feature f, boolean swapAxes) {
+    this(f, swapAxes, false, null);
+  }
+
+  public SummedMobilogramXYProvider(final Feature f, boolean swapAxes, boolean normalize,
+      @Nullable Double normalizationFactor) {
     IonTimeSeries<? extends Scan> series = f.getFeatureData();
     if (!(series instanceof IonMobilogramTimeSeries)) {
       throw new IllegalArgumentException(
@@ -68,19 +78,24 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
     color = new SimpleObjectProperty<>(f.getRawDataFile().getColor());
     seriesKey = "m/z " + mzFormat.format(f.getMZ());
     this.swapAxes = swapAxes;
+    this.normalize = normalize;
+    this.normalizationFactor = normalizationFactor;
   }
 
   public SummedMobilogramXYProvider(SummedIntensityMobilitySeries summedMobilogram,
       ObjectProperty<Color> color, String seriesKey) {
-    this(summedMobilogram, color, seriesKey, false);
+    this(summedMobilogram, color, seriesKey, false, false, null);
   }
 
   public SummedMobilogramXYProvider(SummedIntensityMobilitySeries summedMobilogram,
-      ObjectProperty<Color> color, String seriesKey, boolean swapAxes) {
+      ObjectProperty<Color> color, String seriesKey, boolean swapAxes, boolean normalize,
+      @Nullable Double normalizationFactor) {
     this.seriesKey = seriesKey;
     this.color = color;
     this.data = summedMobilogram;
     this.swapAxes = swapAxes;
+    this.normalize = normalize;
+    this.normalizationFactor = normalizationFactor;
   }
 
   @NotNull
@@ -114,8 +129,10 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
-    // no computation needed, all data is taken from the double buffers in the feature data.
+  public void computeValues(Property<TaskStatus> status) {
+    if (normalize || normalizationFactor != null) {
+      data = IonMobilityUtils.normalizeMobilogram(data, normalizationFactor);
+    }
   }
 
   @Override

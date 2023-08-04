@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.CustomMenuItem?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import org.controlsfx.control.ToggleSwitch?>
+
+
+<BorderPane xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.network_overview.NetworkOverviewController">
+   <center>
+      <BorderPane prefHeight="650.0" prefWidth="900.0">
+         <center>
+            <SplitPane dividerPositions="0.66" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" BorderPane.alignment="CENTER">
+              <SplitPane dividerPositions="0.5" prefHeight="160.0" prefWidth="200.0">
+                <BorderPane fx:id="pnNetwork" />
+                    <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE">
+                      <Tab fx:id="tabAnnotations" closable="false" text="Annotations">
+                         <ScrollPane fitToHeight="true" fitToWidth="true">
+                            <GridPane fx:id="gridAnnotations">
+                               <columnConstraints>
+                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="150" />
+                               </columnConstraints>
+                               <rowConstraints>
+                                  <RowConstraints vgrow="SOMETIMES" />
+                                  <RowConstraints vgrow="SOMETIMES" />
+                               </rowConstraints>
+                            </GridPane>
+                         </ScrollPane>
+                      </Tab>
+                      <Tab fx:id="tabSimilarity" closable="false" text="Similarity" />
+                      <Tab fx:id="tabAllMs2" closable="false" text="All MS2" />
+                    </TabPane>
+                </SplitPane>
+                  <TabPane side="LEFT" tabClosingPolicy="UNAVAILABLE">
+                    <tabs>
+                      <Tab fx:id="tabNodes" text="Nodes" />
+                      <Tab fx:id="tabEdges" text="Edges" />
+                    </tabs>
+                  </TabPane>
+              </SplitPane>
+         </center>
+      </BorderPane>
+   </center>
+   <top>
+      <MenuBar BorderPane.alignment="CENTER">
+        <menus>
+          <Menu mnemonicParsing="false" text="Options">
+            <items>
+                  <CustomMenuItem mnemonicParsing="false" text="Unspecified Action">
+                     <content>
+                        <ToggleSwitch fx:id="cbBindToExternalTable" graphicTextGap="0.0" nodeOrientation="RIGHT_TO_LEFT" selected="true" text="Update on selection change" />
+                     </content>
+                  </CustomMenuItem>
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+   </top>
+</BorderPane>

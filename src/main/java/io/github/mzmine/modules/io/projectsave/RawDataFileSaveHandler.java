@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,16 +40,16 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.StreamCopy;
+import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.ZipUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,12 +62,7 @@ import java.util.zip.ZipOutputStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -86,20 +81,15 @@ public class RawDataFileSaveHandler extends AbstractTask {
   public static final Pattern DATA_FILE_PATTERN = Pattern.compile("(\\$\\$)([^\\n]+)(\\$\\$)");
 
   private final MZmineProject project;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-  private ZipOutputStream zipStream;
-  private double progress = 0;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final ZipOutputStream zipStream;
   private final List<RawDataFile> files;
   private final boolean saveFilesInProject;
   private final String prefix = "Saving raw data files: ";
-  private String description;
   private final int numSteps;
   private final double stepProgress;
-
-  @Override
-  public TaskPriority getTaskPriority() {
-    return TaskPriority.HIGH;
-  }
+  private double progress = 0;
+  private String description;
 
   public RawDataFileSaveHandler(MZmineProject project, ZipOutputStream zipOutputStream,
       boolean saveFilesInProject, @NotNull Instant moduleCallDate) {
@@ -111,6 +101,32 @@ public class RawDataFileSaveHandler extends AbstractTask {
     numSteps = 1 /*dissect + merge */ + (saveFilesInProject ? files.size() : 0) /*save files*/
         + 1 /*save batch file*/;
     stepProgress = 1 / (double) numSteps;
+  }
+
+  public static String getZipPath(@NotNull RawDataFile file, @Nullable String prefix,
+      @Nullable String suffix) {
+    StringBuilder path = new StringBuilder();
+    if (prefix != null) {
+      path.append(prefix);
+    }
+    path.append(DATA_FILES_FOLDER);
+    final String separator = System.getProperty("file.separator");
+    path.append(
+        file.getAbsolutePath().substring(file.getAbsolutePath().lastIndexOf(separator) + 1));
+    if (suffix != null) {
+      path.append(suffix);
+    }
+
+    return path.toString();
+  }
+
+  public static String getZipPath(RawDataFile file) {
+    return getZipPath(file, null, null);
+  }
+
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.HIGH;
   }
 
   public boolean saveRawDataFilesAsBatch() throws IOException, ParserConfigurationException {
@@ -137,23 +153,14 @@ public class RawDataFileSaveHandler extends AbstractTask {
       root.appendChild(batchRoot);
       batchQueueFile.appendChild(root);
 
-      TransformerFactory transfac = TransformerFactory.newInstance();
-      Transformer transformer = transfac.newTransformer();
-      transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-      transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
       for (final BatchQueue mergedBatchQueue : cleanedBatchQueues) {
         final Element batchQueueEntry = batchQueueFile.createElement(BATCH_QUEUE_ELEMENT);
         mergedBatchQueue.saveToXml(batchQueueEntry);
         batchRoot.appendChild(batchQueueEntry);
       }
 
-      final File tmpFile = File.createTempFile(TEMP_FILE_NAME, ".tmp");
-      final StreamResult result = new StreamResult(new FileOutputStream(tmpFile));
-      final DOMSource source = new DOMSource(batchQueueFile);
-      transformer.transform(source, result);
+      final File tmpFile = FileAndPathUtil.createTempFile(TEMP_FILE_NAME, ".tmp");
+      XMLUtils.saveToFile(tmpFile, batchQueueFile);
 
       final StreamCopy copyMachine = new StreamCopy();
       final FileInputStream fileInputStream = new FileInputStream(tmpFile);
@@ -169,65 +176,6 @@ public class RawDataFileSaveHandler extends AbstractTask {
     progress += stepProgress;
 
     return true;
-  }
-
-  /**
-   * Replaces the raw data file paths in case an independent project is saved to an MZmine project
-   * file.
-   *
-   * @param queues The batch queues.
-   */
-  private void replaceRawFilePaths(List<BatchQueue> queues) {
-    final Map<String, String> oldPathNewPath = new HashMap<>();
-    for (RawDataFile file : files) {
-      if (file.getAbsolutePath() == null) {
-        logger.finest(() -> "File " + file.getName() + " does not have a path.");
-        continue;
-      }
-      final String newPath = getZipPath(file, DATA_FILES_PREFIX, DATA_FILES_SUFFIX);
-      if (!DATA_FILE_PATTERN.matcher(newPath).matches()) {
-        throw new IllegalArgumentException(
-            "Cannot save file. New path does not match the save pattern. Please contact the developers. absolutePath: "
-                + file.getAbsolutePath() + " newPath: " + newPath);
-      }
-      oldPathNewPath.put(file.getAbsolutePath(), newPath);
-    }
-
-    for (final BatchQueue queue : queues) {
-      for (MZmineProcessingStep<MZmineProcessingModule> step : queue) {
-        for (Parameter<?> parameter : step.getParameterSet().getParameters()) {
-          // adjust the file names and paths for import steps.
-          if (parameter instanceof FileNamesParameter fnp) {
-            List<File> newValue = new ArrayList<>();
-            File[] oldValue = fnp.getValue();
-            for (File file : oldValue) {
-              String newPath = oldPathNewPath.get(file.getAbsolutePath());
-              if (newPath == null) {
-                logger.warning(() -> "No new path for file " + file.getAbsolutePath());
-                continue;
-              }
-              newValue.add(new File(newPath));
-            }
-            fnp.setValue(newValue.toArray(File[]::new));
-          } else if (parameter instanceof RawDataFilesParameter rfp && saveFilesInProject) {
-            // if we save files in project, we have to adjust the paths and file selections
-            RawDataFilesSelection selection = rfp.getValue();
-            final RawDataFile[] files =
-                selection.getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES ? selection
-                    .getSpecificFilesPlaceholders() : selection.getEvaluationResult();
-            final RawDataFilePlaceholder[] placeholders = new RawDataFilePlaceholder[files.length];
-            for (int i = 0; i < files.length; i++) {
-              final RawDataFile file = files[i];
-              placeholders[i] = new RawDataFilePlaceholder(file.getName(),
-                  file.getAbsolutePath() != null ? getZipPath(file, DATA_FILES_PREFIX,
-                      DATA_FILES_SUFFIX) : null);
-            }
-            selection.setSelectionType(RawDataFilesSelectionType.SPECIFIC_FILES);
-            selection.setSpecificFiles(placeholders);
-          }
-        }
-      }
-    }
   }
 
   /**
@@ -286,24 +234,63 @@ public class RawDataFileSaveHandler extends AbstractTask {
     return progress;
   }
 
-  public static String getZipPath(RawDataFile file) {
-    return getZipPath(file, null, null);
-  }
-
-  public static String getZipPath(@NotNull RawDataFile file, @Nullable String prefix,
-      @Nullable String suffix) {
-    StringBuilder path = new StringBuilder();
-    if (prefix != null) {
-      path.append(prefix);
+  /**
+   * Replaces the raw data file paths in case an independent project is saved to an MZmine project
+   * file.
+   *
+   * @param queues The batch queues.
+   */
+  private void replaceRawFilePaths(List<BatchQueue> queues) {
+    final Map<String, String> oldPathNewPath = new HashMap<>();
+    for (RawDataFile file : files) {
+      if (file.getAbsolutePath() == null) {
+        logger.finest(() -> "File " + file.getName() + " does not have a path.");
+        continue;
+      }
+      final String newPath = getZipPath(file, DATA_FILES_PREFIX, DATA_FILES_SUFFIX);
+      if (!DATA_FILE_PATTERN.matcher(newPath).matches()) {
+        throw new IllegalArgumentException(
+            "Cannot save file. New path does not match the save pattern. Please contact the developers. absolutePath: "
+                + file.getAbsolutePath() + " newPath: " + newPath);
+      }
+      oldPathNewPath.put(file.getAbsolutePath(), newPath);
     }
-    path.append(DATA_FILES_FOLDER);
-    final String separator = System.getProperty("file.separator");
-    path.append(file.getAbsolutePath().substring(file.getAbsolutePath().lastIndexOf(separator) + 1));
-    if (suffix != null) {
-      path.append(suffix);
-    }
 
-    return path.toString();
+    for (final BatchQueue queue : queues) {
+      for (MZmineProcessingStep<MZmineProcessingModule> step : queue) {
+        for (Parameter<?> parameter : step.getParameterSet().getParameters()) {
+          // adjust the file names and paths for import steps.
+          if (parameter instanceof FileNamesParameter fnp) {
+            List<File> newValue = new ArrayList<>();
+            File[] oldValue = fnp.getValue();
+            for (File file : oldValue) {
+              String newPath = oldPathNewPath.get(file.getAbsolutePath());
+              if (newPath == null) {
+                logger.warning(() -> "No new path for file " + file.getAbsolutePath());
+                continue;
+              }
+              newValue.add(new File(newPath));
+            }
+            fnp.setValue(newValue.toArray(File[]::new));
+          } else if (parameter instanceof RawDataFilesParameter rfp && saveFilesInProject) {
+            // if we save files in project, we have to adjust the paths and file selections
+            RawDataFilesSelection selection = rfp.getValue();
+            final RawDataFile[] files =
+                selection.getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES
+                    ? selection.getSpecificFilesPlaceholders() : selection.getEvaluationResult();
+            final RawDataFilePlaceholder[] placeholders = new RawDataFilePlaceholder[files.length];
+            for (int i = 0; i < files.length; i++) {
+              final RawDataFile file = files[i];
+              placeholders[i] = new RawDataFilePlaceholder(file.getName(),
+                  file.getAbsolutePath() != null ? getZipPath(file, DATA_FILES_PREFIX,
+                      DATA_FILES_SUFFIX) : null);
+            }
+            selection.setSelectionType(RawDataFilesSelectionType.SPECIFIC_FILES);
+            selection.setSpecificFiles(placeholders);
+          }
+        }
+      }
+    }
   }
 
   @Override

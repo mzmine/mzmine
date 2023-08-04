@@ -25,15 +25,13 @@
 
 package io.github.mzmine.modules.visualization.histogram;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
-
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import com.google.common.collect.Range;
-
-import io.github.mzmine.parameters.UserParameter;
 
 public class HistogramRangeParameter implements UserParameter<Range<Double>, HistogramRangeEditor> {
 
@@ -82,7 +80,7 @@ public class HistogramRangeParameter implements UserParameter<Range<Double>, His
   }
 
   @Override
-  public void setValueToComponent(HistogramRangeEditor component, Range<Double> newValue) {
+  public void setValueToComponent(HistogramRangeEditor component, @Nullable Range<Double> newValue) {
     component.setValue(newValue);
   }
 

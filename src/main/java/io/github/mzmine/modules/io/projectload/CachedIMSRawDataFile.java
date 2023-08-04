@@ -43,8 +43,6 @@ import java.io.IOException;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
@@ -99,12 +97,6 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
   }
 
   @Override
-  public String setNameNoChecks(@NotNull String name) {
-    throw new UnsupportedOperationException(
-        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
-  }
-
-  @Override
   public int getNumberOfFrames() {
     return cachedFrames.size();
   }
@@ -150,16 +142,6 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
   }
 
   @Override
-  public String setName(@NotNull String name) {
-    throw new UnsupportedOperationException("Unsupported during project load.");
-  }
-
-  @Override
-  public @NotNull StringProperty nameProperty() {
-    return new SimpleStringProperty(getName());
-  }
-
-  @Override
   public @Nullable String getAbsolutePath() {
     return originalFile.getAbsolutePath();
   }
@@ -200,14 +182,23 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
   }
 
   @Override
-  public Scan getScanNumberAtRT(float rt, int mslevel) {
+  public Scan binarySearchClosestScan(float rt, int mslevel) {
     throw new UnsupportedOperationException("Unsupported during project load.");
   }
 
   @Override
-  public Scan getScanNumberAtRT(float rt) {
+  public Scan binarySearchClosestScan(float rt) {
     throw new UnsupportedOperationException("Unsupported during project load.");
+  }
 
+  @Override
+  public int binarySearchClosestScanIndex(final float rt) {
+    throw new UnsupportedOperationException("Unsupported during project load.");
+  }
+
+  @Override
+  public int binarySearchClosestScanIndex(final float rt, final int mslevel) {
+    throw new UnsupportedOperationException("Unsupported during project load.");
   }
 
   @Override

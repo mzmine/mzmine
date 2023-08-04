@@ -25,17 +25,42 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class PotentialType extends FloatType {
+public class PotentialType extends IntegerType {
 
-  private static final DecimalFormat format = new DecimalFormat("0.00");
+  private static final DecimalFormat format = new DecimalFormat("0");
 
   public PotentialType() {
-    super(format);
+    super();
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    String str = reader.getElementText();
+    if (str == null || str.isEmpty()) {
+      return null;
+    }
+    try {
+      return Integer.parseInt(str);
+    } catch (NumberFormatException e) {
+      // silent, still V value from old projects.
+    }
+
+    return (int) (Float.parseFloat(str) * 1000);
   }
 
   @Override
@@ -45,11 +70,16 @@ public class PotentialType extends FloatType {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Potential / V";
+    return "Potential / mV";
   }
 
   @Override
-  public NumberFormat getFormatter() {
+  public NumberFormat getFormat() {
+    return format;
+  }
+
+  @Override
+  public NumberFormat getExportFormat() {
     return format;
   }
 }

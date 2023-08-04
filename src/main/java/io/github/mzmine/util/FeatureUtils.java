@@ -29,29 +29,41 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,6 +72,8 @@ import org.jetbrains.annotations.Nullable;
  * Utilities for feature lists
  */
 public class FeatureUtils {
+
+  private static final Logger logger = Logger.getLogger(FeatureUtils.class.getName());
 
   private static final FeatureListRowSorter ascMzRowSorter = new FeatureListRowSorter(
       SortingProperty.MZ, SortingDirection.Ascending);
@@ -72,7 +86,7 @@ public class FeatureUtils {
    * @return String representation of the feature
    */
   public static String featureToString(@Nullable Feature feature) {
-    if(feature == null) {
+    if (feature == null) {
       return "null";
     }
     StringBuffer buf = new StringBuffer();
@@ -248,10 +262,10 @@ public class FeatureUtils {
    * @param mzRange
    * @return The result of the integration.
    */
-  public static double integrateOverMzRtRange(RawDataFile dataFile, List<Scan> scans, Range<Float> rtRange,
-      Range<Double> mzRange) {
+  public static double integrateOverMzRtRange(RawDataFile dataFile, List<Scan> scans,
+      Range<Float> rtRange, Range<Double> mzRange) {
     final IonTimeSeries<?> series = IonTimeSeriesUtils.extractIonTimeSeries(dataFile, scans,
-        mzRange,  rtRange, null);
+        mzRange, rtRange, null);
 
     return FeatureDataUtils.calculateArea(series);
   }
@@ -465,8 +479,8 @@ public class FeatureUtils {
   /**
    * Loops over all {@link DataType}s in a {@link FeatureListRow}. Extracts all annotations derived
    * from a {@link CompoundDBAnnotation} in all {@link AnnotationType}s derived from the
-   * {@link ListWithSubsType} within the {@link FeatureListRow}'s {@link
-   * io.github.mzmine.datamodel.features.ModularDataModel}.
+   * {@link ListWithSubsType} within the {@link FeatureListRow}'s
+   * {@link io.github.mzmine.datamodel.features.ModularDataModel}.
    *
    * @param selectedRow The row
    * @return List of all annotations.
@@ -486,5 +500,104 @@ public class FeatureUtils {
       }
     }
     return compoundAnnotations;
+  }
+
+  public static boolean isImsFeature(Feature f) {
+    return f.getRawDataFile() instanceof IMSRawDataFile
+        && f.getFeatureData() instanceof IonMobilogramTimeSeries;
+  }
+
+  /**
+   * Extracts the best (most confident) {@link FeatureAnnotation} from a feature/row.
+   *
+   * @param m The row/feature.
+   * @return The annotation or null.
+   */
+  @Nullable
+  public static FeatureAnnotation getBestFeatureAnnotation(ModularDataModel m) {
+    final List<SpectralDBAnnotation> specDb = m.get(SpectralLibraryMatchesType.class);
+    if (specDb != null && !specDb.isEmpty()) {
+      return specDb.get(0);
+    }
+
+    final List<CompoundDBAnnotation> comp = m.get(CompoundDatabaseMatchesType.class);
+    if (comp != null && !comp.isEmpty()) {
+      return comp.get(0);
+    }
+
+    return null;
+  }
+
+
+  /**
+   * Extracts a sub-value for any data type from annotations that implement {@link ListWithSubsType}
+   * and {@link AnnotationType}, e.g. {@link CompoundDatabaseMatchesType} and
+   * {@link SpectralLibraryMatchesType}. (Basically all annotations should implement this) Can be
+   * used to create a consensus formula, annotation or else.
+   *
+   * @param featureListRow The row.
+   * @param theType        The sub data type of which to extract the value from.
+   * @param <K>            The class of the annotation that contains the data type theType.
+   * @param <V>            The value of the data type in the annotation class K.
+   * @return A mapping of annotation list type to the sub data type value.
+   */
+  public static <K extends ListWithSubsType & AnnotationType, V> Map<K, V> extractSubValueFromAllAnnotations(
+      FeatureListRow featureListRow, Class<? extends DataType<V>> theType) {
+
+    return extractSubValueFromAllAnnotations(featureListRow, DataTypes.get(theType));
+  }
+
+  /**
+   * Extracts a sub-value for any data type from annotations that implement {@link ListWithSubsType}
+   * and {@link AnnotationType}, e.g. {@link CompoundDatabaseMatchesType} and
+   * {@link SpectralLibraryMatchesType}. (Basically all annotations should implement this) Can be
+   * used to create a consensus formula, annotation or else.
+   *
+   * @param featureListRow The row.
+   * @param theType        The sub data type of which to extract the value from.
+   * @param <K>            The class of the annotation that contains the data type theType.
+   * @param <V>            The value of the data type in the annotation class K.
+   * @return A mapping of annotation list type to the sub data type value.
+   */
+  public static <K extends ListWithSubsType & AnnotationType, V> Map<K, V> extractSubValueFromAllAnnotations(
+      FeatureListRow featureListRow, DataType<V> theType) {
+    final Map<K, V> result = new HashMap<>();
+
+    // get ALL DataTypes from the feature list
+    final Collection<DataType> dataTypes = featureListRow.getTypes().values();
+
+    for (DataType<?> type : dataTypes) {
+
+      // filter for ListWithSubsType which are an annotation
+      if (!(type instanceof ListWithSubsType<?> listType)
+          || !(listType instanceof AnnotationType)) {
+        continue;
+      }
+
+      // get the actual value of the ListWithSubsType stored in the feature list, we know its a list
+      final List<?> annotationList = featureListRow.get(listType);
+
+      if (annotationList == null || annotationList.isEmpty()) {
+        continue;
+      }
+
+      // get the list of subTypes
+      final List<DataType> subDataTypeList = listType.getSubDataTypes();
+
+      // check if the searched data type exists in the listWithSubsType
+      final int subColIndex = subDataTypeList.indexOf(theType);
+      if (subColIndex == -1) {
+        continue;
+      }
+
+      try {
+        V value = (V) listType.getSubColValue(subColIndex, annotationList);
+        result.put((K) listType, value);
+      } catch (ClassCastException e) {
+        logger.log(Level.WARNING, e.getMessage(), e);
+      }
+    }
+
+    return result;
   }
 }

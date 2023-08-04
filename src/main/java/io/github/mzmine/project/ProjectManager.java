@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import javax.xml.stream.XMLStreamReader;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Project manager
@@ -46,9 +47,9 @@ public interface ProjectManager {
    *
    * @return The current project.
    */
-  MZmineProject getCurrentProject();
+  @NotNull MZmineProject getCurrentProject();
 
-  void setCurrentProject(MZmineProject newProject);
+  void setCurrentProject(@NotNull MZmineProject newProject);
 
   void clearProject();
 }

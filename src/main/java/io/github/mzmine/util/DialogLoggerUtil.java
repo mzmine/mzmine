@@ -25,15 +25,23 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.main.MZmineCore;
 import java.util.Optional;
+import java.util.logging.Logger;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
 import javafx.util.Duration;
+import org.jetbrains.annotations.Nullable;
 
 public class DialogLoggerUtil {
+
+  private static final Logger logger = Logger.getLogger(DialogLoggerUtil.class.getName());
 
   /*
    * Dialogs
@@ -44,15 +52,47 @@ public class DialogLoggerUtil {
   }
 
   public static void showErrorDialog(String title, String message) {
-    Alert alert = new Alert(AlertType.ERROR, message);
+    if (MZmineCore.isHeadLessMode()) {
+      logger.info(title + ": " + message);
+      return;
+    }
+    Alert alert = new Alert(AlertType.ERROR, null);
     alert.setTitle(title);
+    // seems like a good size for the dialog message when an old batch is loaded into new version
+    Text label = new Text(message);
+    label.setWrappingWidth(415);
+    HBox box = new HBox(label);
+    box.setPadding(new Insets(5));
+    alert.getDialogPane().setContent(box);
     alert.showAndWait();
   }
 
-  public static void showMessageDialog(String title, String message) {
-    Alert alert = new Alert(AlertType.INFORMATION, message);
+  @Nullable
+  public static Alert showMessageDialog(String title, String message) {
+    return showMessageDialog(title, message, true);
+  }
+
+  @Nullable
+  public static Alert showMessageDialog(String title, String message, boolean modal) {
+    if (MZmineCore.isHeadLessMode()) {
+      logger.info(title + ": " + message);
+      return null;
+    }
+    Alert alert = new Alert(AlertType.INFORMATION, null);
     alert.setTitle(title);
-    alert.showAndWait();
+    alert.setHeaderText(title);
+    // seems like a good size for the dialog message when an old batch is loaded into new version
+    Text label = new Text(message);
+    label.setWrappingWidth(415);
+    HBox box = new HBox(label);
+    box.setPadding(new Insets(5));
+    alert.getDialogPane().setContent(box);
+    if (modal) {
+      alert.showAndWait();
+    } else {
+      alert.show();
+    }
+    return alert;
   }
 
   public static boolean showDialogYesNo(String title, String message) {
@@ -64,17 +104,14 @@ public class DialogLoggerUtil {
 
   /**
    * shows a message dialog just for a few given milliseconds
-   *
-   * @param parent
-   * @param title
-   * @param message
-   * @param time
    */
-  public static void showMessageDialogForTime(String title, String message, long time) {
-    Alert alert = new Alert(AlertType.INFORMATION, message);
-    alert.setTitle(title);
-    alert.show();
-    Timeline idleTimer = new Timeline(new KeyFrame(Duration.millis(time), e -> alert.hide()));
+  public static void showMessageDialogForTime(String title, String message, long timeMillis) {
+    Alert alert = showMessageDialog(title, message, false);
+    if (alert == null) {
+      return;
+    }
+
+    Timeline idleTimer = new Timeline(new KeyFrame(Duration.millis(timeMillis), e -> alert.hide()));
     idleTimer.setCycleCount(1);
     idleTimer.play();
   }

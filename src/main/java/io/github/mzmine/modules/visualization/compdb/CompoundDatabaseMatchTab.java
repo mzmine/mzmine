@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.compdb;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
@@ -73,14 +74,37 @@ public class CompoundDatabaseMatchTab extends MZmineTab {
 
   private void selectionChanged() {
     final ModularFeatureListRow selectedRow = table.getSelectedRow();
-    if(selectedRow == null) {
+    if (selectedRow == null) {
       return;
     }
-    GridPane pane = new GridPane();
+    setFeatureRow(selectedRow);
+  }
 
+  public void setFeatureRows(final List<? extends FeatureListRow> selectedRows) {
+    GridPane pane = new GridPane();
+    int j = 0;
+    for (var row : selectedRows) {
+      if (!(row instanceof ModularFeatureListRow selectedRow)) {
+        continue;
+      }
+      final List<CompoundDBAnnotation> compoundAnnotations = FeatureUtils.extractAllCompoundAnnotations(
+          selectedRow);
+
+      for (CompoundDBAnnotation annotation : compoundAnnotations) {
+        final CompoundDatabaseMatchPane matchPane = new CompoundDatabaseMatchPane(annotation,
+            selectedRow);
+        pane.add(matchPane, 0, j++);
+        pane.add(new Separator(Orientation.HORIZONTAL), 0, j++);
+      }
+    }
+    scrollPane.setContent(pane);
+  }
+
+  public void setFeatureRow(final ModularFeatureListRow selectedRow) {
     final List<CompoundDBAnnotation> compoundAnnotations = FeatureUtils.extractAllCompoundAnnotations(
         selectedRow);
 
+    GridPane pane = new GridPane();
     for (int i = 0, j = 0; i < compoundAnnotations.size(); i++) {
       CompoundDBAnnotation annotation = compoundAnnotations.get(i);
       final CompoundDatabaseMatchPane matchPane = new CompoundDatabaseMatchPane(annotation,

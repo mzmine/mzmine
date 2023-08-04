@@ -55,7 +55,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -85,15 +84,15 @@ public class MultiSpectraVisualizerPane extends BorderPane {
   private final NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
   private final UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private List<RawDataFile> rawFiles;
   private FeatureListRow row;
   private RawDataFile activeRaw;
 
   private static final long serialVersionUID = 1L;
-  private GridPane pnGrid;
-  private Label lbRaw;
+  private final GridPane pnGrid;
+  private final Label lbRaw;
 
   /**
    * Shows best fragmentation scan raw data file first
@@ -189,7 +188,12 @@ public class MultiSpectraVisualizerPane extends BorderPane {
   public void setData(FeatureListRow row, RawDataFile raw) {
     rawFiles = row.getRawDataFiles();
     this.row = row;
-    setRawFileAndShow(raw);
+
+    if(row.getFeature(raw) != null) {
+      setRawFileAndShow(raw);
+    } else {
+      setRawFileAndShow(row.getBestFeature().getRawDataFile());
+    }
   }
 
   /**
@@ -200,6 +204,9 @@ public class MultiSpectraVisualizerPane extends BorderPane {
    */
   public boolean setRawFileAndShow(RawDataFile raw) {
     Feature peak = row.getFeature(raw);
+    if(peak == null && row.getRawDataFiles().size() == 1 && row.getBestFeature() != null) {
+      peak = row.getBestFeature();
+    }
     // no peak / no ms2 - return false
     if (peak == null || peak.getAllMS2FragmentScans() == null
         || peak.getAllMS2FragmentScans().size() == 0) {
@@ -221,8 +228,8 @@ public class MultiSpectraVisualizerPane extends BorderPane {
     int n = indexOfRaw(raw);
     lbRaw.setText(n + ": " + raw.getName());
     logger.finest(
-        "All MS/MS scans window: Added " + numbers.size() + " spectra of raw file " + n + ": " + raw
-            .getName());
+        "All MS/MS scans window: Added " + numbers.size() + " spectra of raw file " + n + ": "
+            + raw.getName());
     // show
 //    pnGrid.revalidate();
 //    pnGrid.repaint();
@@ -247,7 +254,7 @@ public class MultiSpectraVisualizerPane extends BorderPane {
     ModularFeature peak = (ModularFeature) row.getFeature(activeRaw);
 
     // scan selection
-    ScanSelection scanSelection = new ScanSelection(activeRaw.getDataRTRange(1), 1);
+    ScanSelection scanSelection = new ScanSelection(1, activeRaw.getDataRTRange(1));
 
     // mz range
     Range<Double> mzRange = null;
@@ -289,10 +296,10 @@ public class MultiSpectraVisualizerPane extends BorderPane {
     ticAndMobilogram.setOrientation(Orientation.HORIZONTAL);
     ticAndMobilogram.getItems().add(ticPlot);
 
-    if (peak.getFeatureData() instanceof IonMobilogramTimeSeries series && peak
-        .getMostIntenseFragmentScan() instanceof MergedMsMsSpectrum mergedMsMs) {
-      SimpleXYChart<PlotXYDataProvider> mobilogramChart = createMobilogramChart(peak,
-          mzRange, palette, series, mergedMsMs);
+    if (peak.getFeatureData() instanceof IonMobilogramTimeSeries series
+        && peak.getMostIntenseFragmentScan() instanceof MergedMsMsSpectrum mergedMsMs) {
+      SimpleXYChart<PlotXYDataProvider> mobilogramChart = createMobilogramChart(peak, mzRange,
+          palette, series, mergedMsMs);
       ticAndMobilogram.getItems().add(mobilogramChart);
     }
 

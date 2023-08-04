@@ -34,7 +34,6 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import java.util.Iterator;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -131,11 +130,6 @@ public class ScanPointerMassList implements MassList {
   @Override
   public Double getTIC() {
     return scan.getTIC();
-  }
-
-  @Override
-  public Stream<DataPoint> stream() {
-    return scan.stream();
   }
 
   @NotNull

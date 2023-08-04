@@ -36,7 +36,7 @@ import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Objects;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -97,7 +97,7 @@ public class ScanBPCProvider implements PlotXYDataProvider, MassSpectrumProvider
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     // nothing to compute, everything is in ram already.
   }
 

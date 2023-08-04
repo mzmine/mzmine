@@ -28,11 +28,9 @@ package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
@@ -40,7 +38,6 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.HashMap;
 import org.jetbrains.annotations.NotNull;
 
 /*
@@ -51,8 +48,7 @@ import org.jetbrains.annotations.NotNull;
 public class ImageBuilderModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Image builder";
-  private static final String MODULE_DESCRIPTION =
-      "This module connects data points from mass lists and builds images.";
+  private static final String MODULE_DESCRIPTION = "This module connects data points from mass lists and builds images.";
 
   @Override
   public @NotNull String getName() {
@@ -69,10 +65,8 @@ public class ImageBuilderModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    RawDataFile[] files = parameters.getParameter(ImageBuilderParameters.rawDataFiles).getValue()
-        .getMatchingRawDataFiles();
-
-    ParameterSet parametersFromImageBuilder = initParameters(parameters);
+    RawDataFile[] files = parameters.getParameter(ADAPChromatogramBuilderParameters.dataFiles)
+        .getValue().getMatchingRawDataFiles();
 
     MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
@@ -80,30 +74,12 @@ public class ImageBuilderModule implements MZmineProcessingModule {
       if (!(file instanceof ImagingRawDataFile)) {
         continue;
       }
-      Task task = new ModularADAPChromatogramBuilderTask(project, file, parametersFromImageBuilder,
-          storage, moduleCallDate);
+      Task task = ModularADAPChromatogramBuilderTask.forImaging(project, file, parameters, storage,
+          moduleCallDate, ImageBuilderModule.class);
       tasks.add(task);
     }
 
     return ExitCode.OK;
-  }
-
-  private ParameterSet initParameters(ParameterSet parameters) {
-    ParameterSet newParameterSet = MZmineCore.getConfiguration()
-        .getModuleParameters(ModularADAPChromatogramBuilderModule.class).cloneParameterSet();
-    newParameterSet.setParameter(ADAPChromatogramBuilderParameters.scanSelection,
-        parameters.getParameter(ImageBuilderParameters.scanSelection).getValue());
-    newParameterSet.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan,
-        parameters.getParameter(ImageBuilderParameters.minTotalSignals).getValue());
-    newParameterSet.setParameter(ADAPChromatogramBuilderParameters.mzTolerance,
-        parameters.getParameter(ImageBuilderParameters.mzTolerance).getValue());
-    newParameterSet.setParameter(ADAPChromatogramBuilderParameters.suffix,
-        parameters.getParameter(ImageBuilderParameters.suffix).getValue());
-    newParameterSet.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity, 0.0);
-    newParameterSet.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, 0.0);
-    newParameterSet.setParameter(ADAPChromatogramBuilderParameters.allowSingleScans,
-        new HashMap<String, Boolean>());
-    return newParameterSet;
   }
 
   @Override

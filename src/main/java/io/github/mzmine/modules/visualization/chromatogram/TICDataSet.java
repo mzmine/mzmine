@@ -25,14 +25,6 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.data.xy.AbstractXYZDataset;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
@@ -40,14 +32,21 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.AbstractTaskXYZDataset;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jfree.chart.axis.NumberAxis;
 
 /**
  * TIC visualizer data set. One data set is created per file shown in this visualizer. We need to
@@ -55,43 +54,32 @@ import javafx.collections.ObservableList;
  * <p>
  * Added the possibility to switch to TIC plot type from a "non-TICVisualizerWindow" context.
  */
-public class TICDataSet extends AbstractXYZDataset implements Task {
+public class TICDataSet extends AbstractTaskXYZDataset {
 
   private static final long serialVersionUID = 1L;
-
-  // Logger.
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-
   // For comparing small differences.
   private static final double EPSILON = 0.0000001;
-
   // Refresh interval (in milliseconds).
   private static final long REDRAW_INTERVAL = 100L;
-
   // Last time the data set was redrawn.
   private static long lastRedrawTime = System.currentTimeMillis();
-
+  // Logger.
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final RawDataFile dataFile;
 
   private final List<Scan> scans;
   private final int totalScans;
-  private int processedScans;
-
   private final double[] basePeakMZValues;
   private final double[] intensityValues;
   private final double[] rtValues;
   private final Range<Double> mzRange;
+  // Plot type
+  private final TICPlotType plotType;
+  private int processedScans;
   private double intensityMin;
   private double intensityMax;
   private TICVisualizerTab window;
-
-  private TaskStatus status;
-  private String errorMessage;
-
   private String customSeriesKey = null;
-
-  // Plot type
-  private TICPlotType plotType;
 
   /**
    * Create the data set.
@@ -176,18 +164,8 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   }
 
   @Override
-  public String getErrorMessage() {
-    return errorMessage;
-  }
-
-  @Override
   public double getFinishedPercentage() {
     return totalScans == 0 ? 0.0 : (double) processedScans / (double) totalScans;
-  }
-
-  @Override
-  public TaskStatus getStatus() {
-    return status;
   }
 
   @Override
@@ -369,11 +347,13 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     // Determine plot type (now done from constructor).
     final TICPlotType plotType = this.plotType;
 
+    if (scans.isEmpty()) {
+      return;
+    }
     // fix for imZML files without a retention time in their scans -> crashes TIC Plot
-    boolean useScanNumberAsRt = Double
-        .compare(scans.get(0).getRetentionTime(), scans.get(scans.size() - 1).getRetentionTime())
-        == 0;
-    if(useScanNumberAsRt && window != null) {
+    boolean useScanNumberAsRt = Double.compare(scans.get(0).getRetentionTime(),
+        scans.get(scans.size() - 1).getRetentionTime()) == 0;
+    if (useScanNumberAsRt && window != null) {
       final NumberAxis axis = (NumberAxis) window.getTICPlot().getXYPlot().getDomainAxis();
       MZmineCore.runLater(() -> axis.setLabel("Scan number"));
     }
@@ -440,16 +420,6 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
    */
   private void refresh() {
     Platform.runLater(() -> fireDatasetChanged());
-  }
-
-  @Override
-  public void cancel() {
-    status = TaskStatus.CANCELED;
-  }
-
-  @Override
-  public TaskPriority getTaskPriority() {
-    return TaskPriority.NORMAL;
   }
 
   public void setCustomSeriesKey(String customSeriesKey) {

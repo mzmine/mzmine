@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,7 +44,7 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import io.github.mzmine.util.swing.SwingExportUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -85,46 +85,36 @@ import org.openscience.cdk.smiles.SmilesParser;
 
 public class SpectralMatchPanel extends JPanel {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private static final int ICON_WIDTH = 50;
+  public static final Font FONT = new Font("Verdana", Font.PLAIN, 24);
+  public static final int META_WIDTH = 500;
+  public static final int ENTRY_HEIGHT = 500;
+  // colors
+  public static final double MIN_COS_COLOR_VALUE = 0.5;
+  public static final double MAX_COS_COLOR_VALUE = 1.0;
   static final Image iconAll = FxIconUtil.loadImageFromResources("icons/exp_graph_all.png");
   static final Image iconPdf = FxIconUtil.loadImageFromResources("icons/exp_graph_pdf.png");
   static final Image iconEps = FxIconUtil.loadImageFromResources("icons/exp_graph_eps.png");
   static final Image iconEmf = FxIconUtil.loadImageFromResources("icons/exp_graph_emf.png");
   static final Image iconSvg = FxIconUtil.loadImageFromResources("icons/exp_graph_svg.png");
-
-  public static final Font FONT = new Font("Verdana", Font.PLAIN, 24);
-
+  private static final int ICON_WIDTH = 50;
   private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
   private static final long serialVersionUID = 1L;
-  public static final int META_WIDTH = 500;
-  public static final int ENTRY_HEIGHT = 500;
-
-  // colors
-  public static final double MIN_COS_COLOR_VALUE = 0.5;
-  public static final double MAX_COS_COLOR_VALUE = 1.0;
   // min color is a darker red
   // max color is a darker green
   public static Color MAX_COS_COLOR = new Color(0x388E3C);
   public static Color MIN_COS_COLOR = new Color(0xE30B0B);
-
-  private Font headerFont = new Font("Dialog", Font.BOLD, 16);
-  private Font titleFont = new Font("Dialog", Font.BOLD, 18);
-  private Font scoreFont = new Font("Dialog", Font.BOLD, 30);
-
-  private EChartPanel mirrorChart;
-
-  private boolean setCoupleZoomY;
-
-  private XYPlot queryPlot;
-
-  private XYPlot libraryPlot;
-  private Font chartFont;
-  private JPanel pnExport;
-
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Font headerFont = new Font("Dialog", Font.BOLD, 16);
+  private final Font titleFont = new Font("Dialog", Font.BOLD, 18);
+  private final Font scoreFont = new Font("Dialog", Font.BOLD, 30);
+  private final JPanel pnExport;
   private final JPanel metaDataPanel;
   private final JPanel boxTitlePanel;
+  private EChartPanel mirrorChart;
+  private boolean setCoupleZoomY;
+  private XYPlot queryPlot;
+  private XYPlot libraryPlot;
+  private Font chartFont;
 
   public SpectralMatchPanel(SpectralDBAnnotation hit) {
     JPanel panel = this;
@@ -170,8 +160,9 @@ public class SpectralMatchPanel extends JPanel {
     JPanel panelScore = new JPanel();
     panelScore.setLayout(new BoxLayout(panelScore, BoxLayout.Y_AXIS));
     JLabel score = new JLabel(COS_FORM.format(simScore));
-    score.setToolTipText("Cosine similarity of raw data scan (top, blue) and database scan: "
-        + COS_FORM.format(simScore));
+    score.setToolTipText(
+        "Cosine similarity of raw data scan (top, blue) and database scan: " + COS_FORM.format(
+            simScore));
     score.setFont(scoreFont);
     score.setForeground(Color.WHITE);
     panelScore.setBackground(gradientCol);
@@ -230,12 +221,12 @@ public class SpectralMatchPanel extends JPanel {
     }
 
     // information on compound
-    JPanel panelCompounds =
-        extractMetaData("Compound information", hit.getEntry(), DBEntryField.COMPOUND_FIELDS);
+    JPanel panelCompounds = extractMetaData("Compound information", hit.getEntry(),
+        DBEntryField.COMPOUND_FIELDS);
 
     // instrument info
-    JPanel panelInstrument =
-        extractMetaData("Instrument information", hit.getEntry(), DBEntryField.INSTRUMENT_FIELDS);
+    JPanel panelInstrument = extractMetaData("Instrument information", hit.getEntry(),
+        DBEntryField.INSTRUMENT_FIELDS);
 
     JPanel g1 = new JPanel(new GridLayout(1, 2, 4, 0));
     g1.setBackground(Color.WHITE);
@@ -244,12 +235,12 @@ public class SpectralMatchPanel extends JPanel {
     metaDataPanel.add(g1);
 
     // database links
-    JPanel panelDB =
-        extractMetaData("Database links", hit.getEntry(), DBEntryField.DATABASE_FIELDS);
+    JPanel panelDB = extractMetaData("Database links", hit.getEntry(),
+        DBEntryField.DATABASE_FIELDS);
 
     // // Other info
-    JPanel panelOther =
-        extractMetaData("Other information", hit.getEntry(), DBEntryField.OTHER_FIELDS);
+    JPanel panelOther = extractMetaData("Other information", hit.getEntry(),
+        DBEntryField.OTHER_FIELDS);
 
     JPanel g2 = new JPanel(new GridLayout(1, 2, 4, 0));
     g2.setBackground(Color.WHITE);
@@ -267,9 +258,9 @@ public class SpectralMatchPanel extends JPanel {
     scrollpn.setScrollableHeight(ScrollablePanel.ScrollableSizeHint.STRETCH);
     scrollpn.add(metaDataPanel);
 
-    JScrollPane metaDataPanelScrollPane =
-        new JScrollPane(scrollpn, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    JScrollPane metaDataPanelScrollPane = new JScrollPane(scrollpn,
+        ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
     mirrorChart = mirrorWindow.getMirrorSpecrumPlot();
     // use no buffer for later pdf export
@@ -278,8 +269,8 @@ public class SpectralMatchPanel extends JPanel {
 
     CombinedDomainXYPlot plot = (CombinedDomainXYPlot) mirrorChart.getChart().getPlot();
 
-    for(Object o : plot.getSubplots()) {
-      if(o instanceof XYPlot p) {
+    for (Object o : plot.getSubplots()) {
+      if (o instanceof XYPlot p) {
         p.setDomainGridlinesVisible(false);
         p.setDomainMinorGridlinesVisible(false);
         p.setRangeGridlinesVisible(false);
@@ -357,9 +348,9 @@ public class SpectralMatchPanel extends JPanel {
    */
   public void exportToGraphics(String format) {
     // old path
-    FileNameParameter param =
-        MZmineCore.getConfiguration().getModuleParameters(SpectraIdentificationResultsModule.class)
-            .getParameter(SpectraIdentificationResultsParameters.file);
+    FileNameParameter param = MZmineCore.getConfiguration()
+        .getModuleParameters(SpectraIdentificationResultsModule.class)
+        .getParameter(SpectraIdentificationResultsParameters.file);
     final JFileChooser chooser;
     if (param.getValue() != null) {
       chooser = new JFileChooser();
@@ -399,7 +390,7 @@ public class SpectralMatchPanel extends JPanel {
     int w = META_WIDTH * 3;
     int titleLineMultiplier = (int) ((boxTitlePanel.getPreferredSize().getWidth() / w) + 2);
     boxTitlePanel.setSize(w, boxTitlePanel.getHeight() * titleLineMultiplier);
-    int h = (boxTitlePanel.getHeight() + (int) metaDataPanel.getPreferredSize().getHeight());
+    int h = (boxTitlePanel.getHeight() + (int) metaDataPanel.getPreferredSize().getHeight() + 40);
 
     JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
     frame.setSize(w, h);
@@ -414,10 +405,9 @@ public class SpectralMatchPanel extends JPanel {
 
   public void exportToGraphics(String format, File file) {
     try {
-       SwingExportUtil.writeToGraphics(this, file.getParentFile(), file.getName(), format);
+      SwingExportUtil.writeToGraphics(this, file.getParentFile(), file.getName(), format);
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Cannot export graphics of spectra match panel", ex);
-    } finally {
     }
   }
 
@@ -461,7 +451,7 @@ public class SpectralMatchPanel extends JPanel {
     }
   }
 
-  private JPanel extractMetaData(String title, SpectralDBEntry entry, DBEntryField[] other) {
+  private JPanel extractMetaData(String title, SpectralLibraryEntry entry, DBEntryField[] other) {
     JPanel panelOther = new JPanel();
     panelOther.setLayout(new BoxLayout(panelOther, BoxLayout.Y_AXIS));
     panelOther.setBackground(Color.WHITE);
@@ -472,7 +462,7 @@ public class SpectralMatchPanel extends JPanel {
       Object o = entry.getField(db).orElse("N/A");
       if (!o.equals("N/A")) {
         CustomTextPane textPane = new CustomTextPane(true);
-        textPane.setText(db.toString() + ": " + o.toString());
+        textPane.setText(db.toString() + ": " + o);
         panelOther.add(textPane);
       }
     }
@@ -497,8 +487,8 @@ public class SpectralMatchPanel extends JPanel {
       try {
         factory = InChIGeneratorFactory.getInstance();
         // Get InChIToStructure
-        InChIToStructure inchiToStructure =
-            factory.getInChIToStructure(inchiString, DefaultChemObjectBuilder.getInstance());
+        InChIToStructure inchiToStructure = factory.getInChIToStructure(inchiString,
+            DefaultChemObjectBuilder.getInstance());
         molecule = inchiToStructure.getAtomContainer();
         return molecule;
       } catch (CDKException e) {

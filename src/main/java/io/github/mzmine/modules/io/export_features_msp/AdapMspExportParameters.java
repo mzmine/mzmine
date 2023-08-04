@@ -24,7 +24,6 @@
  */
 package io.github.mzmine.modules.io.export_features_msp;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -50,29 +49,25 @@ public class AdapMspExportParameters extends SimpleParameterSet {
 
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
       "Name of the output MSP file. "
-      + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-      + "(i.e. \"blah{}blah.msp\" would become \"blahSourceFeatureListNameblah.msp\"). "
-      + "If the file already exists, it will be overwritten.",
-      extensions, FileSelectionType.SAVE);
+          + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+          + "(i.e. \"blah{}blah.msp\" would become \"blahSourceFeatureListNameblah.msp\"). "
+          + "If the file already exists, it will be overwritten.", extensions,
+      FileSelectionType.SAVE);
 
-  public static final OptionalParameter<StringParameter> ADD_RET_TIME =
-      new OptionalParameter<>(
-          new StringParameter("Add retention time",
-              "If selected, each MSP record will contain the feature's retention time", "RT"),
-          true);
+  public static final OptionalParameter<StringParameter> ADD_RET_TIME = new OptionalParameter<>(
+      new StringParameter("Add retention time",
+          "If selected, each MSP record will contain the feature's retention time", "RT"), true);
 
-  public static final OptionalParameter<StringParameter> ADD_ANOVA_P_VALUE =
-      new OptionalParameter<>(new StringParameter("Add ANOVA p-value (if calculated)",
+  public static final OptionalParameter<StringParameter> ADD_ANOVA_P_VALUE = new OptionalParameter<>(
+      new StringParameter("Add ANOVA p-value (if calculated)",
           "If selected, each MSP record will contain the One-way ANOVA p-value (if calculated)",
           "ANOVA_P_VALUE"), true);
 
-  public static final OptionalParameter<ComboParameter<IntegerMode>> INTEGER_MZ =
-      new OptionalParameter<>(
-          new ComboParameter<IntegerMode>("Integer m/z",
-              "Merging mode for fractional m/z to unit mass", IntegerMode.values()),
-          false);
+  public static final OptionalParameter<ComboParameter<IntegerMode>> INTEGER_MZ = new OptionalParameter<>(
+      new ComboParameter<IntegerMode>("Integer m/z", "Merging mode for fractional m/z to unit mass",
+          IntegerMode.values()), false);
 
   public AdapMspExportParameters() {
-    super(new Parameter[] {FEATURE_LISTS, FILENAME, ADD_RET_TIME, ADD_ANOVA_P_VALUE, INTEGER_MZ});
+    super(FEATURE_LISTS, FILENAME, ADD_RET_TIME, ADD_ANOVA_P_VALUE, INTEGER_MZ);
   }
 }

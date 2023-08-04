@@ -31,15 +31,18 @@ import java.util.List;
 
 public interface MergedMassSpectrum extends Scan {
 
+  MergingType getMergingType();
+
   /**
-   * @return A list of spectra used to create this merged spectrum
+   * @return A list of spectra used to create this merged spectrum. Never a merged spectra, which
+   * are unpacked to their source spectra in case merged spectra are merged.
    */
   List<MassSpectrum> getSourceSpectra();
 
   /**
    * @return The merging type this spectrum is based on.
    */
-  IntensityMergingType getMergingType();
+  IntensityMergingType getIntensityMergingType();
 
   /**
    * @return The center function used to create this merged spectrum.
@@ -48,11 +51,39 @@ public interface MergedMassSpectrum extends Scan {
 
 
   /**
-   *
    * @return -1 to represent the artificial state of this spectrum.
    */
   @Override
   default int getScanNumber() {
     return -1;
+  }
+
+  /**
+   * The merging type describes the selection of input spectra and on which level it was merged.
+   */
+  enum MergingType {
+    /**
+     * SAME_ENERGY merged all spectra from the same energy
+     */
+    SAME_ENERGY,
+    /**
+     * SAME_PRECURSOR_IN_MSLEVEL merged all spectra of the same precursor into one spectrum. Usually
+     * after merging the individual energies first.
+     */
+    ALL_ENERGIES,
+    /**
+     * ALL_MSN merged all MSn spectra for a precursor into a pseudo MS2 spectrum. The order of
+     * merging is usually: 1. merge individual energies 2. merge for each precursor on all MSn
+     * levels 3. merge all into one
+     */
+    ALL_MSN_TO_PSEUDO_MS2,
+    /**
+     * Merged all {@link MobilityScan}s from a single
+     * {@link io.github.mzmine.datamodel.msms.PasefMsMsInfo} (= single fragmentation event). This
+     * spectrum is created by merging multiple mobility scans, but does not fulfill the criteria of
+     * the other merging types. It is not acquired from multiple MS2 events or multiple collision
+     * energies.
+     */
+    PASEF_SINGLE
   }
 }

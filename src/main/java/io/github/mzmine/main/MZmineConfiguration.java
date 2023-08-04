@@ -29,6 +29,7 @@ import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -102,9 +103,16 @@ public interface MZmineConfiguration {
 
   UnitFormat getUnitFormat();
 
-  void loadConfiguration(File file) throws IOException;
+  void loadConfiguration(File file, boolean loadPreferences) throws IOException;
 
   void saveConfiguration(File file) throws IOException;
+
+  default NumberFormats getFormats(boolean export) {
+    return export ? getExportFormats() : getGuiFormats();
+  }
+  NumberFormats getGuiFormats();
+
+  NumberFormats getExportFormats();
 
   String getRexecPath();
 

@@ -40,7 +40,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -385,12 +384,6 @@ public abstract class ScanDataAccess implements Scan {
         "The intended use of this class is to loop over all scans and data points");
   }
 
-  @Override
-  public Stream<DataPoint> stream() {
-    throw new UnsupportedOperationException(
-        "The intended use of this class is to loop over all scans and data points");
-  }
-
   @NotNull
   @Override
   public Iterator<DataPoint> iterator() {
@@ -401,6 +394,6 @@ public abstract class ScanDataAccess implements Scan {
   @Override
   public @Nullable Float getInjectionTime() {
     Scan scan = getCurrentScan();
-    return (scan == null || scan.isEmptyScan()) ? null : scan.getInjectionTime();
+    return scan == null ? null : scan.getInjectionTime();
   }
 }

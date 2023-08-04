@@ -58,7 +58,7 @@ public class ImageType extends LinkedGraphicalType {
   @Override
   public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
       TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean value, RawDataFile raw) {
-    ModularFeatureListRow row = cell.getTableRow().getItem();
+    ModularFeatureListRow row = cell.getTreeTableRow().getItem();
     if (row == null || !value || row.getFeature(raw) == null
         || !(raw instanceof ImagingRawDataFile)) {
       return null;
@@ -95,7 +95,7 @@ public class ImageType extends LinkedGraphicalType {
   }
 
   @Override
-  public Class<? extends Node> getNodeClass() {
-    return ImageChart.class;
+  public boolean getDefaultVisibility() {
+    return true;
   }
 }

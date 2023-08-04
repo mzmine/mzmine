@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
-import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
@@ -44,7 +44,7 @@ import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,13 +58,13 @@ public class FeatureRawMobilogramProvider implements PlotXYDataProvider {
   private final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private final NumberFormat mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
   private final NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
-  private final ModularFeature f;
+  private final Feature f;
   private final IonMobilogramTimeSeries featureData;
   private SummedIntensityMobilitySeries rawMobilogram;
   private final Range<Double> mzRange;
   private double percentage = 0d;
 
-  public FeatureRawMobilogramProvider(@NotNull final ModularFeature f,
+  public FeatureRawMobilogramProvider(@NotNull final Feature f,
       @NotNull final Range<Double> mzRange) {
     this.f = f;
     this.mzRange = mzRange;
@@ -103,22 +103,23 @@ public class FeatureRawMobilogramProvider implements PlotXYDataProvider {
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     final List<Frame> frames = featureData.getSpectra();
     final List<IonMobilitySeries> mobilograms = new ArrayList<>();
     for (int i = 0; i < frames.size(); i++) {
       percentage = i / ((double) frames.size() - 1);
 
       final Frame frame = frames.get(i);
-      mobilograms.add(IonMobilityUtils
-          .buildMobilogramForMzRange(frame, mzRange, MobilogramType.BASE_PEAK, null));
-      if (status.get() == TaskStatus.CANCELED) {
+      mobilograms.add(
+          IonMobilityUtils.buildMobilogramForMzRange(frame, mzRange, MobilogramType.BASE_PEAK,
+              null));
+      if (status.getValue() == TaskStatus.CANCELED) {
         return;
       }
     }
 
-    final int binningWith = BinningMobilogramDataAccess
-        .getPreviousBinningWith((ModularFeatureList) f.getFeatureList(), f.getMobilityUnit());
+    final int binningWith = BinningMobilogramDataAccess.getPreviousBinningWith(
+        (ModularFeatureList) f.getFeatureList(), f.getMobilityUnit());
     var binner = new BinningMobilogramDataAccess((IMSRawDataFile) f.getRawDataFile(), binningWith);
     binner.setMobilogram(mobilograms);
     rawMobilogram = binner.toSummedMobilogram(null);

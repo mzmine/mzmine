@@ -50,6 +50,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.EmbeddedComponentOptions;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
@@ -70,7 +71,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "Name of file that contains information for peak identification", FileSelectionType.OPEN);
 
   public static final StringParameter fieldSeparator = new StringParameter("Field separator",
-      "Character(s) used to separate fields in the database file", ",");
+      "Character(s) used to separate fields in the database file. Use '\\t' for tab seperated files.",
+      ",");
   public static final StringParameter commentFields = new StringParameter("Append comment fields",
       "Multiple fields separated by comma that are appended to the comment. Like: Pathway,Synonyms",
       "", false);
@@ -90,7 +92,12 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
   public static final OptionalModuleParameter<IonLibraryParameterSet> ionLibrary = new OptionalModuleParameter<>(
       "Use adducts",
       "If enabled, m/z values for multiple adducts will be calculated and matched against the feature list.",
+      EmbeddedComponentOptions.VIEW_IN_WINDOW,
       (IonLibraryParameterSet) new IonLibraryParameterSet().cloneParameterSet());
+  public static final OptionalModuleParameter<IsotopePatternMatcherParameters> isotopePatternMatcher = new OptionalModuleParameter<>(
+      "Use isotope matcher",
+      "Matches predicted and detected isotope pattern. Make sure to run isotope finder before on the feature list.",
+      (IsotopePatternMatcherParameters) new IsotopePatternMatcherParameters().cloneParameterSet());
   private static final List<ImportType> importTypes = List.of(
       new ImportType(true, "neutral mass", new NeutralMassType()),
       new ImportType(true, "mz", new PrecursorMZType()), //
@@ -104,13 +111,15 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType(true, "comment", new CommentType()),
       new ImportType(false, "adduct", new IonAdductType()),
       new ImportType(false, "PubChemCID", new PubChemIdType()));
+
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.", importTypes);
 
   public LocalCSVDatabaseSearchParameters() {
     super(
         new Parameter[]{peakLists, dataBaseFile, fieldSeparator, columns, mzTolerance, rtTolerance,
-            mobTolerance, ccsTolerance, ionLibrary, filterSamples, commentFields},
+            mobTolerance, ccsTolerance, isotopePatternMatcher, ionLibrary, filterSamples,
+            commentFields},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_prec_local_cmpd_db/local-cmpd-db-search.html");
   }
 

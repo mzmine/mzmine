@@ -31,9 +31,9 @@ import java.text.MessageFormat;
 
 public class PrecursorDBFeatureIdentity extends SimpleFeatureIdentity {
 
-  private final SpectralDBEntry entry;
+  private final SpectralLibraryEntry entry;
 
-  public PrecursorDBFeatureIdentity(SpectralDBEntry entry, String method) {
+  public PrecursorDBFeatureIdentity(SpectralLibraryEntry entry, String method) {
     super(MessageFormat.format("Precursor? {0} as {3} ({1}) {2}",
             entry.getField(DBEntryField.NAME).orElse("NONAME"), // Name
             entry.getField(DBEntryField.PRECURSOR_MZ).orElse(""), // precursor m/z
@@ -44,7 +44,7 @@ public class PrecursorDBFeatureIdentity extends SimpleFeatureIdentity {
     this.entry = entry;
   }
 
-  public SpectralDBEntry getEntry() {
+  public SpectralLibraryEntry getEntry() {
     return entry;
   }
 

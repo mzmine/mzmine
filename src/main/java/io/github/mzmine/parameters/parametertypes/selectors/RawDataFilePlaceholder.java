@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -116,18 +115,6 @@ public class RawDataFilePlaceholder implements RawDataFile {
   }
 
   @Override
-  public String setName(@NotNull String name) {
-    throw new UnsupportedOperationException(
-        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
-  }
-
-  @Override
-  public String setNameNoChecks(@NotNull String name) {
-    throw new UnsupportedOperationException(
-        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
-  }
-
-  @Override
   public int getNumOfScans() {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
@@ -170,13 +157,25 @@ public class RawDataFilePlaceholder implements RawDataFile {
   }
 
   @Override
-  public Scan getScanNumberAtRT(float rt, int mslevel) {
+  public Scan binarySearchClosestScan(float rt, int mslevel) {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }
 
   @Override
-  public Scan getScanNumberAtRT(float rt) {
+  public Scan binarySearchClosestScan(float rt) {
+    throw new UnsupportedOperationException(
+        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
+  }
+
+  @Override
+  public int binarySearchClosestScanIndex(final float rt) {
+    throw new UnsupportedOperationException(
+        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
+  }
+
+  @Override
+  public int binarySearchClosestScanIndex(final float rt, final int mslevel) {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }
@@ -297,12 +296,6 @@ public class RawDataFilePlaceholder implements RawDataFile {
 
   @Override
   public @NotNull ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
-    throw new UnsupportedOperationException(
-        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
-  }
-
-  @Override
-  public @NotNull StringProperty nameProperty() {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }

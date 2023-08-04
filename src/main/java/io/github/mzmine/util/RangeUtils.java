@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util;
 
+import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
 import io.github.mzmine.util.maths.ArithmeticUtils;
 import java.math.BigDecimal;
@@ -261,7 +262,44 @@ public class RangeUtils {
     return range;
   }
 
+  /**
+   * This style is used mostly in mzmine
+   *
+   * @return lower - upper
+   */
   public static String formatRange(Range<? extends Number> range, NumberFormat format) {
-    return format.format(range.lowerEndpoint()) + " - " + format.format(range.upperEndpoint());
+    return formatRange(range, format, false, false);
+  }
+
+  public static String formatRange(Range<? extends Number> range, NumberFormat format,
+      boolean guavaStyle, boolean addBounds) {
+    String connector = guavaStyle ? ".." : " - ";
+    String values =
+        format.format(range.lowerEndpoint()) + connector + format.format(range.upperEndpoint());
+    if (!addBounds) {
+      return values;
+    }
+    // this style is used for exact range string
+    return getBoundString(range, true) + values + getBoundString(range, false);
+  }
+
+  @NotNull
+  private static String getBoundString(final Range<? extends Number> range, final boolean isLower) {
+    if (isLower) {
+      return range.lowerBoundType() == BoundType.CLOSED ? "[" : "(";
+    }
+    return range.upperBoundType() == BoundType.CLOSED ? "]" : ")";
+  }
+
+  /**
+   * @param center the center of the range
+   * @param length the total length of the range, divided by 2 on each side to creat the range.
+   */
+  public static Range<Double> rangeAround(double center, double length) {
+    return Range.closed(center - length / 2, center + length / 2);
+  }
+
+  public static Range<Float> rangeAround(float center, float length) {
+    return Range.closed(center - length / 2, center + length / 2);
   }
 }

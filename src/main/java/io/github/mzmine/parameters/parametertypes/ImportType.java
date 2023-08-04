@@ -35,9 +35,9 @@ import javafx.beans.property.StringProperty;
 
 public class ImportType {
 
-  private BooleanProperty selected;
-  private StringProperty csvColumnName;
-  private ObjectProperty<DataType<?>> dataType;
+  private final BooleanProperty selected;
+  private final StringProperty csvColumnName;
+  private final ObjectProperty<DataType<?>> dataType;
 
   private int columnIndex = -1;
 
@@ -45,6 +45,12 @@ public class ImportType {
     this.selected = new SimpleBooleanProperty(selected);
     this.csvColumnName = new SimpleStringProperty(csvColumnName);
     this.dataType = new SimpleObjectProperty<>(dataType);
+  }
+
+  @Override
+  public String toString() {
+    return "ImportType{" + selected.get() + ", in csv=" + csvColumnName.get() + ", type="
+        + dataType.get() + ", index=" + columnIndex + '}';
   }
 
   public boolean isSelected() {

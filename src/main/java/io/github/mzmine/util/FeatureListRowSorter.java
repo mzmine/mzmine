@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Comparator;
@@ -39,9 +41,12 @@ public class FeatureListRowSorter implements Comparator<FeatureListRow> {
       SortingDirection.Ascending);
   public static final FeatureListRowSorter DEFAULT_ID = new FeatureListRowSorter(SortingProperty.ID,
       SortingDirection.Ascending);
+  public static final FeatureListRowSorter MZ_ASCENDING = new FeatureListRowSorter(
+      SortingProperty.MZ, SortingDirection.Ascending);
 
-  private SortingProperty property;
-  private SortingDirection direction;
+
+  private final SortingProperty property;
+  private final SortingDirection direction;
 
   public FeatureListRowSorter(SortingProperty property, SortingDirection direction) {
     this.property = property;
@@ -53,10 +58,11 @@ public class FeatureListRowSorter implements Comparator<FeatureListRow> {
     Double row1Value = getValue(row1);
     Double row2Value = getValue(row2);
 
-    if (direction == SortingDirection.Ascending)
+    if (direction == SortingDirection.Ascending) {
       return row1Value.compareTo(row2Value);
-    else
+    } else {
       return row2Value.compareTo(row1Value);
+    }
 
   }
 
@@ -65,28 +71,31 @@ public class FeatureListRowSorter implements Comparator<FeatureListRow> {
       case Area:
         Feature[] areaPeaks = row.getFeatures().toArray(new Feature[0]);
         double[] peakAreas = new double[areaPeaks.length];
-        for (int i = 0; i < peakAreas.length; i++)
+        for (int i = 0; i < peakAreas.length; i++) {
           peakAreas[i] = areaPeaks[i].getArea();
+        }
         double medianArea = MathUtils.calcQuantile(peakAreas, 0.5);
         return medianArea;
       case Intensity:
         Feature[] intensityPeaks = row.getFeatures().toArray(new Feature[0]);
         double[] peakIntensities = new double[intensityPeaks.length];
-        for (int i = 0; i < intensityPeaks.length; i++)
+        for (int i = 0; i < intensityPeaks.length; i++) {
           peakIntensities[i] = intensityPeaks[i].getArea();
+        }
         double medianIntensity = MathUtils.calcQuantile(peakIntensities, 0.5);
         return medianIntensity;
       case Height:
         Feature[] heightPeaks = row.getFeatures().toArray(new Feature[0]);
         double[] peakHeights = new double[heightPeaks.length];
-        for (int i = 0; i < peakHeights.length; i++)
+        for (int i = 0; i < peakHeights.length; i++) {
           peakHeights[i] = heightPeaks[i].getHeight();
+        }
         double medianHeight = MathUtils.calcQuantile(peakHeights, 0.5);
         return medianHeight;
       case MZ:
-        return row.getAverageMZ() + row.getAverageRT() / 10000000.0;
+        return row.getAverageMZ() + requireNonNullElse(row.getAverageRT(), 0f) / 10000000.0;
       case RT:
-        return row.getAverageRT() + row.getAverageMZ() / 10000000.0;
+        return requireNonNullElse(row.getAverageRT(), 0f) + row.getAverageMZ() / 10000000.0;
       case ID:
         return row.getID();
     }

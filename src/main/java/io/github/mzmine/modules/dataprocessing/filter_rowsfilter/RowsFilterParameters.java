@@ -30,11 +30,12 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.MinimumSamplesParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -46,7 +47,7 @@ import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
-import java.text.DecimalFormat;
+import org.jetbrains.annotations.NotNull;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
@@ -57,11 +58,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final StringParameter SUFFIX = new StringParameter("Name suffix",
       "Suffix to be added to feature list name", "filtered");
 
-  public static final OptionalParameter<DoubleParameter> MIN_FEATURE_COUNT = new OptionalParameter<>(
-      new DoubleParameter("Minimum features in a row (abs or %)",
-          "Minimum number of feature detections required per row.\nValues <1 will be "
-              + "interpreted as a %-value of the total # samples in the feature list. The value will be rounded down to the nearest whole number.",
-          new DecimalFormat("0.000"), 0.1), false);
+  public static final OptionalParameter<MinimumSamplesParameter> MIN_FEATURE_COUNT = new OptionalParameter<>(
+      new MinimumSamplesParameter(), false);
 
   public static final OptionalParameter<IntegerParameter> MIN_ISOTOPE_PATTERN_COUNT = new OptionalParameter<>(
       new IntegerParameter("Minimum features in an isotope pattern",
@@ -154,7 +152,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
     // Update the parameter choices
-    UserParameter<?, ?> newChoices[] = MZmineCore.getProjectManager().getCurrentProject()
+    UserParameter<?, ?>[] newChoices = MZmineCore.getProjectManager().getCurrentProject()
         .getParameters();
     String[] choices;
     if (newChoices == null || newChoices.length == 0) {
@@ -174,4 +172,13 @@ public class RowsFilterParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
 }

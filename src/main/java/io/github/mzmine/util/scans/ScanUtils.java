@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util.scans;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import com.google.common.util.concurrent.AtomicDouble;
 import gnu.trove.list.array.TDoubleArrayList;
@@ -35,13 +37,17 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -76,6 +82,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -154,6 +161,13 @@ public class ScanUtils {
         && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
       buf.append(" (").append(mzFormat.format(dda.getIsolationMz())).append(")");
     }
+
+    final List<Float> CEs = extractCollisionEnergies(scan);
+    if (!CEs.isEmpty()) {
+      buf.append(", CE: ");
+      buf.append(CEs.stream().sorted().map("%.1f"::formatted).collect(Collectors.joining(", ")));
+    }
+
     switch (scan.getSpectrumType()) {
       case CENTROIDED -> buf.append(" c");
       case PROFILE -> buf.append(" p");
@@ -167,11 +181,8 @@ public class ScanUtils {
       buf.append(" merged ");
       buf.append(((MergedMassSpectrum) scan).getSourceSpectra().size());
       buf.append(" spectra");
-      if (scan instanceof MergedMsMsSpectrum) {
-        buf.append(", CE: ");
-        buf.append(String.format("%.1f", ((MergedMsMsSpectrum) scan).getCollisionEnergy()));
-      }
     }
+
 
     /*
      * if ((scan.getScanDefinition() != null) && (scan.getScanDefinition().length() > 0)) {
@@ -181,6 +192,34 @@ public class ScanUtils {
     return buf.toString();
   }
 
+  private static Float extractCollisionEnergy(MassSpectrum spectrum) {
+    return switch (spectrum) {
+      case MobilityScan mob ->
+          mob.getMsMsInfo() != null ? mob.getMsMsInfo().getActivationEnergy() : null;
+      case Scan scan ->
+          scan.getMsMsInfo() != null ? scan.getMsMsInfo().getActivationEnergy() : null;
+      default -> null;
+    };
+  }
+
+  public static List<Float> extractCollisionEnergies(MassSpectrum spectrum) {
+    return switch (spectrum) {
+      case MergedMassSpectrum merged ->
+          merged.getSourceSpectra().stream().map(ScanUtils::extractCollisionEnergy).distinct()
+              .filter(Objects::nonNull).toList();
+      case Scan scan ->
+          scan.getMsMsInfo() != null && scan.getMsMsInfo().getActivationEnergy() != null ? List.of(
+              scan.getMsMsInfo().getActivationEnergy()) : List.of();
+      default -> List.of();
+    };
+  }
+
+  /**
+   * DataPoint usage is discouraged when used to stare data. It can be used when sorting of data
+   * points is needed etc.
+   *
+   * @return array of data points
+   */
   @Deprecated
   public static DataPoint[] extractDataPoints(MassSpectrum spectrum) {
     int size = spectrum.getNumberOfDataPoints();
@@ -204,7 +243,8 @@ public class ScanUtils {
   public static DataPoint findBasePeak(@NotNull Scan scan, @NotNull Range<Double> mzRange) {
     final Double scanBasePeakMz = scan.getBasePeakMz();
     if (scanBasePeakMz != null && mzRange.contains(scanBasePeakMz)) {
-      return new SimpleDataPoint(scanBasePeakMz, scan.getBasePeakIntensity());
+      return new SimpleDataPoint(scanBasePeakMz,
+          requireNonNullElse(scan.getBasePeakIntensity(), 0d));
     }
 
     final double lower = mzRange.lowerEndpoint();
@@ -1036,8 +1076,16 @@ public class ScanUtils {
   }
 
 
+  /**
+   * Uses a default mz tolerance {@link SpectraMerging#defaultMs2MergeTol} to build trees. Rather
+   * use {@link #getMSnFragmentTrees(RawDataFile, MZTolerance)} and define the tolerance matching
+   * the dataset
+   *
+   * @param raw build trees from this file
+   * @return list of trees
+   */
   public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw) {
-    return getMSnFragmentTrees(raw, new MZTolerance(0.015, 20));
+    return getMSnFragmentTrees(raw, SpectraMerging.defaultMs2MergeTol);
   }
 
   public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw, MZTolerance mzTol) {
@@ -1046,13 +1094,44 @@ public class ScanUtils {
 
   public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw, MZTolerance mzTol,
       AtomicDouble progress) {
+    return getMSnFragmentTrees(raw.getScans(), mzTol, progress);
+  }
+
+
+  /**
+   * Uses a default mz tolerance {@link SpectraMerging#defaultMs2MergeTol} to build trees. Rather
+   * use {@link #getMSnFragmentTrees(FeatureList, MZTolerance)} and define the tolerance matching
+   * the dataset
+   *
+   * @param flist build trees from this feature list
+   * @return list of trees
+   */
+  public static List<PrecursorIonTree> getMSnFragmentTrees(FeatureList flist) {
+    return getMSnFragmentTrees(flist, SpectraMerging.defaultMs2MergeTol);
+  }
+
+  public static List<PrecursorIonTree> getMSnFragmentTrees(FeatureList flist, MZTolerance mzTol) {
+    return flist.stream().flatMap(row -> getMSnFragmentTrees(row, mzTol).stream()).sorted()
+        .toList();
+  }
+
+  public static List<PrecursorIonTree> getMSnFragmentTrees(FeatureListRow row, MZTolerance mzTol) {
+    return getMSnFragmentTrees(row.getAllFragmentScans(), mzTol, null);
+  }
+
+  public static List<PrecursorIonTree> getMSnFragmentTrees(List<Scan> scans, MZTolerance mzTol,
+      AtomicDouble progress) {
+    if (scans == null || scans.isEmpty()) {
+      return List.of();
+    }
+
     // at any time in the flow there should only be the latest precursor with the same m/z
     MZToleranceRangeMap<PrecursorIonTreeNode> ms2Nodes = new MZToleranceRangeMap<>(mzTol);
 
     PrecursorIonTreeNode parent = null;
-    final int totalScans = raw.getNumOfScans();
+    final int totalScans = scans.size();
 
-    for (Scan scan : raw.getScans()) {
+    for (Scan scan : scans) {
       if (scan.getMSLevel() <= 1) {
         continue;
       }
@@ -1236,7 +1315,8 @@ public class ScanUtils {
             }
           }).toList();
 
-      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, null);
+      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, MergingType.ALL_ENERGIES,
+          null);
     } else {
       logger.warning(() -> "Unknown merged spectrum type. Please contact the developers.");
       return null;
@@ -1297,7 +1377,8 @@ public class ScanUtils {
             }
           }).toList();
 
-      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, null);
+      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, MergingType.ALL_ENERGIES,
+          null);
     } else {
       logger.warning(() -> "Unknown merged spectrum type. Please contact the developers.");
       return null;
@@ -1620,35 +1701,350 @@ public class ScanUtils {
   /**
    * Filters the raw mz + intensity data of a scan to remove neighbouring zeros.
    *
-   * @param scan The scan, [][0] are mzs, [][1] are intensities
-   * @return A multidimensional array with the filtered values. [][0] are mzs, [][1] are
-   * intensities.
+   * @param scan The scan, [0] are mzs, [1] are intensities
+   * @return A multidimensional array with the filtered values. [0] are mzs, [1] are intensities.
    */
   public static double[][] removeExtraZeros(double[][] scan) {
     // remove all extra zeros
-    final int numDp = scan.length;
+    final int numDp = scan[0].length;
     final TDoubleArrayList filteredMzs = new TDoubleArrayList();
     final TDoubleArrayList filteredIntensities = new TDoubleArrayList();
     filteredMzs.add(scan[0][0]);
-    filteredIntensities.add(scan[0][1]);
+    filteredIntensities.add(scan[1][0]);
     for (int i = 1; i < numDp - 1;
         i++) { // previous , this and next are zero --> do not add this data point
-      if (scan[i - 1][1] != 0 || scan[i][1] != 0 || scan[i + 1][1] != 0) {
-        filteredMzs.add(scan[i][0]);
-        filteredIntensities.add(scan[i][1]);
+      if (scan[1][i - 1] != 0 || scan[1][i] != 0 || scan[1][i + 1] != 0) {
+        filteredMzs.add(scan[0][i]);
+        filteredIntensities.add(scan[1][i]);
       }
     }
-    filteredMzs.add(scan[numDp - 1][0]);
-    filteredIntensities.add(scan[numDp - 1][1]);
+    filteredMzs.add(scan[0][numDp - 1]);
+    filteredIntensities.add(scan[1][numDp - 1]);
 
     //Convert the ArrayList to an array.
-    double[][] filteredScan = new double[filteredMzs.size()][2];
+    double[][] filteredScan = new double[2][filteredMzs.size()];
     for (int i = 0; i < filteredMzs.size(); i++) {
-      filteredScan[i][0] = filteredMzs.get(i);
-      filteredScan[i][1] = filteredIntensities.get(i);
+      filteredScan[0][i] = filteredMzs.get(i);
+      filteredScan[1][i] = filteredIntensities.get(i);
     }
 
     return filteredScan;
+  }
+
+  /**
+   * Calculates the spectral entropy given by <p></p> S = -SUM_p(I_p * ln(I_p)) <p></p> p = peak
+   * index in the spectrum.
+   * <a href="https://www.nature.com/articles/s41592-021-01331-z#Sec9">Reference</a>>
+   *
+   * @return The normalized spectral entropy. {@link Double#POSITIVE_INFINITY} if there is no TIC or
+   * no ions in the spectrum.
+   */
+  public static double getSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+    final Double tic = spectrum.getTIC();
+    if (tic == null || tic <= 0 || spectrum.getNumberOfDataPoints() == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+
+    double spectralEntropy = 0d;
+    for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
+      final double normalizedIntensity = spectrum.getIntensityValue(i) / tic;
+      spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
+    }
+    return -spectralEntropy;
+  }
+
+  /**
+   * Calculates the spectral entropy given by <p></p> S = -SUM_p(I_p * ln(I_p)) <p></p> p = peak
+   * index in the spectrum.
+   * <a href="https://www.nature.com/articles/s41592-021-01331-z#Sec9">Reference</a>>
+   *
+   * @return The normalized spectral entropy. {@link Double#POSITIVE_INFINITY} if there is no TIC or
+   * no ions in the spectrum.
+   */
+  public static double getSpectralEntropy(@NotNull final double[] intensities) {
+    if (intensities.length == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+
+    final Double tic = Arrays.stream(intensities).sum();
+    if (tic <= 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+
+    double spectralEntropy = 0d;
+    for (int i = 0; i < intensities.length; i++) {
+      final double normalizedIntensity = intensities[i] / tic;
+      spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
+    }
+    return -spectralEntropy;
+  }
+
+  /**
+   * @return The spectral entropy normalized to the number of signals in a spectrum.
+   * @see #getSpectralEntropy(MassSpectrum)
+   */
+  public static double getNormalizedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+    if (spectrum.getNumberOfDataPoints() == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+    return getSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
+  }
+
+  /**
+   * @return The spectral entropy normalized to the number of signals in a spectrum.
+   * @see #getSpectralEntropy(MassSpectrum)
+   */
+  public static double getNormalizedSpectralEntropy(@NotNull final double[] intensities) {
+    if (intensities.length == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+    return getSpectralEntropy(intensities) / Math.log(intensities.length);
+  }
+
+  /**
+   * Calculates the weighted spectral entropy given by <p></p> S = -SUM_p(I_p * ln(I_p)) <p></p> p =
+   * peak index in the spectrum.
+   * <a href="https://www.nature.com/articles/s41592-021-01331-z#Sec9">Reference</a>>
+   * For entropies S < 3, the intensities are reweighted.
+   *
+   * @return The weighted spectral entropy. {@link Double#POSITIVE_INFINITY} if there is no TIC or
+   * no ions in the spectrum.
+   */
+  public static double getWeightedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+    final double entropy = getSpectralEntropy(spectrum);
+    if (entropy > 3) { // also matches Double.Positive_Infinity (= no ions)
+      return entropy;
+    }
+
+    final double[] weightedIntensities = new double[spectrum.getNumberOfDataPoints()];
+    double tic = 0d;
+    for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
+      weightedIntensities[i] = Math.pow(spectrum.getIntensityValue(i), 0.25 + entropy * 0.25);
+      tic += weightedIntensities[i];
+    }
+
+    double spectralEntropy = 0d;
+    for (int i = 0; i < weightedIntensities.length; i++) {
+      final double normalizedIntensity = weightedIntensities[i] / tic;
+      spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
+    }
+    return -spectralEntropy;
+  }
+
+  /**
+   * Calculates the weighted spectral entropy given by <p></p> S = -SUM_p(I_p * ln(I_p)) <p></p> p =
+   * peak index in the spectrum.
+   * <a href="https://www.nature.com/articles/s41592-021-01331-z#Sec9">Reference</a>>
+   * For entropies S < 3, the intensities are reweighted.
+   *
+   * @return The weighted spectral entropy. {@link Double#POSITIVE_INFINITY} if there is no TIC or
+   * no ions in the spectrum.
+   */
+  public static double getWeightedSpectralEntropy(@NotNull final double[] intensities) {
+    final double entropy = getSpectralEntropy(intensities);
+    if (entropy > 3) { // also matches Double.Positive_Infinity (= no ions)
+      return entropy;
+    }
+
+    final double[] weightedIntensities = new double[intensities.length];
+    double tic = 0d;
+    for (int i = 0; i < intensities.length; i++) {
+      weightedIntensities[i] = Math.pow(intensities[i], 0.25 + entropy * 0.25);
+      tic += weightedIntensities[i];
+    }
+
+    double spectralEntropy = 0d;
+    for (int i = 0; i < weightedIntensities.length; i++) {
+      final double normalizedIntensity = weightedIntensities[i] / tic;
+      spectralEntropy += normalizedIntensity * Math.log(normalizedIntensity);
+    }
+    return -spectralEntropy;
+  }
+
+  /**
+   * @return The spectral entropy normalized to the number of signals in a spectrum.
+   * @see #getWeightedSpectralEntropy(MassSpectrum)
+   */
+  public static double getNormalizedWeightedSpectralEntropy(@NotNull final MassSpectrum spectrum) {
+    if (spectrum.getNumberOfDataPoints() == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+    return getWeightedSpectralEntropy(spectrum) / Math.log(spectrum.getNumberOfDataPoints());
+  }
+
+  /**
+   * @return The spectral entropy normalized to the number of signals in a spectrum.
+   * @see #getWeightedSpectralEntropy(MassSpectrum)
+   */
+  public static double getNormalizedWeightedSpectralEntropy(@NotNull final double[] intensities) {
+    if (intensities.length == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+    return getWeightedSpectralEntropy(intensities) / Math.log(intensities.length);
+  }
+
+  /**
+   * @param msms The spectrum
+   * @return The lowest non-zero intensity or null if there are no data points..
+   */
+  @Nullable
+  public static Double getLowestIntensity(@NotNull final MassSpectrum msms) {
+    if (msms.getNumberOfDataPoints() == 0) {
+      return null;
+    }
+    double minIntensity = Double.POSITIVE_INFINITY;
+    for (int i = 0; i < msms.getNumberOfDataPoints(); i++) {
+      final double intensity = msms.getIntensityValue(i);
+      if (intensity < minIntensity && intensity > 0) {
+        minIntensity = intensity;
+      }
+    }
+    return minIntensity < Double.POSITIVE_INFINITY ? minIntensity : null;
+  }
+
+  /**
+   * Split scans into lists for each fragmentation energy. Usually the MSn levels are split before
+   *
+   * @param scans input list
+   * @return map of fragmention energy to scans
+   */
+  public static Map<Float, List<Scan>> splitByFragmentationEnergy(final List<Scan> scans) {
+    return scans.stream().collect(Collectors.groupingBy(ScanUtils::getActivationEnergy));
+  }
+
+
+  /**
+   * @return the collision energy or -1 if null
+   */
+  public static float getActivationEnergy(final MassSpectrum spectrum) {
+    if (spectrum instanceof Scan scan && scan.getMsMsInfo() != null) {
+      return requireNonNullElse(scan.getMsMsInfo().getActivationEnergy(), -1f);
+    } else if (spectrum instanceof MergedMsMsSpectrum merged) {
+      return merged.getCollisionEnergy();
+    }
+    return -1f;
+  }
+
+  /**
+   * Use scan or mass list
+   *
+   * @return the input scan or the corresponding mass list.
+   * @throws MissingMassListException if mass list was demanded and is missing. user needs to apply
+   *                                  mass detection
+   */
+  public static @NotNull MassSpectrum getMassListOrThrow(final MassSpectrum s)
+      throws MissingMassListException {
+    return getMassSpectrum(s, true);
+  }
+
+  /**
+   * Use scan or mass list
+   *
+   * @return the input scan or the corresponding mass list.
+   * @throws MissingMassListException if mass list was demanded and is missing. user needs to apply
+   *                                  mass detection
+   */
+  public static @NotNull MassSpectrum getMassSpectrum(final MassSpectrum s,
+      final boolean useMassList) throws MissingMassListException {
+    if (!useMassList || !(s instanceof Scan scan)) {
+      return s;
+    }
+
+    MassList masses = scan.getMassList();
+    if (masses == null) {
+      throw new MissingMassListException(scan);
+    }
+    return masses;
+  }
+
+  /**
+   * Only use the array when needed. Best way to iterate scan data in a single thread is
+   * {@link ScanDataAccess} by {@link EfficientDataAccess}. When sorting of data is needed use
+   * {@link #extractDataPoints(Scan, boolean)} but discouraged for data storage in memory.
+   *
+   * @param scan        target scan
+   * @param useMassList either use mass list or return the input scan
+   * @return scan.getMasstList if input is a scan
+   * @throws MissingMassListException if useMassList is true and no mass detection was applied,
+   *                                  users need to apply mass detection to all scans
+   */
+  public static double[] getIntensityValues(final MassSpectrum scan, final boolean useMassList)
+      throws MissingMassListException {
+    return getMassSpectrum(scan, useMassList).getIntensityValues(new double[0]);
+  }
+
+  /**
+   * Only use the array when needed. Best way to iterate scan data in a single thread is
+   * {@link ScanDataAccess} by {@link EfficientDataAccess}. When sorting of data is needed use
+   * {@link #extractDataPoints(Scan, boolean)} but discouraged for data storage in memory.
+   *
+   * @param scan        target scan
+   * @param useMassList either use mass list or return the input scan
+   * @return scan.getMasstList if input is a scan
+   * @throws MissingMassListException if useMassList is true and no mass detection was applied,
+   *                                  users need to apply mass detection to all scans
+   */
+  public static double[] getMzValues(final MassSpectrum scan, final boolean useMassList)
+      throws MissingMassListException {
+    return getMassSpectrum(scan, useMassList).getMzValues(new double[0]);
+  }
+
+  /**
+   * Usage of datapoints is sometimes required so this method can be used when data needs to be
+   * sorted etc. Otherwise use the double arrays for mz and intensity instead. Also look at
+   * {@link EfficientDataAccess} for single threaded access to scans from one dataset.
+   *
+   * @param scan        the target scan
+   * @param useMassList extract data from mass list
+   * @return
+   * @throws MissingMassListException users need to run mass detection before on this scan
+   */
+  @Deprecated
+  public static DataPoint[] extractDataPoints(final Scan scan, final boolean useMassList)
+      throws MissingMassListException {
+    return extractDataPoints(getMassSpectrum(scan, useMassList));
+  }
+
+
+  /**
+   * multiplies the intensities with the injection time to denormalize the intensities. In trapped
+   * MS, the injection time is used to divide the intensities to make them comparable. We use this
+   * method to bring all intensities of MSn scans to the same levels before merging. And also for
+   * noise level detection.
+   *
+   * @param scan        provides the data and inject time
+   * @param useMassList use scan or scan.masslist intensities
+   * @return original input if injectTime is unset or <=0 otherwise the array multiplied by
+   * injection time - changes the array in place
+   */
+  public static double[] denormalizeIntensitiesMultiplyByInjectTime(final Scan scan,
+      boolean useMassList) {
+    final double[] intensities = getIntensityValues(scan, useMassList);
+    Float injectTime = scan.getInjectionTime();
+    return denormalizeIntensitiesMultiplyByInjectTime(intensities, injectTime);
+  }
+
+  /**
+   * multiplies the intensities with the injection time to denormalize the intensities. In trapped
+   * MS, the injection time is used to divide the intensities to make them comparable. We use this
+   * method to bring all intensities of MSn scans to the same levels before merging. And also for
+   * noise level detection.
+   *
+   * @param injectTime  used as a factor to denormalize spectra
+   * @param intensities the array of intensities - original array is changed
+   * @return original input if injectTime is unset or <=0 otherwise the array multiplied by
+   * injection time - changes the array in place
+   */
+  public static double[] denormalizeIntensitiesMultiplyByInjectTime(final double[] intensities,
+      Float injectTime) {
+    if (injectTime == null || injectTime <= 0) {
+      return intensities;
+    }
+
+    for (int i = 0; i < intensities.length; i++) {
+      intensities[i] = intensities[i] * injectTime;
+    }
+    return intensities;
   }
 
   /**

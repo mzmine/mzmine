@@ -57,9 +57,10 @@ public class RowGroup implements Comparable<RowGroup> {
   private int lastViewedRowIndex = 0;
   private int lastViewedRawFileIndex = 0;
   // center RT values for each sample
-  private float[] rtSum;
-  private int[] numberOfFeatures;
-  private float[] rtMin, rtMax;
+  private final float[] rtSum;
+  private final int[] numberOfFeatures;
+  private final float[] rtMin;
+  private final float[] rtMax;
 
   public RowGroup(final List<RawDataFile> raw, int groupID) {
     super();
@@ -202,8 +203,7 @@ public class RowGroup implements Comparable<RowGroup> {
    */
   public boolean isInRtRange(int rawIndex, Feature f, RTTolerance tol) {
     return hasFeature(rawIndex) && ((f.getRT() >= rtMin[rawIndex] && f.getRT() <= rtMax[rawIndex])
-                                    || (tol
-        .checkWithinTolerance(getCenterRT(rawIndex), f.getRT())));
+        || (tol.checkWithinTolerance(getCenterRT(rawIndex), f.getRT())));
   }
 
   /**
@@ -338,5 +338,10 @@ public class RowGroup implements Comparable<RowGroup> {
   @Override
   public int compareTo(@NotNull RowGroup g) {
     return Integer.compare(this.getGroupID(), g.getGroupID());
+  }
+
+  @Override
+  public String toString() {
+    return String.valueOf(getGroupID());
   }
 }
