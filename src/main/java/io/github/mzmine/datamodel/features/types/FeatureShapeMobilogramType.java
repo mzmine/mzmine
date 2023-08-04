@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,21 +25,19 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeMobilogramChart;
-import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
+import java.util.logging.Logger;
 import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
-import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureShapeMobilogramType extends LinkedGraphicalType {
+
+  private static final Logger logger = Logger.getLogger(FeatureShapeMobilogramType.class.getName());
 
   @NotNull
   @Override
@@ -55,32 +53,6 @@ public class FeatureShapeMobilogramType extends LinkedGraphicalType {
   }
 
   @Override
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean value, RawDataFile raw) {
-    ModularFeatureListRow row = cell.getTableRow().getItem();
-    if (row == null || !value || row.getRawDataFiles().stream()
-        .filter(file -> (file instanceof IMSRawDataFile)).findAny().isEmpty()) {
-      return null;
-    }
-
-    // get existing buffered node from row (for column name)
-    // TODO listen to changes in features data
-    Node node = row.getBufferedColChart(coll.getText());
-    if (node != null) {
-      return node;
-    }
-
-    StackPane pane = new StackPane();
-
-    // TODO stop task if new task is started
-    Task task = new FeaturesGraphicalNodeTask(FeatureShapeMobilogramChart.class, pane, row,
-        coll.getText());
-    MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
-
-    return pane;
-  }
-
-  @Override
   public Class<? extends Node> getNodeClass() {
     return FeatureShapeMobilogramChart.class;
   }
@@ -93,5 +65,23 @@ public class FeatureShapeMobilogramType extends LinkedGraphicalType {
   @Override
   public boolean getDefaultVisibility() {
     return true;
+  }
+
+  @Override
+  public @Nullable Node createCellContent(ModularFeatureListRow row, Boolean cellData,
+      RawDataFile raw, AtomicDouble progress) {
+    if (row == null || cellData == null || !cellData || row.getRawDataFiles().stream()
+        .filter(file -> (file instanceof IMSRawDataFile)).findAny().isEmpty()) {
+      return null;
+    }
+
+    Node node = row.getBufferedColChart(getHeaderString());
+    if (node == null) {
+      logger.info("Cannot create mobilogram chart, no buffered chart available for row.");
+      return null;
+    }
+
+    var chart = new FeatureShapeMobilogramChart(row, progress);
+    return chart;
   }
 }

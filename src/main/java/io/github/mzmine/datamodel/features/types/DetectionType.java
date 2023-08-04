@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -44,7 +45,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public  class DetectionType extends DataType<FeatureStatus> implements
+public class DetectionType extends DataType<FeatureStatus> implements
     GraphicalColumType<FeatureStatus> {
 
   @NotNull
@@ -87,6 +88,12 @@ public  class DetectionType extends DataType<FeatureStatus> implements
   @Override
   public double getColumnWidth() {
     return 10;
+  }
+
+  @Override
+  public @Nullable Node createCellContent(ModularFeatureListRow row, FeatureStatus cellData,
+      RawDataFile raw, AtomicDouble progress) {
+    return null;
   }
 
   @Override

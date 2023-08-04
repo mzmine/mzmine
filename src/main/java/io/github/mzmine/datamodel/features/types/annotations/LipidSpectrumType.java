@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,27 +25,27 @@
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
-import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
 import java.util.List;
+import java.util.logging.Logger;
 import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
 
 public class LipidSpectrumType extends LinkedGraphicalType {
+
+  private static final Logger logger = Logger.getLogger(LipidSpectrumType.class.getName());
 
   @NotNull
   @Override
@@ -60,28 +60,24 @@ public class LipidSpectrumType extends LinkedGraphicalType {
   }
 
   @Override
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean value, RawDataFile raw) {
-    ModularFeatureListRow row = cell.getTableRow().getItem();
-
-    if (row == null || !value) {
+  public @org.jetbrains.annotations.Nullable Node createCellContent(ModularFeatureListRow row,
+      Boolean cellData, RawDataFile raw, AtomicDouble progress) {
+    if (row == null || !cellData) {
       return null;
     }
 
-    Node node = row.getBufferedColChart(coll.getText());
-    if (node != null) {
-      return node;
+    StackPane node = (StackPane) row.getBufferedColChart(getHeaderString());
+    if (node == null) {
+      logger.info("Cannot create lipid chart, no buffered chart available for row.");
+      return null;
     }
-
-    StackPane pane = new StackPane();
 
     List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
-    if (matchedLipids != null && !matchedLipids.isEmpty()) {
-      Task task = new FeaturesGraphicalNodeTask(LipidSpectrumChart.class, pane, row,
-          coll.getText());
-      MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
+    if (matchedLipids == null || matchedLipids.isEmpty()) {
+      return null;
     }
-    return pane;
+    var chart = new LipidSpectrumChart(matchedLipids.get(0), progress, RunOption.THIS_THREAD);
+    return chart;
   }
 
   @Override

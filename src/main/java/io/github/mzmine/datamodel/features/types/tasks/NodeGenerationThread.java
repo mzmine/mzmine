@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features.types.tasks;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -35,16 +36,27 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.application.Platform;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NodeGenerationThread extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(NodeGenerationThread.class.getName());
+
   private final int numberOfRows;
   private int rows = 0;
   private FeatureList flist;
+
+  private Map<Node, Node> nodeChartMap = new HashMap<>();
 
   public NodeGenerationThread(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       FeatureList flist) {
@@ -75,20 +87,53 @@ public class NodeGenerationThread extends AbstractTask {
 
     for (FeatureListRow row : flist.getRows()) {
       for (LinkedGraphicalType rowType : rowTypes) {
-        new FeaturesGraphicalNodeTask(rowType.getNodeClass(), new StackPane(),
-            (ModularFeatureListRow) row, rowType.getHeaderString()).run();
+        final String header = rowType.getHeaderString();
+        Node base = ((ModularFeatureListRow) row).getBufferedColChart(header);
+        if (base == null) {
+          base = new StackPane(new Label("Preparing content..."));
+          ((ModularFeatureListRow) row).addBufferedColChart(header, base);
+        }
+        var chart = rowType.createCellContent((ModularFeatureListRow) row, row.get(rowType), null,
+            new AtomicDouble());
+        nodeChartMap.put(base, chart);
       }
 
       for (LinkedGraphicalType featureType : featureTypes) {
         for (ModularFeature feature : row.getFeatures()) {
           if (feature != null && feature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
-            new FeatureGraphicalNodeTask(featureType.getNodeClass(), new StackPane(), feature,
-                featureType.getHeaderString()).run();
+            final String header = featureType.getHeaderString();
+            Node base = ((ModularFeature) feature).getBufferedColChart(header);
+            if (base == null) {
+              base = new StackPane(new Label("Preparing content..."));
+              ((ModularFeature) feature).addBufferedColChart(header, base);
+            }
+            var chart = featureType.createCellContent((ModularFeatureListRow) row,
+                row.get(featureType), feature.getRawDataFile(), new AtomicDouble());
+            nodeChartMap.put(base, chart);
           }
         }
       }
+      if (isCanceled()) {
+        return;
+      }
       rows++;
     }
+
+    Platform.runLater(() -> {
+      logger.info("Updating all charts.");
+      nodeChartMap.forEach((node, chart) -> {
+        if (chart == null) {
+          return;
+        }
+        try {
+          ((StackPane) node).getChildren().clear();
+          ((StackPane) node).getChildren().add(chart);
+        } catch (ClassCastException e) {
+          logger.log(Level.INFO, e.getMessage(), e);
+        }
+      });
+      logger.info("All charts updated.");
+    });
     setStatus(TaskStatus.FINISHED);
   }
 }

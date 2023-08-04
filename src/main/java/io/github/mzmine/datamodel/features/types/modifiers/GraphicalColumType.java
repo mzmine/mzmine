@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,18 @@
 
 package io.github.mzmine.datamodel.features.types.modifiers;
 
+import com.google.common.util.concurrent.AtomicDouble;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
+import javafx.scene.layout.StackPane;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This DataType creates a graphical cell content
@@ -46,15 +53,36 @@ public interface GraphicalColumType<T> {
 
 
   /**
-   *
    * @param cell
    * @param coll
    * @param cellData same as cell.getItem
-   * @param raw only provided for sample specific DataTypes
+   * @param raw      only provided for sample specific DataTypes
    * @return
    */
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, T> cell,
-      TreeTableColumn<ModularFeatureListRow, T> coll, T cellData, RawDataFile raw);
+  public default Node getCellNode(TreeTableCell<ModularFeatureListRow, T> cell,
+      TreeTableColumn<ModularFeatureListRow, T> coll, T cellData, RawDataFile raw) {
+    final ModularFeatureListRow row = cell.getTableRow().getItem();
+
+    Node content = null;
+    if (raw == null) {
+      content = row.getBufferedColChart(coll.getText());
+      if (content == null) {
+        content = new StackPane(new Label("Preparing content..."));
+        row.addBufferedColChart(coll.getText(), content);
+      }
+    } else {
+      final ModularFeature feature = row.getFeature(raw);
+      if (feature == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+        return content;
+      }
+      content = feature.getBufferedColChart(coll.getText());
+      if (content == null) {
+        content = new StackPane(new Label("Preparing content..."));
+        feature.addBufferedColChart(coll.getText(), content);
+      }
+    }
+    return content;
+  }
 
   /**
    * Returns width of the column.
@@ -63,4 +91,6 @@ public interface GraphicalColumType<T> {
    */
   public double getColumnWidth();
 
+  @Nullable Node createCellContent(@NotNull ModularFeatureListRow row, T cellData,
+      @Nullable RawDataFile raw, AtomicDouble progress);
 }

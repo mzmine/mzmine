@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -42,6 +43,7 @@ import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AreaShareType extends DataType<Map<RawDataFile, ModularFeature>>
     implements GraphicalColumType<Map<RawDataFile, ModularFeature>> {
@@ -96,5 +98,11 @@ public class AreaShareType extends DataType<Map<RawDataFile, ModularFeature>>
   @Override
   public double getColumnWidth() {
     return 150;
+  }
+
+  @Override
+  public @Nullable Node createCellContent(ModularFeatureListRow row,
+      Map<RawDataFile, ModularFeature> cellData, RawDataFile raw, AtomicDouble progress) {
+    return null;
   }
 }

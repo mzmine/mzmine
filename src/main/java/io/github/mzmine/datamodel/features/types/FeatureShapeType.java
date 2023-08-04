@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,30 +25,29 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeChart;
-import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
 import java.util.List;
+import java.util.logging.Logger;
 import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Contains no data - listens to changes in all {@link ModularFeature} in a {@link
- * ModularFeatureListRow} On change of any {@link FeatureDataType} - the chart is updated
+ * Contains no data - listens to changes in all {@link ModularFeature} in a
+ * {@link ModularFeatureListRow} On change of any {@link FeatureDataType} - the chart is updated
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public class FeatureShapeType extends LinkedGraphicalType {
+
+  private static final Logger logger = Logger.getLogger(FeatureShapeType.class.getName());
 
   @NotNull
   @Override
@@ -64,27 +63,20 @@ public class FeatureShapeType extends LinkedGraphicalType {
   }
 
   @Override
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean cellData, RawDataFile raw) {
-    ModularFeatureListRow row = cell.getTableRow().getItem();
-    if (row == null || !cellData) {
+  public @Nullable Node createCellContent(ModularFeatureListRow row, Boolean cellData,
+      RawDataFile raw, AtomicDouble progress) {
+
+    if (row == null || cellData == null || !cellData) {
+      return null;
+    }
+    StackPane node = (StackPane) row.getBufferedColChart(getHeaderString());
+    if (node == null) {
+      logger.info("Cannot create shape chart, no buffered chart available for row.");
       return null;
     }
 
-    // get existing buffered node from row (for column name)
-    // TODO listen to changes in features data
-    Node node = row.getBufferedColChart(coll.getText());
-    if (node != null) {
-      return node;
-    }
-    StackPane pane = new StackPane();
-
-    // TODO stop task if new task is started
-    Task task = new FeaturesGraphicalNodeTask(FeatureShapeChart.class, pane, row, coll.getText());
-    // TODO change to TaskPriority.LOW priority
-    MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH);
-
-    return pane;
+    var chart = new FeatureShapeChart(row, progress);
+    return chart;
   }
 
   @Override
@@ -100,10 +92,12 @@ public class FeatureShapeType extends LinkedGraphicalType {
   @Nullable
   @Override
   public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> rawDataFiles, DataType<?> superType, @Nullable final Object value) {
+      @NotNull List<RawDataFile> rawDataFiles, DataType<?> superType,
+      @Nullable final Object value) {
 
     return () -> {
-      MZmineCore.runLater(() -> ChromatogramVisualizerModule.visualizeFeatureListRows(List.of(row)));
+      MZmineCore.runLater(
+          () -> ChromatogramVisualizerModule.visualizeFeatureListRows(List.of(row)));
     };
   }
 
