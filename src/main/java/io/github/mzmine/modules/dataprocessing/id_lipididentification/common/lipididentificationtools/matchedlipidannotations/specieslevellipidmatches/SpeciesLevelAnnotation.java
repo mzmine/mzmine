@@ -153,6 +153,9 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
     writer.writeStartElement(XML_NUMBER_OF_DBES);
     writer.writeCharacters(String.valueOf(numberOfDBEs));
     writer.writeEndElement();
+    writer.writeStartElement(XML_NUMBER_OF_OXYGENS);
+    writer.writeCharacters(String.valueOf(numberOfOxygens));
+    writer.writeEndElement();
     writer.writeEndElement();
   }
 

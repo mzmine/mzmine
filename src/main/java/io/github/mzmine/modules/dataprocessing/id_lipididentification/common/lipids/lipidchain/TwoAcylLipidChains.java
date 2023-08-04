@@ -139,8 +139,8 @@ public class TwoAcylLipidChains implements ILipidChain {
       }
     }
     if (lipidChainType != null && lipidChainType.equals(LipidChainType.TWO_ACYL_CHAINS_COMBINED)) {
-      return new AcylLipidChain(chainAnnotation, molecularFormula, numberOfCarbons, numberOfDBEs,
-          numberOfOxygens);
+      return new TwoAcylLipidChains(chainAnnotation, molecularFormula, numberOfCarbons,
+          numberOfDBEs, numberOfOxygens);
     }
     return null;
   }
