@@ -259,7 +259,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
       }
 
       final LipidSpectrumChart chart = new LipidSpectrumChart(lipid, new AtomicDouble(0d),
-          RunOption.THIS_THREAD);
+          RunOption.THIS_THREAD, false);
       final SpectraPlot spectraPlot = chart.getSpectraPlot();
 
       final String formatStr = exportParameters.getValue(GraphicsExportParameters.exportFormat);

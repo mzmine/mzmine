@@ -98,7 +98,7 @@ public class LipidSpectrumType extends LinkedGraphicalType {
     if (matchedLipids != null) {
       MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(
           matchedLipids.get(0).getLipidAnnotation().getAnnotation() + " Matched Signals",
-          new LipidSpectrumChart(row, null));
+          new LipidSpectrumChart(row, null, false));
       return () -> MZmineCore.getDesktop().addTab(matchedLipidSpectrumTab);
     } else {
       return null;

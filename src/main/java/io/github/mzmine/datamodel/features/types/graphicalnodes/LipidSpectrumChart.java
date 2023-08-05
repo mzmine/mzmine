@@ -42,22 +42,23 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class LipidSpectrumChart extends StackPane {
+public class LipidSpectrumChart extends BufferedChartNode {
 
   private SpectraPlot spectraPlot;
+  private boolean asBufferedImage;
 
   public LipidSpectrumChart(@Nullable MatchedLipid match, AtomicDouble progress,
-      RunOption runOption) {
+      RunOption runOption, boolean asBufferedImage) {
+    super(true);
     if (match == null || match.getMatchedFragments() == null || match.getMatchedFragments()
         .isEmpty()) {
       return;
     }
 
-    SpectraPlot spectraPlot = new SpectraPlot();
+    this.spectraPlot = new SpectraPlot();
     spectraPlot.setPrefHeight(GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT);
 
     List<LipidFragment> matchedFragments = new ArrayList<>(match.getMatchedFragments());
@@ -92,14 +93,23 @@ public class LipidSpectrumChart extends StackPane {
           matchedLipidLabelGenerator, true);
     }
 
-    MZmineCore.runLater(() -> {
-      getChildren().add(spectraPlot);
-    });
+    if (asBufferedImage) {
+      setChartCreateImage(spectraPlot, GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH,
+          GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT);
+    } else {
+      MZmineCore.runLater(() -> setCenter(spectraPlot));
+    }
+  }
+
+  public LipidSpectrumChart(@NotNull ModularFeatureListRow row, AtomicDouble progress,
+      boolean asBufferedImage) {
+    this(row.getLipidMatches().isEmpty() ? null : row.getLipidMatches().get(0), progress,
+        RunOption.NEW_THREAD, asBufferedImage);
   }
 
   public LipidSpectrumChart(@NotNull ModularFeatureListRow row, AtomicDouble progress) {
     this(row.getLipidMatches().isEmpty() ? null : row.getLipidMatches().get(0), progress,
-        RunOption.NEW_THREAD);
+        RunOption.NEW_THREAD, true);
   }
 
   public SpectraPlot getSpectraPlot() {

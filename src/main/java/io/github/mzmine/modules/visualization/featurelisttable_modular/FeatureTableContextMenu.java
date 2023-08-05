@@ -505,7 +505,7 @@ public class FeatureTableContextMenu extends ContextMenu {
       if (matchedLipids != null && !matchedLipids.isEmpty()) {
         MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(
             matchedLipids.get(0).getLipidAnnotation().getAnnotation() + " Matched Signals",
-            new LipidSpectrumChart(selectedRows.get(0), null));
+            new LipidSpectrumChart(selectedRows.get(0), null, false));
         MZmineCore.getDesktop().addTab(matchedLipidSpectrumTab);
       }
     });
