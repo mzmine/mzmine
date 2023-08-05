@@ -36,6 +36,7 @@ import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -165,7 +166,7 @@ public class MatchedLipid {
     IonizationType ionizationType = null;
     Set<LipidFragment> lipidFragments = null;
     Double msMsScore = null;
-    String comment = null;
+    String comment = "";
     while (reader.hasNext()
         && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       reader.next();
@@ -196,7 +197,11 @@ public class MatchedLipid {
           msMsScore = Double.parseDouble(reader.getElementText());
           break;
         case XML_COMMENT:
-          comment = reader.getElementText();
+          if (Objects.equals(reader.getElementText(), "NULL_VALUE")) {
+            comment = "";
+          } else {
+            comment = reader.getElementText();
+          }
           break;
         default:
           break;
