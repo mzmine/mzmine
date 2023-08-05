@@ -556,10 +556,20 @@ public final class MZmineCore {
    * @param r runnable to either run directly or on the JavaFX thread
    */
   public static void runLater(Runnable r) {
+    if (isHeadLessMode() || Platform.isFxApplicationThread()) {
+      r.run();
+    } else {
+      Platform.runLater(r);
+    }
+  }
+  /**
+   * @param r runnable to either run directly or on the JavaFX thread
+   */
+  public static void runLaterEnsureFxInitialized(Runnable r) {
     if (Platform.isFxApplicationThread()) {
       r.run();
     } else {
-      if(isHeadLessMode() && !isFxInitialized) {
+      if(!isFxInitialized) {
         initJavaFxInHeadlessMode();
       }
       Platform.runLater(r);
