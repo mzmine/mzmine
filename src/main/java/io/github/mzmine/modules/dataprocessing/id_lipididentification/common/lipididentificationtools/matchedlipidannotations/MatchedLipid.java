@@ -27,8 +27,8 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.li
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.molecularspecieslevelidentities.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
