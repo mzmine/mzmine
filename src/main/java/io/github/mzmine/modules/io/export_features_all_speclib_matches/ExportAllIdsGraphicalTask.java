@@ -200,7 +200,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
       return;
     }
 
-    MZmineCore.runLater(() -> {
+    MZmineCore.runLaterEnsureFxInitialized(() -> {
       int width = 800;
       int height = 400;
 

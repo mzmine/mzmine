@@ -286,6 +286,11 @@ public final class MZmineCore {
    * Exit MZmine (usually used in headless mode)
    */
   public static void exit() {
+    if(isHeadLessMode() && isFxInitialized) {
+      // fx might be initialized for graphics export in headless mode - shut it down
+      // in GUI mode it is shut down automatically
+      Platform.exit();
+    }
     if (instance.batchExitCode == ExitCode.OK || instance.batchExitCode == null) {
       System.exit(0);
     } else {
@@ -562,6 +567,7 @@ public final class MZmineCore {
       Platform.runLater(r);
     }
   }
+
   /**
    * @param r runnable to either run directly or on the JavaFX thread
    */
@@ -569,7 +575,7 @@ public final class MZmineCore {
     if (Platform.isFxApplicationThread()) {
       r.run();
     } else {
-      if(!isFxInitialized) {
+      if (!isFxInitialized) {
         initJavaFxInHeadlessMode();
       }
       Platform.runLater(r);
@@ -581,6 +587,9 @@ public final class MZmineCore {
    * https://news.kynosarges.org/2014/05/01/simulating-platform-runandwait/
    */
   public static void runOnFxThreadAndWait(Runnable r) {
+    if (!isFxInitialized) {
+      initJavaFxInHeadlessMode();
+    }
     FxThreadUtil.runOnFxThreadAndWait(r);
   }
 
