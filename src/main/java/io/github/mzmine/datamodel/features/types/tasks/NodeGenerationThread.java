@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -93,9 +93,14 @@ public class NodeGenerationThread extends AbstractTask {
           base = new StackPane(new Label("Preparing content..."));
           ((ModularFeatureListRow) row).addBufferedColChart(header, base);
         }
-        var chart = rowType.createCellContent((ModularFeatureListRow) row, row.get(rowType), null,
-            new AtomicDouble());
-        nodeChartMap.put(base, chart);
+        try {
+          var chart = rowType.createCellContent((ModularFeatureListRow) row, row.get(rowType), null,
+              new AtomicDouble());
+          nodeChartMap.put(base, chart);
+        } catch (Exception ex) {
+          logger.log(Level.WARNING, "Cannot create chart " + ex.getMessage(), ex);
+          nodeChartMap.put(base, new Label("Failed to create chart"));
+        }
       }
 
       for (LinkedGraphicalType featureType : featureTypes) {
@@ -107,9 +112,14 @@ public class NodeGenerationThread extends AbstractTask {
               base = new StackPane(new Label("Preparing content..."));
               ((ModularFeature) feature).addBufferedColChart(header, base);
             }
-            var chart = featureType.createCellContent((ModularFeatureListRow) row,
-                row.get(featureType), feature.getRawDataFile(), new AtomicDouble());
-            nodeChartMap.put(base, chart);
+            try {
+              var chart = featureType.createCellContent((ModularFeatureListRow) row,
+                  row.get(featureType), feature.getRawDataFile(), new AtomicDouble());
+              nodeChartMap.put(base, chart);
+            } catch (Exception ex) {
+              logger.log(Level.WARNING, "Cannot create chart " + ex.getMessage(), ex);
+              nodeChartMap.put(base, new Label("Failed to create chart"));
+            }
           }
         }
       }
