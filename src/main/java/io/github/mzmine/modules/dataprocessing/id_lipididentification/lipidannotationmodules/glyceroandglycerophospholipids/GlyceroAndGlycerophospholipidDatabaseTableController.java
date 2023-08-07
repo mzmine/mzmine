@@ -25,49 +25,39 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids;
 
-import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.gui.chartbasics.chartutils.XYCirclePixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRule;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassDescription;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYDataset;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.color.ColorsFX;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.color.Vision;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class GlyceroAndGlycerophospholipidDatabaseTableController {
 
@@ -118,16 +108,9 @@ public class GlyceroAndGlycerophospholipidDatabaseTableController {
 
   ObservableList<LipidClassDescription> tableData = FXCollections.observableArrayList();
 
-  private static final LipidFactory LIPID_FACTORY = new LipidFactory();
 
-  private int minChainLength;
-  private int maxChainLength;
-  private int minDoubleBonds;
-  private int maxDoubleBonds;
-  private Boolean onlySearchForEvenChains;
   private MZTolerance mzTolerance;
   private boolean searchForCustomLipidClasses;
-  private CustomLipidClass[] customLipidClasses;
 
   private Color noInterFX;
   private Color possibleInterFX;
@@ -136,49 +119,9 @@ public class GlyceroAndGlycerophospholipidDatabaseTableController {
   private java.awt.Color possibleInterSwing;
   private java.awt.Color interSwing;
 
-  public void initialize(ParameterSet parameters, LipidClasses[] selectedLipids) {
-
-    this.minChainLength = parameters.getParameter(
-            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
-        .getEmbeddedParameters()
-        .getParameter(GlyceroAndGlycerophospholipidAnnotationChainParameters.minChainLength)
-        .getValue();
-    this.maxChainLength = parameters.getParameter(
-            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
-        .getEmbeddedParameters()
-        .getParameter(GlyceroAndGlycerophospholipidAnnotationChainParameters.maxChainLength)
-        .getValue();
-    this.minDoubleBonds = parameters.getParameter(
-            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
-        .getEmbeddedParameters()
-        .getParameter(GlyceroAndGlycerophospholipidAnnotationChainParameters.minDBEs).getValue();
-    this.maxDoubleBonds = parameters.getParameter(
-            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
-        .getEmbeddedParameters()
-        .getParameter(GlyceroAndGlycerophospholipidAnnotationChainParameters.minDBEs).getValue();
-    this.onlySearchForEvenChains = parameters.getParameter(
-            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
-        .getEmbeddedParameters().getParameter(
-            GlyceroAndGlycerophospholipidAnnotationChainParameters.onlySearchForEvenChainLength)
-        .getValue();
-    this.searchForCustomLipidClasses = parameters.getParameter(
-        GlyceroAndGlycerophospholipidAnnotationParameters.customLipidClasses).getValue();
-    if (searchForCustomLipidClasses) {
-      this.customLipidClasses = parameters.getParameter(
-              GlyceroAndGlycerophospholipidAnnotationParameters.customLipidClasses)
-          .getEmbeddedParameter().getChoices();
-    }
-
-    this.mzTolerance = parameters.getParameter(
-        GlyceroAndGlycerophospholipidAnnotationParameters.mzTolerance).getValue();
-
-    int id = 1;
-    addLipidsToTable(selectedLipids, id);
-    if (customLipidClasses != null && customLipidClasses.length > 0) {
-      id = id + selectedLipids.length;
-      addLipidsToTable(customLipidClasses, id);
-    }
-
+  public void initialize(ObservableList<LipidClassDescription> tableData, MZTolerance mzTolerance) {
+    this.tableData = tableData;
+    this.mzTolerance = mzTolerance;
     idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
     lipidClassColumn.setCellValueFactory(new PropertyValueFactory<>("lipidClass"));
     formulaColumn.setCellValueFactory(new PropertyValueFactory<>("molecularFormula"));
@@ -187,9 +130,8 @@ public class GlyceroAndGlycerophospholipidDatabaseTableController {
     infoColumn.setCellValueFactory(new PropertyValueFactory<>("info"));
     statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
     fragmentsPosColumn.setCellValueFactory(new PropertyValueFactory<>("msmsFragmentsPos"));
-
-    // check for interferences
-    checkInterferences();
+    fragmentsPosColumn.setCellFactory(param -> new MultilineTextTableCell<>());
+    lipidDatabaseTableView.setFixedCellSize(Region.USE_COMPUTED_SIZE);
 
     // set colors depending on colors
     SimpleColorPalette palette = (MZmineCore.getConfiguration().getDefaultColorPalette() != null)
@@ -210,7 +152,6 @@ public class GlyceroAndGlycerophospholipidDatabaseTableController {
     statusColumn.setCellFactory(e -> new TableCell<LipidClassDescription, String>() {
       @Override
       public void updateItem(String item, boolean empty) {
-        // Always invoke super constructor.
         super.updateItem(item, empty);
         if (getIndex() >= 0 && item != null) {
           if (tableData.get(getIndex()).getInfo().contains("interference")) {
@@ -239,112 +180,6 @@ public class GlyceroAndGlycerophospholipidDatabaseTableController {
     noInterLabel.setStyle("-fx-background-color:" + ColorsFX.toHexString(noInterFX));
     possibleInterLabel.setStyle("-fx-background-color:" + ColorsFX.toHexString(possibleInterFX));
     interLabel.setStyle("-fx-background-color:" + ColorsFX.toHexString(interFX));
-  }
-
-  private void addLipidsToTable(ILipidClass[] selectedLipids, int id) {
-    for (ILipidClass selectedLipid : selectedLipids) {
-      // TODO starting point to extend for better oxidized lipid support
-      int numberOfAdditionalOxygens = 0;
-      int minTotalChainLength = minChainLength * selectedLipid.getChainTypes().length;
-      int maxTotalChainLength = maxChainLength * selectedLipid.getChainTypes().length;
-      int minTotalDoubleBonds = minDoubleBonds * selectedLipid.getChainTypes().length;
-      int maxTotalDoubleBonds = maxDoubleBonds * selectedLipid.getChainTypes().length;
-      for (int chainLength = minTotalChainLength; chainLength <= maxTotalChainLength;
-          chainLength++) {
-        if (onlySearchForEvenChains && chainLength % 2 != 0) {
-          continue;
-        }
-        for (int chainDoubleBonds = minTotalDoubleBonds; chainDoubleBonds <= maxTotalDoubleBonds;
-            chainDoubleBonds++) {
-
-          if (chainLength / 2 < chainDoubleBonds || chainLength == 0) {
-            continue;
-          }
-          // Prepare a lipid instance
-          SpeciesLevelAnnotation lipid = LIPID_FACTORY.buildSpeciesLevelLipid(selectedLipid,
-              chainLength, chainDoubleBonds, numberOfAdditionalOxygens);
-          if (lipid == null) {
-            continue;
-          }
-          List<LipidFragmentationRule> fragmentationRules = Arrays.asList(
-              selectedLipid.getFragmentationRules());
-          StringBuilder fragmentationRuleSB = new StringBuilder();
-          fragmentationRules.stream().forEach(rule -> {
-            fragmentationRuleSB.append(rule.toString()).append("\n");
-          });
-          StringBuilder exactMassSB = new StringBuilder();
-          Set<IonizationType> ionizationTypes = fragmentationRules.stream()
-              .map(LipidFragmentationRule::getIonizationType).collect(Collectors.toSet());
-          for (IonizationType ionizationType : ionizationTypes) {
-            double mz = MolecularFormulaManipulator.getMass(lipid.getMolecularFormula(),
-                AtomContainerManipulator.MonoIsotopic) + ionizationType.getAddedMass();
-            exactMassSB.append(ionizationType.getAdductName()).append(" ")
-                .append(MZmineCore.getConfiguration().getMZFormat().format(mz)).append("\n");
-          }
-          tableData.add(new LipidClassDescription(String.valueOf(id), // id
-              selectedLipid.getName(), // lipid class
-              MolecularFormulaManipulator.getString(lipid.getMolecularFormula()), // molecular
-              // formula
-              lipid.getAnnotation(),
-              // abbr
-              exactMassSB.toString(), // exact mass
-              // mass
-              "", // info
-              "", // status
-              fragmentationRuleSB.toString())); // msms fragments
-          id++;
-        }
-      }
-    }
-  }
-
-  /**
-   * This method checks for m/z interferences in the generated database table using the user set m/z
-   * window
-   */
-  private void checkInterferences() {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < tableData.size(); i++) {
-      Map<String, Double> ionSpecificMzValues =
-          extractIonNotationMzValuesFromTable(tableData.get(i));
-      for (Entry<String, Double> entry : ionSpecificMzValues.entrySet()) {
-        for (int j = 0; j < tableData.size(); j++) {
-          sb.setLength(0);
-          Map<String, Double> ionSpecificMzValuesCompare =
-              extractIonNotationMzValuesFromTable(tableData.get(j));
-          for (Entry<String, Double> entryCompare : ionSpecificMzValuesCompare.entrySet()) {
-            double valueOne = entry.getValue();
-            double valueTwo = entryCompare.getValue();
-            if (valueOne == valueTwo && j != i
-                && isSamePolarity(entry.getKey(), entryCompare.getKey())) {
-              if (!sb.isEmpty()) {
-                sb.append("\n");
-              }
-              sb.append(entryCompare.getKey()).append(" interference with ")
-                  .append(tableData.get(i).getAbbreviation()).append(" ").append(entry.getKey());
-            } else if (mzTolerance.checkWithinTolerance(valueOne, valueTwo) && j != i
-                && isSamePolarity(entry.getKey(), entryCompare.getKey())) {
-              double delta = valueOne - valueTwo;
-              if (!sb.isEmpty()) {
-                sb.append("\n");
-              }
-              sb.append(entryCompare.getKey()).append(" possible interference with ")
-                  .append(tableData.get(i).getAbbreviation()).append(" ").append(entry.getKey())
-                  .append(" \u0394 ")
-                  .append(MZmineCore.getConfiguration().getMZFormat().format(delta));
-            }
-          }
-          if (!sb.isEmpty()) {
-            tableData.get(j).setInfo(tableData.get(j).getInfo() + "\n" + sb);
-          }
-        }
-      }
-    }
-  }
-
-  private boolean isSamePolarity(String key, String key2) {
-    return ((key.contains("]+") && key2.contains("]+"))
-        || (key.contains("]-") && key2.contains("]-")));
   }
 
   /**
@@ -490,4 +325,24 @@ public class GlyceroAndGlycerophospholipidDatabaseTableController {
     }
   }
 
+  public static class MultilineTextTableCell<T> extends TableCell<T, String> {
+
+    private final Text text;
+
+    public MultilineTextTableCell() {
+      this.text = new Text();
+      setGraphic(text);
+      setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+    }
+
+    @Override
+    protected void updateItem(String item, boolean empty) {
+      super.updateItem(item, empty);
+      if (item == null || empty) {
+        text.setText("");
+      } else {
+        text.setText(item);
+      }
+    }
+  }
 }

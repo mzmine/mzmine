@@ -44,18 +44,22 @@
           <center>
             <TableView fx:id="lipidDatabaseTableView" prefHeight="798.0" prefWidth="822.0">
               <columns>
-                <TableColumn fx:id="idColumn" editable="false" maxWidth="60.0" minWidth="50.0"
-                  prefWidth="50.0" text="ID"/>
+                <TableColumn fx:id="idColumn" editable="false" maxWidth="100.0" minWidth="50.0"
+                  prefWidth="75.0" text="ID"/>
                 <TableColumn fx:id="lipidClassColumn" editable="false" prefWidth="75.0"
                   text="Lipid class"/>
                 <TableColumn fx:id="formulaColumn" editable="false" prefWidth="75.0"
                   text="Molecular formula"/>
-                        <TableColumn fx:id="abbreviationColumn" editable="false" prefWidth="75.0" text="Abbreviation" />
-                        <TableColumn fx:id="exactMassColumn" editable="false" prefWidth="75.0" text="Exact mass" />
-                        <TableColumn fx:id="infoColumn" editable="false" prefWidth="75.0" text="Info" />
-                        <TableColumn fx:id="statusColumn" editable="false" maxWidth="60.0" minWidth="60.0" prefWidth="60.0" text="Status" />
-                        <TableColumn fx:id="fragmentsPosColumn" editable="false" prefWidth="75.0" text="MS/MS fragments positive ionization" />
-                    </columns>
+                <TableColumn fx:id="abbreviationColumn" editable="false" prefWidth="75.0"
+                  text="Abbreviation"/>
+                <TableColumn fx:id="exactMassColumn" editable="false" prefWidth="75.0"
+                  text="Exact mass"/>
+                <TableColumn fx:id="infoColumn" editable="false" prefWidth="75.0" text="Info"/>
+                <TableColumn fx:id="statusColumn" editable="false" maxWidth="60.0" minWidth="60.0"
+                  prefWidth="60.0" text="Status"/>
+                <TableColumn fx:id="fragmentsPosColumn" editable="false" prefWidth="75.0"
+                  text="MS/MS fragments"/>
+              </columns>
                      <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                      </columnResizePolicy>

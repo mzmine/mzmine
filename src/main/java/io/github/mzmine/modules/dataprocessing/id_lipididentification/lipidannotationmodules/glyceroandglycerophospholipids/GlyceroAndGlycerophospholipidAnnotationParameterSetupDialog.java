@@ -26,18 +26,24 @@
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassDescription;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidDatabaseCalculator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -50,9 +56,8 @@ import javafx.stage.Stage;
 public class GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog extends
     ParameterSetupDialog {
 
-  private final Button showDatabaseTable;
   private Object[] selectedObjects;
-  private CheckBoxTreeItem<Object> items;
+  private ObservableList<LipidClassDescription> tableData = null;
 
   private static final Logger logger = Logger.getLogger(
       GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog.class.getName());
@@ -62,7 +67,7 @@ public class GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog extends
     super(valueCheckRequired, parameters);
 
     // Add buttons
-    showDatabaseTable = new Button("Show database");
+    Button showDatabaseTable = new Button("Show database");
     showDatabaseTable.setTooltip(
         new Tooltip("Show a database table for the selected classes and parameters"));
     showDatabaseTable.setOnAction(event -> {
@@ -76,39 +81,70 @@ public class GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog extends
         LipidClasses[] selectedLipids = Arrays.stream(selectedObjects)
             .filter(o -> o instanceof LipidClasses).map(o -> (LipidClasses) o)
             .toArray(LipidClasses[]::new);
+        Task task = new AbstractTask(null, Instant.now()) {
+          final double totalSteps = 100;
+          double finishedSteps = 0;
+          String taskDescription = "Open lipid database";
 
-        Platform.runLater(() -> {
-          FXMLLoader loader = new FXMLLoader(
-              (getClass().getResource("GlyceroAndGlycerophospholipidDatabaseTable.fxml")));
-          Stage stage = new Stage();
-          try {
-            BorderPane root = loader.load();
-            Scene scene = new Scene(root, 1200, 800);
-
-            // get controller
-            GlyceroAndGlycerophospholipidDatabaseTableController controller = loader.getController();
-            controller.initialize(parameters, selectedLipids);
-
-            // Use main CSS
-            scene.getStylesheets()
-                .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-            stage.setScene(scene);
-            logger.finest("Stage has been successfully loaded from the FXML loader.");
-          } catch (IOException e) {
-            e.printStackTrace();
-            return;
+          @Override
+          public String getTaskDescription() {
+            return taskDescription;
           }
-          stage.setTitle("Lipid database");
-          stage.show();
-          stage.setMinWidth(stage.getWidth());
-          stage.setMinHeight(stage.getHeight());
-        });
+
+          @Override
+          public double getFinishedPercentage() {
+            if (totalSteps == 0) {
+              return 0;
+            }
+            return (finishedSteps) / totalSteps;
+          }
+
+          @Override
+          public void run() {
+            setStatus(TaskStatus.PROCESSING);
+            LipidDatabaseCalculator lipidDatabaseCalculator = new LipidDatabaseCalculator(
+                parameters, selectedLipids);
+            lipidDatabaseCalculator.createTableData();
+            taskDescription = "Check interfering lipids";
+            finishedSteps = 50;
+            lipidDatabaseCalculator.checkInterferences();
+            finishedSteps = 100;
+            tableData = lipidDatabaseCalculator.getTableData();
+            setStatus(TaskStatus.FINISHED);
+            MZmineCore.runLater(() -> {
+              FXMLLoader loader = new FXMLLoader(
+                  (getClass().getResource("GlyceroAndGlycerophospholipidDatabaseTable.fxml")));
+              Stage stage = new Stage();
+              try {
+                BorderPane root = loader.load();
+                Scene scene = new Scene(root, 1200, 800);
+
+                // get controller
+                GlyceroAndGlycerophospholipidDatabaseTableController controller = loader.getController();
+                controller.initialize(tableData, lipidDatabaseCalculator.getMzTolerance());
+
+                // Use main CSS
+                scene.getStylesheets()
+                    .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+                stage.setScene(scene);
+                logger.finest("Stage has been successfully loaded from the FXML loader.");
+              } catch (IOException e) {
+                e.printStackTrace();
+                return;
+              }
+              stage.setTitle("Lipid database");
+              stage.show();
+              stage.setMinWidth(stage.getWidth());
+              stage.setMinHeight(stage.getHeight());
+            });
+          }
+        };
+        MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
 
       } catch (Exception t) {
         logger.log(Level.WARNING, "Cannot show database table", t);
       }
     });
-
     getButtonBar().getButtons().add(showDatabaseTable);
   }
 

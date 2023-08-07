@@ -86,7 +86,7 @@ public class SphingolipidAnnotationParameterSetupDialog extends ParameterSetupDi
 
             // get controller
             GlyceroAndGlycerophospholipidDatabaseTableController controller = loader.getController();
-            controller.initialize(parameters, selectedLipids);
+//            controller.initialize(parameters, selectedLipids);
 
             // Use main CSS
             scene.getStylesheets()
