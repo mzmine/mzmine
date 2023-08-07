@@ -35,7 +35,7 @@ import java.util.function.Consumer
 plugins {
     id "java"
     id "application"
-    id "org.openjfx.javafxplugin" version "0.0.13"
+    id "org.openjfx.javafxplugin" version "0.0.14"
     id "org.beryx.runtime" version "1.12.7"
 
     // versioning now in version.properties file
