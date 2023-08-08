@@ -282,7 +282,7 @@ public class FattyAcylAnnotationTask extends AbstractTask {
 
           // make MS1 annotation
           possibleRowAnnotations.add(
-              new MatchedLipid(lipid, row.getAverageMZ(), ionization, null, 0));
+              new MatchedLipid(lipid, row.getAverageMZ(), ionization, null, 0.0));
         }
       }
 
@@ -367,7 +367,7 @@ public class FattyAcylAnnotationTask extends AbstractTask {
       }
     if (keepUnconfirmedAnnotations.booleanValue() && matchedLipids.isEmpty()) {
       MatchedLipid unconfirmedMatchedLipid = new MatchedLipid(lipid, row.getAverageMZ(), ionization,
-          null, 0);
+          null, 0.0);
       unconfirmedMatchedLipid.setComment(
           "Warning, this annotation is based on MS1 mass accurracy only!");
       matchedLipids.add(unconfirmedMatchedLipid);
@@ -391,7 +391,7 @@ public class FattyAcylAnnotationTask extends AbstractTask {
     for (List<MatchedLipid> matchedLipidGroup : duplicateMatchedLipids) {
       if (matchedLipidGroup.size() > 1) {
         MatchedLipid bestMatch = matchedLipidGroup.stream()
-            .max(Comparator.comparingDouble(MatchedLipid::getNumberOfExplainedFragments))
+            .max(Comparator.comparingDouble(MatchedLipid::getMsMsScore))
             .orElse(null);
         matchedLipidGroup.remove(bestMatch);
 

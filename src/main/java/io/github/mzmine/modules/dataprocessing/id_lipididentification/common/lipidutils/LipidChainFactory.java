@@ -37,6 +37,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.TwoAcylLipidChains;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
@@ -180,25 +181,11 @@ public class LipidChainFactory {
 
   public String connectLipidChainAnnotations(List<ILipidChain> chains) {
     StringBuilder sb = new StringBuilder();
-    chains.sort((o1, o2) -> {
-
-      // alkyl before acyl
-      if (o1.getLipidChainType().equals(LipidChainType.ALKYL_CHAIN)
-          && !(o2.getLipidChainType().equals(LipidChainType.ALKYL_CHAIN))) {
-        return -1;
-      }
-
-      // chain length
-      if (o1.getNumberOfCarbons() < o2.getNumberOfCarbons()) {
-        return -1;
-      }
-
-      // DBE number
-      if (o1.getNumberOfDBEs() < o2.getNumberOfDBEs()) {
-        return -1;
-      }
-      return 0;
-    });
+    Comparator<ILipidChain> chainComparator = Comparator.comparing(
+            (ILipidChain chain) -> chain.getLipidChainType().getPriorityForSorting())
+        .thenComparing(ILipidChain::getNumberOfCarbons).thenComparing(ILipidChain::getNumberOfDBEs)
+        .thenComparing(ILipidChain::getNumberOfOxygens);
+    chains.sort(chainComparator);
     boolean allChainsAreSame = allChainsAreSame(chains);
     for (int i = 0; i < chains.size(); i++) {
       if (i == 0) {
@@ -215,14 +202,70 @@ public class LipidChainFactory {
   }
 
   private boolean allChainsAreSame(List<ILipidChain> chains) {
-    String firstChainAnnotation = chains.get(0).getChainAnnotation();
-    for (int i = 1; i < chains.size(); i++) {
-      if (!chains.get(i).getChainAnnotation().equals(firstChainAnnotation)) {
+    boolean chainsAreEqual = false;
+    boolean sameNumberOfCarbons = false;
+    boolean sameNumberOfDoubleBondEquivalents = false;
+    boolean sameNumberOfOxygens = false;
+    boolean sameChainTypes = false;
+
+    if (chains.size() > 1) {
+
+      // check carbons
+      sameNumberOfCarbons = allElementsAreSame(
+          chains.stream().map(ILipidChain::getNumberOfCarbons).toArray(Integer[]::new));
+
+      // check dbes
+      if (sameNumberOfCarbons) {
+        sameNumberOfDoubleBondEquivalents = allElementsAreSame(
+            chains.stream().map(ILipidChain::getNumberOfDBEs).toArray(Integer[]::new));
+      }
+
+      // check number of oxygens
+      if (sameNumberOfCarbons && sameNumberOfDoubleBondEquivalents) {
+        sameNumberOfOxygens = allElementsAreSame(
+            chains.stream().map(ILipidChain::getNumberOfOxygens).toArray(Integer[]::new));
+      }
+      if (sameNumberOfCarbons && sameNumberOfDoubleBondEquivalents && sameNumberOfOxygens) {
+        sameChainTypes = allChainTypesAreSame(
+            chains.stream().map(ILipidChain::getLipidChainType).toArray(LipidChainType[]::new));
+      }
+      if (sameNumberOfCarbons && sameNumberOfDoubleBondEquivalents && sameNumberOfOxygens
+          && sameChainTypes) {
+        chainsAreEqual = true;
+      }
+      // in case of Sphingolipids evaluate always true
+      if (!chainsAreEqual) {
+        boolean isSphingolipid = chains.stream().anyMatch(chain ->
+            chain.getLipidChainType() == LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN
+                || chain.getLipidChainType()
+                == LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN
+                || chain.getLipidChainType()
+                == LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN);
+        if (isSphingolipid) {
+          chainsAreEqual = true;
+        }
+      }
+    }
+    return chainsAreEqual;
+  }
+
+  private boolean allChainTypesAreSame(LipidChainType[] types) {
+    LipidChainType firstChain = types[0];
+    for (int i = 1; i < types.length; i++) {
+      if (types[i] != firstChain) {
         return false;
       }
     }
     return true;
   }
 
-
+  private boolean allElementsAreSame(Integer[] arr) {
+    Integer firstElement = arr[0];
+    for (int i = 1; i < arr.length; i++) {
+      if (arr[i] != firstElement) {
+        return false;
+      }
+    }
+    return true;
+  }
 }

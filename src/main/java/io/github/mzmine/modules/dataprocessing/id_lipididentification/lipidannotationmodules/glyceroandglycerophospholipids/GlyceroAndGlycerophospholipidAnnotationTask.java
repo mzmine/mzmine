@@ -56,6 +56,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -315,8 +316,9 @@ public class GlyceroAndGlycerophospholipidAnnotationTask extends AbstractTask {
 
   private void addAnnotationsToFeatureList(FeatureListRow row,
       Set<MatchedLipid> possibleRowAnnotations) {
-
-    for (MatchedLipid matchedLipid : possibleRowAnnotations) {
+    List<MatchedLipid> finalResults = new ArrayList<>(possibleRowAnnotations);
+    finalResults.sort(Comparator.comparingDouble(MatchedLipid::getMsMsScore).reversed());
+    for (MatchedLipid matchedLipid : finalResults) {
       if (matchedLipid != null) {
         row.addLipidAnnotation(matchedLipid);
       }
@@ -377,11 +379,12 @@ public class GlyceroAndGlycerophospholipidAnnotationTask extends AbstractTask {
             for (MatchedLipid molecularSpeciesLevelMatchedLipid : molecularSpeciesLevelMatchedLipids) {
               molecularSpeciesLevelMatchedLipid.getMatchedFragments()
                   .addAll(matchedSpeciesLevelLipid.getMatchedFragments());
-              //check MSMS score 
-              if (matchedMolecularSpeciesLipidFactory.validateMolecularSpeciesLevelAnnotation(
-                  row.getAverageMZ(), lipid,
+              //check MSMS score
+              molecularSpeciesLevelMatchedLipid = matchedMolecularSpeciesLipidFactory.validateMolecularSpeciesLevelAnnotation(
+                  row.getAverageMZ(), molecularSpeciesLevelMatchedLipid.getLipidAnnotation(),
                   molecularSpeciesLevelMatchedLipid.getMatchedFragments(), massList, minMsMsScore,
-                  mzToleranceMS2, ionization) != null) {
+                  mzToleranceMS2, ionization);
+              if (molecularSpeciesLevelMatchedLipid != null) {
                 matchedLipidsInScan.add(molecularSpeciesLevelMatchedLipid);
               }
             }
@@ -400,7 +403,8 @@ public class GlyceroAndGlycerophospholipidAnnotationTask extends AbstractTask {
         onlyKeepBestAnnotations(matchedLipids);
       }
     }
-    return matchedLipids;
+
+    return matchedLipids.stream().filter(Objects::nonNull).collect(Collectors.toSet());
   }
 
   private void onlyKeepBestAnnotations(Set<MatchedLipid> matchedLipids) {

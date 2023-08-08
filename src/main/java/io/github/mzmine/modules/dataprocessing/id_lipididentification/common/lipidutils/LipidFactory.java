@@ -142,10 +142,10 @@ public class LipidFactory {
     if (numberOfCarbons < lipidClass.getChainTypes().length) {
       return null;
     }
-
-    annotation =
-        lipidClass.getAbbr() + " " + numberOfCarbons + ':' + numberOfDBEs + ";" + numberOfOxygens
-            + "O";
+    annotation = lipidClass.getAbbr() + " " + numberOfCarbons + ':' + numberOfDBEs;
+    if (numberOfOxygens > 0) {
+      annotation = annotation + ";" + numberOfOxygens + "O";
+    }
     return annotation;
   }
 

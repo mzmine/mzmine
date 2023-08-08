@@ -27,23 +27,24 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.li
 
 public enum LipidChainType {
 
-  ACYL_CHAIN("Acyl chain", 0), //
-  ACYL_MONO_HYDROXY_CHAIN("Acyl mono hydroxy chain", 1), //
-  TWO_ACYL_CHAINS_COMBINED("Two acyl chains combined", 0),//
-  ALKYL_CHAIN("Alkyl chain", 0),//
-  AMID_CHAIN("Amid chain", 0), //
-  AMID_MONO_HYDROXY_CHAIN("Amid mono hydroxy chain", 1), //
-  SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN("Shpingolipid mono hydroxy backbone chain", 1), //
-  SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN("Shpingolipid di hydroxy backbone chain", 2), //
-  SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN("Shpingolipid tri hydroxy backbone chain", 3);// ;
+  ACYL_CHAIN("Acyl chain", 0, 6), //
+  ACYL_MONO_HYDROXY_CHAIN("Acyl mono hydroxy chain", 1, 8), //
+  TWO_ACYL_CHAINS_COMBINED("Two acyl chains combined", 0, 7),//
+  ALKYL_CHAIN("Alkyl chain", 0, 4),//
+  AMID_CHAIN("Amid chain", 0, 5), //
+  AMID_MONO_HYDROXY_CHAIN("Amid mono hydroxy chain", 1, 9), //
+  SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN("Shpingolipid mono hydroxy backbone chain", 1, 1), //
+  SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN("Shpingolipid di hydroxy backbone chain", 2, 2), //
+  SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN("Shpingolipid tri hydroxy backbone chain", 3, 3);// ;
 
   private final String name;
-
   private final int fixNumberOfOxygens;
+  private final int priorityForSorting;
 
-  LipidChainType(String name, int fixNumberOfOxygens) {
+  LipidChainType(String name, int fixNumberOfOxygens, int priorityForSorting) {
     this.name = name;
     this.fixNumberOfOxygens = fixNumberOfOxygens;
+    this.priorityForSorting = priorityForSorting;
   }
 
   public String getName() {
@@ -52,6 +53,10 @@ public enum LipidChainType {
 
   public int getFixNumberOfOxygens() {
     return fixNumberOfOxygens;
+  }
+
+  public int getPriorityForSorting() {
+    return priorityForSorting;
   }
 
 }

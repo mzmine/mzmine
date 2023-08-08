@@ -34,6 +34,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.LipidSpectrumProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.SingleSpectrumProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
@@ -41,7 +42,6 @@ import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidL
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,9 +65,9 @@ public class LipidSpectrumChart extends BufferedChartNode {
     Scan matchedMsMsScan = matchedFragments.stream().map(LipidFragment::getMsMsScan).findFirst()
         .orElse(null);
     if (matchedMsMsScan != null) {
-      PlotXYDataProvider spectrumProvider = new LipidSpectrumProvider(null, matchedMsMsScan,
+      PlotXYDataProvider spectrumProvider = new SingleSpectrumProvider(matchedMsMsScan,
           "MS/MS Spectrum",
-          MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColorAWT());
+          MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor());
       ColoredXYDataset spectrumDataSet = new ColoredXYDataset(spectrumProvider, runOption);
       spectraPlot.addDataSet(spectrumDataSet,
           MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColorAWT(), true, null,
@@ -75,7 +75,7 @@ public class LipidSpectrumChart extends BufferedChartNode {
     }
 
     List<DataPoint> fragmentScanDps = matchedFragments.stream().map(LipidFragment::getDataPoint)
-        .collect(Collectors.toList());
+        .toList();
     if (!fragmentScanDps.isEmpty()) {
       PlotXYDataProvider fragmentDataProvider = new LipidSpectrumProvider(matchedFragments,
           fragmentScanDps.stream().mapToDouble(DataPoint::getMZ).toArray(),
@@ -91,6 +91,8 @@ public class LipidSpectrumChart extends BufferedChartNode {
       spectraPlot.addDataSet(fragmentDataSet,
           MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), true,
           matchedLipidLabelGenerator, true);
+
+      spectraPlot.addPrecursorMarkers(matchedMsMsScan);
     }
 
     if (asBufferedImage) {

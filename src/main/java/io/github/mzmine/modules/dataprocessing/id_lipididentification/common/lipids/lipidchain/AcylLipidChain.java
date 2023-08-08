@@ -163,7 +163,8 @@ public class AcylLipidChain implements ILipidChain {
       }
     }
     if (lipidChainType != null && lipidChainType.equals(LipidChainType.ACYL_CHAIN)) {
-      return new AcylLipidChain(chainAnnotation, molecularFormula, numberOfCarbons, numberOfDBEs, numberOfOxygens);
+      return new AcylLipidChain(chainAnnotation, molecularFormula, numberOfCarbons, numberOfDBEs,
+          numberOfOxygens);
     }
     return null;
   }

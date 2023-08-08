@@ -39,10 +39,10 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.ILipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.SphingolipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.IMolecularSpeciesLevelMatchedLipidFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.GlyceroAndGlycerophosphoSpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.SphingoMolecularSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.ISpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SphingolipidSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
@@ -57,6 +57,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -231,8 +232,16 @@ public class SphingolipidAnnotationTask extends AbstractTask {
 
       // TODO starting point to extend for better oxidized lipid support
       int numberOfAdditionalOxygens = 0;
-      for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
-        for (int chainDoubleBonds = minDoubleBonds; chainDoubleBonds <= maxDoubleBonds;
+      int minTotalChainLength = minChainLength * lipidClass.getChainTypes().length;
+      int maxTotalChainLength = maxChainLength * lipidClass.getChainTypes().length;
+      int minTotalDoubleBonds = minDoubleBonds * lipidClass.getChainTypes().length;
+      int maxTotalDoubleBonds = maxDoubleBonds * lipidClass.getChainTypes().length;
+      for (int chainLength = minTotalChainLength; chainLength <= maxTotalChainLength;
+          chainLength++) {
+        if (onlySearchForEvenChains && chainLength % 2 != 0) {
+          continue;
+        }
+        for (int chainDoubleBonds = minTotalDoubleBonds; chainDoubleBonds <= maxTotalDoubleBonds;
             chainDoubleBonds++) {
 
           if (chainLength / 2 < chainDoubleBonds || chainLength == 0) {
@@ -268,6 +277,9 @@ public class SphingolipidAnnotationTask extends AbstractTask {
           .equals(ionization.getPolarity())) {
         continue;
       }
+      if (lipid.getAnnotation().contains("36")) {
+        System.out.println("hi");
+      }
       double lipidIonMass = MolecularFormulaManipulator.getMass(lipid.getMolecularFormula(),
           AtomContainerManipulator.MonoIsotopic) + ionization.getAddedMass();
       Range<Double> mzTolRange12C = mzTolerance.getToleranceRange(row.getAverageMZ());
@@ -292,8 +304,9 @@ public class SphingolipidAnnotationTask extends AbstractTask {
 
   private void addAnnotationsToFeatureList(FeatureListRow row,
       Set<MatchedLipid> possibleRowAnnotations) {
-
-    for (MatchedLipid matchedLipid : possibleRowAnnotations) {
+    List<MatchedLipid> finalResults = new ArrayList<>(possibleRowAnnotations);
+    finalResults.sort(Comparator.comparingDouble(MatchedLipid::getMsMsScore).reversed());
+    for (MatchedLipid matchedLipid : finalResults) {
       if (matchedLipid != null) {
         row.addLipidAnnotation(matchedLipid);
       }
@@ -337,15 +350,13 @@ public class SphingolipidAnnotationTask extends AbstractTask {
           }
         }
         if (!annotatedFragments.isEmpty()) {
-          //TODO own factory
-          ISpeciesLevelMatchedLipidFactory matchedLipidFactory = new GlyceroAndGlycerophosphoSpeciesLevelMatchedLipidFactory();
+          ISpeciesLevelMatchedLipidFactory matchedLipidFactory = new SphingolipidSpeciesLevelMatchedLipidFactory();
           MatchedLipid matchedSpeciesLevelLipid = matchedLipidFactory.validateSpeciesLevelAnnotation(
               row.getAverageMZ(), lipid, annotatedFragments, massList, minMsMsScore, mzToleranceMS2,
               ionization);
           matchedLipidsInScan.add(matchedSpeciesLevelLipid);
 
-          //TODO own factory
-          IMolecularSpeciesLevelMatchedLipidFactory matchedMolecularSpeciesLipidFactory = new GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory();
+          IMolecularSpeciesLevelMatchedLipidFactory matchedMolecularSpeciesLipidFactory = new SphingoMolecularSpeciesLevelMatchedLipidFactory();
           Set<MatchedLipid> molecularSpeciesLevelMatchedLipids = matchedMolecularSpeciesLipidFactory.predictMolecularSpeciesLevelMatches(
               annotatedFragments, lipid, row.getAverageMZ(), massList, minMsMsScore, mzToleranceMS2,
               ionization);
@@ -356,10 +367,11 @@ public class SphingolipidAnnotationTask extends AbstractTask {
               molecularSpeciesLevelMatchedLipid.getMatchedFragments()
                   .addAll(matchedSpeciesLevelLipid.getMatchedFragments());
               //check MSMS score
-              if (matchedMolecularSpeciesLipidFactory.validateMolecularSpeciesLevelAnnotation(
-                  row.getAverageMZ(), lipid,
+              molecularSpeciesLevelMatchedLipid = matchedMolecularSpeciesLipidFactory.validateMolecularSpeciesLevelAnnotation(
+                  row.getAverageMZ(), molecularSpeciesLevelMatchedLipid.getLipidAnnotation(),
                   molecularSpeciesLevelMatchedLipid.getMatchedFragments(), massList, minMsMsScore,
-                  mzToleranceMS2, ionization) != null) {
+                  mzToleranceMS2, ionization);
+              if (molecularSpeciesLevelMatchedLipid != null) {
                 matchedLipidsInScan.add(molecularSpeciesLevelMatchedLipid);
               }
             }
@@ -378,7 +390,7 @@ public class SphingolipidAnnotationTask extends AbstractTask {
         onlyKeepBestAnnotations(matchedLipids);
       }
     }
-    return matchedLipids;
+    return matchedLipids.stream().filter(Objects::nonNull).collect(Collectors.toSet());
   }
 
   private void onlyKeepBestAnnotations(Set<MatchedLipid> matchedLipids) {

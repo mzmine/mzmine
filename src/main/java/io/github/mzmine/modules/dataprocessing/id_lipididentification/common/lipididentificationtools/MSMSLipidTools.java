@@ -42,6 +42,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -403,5 +404,9 @@ public class MSMSLipidTools {
     Double intensityMatchedSignals = annotatedFragments.stream().map(LipidFragment::getDataPoint)
         .mapToDouble(DataPoint::getIntensity).sum();
     return (intensityMatchedSignals / intensityAllSignals) * 100;
+  }
+
+  public void sortMatchedLipidsBasedOnMSMSScore(List<MatchedLipid> matchedLipids) {
+    matchedLipids.sort(Comparator.comparingDouble(MatchedLipid::getMsMsScore));
   }
 }

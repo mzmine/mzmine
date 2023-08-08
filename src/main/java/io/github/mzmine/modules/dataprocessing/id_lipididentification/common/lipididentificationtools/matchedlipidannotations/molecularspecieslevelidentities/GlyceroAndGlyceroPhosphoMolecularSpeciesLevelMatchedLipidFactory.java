@@ -32,13 +32,14 @@ public class GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory im
 
   @Override
   public MatchedLipid validateMolecularSpeciesLevelAnnotation(double accurateMz,
-      ILipidAnnotation speciesLevelAnnotation, Set<LipidFragment> annotatedFragments,
+      ILipidAnnotation molecularSpeciesLevelAnnotation, Set<LipidFragment> annotatedFragments,
       DataPoint[] massList, double minMsMsScore, MZTolerance mzTolRangeMSMS,
       IonizationType ionizationType) {
     if (!annotatedFragments.isEmpty()) {
       IMolecularFormula lipidFormula = null;
       try {
-        lipidFormula = (IMolecularFormula) speciesLevelAnnotation.getMolecularFormula().clone();
+        lipidFormula = (IMolecularFormula) molecularSpeciesLevelAnnotation.getMolecularFormula()
+            .clone();
       } catch (CloneNotSupportedException e) {
         throw new RuntimeException(e);
       }
@@ -47,7 +48,7 @@ public class GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory im
       Double msMsScore = MSMS_LIPID_TOOLS.calculateMsMsScore(massList, annotatedFragments,
           precursorMz, mzTolRangeMSMS);
       if (msMsScore >= minMsMsScore) {
-        return new MatchedLipid(speciesLevelAnnotation, accurateMz, ionizationType,
+        return new MatchedLipid(molecularSpeciesLevelAnnotation, accurateMz, ionizationType,
             annotatedFragments, msMsScore);
       } else {
         return null;
