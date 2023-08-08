@@ -87,18 +87,13 @@ public class DataTypeCellFactory implements
           super.updateItem(item, empty);
           // needs to check for row visibility
           // this makes scrambles the column order - rows seem to be flagged invisible wrongly
-          if (
-            //!getTableRow().isVisible() ||
-              empty || item == null) {
+          if (!getTableRow().isVisible() || empty || item == null) {
             setGraphic(null);
             setText(null);
             return;
           }
+
 //        logger.log(Level.INFO, "updateItem in Cell (DataTypeCellFactory)");
-          if(!getTableRow().isVisible()) {
-            // fix to make the cell factory not go crazy and create invisible nodes
-            return;
-          }
           if (type instanceof LinkedGraphicalType lgType) {
             // convert Boolean to boolean
             boolean cellActive = item != null && ((Boolean) item).booleanValue();
@@ -107,37 +102,38 @@ public class DataTypeCellFactory implements
             getTableColumn().setMinWidth(lgType.getColumnWidth());
             setGraphic(node);
             setText(null);
-          } else {
-            if (item == null) {
-              item = type.getDefaultValue();
-            }
-            if (item == null || empty) {
-              setGraphic(null);
-              setText(null);
-            } else {
-              if (type instanceof GraphicalColumType graphicalColumType) {
-                Node node = graphicalColumType.getCellNode(this, param, item, raw);
-                getTableColumn().setMinWidth(graphicalColumType.getColumnWidth());
-                setGraphic(node);
-                setText(null);
-              } else {
-                // dirty fix for NumberRangeType as those types do not return sub types for each
-                // column, but rather use NumberRangeType.this as type
-                if (type instanceof NumberRangeType rangeType) {
-                  // use special method in NumberRangeType - this needs a number instead of Range
-                  setText(rangeType.getFormattedString((Number) item, false));
-                } else {
-                  setText(type.getFormattedString(item));
-                }
-                setGraphic(null);
-              }
-            }
-            if (type instanceof NumberType) {
-              setAlignment(Pos.CENTER_RIGHT);
-            } else {
-              setAlignment(Pos.CENTER);
-            }
+            return;
           }
+
+          if (type instanceof GraphicalColumType graphicalColumType) {
+            Node node = graphicalColumType.getCellNode(this, param, item, raw);
+            getTableColumn().setMinWidth(graphicalColumType.getColumnWidth());
+            setGraphic(node);
+            setText(null);
+            return;
+          }
+
+          // dirty fix for NumberRangeType as those types do not return sub types for each
+          // column, but rather use NumberRangeType.this as type
+          if (type instanceof NumberRangeType rangeType) {
+            // use special method in NumberRangeType - this needs a number instead of Range
+            setText(rangeType.getFormattedString((Number) item, false));
+            setGraphic(null);
+            return;
+          } else {
+            setText(type.getFormattedString(item));
+            setGraphic(null);
+          }
+
+
+          if (type instanceof NumberType) {
+            setAlignment(Pos.CENTER_RIGHT);
+            setGraphic(null);
+          } else {
+            setAlignment(Pos.CENTER);
+            setGraphic(null);
+          }
+
         } catch (Exception ex) {
           logger.log(Level.WARNING, "Error in cell factory", ex);
         }

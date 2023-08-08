@@ -27,10 +27,12 @@ package io.github.mzmine.datamodel.features.types.tasks;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -39,11 +41,14 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,6 +62,8 @@ public class NodeGenerationThread extends AbstractTask {
   private FeatureList flist;
 
   private Map<Node, Node> nodeChartMap = new HashMap<>();
+
+  private final Queue<NodeRequest<?>> nodeQueue = new LinkedBlockingQueue<>();
 
   public NodeGenerationThread(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       FeatureList flist) {
@@ -78,6 +85,53 @@ public class NodeGenerationThread extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
+
+    generateAllCharts();
+
+    /*while(!isCanceled()) {
+
+      final NodeRequest<?> request = nodeQueue.poll();
+      if(request == null || !(request.type() instanceof GraphicalColumType graphicalType)) {
+        try {
+          TimeUnit.MILLISECONDS.sleep(5);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+        continue;
+      }
+
+      if(request.raw() == null) {
+        var row = request.row();
+        DataType type = request.type();
+        final Node node = graphicalType.createCellContent(row, request.value(),
+            request.raw(), new AtomicDouble());
+        final Pane parentNode = request.parentNode();
+        nodeChartMap.put(parentNode, node);
+      }
+    }
+
+    if(nodeQueue.isEmpty() || nodeChartMap.size() > 10) {
+      MZmineCore.runLater(() -> {
+        logger.info("Updating %d charts.".formatted(nodeChartMap.size()));
+        nodeChartMap.forEach((pane, chart) -> {
+          if (chart == null) {
+            return;
+          }
+
+          try {
+//            pane.getChildren().clear();
+//            pane.getChildren().add(chart);
+          } catch (ClassCastException e) {
+            logger.log(Level.INFO, e.getMessage(), e);
+          }
+        });
+      });
+    }*/
+
+    setStatus(TaskStatus.FINISHED);
+  }
+
+  private boolean generateAllCharts() {
     final List<LinkedGraphicalType> rowTypes = flist.getRowTypes().values().stream()
         .filter(type -> type instanceof LinkedGraphicalType).map(t -> (LinkedGraphicalType) t)
         .toList();
@@ -124,7 +178,7 @@ public class NodeGenerationThread extends AbstractTask {
         }
       }
       if (isCanceled()) {
-        return;
+        return true;
       }
       rows++;
     }
@@ -144,6 +198,11 @@ public class NodeGenerationThread extends AbstractTask {
       });
       logger.info("All charts updated.");
     });
-    setStatus(TaskStatus.FINISHED);
+    return false;
+  }
+
+  public <T> void requestNode(@NotNull ModularFeatureListRow row, DataType<T> type,
+      T value, RawDataFile raw, Pane parentNode) {
+    nodeQueue.add(new NodeRequest<>(row, type, value, raw, parentNode));
   }
 }
