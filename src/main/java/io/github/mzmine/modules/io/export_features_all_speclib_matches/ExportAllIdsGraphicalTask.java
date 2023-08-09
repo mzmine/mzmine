@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,9 +26,20 @@
 package io.github.mzmine.modules.io.export_features_all_speclib_matches;
 
 import com.google.common.util.concurrent.AtomicDouble;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeChart;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeMobilogramChart;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.ImageChart;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
+import io.github.mzmine.gui.chartbasics.graphicsexport.ExportChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportDialogFX;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
@@ -68,7 +79,10 @@ import org.jetbrains.annotations.Nullable;
 public class ExportAllIdsGraphicalTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(ExportAllIdsGraphicalTask.class.getName());
-
+  // buffer png export as this takes long time on fx thread
+  final int bufferSize = 100;
+  final SpectralMatchPanelFX[] panelBuffer = new SpectralMatchPanelFX[bufferSize];
+  final File[] filenameBuffer = new File[bufferSize];
   private final FeatureList[] flists;
   private final File dir;
   private final GraphicsExportParameters exportParameters;
@@ -76,14 +90,9 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
   private final boolean exportPng;
   private final boolean exportPdf;
   private final int numIds;
+  int nextBufferIndex = 0;
   private String desc = "Exporting all identifications.";
   private NumberFormats form = MZmineCore.getConfiguration().getExportFormats();
-  // buffer png export as this takes long time on fx thread
-  final int bufferSize = 100;
-  final SpectralMatchPanelFX[] panelBuffer = new SpectralMatchPanelFX[bufferSize];
-  final File[] filenameBuffer = new File[bufferSize];
-  int nextBufferIndex = 0;
-
   // progress
   private int totalIds = 1;
   private AtomicInteger processed = new AtomicInteger(0);
@@ -125,6 +134,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
 
           exportSpectralLibraryMatches(flistFolder, row);
           exportLipidIds(flistFolder, row);
+          exportFeatureCharts(flistFolder, row);
 
           processed.incrementAndGet();
           desc = "Exporting all annotations. %d/%d".formatted(processed.get(), totalIds);
@@ -142,8 +152,50 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
       logger.log(Level.SEVERE,
           "Cannot export graphics for lipids and spectral matches  " + ex.getMessage(), ex);
     }
-
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private void exportFeatureCharts(File flistFolder, FeatureListRow row) {
+    if (row.getSpectralLibraryMatches().isEmpty() && row.getLipidMatches().isEmpty()) {
+      return;
+    }
+
+    if (exportPdf) {
+      // check if we have at least one non-image feature
+      if (row.getRawDataFiles().stream().filter(f -> !(f instanceof ImagingRawDataFile)).findFirst()
+          .isPresent()) {
+        final FeatureShapeChart shapeChart = new FeatureShapeChart((ModularFeatureListRow) row,
+            new AtomicDouble(0));
+        exportParameters.setParameter(GraphicsExportParameters.path,
+            new File(flistFolder, ExportFormatter.getName(row, "eic", 1, "", 1, ".pdf")));
+        new GraphicsExportDialogFX(true, exportParameters, );
+      }
+
+      if (row.getRawDataFiles().stream().filter(f -> (f instanceof IMSRawDataFile)).findFirst()
+          .isPresent()) {
+        exportParameters.setParameter(GraphicsExportParameters.path,
+            new File(flistFolder, ExportFormatter.getName(row, "eim", 1, "", 1, ".pdf")));
+        final FeatureShapeMobilogramChart mobilogramChart = new FeatureShapeMobilogramChart(
+            (ModularFeatureListRow) row, new AtomicDouble(0));
+      }
+
+      for (RawDataFile file : row.getRawDataFiles()) {
+        if (!(file instanceof ImagingRawDataFile imsFile) || row.getFeature(imsFile) == null
+            || row.getFeature(imsFile).getFeatureStatus() == FeatureStatus.UNKNOWN) {
+          continue;
+        }
+
+        exportParameters.setParameter(GraphicsExportParameters.path,
+            new File(flistFolder, ExportFormatter.getName(row, "eic", 1, "", 1, ".pdf")));
+        final ParameterSet exportClone = exportParameters.cloneParameterSet();
+
+        final Color background = MZmineCore.getConfiguration().getDefaultPaintScalePalette().get(0);
+        exportClone.getParameter(GraphicsExportParameters.chartParameters).getEmbeddedParameters()
+            .setParameter(ExportChartThemeParameters.color, background);
+        Feature f = row.getFeature(imsFile);
+        final ImageChart imageChart = new ImageChart((ModularFeature) f, new AtomicDouble());
+      }
+    }
   }
 
   private void exportSpectralLibraryMatches(File flistFolder, FeatureListRow row) {
@@ -157,7 +209,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
       final SpectralMatchPanelFX spectralMatchPanelFX = new SpectralMatchPanelFX(match);
       spectralMatchPanelFX.applySettings(null);
       var fileName = new File(flistFolder,
-          "speclib_%d_mz-%s_score-%s_match_top_%d".formatted(row.getID(),
+          "%d-speclib_mz-%s_score-%s_match_top_%d".formatted(row.getID(),
               form.mz(row.getAverageMZ()), form.score(match.getScore()), i + 1));
 
       if (exportPdf) {
@@ -264,7 +316,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
 
       final String formatStr = exportParameters.getValue(GraphicsExportParameters.exportFormat);
       final File exportFile = new File(flistFolder,
-          "lipid_%d_mz-%s_score-%s_match-%d.%s".formatted(row.getID(), form.mz(row.getAverageMZ()),
+          "%d-lipid_mz-%s_score-%s_match-%d.%s".formatted(row.getID(), form.mz(row.getAverageMZ()),
               form.score(lipid.getMsMsScore()), i, formatStr));
 
       spectraPlot.getXYPlot().getDomainAxis().setAutoRange(true);
