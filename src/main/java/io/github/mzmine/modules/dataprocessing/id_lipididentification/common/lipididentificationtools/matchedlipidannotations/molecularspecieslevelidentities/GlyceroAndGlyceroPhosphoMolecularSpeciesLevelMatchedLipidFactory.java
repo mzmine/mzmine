@@ -18,8 +18,10 @@ import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -29,6 +31,8 @@ public class GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory im
 
   private static final MSMSLipidTools MSMS_LIPID_TOOLS = new MSMSLipidTools();
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
+
+  private static final LipidChainFactory LIPID_CHAIN_FACTORY = new LipidChainFactory();
 
   @Override
   public MatchedLipid validateMolecularSpeciesLevelAnnotation(double accurateMz,
@@ -157,8 +161,69 @@ public class GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory im
         }
       }
     }
+
+    //ILS allows alkyl chain assumption based on detected acyl chain for ether lipids, only allowed for 2 chains in total
+    LipidChainType[] chainTypesArray = lipidAnnotation.getLipidClass().getChainTypes();
+    List<LipidChainType> chainTypes = new ArrayList<>();
+    Collections.addAll(chainTypes, chainTypesArray);
+
+    boolean containsAlkylChain = chainTypes.contains(LipidChainType.ALKYL_CHAIN);
+    if (matchedMolecularSpeciesLevelAnnotations.isEmpty() && containsAlkylChain
+        && chainsInLipid <= 2) {
+      Set<MatchedLipid> matchedEtherLipids = constructPossibleEtherLipidMolecularSpeciesLevelAnnotations(
+          detectedFragmentsWithChainInformation, chains, lipidAnnotation, accurateMz, massList,
+          minMsMsScore, mzTolRangeMSMS, ionizationType, totalNumberOfCAtoms, totalNumberOfDBEs);
+      matchedMolecularSpeciesLevelAnnotations.addAll(matchedEtherLipids);
+    }
     return matchedMolecularSpeciesLevelAnnotations;
   }
+
+
+  private Set<MatchedLipid> constructPossibleEtherLipidMolecularSpeciesLevelAnnotations(
+      Set<LipidFragment> detectedFragmentsWithChainInformation, List<ILipidChain> chains,
+      ILipidAnnotation lipidAnnotation, Double accurateMz, DataPoint[] massList,
+      double minMsMsScore, MZTolerance mzTolRangeMSMS, IonizationType ionizationType,
+      int totalNumberOfCAtoms, int totalNumberOfDBEs) {
+    Set<MatchedLipid> matchedLipids = new HashSet<>();
+    Map<ILipidChain, Set<LipidFragment>> chainFragmentsMap = new HashMap<>();
+    for (ILipidChain chain : chains) {
+      Set<LipidFragment> lipidChainFragments = detectedFragmentsWithChainInformation.stream()
+          .filter(
+              lipidFragment -> lipidFragment.getLipidChainType().equals(chain.getLipidChainType())
+                  && lipidFragment.getChainLength().equals(chain.getNumberOfCarbons())
+                  && lipidFragment.getNumberOfDBEs().equals(chain.getNumberOfDBEs()))
+          .collect(Collectors.toSet());
+      if (!lipidChainFragments.isEmpty()) {
+        chainFragmentsMap.put(chain, lipidChainFragments);
+      }
+    }
+    for (Map.Entry<ILipidChain, Set<LipidFragment>> entry : chainFragmentsMap.entrySet()) {
+      ILipidChain chain = entry.getKey();
+      if (chain != null) {
+        int carbonEstimateEtherChain = totalNumberOfCAtoms - chain.getNumberOfCarbons();
+        int dbesEstimateEtherChain = totalNumberOfDBEs - chain.getNumberOfDBEs();
+        if (carbonEstimateEtherChain > 0 && totalNumberOfDBEs >= 0) {
+          ILipidChain alkylChain = LIPID_CHAIN_FACTORY.buildLipidChain(LipidChainType.ALKYL_CHAIN,
+              carbonEstimateEtherChain, dbesEstimateEtherChain);
+          if (alkylChain == null) {
+            continue;
+          }
+          List<ILipidChain> chainsForMolecularSpeciesLevel = new ArrayList<>();
+          chainsForMolecularSpeciesLevel.add(alkylChain);
+          chainsForMolecularSpeciesLevel.add(chain);
+
+          MatchedLipid matchedLipid = buildNewMolecularSpeciesLevelMatch(entry.getValue(),
+              lipidAnnotation, accurateMz, massList, chainsForMolecularSpeciesLevel, minMsMsScore,
+              mzTolRangeMSMS, ionizationType);
+          if (matchedLipid != null) {
+            matchedLipids.add(matchedLipid);
+          }
+        }
+      }
+    }
+    return matchedLipids;
+  }
+
 
   private List<ILipidChain> getChainsFromFragments(Set<LipidFragment> detectedFragments) {
     LipidChainFactory chainFactory = new LipidChainFactory();
@@ -206,10 +271,13 @@ public class GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory im
       IonizationType ionizationType) {
     ILipidAnnotation molecularSpeciesLevelAnnotation = LIPID_FACTORY.buildMolecularSpeciesLevelLipidFromChains(
         lipidAnnotation.getLipidClass(), predictedChains);
-    Double msMsScore = MSMS_LIPID_TOOLS.calculateMsMsScore(massList, detectedFragments,
-        minMsMsScore, mzTolRangeMSMS);
-    return new MatchedLipid(molecularSpeciesLevelAnnotation, accurateMz, ionizationType,
-        detectedFragments, msMsScore);
-
+    if (molecularSpeciesLevelAnnotation != null) {
+      Double msMsScore = MSMS_LIPID_TOOLS.calculateMsMsScore(massList, detectedFragments,
+          minMsMsScore, mzTolRangeMSMS);
+      return new MatchedLipid(molecularSpeciesLevelAnnotation, accurateMz, ionizationType,
+          detectedFragments, msMsScore);
+    } else {
+      return null;
+    }
   }
 }

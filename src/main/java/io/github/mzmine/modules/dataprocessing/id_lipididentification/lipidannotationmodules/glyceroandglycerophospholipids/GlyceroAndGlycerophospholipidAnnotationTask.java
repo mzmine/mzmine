@@ -373,12 +373,16 @@ public class GlyceroAndGlycerophospholipidAnnotationTask extends AbstractTask {
           Set<MatchedLipid> molecularSpeciesLevelMatchedLipids = matchedMolecularSpeciesLipidFactory.predictMolecularSpeciesLevelMatches(
               annotatedFragments, lipid, row.getAverageMZ(), massList, minMsMsScore, mzToleranceMS2,
               ionization);
-          if (matchedSpeciesLevelLipid != null && molecularSpeciesLevelMatchedLipids != null
+          if (molecularSpeciesLevelMatchedLipids != null
               && !molecularSpeciesLevelMatchedLipids.isEmpty()) {
             //Add species level fragments
+            if (matchedSpeciesLevelLipid != null) {
+              for (MatchedLipid molecularSpeciesLevelMatchedLipid : molecularSpeciesLevelMatchedLipids) {
+                molecularSpeciesLevelMatchedLipid.getMatchedFragments()
+                    .addAll(matchedSpeciesLevelLipid.getMatchedFragments());
+              }
+            }
             for (MatchedLipid molecularSpeciesLevelMatchedLipid : molecularSpeciesLevelMatchedLipids) {
-              molecularSpeciesLevelMatchedLipid.getMatchedFragments()
-                  .addAll(matchedSpeciesLevelLipid.getMatchedFragments());
               //check MSMS score
               molecularSpeciesLevelMatchedLipid = matchedMolecularSpeciesLipidFactory.validateMolecularSpeciesLevelAnnotation(
                   row.getAverageMZ(), molecularSpeciesLevelMatchedLipid.getLipidAnnotation(),
