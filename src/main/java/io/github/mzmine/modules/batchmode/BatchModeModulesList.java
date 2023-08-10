@@ -79,6 +79,7 @@ import io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction
 import io.github.mzmine.modules.dataprocessing.filter_neutralloss.NeutralLossFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter.PeakComparisonRowFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_scan_signals.ScanSignalRemovalModule;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule;
 import io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.PeakFinderModule;
@@ -209,6 +210,7 @@ public class BatchModeModulesList {
       BaselineCorrectionModule.class, //
       CropFilterModule.class, //
       ShoulderPeaksFilterModule.class, //
+      ScanSignalRemovalModule.class, //
       ScanFiltersModule.class, //
       ScanSmoothingModule.class, //
       MaldiPseudoFileGeneratorModule.class, //
