@@ -277,9 +277,6 @@ public class SphingolipidAnnotationTask extends AbstractTask {
           .equals(ionization.getPolarity())) {
         continue;
       }
-      if (lipid.getAnnotation().contains("36")) {
-        System.out.println("hi");
-      }
       double lipidIonMass = MolecularFormulaManipulator.getMass(lipid.getMolecularFormula(),
           AtomContainerManipulator.MonoIsotopic) + ionization.getAddedMass();
       Range<Double> mzTolRange12C = mzTolerance.getToleranceRange(row.getAverageMZ());
