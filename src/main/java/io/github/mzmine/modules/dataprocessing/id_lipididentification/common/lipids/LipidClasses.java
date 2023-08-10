@@ -332,11 +332,12 @@ public enum LipidClasses implements ILipidClass {
               LipidFragmentationRuleType.ACYLCHAIN_MINUS_FORMULA_FRAGMENT_NL,
               LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "OH"), //
           new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
-              LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL)}), //
+              LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)}), //
   DIALKYLGLYCEROPHOSPHOETHANOLAMINES("Dialkylglycerophosphoethanolamines", "PE",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOETHANOLAMINES,
-      "C5H14O6PN", new LipidChainType[] {LipidChainType.ALKYL_CHAIN, LipidChainType.ALKYL_CHAIN},
-      new LipidFragmentationRule[] { //
+      "C5H14O6PN", new LipidChainType[]{LipidChainType.ALKYL_CHAIN, LipidChainType.ALKYL_CHAIN},
+      new LipidFragmentationRule[]{ //
           new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN), //
           new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.SODIUM), //
           new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN), //
