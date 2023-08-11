@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -307,8 +307,7 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
 
   public void setMatchingFinished() {
     if (totalMatches.isEmpty()) {
-      noMatchesFound.setText("Sorry no matches found.\n"
-                             + "Please visualize NIST spectral search results through NIST MS Search software.");
+      noMatchesFound.setText("Sorry no matches found.");
       noMatchesFound.setTextFill(Color.RED);
     }
   }
