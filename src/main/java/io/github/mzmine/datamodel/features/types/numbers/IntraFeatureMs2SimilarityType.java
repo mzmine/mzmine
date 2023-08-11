@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,8 +31,8 @@ import org.jetbrains.annotations.NotNull;
 public class IntraFeatureMs2SimilarityType extends SimpleStatisticsType {
 
   public IntraFeatureMs2SimilarityType() {
-    super(MZmineCore.getConfiguration().getGuiFormats().percentFormat(),
-        MZmineCore.getConfiguration().getExportFormats().percentFormat());
+    super(MZmineCore.getConfiguration().getGuiFormats().scoreFormat(),
+        MZmineCore.getConfiguration().getExportFormats().scoreFormat());
   }
 
   @Override
