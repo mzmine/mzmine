@@ -23,32 +23,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.export_features_all_speclib_matches;
+package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
+import org.jetbrains.annotations.NotNull;
 
-class ExportFormatter {
+public class IntraFeatureMs2SimilarityType extends SimpleStatisticsType {
 
-  private static final String template = "%d-%s_mz-%s_score-%s_%s_match-%d";
-
-  public static String getName(int id, String graphicsType, double mz, double score,
-      String additionalText, int matchNumber) {
-    final NumberFormats ef = MZmineCore.getConfiguration().getExportFormats();
-    return template.formatted(id, graphicsType, ef.mz(mz), ef.score(score), additionalText,
-        matchNumber);
+  public IntraFeatureMs2SimilarityType() {
+    super(MZmineCore.getConfiguration().getGuiFormats().scoreFormat(),
+        MZmineCore.getConfiguration().getExportFormats().scoreFormat());
   }
 
-  public static String getName(int id, String graphicsType, double mz, double score,
-      int matchNumber) {
-    final NumberFormats ef = MZmineCore.getConfiguration().getExportFormats();
-    return template.formatted(id, graphicsType, ef.mz(mz), ef.score(score), "", matchNumber);
+  @Override
+  public @NotNull String getUniqueID() {
+    return "intra_row_ms2_similarity";
   }
 
-  public static String getName(FeatureListRow row, String graphicsType, double score,
-      String additionalText, int matchNumber) {
-    return getName(row.getID(), graphicsType, row.getAverageMZ(), score, additionalText,
-        matchNumber);
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Intra-row MS2 similarity";
+  }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
   }
 }
