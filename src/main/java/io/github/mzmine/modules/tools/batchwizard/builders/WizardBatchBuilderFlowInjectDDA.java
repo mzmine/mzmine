@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,11 +38,9 @@ import java.util.Optional;
 public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
 
   private final Integer minRtDataPoints;
-  private final Boolean isExportActive;
-  private final Boolean exportGnps;
-  private final Boolean exportSirius;
+  private final Boolean applySpectralNetworking;
+  private final boolean isExportActive;
   private final File exportPath;
-  private final Boolean exportAnnotationGraphics;
 
   public WizardBatchBuilderFlowInjectDDA(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -52,15 +50,13 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
     // special workflow parameter are extracted here
     minRtDataPoints = getValue(params,
         IonInterfaceDirectAndFlowInjectWizardParameters.minNumberOfDataPoints);
+
     // DDA workflow parameters
     params = steps.get(WizardPart.WORKFLOW);
+    applySpectralNetworking = getValue(params, WorkflowDdaWizardParameters.applySpectralNetworking);
     OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
     isExportActive = optional.active();
     exportPath = optional.value();
-    exportGnps = getValue(params, WorkflowDdaWizardParameters.exportGnps);
-    exportSirius = getValue(params, WorkflowDdaWizardParameters.exportSirius);
-    exportAnnotationGraphics = getValue(params,
-        WorkflowDdaWizardParameters.exportAnnotationGraphics);
   }
 
   @Override
@@ -94,9 +90,14 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
     // annotation
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, null);
+
+    // networking
+    if (applySpectralNetworking) {
+      makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath);
+    }
+
     // export
-    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
-        exportAnnotationGraphics);
+    makeAndAddDdaExportSteps(q, steps);
     return q;
   }
 
