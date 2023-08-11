@@ -46,7 +46,8 @@ public class ImsMs2RefinementParameters extends SimpleParameterSet {
 
   public static final OptionalParameter<IntegerParameter> minNumPoints = new OptionalParameter<>(
       new IntegerParameter("Minimum number of mobility peaks",
-          "Minimum number of times a peak has to be detected in mobility dimension to be used in the merged spectrum."));
+          "Minimum number of times a peak has to be detected in mobility dimension to be used in the merged spectrum."),
+      false);
 
   public ImsMs2RefinementParameters() {
     super(new Parameter[]{flists, noiseLevel, minNumPoints});

@@ -29,25 +29,26 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 
-public class ExportFormatter {
+class ExportFormatter {
 
-  private static final String template = "%d-%s_mz-%s_score-%s_%s_match-%d.%s";
+  private static final String template = "%d-%s_mz-%s_score-%s_%s_match-%d";
 
   public static String getName(int id, String graphicsType, double mz, double score,
-      String additionalText, int matchNumber, String fileType) {
-    return template.formatted(id, graphicsType, mz, score, additionalText, matchNumber, fileType);
+      String additionalText, int matchNumber) {
+    final NumberFormats ef = MZmineCore.getConfiguration().getExportFormats();
+    return template.formatted(id, graphicsType, ef.mz(mz), ef.score(score), additionalText,
+        matchNumber);
   }
 
   public static String getName(int id, String graphicsType, double mz, double score,
-      int matchNumber, String fileType) {
+      int matchNumber) {
     final NumberFormats ef = MZmineCore.getConfiguration().getExportFormats();
-    return template.formatted(id, graphicsType, ef.mz(mz), ef.score(score), "", matchNumber,
-        fileType);
+    return template.formatted(id, graphicsType, ef.mz(mz), ef.score(score), "", matchNumber);
   }
 
   public static String getName(FeatureListRow row, String graphicsType, double score,
-      String additionalText, int matchNumber, String fileType) {
+      String additionalText, int matchNumber) {
     return getName(row.getID(), graphicsType, row.getAverageMZ(), score, additionalText,
-        matchNumber, fileType);
+        matchNumber);
   }
 }
