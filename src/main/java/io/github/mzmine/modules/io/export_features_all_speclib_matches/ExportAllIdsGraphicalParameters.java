@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,7 +48,7 @@ public class ExportAllIdsGraphicalParameters extends SimpleParameterSet {
       Integer.MAX_VALUE);
 
   public static final IntegerParameter dpiScalingFactor = new IntegerParameter("DPI scaling factor",
-      "This will multiply the pixels exported", 4, 1, Integer.MAX_VALUE);
+      "This will multiply the pixels exported in the png images.", 4, 1, Integer.MAX_VALUE);
 
   public static final BooleanParameter exportPdf = new BooleanParameter("Export pdf", "", true);
 

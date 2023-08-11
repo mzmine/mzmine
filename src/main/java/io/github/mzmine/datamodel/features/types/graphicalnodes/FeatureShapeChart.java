@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -103,7 +103,6 @@ public class FeatureShapeChart extends BufferedChartNode {
     } else {
       defaultRange = new Range(0, 1);
     }
-
 
     chart.addDatasets(datasets);
     chart.getXYPlot().getDomainAxis().setRange(defaultRange);
