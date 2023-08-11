@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -176,9 +176,9 @@ public class MZminePreferences extends SimpleParameterSet {
           + "only applies to newly generated plots.", ImageNormalization.values(),
       ImageNormalization.NO_NORMALIZATION);
   private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
-      new DecimalFormat("0.###"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
+      new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
       new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.##"),
-      new DecimalFormat("0.##"), UnitFormat.DIVIDE);
+      new DecimalFormat("0.###"), UnitFormat.DIVIDE);
   private final boolean isDarkMode = false;
   private NumberFormats guiFormat = exportFormat; // default value
 
