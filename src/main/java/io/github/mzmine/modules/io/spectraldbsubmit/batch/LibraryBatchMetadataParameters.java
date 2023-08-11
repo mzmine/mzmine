@@ -37,11 +37,11 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.CompoundSource;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Instrument;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.IonSource;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -64,9 +64,8 @@ public class LibraryBatchMetadataParameters extends SimpleParameterSet {
       new ComboParameter<>("IONMODE",
           "Exchange all polarities with this value in case its not provided.", Polarity.values(),
           Polarity.Positive), false);
-  public static final ComboParameter<IonMobilityWizardParameterFactory> ION_MOBILITY = new ComboParameter<>(
-      "Ion mobility", "", IonMobilityWizardParameterFactory.values(),
-      IonMobilityWizardParameterFactory.NO_IMS);
+  public static final ComboParameter<MobilityType> ION_MOBILITY = new ComboParameter<>(
+      "Ion mobility", "", MobilityType.values(), MobilityType.NONE);
 
   public static final ComboParameter<Instrument> INSTRUMENT = new ComboParameter<>("INSTRUMENT", "",
       Instrument.values(), Instrument.Orbitrap);
