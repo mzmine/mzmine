@@ -102,25 +102,6 @@ public abstract class AbstractTask implements Task {
   }
 
   /**
-   * Convenience method for determining if this task has been canceled. Also returns true if the
-   * task encountered an error.
-   *
-   * @return true if this task has been canceled or stopped due to an error
-   */
-  public final boolean isCanceled() {
-    return (status == TaskStatus.CANCELED) || (status == TaskStatus.ERROR);
-  }
-
-  /**
-   * Convenience method for determining if this task has been completed
-   *
-   * @return true if this task is finished
-   */
-  public final boolean isFinished() {
-    return status == TaskStatus.FINISHED;
-  }
-
-  /**
    * @see io.github.mzmine.taskcontrol.Task#cancel()
    */
   @Override
