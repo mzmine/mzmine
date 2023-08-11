@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,7 +37,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import java.util.List;
 import javafx.stage.FileChooser;
 
-public class IntraFeatureMs2SimilarityParameters extends SimpleParameterSet {
+public class IntraFeatureRowMs2SimilarityParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
 
@@ -51,7 +51,7 @@ public class IntraFeatureMs2SimilarityParameters extends SimpleParameterSet {
           FileSelectionType.SAVE), false);
 
   public static final MZToleranceParameter mzTol = new MZToleranceParameter("m/z tolerance (MS2)",
-      "Tolerance value of the m/z difference between MS2 signals (add absolute tolerance to cover small neutral losses (5 ppm on m=18 may be insufficient))",
+      "Tolerance value of the m/z difference between MS2 signals (add absolute tolerance to cover small neutral losses (5 ppm on m/z 18 may be insufficient))",
       0.003, 10);
 
   public static final IntegerParameter minMatchedSignals = new IntegerParameter("Minimum signals",
@@ -63,7 +63,7 @@ public class IntraFeatureMs2SimilarityParameters extends SimpleParameterSet {
       Signal filters to limit the number of signals etc.
       """, new SignalFiltersParameters());
 
-  public IntraFeatureMs2SimilarityParameters() {
+  public IntraFeatureRowMs2SimilarityParameters() {
     super(featureLists, filename, mzTol, minMatchedSignals, signalFilters);
   }
 

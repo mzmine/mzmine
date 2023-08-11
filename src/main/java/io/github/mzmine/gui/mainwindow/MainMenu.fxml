@@ -352,8 +352,8 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementModule"/>
       <MenuItem onAction="#runModule" text="Precursor purity checker (chimerity)"
         userData="io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.PrecursorPurityCheckerModule"/>
-      <MenuItem onAction="#runModule" text="Score intra feature purity by MS2 similarity"
-        userData="io.github.mzmine.modules.dataanalysis.feat_ms2_similarity_intra.IntraFeatureMs2SimilarityModule"/>
+      <MenuItem onAction="#runModule" text="Score intra-row purity by MS2 similarity"
+        userData="io.github.mzmine.modules.dataanalysis.feat_ms2_similarity_intra.IntraFeatureRowMs2SimilarityModule"/>
       <MenuItem onAction="#runModule"
         text="Internal reference CCS calibration"
         userData="io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule"/>

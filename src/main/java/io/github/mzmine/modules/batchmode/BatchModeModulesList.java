@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.dataanalysis.feat_ms2_similarity_intra.IntraFeatureMs2SimilarityModule;
+import io.github.mzmine.modules.dataanalysis.feat_ms2_similarity_intra.IntraFeatureRowMs2SimilarityModule;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.PrecursorPurityCheckerModule;
 import io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule;
 import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule;
@@ -324,7 +324,7 @@ public class BatchModeModulesList {
       GroupedMs2RefinementModule.class, //
       ImsMs2RefinementModule.class, //
       PrecursorPurityCheckerModule.class, //
-      IntraFeatureMs2SimilarityModule.class, //
+      IntraFeatureRowMs2SimilarityModule.class, //
       DiaMs2CorrModule.class, //
       MaldiGroupMS2Module.class, //
       FormulaPredictionFeatureListModule.class, //

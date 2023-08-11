@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,9 +39,9 @@ import org.jetbrains.annotations.NotNull;
  * Score similarity of all MS2 of the same feature (across samples) to find possible impurities. The
  * scoring is only done for spectra acquired with the same fragmentation energy
  */
-public class IntraFeatureMs2SimilarityModule implements MZmineProcessingModule {
+public class IntraFeatureRowMs2SimilarityModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Score intra feature purity by MS2 similarity";
+  private static final String MODULE_NAME = "Score intra-row purity by MS2 similarity";
 
   private static final String MODULE_DESCRIPTION = """
       This module calculates the similarity of all MS2 spectra (same collision energy) of a feature across all samples.
@@ -60,14 +60,14 @@ public class IntraFeatureMs2SimilarityModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return IntraFeatureMs2SimilarityParameters.class;
+    return IntraFeatureRowMs2SimilarityParameters.class;
   }
 
   @Override
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    IntraFeatureMs2SimilarityTask task = new IntraFeatureMs2SimilarityTask(parameters,
+    IntraFeatureRowMs2SimilarityTask task = new IntraFeatureRowMs2SimilarityTask(parameters,
         moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;

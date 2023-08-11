@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.ParallelTextWriterTask;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.Weights;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
@@ -60,10 +61,14 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class IntraFeatureMs2SimilarityTask extends AbstractTask {
+public class IntraFeatureRowMs2SimilarityTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(
-      IntraFeatureMs2SimilarityTask.class.getName());
+      IntraFeatureRowMs2SimilarityTask.class.getName());
+
+  private final String[] GROUPS = {"<4", "[0.4,0.6)", "[0.6,0.85)", "≥0.85"};
+  private final double[] GROUP_THRESHOLDS = {0.4, 0.6, 0.85};
+  private final String fieldSeparator = ",";
 
   private final FeatureList[] featureLists;
   private final File fileName;
@@ -71,29 +76,26 @@ public class IntraFeatureMs2SimilarityTask extends AbstractTask {
   private final int minMatchedSignals;
   private final SpectralSignalFilter signalFilters;
   private final Boolean exportToFile;
-  private final String[] GROUPS = {"<4", "[0.4,0.6)", "[0.6,0.85)", "≥0.85"};
-  private final double[] GROUP_THRESHOLDS = {0.4, 0.6, 0.85};
   private final NumberFormat scoreFormat = MZmineCore.getConfiguration().getFormats(true)
       .scoreFormat();
 
-  private String fieldSeparator = ",";
-
-
-  private AtomicInteger processedRows = new AtomicInteger(0);
+  private final AtomicInteger processedRows = new AtomicInteger(0);
   private int totalRows = 0;
   private @Nullable ParallelTextWriterTask writerTask;
 
-  public IntraFeatureMs2SimilarityTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public IntraFeatureRowMs2SimilarityTask(ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
-    this.featureLists = parameters.getParameter(IntraFeatureMs2SimilarityParameters.featureLists)
+    this.featureLists = parameters.getParameter(IntraFeatureRowMs2SimilarityParameters.featureLists)
         .getValue().getMatchingFeatureLists();
-    exportToFile = parameters.getValue(IntraFeatureMs2SimilarityParameters.filename);
+    exportToFile = parameters.getValue(IntraFeatureRowMs2SimilarityParameters.filename);
     File file = parameters.getEmbeddedParameterValueIfSelectedOrElse(
-        IntraFeatureMs2SimilarityParameters.filename, null);
+        IntraFeatureRowMs2SimilarityParameters.filename, null);
     fileName = FileAndPathUtil.getRealFilePath(file, "csv");
-    mzTol = parameters.getValue(IntraFeatureMs2SimilarityParameters.mzTol);
-    minMatchedSignals = parameters.getValue(IntraFeatureMs2SimilarityParameters.minMatchedSignals);
-    signalFilters = parameters.getValue(IntraFeatureMs2SimilarityParameters.signalFilters)
+    mzTol = parameters.getValue(IntraFeatureRowMs2SimilarityParameters.mzTol);
+    minMatchedSignals = parameters.getValue(
+        IntraFeatureRowMs2SimilarityParameters.minMatchedSignals);
+    signalFilters = parameters.getValue(IntraFeatureRowMs2SimilarityParameters.signalFilters)
         .createFilter();
   }
 
@@ -119,8 +121,7 @@ public class IntraFeatureMs2SimilarityTask extends AbstractTask {
 
     if (exportToFile) {
       writerTask = new ParallelTextWriterTask(this, fileName, true);
-      String header = String.join(fieldSeparator,
-          new String[]{"row_id", "cosine_similarity"});
+      String header = String.join(fieldSeparator, new String[]{"row_id", "cosine_similarity"});
       writerTask.appendLine(header);
     }
 
@@ -206,27 +207,21 @@ public class IntraFeatureMs2SimilarityTask extends AbstractTask {
 
   public DoubleList processScans(final List<Scan> scans) {
     // score within group
-    List<FilteredScanData> filteredGroup = scans.stream().map(scan -> {
-      DataPoint[] data = signalFilters.applyFilterAndSortByIntensity(scan, minMatchedSignals);
-      return data == null ? null : new FilteredScanData(scan, data);
-    }).filter(Objects::nonNull).toList();
+    List<DataPoint[]> filteredGroup = scans.stream()
+        .map(scan -> signalFilters.applyFilterAndSortByIntensity(scan, minMatchedSignals))
+        .filter(Objects::nonNull).toList();
 
     DoubleList similarities = new DoubleArrayList();
 
     for (int i = 0; i < filteredGroup.size() - 1; i++) {
-      FilteredScanData a = filteredGroup.get(i);
+      DataPoint[] a = filteredGroup.get(i);
       for (int j = i + 1; j < filteredGroup.size(); j++) {
-        FilteredScanData b = filteredGroup.get(j);
-        SpectralSimilarity sim = SpectralNetworkingTask.createMS2Sim(mzTol, a.data, b.data, 1,
-            Weights.SQRT);
+        DataPoint[] b = filteredGroup.get(j);
+        SpectralSimilarity sim = SpectralNetworkingTask.createMS2Sim(mzTol, a, b, 1, Weights.SQRT);
         similarities.add(sim == null ? 0d : sim.cosine());
       }
     }
     return similarities;
   }
 
-
-  record FilteredScanData(Scan scan, DataPoint[] data) {
-
-  }
 }

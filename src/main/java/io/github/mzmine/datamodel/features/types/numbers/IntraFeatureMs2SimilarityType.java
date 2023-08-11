@@ -37,12 +37,12 @@ public class IntraFeatureMs2SimilarityType extends SimpleStatisticsType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "intra_feature_ms2_similarity";
+    return "intra_row_ms2_similarity";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Intra feature MS2 similarity";
+    return "Intra-row MS2 similarity";
   }
 
   @Override
