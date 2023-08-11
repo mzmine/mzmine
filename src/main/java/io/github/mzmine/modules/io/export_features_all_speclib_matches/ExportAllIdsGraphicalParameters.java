@@ -50,9 +50,19 @@ public class ExportAllIdsGraphicalParameters extends SimpleParameterSet {
   public static final IntegerParameter dpiScalingFactor = new IntegerParameter("DPI scaling factor",
       "This will multiply the pixels exported in the png images.", 4, 1, Integer.MAX_VALUE);
 
+  public static final BooleanParameter exportShape = new BooleanParameter("Export shapes",
+      "Exports the feature shape for non-imaging feature rows.", false);
+
+  public static final BooleanParameter exportMobilogram = new BooleanParameter("Export mobilograms",
+      "Exports the mobilogram of IMS feature rows.", false);
+
+  public static final BooleanParameter exportImages = new BooleanParameter("Export feature images",
+      "Exports the extracted ion image of for imaging features.", false);
+
   public static final BooleanParameter exportPdf = new BooleanParameter("Export pdf", "", true);
 
-  public static final BooleanParameter exportPng = new BooleanParameter("Export png (⚠ freezes GUI)",
+  public static final BooleanParameter exportPng = new BooleanParameter(
+      "Export png (⚠ freezes GUI)",
       "This process takes long and freezes the GUI until all matches are exported.", false);
 
   public static final ParameterSetParameter<GraphicsExportParameters> export = new ParameterSetParameter<>(
@@ -60,7 +70,8 @@ public class ExportAllIdsGraphicalParameters extends SimpleParameterSet {
       new GraphicsExportParameters());
 
   public ExportAllIdsGraphicalParameters() {
-    super(flists, dir, numMatches, dpiScalingFactor, exportPdf, exportPng, export);
+    super(flists, dir, numMatches, dpiScalingFactor, exportShape, exportMobilogram, exportImages,
+        exportPdf, exportPng, export);
   }
 
   @Override

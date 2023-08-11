@@ -92,6 +92,9 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
   private final boolean exportPng;
   private final boolean exportPdf;
   private final int numIds;
+  private final Boolean exportShape;
+  private final Boolean exportMobilogram;
+  private final Boolean exportImage;
   int nextBufferIndex = 0;
   private String desc = "Exporting all identifications.";
   private NumberFormats form = MZmineCore.getConfiguration().getExportFormats();
@@ -109,6 +112,9 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
     exportParameters = parameters.getValue(ExportAllIdsGraphicalParameters.export);
     exportPdf = parameters.getValue(ExportAllIdsGraphicalParameters.exportPdf);
     exportPng = parameters.getValue(ExportAllIdsGraphicalParameters.exportPng);
+    exportShape = parameters.getValue(ExportAllIdsGraphicalParameters.exportShape);
+    exportMobilogram = parameters.getValue(ExportAllIdsGraphicalParameters.exportMobilogram);
+    exportImage = parameters.getValue(ExportAllIdsGraphicalParameters.exportImages);
   }
 
   @Override
@@ -162,9 +168,15 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
       return;
     }
 
-    exportChromatograms(flistFolder, row);
-    exportMobilograms(flistFolder, row);
-    exportFeatureImages(flistFolder, row);
+    if (exportShape) {
+      exportChromatograms(flistFolder, row);
+    }
+    if (exportMobilogram) {
+      exportMobilograms(flistFolder, row);
+    }
+    if (exportImage) {
+      exportFeatureImages(flistFolder, row);
+    }
   }
 
   private void exportMobilograms(File flistFolder, FeatureListRow row) {
