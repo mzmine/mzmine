@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,7 @@ import io.github.mzmine.util.exceptions.MissingMassListException;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -126,23 +127,46 @@ public class ScanSignalRemovalTask extends AbstractTask {
       scans.nextScan();
 
       processScan(scans);
+
+      var massList = new SimpleMassList(storage, mzs.toDoubleArray(), intensities.toDoubleArray());
+      scans.addMassList(massList);
+
+      mzs.clear();
+      intensities.clear();
+
       processedScans++;
     }
   }
 
+  /**
+   * TODO seems to not work for IMS data
+   *
+   * @param imsFile
+   */
   private void processImsFileMobilityScans(IMSRawDataFile imsFile) {
-    MobilityScanDataAccess scans = EfficientDataAccess.of(imsFile, MobilityScanDataType.CENTROID,
-        scanSelection);
+    MobilityScanDataAccess frameIterator = EfficientDataAccess.of(imsFile,
+        MobilityScanDataType.CENTROID, scanSelection);
 
-    totalScans = scans.getNumberOfScans();
+    totalScans = frameIterator.getNumberOfScans();
 
-    while (scans.hasNextMobilityScan()) {
-      if (isCanceled()) {
-        return;
+    List<double[][]> frameData = new ArrayList<>();
+
+    while (frameIterator.hasNextFrame()) {
+      frameIterator.nextFrame();
+      while (frameIterator.nextMobilityScan() != null) {
+        if (isCanceled()) {
+          return;
+        }
+
+        processScan(frameIterator);
+
+        frameData.add(new double[][]{mzs.toDoubleArray(), intensities.toDoubleArray()});
+        mzs.clear();
+        intensities.clear();
       }
-      scans.nextMobilityScan();
 
-      processScan(scans);
+      frameIterator.getFrame().getMobilityScanStorage().setMassLists(storage, frameData);
+      frameData.clear();
       processedScans++;
     }
   }
@@ -159,12 +183,6 @@ public class ScanSignalRemovalTask extends AbstractTask {
       mzs.add(mz);
       intensities.add(intensity);
     }
-
-    var massList = new SimpleMassList(storage, mzs.toDoubleArray(), intensities.toDoubleArray());
-    scan.addMassList(massList);
-
-    mzs.clear();
-    intensities.clear();
   }
 
 }
