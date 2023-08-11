@@ -130,6 +130,7 @@ public class NetworkGraphMlExportTask extends AbstractTask {
   private void exportGraphMl(final FileSinkGraphML saveGraphML, final FeatureList featureList,
       boolean useIonIdentity, final File curFile) throws IOException {
     File file = getRealFilePathWithSuffix(curFile, useIonIdentity ? "_iimn" : "_fbmn", "graphml");
+    FileAndPathUtil.createDirectory(file.getParentFile());
 
     var graph = new FeatureNetworkGenerator().createNewGraph(file.getName(), featureList,
         useIonIdentity, true, false);
