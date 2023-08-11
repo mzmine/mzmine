@@ -114,7 +114,7 @@ public class FeatureNetworkController {
       final @NotNull ObservableList<FeatureListRow> focussedRows) {
     // create graph and add to center
     FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
-    var fullGraph = generator.createNewGraph(flist, true, false);
+    var fullGraph = generator.createNewGraph(flist, true, true, false);
     networkPane = new FeatureNetworkPane(this, flist, focussedRows, generator, fullGraph);
     mainPane.setCenter(networkPane);
 

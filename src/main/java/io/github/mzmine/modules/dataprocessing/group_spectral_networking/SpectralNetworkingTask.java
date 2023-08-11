@@ -401,7 +401,7 @@ public class SpectralNetworkingTask extends AbstractTask {
     FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
     var fullCosineMap = Map.of(Type.MS2_COSINE_SIM,
         Objects.requireNonNull(featureList.getRowMap(Type.MS2_COSINE_SIM)));
-    var graph = generator.createNewGraph(featureList.getRows(), true, fullCosineMap, false);
+    var graph = generator.createNewGraph(featureList.getRows(), false, true, fullCosineMap, false);
     GraphStreamUtils.detectCommunities(graph);
 
     Object2IntMap<Object> communitySizes = GraphStreamUtils.getCommunitySizes(graph);

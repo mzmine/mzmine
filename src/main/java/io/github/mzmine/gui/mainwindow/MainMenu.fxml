@@ -331,6 +331,8 @@
         userData="io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule"/>
       <MenuItem text="Export feature networks to csv" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule"/>
+      <MenuItem text="Export spectral networks to graphml (FBMN/IIMN)" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportModule"/>
       <MenuItem text="Spectral library batch generation" onAction="#runModule"
         userData="io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule"/>
       <MenuItem text="Export to GNPS batch library submission" onAction="#runModule"

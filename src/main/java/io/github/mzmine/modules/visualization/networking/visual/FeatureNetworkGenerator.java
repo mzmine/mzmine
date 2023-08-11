@@ -79,37 +79,41 @@ public class FeatureNetworkGenerator {
   private boolean ms1FeatureShapeEdges;
 
 
-  public MultiGraph createNewGraph(FeatureList flist, boolean onlyBestNetworks,
-      boolean ms1FeatureShapeEdges) {
-    return createNewGraph(flist.getRows(), onlyBestNetworks, flist.getRowMaps(),
-        ms1FeatureShapeEdges);
+  public MultiGraph createNewGraph(FeatureList flist, boolean useIonIdentity,
+      boolean onlyBestIonIdentityNet, boolean ms1FeatureShapeEdges) {
+    return createNewGraph(flist.getRows(), useIonIdentity, onlyBestIonIdentityNet,
+        flist.getRowMaps(), ms1FeatureShapeEdges);
   }
 
-  public MultiGraph createNewGraph(List<FeatureListRow> rows, boolean onlyBestNetworks,
-      Map<Type, R2RMap<RowsRelationship>> relationsMaps, boolean ms1FeatureShapeEdges) {
+  public MultiGraph createNewGraph(List<FeatureListRow> rows, boolean useIonIdentity,
+      boolean onlyBestIonIdentityNet, Map<Type, R2RMap<RowsRelationship>> relationsMaps,
+      boolean ms1FeatureShapeEdges) {
     this.graph = new MultiGraph("molnet");
     this.ms1FeatureShapeEdges = ms1FeatureShapeEdges;
     logger.info("Adding all annotations to a network");
     if (rows != null) {
-      // ion identity networks are currently not covered in the relations maps
-      // add all IIN
-      IonNetwork[] nets = IonNetworkLogic.getAllNetworks(rows, onlyBestNetworks);
-
       AtomicInteger added = new AtomicInteger(0);
 
-      for (IonNetwork net : nets) {
-        addIonNetwork(net, added);
-      }
+      if (useIonIdentity) {
+        // ion identity networks are currently not covered in the relations maps
+        // add all IIN
+        IonNetwork[] nets = IonNetworkLogic.getAllNetworks(rows, onlyBestIonIdentityNet);
+        for (IonNetwork net : nets) {
+          addIonNetwork(net, added);
+        }
 
-      // add relations
-      addNetworkRelationsEdges(nets);
+        // add relations
+        addNetworkRelationsEdges(nets);
+      }
 
       // add all types of row 2 row relation ships:
       // cosine similarity etc
       addRelationshipEdges(relationsMaps);
 
-      // connect representative edges to neutral molecule nodes from IINs
-      addConsensusEdgesToMoleculeNodes();
+      if (useIonIdentity) {
+        // connect representative edges to neutral molecule nodes from IINs
+        addConsensusEdgesToMoleculeNodes();
+      }
 
       // add gnps library matches to nodes
       addGNPSLibraryMatchesToNodes(rows);
