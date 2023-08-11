@@ -97,7 +97,7 @@ public class MZmineJsonLibraryEntry {
   public String datasetId, usi;
   public Integer scanNumber;
   public String comment;
-  public String compoundSource, dataCollector, investigator;
+  public String compoundSource, dataCollector, investigator, imsType;
   public MSnDefinition multiStageFragmentation;
   public SpectralQuality quality;
   public Double purity;
@@ -147,6 +147,7 @@ public class MZmineJsonLibraryEntry {
       case RT -> rt;
       case CCS -> ccs;
       case ION_TYPE -> adduct;
+      case IMS_TYPE -> imsType;
       case PRECURSOR_MZ -> precursorMz;
       case CHARGE -> charge;
       case MERGED_SPEC_TYPE -> mergedSpectrumType;

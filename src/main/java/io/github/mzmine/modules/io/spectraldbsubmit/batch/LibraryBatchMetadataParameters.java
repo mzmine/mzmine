@@ -41,6 +41,7 @@ import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.CompoundS
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Instrument;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.IonSource;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonMobilityWizardParameterFactory;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -63,6 +64,10 @@ public class LibraryBatchMetadataParameters extends SimpleParameterSet {
       new ComboParameter<>("IONMODE",
           "Exchange all polarities with this value in case its not provided.", Polarity.values(),
           Polarity.Positive), false);
+  public static final ComboParameter<IonMobilityWizardParameterFactory> ION_MOBILITY = new ComboParameter<>(
+      "Ion mobility", "", IonMobilityWizardParameterFactory.values(),
+      IonMobilityWizardParameterFactory.NO_IMS);
+
   public static final ComboParameter<Instrument> INSTRUMENT = new ComboParameter<>("INSTRUMENT", "",
       Instrument.values(), Instrument.Orbitrap);
   public static final ComboParameter<IonSource> ION_SOURCE = new ComboParameter<>("IONSOURCE", "",
@@ -83,7 +88,8 @@ public class LibraryBatchMetadataParameters extends SimpleParameterSet {
       "MassIVE, MetaboLights, MetabolomicsWorkbench ID", "", false);
 
   public LibraryBatchMetadataParameters() {
-    super(new Parameter[]{DESCRIPTION, DATASET_ID, INSTRUMENT_NAME, INSTRUMENT, ION_SOURCE,
+    super(new Parameter[]{DESCRIPTION, DATASET_ID, INSTRUMENT_NAME, INSTRUMENT, ION_MOBILITY,
+        ION_SOURCE,
         ACQUISITION, PI, DATA_COLLECTOR, IONMODE});
   }
 
@@ -91,6 +97,7 @@ public class LibraryBatchMetadataParameters extends SimpleParameterSet {
     HashMap<DBEntryField, Object> map = new HashMap<>();
     putIfNotEmpty(map, DATASET_ID, DBEntryField.DATASET_ID);
     putIfNotEmpty(map, DESCRIPTION, DBEntryField.DESCRIPTION);
+    putIfNotEmpty(map, ION_MOBILITY, DBEntryField.IMS_TYPE);
     putIfNotEmpty(map, INSTRUMENT, DBEntryField.INSTRUMENT_TYPE);
     putIfNotEmpty(map, INSTRUMENT_NAME, DBEntryField.INSTRUMENT);
     putIfNotEmpty(map, ION_SOURCE, DBEntryField.ION_SOURCE);
