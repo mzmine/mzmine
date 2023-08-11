@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,6 +52,9 @@ public record SpectralSignalFilter(boolean isRemovePrecursor, double removePrecu
                                    int signalThresholdForTargetIntensityPercent,
                                    double targetIntensityPercentage) {
 
+  public static final SpectralSignalFilter DEFAULT = new SpectralSignalFilter(true, 10d, 250, 50,
+      0.98);
+
   /**
    * Apply signal filters and sort by {@link DataPointSorter#DEFAULT_INTENSITY}
    *
@@ -92,7 +95,7 @@ public record SpectralSignalFilter(boolean isRemovePrecursor, double removePrecu
   /**
    * Apply signal filters and sort by {@link DataPointSorter#DEFAULT_INTENSITY}
    *
-   * @param dps        spectral data points
+   * @param dps         spectral data points
    * @param precursorMz precursor mz
    * @return null if <minDP otherwise the DataPoint[] sorted by intensity
    * @throws MissingMassListException apply mass detection first
@@ -106,7 +109,7 @@ public record SpectralSignalFilter(boolean isRemovePrecursor, double removePrecu
   /**
    * Apply signal filters and sort by {@link DataPointSorter#DEFAULT_INTENSITY}
    *
-   * @param dps        spectral data points
+   * @param dps         spectral data points
    * @param precursorMz precursor mz
    * @param minDP       minimum number of data points or -1 to deactivate
    * @return null if <minDP otherwise the DataPoint[] sorted by intensity
