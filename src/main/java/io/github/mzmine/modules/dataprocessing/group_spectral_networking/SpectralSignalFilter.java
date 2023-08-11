@@ -70,6 +70,23 @@ public record SpectralSignalFilter(boolean isRemovePrecursor, double removePrecu
    * Apply signal filters and sort by {@link DataPointSorter#DEFAULT_INTENSITY}
    *
    * @param scan        data source
+   * @param minDP       minimum number of data points or -1 to deactivate
+   * @return null if <minDP otherwise the DataPoint[] sorted by intensity
+   * @throws MissingMassListException apply mass detection first
+   */
+  @Nullable
+  public DataPoint[] applyFilterAndSortByIntensity(final @NotNull Scan scan, final int minDP) throws MissingMassListException {
+    Double precursorMz = scan.getPrecursorMz();
+    if (precursorMz == null) {
+      return null;
+    }
+    return applyFilterAndSortByIntensity(scan, precursorMz, minDP);
+  }
+
+  /**
+   * Apply signal filters and sort by {@link DataPointSorter#DEFAULT_INTENSITY}
+   *
+   * @param scan        data source
    * @param precursorMz precursor mz
    * @param minDP       minimum number of data points or -1 to deactivate
    * @return null if <minDP otherwise the DataPoint[] sorted by intensity
@@ -137,4 +154,5 @@ public record SpectralSignalFilter(boolean isRemovePrecursor, double removePrecu
     }
     return dps;
   }
+
 }
