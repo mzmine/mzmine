@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -316,13 +316,14 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
       }
       makeAndAddAllAnnotationExportStep(q, exportPath);
       // have this last as it might fail
-      if(exportAnnotationGraphics) {
+      if (exportAnnotationGraphics) {
         makeAndAddAnnotationGraphicsExportStep(q, exportPath);
       }
     }
   }
 
-  public static void makeAndAddAnnotationGraphicsExportStep(final BatchQueue q, final File exportPath) {
+  public static void makeAndAddAnnotationGraphicsExportStep(final BatchQueue q,
+      final File exportPath) {
     final ParameterSet param = new ExportAllIdsGraphicalParameters().cloneParameterSet();
 
     File fileName = FileAndPathUtil.eraseFormat(exportPath);
@@ -331,6 +332,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(ExportAllIdsGraphicalParameters.flists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     // going back into scans so rather use scan mz tol
+    param.setParameter(ExportAllIdsGraphicalParameters.exportSpectralLibMatches, true);
+
+    param.setParameter(ExportAllIdsGraphicalParameters.exportLipidMatches, false);
+    param.setParameter(ExportAllIdsGraphicalParameters.exportMobilogram, false);
+    param.setParameter(ExportAllIdsGraphicalParameters.exportImages, false);
+    param.setParameter(ExportAllIdsGraphicalParameters.exportShape, false);
+    // formats
     param.setParameter(ExportAllIdsGraphicalParameters.exportPdf, true);
     param.setParameter(ExportAllIdsGraphicalParameters.exportPng, false);
     param.setParameter(ExportAllIdsGraphicalParameters.dir, fileName);
@@ -340,7 +348,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     GraphicsExportParameters exp = param.getValue(ExportAllIdsGraphicalParameters.export);
     exp.setParameter(GraphicsExportParameters.unit, DimUnit.MM);
     exp.setParameter(GraphicsExportParameters.width, 180d);
-    exp.setParameter(GraphicsExportParameters.height, true,60d);
+    exp.setParameter(GraphicsExportParameters.height, true, 60d);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(ExportAllIdsGraphicalModule.class), param));

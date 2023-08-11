@@ -59,6 +59,11 @@ public class ExportAllIdsGraphicalParameters extends SimpleParameterSet {
   public static final BooleanParameter exportImages = new BooleanParameter("Export feature images",
       "Exports the extracted ion image of for imaging features.", false);
 
+  public static final BooleanParameter exportLipidMatches = new BooleanParameter(
+      "Export lipid matches", "Exports the lipid matches MS2 plots.", false);
+  public static final BooleanParameter exportSpectralLibMatches = new BooleanParameter(
+      "Export spectral library matches", "Exports the spectral library mirror plots.", true);
+
   public static final BooleanParameter exportPdf = new BooleanParameter("Export pdf", "", true);
 
   public static final BooleanParameter exportPng = new BooleanParameter(
@@ -70,8 +75,8 @@ public class ExportAllIdsGraphicalParameters extends SimpleParameterSet {
       new GraphicsExportParameters());
 
   public ExportAllIdsGraphicalParameters() {
-    super(flists, dir, numMatches, dpiScalingFactor, exportShape, exportMobilogram, exportImages,
-        exportPdf, exportPng, export);
+    super(flists, dir, numMatches, dpiScalingFactor, exportSpectralLibMatches, exportLipidMatches,
+        exportShape, exportMobilogram, exportImages, exportPdf, exportPng, export);
   }
 
   @Override
