@@ -81,14 +81,27 @@ public class FeatureNetworkGenerator {
 
   public MultiGraph createNewGraph(FeatureList flist, boolean useIonIdentity,
       boolean onlyBestIonIdentityNet, boolean ms1FeatureShapeEdges) {
-    return createNewGraph(flist.getRows(), useIonIdentity, onlyBestIonIdentityNet,
+    return createNewGraph(flist.getName(), flist, useIonIdentity, onlyBestIonIdentityNet,
+        ms1FeatureShapeEdges);
+  }
+
+  public MultiGraph createNewGraph(String graphName, FeatureList flist, boolean useIonIdentity,
+      boolean onlyBestIonIdentityNet, boolean ms1FeatureShapeEdges) {
+    return createNewGraph(graphName, flist.getRows(), useIonIdentity, onlyBestIonIdentityNet,
         flist.getRowMaps(), ms1FeatureShapeEdges);
   }
 
   public MultiGraph createNewGraph(List<FeatureListRow> rows, boolean useIonIdentity,
       boolean onlyBestIonIdentityNet, Map<Type, R2RMap<RowsRelationship>> relationsMaps,
       boolean ms1FeatureShapeEdges) {
-    this.graph = new MultiGraph("molnet");
+    return createNewGraph("molnet", rows, useIonIdentity, onlyBestIonIdentityNet, relationsMaps,
+        ms1FeatureShapeEdges);
+  }
+
+  public MultiGraph createNewGraph(String graphName, List<FeatureListRow> rows,
+      boolean useIonIdentity, boolean onlyBestIonIdentityNet,
+      Map<Type, R2RMap<RowsRelationship>> relationsMaps, boolean ms1FeatureShapeEdges) {
+    this.graph = new MultiGraph(graphName);
     this.ms1FeatureShapeEdges = ms1FeatureShapeEdges;
     logger.info("Adding all annotations to a network");
     if (rows != null) {
