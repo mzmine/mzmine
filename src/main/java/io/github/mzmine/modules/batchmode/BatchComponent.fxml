@@ -31,43 +31,17 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import io.github.mzmine.modules.batchmode.BatchModuleTreePane?>
 <AnchorPane fx:id="root" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.modules.batchmode.BatchComponentController">
   <GridPane hgap="5.0" prefHeight="600.0" prefWidth="708.0" vgap="5.0" AnchorPane.bottomAnchor="0.0"
     AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-    <BorderPane GridPane.rowIndex="2">
-      <GridPane.margin>
-        <Insets/>
-      </GridPane.margin>
-      <center>
-        <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-          <BorderPane.margin>
-            <Insets/>
-          </BorderPane.margin>
-          <TextField fx:id="searchField" prefHeight="30.0" prefWidth="209.0"
-            AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-            AnchorPane.topAnchor="0.0"/>
-          <padding>
-            <Insets left="5.0"/>
-          </padding>
-        </AnchorPane>
-      </center>
-      <left>
-        <Label text="Search" BorderPane.alignment="CENTER"/>
-      </left>
-      <opaqueInsets>
-        <Insets/>
-      </opaqueInsets>
-    </BorderPane>
     <FlowPane alignment="TOP_CENTER" GridPane.columnIndex="2">
       <Label styleClass="title-label" text="Batch queue"/>
     </FlowPane>
@@ -100,7 +74,8 @@
     </FlowPane>
     <ListView fx:id="currentStepsList" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2"
       GridPane.rowIndex="1"/>
-    <TreeView fx:id="tvModules" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1"/>
+
+    <BatchModuleTreePane fx:id="tvModules" prefWidth="200.0" GridPane.rowIndex="1" GridPane.rowSpan="2"/>
     <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0"
       GridPane.columnIndex="1" GridPane.rowIndex="1">
       <Button fx:id="btnAddModule" mnemonicParsing="false" onAction="#onAddModulePressed"
