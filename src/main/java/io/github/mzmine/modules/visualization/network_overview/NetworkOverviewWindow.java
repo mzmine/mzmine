@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,6 +49,11 @@ public class NetworkOverviewWindow extends Stage {
       @Nullable FeatureTableFX externalTable,
       @Nullable List<? extends FeatureListRow> selectedRows) {
     setTitle("Network overview: " + featureList.getName());
+    setOnCloseRequest(event -> {
+      if (controller != null) {
+        controller.close();
+      }
+    });
     try {
       // Load the window FXML
       FXMLLoader loader = new FXMLLoader(getClass().getResource("NetworkOverviewPane.fxml"));
