@@ -76,7 +76,6 @@ public class NetworkOverviewController {
   private CompoundDatabaseMatchTab compoundMatchController;
   private EdgeTableController edgeTableController;
   private SpectraStackVisualizerPane allMs2Pane;
-  private boolean isClosed;
 
   public NetworkOverviewController() {
     this.focussedRows = FXCollections.observableArrayList();
@@ -153,7 +152,7 @@ public class NetworkOverviewController {
 
     var tabController = tempTab.getController();
     weak.addListChangeListener(networkController.getNetworkPane().getVisibleRows(), c -> {
-      if (isClosed) {
+      if (weak.isDisposed()) {
         return;
       }
       ObservableList<? extends FeatureListRow> visible = c.getList();
@@ -168,7 +167,7 @@ public class NetworkOverviewController {
       final @Nullable FeatureTableFX external) {
     // just apply selections in network
     weak.addListChangeListener(internal.getSelectedTableRows(), c -> {
-      if (isClosed) {
+      if (weak.isDisposed()) {
         return;
       }
       var list = c.getList().stream().map(TreeItem::getValue).toList();
@@ -178,7 +177,7 @@ public class NetworkOverviewController {
     // external directly sets new focussed rows - and then selected rows in the internal table
     if (external != null) {
       weak.addListChangeListener(external.getSelectedTableRows(), c -> {
-        if (isClosed) {
+        if (weak.isDisposed()) {
           return;
         }
         if (cbBindToExternalTable.isSelected()) {
@@ -190,7 +189,7 @@ public class NetworkOverviewController {
   }
 
   protected void handleSelectedNodesChanged(final Change<? extends Node> change) {
-    if (isClosed) {
+    if (weak.isDisposed()) {
       return;
     }
 
@@ -225,6 +224,5 @@ public class NetworkOverviewController {
   public void close() {
     // need to dispose of listeners to be garbage collected
     weak.dipose();
-    isClosed = true;
   }
 }

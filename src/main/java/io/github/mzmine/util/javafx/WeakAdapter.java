@@ -53,12 +53,18 @@ import javafx.collections.WeakListChangeListener;
 public class WeakAdapter {
 
   private final List<Object> listenerRefs = new ArrayList<>();
+  private boolean isDisposed = false;
 
   public WeakAdapter() {
   }
 
   public void dipose() {
     listenerRefs.clear();
+    isDisposed = true;
+  }
+
+  public boolean isDisposed() {
+    return isDisposed;
   }
 
   public final <T> void remove(ChangeListener<T> listener) {
