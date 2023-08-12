@@ -38,7 +38,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import io.github.mzmine.modules.batchmode.BatchModuleTreePane?>
-<AnchorPane fx:id="root" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1"
+<?import org.kordamp.ikonli.javafx.FontIcon?><AnchorPane fx:id="root" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.modules.batchmode.BatchComponentController">
   <GridPane hgap="5.0" prefHeight="600.0" prefWidth="708.0" vgap="5.0" AnchorPane.bottomAnchor="0.0"
     AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -78,10 +78,16 @@
     <BatchModuleTreePane fx:id="tvModules" prefWidth="200.0" GridPane.rowIndex="1" GridPane.rowSpan="2"/>
     <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0"
       GridPane.columnIndex="1" GridPane.rowIndex="1">
-      <Button fx:id="btnAddModule" mnemonicParsing="false" onAction="#onAddModulePressed"
-        text="&gt;&gt;"/>
-      <Button fx:id="btnRemoveModule" mnemonicParsing="false" onAction="#onRemoveModulePressed"
-        text="&lt;&lt;"/>
+      <Button fx:id="btnAddModule" mnemonicParsing="false" onAction="#onAddModulePressed">
+        <graphic>
+          <FontIcon iconLiteral="bi-chevron-double-right" />
+        </graphic>
+      </Button>
+      <Button fx:id="btnRemoveModule" mnemonicParsing="false" onAction="#onRemoveModulePressed">
+        <graphic>
+          <FontIcon iconLiteral="bi-chevron-double-left" />
+        </graphic>
+      </Button>
       <GridPane.margin>
         <Insets/>
       </GridPane.margin>
