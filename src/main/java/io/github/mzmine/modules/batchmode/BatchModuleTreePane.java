@@ -31,10 +31,13 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineModuleCategory.MainCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.util.javafx.FxIconUtil;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
@@ -42,6 +45,8 @@ import javafx.scene.control.TreeView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 public class BatchModuleTreePane extends BorderPane {
 
@@ -52,11 +57,17 @@ public class BatchModuleTreePane extends BorderPane {
   private final TreeView<Object> treeView = new TreeView<>();
   private final TextField searchField = new TextField();
 
+  private Runnable closeButtonEventHandler;
   private Consumer<MZmineProcessingModule> eventHandler;
 
   public BatchModuleTreePane() {
     BorderPane bottom = new BorderPane(searchField);
-    bottom.setLeft(new Label("Search "));
+    FontIcon icon = FxIconUtil.getFontIcon("bi-x-circle", 20);
+    icon.setOnMouseClicked(event -> xButtonPressed());
+    HBox box = new HBox(6, icon, new Label("Search"));
+    box.setAlignment(Pos.CENTER_LEFT);
+    box.setOpaqueInsets(new Insets(4, 5, 0, 5));
+    bottom.setLeft(box);
 
     setCenter(treeView);
     setBottom(bottom);
@@ -109,8 +120,23 @@ public class BatchModuleTreePane extends BorderPane {
         event.consume();
         addSelectedModule();
       }
+      if (event.getCode() == KeyCode.ESCAPE) {
+        event.consume();
+        xButtonPressed();
+      }
     });
 
+  }
+
+  public void setCloseButtonEventHandler(final Runnable closeButtonEventHandler) {
+    this.closeButtonEventHandler = closeButtonEventHandler;
+  }
+
+  private void xButtonPressed() {
+    searchField.setText("");
+    if (closeButtonEventHandler != null) {
+      closeButtonEventHandler.run();
+    }
   }
 
   public void setOnAddModuleEventHandler(final Consumer<MZmineProcessingModule> eventHandler) {
@@ -143,4 +169,7 @@ public class BatchModuleTreePane extends BorderPane {
   }
 
 
+  public void focusSearchField() {
+    searchField.requestFocus();
+  }
 }
