@@ -56,7 +56,7 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
   @Override
   public String generateLabel(XYDataset dataset, int series, int item) {
     String label = null;
-    if (plot.getCanvas().getWidth() >= 600 && plot.getCanvas().getHeight() >= 400) {
+    if (plot.getCanvas().getWidth() >= 400 && plot.getCanvas().getHeight() >= 200) {
       if (dataset.getSeriesKey(1).equals("Matched Signals")) {
         if (fragments != null) {
           label = buildFragmentAnnotation(fragments.get(item));
