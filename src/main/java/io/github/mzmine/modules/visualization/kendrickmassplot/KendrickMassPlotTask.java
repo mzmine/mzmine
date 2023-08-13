@@ -25,20 +25,15 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.awt.Font;
 import java.time.Instant;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jfree.chart.JFreeChart;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYZDataset;
 
 /**
  * Task to create a Kendrick mass plot of selected features of a selected feature list
@@ -46,25 +41,15 @@ import org.jfree.data.xy.XYZDataset;
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class KendrickMassPlotTask extends AbstractTask {
-
-  static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
-  static final Font titleFont = new Font("SansSerif", Font.PLAIN, 12);
-
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final ParameterSet parameters;
-  private XYDataset dataset2D;
-  private XYZDataset dataset3D;
-  private JFreeChart chart;
+
   private final FeatureList featureList;
   private final String title;
   private final String xAxisLabel;
   private final String yAxisLabel;
   private final String zAxisLabel;
-  private final String zAxisScaleType;
-  private final String bubbleSizeLabel;
-  private Range<Double> zScaleRange;
-  private String paintScaleStyle;
   private final FeatureListRow[] rows;
 
   public KendrickMassPlotTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
@@ -105,12 +90,6 @@ public class KendrickMassPlotTask extends AbstractTask {
           .getName();
     }
 
-    zAxisScaleType = parameters.getParameter(KendrickMassPlotParameters.colorScaleValues).getValue()
-        .getName();
-
-    bubbleSizeLabel = parameters.getParameter(KendrickMassPlotParameters.bubbleSizeValues)
-        .getValue().getName();
-
     rows = featureList.getRows().toArray(new FeatureListRow[0]);
 
   }
@@ -133,67 +112,10 @@ public class KendrickMassPlotTask extends AbstractTask {
     if (isCanceled()) {
       return;
     }
-
     KendrickMassPlotXYZDataset kendrickMassPlotXYZDataset = new KendrickMassPlotXYZDataset(
         parameters);
     KendrickMassPlotChart kendrickMassPlotChart = new KendrickMassPlotChart(title, xAxisLabel,
         yAxisLabel, zAxisLabel, kendrickMassPlotXYZDataset);
-
-//    // 2D, if no third dimension was selected
-//    if (zAxisLabel.equals("none")) {
-//      chart = create2DKendrickMassPlot();
-//    }
-//    // 3D, if a third dimension was selected
-//    else {
-//      chart = create3DKendrickMassPlot();
-//    }
-//    chart.setBackgroundPaint(Color.white);
-//
-//    // create chartViewer
-//    EChartViewer chartViewer = new EChartViewer(chart, true, true, true, true, false);
-//
-//    // get plot
-//    XYPlot plot = (XYPlot) chart.getPlot();
-//
-//    // mouse listener
-//    chartViewer.addChartMouseListener(new ChartMouseListenerFX() {
-//
-//      @Override
-//      public void chartMouseMoved(ChartMouseEventFX event) {}
-//
-//      @Override
-//      public void chartMouseClicked(ChartMouseEventFX event) {
-//        double xValue = plot.getDomainCrosshairValue();
-//        double yValue = plot.getRangeCrosshairValue();
-//        if (plot.getDataset() instanceof KendrickMassPlotXYZDataset) {
-//          KendrickMassPlotXYZDataset dataset = (KendrickMassPlotXYZDataset) plot.getDataset();
-//          double[] xValues = new double[dataset.getItemCount(0)];
-//          for (int i = 0; i < xValues.length; i++) {
-//            if ((event.getTrigger().getButton().equals(MouseButton.PRIMARY))
-//                && (event.getTrigger().getClickCount() == 2)) {
-//              if (dataset.getX(0, i).doubleValue() == xValue
-//                  && dataset.getY(0, i).doubleValue() == yValue) {
-//                new FeatureOverviewWindow(rows[i]);
-//              }
-//            }
-//          }
-//        }
-//        if (plot.getDataset() instanceof KendrickMassPlotXYDataset) {
-//          KendrickMassPlotXYDataset dataset = (KendrickMassPlotXYDataset) plot.getDataset();
-//          double[] xValues = new double[dataset.getItemCount(0)];
-//          for (int i = 0; i < xValues.length; i++) {
-//            if ((event.getTrigger().getButton().equals(MouseButton.PRIMARY))
-//                && (event.getTrigger().getClickCount() == 2)) {
-//              if (dataset.getX(0, i).doubleValue() == xValue
-//                  && dataset.getY(0, i).doubleValue() == yValue) {
-//                new FeatureOverviewWindow(rows[i]);
-//              }
-//            }
-//          }
-//        }
-//      }
-//    });
-//
 
     // Create Kendrick mass plot Tab
     MZmineCore.runLater(() -> {

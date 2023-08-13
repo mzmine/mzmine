@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FormulaUtils;
+import java.util.List;
 import org.jfree.data.xy.AbstractXYZDataset;
 
 /**
@@ -60,8 +61,32 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
         .getValue().getMatchingFeatureLists()[0];
 
     this.parameters = parameters;
-
     this.selectedRows = featureList.getRows().toArray(new FeatureListRow[0]);
+
+    xValues = new double[selectedRows.length];
+    yValues = new double[selectedRows.length];
+    colorScaleValues = new double[selectedRows.length];
+    bubbleSizeValues = new double[selectedRows.length];
+    initDimensionValues(xValues,
+        parameters.getParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase).getValue(),
+        parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue());
+    initDimensionValues(yValues,
+        parameters.getParameter(KendrickMassPlotParameters.yAxisCustomKendrickMassBase).getValue(),
+        parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue());
+    initDimensionValues(colorScaleValues,
+        parameters.getParameter(KendrickMassPlotParameters.colorScaleCustomKendrickMassBase)
+            .getValue(),
+        parameters.getParameter(KendrickMassPlotParameters.colorScaleValues).getValue());
+    initDimensionValues(bubbleSizeValues,
+        parameters.getParameter(KendrickMassPlotParameters.bubbleSizeCustomKendrickMassBase)
+            .getValue(),
+        parameters.getParameter(KendrickMassPlotParameters.bubbleSizeValues).getValue());
+  }
+
+  public KendrickMassPlotXYZDataset(ParameterSet parameters, List<FeatureListRow> rows) {
+
+    this.parameters = parameters;
+    this.selectedRows = rows.toArray(new FeatureListRow[0]);
 
     xValues = new double[selectedRows.length];
     yValues = new double[selectedRows.length];
@@ -195,7 +220,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
 
   @Override
   public int getItemCount(int series) {
-    return selectedRows.length;
+    return xValues.length;
   }
 
   @Override
@@ -247,7 +272,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
 
   @Override
   public int getSeriesCount() {
-    return 1;
+    return 2;
   }
 
   public Comparable<?> getRowKey(int row) {
