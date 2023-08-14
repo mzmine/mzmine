@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,22 +34,36 @@ import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.javafx.WeakAdapter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import javafx.collections.ListChangeListener;
 import javafx.geometry.Orientation;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Separator;
-import javafx.scene.control.TreeItem;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
 
 public class CompoundDatabaseMatchTab extends MZmineTab {
 
+  private final WeakAdapter weak = new WeakAdapter();
   private final FeatureTableFX table;
   private final ScrollPane scrollPane;
+
+  public CompoundDatabaseMatchTab(FeatureTableFX table) {
+    super("Compound database matches", true, true);
+    setOnCloseRequest(event -> weak.dipose());
+
+    this.table = table;
+    scrollPane = new ScrollPane();
+    scrollPane.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
+    scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+    setContent(scrollPane);
+
+    weak.addListChangeListener(table.getSelectionModel().getSelectedItems(),
+        c -> selectionChanged());
+  }
 
   public static void addNewTab(final FeatureTableFX table) {
     MZmineCore.runLater(() -> {
@@ -59,20 +73,10 @@ public class CompoundDatabaseMatchTab extends MZmineTab {
     });
   }
 
-  public CompoundDatabaseMatchTab(FeatureTableFX table) {
-    super("Compound database matches", true, true);
-    this.table = table;
-    scrollPane = new ScrollPane();
-    scrollPane.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
-    scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
-    setContent(scrollPane);
-
-    final ListChangeListener<TreeItem<ModularFeatureListRow>> listener = c -> selectionChanged();
-    table.getSelectionModel().getSelectedItems().addListener(listener);
-    setOnClosed(e -> table.getSelectionModel().getSelectedItems().removeListener(listener));
-  }
-
   private void selectionChanged() {
+    if (weak.isDisposed()) {
+      return;
+    }
     final ModularFeatureListRow selectedRow = table.getSelectedRow();
     if (selectedRow == null) {
       return;

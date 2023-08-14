@@ -92,9 +92,12 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
   private final boolean exportPng;
   private final boolean exportPdf;
   private final int numIds;
-  private final Boolean exportShape;
-  private final Boolean exportMobilogram;
-  private final Boolean exportImage;
+  private final boolean exportShape;
+  private final boolean exportMobilogram;
+  private final boolean exportImage;
+  private final boolean legendVisible;
+  private final boolean exportLipidMatches;
+  private final boolean exportSpectralLibMatches;
   int nextBufferIndex = 0;
   private String desc = "Exporting all identifications.";
   private NumberFormats form = MZmineCore.getConfiguration().getExportFormats();
@@ -115,6 +118,11 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
     exportShape = parameters.getValue(ExportAllIdsGraphicalParameters.exportShape);
     exportMobilogram = parameters.getValue(ExportAllIdsGraphicalParameters.exportMobilogram);
     exportImage = parameters.getValue(ExportAllIdsGraphicalParameters.exportImages);
+    exportLipidMatches = parameters.getValue(ExportAllIdsGraphicalParameters.exportLipidMatches);
+    exportSpectralLibMatches = parameters.getValue(
+        ExportAllIdsGraphicalParameters.exportSpectralLibMatches);
+    legendVisible = exportParameters.getEmbeddedParameterValue(
+        GraphicsExportParameters.chartParameters).getValue(ExportChartThemeParameters.showLegends);
   }
 
   @Override
@@ -133,6 +141,10 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
 
     totalIds = Arrays.stream(flists).mapToInt(FeatureList::getNumberOfRows).sum();
 
+    if (MZmineCore.isHeadLessMode()) {
+      MZmineCore.initJavaFxInHeadlessMode();
+    }
+
     try {
       for (FeatureList flist : flists) {
         final File flistFolder = new File(dir, flist.getName());
@@ -140,8 +152,13 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
 
         for (FeatureListRow row : flist.getRows()) {
 
-          exportSpectralLibraryMatches(flistFolder, row);
-          exportLipidIds(flistFolder, row);
+          if (exportSpectralLibMatches) {
+            exportSpectralLibraryMatches(flistFolder, row);
+          }
+          if (exportLipidMatches) {
+            exportLipidIds(flistFolder, row);
+          }
+
           exportFeatureCharts(flistFolder, row);
 
           processed.incrementAndGet();
@@ -185,9 +202,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
       final FeatureShapeMobilogramChart mobilogramChart = new FeatureShapeMobilogramChart(
           (ModularFeatureListRow) row, new AtomicDouble(0));
       if (mobilogramChart instanceof SimpleChart c) {
-        c.setLegendItemsVisible(
-            exportParameters.getEmbeddedParameterValue(GraphicsExportParameters.chartParameters)
-                .getValue(ExportChartThemeParameters.showLegends));
+        c.setLegendItemsVisible(legendVisible);
       }
       final File exportFile = new File(flistFolder, ExportFormatter.getName(row, "eim", 1, "", 1));
       exportParameters.setParameter(GraphicsExportParameters.path, exportFile);
@@ -308,7 +323,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
       return;
     }
 
-    MZmineCore.runLater(() -> {
+    MZmineCore.runLaterEnsureFxInitialized(() -> {
       int width = 800;
       int height = 400;
 

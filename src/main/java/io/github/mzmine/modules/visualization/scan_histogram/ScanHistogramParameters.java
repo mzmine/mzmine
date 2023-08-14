@@ -40,6 +40,7 @@ import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import java.text.DecimalFormat;
 
 public class ScanHistogramParameters extends SimpleParameterSet {
 
@@ -50,7 +51,7 @@ public class ScanHistogramParameters extends SimpleParameterSet {
   public static final ComboParameter<ScanDataType> scanDataType = new ComboParameter<>(
       "MS data selection",
       "Show either raw data or filtered centroid data (after mass detection and other filters).\n"
-      + "RAW on profile mode spectra may result in unwanted results, apply mass detection and choose centroid instead. ",
+          + "RAW on profile mode spectra may result in unwanted results, apply mass detection and choose centroid instead. ",
       ScanDataType.values(), ScanDataType.CENTROID);
 
   public static final OptionalParameter<MZRangeParameter> mzRange = new OptionalParameter<>(
@@ -68,9 +69,9 @@ public class ScanHistogramParameters extends SimpleParameterSet {
           MZmineCore.getConfiguration().getMZFormat()));
   public static final BooleanParameter useMobilityScans = new BooleanParameter("Use mobility scans",
       "If the file contains an ion mobility dimension, the data from "
-      + "mobility scans will be used instead of the data from summed frames.", false);
+          + "mobility scans will be used instead of the data from summed frames.", false);
   public static final DoubleParameter binWidth = new DoubleParameter("Bin width",
-      "Binning of values");
+      "Binning of values", new DecimalFormat("0.0000"), 0d);
 
   public static final ComboParameter<ScanHistogramType> type = new ComboParameter<>("Type",
       "Create histogram of this type", ScanHistogramType.values(), ScanHistogramType.MZ);

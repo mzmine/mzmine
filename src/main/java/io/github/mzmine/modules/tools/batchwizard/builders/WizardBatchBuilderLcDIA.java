@@ -64,6 +64,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
   private final Boolean rtSmoothing;
   private final Double minPearson;
   private final Integer minCorrelatedPoints;
+  private final Boolean exportAnnotationGraphics;
 
   protected WizardBatchBuilderLcDIA(WizardSequence steps) {
     super(steps);
@@ -86,6 +87,8 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     exportPath = optional.value();
     exportGnps = getValue(params, WorkflowDiaWizardParameters.exportGnps);
     exportSirius = getValue(params, WorkflowDiaWizardParameters.exportSirius);
+    exportAnnotationGraphics = getValue(params,
+        WorkflowDiaWizardParameters.exportAnnotationGraphics);
     minPearson = getValue(params, WorkflowDiaWizardParameters.minPearson);
     minCorrelatedPoints = getValue(params, WorkflowDiaWizardParameters.minCorrelatedPoints);
   }
@@ -127,7 +130,8 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
     // export
-    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius);
+    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
+        exportAnnotationGraphics);
     return q;
   }
 

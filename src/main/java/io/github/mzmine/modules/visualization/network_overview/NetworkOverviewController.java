@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,6 @@ package io.github.mzmine.modules.visualization.network_overview;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
@@ -36,6 +35,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectr
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerPane;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
+import io.github.mzmine.util.javafx.WeakAdapter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -43,7 +43,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
@@ -60,15 +59,8 @@ public class NetworkOverviewController {
 
   private static final Logger logger = Logger.getLogger(NetworkOverviewController.class.getName());
   private final ObservableList<FeatureListRow> focussedRows;
+  private final @NotNull WeakAdapter weak = new WeakAdapter();
   public ToggleSwitch cbBindToExternalTable;
-  private boolean setUpCalled = false;
-
-  private FeatureNetworkController networkController;
-  private FeatureTableFX internalTable;
-  private MirrorScanWindowController mirrorScanController;
-  private SpectraIdentificationResultsWindowFX spectralMatchesController;
-  private CompoundDatabaseMatchTab compoundMatchController;
-
   public BorderPane pnNetwork;
   public Tab tabAnnotations;
   public Tab tabSimilarity;
@@ -76,6 +68,12 @@ public class NetworkOverviewController {
   public Tab tabNodes;
   public Tab tabEdges;
   public GridPane gridAnnotations;
+  private boolean setUpCalled = false;
+  private FeatureNetworkController networkController;
+  private FeatureTableFX internalTable;
+  private MirrorScanWindowController mirrorScanController;
+  private SpectraIdentificationResultsWindowFX spectralMatchesController;
+  private CompoundDatabaseMatchTab compoundMatchController;
   private EdgeTableController edgeTableController;
   private SpectraStackVisualizerPane allMs2Pane;
 
@@ -97,7 +95,6 @@ public class NetworkOverviewController {
 
     // create edge table
     createEdgeTable();
-
 
     // create internal table
     createInternalTable(featureList);
@@ -124,8 +121,8 @@ public class NetworkOverviewController {
     tabAllMs2.setContent(allMs2Pane);
 
     // add callbacks
-    networkController.getNetworkPane().getSelectedNodes()
-        .addListener(this::handleSelectedNodesChanged);
+    weak.addListChangeListener(networkController.getNetworkPane().getSelectedNodes(),
+        c -> handleSelectedNodesChanged(c));
 
     // set focussed rows last
     if (focussedRows != null) {
@@ -154,40 +151,50 @@ public class NetworkOverviewController {
     tabNodes.setContent(tempTab.getMainPane());
 
     var tabController = tempTab.getController();
-    networkController.getNetworkPane().getVisibleRows()
-        .addListener((ListChangeListener<? super FeatureListRow>) c -> {
-          ObservableList<? extends FeatureListRow> visible = c.getList();
-          tabController.getIdSearchField().setText(
-              visible.stream().map(FeatureListRow::getID).map(Object::toString)
-                  .collect(Collectors.joining(",")));
-        });
+    weak.addListChangeListener(networkController.getNetworkPane().getVisibleRows(), c -> {
+      if (weak.isDisposed()) {
+        return;
+      }
+      ObservableList<? extends FeatureListRow> visible = c.getList();
+      tabController.getIdSearchField().setText(
+          visible.stream().map(FeatureListRow::getID).map(Object::toString)
+              .collect(Collectors.joining(",")));
+    });
   }
 
 
   private void linkFeatureTableSelections(final @NotNull FeatureTableFX internal,
       final @Nullable FeatureTableFX external) {
     // just apply selections in network
-    internal.getSelectedTableRows()
-        .addListener((ListChangeListener<? super TreeItem<ModularFeatureListRow>>) c -> {
-          var list = c.getList().stream().map(TreeItem::getValue).toList();
-          var networkPane = networkController.getNetworkPane();
-          networkPane.getSelectedNodes().setAll(networkPane.getNodes(list));
-        });
+    weak.addListChangeListener(internal.getSelectedTableRows(), c -> {
+      if (weak.isDisposed()) {
+        return;
+      }
+      var list = c.getList().stream().map(TreeItem::getValue).toList();
+      var networkPane = networkController.getNetworkPane();
+      networkPane.getSelectedNodes().setAll(networkPane.getNodes(list));
+    });
     // external directly sets new focussed rows - and then selected rows in the internal table
     if (external != null) {
-      external.getSelectedTableRows()
-          .addListener((ListChangeListener<? super TreeItem<ModularFeatureListRow>>) c -> {
-            if (cbBindToExternalTable.isSelected()) {
-              var list = c.getList().stream().map(TreeItem::getValue).toList();
-              focussedRows.setAll(list);
-            }
-          });
+      weak.addListChangeListener(external.getSelectedTableRows(), c -> {
+        if (weak.isDisposed()) {
+          return;
+        }
+        if (cbBindToExternalTable.isSelected()) {
+          var list = c.getList().stream().map(TreeItem::getValue).toList();
+          focussedRows.setAll(list);
+        }
+      });
     }
   }
 
   protected void handleSelectedNodesChanged(final Change<? extends Node> change) {
+    if (weak.isDisposed()) {
+      return;
+    }
+
     var selectedRows = networkController.getNetworkPane().getRowsFromNodes(change.getList());
-      showAnnotations(selectedRows);
+    showAnnotations(selectedRows);
     showAllMs2(selectedRows);
     if (selectedRows.size() >= 2) {
       showSimilarityMirror(selectedRows.get(0), selectedRows.get(1));
@@ -212,5 +219,10 @@ public class NetworkOverviewController {
    */
   public void showSimilarityMirror(FeatureListRow a, FeatureListRow b) {
     mirrorScanController.setScans(a.getMostIntenseFragmentScan(), b.getMostIntenseFragmentScan());
+  }
+
+  public void close() {
+    // need to dispose of listeners to be garbage collected
+    weak.dipose();
   }
 }
