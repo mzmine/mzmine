@@ -333,6 +333,7 @@ public class GlyceroAndGlycerophospholipidAnnotationTask extends AbstractTask {
 
     Set<MatchedLipid> matchedLipids = new HashSet<>();
     // Check if selected feature has MSMS spectra and LipidIdentity
+
     if (!row.getAllFragmentScans().isEmpty()) {
       List<Scan> msmsScans = row.getAllFragmentScans();
       for (Scan msmsScan : msmsScans) {

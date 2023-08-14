@@ -208,15 +208,21 @@ public class GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory im
           if (alkylChain == null) {
             continue;
           }
-          List<ILipidChain> chainsForMolecularSpeciesLevel = new ArrayList<>();
-          chainsForMolecularSpeciesLevel.add(alkylChain);
-          chainsForMolecularSpeciesLevel.add(chain);
-
-          MatchedLipid matchedLipid = buildNewMolecularSpeciesLevelMatch(entry.getValue(),
-              lipidAnnotation, accurateMz, massList, chainsForMolecularSpeciesLevel, minMsMsScore,
-              mzTolRangeMSMS, ionizationType);
-          if (matchedLipid != null) {
-            matchedLipids.add(matchedLipid);
+          //Fall back to Species Level annotation to avoid over annotation
+          IMolecularFormula lipidFormula = null;
+          try {
+            lipidFormula = (IMolecularFormula) lipidAnnotation.getMolecularFormula().clone();
+          } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+          }
+          ionizationType.ionizeFormula(lipidFormula);
+          double precursorMz = FormulaUtils.calculateMzRatio(lipidFormula);
+          Double msMsScore = MSMS_LIPID_TOOLS.calculateMsMsScore(massList, entry.getValue(),
+              precursorMz, mzTolRangeMSMS);
+          if (msMsScore >= minMsMsScore) {
+            matchedLipids.add(
+                new MatchedLipid(lipidAnnotation, accurateMz, ionizationType, entry.getValue(),
+                    msMsScore));
           }
         }
       }
