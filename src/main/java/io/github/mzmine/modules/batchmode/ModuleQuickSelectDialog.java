@@ -90,6 +90,9 @@ public class ModuleQuickSelectDialog extends Stage {
 
   @Override
   public void showAndWait() {
+    if (isShowing()) {
+      return;
+    }
     getScene().getStylesheets()
         .setAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     centerOnScreen();
