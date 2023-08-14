@@ -37,6 +37,14 @@ public class KendrickMassPlotChart extends EChartViewer {
     final double[] quantiles = MathUtils.calcQuantile(colorScaleValues, new double[]{0.00, 1.00});
     PaintScale paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
         .toPaintScale(PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
+    if (dataset.getParameters().getParameter(KendrickMassPlotParameters.yAxisValues).getValue()
+        .isKendrickType()) {
+      getChart().getXYPlot().getRangeAxis().setRange(0, 1);
+    }
+    if (dataset.getParameters().getParameter(KendrickMassPlotParameters.xAxisValues).getValue()
+        .isKendrickType()) {
+      getChart().getXYPlot().getDomainAxis().setRange(0, 1);
+    }
     XYCirclePixelSizeRenderer renderer = new XYCirclePixelSizeRenderer();
     renderer.setPaintScale(paintScale);
     PaintScaleLegend legend = generateLegend(paintScale);
