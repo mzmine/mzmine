@@ -156,8 +156,8 @@ public class FeatureNetworkController {
 
   private void addMenuOptions() {
     // defaults
-    addComboOptions(comboNodeColor, COLOR, NodeAtt.values(), NodeAtt.MZ);
-    addComboOptions(comboNodeLabel, LABEL, NodeAtt.values(), NodeAtt.LABEL);
+    addComboOptions(comboNodeColor, COLOR, NodeAtt.values(), NodeAtt.RT);
+    addComboOptions(comboNodeLabel, LABEL, NodeAtt.values(), NodeAtt.ANNOTATION);
     addComboOptions(comboNodeSize, SIZE, NodeAtt.values(), NodeAtt.LOG10_SUM_INTENSITY);
     addComboOptions(comboEdgeColor, COLOR, EdgeAtt.values(), EdgeAtt.NEIGHBOR_DISTANCE);
     addComboOptions(comboEdgeSize, SIZE, EdgeAtt.values(), EdgeAtt.SCORE);
@@ -263,4 +263,7 @@ public class FeatureNetworkController {
     networkPane.focusSelectedNodes();
   }
 
+  public void onShowAllNodes(final ActionEvent actionEvent) {
+    networkPane.showFullGraph();
+  }
 }

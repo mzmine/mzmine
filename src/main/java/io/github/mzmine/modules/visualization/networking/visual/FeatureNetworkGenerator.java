@@ -328,7 +328,9 @@ public class FeatureNetworkGenerator {
     Edge edge = addNewEdge(a, b, type, sim.getAnnotation(), false, dmz);
     edge.setAttribute(EdgeAtt.LABEL.toString(), sim.getAnnotation());
     edge.setAttribute(EdgeAtt.SCORE.toString(), scoreForm.format(score));
-    edge.setAttribute(EdgeAtt.SCORE.toString(), scoreForm.format(score));
+    // weight for layout
+    setEdgeWeightQuadraticScore(edge, score);
+
     switch (type) {
       case MODIFIED_COSINE, GNPS_MODIFIED_COSINE ->
           edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
@@ -572,7 +574,19 @@ public class FeatureNetworkGenerator {
     Edge e = addNewEdge(node1, node2, type.toString(), label, directed, uiClass);
     e.setAttribute(EdgeAtt.TYPE.toString(), type);
     e.setAttribute(EdgeAtt.DELTA_MZ.toString(), mzForm.format(dmz));
+    if (type == EdgeType.ION_IDENTITY) {
+      setEdgeWeight(e, 0.25);
+    }
     return e;
+  }
+
+  private void setEdgeWeightQuadraticScore(final Edge edge, final double score) {
+    double weight = 0.2 + Math.pow(1d - score, 2) * 6d;
+    setEdgeWeight(edge, weight);
+  }
+
+  private void setEdgeWeight(final Edge edge, final double weight) {
+    edge.setAttribute("layout.weight", weight);
   }
 
   public Edge addNewEdge(Node node1, Node node2, EdgeType type, Object label, boolean directed) {

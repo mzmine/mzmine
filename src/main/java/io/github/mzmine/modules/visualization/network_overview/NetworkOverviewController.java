@@ -127,6 +127,8 @@ public class NetworkOverviewController {
     // set focussed rows last
     if (focussedRows != null) {
       this.focussedRows.setAll(focussedRows);
+    } else {
+      networkController.getNetworkPane().showFullGraph();
     }
   }
 
