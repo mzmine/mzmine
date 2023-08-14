@@ -131,6 +131,13 @@ public class FeatureNetworkGenerator {
       // add gnps library matches to nodes
       addGNPSLibraryMatchesToNodes(rows);
 
+      // add missing row nodes
+      for (final FeatureListRow row : rows) {
+        if (row.hasMs2Fragmentation()) {
+          getRowNode(row, true);
+        }
+      }
+
       // add id name
       for (Node node : graph) {
         GraphStreamUtils.getUiClass(node).ifPresent(uiClass -> {

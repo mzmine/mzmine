@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,7 +54,7 @@ public final class WorkflowDiaWizardParameters extends WorkflowWizardParameters 
       "Export to Feature-based Molecular Networking (FBMN) and Ion Identity Molecular Networking (IIMN) on GNPS and other tools",
       true);
   public static final BooleanParameter exportAnnotationGraphics = new BooleanParameter(
-      "Export annotation graphics", "Exports annotations to png and pdf images.", true);
+      "Export annotation graphics", "Exports annotations to png and pdf images.", false);
 
   public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
       new FileNameParameter("Export path",

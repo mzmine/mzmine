@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.dataanalysis.feat_ms2_similarity_intra.IntraFeatureRowMs2SimilarityModule;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.PrecursorPurityCheckerModule;
 import io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule;
 import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule;
@@ -79,6 +80,7 @@ import io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction
 import io.github.mzmine.modules.dataprocessing.filter_neutralloss.NeutralLossFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter.PeakComparisonRowFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_scan_signals.ScanSignalRemovalModule;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule;
 import io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.PeakFinderModule;
@@ -210,6 +212,7 @@ public class BatchModeModulesList {
       BaselineCorrectionModule.class, //
       CropFilterModule.class, //
       ShoulderPeaksFilterModule.class, //
+      ScanSignalRemovalModule.class, //
       ScanFiltersModule.class, //
       ScanSmoothingModule.class, //
       MaldiPseudoFileGeneratorModule.class, //
@@ -324,6 +327,7 @@ public class BatchModeModulesList {
       GroupedMs2RefinementModule.class, //
       ImsMs2RefinementModule.class, //
       PrecursorPurityCheckerModule.class, //
+      IntraFeatureRowMs2SimilarityModule.class, //
       DiaMs2CorrModule.class, //
       MaldiGroupMS2Module.class, //
       FormulaPredictionFeatureListModule.class, //

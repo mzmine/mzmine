@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -91,11 +91,11 @@ public class NetworkPane extends BorderPane {
       + "node.important{fill-color: red;} node.big{size: 20px;} node.MOL{fill-color: cyan; size: 20px;}  node.NEUTRAL{fill-color: violet; }"
       + "edge.medium{fill-color: rgb(50,100,200); stroke-color: rgb(50,100,200); stroke-width: 5px;}";
   private static final Logger LOG = Logger.getLogger(NetworkPane.class.getName());
-  private final HBox pnSettings;
   // selected node
   protected final ObservableList<Node> selectedNodes = FXCollections.observableArrayList();
   protected final ObservableList<Edge> selectedEdges = FXCollections.observableArrayList();
   protected final FilterableGraph graph;
+  private final HBox pnSettings;
   private final Label lbTitle;
   private final FileChooser saveDialog;
 
@@ -122,6 +122,8 @@ public class NetworkPane extends BorderPane {
   protected boolean showNodeLabels = false;
   protected boolean showEdgeLabels = false;
 
+  private double lastDragX = -1000;
+  private double lastDragY = -1000;
 
   /**
    * Create the panel.
@@ -210,16 +212,6 @@ public class NetworkPane extends BorderPane {
     });
 
     viewer.getDefaultView().setShortcutManager(new FxShortcutManager() {
-      public void init(GraphicGraph graph, View view) {
-        this.view = view;
-        view.addListener(KeyEvent.KEY_PRESSED, this.keyPressed);
-      }
-
-      public void release() {
-        this.view.removeListener(KeyEvent.KEY_PRESSED, this.keyPressed);
-        LOG.info("Key released");
-      }
-
       final EventHandler<KeyEvent> keyPressed = event -> {
         Camera camera = view.getCamera();
 
@@ -291,6 +283,16 @@ public class NetworkPane extends BorderPane {
           camera.setViewCenter(p.x, p.y - delta, 0);
         }
       };
+
+      public void init(GraphicGraph graph, View view) {
+        this.view = view;
+        view.addListener(KeyEvent.KEY_PRESSED, this.keyPressed);
+      }
+
+      public void release() {
+        this.view.removeListener(KeyEvent.KEY_PRESSED, this.keyPressed);
+        LOG.info("Key released");
+      }
     });
 
     rightClickMenu = new ContextMenu();
@@ -299,19 +301,54 @@ public class NetworkPane extends BorderPane {
 
     view.setOnScroll(this::setZoomOnMouseScroll);
 
+    view.setOnMouseDragged(e -> {
+      if (lastDragX == -1000) {
+        return;
+      }
+      if (e.getButton() == MouseButton.PRIMARY) {
+        Point3 c = view.getCamera().getViewCenter();
+        Point3 end = view.getCamera().transformPxToGu(e.getX(), e.getY());
+        Point3 start = view.getCamera().transformPxToGu(lastDragX, lastDragY);
+        double x = end.x - start.x;
+        double y = end.y - start.y;
+        view.getCamera().setViewCenter(c.x - x, c.y - y, c.z);
+
+        lastDragX = e.getX();
+        lastDragY = e.getY();
+      }
+    });
+    view.setOnMousePressed(e -> {
+      mouseClickedNode = findNodeAt(e.getX(), e.getY()); //for retrieving mouse-clicked node
+      if (mouseClickedNode != null) {
+        // node drag is handled automatically
+        lastDragX = -1000;
+        lastDragY = -1000;
+        return;
+      }
+      if (e.getButton() == MouseButton.PRIMARY) {
+        lastDragX = e.getX();
+        lastDragY = e.getY();
+      }
+    });
+    view.setOnMouseReleased(event -> {
+    });
     view.setOnMouseClicked(e -> {
+      if (lastDragX != -1000) {
+        // need to clear drag here
+        // click is always triggered at the end of release
+        lastDragX = -1000;
+        lastDragY = -1000;
+        return;
+      }
+
       if (e.getButton() == MouseButton.PRIMARY) {
         mouseClickedNode = null;
         if (e.getClickCount() == 2) {
           resetZoom();
           e.consume();
         } else if (e.getClickCount() == 1) {
-          mouseClickedNode = (GraphicNode) view.findGraphicElementAt(
-              (EnumSet.of(InteractiveElement.NODE)), e.getX(),
-              e.getY()); //for retrieving mouse-clicked node
-          GraphicEdge mouseClickedEdge = NetworkMouseManager.findEdgeAt(view,
-              view.getViewer().getGraphicGraph(), e.getX(),
-              e.getY()); //for retrieving mouse-clicked edge
+          mouseClickedNode = findNodeAt(e.getX(), e.getY()); //for retrieving mouse-clicked node
+          GraphicEdge mouseClickedEdge = findEdgeAt(e.getX(), e.getY());
 
           onGraphClicked(e, mouseClickedNode, mouseClickedEdge,
               mapGraphicObjectToGraph(mouseClickedNode), mapGraphicObjectToGraph(mouseClickedEdge));
@@ -326,6 +363,16 @@ public class NetworkPane extends BorderPane {
         }
       }
     });
+  }
+
+  @Nullable
+  private GraphicNode findNodeAt(double x, double y) {
+    return (GraphicNode) view.findGraphicElementAt((EnumSet.of(InteractiveElement.NODE)), x, y);
+  }
+
+  @Nullable
+  private GraphicEdge findEdgeAt(double x, double y) {
+    return NetworkMouseManager.findEdgeAt(view, view.getViewer().getGraphicGraph(), x, y);
   }
 
   /**
@@ -345,7 +392,7 @@ public class NetworkPane extends BorderPane {
       } else {
         setSelectedNode(node);
       }
-    } else if(edge!=null) {
+    } else if (edge != null) {
       setSelectedEdge(edge);
     } else {
       // nothing clicked - keep selection
@@ -409,8 +456,8 @@ public class NetworkPane extends BorderPane {
     while (change.next()) {
       change.getRemoved().stream().map(this::mapElementToGraphicObject).filter(Objects::nonNull)
           .forEach(e -> e.removeAttribute("ui.clicked"));
-      change.getAddedSubList().stream().map(this::mapElementToGraphicObject).filter(Objects::nonNull)
-          .forEach(e -> e.setAttribute("ui.clicked"));
+      change.getAddedSubList().stream().map(this::mapElementToGraphicObject)
+          .filter(Objects::nonNull).forEach(e -> e.setAttribute("ui.clicked"));
     }
   }
 

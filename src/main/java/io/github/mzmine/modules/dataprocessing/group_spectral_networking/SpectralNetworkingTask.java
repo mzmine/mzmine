@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -176,6 +176,7 @@ public class SpectralNetworkingTask extends AbstractTask {
    * @param mzTol    the tolerance to match signals
    * @return the spectral similarity if number of overlapping signals >= minimum, else null
    */
+  @Nullable
   public static SpectralSimilarity createMS2Sim(MZTolerance mzTol, DataPoint[] sortedA,
       DataPoint[] sortedB, int minMatch, Weights weights) {
     return createMS2SimModificationAware(mzTol, weights, sortedA, sortedB, minMatch, SIZE_OVERLAP,
