@@ -75,7 +75,7 @@
     <ListView fx:id="currentStepsList" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2"
       GridPane.rowIndex="1"/>
 
-    <BatchModuleTreePane fx:id="tvModules" prefWidth="200.0" GridPane.rowIndex="1" GridPane.rowSpan="2"/>
+    <BatchModuleTreePane includeTools="false" fx:id="tvModules" prefWidth="200.0" GridPane.rowIndex="1" GridPane.rowSpan="2"/>
     <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0"
       GridPane.columnIndex="1" GridPane.rowIndex="1">
       <Button fx:id="btnAddModule" mnemonicParsing="false" onAction="#onAddModulePressed">

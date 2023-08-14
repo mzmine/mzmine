@@ -28,6 +28,7 @@ package io.github.mzmine.modules.batchmode;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -187,7 +188,12 @@ public class BatchComponentController implements LastFilesComponent {
     tvModules.addSelectedModule();
   }
 
-  public void addModule(MZmineProcessingModule selectedMethod) {
+  public void addModule(MZmineRunnableModule module) {
+    // only works for processing modules
+    if (!(module instanceof MZmineProcessingModule selectedMethod)) {
+      return;
+    }
+
     // Show method's set-up dialog.
     final ParameterSet methodParams = MZmineCore.getConfiguration()
         .getModuleParameters(selectedMethod.getClass());

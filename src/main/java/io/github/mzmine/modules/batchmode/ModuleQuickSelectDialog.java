@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineRunnableModule;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
@@ -46,7 +46,7 @@ public class ModuleQuickSelectDialog extends Stage {
     initModality(Modality.APPLICATION_MODAL);
     initStyle(StageStyle.UNDECORATED);
 
-    moduleTree = new BatchModuleTreePane();
+    moduleTree = new BatchModuleTreePane(true);
     BorderPane root = new BorderPane(moduleTree);
     Scene scene = new Scene(root);
     scene.getStylesheets().addAll(mainWindow.getScene().getStylesheets());
@@ -77,7 +77,7 @@ public class ModuleQuickSelectDialog extends Stage {
     getInstance().showAndWait();
   }
 
-  private void runModuleAndHide(final MZmineProcessingModule module) {
+  private void runModuleAndHide(final MZmineRunnableModule module) {
     MZmineCore.setupAndRunModule(module.getClass());
     hide();
   }

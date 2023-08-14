@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.dataanalysis.feat_ms2_similarity_intra.IntraFeatureRowMs2SimilarityModule;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.PrecursorPurityCheckerModule;
 import io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule;
@@ -152,10 +153,33 @@ import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule;
+import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import io.github.mzmine.modules.tools.clear_project.ClearProjectModule;
+import io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule;
+import io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule;
 import io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule;
+import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.frames.FrameVisualizerModule;
+import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
+import io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureCorrelationHistogramModule;
+import io.github.mzmine.modules.visualization.histogram.HistogramVisualizerModule;
+import io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule;
+import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
+import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
+import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule;
+import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule;
+import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
+import io.github.mzmine.modules.visualization.networking.AnnotationNetworkModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportModule;
+import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
+import io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule;
+import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule;
+import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
+import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
 import java.util.List;
 
 public class BatchModeModulesList {
@@ -373,8 +397,45 @@ public class BatchModeModulesList {
        */
       TimsTOFMaldiAcquisitionModule.class, //
       SimsefImagingSchedulerModule.class //
+  );
+
+
+  /**
+   * Those modules are not available from batch mode but from quick start. Change against automatic
+   * way?
+   */
+  public static final List<Class<? extends MZmineRunnableModule>> TOOLS_AND_VISUALIZERS = List.of(
+      // tools
+      IsotopePatternPreviewModule.class, //
+      QualityParametersModule.class, //
+      LibraryAnalysisCSVExportModule.class, //
+      MsMsQualityExportModule.class, //
+      BatchWizardModule.class, //
+
+      // visualizers
+      SpectraVisualizerModule.class, //
+      FrameVisualizerModule.class, //
+      ChromatogramVisualizerModule.class, //
+      TwoDVisualizerModule.class, //
+      Fx3DVisualizerModule.class, //
+      MassvoltammogramFromFileModule.class, //
+      MassvoltammogramFromFeatureListModule.class, //
+      MSnTreeVisualizerModule.class, //
+      MsMsVisualizerModule.class, //
+      AnnotationNetworkModule.class, //
+      CorrelatedFeaturesMzHistogramModule.class, //
+      FeatureCorrelationHistogramModule.class, //
+      RawDataSummaryModule.class, //
+      ScanHistogramModule.class, //
+      InjectTimeAnalysisModule.class, //
+      ScatterPlotVisualizerModule.class, //
+      HistogramVisualizerModule.class, //
+      IntensityPlotModule.class, //
+      KendrickMassPlotModule.class, //
+      VanKrevelenDiagramModule.class //
 
   );
+
 
   private BatchModeModulesList() {
   }

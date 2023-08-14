@@ -30,12 +30,14 @@ import io.github.mzmine.gui.framework.fx.TreeItemPredicate;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineModuleCategory.MainCategory;
-import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+import javafx.beans.NamedArg;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -58,9 +60,12 @@ public class BatchModuleTreePane extends BorderPane {
   private final TextField searchField = new TextField();
 
   private Runnable closeButtonEventHandler;
-  private Consumer<MZmineProcessingModule> eventHandler;
+  private Consumer<MZmineRunnableModule> eventHandler;
 
-  public BatchModuleTreePane() {
+  /**
+   * @param includeTools can be used in fxml with includeTools="true"
+   */
+  public BatchModuleTreePane(@NamedArg("includeTools") boolean includeTools) {
     BorderPane bottom = new BorderPane(searchField);
     FontIcon icon = FxIconUtil.getFontIcon("bi-x-circle", 20);
     icon.setOnMouseClicked(event -> xButtonPressed());
@@ -73,18 +78,9 @@ public class BatchModuleTreePane extends BorderPane {
     setBottom(bottom);
 
     // set data to tree
-    for (Class<? extends MZmineProcessingModule> moduleClass : BatchModeModulesList.MODULES) {
-      final MZmineProcessingModule module = MZmineCore.getModuleInstance(moduleClass);
-      final MZmineModuleCategory category = module.getModuleCategory();
-      final FilterableTreeItem<Object> categoryItem = categoryItems.computeIfAbsent(category, c -> {
-        final FilterableTreeItem<Object> item = new FilterableTreeItem<>(c);
-        final FilterableTreeItem<Object> mainItem = mainCategoryItems.computeIfAbsent(
-            c.getMainCategory(), FilterableTreeItem::new);
-        mainItem.getSourceChildren().add(item);
-        return item;
-      });
-      categoryItem.getSourceChildren()
-          .add(new FilterableTreeItem<>(new BatchModuleWrapper(module)));
+    addModules((List<Class<? extends MZmineRunnableModule>>) (List) BatchModeModulesList.MODULES);
+    if (includeTools) {
+      addModules(BatchModeModulesList.TOOLS_AND_VISUALIZERS);
     }
 
     final FilterableTreeItem<Object> originalRoot = new FilterableTreeItem<>("Root");
@@ -128,6 +124,22 @@ public class BatchModuleTreePane extends BorderPane {
 
   }
 
+  public void addModules(final List<Class<? extends MZmineRunnableModule>> modules) {
+    for (Class<? extends MZmineRunnableModule> moduleClass : modules) {
+      final MZmineRunnableModule module = MZmineCore.getModuleInstance(moduleClass);
+      final MZmineModuleCategory category = module.getModuleCategory();
+      final FilterableTreeItem<Object> categoryItem = categoryItems.computeIfAbsent(category, c -> {
+        final FilterableTreeItem<Object> item = new FilterableTreeItem<>(c);
+        final FilterableTreeItem<Object> mainItem = mainCategoryItems.computeIfAbsent(
+            c.getMainCategory(), FilterableTreeItem::new);
+        mainItem.getSourceChildren().add(item);
+        return item;
+      });
+      categoryItem.getSourceChildren()
+          .add(new FilterableTreeItem<>(new BatchModuleWrapper(module)));
+    }
+  }
+
   public void setCloseButtonEventHandler(final Runnable closeButtonEventHandler) {
     this.closeButtonEventHandler = closeButtonEventHandler;
   }
@@ -139,7 +151,7 @@ public class BatchModuleTreePane extends BorderPane {
     }
   }
 
-  public void setOnAddModuleEventHandler(final Consumer<MZmineProcessingModule> eventHandler) {
+  public void setOnAddModuleEventHandler(final Consumer<MZmineRunnableModule> eventHandler) {
     this.eventHandler = eventHandler;
   }
 
@@ -158,9 +170,9 @@ public class BatchModuleTreePane extends BorderPane {
         return;
       }
 
-      if (!(wrappedModule.getModule() instanceof MZmineProcessingModule module)) {
+      if (!(wrappedModule.getModule() instanceof MZmineRunnableModule module)) {
         logger.finest(
-            "Cannot add module that is not an MZmineProcessingModule " + wrappedModule.toString());
+            "Cannot add module that is not an MZmineRunnableModule " + wrappedModule.toString());
         return;
       }
 
