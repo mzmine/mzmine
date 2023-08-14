@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-  minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0"
+  minHeight="-Infinity" minWidth="-Infinity" prefHeight="605.0" prefWidth="867.0"
   xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.modules.visualization.lipidannotationoverview.LipidAnnotationOverviewPaneController">
   <center>
@@ -15,11 +15,11 @@
       <items>
         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
           <children>
-            <TabPane prefHeight="398.0" prefWidth="296.0" side="RIGHT"
-              tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0"
-              AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <TabPane prefHeight="398.0" prefWidth="296.0" side="LEFT" tabClosingPolicy="UNAVAILABLE"
+              AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+              AnchorPane.topAnchor="0.0">
               <tabs>
-                <Tab fx:id="matchtedLipidSpectrumTab" text="Matched MS/MS">
+                <Tab fx:id="matchtedLipidSpectrumTab" text="Spectra">
                   <content>
                     <AnchorPane minHeight="0.0" minWidth="0.0">
                       <children>
@@ -50,7 +50,7 @@
                     </AnchorPane>
                   </content>
                 </Tab>
-                <Tab fx:id="allMsMsTab" text="All MS/MS">
+                <Tab fx:id="eicTab" text="EIC">
                   <content>
                     <AnchorPane minHeight="0.0" minWidth="0.0"/>
                   </content>
@@ -67,7 +67,7 @@
               AnchorPane.topAnchor="0.0">
               <items>
                 <AnchorPane fx:id="kendrickPlotPane" minHeight="0.0" minWidth="0.0"
-                  prefHeight="100.0" prefWidth="160.0">
+                  prefHeight="100.0" prefWidth="160.0" style="-fx-background-color: #FFFFFF;">
                   <children>
                     <TabPane layoutX="-22.0" layoutY="-19.0" prefHeight="181.0" prefWidth="208.0"
                       side="RIGHT" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0"
@@ -91,9 +91,31 @@
                 </AnchorPane>
                 <AnchorPane fx:id="totalLipidIdsPane">
                   <children>
-                    <BorderPane fx:id="lipidIDsPane" layoutY="16.0" prefHeight="122.0"
-                      prefWidth="293.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                      AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                    <SplitPane dividerPositions="0.5011792452830188" prefHeight="167.0"
+                      prefWidth="426.0" style="-fx-background-color: #FFFFFF;"
+                      AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                      AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                      <items>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0"
+                          prefWidth="100.0" style="-fx-background-color: #FFFFFF;">
+                          <children>
+                            <BorderPane fx:id="bestLipidIDsPane" prefHeight="165.0"
+                              prefWidth="209.0" style="-fx-background-color: #FFFFFF;"
+                              AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                              AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                          </children>
+                        </AnchorPane>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0"
+                          prefWidth="100.0" style="-fx-background-color: #FFFFFF;">
+                          <children>
+                            <BorderPane fx:id="lipidIDsPane" prefHeight="165.0" prefWidth="208.0"
+                              style="-fx-background-color: #FFFFFF;" AnchorPane.bottomAnchor="0.0"
+                              AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                              AnchorPane.topAnchor="0.0"/>
+                          </children>
+                        </AnchorPane>
+                      </items>
+                    </SplitPane>
                   </children>
                 </AnchorPane>
               </items>
@@ -104,7 +126,7 @@
     </SplitPane>
   </center>
   <bottom>
-    <BorderPane fx:id="featureTablePane" prefHeight="130.0" prefWidth="600.0"
+    <BorderPane fx:id="featureTablePane" prefHeight="280.0" prefWidth="600.0"
       BorderPane.alignment="CENTER"/>
   </bottom>
 </BorderPane>

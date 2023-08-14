@@ -1,15 +1,12 @@
 package io.github.mzmine.modules.visualization.lipidannotationoverview;
 
 import com.google.common.collect.Range;
-import eu.hansolo.fx.charts.SunburstChart;
-import eu.hansolo.fx.charts.SunburstChartBuilder;
-import eu.hansolo.fx.charts.data.ChartItem;
-import eu.hansolo.fx.charts.data.TreeNode;
-import eu.hansolo.fx.charts.tools.TextOrientation;
-import eu.hansolo.fx.charts.tools.VisibleData;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MergedMsMsSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -18,52 +15,66 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features.FeatureRawMobilogramProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
+import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidMainClasses;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
+import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotChart;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotParameters;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYZDataset;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickPlotDataTypes;
+import io.github.mzmine.modules.visualization.lipidannotationoverview.lipidbarchartplot.LipidAnnotationSunburstPlot;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.color.ColorUtils;
+import io.github.mzmine.util.color.SimpleColorPalette;
+import java.awt.BasicStroke;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Orientation;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TreeItem;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
+import org.jfree.chart.plot.IntervalMarker;
 import org.jfree.chart.plot.XYPlot;
 
 public class LipidAnnotationOverviewPaneController {
 
   public BorderPane featureTablePane;
-  public Tab allMsMsTab;
+  public Tab eicTab;
   public Tab matchtedLipidSpectrumTab;
   public BorderPane msOne;
   public BorderPane matchedMSMS;
   public Tab kendrickPlotTab;
   public BorderPane lipidIDsPane;
+  public BorderPane bestLipidIDsPane;
 
   private FeatureTableFX featureTable;
   private KendrickMassPlotChart kendrickMassPlotChart;
@@ -73,6 +84,10 @@ public class LipidAnnotationOverviewPaneController {
 
   private List<FeatureListRow> rowsWithLipidID;
   private ObservableList<ModularFeatureListRow> focussedRows;
+
+  private final NumberFormat mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
+  private final NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+  private final UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
 
 
   @FXML
@@ -97,15 +112,91 @@ public class LipidAnnotationOverviewPaneController {
     //MS1 plot
     buildMsSpectrum(rows.get(0).getBestFeature());
 
+    //EIC
+    buildEic(rows.get(0).getBestFeature());
+
     //Matched Lipid signals plot
     buildMatchedLipidSpectrum(focussedRows);
 
     //Lipid ID summary as bar chart
-    buildTotalLipidIDBarChartPlot();
+    buildTotalLipidIDSunburstPlot();
 
-    // build all MS/MS and EIC plots
+  }
 
-    buildAllMsMs(rows);
+  private void buildEic(ModularFeature bestFeature) {
+    Map<Feature, String> labelsMap = new HashMap<Feature, String>(0);
+
+    // scan selection
+    ScanSelection scanSelection = new ScanSelection(1,
+        bestFeature.getRawDataFile().getDataRTRange(1));
+
+    // mz range
+    Range<Double> mzRange = null;
+    mzRange = bestFeature.getRawDataPointsMZRange();
+    // optimize output by extending the range
+    double upper = mzRange.upperEndpoint();
+    double lower = mzRange.lowerEndpoint();
+    double fiveppm = (upper * 5E-6);
+    mzRange = Range.closed(lower - fiveppm, upper + fiveppm);
+
+    // labels
+    labelsMap.put(bestFeature, bestFeature.toString());
+
+    // get EIC window
+    TICVisualizerTab window = new TICVisualizerTab(new RawDataFile[]{bestFeature.getRawDataFile()},
+        // raw
+        TICPlotType.BASEPEAK, // plot type
+        scanSelection, // scan selection
+        mzRange, // mz range
+        null,
+        // new Feature[] {peak}, // selected features
+        labelsMap); // labels
+
+    // get EIC Plot
+    TICPlot ticPlot = window.getTICPlot();
+    // ticPlot.setPreferredSize(new Dimension(600, 200));
+    ticPlot.getChart().getLegend().setVisible(false);
+
+    SplitPane ticAndMobilogram = new SplitPane();
+    ticAndMobilogram.setOrientation(Orientation.VERTICAL);
+    ticAndMobilogram.getItems().add(ticPlot);
+
+    if (bestFeature.getFeatureData() instanceof IonMobilogramTimeSeries series
+        && bestFeature.getMostIntenseFragmentScan() instanceof MergedMsMsSpectrum mergedMsMs) {
+      SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+      SimpleXYChart<PlotXYDataProvider> mobilogramChart = createMobilogramChart(bestFeature,
+          mzRange, palette, series, mergedMsMs);
+      ticAndMobilogram.getItems().add(mobilogramChart);
+    }
+
+    eicTab.setContent(ticAndMobilogram);
+  }
+
+  private SimpleXYChart<PlotXYDataProvider> createMobilogramChart(ModularFeature peak,
+      Range<Double> mzRange, SimpleColorPalette palette, IonMobilogramTimeSeries series,
+      MergedMsMsSpectrum mergedMsMs) {
+    SimpleXYChart<PlotXYDataProvider> mobilogramChart = new SimpleXYChart<>();
+    mobilogramChart.addDataset(new FeatureRawMobilogramProvider(peak, mzRange));
+    mobilogramChart.addDataset(new SummedMobilogramXYProvider(series.getSummedMobilogram(),
+        new SimpleObjectProperty<>(
+            ColorUtils.getContrastPaletteColor(peak.getRawDataFile().getColor(), palette)),
+        FeatureUtils.featureToString(peak)));
+    mobilogramChart.setDomainAxisNumberFormatOverride(mobilityFormat);
+    mobilogramChart.setRangeAxisNumberFormatOverride(intensityFormat);
+    mobilogramChart.setDomainAxisLabel(peak.getMobilityUnit().getAxisLabel());
+    mobilogramChart.setRangeAxisLabel(unitFormat.format("Summed intensity", "a.u."));
+
+    var optMin = mergedMsMs.getSourceSpectra().stream()
+        .mapToDouble(s -> ((MobilityScan) s).getMobility()).min();
+    var optMax = mergedMsMs.getSourceSpectra().stream()
+        .mapToDouble(s -> ((MobilityScan) s).getMobility()).max();
+    if (optMin.isPresent() && optMax.isPresent()) {
+      IntervalMarker msmsInterval = new IntervalMarker(optMin.getAsDouble(), optMax.getAsDouble(),
+          palette.getPositiveColorAWT(), new BasicStroke(1f), palette.getPositiveColorAWT(),
+          new BasicStroke(1f), 0.2f);
+      mobilogramChart.getXYPlot().addDomainMarker(msmsInterval);
+    }
+    return mobilogramChart;
   }
 
   private void createInternalTable(final @NotNull ModularFeatureList featureList) {
@@ -114,12 +205,6 @@ public class LipidAnnotationOverviewPaneController {
     internalFeatureTable.getNewColumnMap();
     featureTablePane.setCenter(tempTab.getMainPane());
   }
-
-//  void updateWindowToParameterSetValues() {
-//    featureTable.updateColumnsVisibilityParameters(
-//        param.getParameter(FeatureTableFXParameters.showRowTypeColumns).getValue(),
-//        param.getParameter(FeatureTableFXParameters.showFeatureTypeColumns).getValue());
-//  }
 
   private void linkFeatureTableSelections(final @NotNull FeatureTableFX internal,
       final @Nullable FeatureTableFX external) {
@@ -137,11 +222,12 @@ public class LipidAnnotationOverviewPaneController {
           .addListener((ListChangeListener<? super TreeItem<ModularFeatureListRow>>) c -> {
             var list = c.getList().stream().map(TreeItem::getValue).toList();
             focussedRows.setAll(list);
+            updatePlots();
           });
     }
   }
 
-  private void buildTotalLipidIDBarChartPlot() {
+  private void buildTotalLipidIDSunburstPlot() {
 
     List<MatchedLipid> matchedLipids = new ArrayList<>();
     for (FeatureListRow featureListRow : rowsWithLipidID) {
@@ -150,92 +236,25 @@ public class LipidAnnotationOverviewPaneController {
       }
     }
 
-    TreeNode<ChartItem> tree = buildTreeDataset(matchedLipids);
-    SunburstChart sunburstChart = SunburstChartBuilder.create().prefSize(400, 400).tree(tree)
-        .textOrientation(TextOrientation.TANGENT).useColorFromParent(false)
-        .visibleData(VisibleData.NAME).backgroundColor(Color.WHITE).textColor(Color.WHITE)
-        .decimals(1).interactive(true).build();
-    lipidIDsPane.setCenter(sunburstChart);
-  }
+    LipidAnnotationSunburstPlot lipidAnnotationSunburstPlotAllLipids = new LipidAnnotationSunburstPlot(
+        matchedLipids, true, true, true, false);
+    Text titleLipids = new Text("All Lipid Annotations");
+    lipidIDsPane.setCenter(lipidAnnotationSunburstPlotAllLipids.getSunburstChart());
+    lipidIDsPane.setTop(titleLipids);
 
-  private TreeNode<ChartItem> buildTreeDataset(List<MatchedLipid> matchedLipids) {
-    TreeNode<ChartItem> tree = new TreeNode<>(new ChartItem("Lipids"));
-
-    Map<LipidCategories, Map<LipidMainClasses, Map<ILipidClass, List<ILipidAnnotation>>>> lipidCategoryToMainClassMap = new HashMap<>();
-
-    for (MatchedLipid matchedLipid : matchedLipids) {
-      ILipidAnnotation lipidAnnotation = matchedLipid.getLipidAnnotation();
-      LipidCategories lipidCategory = lipidAnnotation.getLipidClass().getMainClass()
-          .getLipidCategory();
-      LipidMainClasses lipidMainClass = lipidAnnotation.getLipidClass().getMainClass();
-      ILipidClass lipidClass = lipidAnnotation.getLipidClass();
-
-      lipidCategoryToMainClassMap.computeIfAbsent(lipidCategory, k -> new HashMap<>())
-          .computeIfAbsent(lipidMainClass, k -> new HashMap<>())
-          .computeIfAbsent(lipidClass, k -> new ArrayList<>()).add(lipidAnnotation);
-    }
-
-    int colorIndex = 1;
-    for (Entry<LipidCategories, Map<LipidMainClasses, Map<ILipidClass, List<ILipidAnnotation>>>> entry : lipidCategoryToMainClassMap.entrySet()) {
-      int categroyValue = getCategoryLipidAnnotationCount(entry);
-      Color cateoryColor = MZmineCore.getConfiguration().getDefaultColorPalette().get(colorIndex);
-      TreeNode lipidCategoryTreeNode = new TreeNode(
-          new ChartItem(categroyValue + "\n" + entry.getKey().getAbbreviation(), categroyValue,
-              cateoryColor), tree);
-      for (Map.Entry<LipidMainClasses, Map<ILipidClass, List<ILipidAnnotation>>> mainClassEntry : entry.getValue()
-          .entrySet()) {
-        Color mainClassColor = cateoryColor.desaturate();
-        int mainClassValue = getMainClassLipidAnnotationCount(mainClassEntry);
-        TreeNode lipidMainClassTreeNode = new TreeNode(
-            new ChartItem(mainClassValue + "\n" + mainClassEntry.getKey().getName(), mainClassValue,
-                mainClassColor), lipidCategoryTreeNode);
-        for (Map.Entry<ILipidClass, List<ILipidAnnotation>> lipidClassEntry : mainClassEntry.getValue()
-            .entrySet()) {
-          Color lipidClassColor = mainClassColor.desaturate();
-          int lipidClassValue = getLipidClassLipidAnnotationCount(lipidClassEntry);
-          TreeNode lipidClassTreeNode = new TreeNode(
-              new ChartItem(lipidClassValue + "\n" + lipidClassEntry.getKey().getName(),
-                  lipidClassValue, lipidClassColor), lipidMainClassTreeNode);
-//          for (ILipidAnnotation lipidAnnotation : lipidClassEntry.getValue()) {
-//            Color lipidAnnotationColor = lipidClassColor.desaturate();
-//            new TreeNode(new ChartItem(lipidAnnotation.getAnnotation(), 1, lipidAnnotationColor),
-//                lipidClassTreeNode);
-//          }
-        }
-      }
-      colorIndex++;
-    }
-    return tree;
-  }
-
-  private int getLipidClassLipidAnnotationCount(
-      Entry<ILipidClass, List<ILipidAnnotation>> lipidClassEntry) {
-    return lipidClassEntry.getValue().size();
-  }
-
-  private int getMainClassLipidAnnotationCount(
-      Entry<LipidMainClasses, Map<ILipidClass, List<ILipidAnnotation>>> mainClassEntry) {
-    int totalCount = 0;
-    for (Map.Entry<ILipidClass, List<ILipidAnnotation>> classEntry : mainClassEntry.getValue()
-        .entrySet()) {
-      totalCount += classEntry.getValue().size();
-    }
-    return totalCount;
-  }
-
-  private int getCategoryLipidAnnotationCount(
-      Entry<LipidCategories, Map<LipidMainClasses, Map<ILipidClass, List<ILipidAnnotation>>>> entry) {
-    int totalCount = 0;
-    for (Map.Entry<LipidMainClasses, Map<ILipidClass, List<ILipidAnnotation>>> mainClassEntry : entry.getValue()
-        .entrySet()) {
-      for (Map.Entry<ILipidClass, List<ILipidAnnotation>> classEntry : mainClassEntry.getValue()
-          .entrySet()) {
-        totalCount += classEntry.getValue().size();
+    List<MatchedLipid> bestLipidMatches = new ArrayList<>();
+    for (FeatureListRow featureListRow : rowsWithLipidID) {
+      if (featureListRow instanceof ModularFeatureListRow) {
+        bestLipidMatches.add(featureListRow.get(LipidMatchListType.class).get(0));
       }
     }
-    return totalCount;
-  }
 
+    LipidAnnotationSunburstPlot lipidAnnotationSunburstPlotBestLipids = new LipidAnnotationSunburstPlot(
+        bestLipidMatches, true, true, true, false);
+    Text titleBestLipids = new Text("Unique Lipid Annotations");
+    bestLipidIDsPane.setCenter(lipidAnnotationSunburstPlotBestLipids.getSunburstChart());
+    bestLipidIDsPane.setTop(titleBestLipids);
+  }
 
   private void buildKendrickMassPlot() {
     kendrickMassPlotChart = buildKendrickMassPlotChart();
@@ -277,11 +296,6 @@ public class LipidAnnotationOverviewPaneController {
     return matches != null && !matches.isEmpty();
   }
 
-  private void buildAllMsMs(List<ModularFeatureListRow> rows) {
-    MultiSpectraVisualizerTab multiSpectraVisualizerTab = new MultiSpectraVisualizerTab(
-        rows.get(0));
-    allMsMsTab.setContent(multiSpectraVisualizerTab.getContent());
-  }
 
   private void buildMatchedLipidSpectrum(List<ModularFeatureListRow> rows) {
     List<MatchedLipid> matchedLipids = rows.get(0).get(LipidMatchListType.class);
@@ -315,7 +329,21 @@ public class LipidAnnotationOverviewPaneController {
   private void updatePlots() {
     buildMsSpectrum(focussedRows.get(0).getBestFeature());
     buildMatchedLipidSpectrum(focussedRows);
-    buildAllMsMs(focussedRows);
+    buildEic(focussedRows.get(0).getBestFeature());
+    updateKendrickCorssHair(focussedRows.get(0));
+  }
+
+  private void updateKendrickCorssHair(ModularFeatureListRow row) {
+    XYPlot plot = kendrickMassPlotChart.getChart().getXYPlot();
+    double xValue = row.getAverageMZ();
+    KendrickMassPlotXYZDataset dataset = (KendrickMassPlotXYZDataset) plot.getDataset();
+    double[] xValues = new double[dataset.getItemCount(0)];
+    for (int i = 0; i < xValues.length; i++) {
+      if (dataset.getX(0, i).doubleValue() == xValue) {
+        plot.setDomainCrosshairValue(xValue);
+        plot.setRangeCrosshairValue(dataset.getYValue(0, i));
+      }
+    }
   }
 
   private SpectraVisualizerTab buildSpectrumTab(RawDataFile dataFile, Feature peak) {

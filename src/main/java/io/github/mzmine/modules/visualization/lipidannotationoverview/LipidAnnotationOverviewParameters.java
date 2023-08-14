@@ -16,7 +16,7 @@ public class LipidAnnotationOverviewParameters extends SimpleParameterSet {
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
+    return IonMobilitySupport.UNTESTED;
   }
 
 

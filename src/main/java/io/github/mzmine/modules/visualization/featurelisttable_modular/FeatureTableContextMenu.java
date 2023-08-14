@@ -78,6 +78,7 @@ import io.github.mzmine.modules.visualization.image_allmsms.ImageAllMsMsTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
+import io.github.mzmine.modules.visualization.lipidannotationoverview.LipidAnnotationOverviewModule;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
@@ -498,6 +499,11 @@ public class FeatureTableContextMenu extends ContextMenu {
     showSpectralDBResults.setOnAction(
         e -> SpectraIdentificationResultsModule.showNewTab(selectedRows, table));
 
+    final MenuItem showLipidAnnotationSummary = new ConditionalMenuItem("Lipid annotation summary",
+        () -> !selectedRows.isEmpty() && rowHasMatchedLipidSignals(selectedRows.get(0)));
+    showLipidAnnotationSummary.setOnAction(
+        e -> LipidAnnotationOverviewModule.showNewTab(selectedRows, selectedFeatures, table));
+
     final MenuItem showMatchedLipidSignals = new ConditionalMenuItem("Matched lipid signals",
         () -> !selectedRows.isEmpty() && rowHasMatchedLipidSignals(selectedRows.get(0)));
     showMatchedLipidSignals.setOnAction(e -> {
@@ -520,8 +526,9 @@ public class FeatureTableContextMenu extends ContextMenu {
             showSpectrumItem, showFeatureFWHMMs1Item, showBestMobilityScanItem,
             extractSumSpectrumFromMobScans, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
             showDiaIons, showDiaMirror, new SeparatorMenuItem(), showIsotopePatternItem,
-            showCompoundDBResults, showSpectralDBResults, showMatchedLipidSignals,
-            new SeparatorMenuItem(), showPeakRowSummaryItem, showNetworkVisualizerItem);
+            showCompoundDBResults, showSpectralDBResults, showLipidAnnotationSummary,
+            showMatchedLipidSignals, new SeparatorMenuItem(), showPeakRowSummaryItem,
+            showNetworkVisualizerItem);
   }
 
   /**
