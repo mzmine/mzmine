@@ -90,6 +90,7 @@ public class BatchModuleTreePane extends BorderPane {
     treeView.setRoot(originalRoot);
     treeView.setShowRoot(false);
 
+    // interactions
     searchField.textProperty().addListener((observable, oldValue, newValue) -> {
       // filter, expand, and select
       TreeItemPredicate<Object> predicate = TreeItemPredicate.createSubStringPredicate(
@@ -98,13 +99,6 @@ public class BatchModuleTreePane extends BorderPane {
       var firstMatchingNode = originalRoot.expandAllMatches(predicate);
       treeView.getSelectionModel().select(firstMatchingNode);
     });
-
-//    searchField.setOnKeyPressed(event -> {
-//      if (event.getCode() == KeyCode.ENTER) {
-//        event.consume();
-//        addSelectedModule();
-//      }
-//    });
 
     treeView.setOnMouseClicked(e -> {
       if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {

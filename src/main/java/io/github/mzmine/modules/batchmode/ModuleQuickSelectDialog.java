@@ -30,7 +30,6 @@ import io.github.mzmine.modules.MZmineRunnableModule;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -43,7 +42,8 @@ public class ModuleQuickSelectDialog extends Stage {
   private ModuleQuickSelectDialog() {
     Stage mainWindow = MZmineCore.getDesktop().getMainWindow();
     initOwner(mainWindow);
-    initModality(Modality.APPLICATION_MODAL);
+    // cannot use modal when closing on lost focus
+//    initModality(Modality.APPLICATION_MODAL);
     initStyle(StageStyle.UNDECORATED);
 
     moduleTree = new BatchModuleTreePane(true);
@@ -56,6 +56,12 @@ public class ModuleQuickSelectDialog extends Stage {
       if (event.getCode() == KeyCode.ESCAPE) {
         hide();
         event.consume();
+      }
+    });
+    // auto close when clicked somewhere
+    focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+      if (!isNowFocused) {
+        hide();
       }
     });
 
