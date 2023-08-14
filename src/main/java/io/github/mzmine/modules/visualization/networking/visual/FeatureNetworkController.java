@@ -266,4 +266,8 @@ public class FeatureNetworkController {
   public void onShowAllNodes(final ActionEvent actionEvent) {
     networkPane.showFullGraph();
   }
+
+  public void onZoomSelectedNodes(final ActionEvent actionEvent) {
+    networkPane.zoomOnSelectedNodes();
+  }
 }

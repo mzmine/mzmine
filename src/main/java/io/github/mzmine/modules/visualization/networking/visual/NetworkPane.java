@@ -25,7 +25,9 @@
 
 package io.github.mzmine.modules.visualization.networking.visual;
 
+import com.google.common.collect.Range;
 import com.google.common.io.Resources;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
@@ -639,6 +641,42 @@ public class NetworkPane extends BorderPane {
   public void resetZoom() {
     viewPercent = 1;
     view.getCamera().resetView();
+  }
+
+  public void zoomOnSelectedNodes() {
+    zoomOnNodes(selectedNodes);
+  }
+
+  public void zoomOnNodes(List<Node> nodes) {
+    List<GraphicNode> graphicNodes = nodes.stream()
+        .map(n -> (GraphicNode) getGraphicGraph().getNode(n.getId())).filter(Objects::nonNull)
+        .toList();
+    Range<Double> rx = null;
+    Range<Double> ry = null;
+    for (final GraphicNode n : graphicNodes) {
+      double x = n.getX();
+      double y = n.getY();
+      if (rx == null) {
+        rx = Range.singleton(x);
+        ry = Range.singleton(y);
+      } else {
+        rx = rx.span(Range.singleton(x));
+        ry = ry.span(Range.singleton(y));
+      }
+    }
+    if (rx == null) {
+      return;
+    }
+    Camera camera = view.getCamera();
+
+    double distX = RangeUtils.rangeCenter(rx);
+    double distY = RangeUtils.rangeCenter(ry);
+    camera.setViewCenter(distX, distY, 0);
+//    GraphMetrics metrics = camera.getMetrics();
+//    double diag = Math.sqrt(distX * distX + distY * distY);
+//    double[] size = metrics.size.data;
+//    double zoom = Math.max(distX / size[0], distY / size[1]) * 1.5;
+//    camera.setViewPercent(zoom);
   }
 
   public Pane getPnSettings() {

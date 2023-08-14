@@ -57,6 +57,7 @@
                         </Spinner>
                         <TextField fx:id="txtFilterAnnotations" prefHeight="26.0" prefWidth="194.0" promptText="Search &amp; select matches" />
                         <Button fx:id="btnFocusSelectedNodes" mnemonicParsing="false" onAction="#onFocusSelectedNodes" text="Focus n selected" />
+                        <Button mnemonicParsing="false" onAction="#onZoomSelectedNodes" text="Center" />
                         <Button mnemonicParsing="false" onAction="#onShowAllNodes" text="Full network" />
                      </children>
                   </FlowPane>
