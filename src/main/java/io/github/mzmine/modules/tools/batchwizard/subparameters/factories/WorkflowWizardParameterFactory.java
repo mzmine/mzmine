@@ -82,9 +82,9 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
       case MS1_ONLY, IMAGING -> new WorkflowWizardParameters(this);
       // specialized parameters
       case LIBRARY_GENERATION -> new WorkflowLibraryGenerationWizardParameters(null, true, true);
-      case DDA -> new WorkflowDdaWizardParameters(true, null, true, true);
-      case DECONVOLUTION -> new WorkflowGcElectronImpactWizardParameters(true, null, true, true);
-      case DIA -> new WorkflowDiaWizardParameters(0.8, 5, true, null, true, true);
+      case DDA -> new WorkflowDdaWizardParameters(true, null, true, true, true);
+      case DECONVOLUTION -> new WorkflowGcElectronImpactWizardParameters(true, null, true, true, true);
+      case DIA -> new WorkflowDiaWizardParameters(0.8, 5, true, null, true, true, true);
     };
   }
 }

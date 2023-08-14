@@ -52,6 +52,7 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
   private final Boolean exportSirius;
   private final File exportPath;
   private final Boolean rtSmoothing;
+  private final Boolean exportAnnotationGraphics;
 
   public WizardBatchBuilderLcDDA(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -78,6 +79,8 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     exportPath = optional.value();
     exportGnps = getValue(params, WorkflowDdaWizardParameters.exportGnps);
     exportSirius = getValue(params, WorkflowDdaWizardParameters.exportSirius);
+    exportAnnotationGraphics = getValue(params,
+        WorkflowDdaWizardParameters.exportAnnotationGraphics);
   }
 
   @Override
@@ -115,7 +118,8 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
     // export
-    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius);
+    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
+        exportAnnotationGraphics);
     return q;
   }
 

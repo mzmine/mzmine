@@ -42,6 +42,7 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
   private final Boolean exportGnps;
   private final Boolean exportSirius;
   private final File exportPath;
+  private final Boolean exportAnnotationGraphics;
 
   public WizardBatchBuilderFlowInjectDDA(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -58,6 +59,8 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
     exportPath = optional.value();
     exportGnps = getValue(params, WorkflowDdaWizardParameters.exportGnps);
     exportSirius = getValue(params, WorkflowDdaWizardParameters.exportSirius);
+    exportAnnotationGraphics = getValue(params,
+        WorkflowDdaWizardParameters.exportAnnotationGraphics);
   }
 
   @Override
@@ -92,7 +95,8 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, null);
     // export
-    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius);
+    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
+        exportAnnotationGraphics);
     return q;
   }
 
