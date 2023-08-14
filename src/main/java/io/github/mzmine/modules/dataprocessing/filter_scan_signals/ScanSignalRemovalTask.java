@@ -96,8 +96,12 @@ public class ScanSignalRemovalTask extends AbstractTask {
 
     try {
       if (dataFile instanceof IMSRawDataFile imsFile) {
+        // frames
+        processFileScans();
+        // mobility scans
         processImsFileMobilityScans(imsFile);
       } else {
+        // scans
         processFileScans();
       }
       if (isCanceled()) {
