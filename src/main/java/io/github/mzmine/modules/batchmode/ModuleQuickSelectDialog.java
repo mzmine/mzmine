@@ -84,6 +84,8 @@ public class ModuleQuickSelectDialog extends Stage {
 
   @Override
   public void showAndWait() {
+    getScene().getStylesheets()
+        .setAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     centerOnScreen();
     moduleTree.focusSearchField();
     super.showAndWait();

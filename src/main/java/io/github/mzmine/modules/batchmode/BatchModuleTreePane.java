@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javafx.beans.NamedArg;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -45,6 +46,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -97,12 +99,12 @@ public class BatchModuleTreePane extends BorderPane {
       treeView.getSelectionModel().select(firstMatchingNode);
     });
 
-    searchField.setOnKeyPressed(event -> {
-      if (event.getCode() == KeyCode.ENTER) {
-        event.consume();
-        addSelectedModule();
-      }
-    });
+//    searchField.setOnKeyPressed(event -> {
+//      if (event.getCode() == KeyCode.ENTER) {
+//        event.consume();
+//        addSelectedModule();
+//      }
+//    });
 
     treeView.setOnMouseClicked(e -> {
       if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
@@ -111,7 +113,7 @@ public class BatchModuleTreePane extends BorderPane {
       }
     });
 
-    treeView.setOnKeyPressed(event -> {
+    EventHandler<KeyEvent> keyHandler = event -> {
       if (event.getCode() == KeyCode.ENTER) {
         event.consume();
         addSelectedModule();
@@ -120,8 +122,34 @@ public class BatchModuleTreePane extends BorderPane {
         event.consume();
         xButtonPressed();
       }
-    });
+    };
+    EventHandler<KeyEvent> arrowHandler = event -> {
+      if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.PAGE_UP) {
+        event.consume();
+        shiftSelection(-1);
+      }
+      if (event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.PAGE_DOWN) {
+        event.consume();
+        shiftSelection(1);
+      }
+    };
+    treeView.setOnKeyPressed(keyHandler);
+    searchField.setOnKeyPressed(keyHandler);
+    searchField.addEventHandler(KeyEvent.KEY_PRESSED, arrowHandler);
+  }
 
+  private void shiftSelection(final int add) {
+    int newIndex = treeView.getSelectionModel().getSelectedIndex();
+    while (true) {
+      newIndex += add;
+      TreeItem<Object> item = treeView.getTreeItem(newIndex);
+      if (item == null) {
+        return;
+      } else if (item.getValue() instanceof BatchModuleWrapper) {
+        treeView.getSelectionModel().select(newIndex);
+        return;
+      }
+    }
   }
 
   public void addModules(final List<Class<? extends MZmineRunnableModule>> modules) {
