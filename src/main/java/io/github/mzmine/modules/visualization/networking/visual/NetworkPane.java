@@ -378,7 +378,7 @@ public class NetworkPane extends BorderPane {
     if (node != null) {
       // shift - add to selection
       if (e.isShiftDown()) {
-        addSelection(node);
+        toggleSelection(node);
       } else {
         setSelectedNode(node);
       }
@@ -619,16 +619,23 @@ public class NetworkPane extends BorderPane {
   }
 
 
-  public void addSelection(Element element) {
+  public void toggleSelection(Element element) {
     if (element instanceof Node node) {
-      node.setAttribute("ui.clicked");
-//      node.setAttribute("ui.class", "big, important");
-      selectedNodes.add(node);
+      if (selectedNodes.remove(node)) {
+        node.removeAttribute("ui.clicked");
+      } else {
+        node.setAttribute("ui.clicked");
+        selectedNodes.add(node);
+      }
     }
     if (element instanceof Edge edge) {
-      edge.setAttribute("ui.clicked");
-      selectedEdges.add(edge);
-      selectedNodes.setAll(List.of(edge.getNode0(), edge.getNode1()));
+      if (selectedEdges.remove(edge)) {
+        edge.removeAttribute("ui.clicked");
+      } else {
+        edge.setAttribute("ui.clicked");
+        selectedEdges.add(edge);
+        selectedNodes.setAll(List.of(edge.getNode0(), edge.getNode1()));
+      }
     }
   }
 
