@@ -48,16 +48,26 @@ public class NetworkLayoutComputeTask extends AbstractTask {
   private final MultiGraph gl;
   private final AtomicDouble progress = new AtomicDouble(0);
 
+  /**
+   * TODO add option to calculate layout for all sub networks in parallel by splitting them.
+   * Then stitch together all subnetworks into a similar network view like cytoscape. Biggest first, then second, etc
+   */
   public NetworkLayoutComputeTask(final Node frozen, final MultiGraph gl) {
     super(null, Instant.now());
     this.frozen = frozen;
     this.gl = gl;
   }
 
+  /**
+   * optimized from {@link Toolkit#computeLayout} as in Toolkit.computeLayout(g, layout, stab);
+   */
   public static void applyLayout(final @Nullable Node frozen, final @NotNull MultiGraph g) {
     applyLayout(frozen, g, null, null);
   }
 
+  /**
+   * optimized from {@link Toolkit#computeLayout} as in Toolkit.computeLayout(g, layout, stab);
+   */
   public static void applyLayout(final @Nullable Node frozen, final @NotNull MultiGraph g,
       @Nullable Task task, @Nullable AtomicDouble progress) {
 
@@ -76,8 +86,7 @@ public class NetworkLayoutComputeTask extends AbstractTask {
     logger.fine("Layout of %d nodes, stabilization at %.2f".formatted(size, stab));
 
     layout.setQuality(stab);
-    // below taken from
-//    Toolkit.computeLayout(g, layout, stab);
+
     GraphReplay r = new GraphReplay(g.getId());
     layout.addAttributeSink(g);
     r.addSink(layout);
