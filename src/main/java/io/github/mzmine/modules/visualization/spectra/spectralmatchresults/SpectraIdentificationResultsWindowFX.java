@@ -314,8 +314,7 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
 
   public void setMatchingFinished() {
     if (totalMatches.isEmpty()) {
-      noMatchesFound.setText("Sorry no matches found.\n"
-                             + "Please visualize NIST spectral search results through NIST MS Search software.");
+      noMatchesFound.setText("Sorry no matches found.");
       noMatchesFound.setTextFill(Color.RED);
     }
   }

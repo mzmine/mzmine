@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,12 +47,10 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
   private final Integer maxIsomersInRt;
   private final RTTolerance rtFwhm;
   private final Boolean stableIonizationAcrossSamples;
-  private final Boolean isExportActive;
-  private final Boolean exportGnps;
-  private final Boolean exportSirius;
-  private final File exportPath;
   private final Boolean rtSmoothing;
-  private final Boolean exportAnnotationGraphics;
+  private final Boolean applySpectralNetworking;
+  private final File exportPath;
+  private final boolean isExportActive;
 
   public WizardBatchBuilderLcDDA(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -74,13 +72,10 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
 
     // DDA workflow parameters
     params = steps.get(WizardPart.WORKFLOW);
+    applySpectralNetworking = getValue(params, WorkflowDdaWizardParameters.applySpectralNetworking);
     OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
     isExportActive = optional.active();
     exportPath = optional.value();
-    exportGnps = getValue(params, WorkflowDdaWizardParameters.exportGnps);
-    exportSirius = getValue(params, WorkflowDdaWizardParameters.exportSirius);
-    exportAnnotationGraphics = getValue(params,
-        WorkflowDdaWizardParameters.exportAnnotationGraphics);
   }
 
   @Override
@@ -117,9 +112,14 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     // annotation
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
+
+    // networking
+    if (applySpectralNetworking) {
+      makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath);
+    }
+
     // export
-    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
-        exportAnnotationGraphics);
+    makeAndAddDdaExportSteps(q, steps);
     return q;
   }
 

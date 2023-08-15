@@ -333,6 +333,8 @@
         userData="io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule"/>
       <MenuItem text="Export feature networks to csv" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule"/>
+      <MenuItem text="Export spectral networks to graphml (FBMN/IIMN)" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportModule"/>
       <MenuItem text="Spectral library batch generation" onAction="#runModule"
         userData="io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule"/>
       <MenuItem text="Export to GNPS batch library submission" onAction="#runModule"
@@ -574,7 +576,7 @@
     <MenuItem onAction="#runModule" text="MS/MS scatter plot"
       userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
     <MenuItem onAction="#runModule" text="Interactive Ion Identity Molecular Networks"
-      userData="io.github.mzmine.modules.visualization.networking.AnnotationNetworkModule"/>
+      userData="io.github.mzmine.modules.visualization.network_overview.FeatureNetworkOverviewModule"/>
     <MenuItem onAction="#runModule" text="Correlated features Δm/z histogram"
       userData="io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule"/>
     <MenuItem onAction="#runModule"

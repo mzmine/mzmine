@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,18 +25,18 @@
 
 package io.github.mzmine.modules.visualization.networking.visual;
 
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.GraphStreamUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
-import org.graphstream.algorithm.Toolkit;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
-import org.graphstream.ui.layout.Layout;
-import org.graphstream.ui.layout.springbox.implementations.SpringBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,6 +44,8 @@ public class FilterableGraph extends MultiGraph {
 
   private final MultiGraph fullGraph;
   private final List<Consumer<FilterableGraph>> graphChangeListener = new ArrayList<>();
+  private boolean fullGraphLayoutApplied = false;
+  private boolean fullGraphLayoutFinished = false;
 
   public FilterableGraph(String id, final MultiGraph fullGraph, boolean showFullNetwork) {
     super(id);
@@ -55,10 +57,31 @@ public class FilterableGraph extends MultiGraph {
     }
   }
 
+  private static void copyAttributes(final Element source, final Element target) {
+    source.attributeKeys().forEach(att -> {
+      target.setAttribute(att, source.getAttribute(att));
+    });
+  }
+
+  private void applyLayout(final @Nullable Node frozen, final MultiGraph gl,
+      boolean externalThread) {
+    NetworkLayoutComputeTask task = new NetworkLayoutComputeTask(frozen, gl);
+    if (externalThread) {
+      MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH);
+      task.addTaskStatusListener((task1, newStatus, oldStatus) -> {
+        if (newStatus == TaskStatus.FINISHED) {
+          fullGraphLayoutFinished = true;
+          showNetwork(gl);
+        }
+      });
+    } else {
+      task.run();
+    }
+  }
+
   public void addGraphChangeListener(Consumer<FilterableGraph> listener) {
     graphChangeListener.add(listener);
   }
-
 
   @Override
   public void setAttribute(final String attribute, final Object... values) {
@@ -90,7 +113,6 @@ public class FilterableGraph extends MultiGraph {
   }
 
   public void setNodeFilter(Collection<Node> neighboringNodes, @Nullable Node frozen) {
-    clear();
     MultiGraph gl = copyNetworkApplyLayout(neighboringNodes, frozen);
 
     // copy network over
@@ -100,27 +122,34 @@ public class FilterableGraph extends MultiGraph {
   /**
    * show full network without filters
    */
-  public void showFullNetwork() {
-    showNetwork(fullGraph);
+  public synchronized void showFullNetwork() {
+    if (!fullGraphLayoutApplied) {
+      fullGraphLayoutApplied = true;
+      applyLayout(null, fullGraph, true);
+    } else if (fullGraphLayoutFinished) {
+      showNetwork(fullGraph);
+    }
   }
 
-  private void showNetwork(final MultiGraph source) {
-    source.nodes().forEach(n -> {
-      addCopy(this, n);
+  public void showNetwork(final MultiGraph source) {
+    // make sure its javafx
+    MZmineCore.runLater(() -> {
+      clear();
+
+      source.nodes().forEach(n -> {
+        addCopy(this, n);
+      });
+      source.edges().forEach(e -> {
+        addCopy(this, e);
+      });
+      graphChangeListener.forEach(listener -> listener.accept(this));
     });
-    source.edges().forEach(e -> {
-      addCopy(this, e);
-    });
-    graphChangeListener.forEach(listener -> listener.accept(this));
   }
 
   @NotNull
   private MultiGraph copyNetworkApplyLayout(final Collection<Node> neighboringNodes,
       final @Nullable Node frozen) {
     MultiGraph gl = new MultiGraph("layout_graph");
-    Layout layout = new SpringBox(false);
-    layout.setForce(1);
-    layout.setQuality(0.75);
 
     for (Node n : neighboringNodes) {
       addCopy(gl, n);
@@ -135,16 +164,8 @@ public class FilterableGraph extends MultiGraph {
       });
     }
 
-    Toolkit.computeLayout(gl, layout, 0.75);
+    applyLayout(frozen, gl, false);
 
-    final double[] origin =
-        frozen == null ? new double[]{0, 0} : Toolkit.nodePosition(gl.getNode(frozen.getId()));
-
-    // set position to center origin
-    gl.nodes().forEach(n -> {
-      double[] pos = Toolkit.nodePosition(n);
-      n.setAttribute("xy", pos[0] - origin[0], pos[1] - origin[1]);
-    });
     return gl;
   }
 
@@ -169,13 +190,6 @@ public class FilterableGraph extends MultiGraph {
     }
     return null;
   }
-
-  private static void copyAttributes(final Element source, final Element target) {
-    source.attributeKeys().forEach(att -> {
-      target.setAttribute(att, source.getAttribute(att));
-    });
-  }
-
 
   public void setNodeNeighborFilter(final List<Node> central, final int distance) {
     // make sure the correct nodes are selected from full graph

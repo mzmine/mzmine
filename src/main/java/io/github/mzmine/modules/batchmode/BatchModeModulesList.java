@@ -134,6 +134,7 @@ import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCS
 import io.github.mzmine.modules.io.export_library_gnps_batch.GNPSLibraryBatchExportModule;
 import io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule;
 import io.github.mzmine.modules.io.export_msn_tree.MSnTreeExportModule;
+import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportModule;
 import io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule;
 import io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFExportModule;
 import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
@@ -368,6 +369,7 @@ public class BatchModeModulesList {
       GnpsFbmnExportAndSubmitModule.class, //
       GnpsGcExportAndSubmitModule.class, //
       ExportCorrAnnotationModule.class, //
+      NetworkGraphMlExportModule.class, //
       MetaboAnalystExportModule.class, //
       AdapMgfExportModule.class, //
       GNPSResultsImportModule.class, //

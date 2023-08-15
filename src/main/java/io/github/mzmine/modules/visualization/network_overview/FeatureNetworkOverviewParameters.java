@@ -23,37 +23,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual.enums;
+package io.github.mzmine.modules.visualization.network_overview;
 
-public enum EdgeAtt implements GraphElementAttr {
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
-  NONE, ID1, ID2, LABEL, SCORE, MATCHED_SIGNALS, EXPLAINED_INTENSITY, TYPE, DELTA_MZ, NEIGHBOR_DISTANCE;
+public class FeatureNetworkOverviewParameters extends SimpleParameterSet {
 
-  @Override
-  public String toString() {
-    return super.toString().toLowerCase();
-  }
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
 
-  public boolean isNumber() {
-    return switch (this) {
-      case TYPE, LABEL, NONE -> false;
-      case ID1, ID2, SCORE, DELTA_MZ, NEIGHBOR_DISTANCE, MATCHED_SIGNALS, EXPLAINED_INTENSITY ->
-          true;
-    };
-  }
-
-  @Override
-  public boolean isReversed() {
-    return this == NEIGHBOR_DISTANCE;
-  }
-
-  @Override
-  public boolean isChangingDynamically() {
-    return NEIGHBOR_DISTANCE == this;
-  }
-
-  @Override
-  public GraphObject getGraphObject() {
-    return GraphObject.EDGE;
+  public FeatureNetworkOverviewParameters() {
+    super(new Parameter[]{featureLists},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/interactive_ion_id_netw/interactive_ion_id_netw.html");
   }
 }
