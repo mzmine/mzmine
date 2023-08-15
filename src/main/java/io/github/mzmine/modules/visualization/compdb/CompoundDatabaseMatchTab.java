@@ -25,31 +25,28 @@
 
 package io.github.mzmine.modules.visualization.compdb;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.gui.framework.fx.AnnotationInterface;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.WeakAdapter;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import javafx.geometry.Orientation;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.GridPane;
-import org.jetbrains.annotations.NotNull;
 
-public class CompoundDatabaseMatchTab extends MZmineTab {
+public class CompoundDatabaseMatchTab extends SimpleTab implements AnnotationInterface {
 
   private final WeakAdapter weak = new WeakAdapter();
   private final FeatureTableFX table;
   private final ScrollPane scrollPane;
+  private int matches = 0;
 
   public CompoundDatabaseMatchTab(FeatureTableFX table) {
     super("Compound database matches", true, true);
@@ -99,6 +96,7 @@ public class CompoundDatabaseMatchTab extends MZmineTab {
             selectedRow);
         pane.add(matchPane, 0, j++);
         pane.add(new Separator(Orientation.HORIZONTAL), 0, j++);
+        matches++;
       }
     }
     scrollPane.setContent(pane);
@@ -120,32 +118,7 @@ public class CompoundDatabaseMatchTab extends MZmineTab {
   }
 
   @Override
-  public @NotNull Collection<? extends RawDataFile> getRawDataFiles() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public @NotNull Collection<? extends FeatureList> getFeatureLists() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public @NotNull Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-
-  }
-
-  @Override
-  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
-  }
-
-  @Override
-  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
+  public int getNumberOfMatches() {
+    return matches;
   }
 }

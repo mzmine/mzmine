@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.network_overview;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.gui.framework.fx.AnnotationInterface;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
@@ -37,6 +38,7 @@ import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStack
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
 import io.github.mzmine.util.javafx.WeakAdapter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
@@ -50,6 +52,8 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TreeItem;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
 import org.controlsfx.control.ToggleSwitch;
 import org.graphstream.graph.Node;
 import org.jetbrains.annotations.NotNull;
@@ -72,6 +76,8 @@ public class NetworkOverviewController {
   private FeatureNetworkController networkController;
   private FeatureTableFX internalTable;
   private MirrorScanWindowController mirrorScanController;
+
+  private List<AnnotationInterface> annotationInterfaces;
   private SpectraIdentificationResultsWindowFX spectralMatchesController;
   private CompoundDatabaseMatchTab compoundMatchController;
   private EdgeTableController edgeTableController;
@@ -106,8 +112,8 @@ public class NetworkOverviewController {
     // create annotations tab
     spectralMatchesController = new SpectraIdentificationResultsWindowFX(internalTable);
     compoundMatchController = new CompoundDatabaseMatchTab(internalTable);
-    gridAnnotations.add(spectralMatchesController.getContent(), 0, 0);
-    gridAnnotations.add(compoundMatchController.getContent(), 0, 1);
+    annotationInterfaces = List.of(spectralMatchesController, compoundMatchController);
+    layoutAnnotations();
 
     // create mirror scan tab
     var mirrorScanTab = new MirrorScanWindowFXML();
@@ -131,6 +137,24 @@ public class NetworkOverviewController {
       networkController.getNetworkPane().showFullGraph();
     }
   }
+
+  private void layoutAnnotations() {
+    gridAnnotations.getChildren().clear();
+    List<RowConstraints> rows = new ArrayList<>();
+    for (final AnnotationInterface inter : annotationInterfaces) {
+      if (!inter.hasMatches()) {
+        continue;
+      }
+
+      gridAnnotations.add(spectralMatchesController.getContent(), 0, rows.size());
+      RowConstraints row = new RowConstraints();
+      row.setFillHeight(true);
+      row.setVgrow(Priority.SOMETIMES);
+      rows.add(row);
+    }
+    gridAnnotations.getRowConstraints().setAll(rows);
+  }
+
 
   private void createEdgeTable() {
     try {
@@ -214,6 +238,7 @@ public class NetworkOverviewController {
         .flatMap(Collection::stream).toList();
     spectralMatchesController.setMatches(spectralMatches);
     compoundMatchController.setFeatureRows(rows);
+    layoutAnnotations();
   }
 
   /**

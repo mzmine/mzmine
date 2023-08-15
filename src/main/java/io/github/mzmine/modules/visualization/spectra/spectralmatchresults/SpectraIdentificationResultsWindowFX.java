@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.gui.framework.fx.AnnotationInterface;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
@@ -72,7 +73,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de) & SteffenHeu (s_heuc03@uni-muenster.de)
  */
-public class SpectraIdentificationResultsWindowFX extends SimpleTab {
+public class SpectraIdentificationResultsWindowFX extends SimpleTab implements AnnotationInterface {
 
   private static final Logger logger = Logger.getLogger(
       SpectraIdentificationResultsWindowFX.class.getName());
@@ -145,6 +146,10 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
     });
   }
 
+  @Override
+  public int getNumberOfMatches() {
+    return totalMatches.size();
+  }
 
   @NotNull
   private HBox createButtonMenu() {
