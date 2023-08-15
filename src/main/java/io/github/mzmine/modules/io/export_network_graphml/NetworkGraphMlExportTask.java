@@ -29,6 +29,7 @@ import static io.github.mzmine.util.files.FileAndPathUtil.getRealFilePathWithSuf
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkGenerator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -49,6 +50,7 @@ public class NetworkGraphMlExportTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(NetworkGraphMlExportTask.class.getName());
   private final FeatureList[] featureLists;
   private final File fileName;
+  private final ParameterSet parameters;
   private final double step;
 
   private double progress;
@@ -58,6 +60,7 @@ public class NetworkGraphMlExportTask extends AbstractTask {
     this.featureLists = parameters.getValue(NetworkGraphMlExportParameters.featureLists)
         .getMatchingFeatureLists();
     fileName = parameters.getValue(NetworkGraphMlExportParameters.filename);
+    this.parameters = parameters;
     // four steps each
     step = 1.0 / 4.0 / featureLists.length;
   }
@@ -123,6 +126,12 @@ public class NetworkGraphMlExportTask extends AbstractTask {
     }
 
     if (getStatus() == TaskStatus.PROCESSING) {
+      SimpleFeatureListAppliedMethod appliedMethod = new SimpleFeatureListAppliedMethod(
+          NetworkGraphMlExportModule.class, parameters, moduleCallDate);
+      for (final FeatureList featureList : featureLists) {
+        featureList.addDescriptionOfAppliedTask(appliedMethod);
+      }
+
       setStatus(TaskStatus.FINISHED);
     }
   }
