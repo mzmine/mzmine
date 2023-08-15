@@ -43,7 +43,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
   private double[] xValues;
   private double[] yValues;
   private double[] colorScaleValues;
-  private final double[] bubbleSizeValues;
+  private double[] bubbleSizeValues;
   private ParameterSet parameters;
 
   public KendrickMassPlotXYZDataset(double[] xValues, double[] yValues, double[] colorScaleValues,
@@ -242,6 +242,10 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
     return bubbleSizeValues[item];
   }
 
+  public void setBubbleSize(int item, double newValue) {
+    bubbleSizeValues[item] = newValue;
+  }
+
   public void setxValues(double[] values) {
     xValues = values;
   }
@@ -252,6 +256,10 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
 
   public void setColorScaleValues(double[] values) {
     colorScaleValues = values;
+  }
+
+  public void setBubbleSizeValues(double[] values) {
+    bubbleSizeValues = values;
   }
 
   public double[] getxValues() {
@@ -272,7 +280,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
 
   @Override
   public int getSeriesCount() {
-    return 2;
+    return 1;
   }
 
   public Comparable<?> getRowKey(int row) {
