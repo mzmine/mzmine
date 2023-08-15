@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.visualization.lipidannotationoverview.lipidbarchartplot;
+package io.github.mzmine.modules.visualization.lipidannotationoverview.lipidannotationoverviewplots;
 
 import eu.hansolo.fx.charts.SunburstChart;
 import eu.hansolo.fx.charts.SunburstChartBuilder;
@@ -42,17 +42,6 @@ public class LipidAnnotationSunburstPlot extends SunburstChart {
     this.treeNodeDataset = buildTreeDataset();
     this.theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     initTotalLipidIDSunburstPlot();
-    sunburstChart.setOnMouseMoved(event -> {
-      double sceneX = event.getSceneX();
-      double sceneY = event.getSceneY();
-      double x = treeNodeDataset.getAll().get(0).getX();
-      double y = treeNodeDataset.getAll().get(0).getY();
-      //if (sceneX == x && sceneY == y) {
-      treeNodeDataset.getAll().get(0).getChildren().get(0).getItem().setValue(200);
-      // }
-      System.out.println("Move");
-    });
-
   }
 
   public SunburstChart getSunburstChart() {
