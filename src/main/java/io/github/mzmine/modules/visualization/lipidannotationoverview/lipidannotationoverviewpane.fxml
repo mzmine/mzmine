@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-  minHeight="-Infinity" minWidth="-Infinity" prefHeight="605.0" prefWidth="867.0"
+  minHeight="-Infinity" minWidth="-Infinity" prefHeight="900.0" prefWidth="1400.0"
   xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.modules.visualization.lipidannotationoverview.LipidAnnotationOverviewPaneController">
   <center>
@@ -23,8 +23,8 @@
                   <content>
                     <AnchorPane minHeight="0.0" minWidth="0.0">
                       <children>
-                        <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="366.5"
-                          prefWidth="296.0" AnchorPane.bottomAnchor="0.0"
+                        <SplitPane dividerPositions="0.4719626168224299" orientation="VERTICAL"
+                          prefHeight="366.5" prefWidth="296.0" AnchorPane.bottomAnchor="0.0"
                           AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                           AnchorPane.topAnchor="0.0">
                           <items>
@@ -52,7 +52,33 @@
                 </Tab>
                 <Tab fx:id="eicTab" text="EIC">
                   <content>
-                    <AnchorPane minHeight="0.0" minWidth="0.0"/>
+                    <AnchorPane minHeight="0.0" minWidth="0.0">
+                      <children>
+                        <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="323.0"
+                          prefWidth="398.5" AnchorPane.bottomAnchor="0.0"
+                          AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                          AnchorPane.topAnchor="0.0">
+                          <items>
+                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0"
+                              prefWidth="160.0">
+                              <children>
+                                <BorderPane fx:id="ecnPane" prefHeight="157.0" prefWidth="396.5"
+                                  AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                  AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                              </children>
+                            </AnchorPane>
+                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0"
+                              prefWidth="160.0">
+                              <children>
+                                <BorderPane fx:id="eicPane" prefHeight="157.0" prefWidth="396.5"
+                                  AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                  AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                              </children>
+                            </AnchorPane>
+                          </items>
+                        </SplitPane>
+                      </children>
+                    </AnchorPane>
                   </content>
                 </Tab>
               </tabs>
@@ -77,12 +103,6 @@
                         <Tab fx:id="kendrickPlotTab" text="Kendrick Plot">
                           <content>
                             <AnchorPane minHeight="0.0" minWidth="0.0"/>
-                          </content>
-                        </Tab>
-                        <Tab fx:id="ecnModelTab" text="ECN Model">
-                          <content>
-                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0"
-                              prefWidth="200.0"/>
                           </content>
                         </Tab>
                       </tabs>

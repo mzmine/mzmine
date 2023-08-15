@@ -53,22 +53,19 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implements AnnotationType {
 
-  private static final Map<Class<? extends DataType>, Function<MatchedLipid, Object>> mapper =
-      Map.ofEntries(
-          createEntry(LipidMatchListType.class, match -> match),
-          createEntry(IonAdductType.class, match -> match.getIonizationType().getAdductName()),
-          createEntry(FormulaType.class, match -> MolecularFormulaManipulator
-              .getString(match.getLipidAnnotation().getMolecularFormula())),
-          createEntry(CommentType.class,
-              match -> match.getComment() != null ? match.getComment() : ""),
-          createEntry(LipidAnnotationMsMsScoreType.class, l -> l.getMsMsScore().floatValue()),
-          createEntry(LipidSpectrumType.class, match -> true),
-          createEntry(MzPpmDifferenceType.class, match -> {
-            // calc ppm error?
-            double exactMass = getExactMass(match);
-            return (float)((exactMass - match.getAccurateMz()) / exactMass) * 1000000;
-          })
-      );
+  private static final Map<Class<? extends DataType>, Function<MatchedLipid, Object>> mapper = Map.ofEntries(
+      createEntry(LipidMatchListType.class, match -> match),
+      createEntry(IonAdductType.class, match -> match.getIonizationType().getAdductName()),
+      createEntry(FormulaType.class, match -> MolecularFormulaManipulator.getString(
+          match.getLipidAnnotation().getMolecularFormula())),
+      createEntry(CommentType.class, match -> match.getComment() != null ? match.getComment() : ""),
+      createEntry(LipidAnnotationMsMsScoreType.class, l -> l.getMsMsScore().floatValue()),
+      createEntry(LipidSpectrumType.class, match -> true),
+      createEntry(MzPpmDifferenceType.class, match -> {
+        // calc ppm error?
+        double exactMass = getExactMass(match);
+        return (float) ((exactMass - match.getAccurateMz()) / exactMass) * 1000000;
+      }));
 
   private static final List<DataType> subTypes = List.of(//
       new LipidMatchListType(), //

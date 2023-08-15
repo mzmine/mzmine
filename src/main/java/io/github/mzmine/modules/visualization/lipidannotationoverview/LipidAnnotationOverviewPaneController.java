@@ -21,7 +21,10 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features.Feat
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
@@ -31,7 +34,9 @@ import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotC
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotParameters;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYZDataset;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickPlotDataTypes;
-import io.github.mzmine.modules.visualization.lipidannotationoverview.lipidbarchartplot.LipidAnnotationSunburstPlot;
+import io.github.mzmine.modules.visualization.lipidannotationoverview.lipidannotationoverviewplots.EquivalentCarbonNumberChart;
+import io.github.mzmine.modules.visualization.lipidannotationoverview.lipidannotationoverviewplots.EquivalentCarbonNumberDataset;
+import io.github.mzmine.modules.visualization.lipidannotationoverview.lipidannotationoverviewplots.LipidAnnotationSunburstPlot;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
@@ -68,7 +73,8 @@ import org.jfree.chart.plot.XYPlot;
 public class LipidAnnotationOverviewPaneController {
 
   public BorderPane featureTablePane;
-  public Tab eicTab;
+  public BorderPane eicPane;
+  public BorderPane ecnPane;
   public Tab matchtedLipidSpectrumTab;
   public BorderPane msOne;
   public BorderPane matchedMSMS;
@@ -78,6 +84,7 @@ public class LipidAnnotationOverviewPaneController {
 
   private FeatureTableFX featureTable;
   private KendrickMassPlotChart kendrickMassPlotChart;
+  private EquivalentCarbonNumberChart equivalentCarbonNumberChart;
   private SpectraPlot spectrumPlot;
 
   private FeatureTableFX internalFeatureTable;
@@ -88,6 +95,7 @@ public class LipidAnnotationOverviewPaneController {
   private final NumberFormat mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
   private final NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
   private final UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
+  private EquivalentCarbonNumberDataset ecnDataset;
 
 
   @FXML
@@ -109,6 +117,8 @@ public class LipidAnnotationOverviewPaneController {
     //kendrick plot
     buildKendrickMassPlot();
 
+    buildEcnModelPlot();
+
     //MS1 plot
     buildMsSpectrum(rows.get(0).getBestFeature());
 
@@ -123,7 +133,33 @@ public class LipidAnnotationOverviewPaneController {
 
   }
 
+  private void buildEcnModelPlot() {
+    MSMSLipidTools msmsLipidTools = new MSMSLipidTools();
+    int numberOfDBEs = 0;
+    if (focussedRows.get(0).getLipidMatches().get(0)
+        .getLipidAnnotation() instanceof MolecularSpeciesLevelAnnotation molecularAnnotation) {
+      numberOfDBEs = msmsLipidTools.getCarbonandDBEFromLipidAnnotaitonString(
+          molecularAnnotation.getAnnotation()).getValue();
+    } else if (focussedRows.get(0).getLipidMatches().get(0)
+        .getLipidAnnotation() instanceof SpeciesLevelAnnotation) {
+      numberOfDBEs = ((SpeciesLevelAnnotation) focussedRows.get(0).getLipidMatches().get(0)
+          .getLipidAnnotation()).getNumberOfDBEs();
+    }
+    ecnDataset = new EquivalentCarbonNumberDataset(focussedRows,
+        rowsWithLipidID.toArray(new FeatureListRow[0]),
+        focussedRows.get(0).getLipidMatches().get(0).getLipidAnnotation().getLipidClass(),
+        numberOfDBEs);
+    equivalentCarbonNumberChart = new EquivalentCarbonNumberChart("ECN Model", "Retention time",
+        "Number of Carbons", ecnDataset);
+    ecnPane.setCenter(equivalentCarbonNumberChart);
+    addEcnChartListener();
+  }
+
   private void buildEic(ModularFeature bestFeature) {
+    List<FeatureListRow> featureListRows = null;
+    // if (ecnDataset != null) {
+    //   featureListRows = ecnDataset.getLipidsForDBERows();
+    // }
     Map<Feature, String> labelsMap = new HashMap<Feature, String>(0);
 
     // scan selection
@@ -133,14 +169,12 @@ public class LipidAnnotationOverviewPaneController {
     // mz range
     Range<Double> mzRange = null;
     mzRange = bestFeature.getRawDataPointsMZRange();
-    // optimize output by extending the range
-    double upper = mzRange.upperEndpoint();
-    double lower = mzRange.lowerEndpoint();
-    double fiveppm = (upper * 5E-6);
-    mzRange = Range.closed(lower - fiveppm, upper + fiveppm);
 
+    //List<Feature> features = featureListRows.stream().map(FeatureListRow::getBestFeature).toList();
+    List<Feature> features = new ArrayList<>();
+    features.add(bestFeature);
     // labels
-    labelsMap.put(bestFeature, bestFeature.toString());
+    features.forEach(feature -> labelsMap.put(feature, feature.toString()));
 
     // get EIC window
     TICVisualizerTab window = new TICVisualizerTab(new RawDataFile[]{bestFeature.getRawDataFile()},
@@ -148,13 +182,12 @@ public class LipidAnnotationOverviewPaneController {
         TICPlotType.BASEPEAK, // plot type
         scanSelection, // scan selection
         mzRange, // mz range
-        null,
-        // new Feature[] {peak}, // selected features
+        features,// selected features
         labelsMap); // labels
 
     // get EIC Plot
     TICPlot ticPlot = window.getTICPlot();
-    // ticPlot.setPreferredSize(new Dimension(600, 200));
+    ticPlot.switchItemLabelsVisible();
     ticPlot.getChart().getLegend().setVisible(false);
 
     SplitPane ticAndMobilogram = new SplitPane();
@@ -169,7 +202,7 @@ public class LipidAnnotationOverviewPaneController {
       ticAndMobilogram.getItems().add(mobilogramChart);
     }
 
-    eicTab.setContent(ticAndMobilogram);
+    eicPane.setCenter(ticAndMobilogram);
   }
 
   private SimpleXYChart<PlotXYDataProvider> createMobilogramChart(ModularFeature peak,
@@ -258,16 +291,110 @@ public class LipidAnnotationOverviewPaneController {
 
   private void buildKendrickMassPlot() {
     kendrickMassPlotChart = buildKendrickMassPlotChart();
-    addChartListener();
+    addKendrickChartListener();
     kendrickPlotTab.setContent(kendrickMassPlotChart);
   }
 
-  private void addChartListener() {
+  private void addKendrickChartListener() {
     kendrickMassPlotChart.addChartMouseListener(new ChartMouseListenerFX() {
 
-      @Override
-      public void chartMouseMoved(ChartMouseEventFX event) {
+//      Double oldSize = null;
+//      Integer index = null;
+//      Double highlightSize = null;
+//
+//      @Override
+//      public void chartMouseMoved(ChartMouseEventFX event) {
+//        MouseEvent mouseEvent = event.getTrigger();
+//        XYPlot plot = kendrickMassPlotChart.getChart().getXYPlot();
+//        Rectangle2D plotArea = kendrickMassPlotChart.getRenderingInfo().getPlotInfo().getPlotArea();
+//        double xValue = plot.getDomainAxis()
+//            .java2DToValue(mouseEvent.getX(), plotArea, plot.getDomainAxisEdge());
+//        double yValue = plot.getRangeAxis()
+//            .java2DToValue(mouseEvent.getY(), plotArea, plot.getRangeAxisEdge());
+//        KendrickMassPlotXYZDataset dataset = (KendrickMassPlotXYZDataset) plot.getDataset();
+//        double[] xValues = new double[dataset.getItemCount(0)];
+//        if (oldSize != null && index != null) {
+//          dataset.setBubbleSize(index, oldSize);
+//          oldSize = null;
+//          index = null;
+//          kendrickMassPlotChart.getChart().getXYPlot().getRendererForDataset(dataset)
+//              .setSeriesItemLabelsVisible(0, false);
+//        }
+//        for (int i = 0; i < xValues.length; i++) {
+//          // Calculate threshold values based on the size of the data point
+//          double thresholdX = calculateThreshold(plotArea.getWidth(),
+//              dataset.getX(0, i).doubleValue());
+//          double thresholdY = calculateThreshold(plotArea.getHeight(),
+//              dataset.getY(0, i).doubleValue());
+//
+//          double xDiff = Math.abs(dataset.getX(0, i).doubleValue() - xValue);
+//          double yDiff = Math.abs(dataset.getY(0, i).doubleValue() - yValue);
+//          if (xDiff <= thresholdX && yDiff <= thresholdY) {
+//            System.out.println("X Diff: " + xDiff + "\n" + "y Diff: " + yDiff);
+//            System.out.println(
+//                "X value mouse  : " + xValue + "\n" + "x Value dataset: " + dataset.getX(0, i)
+//                    .doubleValue());
+//            System.out.println(
+//                "Y value mouse  : " + yValue + "\n" + "y Value dataset: " + dataset.getY(0, i)
+//                    .doubleValue());
+//            highlightSize = Arrays.stream(dataset.getBubbleSizeValues()).max().getAsDouble();
+//            oldSize = dataset.getBubbleSize(0, i);
+//            index = i;
+//            dataset.setBubbleSize(i, highlightSize);
+//            kendrickMassPlotChart.getChart().getXYPlot().getRendererForDataset(dataset)
+//                .setSeriesItemLabelsVisible(0, false);
+//            break;
+//          }
+//        }
+//      }
+
+      private double calculateThreshold(double plotSize, double dataValue) {
+        // Calculate the threshold based on a fraction of the data point size
+        double fraction = 0.05; // Adjust this value as needed
+        double dataRange = plotSize * fraction;
+        return Math.abs(dataRange / dataValue);
       }
+//      public void chartMouseMoved(ChartMouseEventFX event) {
+//        MouseEvent mouseEvent = event.getTrigger();
+//        XYPlot plot = kendrickMassPlotChart.getChart().getXYPlot();
+//        Rectangle2D plotBounds = new Rectangle2D.Double(plot.getDomainAxis().getLowerBound(),
+//            plot.getRangeAxis().getLowerBound(),
+//            plot.getDomainAxis().getUpperBound() - plot.getDomainAxis().getLowerBound(),
+//            plot.getRangeAxis().getUpperBound() - plot.getRangeAxis().getLowerBound());
+//        double xValue = plot.getDomainAxis()
+//            .java2DToValue(mouseEvent.getX(), plotBounds, plot.getDomainAxisEdge());
+//        double yValue = plot.getRangeAxis()
+//            .java2DToValue(mouseEvent.getY(), plotBounds, plot.getRangeAxisEdge());
+//        KendrickMassPlotXYZDataset dataset = (KendrickMassPlotXYZDataset) plot.getDataset();
+//        double[] xValues = new double[dataset.getItemCount(0)];
+//        if (oldSize != null && index != null) {
+//          dataset.setBubbleSize(index, oldSize);
+//          oldSize = null;
+//          index = null;
+//          kendrickMassPlotChart.getChart().getXYPlot().getRendererForDataset(dataset)
+//              .setSeriesItemLabelsVisible(0, false);
+//        }
+//        for (int i = 0; i < xValues.length; i++) {
+//          double xDiff = Math.abs(dataset.getX(0, i).doubleValue() - xValue);
+//          double yDiff = Math.abs(dataset.getY(0, i).doubleValue() - yValue);
+//          System.out.println("X Diff: " + xDiff + "\n" + "y Diff: " + yDiff);
+//          System.out.println(
+//              "X value plot  : " + xValue + "\n" + "x Value mouse: " + dataset.getX(0, i)
+//                  .doubleValue());
+//          System.out.println(
+//              "Y value plot  : " + yValue + "\n" + "y Value mouse: " + dataset.getY(0, i)
+//                  .doubleValue());
+//          if (xDiff <= threshold && yDiff <= threshold) {
+//            highlightSize = Arrays.stream(dataset.getBubbleSizeValues()).max().getAsDouble();
+//            oldSize = dataset.getBubbleSize(0, i);
+//            index = i;
+//            dataset.setBubbleSize(i, highlightSize);
+//            kendrickMassPlotChart.getChart().getXYPlot().getRendererForDataset(dataset)
+//                .setSeriesItemLabelsVisible(0, false);
+//            break;
+//          }
+//        }
+//      }
 
       @Override
       public void chartMouseClicked(ChartMouseEventFX event) {
@@ -284,9 +411,52 @@ public class LipidAnnotationOverviewPaneController {
               focussedRows.clear();
               focussedRows.setAll((ModularFeatureListRow) rowsWithLipidID.get(i));
               updatePlots();
+              break;
             }
           }
         }
+      }
+
+      @Override
+      public void chartMouseMoved(ChartMouseEventFX event) {
+
+      }
+    });
+
+  }
+
+  private void addEcnChartListener() {
+    equivalentCarbonNumberChart.addChartMouseListener(new ChartMouseListenerFX() {
+      @Override
+      public void chartMouseClicked(ChartMouseEventFX event) {
+        XYPlot plot = equivalentCarbonNumberChart.getChart().getXYPlot();
+        double xValue = plot.getDomainCrosshairValue();
+        double yValue = plot.getRangeCrosshairValue();
+        EquivalentCarbonNumberDataset dataset = (EquivalentCarbonNumberDataset) plot.getDataset();
+        double[] xValues = new double[dataset.getItemCount(0)];
+        for (int i = 0; i < xValues.length; i++) {
+          if ((event.getTrigger().getButton().equals(MouseButton.PRIMARY)) && (
+              event.getTrigger().getClickCount() == 1)) {
+            if (dataset.getX(0, i).doubleValue() == xValue
+                && dataset.getY(0, i).doubleValue() == yValue) {
+              focussedRows.clear();
+
+              int finalI = i;
+              List<FeatureListRow> list = rowsWithLipidID.stream()
+                  .filter(featureListRow -> featureListRow instanceof ModularFeatureListRow).filter(
+                      featureListRow -> featureListRow.get(LipidMatchListType.class)
+                          .contains(dataset.getMatchedLipid(finalI))).toList();
+              focussedRows.setAll((ModularFeatureListRow) list.get(0));
+              updatePlots();
+              break;
+            }
+          }
+        }
+      }
+
+      @Override
+      public void chartMouseMoved(ChartMouseEventFX event) {
+
       }
     });
   }
@@ -330,10 +500,11 @@ public class LipidAnnotationOverviewPaneController {
     buildMsSpectrum(focussedRows.get(0).getBestFeature());
     buildMatchedLipidSpectrum(focussedRows);
     buildEic(focussedRows.get(0).getBestFeature());
-    updateKendrickCorssHair(focussedRows.get(0));
+    updateCrossHair(focussedRows.get(0));
+    buildEcnModelPlot();
   }
 
-  private void updateKendrickCorssHair(ModularFeatureListRow row) {
+  private void updateCrossHair(ModularFeatureListRow row) {
     XYPlot plot = kendrickMassPlotChart.getChart().getXYPlot();
     double xValue = row.getAverageMZ();
     KendrickMassPlotXYZDataset dataset = (KendrickMassPlotXYZDataset) plot.getDataset();
@@ -344,6 +515,17 @@ public class LipidAnnotationOverviewPaneController {
         plot.setRangeCrosshairValue(dataset.getYValue(0, i));
       }
     }
+
+//    XYPlot ecnPlot = equivalentCarbonNumberChart.getChart().getXYPlot();
+//    double ecnxValue = row.getAverageMZ();
+//    EquivalentCarbonNumberDataset ecnDataset = (EquivalentCarbonNumberDataset) ecnPlot.getDataset();
+//    double[] ecnxValues = new double[ecnDataset.getItemCount(0)];
+//    for (int i = 0; i < ecnxValues.length; i++) {
+//      if (ecnDataset.getX(0, i).doubleValue() == ecnxValue) {
+//        ecnPlot.setDomainCrosshairValue(ecnxValue);
+//        ecnPlot.setRangeCrosshairValue(ecnDataset.getYValue(0, i));
+//      }
+//    }
   }
 
   private SpectraVisualizerTab buildSpectrumTab(RawDataFile dataFile, Feature peak) {
@@ -404,14 +586,6 @@ public class LipidAnnotationOverviewPaneController {
         kendrickMassPlotParameters, rowsWithLipidID);
     return new KendrickMassPlotChart("Kendrick Mass Plot", "m/z", "KMD (H)", "Retention time",
         kendrickMassPlotXYZDataset);
-  }
-
-  public KendrickMassPlotChart getKendrickMassPlotChart() {
-    return kendrickMassPlotChart;
-  }
-
-  public FeatureTableFX getFeatureTable() {
-    return featureTable;
   }
 
 }

@@ -46,7 +46,10 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javafx.util.Pair;
 
 /**
  * This class contains methods for MS/MS lipid identifications
@@ -408,5 +411,23 @@ public class MSMSLipidTools {
 
   public void sortMatchedLipidsBasedOnMSMSScore(List<MatchedLipid> matchedLipids) {
     matchedLipids.sort(Comparator.comparingDouble(MatchedLipid::getMsMsScore));
+  }
+
+  public Pair<Integer, Integer> getCarbonandDBEFromLipidAnnotaitonString(String lipidAnnotation) {
+    int numberOfCarbons = 0;
+    int doubleBondEquivalents = 0;
+
+    // Define the regular expression pattern
+    Pattern pattern = Pattern.compile("(\\d+):(\\d+)");
+    Matcher matcher = pattern.matcher(lipidAnnotation);
+
+    while (matcher.find()) {
+      int carbonValue = Integer.parseInt(matcher.group(1));
+      int doubleBondValue = Integer.parseInt(matcher.group(2));
+      numberOfCarbons += carbonValue;
+      doubleBondEquivalents += doubleBondValue;
+    }
+
+    return new Pair<>(numberOfCarbons, doubleBondEquivalents);
   }
 }
