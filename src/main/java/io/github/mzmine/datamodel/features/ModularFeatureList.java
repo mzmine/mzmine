@@ -37,7 +37,9 @@ import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.features.types.tasks.NodeRequest;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
@@ -68,6 +70,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.scene.Node;
+import javafx.scene.layout.Pane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -108,6 +112,7 @@ public class ModularFeatureList implements FeatureList {
   // grouping
   private List<RowGroup> groups;
 
+  private final Map<String, Map<Integer, Node>> bufferedCharts = new HashMap<>();
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
       @NotNull RawDataFile... dataFiles) {
@@ -856,5 +861,28 @@ public class ModularFeatureList implements FeatureList {
         }
       }
     }
+  }
+
+  public <S, T extends DataType<S> & GraphicalColumType<?>> Node getChartForRow(FeatureListRow row,
+      T type, RawDataFile file, Pane parentPane) {
+
+    final String key = type.getUniqueID() + (file != null ? file.getName() : "");
+    var idNodeMap = bufferedCharts.get(key);
+
+    if (idNodeMap == null) {
+      synchronized (bufferedCharts) { // thread safe generation of new type map
+        idNodeMap = new HashMap<>();
+        bufferedCharts.put(key, idNodeMap);
+      }
+    }
+
+    final Node node = idNodeMap.get(row.getID());
+    if(node != null && node.getParent() == null) {
+      return node;
+    }
+
+    final NodeRequest<S> request = new NodeRequest<>((ModularFeatureListRow) row, type,
+        row.get(type), file, parentPane); // todo add node request to task
+    return parentPane;
   }
 }
