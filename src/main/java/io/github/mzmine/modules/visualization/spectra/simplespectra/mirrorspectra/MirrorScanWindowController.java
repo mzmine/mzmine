@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.framework.FormattedTableCell;
+import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.CosinePairContributions;
@@ -69,13 +70,14 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Robin Schmid (<a
  * href="https://github.com/robinschmid">https://github.com/robinschmid</a>)
  */
 
-public class MirrorScanWindowController {
+public class MirrorScanWindowController implements FeatureRowInterfaceFx {
 
   public static final DataPointsTag[] tags = new DataPointsTag[]{DataPointsTag.ORIGINAL,
       DataPointsTag.FILTERED, DataPointsTag.ALIGNED};
@@ -246,8 +248,8 @@ public class MirrorScanWindowController {
     String precursorString = MessageFormat.format(": m/z {0}↔{1}; top↔bottom",
         mzFormat.format(precursorMZA) + labelA, mzFormat.format(precursorMZB) + labelB);
 
-    pnMirror.getChildren().removeAll();
-    pnNLMirror.getChildren().removeAll();
+    pnMirror.getChildren().clear();
+    pnNLMirror.getChildren().clear();
 
     final MZTolerance mzTol = getMzTolerance();
 
@@ -391,8 +393,8 @@ public class MirrorScanWindowController {
   public void clearScans() {
     tableMirror.getItems().clear();
     tableNLMIrror.getItems().clear();
-    pnMirror.getChildren().removeAll();
-    pnNLMirror.getChildren().removeAll();
+    pnMirror.getChildren().clear();
+    pnNLMirror.getChildren().clear();
   }
 
   public void setScans(Scan scan, Scan mirror, String labelA, String labelB) {
@@ -423,7 +425,7 @@ public class MirrorScanWindowController {
    */
   public void setScans(SpectralDBAnnotation db) {
     pnMirror.getChildren().clear();
-    pnNLMirror.getChildren().removeAll();
+    pnNLMirror.getChildren().clear();
     mirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromSpectralDBPeakIdentity(db);
     pnMirror.setCenter(mirrorSpecrumPlot);
   }
@@ -471,5 +473,20 @@ public class MirrorScanWindowController {
     // Tyrosine conjugated deoxycholic acid putative
     txtTop.setText("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00005716807");
     txtBottom.setText("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00005467946");
+  }
+
+  @Override
+  public boolean hasContent() {
+    return !pnMirror.getChildren().isEmpty();
+  }
+
+  @Override
+  public void setFeatureRows(final @NotNull List<? extends FeatureListRow> selectedRows) {
+    if (selectedRows.size() >= 2) {
+      setScans(selectedRows.get(0).getMostIntenseFragmentScan(),
+          selectedRows.get(1).getMostIntenseFragmentScan());
+    } else {
+      clearScans();
+    }
   }
 }

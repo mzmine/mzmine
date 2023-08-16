@@ -42,8 +42,10 @@ import org.jetbrains.annotations.Nullable;
  * @param isRemovePrecursor                        remove precursor signals
  * @param removePrecursorMz                        range to remove around the precursor +-
  * @param cropToMaxSignals                         abs max signals
- * @param signalThresholdForTargetIntensityPercent signal threshold to apply target percentage
- *                                                 filter
+ * @param signalThresholdForTargetIntensityPercent above this number of signals, the signals are
+ *                                                 filtered to include only the top N signals that
+ *                                                 make up X% of the intensity. This might include
+ *                                                 fewer than the specified number of signals.
  * @param targetIntensityPercentage                filter signals to retain X% intensity. e.g.,
  *                                                 0.98
  */
@@ -72,13 +74,14 @@ public record SpectralSignalFilter(boolean isRemovePrecursor, double removePrecu
   /**
    * Apply signal filters and sort by {@link DataPointSorter#DEFAULT_INTENSITY}
    *
-   * @param scan        data source
-   * @param minDP       minimum number of data points or -1 to deactivate
+   * @param scan  data source
+   * @param minDP minimum number of data points or -1 to deactivate
    * @return null if <minDP otherwise the DataPoint[] sorted by intensity
    * @throws MissingMassListException apply mass detection first
    */
   @Nullable
-  public DataPoint[] applyFilterAndSortByIntensity(final @NotNull Scan scan, final int minDP) throws MissingMassListException {
+  public DataPoint[] applyFilterAndSortByIntensity(final @NotNull Scan scan, final int minDP)
+      throws MissingMassListException {
     Double precursorMz = scan.getPrecursorMz();
     if (precursorMz == null) {
       return null;
