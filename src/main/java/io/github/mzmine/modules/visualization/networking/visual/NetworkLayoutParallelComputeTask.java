@@ -31,6 +31,7 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.Network
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.GraphStreamUtils;
+import io.github.mzmine.util.RangeUtils;
 import java.time.Instant;
 import java.util.List;
 import java.util.logging.Logger;
@@ -68,44 +69,22 @@ public class NetworkLayoutParallelComputeTask extends AbstractTask {
 
     double progressStep = 0.5 / clusters.size();
     // all graphs with layout applied
-    List<MultiGraph> graphs = clusters.stream().parallel()
+    List<MeasuredGraph> graphs = clusters.stream().parallel()
         .map(cluster -> GraphStreamUtils.createFilteredCopy(cluster.nodes())).peek(graph -> {
           if (isCanceled()) {
             return;
           }
           NetworkLayoutComputeTask.applyLayout(null, graph);
           progress.addAndGet(progressStep);
-        }).toList();
+        }).map(this::measureSize).toList();
 
     if (isCanceled()) {
       return;
     }
 
-    // bounding boxes from all graphs
-    Range<Double>[] xranges = new Range[graphs.size()];
-    Range<Double>[] yranges = new Range[graphs.size()];
-    double[] widths = new double[graphs.size()];
-    double[] heights = new double[graphs.size()];
-    double[] xyz = new double[3];
-    for (int i = 0; i < graphs.size(); i++) {
-      double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, maxX = Double.NEGATIVE_INFINITY, maxY = Double.NEGATIVE_INFINITY;
-      MultiGraph graph = graphs.get(i);
-      for (final Node node : graph) {
-        Toolkit.nodePosition(node, xyz);
-        minX = Math.min(minX, xyz[0]);
-        maxX = Math.max(maxX, xyz[0]);
-        minY = Math.min(minY, xyz[1]);
-        maxY = Math.max(maxY, xyz[1]);
-      }
-      xranges[i] = Range.closed(minX, maxX);
-      yranges[i] = Range.closed(minY, maxY);
-      widths[i] = maxX - minX;
-      heights[i] = maxY - minY;
-    }
-
     // edge length is roughly 1
-    final double space = 1;
-    double maxRowWidth = 60;
+    final double space = 0.4;
+    double maxRowWidth = 30;
     double startx = 0;
     double starty = 0;
     // current row
@@ -114,45 +93,92 @@ public class NetworkLayoutParallelComputeTask extends AbstractTask {
 
     // remove all nodes and add copies back in
     mainGraph.clear();
+
+    double[] xyz = new double[3];
+    // add one row of graphs
     for (int i = 0; i < graphs.size(); i++) {
-      MultiGraph graph = graphs.get(i);
-      Range<Double> xrange = xranges[i];
-      Range<Double> yrange = yranges[i];
-      double width = widths[i];
-      double height = heights[i];
-      maxHeightThisRow = Math.max(height, maxHeightThisRow);
-
-      for (final Node node : graph) {
-        Toolkit.nodePosition(node, xyz);
-        // move to zero and then to the current start
-        xyz[0] = xyz[0] - xrange.lowerEndpoint() + startx;
-        xyz[1] = maxHeightThisRow + (xyz[1] - yrange.lowerEndpoint()) + starty;
-        node.setAttribute("x", xyz[0]);
-        node.setAttribute("y", xyz[1]);
-      }
-
-      // add graph as copy over
-      GraphStreamUtils.copyGraphContent(graph, mainGraph);
-
-      progress.addAndGet(progressStep);
-
-      // finished graph
-      subnetsInRow++;
-      startx += width + space;
-      if (startx >= maxRowWidth) {
-        if (subnetsInRow == 1) {
-          // make maximum width larger to fit the largest network
-          maxRowWidth = Math.max(width, maxRowWidth);
+      maxHeightThisRow = 0;
+      subnetsInRow = 0;
+      startx = 0;
+      for (int j = i; j < graphs.size(); j++) {
+        MeasuredGraph g = graphs.get(j);
+        subnetsInRow++;
+        maxHeightThisRow = Math.max(g.height(), maxHeightThisRow);
+        startx += space + g.width();
+        if (startx >= maxRowWidth) {
+          if (subnetsInRow == 1) {
+            // make maximum width larger to fit the largest network
+            maxRowWidth = Math.max(g.width(), maxRowWidth);
+          }
+          break;
         }
-        // start new row
-        starty -= (maxHeightThisRow + space);
-        startx = 0;
-        maxHeightThisRow = 0;
-        subnetsInRow = 0;
       }
+
+      // reset for this row
+      startx = 0;
+      starty -= maxHeightThisRow;
+      // add rows
+      logger.info("Adding new row at " + starty);
+      for (; subnetsInRow > 0; i++, subnetsInRow--) {
+        MeasuredGraph mg = graphs.get(i);
+        MultiGraph g = mg.graph;
+
+        // move network to position
+        for (final Node node : g) {
+          Toolkit.nodePosition(node, xyz);
+          // move to zero and then to the current start
+          xyz[0] = startx + xyz[0] - mg.getX();
+          xyz[1] = starty + (xyz[1] - mg.getY());
+          node.setAttribute("x", xyz[0]);
+          node.setAttribute("y", xyz[1]);
+        }
+
+        startx += space + mg.width();
+
+        // add graph as copy over
+        GraphStreamUtils.copyGraphContent(g, mainGraph);
+        progress.addAndGet(progressStep);
+      }
+      starty -= space;
     }
 
     //
     setStatus(TaskStatus.FINISHED);
+  }
+
+  public MeasuredGraph measureSize(MultiGraph graph) {
+    double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, maxX = Double.NEGATIVE_INFINITY, maxY = Double.NEGATIVE_INFINITY;
+    double[] xyz = new double[3];
+    for (final Node node : graph) {
+      Toolkit.nodePosition(node, xyz);
+      minX = Math.min(minX, xyz[0]);
+      maxX = Math.max(maxX, xyz[0]);
+      minY = Math.min(minY, xyz[1]);
+      maxY = Math.max(maxY, xyz[1]);
+    }
+    return new MeasuredGraph(graph, Range.closed(minX, maxX), Range.closed(minY, maxY));
+  }
+
+  record MeasuredGraph(MultiGraph graph, Range<Double> xrange, Range<Double> yrange) {
+
+    public double height() {
+      return RangeUtils.rangeLength(yrange);
+    }
+
+    public double width() {
+      return RangeUtils.rangeLength(xrange);
+    }
+
+    public double getX() {
+      return xrange.lowerEndpoint();
+    }
+
+    public double getY() {
+      return yrange.lowerEndpoint();
+    }
+
+    public double getYEnd() {
+      return yrange.upperEndpoint();
+    }
   }
 }

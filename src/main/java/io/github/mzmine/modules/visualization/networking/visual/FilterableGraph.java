@@ -68,7 +68,7 @@ public class FilterableGraph extends MultiGraph {
         }
       });
     } else {
-      Task task = new NetworkLayoutComputeTask(frozen, gl);
+      Task task = new NetworkLayoutParallelComputeTask(gl);
       task.run();
     }
   }

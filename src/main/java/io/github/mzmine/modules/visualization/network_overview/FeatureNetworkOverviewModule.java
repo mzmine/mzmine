@@ -38,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class FeatureNetworkOverviewModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "Feature overview (networks)";
+  private static final String MODULE_NAME = "Feature overview / Interactive Ion Identity Molecular Networks";
   private static final String MODULE_DESCRIPTION = "Show networks";
 
   @Override
