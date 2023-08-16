@@ -575,7 +575,7 @@
 
     <MenuItem onAction="#runModule" text="MS/MS scatter plot"
       userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="Interactive Ion Identity Molecular Networks"
+    <MenuItem onAction="#runModule" text="Feature overview / Interactive Ion Identity Molecular Networks"
       userData="io.github.mzmine.modules.visualization.network_overview.FeatureNetworkOverviewModule"/>
     <MenuItem onAction="#runModule" text="Correlated features Δm/z histogram"
       userData="io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule"/>

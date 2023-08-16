@@ -172,7 +172,7 @@ import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotM
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
-import io.github.mzmine.modules.visualization.networking.AnnotationNetworkModule;
+import io.github.mzmine.modules.visualization.network_overview.FeatureNetworkOverviewModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
 import io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule;
@@ -426,7 +426,7 @@ public class BatchModeModulesList {
       MassvoltammogramFromFeatureListModule.class, //
       MSnTreeVisualizerModule.class, //
       MsMsVisualizerModule.class, //
-      AnnotationNetworkModule.class, //
+      FeatureNetworkOverviewModule.class, //
       CorrelatedFeaturesMzHistogramModule.class, //
       FeatureCorrelationHistogramModule.class, //
       RawDataSummaryModule.class, //

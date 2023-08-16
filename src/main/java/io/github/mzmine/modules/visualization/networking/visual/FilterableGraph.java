@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.networking.visual;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.GraphStreamUtils;
@@ -33,11 +34,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
-import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FilterableGraph extends MultiGraph {
@@ -57,16 +56,10 @@ public class FilterableGraph extends MultiGraph {
     }
   }
 
-  private static void copyAttributes(final Element source, final Element target) {
-    source.attributeKeys().forEach(att -> {
-      target.setAttribute(att, source.getAttribute(att));
-    });
-  }
-
   private void applyLayout(final @Nullable Node frozen, final MultiGraph gl,
       boolean externalThread) {
-    NetworkLayoutComputeTask task = new NetworkLayoutComputeTask(frozen, gl);
     if (externalThread) {
+      Task task = new NetworkLayoutParallelComputeTask(gl);
       MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH);
       task.addTaskStatusListener((task1, newStatus, oldStatus) -> {
         if (newStatus == TaskStatus.FINISHED) {
@@ -75,6 +68,7 @@ public class FilterableGraph extends MultiGraph {
         }
       });
     } else {
+      Task task = new NetworkLayoutParallelComputeTask(gl);
       task.run();
     }
   }
@@ -113,7 +107,8 @@ public class FilterableGraph extends MultiGraph {
   }
 
   public void setNodeFilter(Collection<Node> neighboringNodes, @Nullable Node frozen) {
-    MultiGraph gl = copyNetworkApplyLayout(neighboringNodes, frozen);
+    MultiGraph gl = GraphStreamUtils.createFilteredCopy(neighboringNodes);
+    applyLayout(frozen, gl, false);
 
     // copy network over
     showNetwork(gl);
@@ -134,61 +129,10 @@ public class FilterableGraph extends MultiGraph {
   public void showNetwork(final MultiGraph source) {
     // make sure its javafx
     MZmineCore.runLater(() -> {
-      clear();
-
-      source.nodes().forEach(n -> {
-        addCopy(this, n);
-      });
-      source.edges().forEach(e -> {
-        addCopy(this, e);
-      });
+      this.clear();
+      GraphStreamUtils.copyGraphContent(source, this);
       graphChangeListener.forEach(listener -> listener.accept(this));
     });
-  }
-
-  @NotNull
-  private MultiGraph copyNetworkApplyLayout(final Collection<Node> neighboringNodes,
-      final @Nullable Node frozen) {
-    MultiGraph gl = new MultiGraph("layout_graph");
-
-    for (Node n : neighboringNodes) {
-      addCopy(gl, n);
-    }
-    for (Node n : neighboringNodes) {
-      n.enteringEdges().forEach(edge -> {
-        // need to contain both nodes
-        if (neighboringNodes.contains(edge.getSourceNode()) && neighboringNodes.contains(
-            edge.getTargetNode())) {
-          addCopy(gl, edge);
-        }
-      });
-    }
-
-    applyLayout(frozen, gl, false);
-
-    return gl;
-  }
-
-  private Element addCopy(final MultiGraph g, final Element element) {
-    if (element instanceof Node n) {
-      var node = g.addNode(n.getId());
-      copyAttributes(n, node);
-      return node;
-    }
-    if (element instanceof Edge e) {
-      if (g.getEdge(e.getId()) != null) {
-        return null;
-      }
-      var source = g.getNode(e.getSourceNode().getId());
-      var target = g.getNode(e.getTargetNode().getId());
-      if (source == null || target == null) {
-        return null;
-      }
-      var edge = g.addEdge(e.getId(), source, target);
-      copyAttributes(e, edge);
-      return edge;
-    }
-    return null;
   }
 
   public void setNodeNeighborFilter(final List<Node> central, final int distance) {
