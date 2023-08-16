@@ -84,6 +84,7 @@ public class CompoundDatabaseMatchTab extends SimpleTab implements FeatureRowInt
 
   @Override
   public void setFeatureRows(final @NotNull List<? extends FeatureListRow> selectedRows) {
+    matches = 0;
     GridPane pane = new GridPane();
     int j = 0;
     for (var row : selectedRows) {
