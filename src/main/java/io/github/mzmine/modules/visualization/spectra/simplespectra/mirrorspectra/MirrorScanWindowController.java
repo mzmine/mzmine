@@ -477,7 +477,7 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
 
   @Override
   public boolean hasContent() {
-    return false;
+    return !pnMirror.getChildren().isEmpty();
   }
 
   @Override
