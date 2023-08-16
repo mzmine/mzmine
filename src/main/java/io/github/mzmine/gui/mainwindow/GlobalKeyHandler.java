@@ -34,7 +34,7 @@ import javafx.scene.input.KeyEvent;
 
 /**
  * Those keys can be added to other dialogs to enable the same behavior like in the main window.
- * E.g. quick search
+ * E.g. quick search. Adds support for double-click on keys like double shift
  */
 public class GlobalKeyHandler implements EventHandler<KeyEvent> {
 
