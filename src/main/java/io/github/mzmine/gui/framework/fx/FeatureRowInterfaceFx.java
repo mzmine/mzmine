@@ -25,11 +25,37 @@
 
 package io.github.mzmine.gui.framework.fx;
 
-public interface AnnotationInterface {
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-  int getNumberOfMatches();
+/**
+ * a JavaFX interface that can handle changes in selected rows, update the content based on the
+ * rows
+ */
+public interface FeatureRowInterfaceFx {
 
-  default boolean hasMatches() {
-    return getNumberOfMatches() > 0;
+  /**
+   * Defines if this JavaFX node has row specific content like annotations, charts, etc
+   *
+   * @return true if content available
+   */
+  boolean hasContent();
+
+  /**
+   * Defines if this JavaFX node has NO row specific content like annotations, charts, etc
+   *
+   * @return true if NO content available; opposite of {@link #hasContent()}
+   */
+  default boolean isEmptyContent() {
+    return !hasContent();
   }
+
+  /**
+   * Set the selected rows and update this interface
+   *
+   * @param selectedRows new list of rows - the old is replaced
+   */
+  void setFeatureRows(final @NotNull List<? extends FeatureListRow> selectedRows);
+
 }

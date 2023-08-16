@@ -28,7 +28,7 @@ package io.github.mzmine.modules.visualization.compdb;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.gui.framework.fx.AnnotationInterface;
+import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
@@ -40,8 +40,9 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.GridPane;
+import org.jetbrains.annotations.NotNull;
 
-public class CompoundDatabaseMatchTab extends SimpleTab implements AnnotationInterface {
+public class CompoundDatabaseMatchTab extends SimpleTab implements FeatureRowInterfaceFx {
 
   private final WeakAdapter weak = new WeakAdapter();
   private final FeatureTableFX table;
@@ -81,7 +82,8 @@ public class CompoundDatabaseMatchTab extends SimpleTab implements AnnotationInt
     setFeatureRow(selectedRow);
   }
 
-  public void setFeatureRows(final List<? extends FeatureListRow> selectedRows) {
+  @Override
+  public void setFeatureRows(final @NotNull List<? extends FeatureListRow> selectedRows) {
     GridPane pane = new GridPane();
     int j = 0;
     for (var row : selectedRows) {
@@ -118,7 +120,7 @@ public class CompoundDatabaseMatchTab extends SimpleTab implements AnnotationInt
   }
 
   @Override
-  public int getNumberOfMatches() {
-    return matches;
+  public boolean hasContent() {
+    return matches > 0;
   }
 }

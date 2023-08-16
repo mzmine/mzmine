@@ -25,8 +25,8 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.gui.framework.fx.AnnotationInterface;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
@@ -73,7 +73,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de) & SteffenHeu (s_heuc03@uni-muenster.de)
  */
-public class SpectraIdentificationResultsWindowFX extends SimpleTab implements AnnotationInterface {
+public class SpectraIdentificationResultsWindowFX extends SimpleTab implements
+    FeatureRowInterfaceFx {
 
   private static final Logger logger = Logger.getLogger(
       SpectraIdentificationResultsWindowFX.class.getName());
@@ -138,17 +139,21 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab implements A
       }
 
       var rows = c.getList().stream().map(TreeItem::getValue).toList();
-      var allMatches = rows.stream().map(ModularFeatureListRow::getSpectralLibraryMatches)
-          .flatMap(Collection::stream).toList();
-      setMatches(allMatches);
-
-      setTitle(rows);
+      setFeatureRows(rows);
     });
   }
 
   @Override
-  public int getNumberOfMatches() {
-    return totalMatches.size();
+  public boolean hasContent() {
+    return !totalMatches.isEmpty();
+  }
+
+  @Override
+  public void setFeatureRows(final @NotNull List<? extends FeatureListRow> rows) {
+    var allMatches = rows.stream().map(FeatureListRow::getSpectralLibraryMatches)
+        .flatMap(Collection::stream).toList();
+    setMatches(allMatches);
+    setTitle(rows);
   }
 
   @NotNull
@@ -251,7 +256,7 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab implements A
   /**
    * Column header title
    */
-  public void setTitle(List<ModularFeatureListRow> rows) {
+  public void setTitle(List<? extends FeatureListRow> rows) {
     column.setText(rows.stream().map(FeatureUtils::rowToString).collect(Collectors.joining("; ")));
   }
 
