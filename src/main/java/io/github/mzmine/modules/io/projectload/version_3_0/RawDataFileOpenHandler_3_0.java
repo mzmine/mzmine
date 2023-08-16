@@ -148,7 +148,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
       final XPath xpath = factory.newXPath();
 
       final XPathExpression expr = xpath.compile("//" + RawDataFileSaveHandler.ROOT_ELEMENT + "/"
-          + RawDataFileSaveHandler.BATCH_QUEUES_ROOT);
+                                                 + RawDataFileSaveHandler.BATCH_QUEUES_ROOT);
 
       final NodeList nodes = (NodeList) expr.evaluate(batchQueuesDocument, XPathConstants.NODESET);
       if (nodes.getLength() != 1) {
@@ -164,7 +164,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
         Element queueElement = (Element) batchQueues.item(i);
 
         List<String> errorMessages = new ArrayList<>();
-        BatchQueue batchQueue = BatchQueue.loadFromXml(queueElement, errorMessages);
+        BatchQueue batchQueue = BatchQueue.loadFromXml(queueElement, errorMessages, true);
         // TODO decide what to do with the warnings here
         if (!errorMessages.isEmpty()) {
           logger.log(Level.WARNING, "Warnings during batch file import:");
@@ -195,7 +195,8 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
   @Override
   public String getTaskDescription() {
     return "Importing raw data files from project. Processing import batch step " + (processedSteps
-        + 1) + "/" + numSteps + ".";
+                                                                                     + 1) + "/"
+           + numSteps + ".";
   }
 
   @Override

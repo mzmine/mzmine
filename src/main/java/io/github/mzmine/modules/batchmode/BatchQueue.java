@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,25 +55,24 @@ import org.w3c.dom.NodeList;
 public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineProcessingModule>> {
 
   public static final Logger logger = Logger.getLogger(BatchQueue.class.getName());
-
+  // attr of the main xmlElement
+  public static final String XML_MZMINE_VERSION_ATTR = "mzmine_version";
   // Batch step element name.
   private static final String BATCH_STEP_ELEMENT = "batchstep";
-
   // Method element name.
   private static final String METHOD_ELEMENT = "method";
   private static final String MODULE_VERSION_ATTR = "parameter_version";
 
-  // attr of the main xmlElement
-  public static final String XML_MZMINE_VERSION_ATTR = "mzmine_version";
-
   /**
    * De-serialize from XML.
    *
-   * @param xmlElement the element that holds the XML.
+   * @param xmlElement        the element that holds the XML.
+   * @param skipUnkownModules skipping unknown modules is discouraged in batch mode. In GUI mode
+   *                          errors can be seen.
    * @return the de-serialized value.
    */
   public static BatchQueue loadFromXml(final Element xmlElement,
-      @NotNull final List<String> errorMessages) {
+      @NotNull final List<String> errorMessages, boolean skipUnkownModules) {
     final Semver mzmineVersion;
     final String mzmineVersionError;
     if (xmlElement.hasAttribute(XML_MZMINE_VERSION_ATTR)) {
@@ -142,9 +141,13 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
           moduleFound = MZmineCore.getModuleInstance(
               (Class<MZmineModule>) Class.forName(methodName));
         } catch (ClassNotFoundException e) {
-          logger.warning(
-              "Module not found for class " + methodName + " (maybe recreate the batch file)");
-          throw new UnknownModuleNameException(methodName, e);
+          String warning =
+              "Module not found for class " + methodName + " (maybe recreate the batch file)";
+          errorMessages.add(warning);
+          logger.warning(warning);
+          if (!skipUnkownModules) {
+            throw new UnknownModuleNameException(methodName, e);
+          }
         }
       }
       if (moduleFound != null) {
