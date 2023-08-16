@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -77,12 +77,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.SetChangeListener;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import org.jetbrains.annotations.NotNull;
@@ -122,16 +123,15 @@ public class ModularFeatureListRow implements FeatureListRow {
     this.flist = flist;
 
     // register listener to types map to automatically generate default properties for new DataTypes
-    flist.getRowTypes().addListener(
-        (MapChangeListener<? super Class<? extends DataType>, ? super DataType>) change -> {
-          if (change.wasAdded()) {
-            // do nothing for now
-          } else if (change.wasRemoved()) {
-            // remove type columns to maps
-            DataType type = change.getValueRemoved();
-            this.remove((Class) type.getClass());
-          }
-        });
+    flist.getRowTypes().addListener((SetChangeListener<? super DataType>) change -> {
+      if (change.wasAdded()) {
+        // do nothing for now
+      } else if (change.wasRemoved()) {
+        // remove type columns to maps
+        DataType type = change.getElementRemoved();
+        this.remove(type);
+      }
+    });
 
     // features
     List<RawDataFile> raws = flist.getRawDataFiles();
@@ -201,7 +201,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public ObservableMap<Class<? extends DataType>, DataType> getTypes() {
+  public Set<DataType> getTypes() {
     return flist.getRowTypes();
   }
 

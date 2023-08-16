@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.MZmineModule;
@@ -45,7 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -89,7 +90,7 @@ public interface FeatureList {
    */
   void applyRowBindings(FeatureListRow row);
 
-  ObservableMap<Class<? extends DataType>, DataType> getFeatureTypes();
+  ObservableSet<DataType> getFeatureTypes();
 
   void addFeatureType(Collection<DataType> types);
 
@@ -99,11 +100,48 @@ public interface FeatureList {
 
   void addRowType(@NotNull DataType<?>... types);
 
-  ObservableMap<Class<? extends DataType>, DataType> getRowTypes();
+  ObservableSet<DataType> getRowTypes();
 
-  boolean hasFeatureType(Class typeClass);
 
-  boolean hasRowType(Class typeClass);
+  /**
+   * Checks if typeClass was added as a FeatureType
+   *
+   * @param typeClass class of a DataType
+   * @return true if feature type is available
+   */
+  default boolean hasFeatureType(Class typeClass) {
+    return hasFeatureType(DataTypes.get(typeClass));
+  }
+
+  /**
+   * Checks if typeClass was added as a FeatureType
+   *
+   * @param type DataType
+   * @return true if feature type is available
+   */
+  default boolean hasFeatureType(DataType type) {
+    return getFeatureTypes().contains(type);
+  }
+
+  /**
+   * Checks if typeClass was added as a row type
+   *
+   * @param typeClass class of a DataType
+   * @return true if row type is available
+   */
+  default boolean hasRowType(Class typeClass) {
+    return hasRowType(DataTypes.get(typeClass));
+  }
+
+  /**
+   * Checks if typeClass was added as a row type
+   *
+   * @param type DataType
+   * @return true if row type is available
+   */
+  default boolean hasRowType(DataType type) {
+    return getRowTypes().contains(type);
+  }
 
   /**
    * Returns number of raw data files participating in the feature list
@@ -477,11 +515,19 @@ public interface FeatureList {
       if (isImagingFile && newFeature instanceof ModularFeature f) {
         // activate image for this feature
         DataTypeUtils.DEFAULT_IMAGING_COLUMNS_FEATURE.stream()
-            .filter(type -> type instanceof LinkedGraphicalType)
-            .forEach(type -> f.set(type, true));
+            .filter(type -> type instanceof LinkedGraphicalType).forEach(type -> f.set(type, true));
       }
     }
   }
+
+  default <T> DataType<T> getRowType(Class<? extends DataType<T>> clazz) {
+    return DataTypes.getOrNull(getRowTypes(), clazz);
+  }
+
+  default <T> DataType<T> getFeatureType(Class<? extends DataType<T>> clazz) {
+    return DataTypes.getOrNull(getFeatureTypes(), clazz);
+  }
+
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge

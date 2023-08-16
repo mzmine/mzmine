@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -213,11 +213,11 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
         .sorted(FeatureListRowSorter.DEFAULT_ID).toList();
     List<RawDataFile> rawDataFiles = flist.getRawDataFiles();
 
-    List<DataType> rowTypes = flist.getRowTypes().values().stream().filter(this::filterType)
+    List<DataType> rowTypes = flist.getRowTypes().stream().filter(this::filterType)
         .filter(type -> !removeEmptyCols || typeContainData(type, rows, false, -1))
         .collect(Collectors.toList());
 
-    List<DataType> featureTypes = flist.getFeatureTypes().values().stream().filter(this::filterType)
+    List<DataType> featureTypes = flist.getFeatureTypes().stream().filter(this::filterType)
         .filter(type -> !removeEmptyCols || typeContainData(type, rows, true, -1))
         .collect(Collectors.toList());
 

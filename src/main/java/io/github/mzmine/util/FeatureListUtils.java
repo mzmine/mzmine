@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,6 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
@@ -416,11 +415,8 @@ public class FeatureListUtils {
   public static void transferRowTypes(FeatureList targetFlist,
       Collection<FeatureList> sourceFlists) {
     for (FeatureList sourceFlist : sourceFlists) {
-      for (Class<? extends DataType> value : sourceFlist.getRowTypes().keySet()) {
-        if (!targetFlist.hasRowType(value)) {
-          targetFlist.addRowType(sourceFlist.getRowTypes().get(value));
-        }
-      }
+      // uses a set so okay to use addAll
+      targetFlist.addRowType(sourceFlist.getRowTypes());
     }
   }
 

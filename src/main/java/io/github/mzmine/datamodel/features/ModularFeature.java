@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -68,11 +68,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
+import javafx.collections.SetChangeListener;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import org.jetbrains.annotations.NotNull;
@@ -98,16 +99,15 @@ public class ModularFeature implements Feature, ModularDataModel {
     this.flist = flist;
 
     // register listener to types map to automatically generate default properties for new DataTypes
-    flist.getFeatureTypes().addListener(
-        (MapChangeListener<? super Class<? extends DataType>, ? super DataType>) change -> {
-          if (change.wasAdded()) {
-            // do nothing for now
-          } else if (change.wasRemoved()) {
-            // remove type columns to maps
-            DataType type = change.getValueRemoved();
-            this.remove((Class) type.getClass());
-          }
-        });
+    flist.getFeatureTypes().addListener((SetChangeListener<? super DataType>) change -> {
+      if (change.wasAdded()) {
+        // do nothing for now
+      } else if (change.wasRemoved()) {
+        // remove type columns to maps
+        DataType type = change.getElementRemoved();
+        this.remove(type);
+      }
+    });
   }
 
   // NOT TESTED
@@ -303,7 +303,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
-  public ObservableMap<Class<? extends DataType>, DataType> getTypes() {
+  public Set<DataType> getTypes() {
     return flist.getFeatureTypes();
   }
 
