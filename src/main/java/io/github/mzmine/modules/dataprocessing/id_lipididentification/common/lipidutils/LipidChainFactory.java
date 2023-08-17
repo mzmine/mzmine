@@ -88,7 +88,9 @@ public class LipidChainFactory {
     }
     return switch (chainType) {
       case ACYL_CHAIN -> calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
-      case ACYL_MONO_HYDROXY_CHAIN -> null; //TODO
+      case ACYL_MONO_HYDROXY_CHAIN ->
+          calculateMolecularFormulaAcylMonoHydroxyChain(chainLength, numberOfDBE,
+              chainType.getFixNumberOfOxygens());
       case TWO_ACYL_CHAINS_COMBINED -> calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
       case ALKYL_CHAIN -> calculateMolecularFormulaAlkylChain(chainLength, numberOfDBE);
       case AMID_CHAIN -> calculateMolecularFormulaAmidChain(chainLength, numberOfDBE);
@@ -103,6 +105,7 @@ public class LipidChainFactory {
           calculateMolecularFormulaSphingolipidBackboneChain(chainLength, numberOfDBE, chainType);
     };
   }
+
 
   public List<ILipidChain> buildLipidChainsInRange(LipidChainType chainType, int minChainLength,
       int maxChainLength, int minDBEs, int maxDBEs, boolean onlySearchForEvenChainLengths) {
@@ -128,6 +131,14 @@ public class LipidChainFactory {
       int numberOfDoubleBonds) {
     int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2;
     int numberOfOAtoms = 2;
+    return FormulaUtils.createMajorIsotopeMolFormula(
+        "C" + chainLength + "H" + numberOfHAtoms + "O" + numberOfOAtoms);
+  }
+
+  private IMolecularFormula calculateMolecularFormulaAcylMonoHydroxyChain(int chainLength,
+      int numberOfDoubleBonds, int fixNumberOfOxygens) {
+    int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2;
+    int numberOfOAtoms = 2 + fixNumberOfOxygens;
     return FormulaUtils.createMajorIsotopeMolFormula(
         "C" + chainLength + "H" + numberOfHAtoms + "O" + numberOfOAtoms);
   }
@@ -159,9 +170,10 @@ public class LipidChainFactory {
   private IMolecularFormula calculateMolecularFormulaSphingolipidBackboneChain(int chainLength,
       int numberOfDoubleBonds, LipidChainType chainType) {
     int numberOfOAtoms = chainType.getFixNumberOfOxygens();
-    int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2 + 1;
+    int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2 + 3;
+    int numberOfNAtoms = 1;
     return FormulaUtils.createMajorIsotopeMolFormula(
-        "C" + chainLength + "H" + numberOfHAtoms + "O" + numberOfOAtoms);
+        "C" + chainLength + "H" + numberOfHAtoms + "N" + numberOfNAtoms + "O" + numberOfOAtoms);
   }
 
   private String buildLipidChainAnnotation(LipidChainType chainType, int chainLength,
