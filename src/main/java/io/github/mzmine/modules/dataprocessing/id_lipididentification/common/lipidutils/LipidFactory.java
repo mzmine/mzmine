@@ -280,7 +280,7 @@ public class LipidFactory {
     IMolecularFormula secondaryProduct = FormulaUtils.createMajorIsotopeMolFormula("H");
     IMolecularFormula product = FormulaUtils.addFormula(backboneFormula, chainFormula);
     //remove Sphingolipid backbone atoms from Formula
-    FormulaUtils.subtractFormula(product, FormulaUtils.createMajorIsotopeMolFormula("C3H6"));
+    FormulaUtils.subtractFormula(product, FormulaUtils.createMajorIsotopeMolFormula("C3H8N"));
     return FormulaUtils.subtractFormula(product, secondaryProduct);
   }
 
