@@ -357,9 +357,10 @@ public class GlyceroAndGlycerophospholipidAnnotationTask extends AbstractTask {
                 parameters.getParameter(
                         GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
                     .getEmbeddedParameters());
-            LipidFragment annotatedFragment = glyceroAndGlyceroPhospholipidFragmentFactory.findLipidFragment();
-            if (annotatedFragment != null) {
-              annotatedFragments.add(annotatedFragment);
+            List<LipidFragment> annotatedFragmentsForDataPoint = glyceroAndGlyceroPhospholipidFragmentFactory.findLipidFragments();
+            if (annotatedFragmentsForDataPoint != null
+                && !annotatedFragmentsForDataPoint.isEmpty()) {
+              annotatedFragments.addAll(annotatedFragmentsForDataPoint);
             }
           }
         }

@@ -10,6 +10,8 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
 import io.github.mzmine.util.FormulaUtils;
+import java.util.ArrayList;
+import java.util.List;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
@@ -33,8 +35,8 @@ public abstract class AbstractLipidFragmentFactory {
     this.msMsScan = msMsScan;
   }
 
-  public LipidFragment findCommonLipidFragment() {
-    LipidFragment lipidFragment = null;
+  public List<LipidFragment> findCommonLipidFragment() {
+    List<LipidFragment> lipidFragment = new ArrayList<>();
     for (LipidFragmentationRule rule : rules) {
       if (!ionizationType.equals(rule.getIonizationType())
           || rule.getLipidFragmentationRuleType() == null) {
@@ -42,7 +44,7 @@ public abstract class AbstractLipidFragmentFactory {
       }
       LipidFragment detectedFragment = checkForCommonRuleTypes(rule);
       if (detectedFragment != null) {
-        lipidFragment = detectedFragment;
+        lipidFragment.add(detectedFragment);
         break;
       }
     }

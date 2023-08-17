@@ -334,15 +334,15 @@ public class SphingolipidAnnotationTask extends AbstractTask {
         if (rules != null && rules.length > 0) {
           for (DataPoint dataPoint : massList) {
             Range<Double> mzTolRangeMSMS = mzToleranceMS2.getToleranceRange(dataPoint.getMZ());
-            //TODO own factory
             ILipidFragmentFactory sphingolipidFragmentFactory = new SphingolipidFragmentFactory(
                 mzTolRangeMSMS, lipid, ionization, rules,
                 new SimpleDataPoint(dataPoint.getMZ(), dataPoint.getIntensity()), msmsScan,
                 parameters.getParameter(SphingolipidAnnotationParameters.lipidChainParameters)
                     .getEmbeddedParameters());
-            LipidFragment annotatedFragment = sphingolipidFragmentFactory.findLipidFragment();
-            if (annotatedFragment != null) {
-              annotatedFragments.add(annotatedFragment);
+            List<LipidFragment> annotatedFragmentsForDataPoint = sphingolipidFragmentFactory.findLipidFragments();
+            if (annotatedFragmentsForDataPoint != null
+                && !annotatedFragmentsForDataPoint.isEmpty()) {
+              annotatedFragments.addAll(annotatedFragmentsForDataPoint);
             }
           }
         }
@@ -363,6 +363,12 @@ public class SphingolipidAnnotationTask extends AbstractTask {
             for (MatchedLipid molecularSpeciesLevelMatchedLipid : molecularSpeciesLevelMatchedLipids) {
               molecularSpeciesLevelMatchedLipid.getMatchedFragments()
                   .addAll(matchedSpeciesLevelLipid.getMatchedFragments());
+
+            }
+          }
+          if (molecularSpeciesLevelMatchedLipids != null
+              && !molecularSpeciesLevelMatchedLipids.isEmpty()) {
+            for (MatchedLipid molecularSpeciesLevelMatchedLipid : molecularSpeciesLevelMatchedLipids) {
               //check MSMS score
               molecularSpeciesLevelMatchedLipid = matchedMolecularSpeciesLipidFactory.validateMolecularSpeciesLevelAnnotation(
                   row.getAverageMZ(), molecularSpeciesLevelMatchedLipid.getLipidAnnotation(),

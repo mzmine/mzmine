@@ -7,6 +7,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
@@ -17,9 +18,11 @@ import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -69,20 +72,66 @@ public class SphingoMolecularSpeciesLevelMatchedLipidFactory implements
       totalNumberOfCAtoms = ((SpeciesLevelAnnotation) lipidAnnotation).getNumberOfCarbons();
       totalNumberOfDBEs = ((SpeciesLevelAnnotation) lipidAnnotation).getNumberOfDBEs();
     }
+    Set<LipidFragment> detectedFragmentsWithChainInformation = detectedFragments.stream().filter(
+        fragment -> fragment.getLipidFragmentInformationLevelType()
+            .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)).collect(Collectors.toSet());
     Set<MolecularSpeciesLevelAnnotation> predictedCompositions = new HashSet<>();
-    List<ILipidChain> potentialChains = getChainsFromFragments(detectedFragments);
+    List<ILipidChain> potentialChains = getChainsFromFragments(
+        detectedFragmentsWithChainInformation);
     List<ILipidChain> backboneChains = getPotentialBackboneChainsFromPossibleChains(
         potentialChains);
     predictedCompositions.addAll(
         predictCompositionsUsingBackbones(backboneChains, lipidAnnotation, totalNumberOfCAtoms,
-            totalNumberOfDBEs, detectedFragments));
+            totalNumberOfDBEs, detectedFragmentsWithChainInformation));
 
     for (MolecularSpeciesLevelAnnotation molecularSpeciesLevelAnnotation : predictedCompositions) {
-      matchedMolecularSpeciesLevelAnnotations.add(
-          buildNewMolecularSpeciesLevelMatch(detectedFragments, molecularSpeciesLevelAnnotation,
-              accurateMz, massList, minMsMsScore, mzTolRangeMSMS, ionizationType));
+      if (checkChainTypesFitLipidClass(molecularSpeciesLevelAnnotation.getLipidChains(),
+          lipidAnnotation.getLipidClass())) {
+        Set<LipidFragment> fittingFragments = extractFragmentsForFittingChains(
+            molecularSpeciesLevelAnnotation.getLipidChains(),
+            detectedFragmentsWithChainInformation);
+        matchedMolecularSpeciesLevelAnnotations.add(
+            buildNewMolecularSpeciesLevelMatch(fittingFragments, molecularSpeciesLevelAnnotation,
+                accurateMz, massList, minMsMsScore, mzTolRangeMSMS, ionizationType));
+      }
+    }
+    if (!matchedMolecularSpeciesLevelAnnotations.isEmpty()) {
+      assignDataPointsToMostLikelyMatch(matchedMolecularSpeciesLevelAnnotations);
+      // removeUnlikelyAnnotations();
     }
     return matchedMolecularSpeciesLevelAnnotations;
+  }
+
+  private void assignDataPointsToMostLikelyMatch(
+      Set<MatchedLipid> matchedMolecularSpeciesLevelAnnotations) {
+    Map<DataPoint, Set<MatchedLipid>> dataPointMap = new HashMap<>();
+
+    //decide based on explained intensity
+    for (MatchedLipid matchedLipid : matchedMolecularSpeciesLevelAnnotations) {
+      Set<LipidFragment> matchedFragments = matchedLipid.getMatchedFragments();
+      for (LipidFragment matchedFragment : matchedFragments) {
+        DataPoint dataPoint = matchedFragment.getDataPoint();
+        dataPointMap.computeIfAbsent(dataPoint, k -> new HashSet<>()).add(matchedLipid);
+      }
+    }
+    // Find sets of MatchedLipid sharing the same DataPoint
+    Set<Set<MatchedLipid>> sharedSets = new HashSet<>();
+    for (Set<MatchedLipid> set : dataPointMap.values()) {
+      if (set.size() > 1) {
+        sharedSets.add(set);
+      }
+    }
+// Print the shared sets
+    for (Set<MatchedLipid> sharedSet : sharedSets) {
+      System.out.println("Shared DataPoint:");
+      for (MatchedLipid matchedLipid : sharedSet) {
+        Set<LipidFragment> matchedFragments = matchedLipid.getMatchedFragments();
+        for (LipidFragment matchedFragment : matchedFragments) {
+          System.out.println("Intensity: " + matchedFragment.getDataPoint().getIntensity());
+        }
+      }
+    }
+
   }
 
   private Set<MolecularSpeciesLevelAnnotation> predictCompositionsUsingBackbones(
@@ -131,7 +180,7 @@ public class SphingoMolecularSpeciesLevelMatchedLipidFactory implements
         potentialBackboneChains.add(potentialChain);
       }
     }
-    return potentialChains;
+    return potentialBackboneChains;
   }
 
   private List<ILipidChain> getChainsFromFragments(Set<LipidFragment> detectedFragments) {
@@ -166,7 +215,8 @@ public class SphingoMolecularSpeciesLevelMatchedLipidFactory implements
       for (ILipidChain chain : predictedChains) {
         if (lipidFragment != null && chain != null
             && lipidFragment.getChainLength() == chain.getNumberOfCarbons()
-            && lipidFragment.getNumberOfDBEs() == chain.getNumberOfDBEs()) {
+            && lipidFragment.getNumberOfDBEs() == chain.getNumberOfDBEs()
+            && lipidFragment.getLipidChainType() == chain.getLipidChainType()) {
           fittingFragments.add(lipidFragment);
         }
       }

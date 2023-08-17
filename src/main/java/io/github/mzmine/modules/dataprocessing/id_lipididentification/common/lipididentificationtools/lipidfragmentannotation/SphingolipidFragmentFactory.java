@@ -14,6 +14,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationChainParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sphingolipids.SphingolipidAnnotationChainParameters;
 import io.github.mzmine.util.FormulaUtils;
+import java.util.ArrayList;
 import java.util.List;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -46,12 +47,12 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
   }
 
   @Override
-  public LipidFragment findLipidFragment() {
-    LipidFragment commonLipidFragment = findCommonLipidFragment();
-    if (commonLipidFragment != null) {
-      return commonLipidFragment;
+  public List<LipidFragment> findLipidFragments() {
+    List<LipidFragment> commonLipidFragments = findCommonLipidFragment();
+    if (commonLipidFragments != null && !commonLipidFragments.isEmpty()) {
+      return commonLipidFragments;
     }
-    LipidFragment lipidFragment = null;
+    List<LipidFragment> lipidFragments = new ArrayList<>();
     for (LipidFragmentationRule rule : rules) {
       if (!ionizationType.equals(rule.getIonizationType())
           || rule.getLipidFragmentationRuleType() == null) {
@@ -59,11 +60,10 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
       }
       LipidFragment detectedFragment = checkForSphingolipidSpecificRuleTypes(rule);
       if (detectedFragment != null) {
-        lipidFragment = detectedFragment;
-        break;
+        lipidFragments.add(detectedFragment);
       }
     }
-    return lipidFragment;
+    return lipidFragments;
   }
 
   private LipidFragment checkForSphingolipidSpecificRuleTypes(LipidFragmentationRule rule) {
@@ -119,8 +119,7 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN, minChainLength, maxChainLength,
         minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
     for (ILipidChain lipidChain : sphingolipidBackboneChains) {
-      IMolecularFormula sphingosineFormula = sphingolipidBackboneChainToSphingosineFormula(
-          lipidChain);
+      IMolecularFormula sphingosineFormula = lipidChain.getChainMolecularFormula();
       rule.getIonizationType().ionizeFormula(sphingosineFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(sphingosineFormula);
       if (mzTolRangeMSMS.contains(mzExact)) {
@@ -145,8 +144,11 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN, minChainLength, maxChainLength,
         minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
     for (ILipidChain lipidChain : sphingolipidBackboneChains) {
-      IMolecularFormula sphingosineFormula = sphingolipidBackboneChainToSphingosineFormula(
-          lipidChain);
+      if (lipidChain.getNumberOfCarbons() == 18 && lipidChain.getNumberOfDBEs() == 0) {
+
+        System.out.println("HI");
+      }
+      IMolecularFormula sphingosineFormula = lipidChain.getChainMolecularFormula();
       IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(sphingosineFormula,
           modificationFormula);
       rule.getIonizationType().ionizeFormula(fragmentFormula);
@@ -174,11 +176,10 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN, minChainLength, maxChainLength,
         minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
     for (ILipidChain lipidChain : sphingolipidBackboneChains) {
-      IMolecularFormula sphingosineFormula = sphingolipidBackboneChainToSphingosineFormula(
-          lipidChain);
+      IMolecularFormula sphingosineFormula = lipidChain.getChainMolecularFormula();
       IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(sphingosineFormula,
           modificationFormula);
-      rule.getIonizationType().ionizeFormula(fragmentFormula);
+      ionizeFragmentBasedOnPolarity(fragmentFormula, rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(fragmentFormula);
       if (mzTolRangeMSMS.contains(mzExact)) {
         int chainLength = lipidChain.getNumberOfCarbons();
@@ -202,8 +203,7 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN, minChainLength, maxChainLength,
         minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
     for (ILipidChain lipidChain : sphingolipidBackboneChains) {
-      IMolecularFormula sphingosineFormula = sphingolipidBackboneChainToSphingosineFormula(
-          lipidChain);
+      IMolecularFormula sphingosineFormula = lipidChain.getChainMolecularFormula();
       IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(sphingosineFormula,
           modificationFormula);
       rule.getIonizationType().ionizeFormula(fragmentFormula);
@@ -275,11 +275,6 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
       }
     }
     return null;
-  }
-
-  private IMolecularFormula sphingolipidBackboneChainToSphingosineFormula(ILipidChain lipidChain) {
-    return FormulaUtils.addFormula(lipidChain.getChainMolecularFormula(),
-        FormulaUtils.createMajorIsotopeMolFormula("N"));
   }
 
 }

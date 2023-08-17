@@ -330,7 +330,7 @@ public class FattyAcylAnnotationTask extends AbstractTask {
 //                new SimpleDataPoint(dataPoint.getMZ(), dataPoint.getIntensity()), msmsScan,
 //                parameters.getParameter(FattyAcylAnnotationParameters.lipidChainParameters)
 //                    .getEmbeddedParameters());
-//            LipidFragment annotatedFragment = glyceroAndGlyceroPhospholipidFragmentFactory.findLipidFragment();
+//            LipidFragment annotatedFragment = glyceroAndGlyceroPhospholipidFragmentFactory.findLipidFragments();
 //            if (annotatedFragment != null) {
 //              annotatedFragments.add(annotatedFragment);
 //            }

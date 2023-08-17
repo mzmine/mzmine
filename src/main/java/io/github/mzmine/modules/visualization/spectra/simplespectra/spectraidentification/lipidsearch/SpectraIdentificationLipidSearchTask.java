@@ -54,6 +54,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -315,14 +316,17 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
             parameters.getParameter(
                     GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
                 .getEmbeddedParameters());
-        LipidFragment annotatedFragment = glyceroAndGlyceroPhospholipidFragmentFactory.findLipidFragment();
-        if (annotatedFragment != null) {
-          double relMassDev = ((annotatedFragment.getMzExact() - massList[i].getMZ())
-              / annotatedFragment.getMzExact()) * 1000000;
-          annotatedMassList.put(massList[i],
-              annotatedFragment.getLipidClass().getAbbr() + " " + annotatedFragment.getRuleType()
-                  + " " + ionization.getAdductName() + ", Δ " + NumberFormat.getInstance()
-                  .format(relMassDev) + " ppm");
+        List<LipidFragment> annotatedFragments = glyceroAndGlyceroPhospholipidFragmentFactory.findLipidFragments();
+        for (LipidFragment annotatedFragment : annotatedFragments) {
+
+          if (annotatedFragment != null) {
+            double relMassDev = ((annotatedFragment.getMzExact() - massList[i].getMZ())
+                / annotatedFragment.getMzExact()) * 1000000;
+            annotatedMassList.put(massList[i],
+                annotatedFragment.getLipidClass().getAbbr() + " " + annotatedFragment.getRuleType()
+                    + " " + ionization.getAdductName() + ", Δ " + NumberFormat.getInstance()
+                    .format(relMassDev) + " ppm");
+          }
         }
       }
     }

@@ -14,6 +14,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidChainFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationChainParameters;
 import io.github.mzmine.util.FormulaUtils;
+import java.util.ArrayList;
 import java.util.List;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -46,12 +47,12 @@ public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
         .getValue();
   }
 
-  public LipidFragment findLipidFragment() {
-    LipidFragment commonLipidFragment = findCommonLipidFragment();
-    if (commonLipidFragment != null) {
-      return commonLipidFragment;
+  public List<LipidFragment> findLipidFragments() {
+    List<LipidFragment> commonLipidFragments = findCommonLipidFragment();
+    if (commonLipidFragments != null && !commonLipidFragments.isEmpty()) {
+      return commonLipidFragments;
     }
-    LipidFragment lipidFragment = null;
+    List<LipidFragment> lipidFragments = new ArrayList<>();
     for (LipidFragmentationRule rule : rules) {
       if (!ionizationType.equals(rule.getIonizationType())
           || rule.getLipidFragmentationRuleType() == null) {
@@ -59,11 +60,10 @@ public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
       }
       LipidFragment detectedFragment = checkForGlyceroAndGlyceroPhospholipidSpecificRuleTypes(rule);
       if (detectedFragment != null) {
-        lipidFragment = detectedFragment;
-        break;
+        lipidFragments.add(detectedFragment);
       }
     }
-    return lipidFragment;
+    return lipidFragments;
   }
 
   private LipidFragment checkForGlyceroAndGlyceroPhospholipidSpecificRuleTypes(
