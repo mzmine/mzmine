@@ -482,9 +482,8 @@ class LipidMsOneLevelTest {
         MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
   }
 
-
   @Test
-  void molecularFormulaLevelTestCer() {
+  void molecularFormulaLevelTestCer3O() {
     Double EXACT_MASS_CER_34_0_O3 = FormulaUtils.calculateExactMass("C34H69NO4");
     IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
         LipidClasses.CERAMIDEANDDIHYDROCERAMIDEHYDROXYFATTYACID, 34, 0, 0).getMolecularFormula();
@@ -492,4 +491,66 @@ class LipidMsOneLevelTest {
         MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
   }
 
+  @Test
+  void molecularFormulaLevelTestCerP() {
+    Double EXACT_MASS_CER_34_0_O3 = FormulaUtils.calculateExactMass("C30H60NO6P");
+    IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.CERAMIDEPHOSPHATES, 30, 1, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(EXACT_MASS_CER_34_0_O3), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
+  }
+
+  @Test
+  void molecularFormulaLevelTestCer_O3() {
+    Double EXACT_MASS_CER_34_0_O3 = FormulaUtils.calculateExactMass("C38H77NO4");
+    IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.NACYLFOURHYDROXYPHINGANINES, 38, 0, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(EXACT_MASS_CER_34_0_O3), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
+  }
+
+  @Test
+  void molecularFormulaLevelTestCer_O2() {
+    Double EXACT_MASS_CER_32_1_O2 = FormulaUtils.calculateExactMass("C32H63NO3");
+    IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.NACYLSPHINGOSINESANDNACYLSPHINGANINES, 32, 1, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(EXACT_MASS_CER_32_1_O2), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
+  }
+
+  @Test
+  void molecularFormulaLevelTestCer_O4() {
+    Double EXACT_MASS_CER_34_0_O3 = FormulaUtils.calculateExactMass("C44H89NO5");
+    IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.PHYTOCERAMIDEHYDROXYFATTYACID, 44, 0, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(EXACT_MASS_CER_34_0_O3), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
+  }
+
+  @Test
+  void molecularFormulaLevelTestHexCer() {
+    Double EXACT_MASS_CER_34_0_O3 = FormulaUtils.calculateExactMass("C40H79NO8");
+    IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.HEXOSYLCERAMIDES, 34, 0, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(EXACT_MASS_CER_34_0_O3), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
+  }
+
+  @Test
+  void molecularFormulaLevelTestHexCerO3() {
+    Double EXACT_MASS_CER_34_0_O3 = FormulaUtils.calculateExactMass("C40H77NO9");
+    IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.HEXOSYLCERAMIDEHYDROXYFATTYACID, 34, 1, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(EXACT_MASS_CER_34_0_O3), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
+  }
+
+  @Test
+  void molecularFormulaLevelTestSM_O3() {
+    Double EXACT_MASS_CER_34_0_O3 = FormulaUtils.calculateExactMass("C39H79N2O7P");
+    IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.OXIDIZEDCERAMIDEPHOSPHOCHOLINES, 34, 1, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(EXACT_MASS_CER_34_0_O3), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
+  }
 }
