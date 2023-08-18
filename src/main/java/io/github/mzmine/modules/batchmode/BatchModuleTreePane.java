@@ -206,4 +206,8 @@ public class BatchModuleTreePane extends BorderPane {
   public void focusSearchField() {
     searchField.requestFocus();
   }
+
+  public void clearSearchText() {
+    searchField.clear();
+  }
 }
