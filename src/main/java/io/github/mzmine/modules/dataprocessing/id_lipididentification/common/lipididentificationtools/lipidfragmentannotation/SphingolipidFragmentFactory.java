@@ -184,9 +184,6 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
       IMolecularFormula sphingosineFormula = lipidChain.getChainMolecularFormula();
       rule.getIonizationType().ionizeFormula(sphingosineFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(sphingosineFormula);
-      if (lipidChain.getNumberOfCarbons() == 18 && lipidChain.getNumberOfDBEs() == 1) {
-        System.out.println("HI");
-      }
       if (mzTolRangeMSMS.contains(mzExact)) {
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
@@ -272,9 +269,6 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
           modificationFormula);
       ionizeFragmentBasedOnPolarity(fragmentFormula, rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(fragmentFormula);
-      if (lipidChain.getNumberOfCarbons() == 18 && lipidChain.getNumberOfDBEs() == 0) {
-        System.out.println("HI");
-      }
       if (mzTolRangeMSMS.contains(mzExact)) {
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
@@ -383,9 +377,6 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
         ionizeFragmentBasedOnPolarity(lipidChainFormula, rule.getPolarityType());
         Double mzExact = FormulaUtils.calculateMzRatio(lipidChainFormula);
-        if (lipidChain.getNumberOfCarbons() == 16 && lipidChain.getNumberOfDBEs() == 0) {
-          System.out.println("HI");
-        }
         if (mzTolRangeMSMS.contains(mzExact)) {
           int chainLength = lipidChain.getNumberOfCarbons();
           int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
@@ -415,9 +406,6 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
           rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-      if (lipidChain.getNumberOfCarbons() == 16 && lipidChain.getNumberOfDBEs() == 0) {
-        System.out.println("HI");
-      }
       if (mzTolRangeMSMS.contains(mzExact)) {
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
