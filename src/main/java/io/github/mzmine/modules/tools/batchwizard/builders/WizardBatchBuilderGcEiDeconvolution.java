@@ -75,6 +75,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
   private final Range<Double> rtForCWT;
   private final double sampleCountRatio;
   private final boolean rtSmoothing;
+  private final Boolean exportAnnotationGraphics;
 
   public WizardBatchBuilderGcEiDeconvolution(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -115,6 +116,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     this.exportPath = exportPath.value();
     exportGnps = getValue(params, WorkflowGcElectronImpactWizardParameters.exportGnps);
     exportMsp = getValue(params, WorkflowGcElectronImpactWizardParameters.exportMsp);
+    exportAnnotationGraphics = getValue(params,
+        WorkflowGcElectronImpactWizardParameters.exportAnnotationGraphics);
   }
 
   @Override
@@ -137,6 +140,10 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
       }
       if (exportMsp) {
         makeAndAddMSPExportStep(q);
+      }
+      // last as it might crash
+      if(exportAnnotationGraphics) {
+        makeAndAddAnnotationGraphicsExportStep(q, exportPath);
       }
     }
     return q;

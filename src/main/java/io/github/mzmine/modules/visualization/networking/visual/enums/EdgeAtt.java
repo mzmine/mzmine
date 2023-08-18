@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,7 @@ public enum EdgeAtt implements GraphElementAttr {
 
   @Override
   public String toString() {
-    return super.toString().replaceAll("_", " ");
+    return super.toString().toLowerCase();
   }
 
   public boolean isNumber() {

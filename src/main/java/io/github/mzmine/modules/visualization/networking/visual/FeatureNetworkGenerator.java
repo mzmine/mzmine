@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -79,39 +79,64 @@ public class FeatureNetworkGenerator {
   private boolean ms1FeatureShapeEdges;
 
 
-  public MultiGraph createNewGraph(FeatureList flist, boolean onlyBestNetworks,
-      boolean ms1FeatureShapeEdges) {
-    return createNewGraph(flist.getRows(), onlyBestNetworks, flist.getRowMaps(),
+  public MultiGraph createNewGraph(FeatureList flist, boolean useIonIdentity,
+      boolean onlyBestIonIdentityNet, boolean ms1FeatureShapeEdges) {
+    return createNewGraph(flist.getName(), flist, useIonIdentity, onlyBestIonIdentityNet,
         ms1FeatureShapeEdges);
   }
 
-  public MultiGraph createNewGraph(List<FeatureListRow> rows, boolean onlyBestNetworks,
+  public MultiGraph createNewGraph(String graphName, FeatureList flist, boolean useIonIdentity,
+      boolean onlyBestIonIdentityNet, boolean ms1FeatureShapeEdges) {
+    return createNewGraph(graphName, flist.getRows(), useIonIdentity, onlyBestIonIdentityNet,
+        flist.getRowMaps(), ms1FeatureShapeEdges);
+  }
+
+  public MultiGraph createNewGraph(List<FeatureListRow> rows, boolean useIonIdentity,
+      boolean onlyBestIonIdentityNet, Map<Type, R2RMap<RowsRelationship>> relationsMaps,
+      boolean ms1FeatureShapeEdges) {
+    return createNewGraph("molnet", rows, useIonIdentity, onlyBestIonIdentityNet, relationsMaps,
+        ms1FeatureShapeEdges);
+  }
+
+  public MultiGraph createNewGraph(String graphName, List<FeatureListRow> rows,
+      boolean useIonIdentity, boolean onlyBestIonIdentityNet,
       Map<Type, R2RMap<RowsRelationship>> relationsMaps, boolean ms1FeatureShapeEdges) {
-    this.graph = new MultiGraph("molnet");
+    this.graph = new MultiGraph(graphName);
     this.ms1FeatureShapeEdges = ms1FeatureShapeEdges;
     logger.info("Adding all annotations to a network");
     if (rows != null) {
-      // ion identity networks are currently not covered in the relations maps
-      // add all IIN
-      IonNetwork[] nets = IonNetworkLogic.getAllNetworks(rows, onlyBestNetworks);
-
       AtomicInteger added = new AtomicInteger(0);
-      for (IonNetwork net : nets) {
-        addIonNetwork(net, added);
-      }
 
-      // add relations
-      addNetworkRelationsEdges(nets);
+      if (useIonIdentity) {
+        // ion identity networks are currently not covered in the relations maps
+        // add all IIN
+        IonNetwork[] nets = IonNetworkLogic.getAllNetworks(rows, onlyBestIonIdentityNet);
+        for (IonNetwork net : nets) {
+          addIonNetwork(net, added);
+        }
+
+        // add relations
+        addNetworkRelationsEdges(nets);
+      }
 
       // add all types of row 2 row relation ships:
       // cosine similarity etc
       addRelationshipEdges(relationsMaps);
 
-      // connect representative edges to neutral molecule nodes from IINs
-      addConsensusEdgesToMoleculeNodes();
+      if (useIonIdentity) {
+        // connect representative edges to neutral molecule nodes from IINs
+        addConsensusEdgesToMoleculeNodes();
+      }
 
       // add gnps library matches to nodes
       addGNPSLibraryMatchesToNodes(rows);
+
+      // add missing row nodes
+      for (final FeatureListRow row : rows) {
+        if (row.hasMs2Fragmentation()) {
+          getRowNode(row, true);
+        }
+      }
 
       // add id name
       for (Node node : graph) {
@@ -303,7 +328,9 @@ public class FeatureNetworkGenerator {
     Edge edge = addNewEdge(a, b, type, sim.getAnnotation(), false, dmz);
     edge.setAttribute(EdgeAtt.LABEL.toString(), sim.getAnnotation());
     edge.setAttribute(EdgeAtt.SCORE.toString(), scoreForm.format(score));
-    edge.setAttribute(EdgeAtt.SCORE.toString(), scoreForm.format(score));
+    // weight for layout
+    setEdgeWeightQuadraticScore(edge, score);
+
     switch (type) {
       case MODIFIED_COSINE, GNPS_MODIFIED_COSINE ->
           edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
@@ -384,30 +411,27 @@ public class FeatureNetworkGenerator {
       added.incrementAndGet();
     });
     // add all edges between ions
-    net.forEach((row, value) -> {
+    List<FeatureListRow> rows = new ArrayList<>(net.keySet());
+    for (int i = 0; i < rows.size() - 1; i++) {
+      FeatureListRow row = rows.get(i);
       Node rowNode = getRowNode(row);
+      for (int j = i + 1; j < rows.size(); j++) {
+        FeatureListRow prow = rows.get(j);
 
-      value.getPartner().entrySet().stream().filter(Objects::nonNull).forEach(partner -> {
-        FeatureListRow prow = partner.getKey();
-        IonIdentity link = partner.getValue();
-        // do only once (for row with smaller index)
-        if (prow != null && link != null && row.getID() < prow.getID()) {
-          Node node1 = rowNode;
-          Node node2 = getRowNode(prow);
-          // node2 has to have higher mass (directed edge)
-          if (row.getAverageMZ() > prow.getAverageMZ()) {
-            Node tmp = node1;
-            node1 = node2;
-            node2 = tmp;
-          }
-          // add directed edge
-          addNewDeltaMZEdge(node1, node2, EdgeType.ION_IDENTITY,
-              Math.abs(row.getAverageMZ() - prow.getAverageMZ()));
-          added.incrementAndGet();
+        Node node1 = rowNode;
+        Node node2 = getRowNode(prow);
+        // node2 has to have higher mass (directed edge)
+        if (row.getAverageMZ() > prow.getAverageMZ()) {
+          Node tmp = node1;
+          node1 = node2;
+          node2 = tmp;
         }
-      });
-    });
-
+        // add directed edge
+        addNewDeltaMZEdge(node1, node2, EdgeType.ION_IDENTITY,
+            Math.abs(row.getAverageMZ() - prow.getAverageMZ()));
+        added.incrementAndGet();
+      }
+    }
   }
 
   private Node getNeutralLossNode() {
@@ -416,6 +440,7 @@ public class FeatureNetworkGenerator {
       var type = NodeType.NEUTRAL_LOSS_CENTER;
       neutralNode.setAttribute("ui.class", type.getUiClass().orElse(""));
       neutralNode.setAttribute(NodeAtt.TYPE.toString(), type);
+      neutralNode.setAttribute(NodeAtt.ID.toString(), "NEUTRAL_LOSS_NODE");
     }
     return neutralNode;
   }
@@ -449,9 +474,11 @@ public class FeatureNetworkGenerator {
     String name = MessageFormat.format("M (m={0} Da) Net{1} corrID={2}",
         mzForm.format(net.getNeutralMass()), net.getID(), net.getCorrID());
 
-    Node node = graph.getNode("Net" + net.getID());
+    String nodeId = "Net" + net.getID();
+    Node node = graph.getNode(nodeId);
     if (node == null && createNew) {
-      node = graph.addNode("Net" + net.getID());
+      node = graph.addNode(nodeId);
+      node.setAttribute(NodeAtt.ID.toString(), nodeId);
       node.setAttribute(NodeAtt.TYPE.toString(), NodeType.NEUTRAL_M);
       node.setAttribute(NodeAtt.LABEL.toString(), name);
       node.setAttribute("ui.label", name);
@@ -505,7 +532,7 @@ public class FeatureNetworkGenerator {
 
 
   public String toNodeName(FeatureListRow row) {
-    return "Row" + row.getID();
+    return String.valueOf(row.getID());
   }
 
   public Node getRowNode(FeatureListRow row, boolean addMissing) {
@@ -547,7 +574,19 @@ public class FeatureNetworkGenerator {
     Edge e = addNewEdge(node1, node2, type.toString(), label, directed, uiClass);
     e.setAttribute(EdgeAtt.TYPE.toString(), type);
     e.setAttribute(EdgeAtt.DELTA_MZ.toString(), mzForm.format(dmz));
+    if (type == EdgeType.ION_IDENTITY) {
+      setEdgeWeight(e, 0.25);
+    }
     return e;
+  }
+
+  private void setEdgeWeightQuadraticScore(final Edge edge, final double score) {
+    double weight = 0.2 + Math.pow(1d - score, 2) * 6d;
+    setEdgeWeight(edge, weight);
+  }
+
+  private void setEdgeWeight(final Edge edge, final double weight) {
+    edge.setAttribute("layout.weight", weight);
   }
 
   public Edge addNewEdge(Node node1, Node node2, EdgeType type, Object label, boolean directed) {

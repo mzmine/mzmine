@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
@@ -56,7 +57,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.io.export_features_gnps.masst.GnpsMasstSubmitModule;
@@ -78,7 +79,6 @@ import io.github.mzmine.modules.visualization.image_allmsms.ImageAllMsMsTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
-import io.github.mzmine.modules.visualization.lipidannotationoverview.LipidAnnotationOverviewModule;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
@@ -332,7 +332,8 @@ public class FeatureTableContextMenu extends ContextMenu {
 
   private void initShowMenu() {
 
-    final MenuItem showNetworkVisualizerItem = new MenuItem("Feature network");
+    final MenuItem showNetworkVisualizerItem = new ConditionalMenuItem("Feature overview (network)",
+        () -> hasMs2(selectedRows));
     showNetworkVisualizerItem.setOnAction(e -> showNetworkVisualizer());
 
     final MenuItem showXICItem = new ConditionalMenuItem("XIC (quick)",
@@ -478,7 +479,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     });
 
     final MenuItem showAllMSMSItem = new ConditionalMenuItem("All MS/MS",
-        () -> !selectedRows.isEmpty() && !selectedRows.get(0).getAllFragmentScans().isEmpty());
+        () -> hasMs2(selectedRows));
     showAllMSMSItem.setOnAction(e -> onShowAllMsMsClicked());
 
     final MenuItem showIsotopePatternItem = new ConditionalMenuItem("Isotope pattern",
@@ -499,11 +500,6 @@ public class FeatureTableContextMenu extends ContextMenu {
     showSpectralDBResults.setOnAction(
         e -> SpectraIdentificationResultsModule.showNewTab(selectedRows, table));
 
-    final MenuItem showLipidAnnotationSummary = new ConditionalMenuItem("Lipid annotation summary",
-        () -> !selectedRows.isEmpty() && rowHasMatchedLipidSignals(selectedRows.get(0)));
-    showLipidAnnotationSummary.setOnAction(
-        e -> LipidAnnotationOverviewModule.showNewTab(selectedRows, selectedFeatures, table));
-
     final MenuItem showMatchedLipidSignals = new ConditionalMenuItem("Matched lipid signals",
         () -> !selectedRows.isEmpty() && rowHasMatchedLipidSignals(selectedRows.get(0)));
     showMatchedLipidSignals.setOnAction(e -> {
@@ -511,7 +507,7 @@ public class FeatureTableContextMenu extends ContextMenu {
       if (matchedLipids != null && !matchedLipids.isEmpty()) {
         MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(
             matchedLipids.get(0).getLipidAnnotation().getAnnotation() + " Matched Signals",
-            new LipidSpectrumChart(selectedRows.get(0), null, false));
+            new LipidSpectrumChart(selectedRows.get(0), null));
         MZmineCore.getDesktop().addTab(matchedLipidSpectrumTab);
       }
     });
@@ -521,14 +517,18 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,
-            new SeparatorMenuItem(), show2DItem, show3DItem, showIntensityPlotItem,
-            showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem, new SeparatorMenuItem(),
-            showSpectrumItem, showFeatureFWHMMs1Item, showBestMobilityScanItem,
-            extractSumSpectrumFromMobScans, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
-            showDiaIons, showDiaMirror, new SeparatorMenuItem(), showIsotopePatternItem,
-            showCompoundDBResults, showSpectralDBResults, showLipidAnnotationSummary,
-            showMatchedLipidSignals, new SeparatorMenuItem(), showPeakRowSummaryItem,
-            showNetworkVisualizerItem);
+            new SeparatorMenuItem(), showNetworkVisualizerItem, show2DItem, show3DItem,
+            showIntensityPlotItem, showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem,
+            new SeparatorMenuItem(), showSpectrumItem, showFeatureFWHMMs1Item,
+            showBestMobilityScanItem, extractSumSpectrumFromMobScans, showMSMSItem,
+            showMSMSMirrorItem, showAllMSMSItem, showDiaIons, showDiaMirror,
+            new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
+            showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
+            showPeakRowSummaryItem);
+  }
+
+  private boolean hasMs2(final List<ModularFeatureListRow> selectedRows) {
+    return selectedRows.stream().anyMatch(FeatureListRow::hasMs2Fragmentation);
   }
 
   /**
@@ -536,7 +536,7 @@ public class FeatureTableContextMenu extends ContextMenu {
    */
   private void showNetworkVisualizer() {
     var featureList = table.getFeatureList();
-    if (selectedRows.isEmpty() || featureList==null) {
+    if (selectedRows.isEmpty() || featureList == null) {
       return;
     }
     NetworkOverviewWindow networks = new NetworkOverviewWindow(featureList, table, selectedRows);

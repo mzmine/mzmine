@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,19 +51,27 @@ public final class WorkflowLibraryGenerationWizardParameters extends WorkflowWiz
       "Metadata", "Metadata for all entries", new LibraryBatchMetadataParameters());
 
 
+  public static final BooleanParameter applySpectralNetworking = new BooleanParameter(
+      "Apply spectral networking (FBMN/IIMN)", """
+      Applies feature-based molecular networking/ion identity molecular networking
+      by comparing all MS2 spectra. Adds graphml export and enables use of visualizer. 
+      """, false);
+
+
   public WorkflowLibraryGenerationWizardParameters() {
     super(WorkflowWizardParameterFactory.LIBRARY_GENERATION,
         // actual parameters
-        metadata, exportPath, exportGnps, exportSirius);
+        metadata, exportPath, exportGnps, exportSirius, applySpectralNetworking);
   }
 
 
   public WorkflowLibraryGenerationWizardParameters(final File exportBasePath,
-      final boolean exportGnpsActive, boolean exportSiriusActive) {
+      final boolean exportGnpsActive, boolean exportSiriusActive, boolean applySpectralNetworking) {
     this();
     setParameter(exportPath, exportBasePath);
     setParameter(exportGnps, exportGnpsActive);
     setParameter(exportSirius, exportSiriusActive);
+    setParameter(this.applySpectralNetworking, applySpectralNetworking);
   }
 
 }

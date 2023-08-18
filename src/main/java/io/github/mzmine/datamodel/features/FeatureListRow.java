@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -290,16 +290,16 @@ public interface FeatureListRow extends ModularDataModel {
   @NotNull List<CompoundDBAnnotation> getCompoundAnnotations();
 
   /**
+   * @param annotations sets all compound annotations.
+   */
+  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
+
+  /**
    * Appends a compound annotation.
    *
    * @param id
    */
   void addCompoundAnnotation(CompoundDBAnnotation id);
-
-  /**
-   * @param annotations sets all compound annotations.
-   */
-  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
 
   void addSpectralLibraryMatch(SpectralDBAnnotation id);
 
@@ -455,7 +455,7 @@ public interface FeatureListRow extends ModularDataModel {
   default double getSumIntensity() {
     return this.getFeatures().stream().filter(Objects::nonNull)
         .filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN).mapToDouble(Feature::getHeight)
-        .sum();
+        .filter(Objects::nonNull).sum();
   }
 
   /**

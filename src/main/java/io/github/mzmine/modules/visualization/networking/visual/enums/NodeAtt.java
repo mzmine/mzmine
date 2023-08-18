@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,21 +55,23 @@ public enum NodeAtt implements GraphElementAttr {
   NONE, LABEL, ROW, TYPE, RT, MZ, ID, //
   LOG10_SUM_INTENSITY, MAX_INTENSITY, SUM_INTENSITY, //
   ADDUCT, FORMULA, NEUTRAL_MASS, CHARGE, MS2_VERIFICATION, // networking
-  IIN_ID, CORR_ID, CLUSTER_ID, COMMUNITY_ID, CLUSTER_SIZE, COMMUNITY_SIZE, NEIGHBOR_DISTANCE, // annotations
-  ANNOTATION, ANNOTATION_SCORE, LIB_MATCH, COMPOUND_NAME, MATCHED_SIGNALS, EXPLAINED_INTENSITY;
+  IIN_ID, FEATURE_SHAPE_CORR_ID, CLUSTER_ID, COMMUNITY_ID, CLUSTER_SIZE, COMMUNITY_SIZE, NEIGHBOR_DISTANCE, // annotations
+  ANNOTATION, ANNOTATION_SCORE, LIB_MATCH, COMPOUND_NAME, MATCHED_SIGNALS, EXPLAINED_INTENSITY, // Structure
+  ADDUCT_SPECTRAL_MATCH, FORMULA_SPECTRAL_MATCH, SMILES, INCHI, INCHIKEY;
 
 
   @Override
   public String toString() {
-    return super.toString().replaceAll("_", " ");
+    return super.toString().toLowerCase();
   }
 
   public boolean isNumber() {
     return switch (this) {
       case NONE, ROW, ANNOTATION, TYPE, FORMULA, ADDUCT, LABEL, MS2_VERIFICATION, COMPOUND_NAME, //
-          LIB_MATCH -> false;
+          LIB_MATCH, SMILES, INCHI, INCHIKEY, ADDUCT_SPECTRAL_MATCH, FORMULA_SPECTRAL_MATCH ->
+          false;
       case NEIGHBOR_DISTANCE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, //
-          NEUTRAL_MASS, CHARGE, IIN_ID, CORR_ID, CLUSTER_ID, COMMUNITY_ID, ANNOTATION_SCORE, //
+          NEUTRAL_MASS, CHARGE, IIN_ID, FEATURE_SHAPE_CORR_ID, CLUSTER_ID, COMMUNITY_ID, ANNOTATION_SCORE, //
           EXPLAINED_INTENSITY, CLUSTER_SIZE, COMMUNITY_SIZE, MATCHED_SIGNALS -> true;
     };
   }
@@ -127,7 +129,7 @@ public enum NodeAtt implements GraphElementAttr {
         IonIdentity ion = row.getBestIonIdentity();
         yield ion == null ? null : ion.getNetID();
       }
-      case CORR_ID -> row.getGroupID();
+      case FEATURE_SHAPE_CORR_ID -> row.getGroupID();
       case COMMUNITY_ID -> getNetworkStatsOrElse(MolNetCommunityIdType.class, row, -1);
       case CLUSTER_ID -> getNetworkStatsOrElse(MolNetClusterIdType.class, row, -1);
       case COMMUNITY_SIZE -> getNetworkStatsOrElse(MolNetCommunitySizeType.class, row, -1);
@@ -138,6 +140,19 @@ public enum NodeAtt implements GraphElementAttr {
       case LIB_MATCH ->
           row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::toString).findFirst()
               .orElse(null);
+      case SMILES -> row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::getSmiles)
+          .filter(Objects::nonNull).findFirst().orElse(null);
+      case INCHI -> row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::getInChI)
+          .filter(Objects::nonNull).findFirst().orElse(null);
+      case INCHIKEY ->
+          row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::getInChIKey)
+              .filter(Objects::nonNull).findFirst().orElse(null);
+      case ADDUCT_SPECTRAL_MATCH ->
+          row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::getAdductType)
+              .filter(Objects::nonNull).findFirst().orElse(null);
+      case FORMULA_SPECTRAL_MATCH ->
+          row.getSpectralLibraryMatches().stream().map(SpectralDBAnnotation::getFormula)
+              .filter(Objects::nonNull).findFirst().orElse(null);
       case ANNOTATION_SCORE ->
           row.getSpectralLibraryMatches().stream().map(match -> match.getSimilarity().getScore())
               .findFirst().orElse(null);
@@ -194,10 +209,10 @@ public enum NodeAtt implements GraphElementAttr {
   public NumberFormat getNumberFormat(boolean export) {
     return switch (this) {
       case NONE, ROW, ANNOTATION, TYPE, FORMULA, ADDUCT, LABEL, MS2_VERIFICATION, COMPOUND_NAME, //
-          LIB_MATCH,
+          LIB_MATCH, ADDUCT_SPECTRAL_MATCH, FORMULA_SPECTRAL_MATCH, INCHI, INCHIKEY, SMILES,
           // int
-          NEIGHBOR_DISTANCE, ID, CHARGE, IIN_ID, CORR_ID, CLUSTER_ID, COMMUNITY_ID, CLUSTER_SIZE, COMMUNITY_SIZE, MATCHED_SIGNALS ->
-          null;
+          NEIGHBOR_DISTANCE, ID, CHARGE, IIN_ID, FEATURE_SHAPE_CORR_ID, CLUSTER_ID, COMMUNITY_ID, //
+          CLUSTER_SIZE, COMMUNITY_SIZE, MATCHED_SIGNALS -> null;
       case RT -> MZmineCore.getConfiguration().getFormats(export).rtFormat();
       case MZ, NEUTRAL_MASS -> MZmineCore.getConfiguration().getFormats(export).mzFormat();
       case MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, EXPLAINED_INTENSITY ->

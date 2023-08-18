@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -77,6 +78,9 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.F
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.InterSampleHeightCorrParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingParameters;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingModule;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingParameters;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
@@ -91,11 +95,15 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportParameters;
+import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule;
+import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalParameters;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitParameters;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportParameters;
+import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportModule;
+import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
@@ -115,11 +123,13 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardPara
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
+import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt.Mode;
@@ -139,6 +149,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
+import io.github.mzmine.util.DimensionUnitUtil.DimUnit;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -299,9 +310,24 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         MZmineCore.getModuleInstance(ModularADAPChromatogramBuilderModule.class), param));
   }
 
+  protected static void makeAndAddDdaExportSteps(final BatchQueue q, final WizardSequence steps) {
+    // DDA workflow parameters
+    var params = steps.get(WizardPart.WORKFLOW);
+    OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
+    boolean isExportActive = optional.active();
+    File exportPath = optional.value();
+    boolean exportGnps = getValue(params, WorkflowDdaWizardParameters.exportGnps);
+    boolean exportSirius = getValue(params, WorkflowDdaWizardParameters.exportSirius);
+    boolean exportAnnotationGraphics = getValue(params,
+        WorkflowDdaWizardParameters.exportAnnotationGraphics);
+    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
+        exportAnnotationGraphics);
+  }
+
   // export for DDA
-  protected static void makeAndAddDdaExportSteps(final BatchQueue q, final Boolean isExportActive,
-      final File exportPath, final Boolean exportGnps, final Boolean exportSirius) {
+  protected static void makeAndAddDdaExportSteps(final BatchQueue q, final boolean isExportActive,
+      final File exportPath, final boolean exportGnps, final boolean exportSirius,
+      final boolean exportAnnotationGraphics) {
     if (isExportActive && exportPath != null) {
       if (exportGnps) {
         makeAndAddIimnGnpsExportStep(q, exportPath);
@@ -310,7 +336,43 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         makeAndAddSiriusExportStep(q, exportPath);
       }
       makeAndAddAllAnnotationExportStep(q, exportPath);
+      // have this last as it might fail
+      if (exportAnnotationGraphics) {
+        makeAndAddAnnotationGraphicsExportStep(q, exportPath);
+      }
     }
+  }
+
+  public static void makeAndAddAnnotationGraphicsExportStep(final BatchQueue q,
+      final File exportPath) {
+    final ParameterSet param = new ExportAllIdsGraphicalParameters().cloneParameterSet();
+
+    File fileName = FileAndPathUtil.eraseFormat(exportPath);
+    fileName = new File(fileName.getParentFile(), "graphics");
+
+    param.setParameter(ExportAllIdsGraphicalParameters.flists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    // going back into scans so rather use scan mz tol
+    param.setParameter(ExportAllIdsGraphicalParameters.exportSpectralLibMatches, true);
+
+    param.setParameter(ExportAllIdsGraphicalParameters.exportLipidMatches, false);
+    param.setParameter(ExportAllIdsGraphicalParameters.exportMobilogram, false);
+    param.setParameter(ExportAllIdsGraphicalParameters.exportImages, false);
+    param.setParameter(ExportAllIdsGraphicalParameters.exportShape, false);
+    // formats
+    param.setParameter(ExportAllIdsGraphicalParameters.exportPdf, true);
+    param.setParameter(ExportAllIdsGraphicalParameters.exportPng, false);
+    param.setParameter(ExportAllIdsGraphicalParameters.dir, fileName);
+    param.setParameter(ExportAllIdsGraphicalParameters.dpiScalingFactor, 3);
+    param.setParameter(ExportAllIdsGraphicalParameters.numMatches, 1);
+    //
+    GraphicsExportParameters exp = param.getValue(ExportAllIdsGraphicalParameters.export);
+    exp.setParameter(GraphicsExportParameters.unit, DimUnit.MM);
+    exp.setParameter(GraphicsExportParameters.width, 180d);
+    exp.setParameter(GraphicsExportParameters.height, true, 60d);
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(ExportAllIdsGraphicalModule.class), param));
   }
 
   protected static void makeAndAddIimnGnpsExportStep(final BatchQueue q, final File exportPath) {
@@ -989,6 +1051,45 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IsotopeFinderModule.class),
         param));
+  }
+
+  protected void makeAndAddSpectralNetworkingSteps(final BatchQueue q, final boolean isExportActive,
+      final File exportPath) {
+    // NETWORKING
+    ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(SpectralNetworkingModule.class).cloneParameterSet();
+
+    param.setParameter(SpectralNetworkingParameters.FEATURE_LISTS,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(SpectralNetworkingParameters.MAX_MZ_DELTA, true, 500d);
+    param.setParameter(SpectralNetworkingParameters.MIN_MATCH, 4);
+    param.setParameter(SpectralNetworkingParameters.CHECK_NEUTRAL_LOSS_SIMILARITY, false);
+    param.setParameter(SpectralNetworkingParameters.MIN_COSINE_SIMILARITY, 0.7);
+    param.setParameter(SpectralNetworkingParameters.ONLY_BEST_MS2_SCAN, true);
+    param.setParameter(SpectralNetworkingParameters.MZ_TOLERANCE, mzTolScans);
+
+    param.getParameter(SpectralNetworkingParameters.signalFilters).getEmbeddedParameters()
+        .setValue(SpectralSignalFilter.DEFAULT);
+
+    MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(SpectralNetworkingModule.class), param);
+    q.add(step);
+
+    // GRAPHML EXPORT
+    if (isExportActive) {
+      ParameterSet graphml = MZmineCore.getConfiguration()
+          .getModuleParameters(NetworkGraphMlExportModule.class).cloneParameterSet();
+
+      graphml.setParameter(NetworkGraphMlExportParameters.featureLists,
+          new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+      File file = FileAndPathUtil.getRealFilePathWithSuffix(exportPath, "_mzmine_networking",
+          "graphml");
+      graphml.setParameter(NetworkGraphMlExportParameters.filename, file);
+
+      step = new MZmineProcessingStepImpl<>(
+          MZmineCore.getModuleInstance(NetworkGraphMlExportModule.class), graphml);
+      q.add(step);
+    }
   }
 
   protected void makeAndAddLibrarySearchStep(final BatchQueue q,

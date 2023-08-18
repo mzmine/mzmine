@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -84,6 +84,7 @@ public final class MZmineCore {
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
   private static final MZmineCore instance = new MZmineCore();
+  private static boolean isFxInitialized = false;
 
   // the default headless desktop is returned if no other desktop is set (e.g., during start up)
   // it is also used in headless mode
@@ -169,7 +170,7 @@ public final class MZmineCore {
         } else {
           logger.log(Level.WARNING,
               "Cannot create or access temp file directory that was set via program argument: "
-                  + tempDirectory.getAbsolutePath());
+              + tempDirectory.getAbsolutePath());
         }
       }
 
@@ -211,6 +212,7 @@ public final class MZmineCore {
         try {
           logger.info("Starting MZmine GUI");
           Application.launch(MZmineGUI.class, args);
+          isFxInitialized = true;
         } catch (Throwable e) {
           e.printStackTrace();
           logger.log(Level.SEVERE, "Could not initialize GUI", e);
@@ -284,6 +286,11 @@ public final class MZmineCore {
    * Exit MZmine (usually used in headless mode)
    */
   public static void exit() {
+    if(isHeadLessMode() && isFxInitialized) {
+      // fx might be initialized for graphics export in headless mode - shut it down
+      // in GUI mode it is shut down automatically
+      Platform.exit();
+    }
     if (instance.batchExitCode == ExitCode.OK || instance.batchExitCode == null) {
       System.exit(0);
     } else {
@@ -562,10 +569,27 @@ public final class MZmineCore {
   }
 
   /**
+   * @param r runnable to either run directly or on the JavaFX thread
+   */
+  public static void runLaterEnsureFxInitialized(Runnable r) {
+    if (Platform.isFxApplicationThread()) {
+      r.run();
+    } else {
+      if (!isFxInitialized) {
+        initJavaFxInHeadlessMode();
+      }
+      Platform.runLater(r);
+    }
+  }
+
+  /**
    * Simulates Swing's invokeAndWait(). Based on
    * https://news.kynosarges.org/2014/05/01/simulating-platform-runandwait/
    */
   public static void runOnFxThreadAndWait(Runnable r) {
+    if (!isFxInitialized) {
+      initJavaFxInHeadlessMode();
+    }
     FxThreadUtil.runOnFxThreadAndWait(r);
   }
 
@@ -586,6 +610,18 @@ public final class MZmineCore {
    */
   public static @NotNull MZmineProject getProject() {
     return getProjectManager().getCurrentProject();
+  }
+
+  /**
+   * Might be needed for graphics export in headless batch mode
+   */
+  public static void initJavaFxInHeadlessMode() {
+    if (isFxInitialized) {
+      return;
+    }
+    Platform.startup(() -> {
+    });
+    isFxInitialized = true;
   }
 
   private void init() {
