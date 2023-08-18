@@ -84,6 +84,7 @@ public class ModuleQuickSelectDialog extends Stage {
   }
 
   private void runModuleAndHide(final MZmineRunnableModule module) {
+    moduleTree.clearSearchText();
     hide();
     MZmineCore.setupAndRunModule(module.getClass());
   }

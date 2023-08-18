@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.msms.MsMsVisualizerTab;
 import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramParameters;
 import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramType;
 import io.github.mzmine.modules.visualization.scan_histogram.chart.ScanHistogramTab;
@@ -56,6 +57,7 @@ public class RawDataSummaryPane extends BorderPane {
   private final BorderPane noiseMainPane;
   private final BorderPane noiseHistoPane;
   private final BorderPane noiseHistoDenormalizedPane;
+  private final MsMsVisualizerTab msmsScatterPlot;
 
 
   public RawDataSummaryPane(final RawDataFile[] dataFiles, final ParameterSet parameters) {
@@ -121,16 +123,20 @@ public class RawDataSummaryPane extends BorderPane {
       noiseMainPane.setCenter(noiseHistoPane);
     }
 
+    msmsScatterPlot = new MsMsVisualizerTab(dataFiles);
+
     var noisePane = new BorderPane(new SplitPane(noiseMainPane, massDefectBelow200HistoPane));
+    var msmsScattertab = new Tab("MS/MS scatter plot", msmsScatterPlot.getContent());
     var mztab = new Tab("m/z", new SplitPane(mzHistoPane, massDefectHistoPane));
     var noisetab = new Tab("Noise", noisePane);
     var intensitytab = new Tab("Intensity", intensityHistoPane);
+    msmsScattertab.setClosable(false);
     mztab.setClosable(false);
     noisetab.setClosable(false);
     intensitytab.setClosable(false);
 
     // set everything to main pane
-    TabPane tabPane = new TabPane(mztab, noisetab, intensitytab);
+    TabPane tabPane = new TabPane(msmsScattertab, mztab, noisetab, intensitytab);
     setCenter(tabPane);
   }
 
@@ -181,6 +187,8 @@ public class RawDataSummaryPane extends BorderPane {
     if (dataFiles == null) {
       return;
     }
+
+    msmsScatterPlot.onRawDataFileSelectionChanged(dataFiles);
 
     if (hasInjectTime(dataFiles.toArray(RawDataFile[]::new))) {
       noiseSplit.getItems().setAll(noiseHistoPane, noiseHistoDenormalizedPane);
