@@ -121,7 +121,7 @@ public class ScanSignalRemovalTask extends AbstractTask {
   }
 
   private void processFileScans() {
-    ScanDataAccess scans = EfficientDataAccess.of(dataFile, ScanDataType.CENTROID, scanSelection);
+    ScanDataAccess scans = EfficientDataAccess.of(dataFile, ScanDataType.MASS_LIST, scanSelection);
     totalScans = scans.getNumberOfScans();
 
     while (scans.hasNextScan()) {
@@ -149,7 +149,7 @@ public class ScanSignalRemovalTask extends AbstractTask {
    */
   private void processImsFileMobilityScans(IMSRawDataFile imsFile) {
     MobilityScanDataAccess frameIterator = EfficientDataAccess.of(imsFile,
-        MobilityScanDataType.CENTROID, scanSelection);
+        MobilityScanDataType.MASS_LIST, scanSelection);
 
     totalScans = frameIterator.getNumberOfScans();
 
