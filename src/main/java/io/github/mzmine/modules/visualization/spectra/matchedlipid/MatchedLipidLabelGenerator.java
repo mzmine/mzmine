@@ -72,9 +72,23 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
         .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
       sb.append(lipidFragment.getLipidChainType().getName()).append(" ")
           .append(lipidFragment.getChainLength()).append(":")
-          .append(lipidFragment.getNumberOfDBEs()).append("\n")
-          .append(lipidFragment.getIonFormula()).append("\n")
-          .append(MZmineCore.getConfiguration().getMZFormat().format(lipidFragment.getMzExact()));
+          .append(lipidFragment.getNumberOfDBEs());
+
+      //add info about oxygens
+      if (lipidFragment.getNumberOfOxygens() != null) {
+        sb.append(";").append(lipidFragment.getNumberOfOxygens()).append("O");
+      }
+      sb.append("\n");
+
+      sb.append(lipidFragment.getIonFormula()).append("\n")
+          .append(MZmineCore.getConfiguration().getMZFormat().format(lipidFragment.getMzExact()))
+          .append("\n");
+
+      // accuracy
+      float ppm = (float) ((lipidFragment.getMzExact() - lipidFragment.getDataPoint().getMZ())
+          / lipidFragment.getMzExact()) * 1000000;
+      sb.append("Δ ").append(MZmineCore.getConfiguration().getPPMFormat().format(ppm))
+          .append("ppm\n");
     } else {
       sb.append(lipidFragment.getRuleType().toString()).append("\n")
           .append(lipidFragment.getIonFormula()).append("\n")
