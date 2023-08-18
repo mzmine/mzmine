@@ -57,7 +57,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.io.export_features_gnps.masst.GnpsMasstSubmitModule;
@@ -79,6 +79,7 @@ import io.github.mzmine.modules.visualization.image_allmsms.ImageAllMsMsTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
+import io.github.mzmine.modules.visualization.lipidannotationoverview.LipidAnnotationOverviewModule;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
@@ -335,6 +336,11 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showNetworkVisualizerItem = new ConditionalMenuItem("Feature overview (network)",
         () -> hasMs2(selectedRows));
     showNetworkVisualizerItem.setOnAction(e -> showNetworkVisualizer());
+
+    final MenuItem showLipidAnnotationSummary = new ConditionalMenuItem("Lipid annotation summary",
+        () -> !selectedRows.isEmpty() && rowHasMatchedLipidSignals(selectedRows.get(0)));
+    showLipidAnnotationSummary.setOnAction(
+        e -> LipidAnnotationOverviewModule.showNewTab(selectedRows, selectedFeatures, table));
 
     final MenuItem showXICItem = new ConditionalMenuItem("XIC (quick)",
         () -> !selectedRows.isEmpty());
