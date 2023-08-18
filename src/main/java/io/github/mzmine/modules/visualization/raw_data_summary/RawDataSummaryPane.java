@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -61,7 +61,8 @@ public class RawDataSummaryPane extends BorderPane {
   public RawDataSummaryPane(final RawDataFile[] dataFiles, final ParameterSet parameters) {
     super();
 
-    final var scanDataType = parameters.getValue(RawDataSummaryParameters.scanDataType);
+    final var scanDataType = parameters.getValue(RawDataSummaryParameters.scanDataType)
+        .mapToScanType();
     final var scanSelection = parameters.getValue(RawDataSummaryParameters.scanSelection);
 
     final var useMzRange = parameters.getValue(RawDataSummaryParameters.mzRange);
