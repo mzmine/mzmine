@@ -63,7 +63,8 @@ public class RawDataSummaryPane extends BorderPane {
   public RawDataSummaryPane(final RawDataFile[] dataFiles, final ParameterSet parameters) {
     super();
 
-    final var scanDataType = parameters.getValue(RawDataSummaryParameters.scanDataType);
+    final var scanDataType = parameters.getValue(RawDataSummaryParameters.scanDataType)
+        .mapToScanType();
     final var scanSelection = parameters.getValue(RawDataSummaryParameters.scanSelection);
 
     final var useMzRange = parameters.getValue(RawDataSummaryParameters.mzRange);
