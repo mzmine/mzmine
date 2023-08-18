@@ -18,11 +18,9 @@ import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -71,6 +69,11 @@ public class SphingoMolecularSpeciesLevelMatchedLipidFactory implements
     if (lipidAnnotation instanceof SpeciesLevelAnnotation) {
       totalNumberOfCAtoms = ((SpeciesLevelAnnotation) lipidAnnotation).getNumberOfCarbons();
       totalNumberOfDBEs = ((SpeciesLevelAnnotation) lipidAnnotation).getNumberOfDBEs();
+    } else if (lipidAnnotation instanceof MolecularSpeciesLevelAnnotation) {
+      totalNumberOfCAtoms = ((MolecularSpeciesLevelAnnotation) lipidAnnotation).getLipidChains()
+          .stream().mapToInt(ILipidChain::getNumberOfCarbons).sum();
+      totalNumberOfDBEs = ((MolecularSpeciesLevelAnnotation) lipidAnnotation).getLipidChains()
+          .stream().mapToInt(ILipidChain::getNumberOfDBEs).sum();
     }
     Set<LipidFragment> detectedFragmentsWithChainInformation = detectedFragments.stream().filter(
         fragment -> fragment.getLipidFragmentInformationLevelType()
@@ -95,43 +98,7 @@ public class SphingoMolecularSpeciesLevelMatchedLipidFactory implements
                 accurateMz, massList, minMsMsScore, mzTolRangeMSMS, ionizationType));
       }
     }
-    if (!matchedMolecularSpeciesLevelAnnotations.isEmpty()) {
-      assignDataPointsToMostLikelyMatch(matchedMolecularSpeciesLevelAnnotations);
-      // removeUnlikelyAnnotations();
-    }
     return matchedMolecularSpeciesLevelAnnotations;
-  }
-
-  private void assignDataPointsToMostLikelyMatch(
-      Set<MatchedLipid> matchedMolecularSpeciesLevelAnnotations) {
-    Map<DataPoint, Set<MatchedLipid>> dataPointMap = new HashMap<>();
-
-    //decide based on explained intensity
-    for (MatchedLipid matchedLipid : matchedMolecularSpeciesLevelAnnotations) {
-      Set<LipidFragment> matchedFragments = matchedLipid.getMatchedFragments();
-      for (LipidFragment matchedFragment : matchedFragments) {
-        DataPoint dataPoint = matchedFragment.getDataPoint();
-        dataPointMap.computeIfAbsent(dataPoint, k -> new HashSet<>()).add(matchedLipid);
-      }
-    }
-    // Find sets of MatchedLipid sharing the same DataPoint
-    Set<Set<MatchedLipid>> sharedSets = new HashSet<>();
-    for (Set<MatchedLipid> set : dataPointMap.values()) {
-      if (set.size() > 1) {
-        sharedSets.add(set);
-      }
-    }
-// Print the shared sets
-    for (Set<MatchedLipid> sharedSet : sharedSets) {
-      System.out.println("Shared DataPoint:");
-      for (MatchedLipid matchedLipid : sharedSet) {
-        Set<LipidFragment> matchedFragments = matchedLipid.getMatchedFragments();
-        for (LipidFragment matchedFragment : matchedFragments) {
-          System.out.println("Intensity: " + matchedFragment.getDataPoint().getIntensity());
-        }
-      }
-    }
-
   }
 
   private Set<MolecularSpeciesLevelAnnotation> predictCompositionsUsingBackbones(

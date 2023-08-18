@@ -31,6 +31,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
@@ -66,6 +67,9 @@ public class SphingolipidAnnotationParameters extends SimpleParameterSet {
       "Search for lipid class specific fragments in MS/MS spectra",
       new SphingolipidAnnotationMSMSParameters());
 
+  public static final AdvancedParametersParameter<AdvancedSphingolipidAnnotationParameters> advanced = new AdvancedParametersParameter<>(
+      new AdvancedSphingolipidAnnotationParameters());
+
 //  public static final OptionalParameter<CustomLipidClassChoiceParameter> customLipidClasses = new OptionalParameter<>(
 //      new CustomLipidClassChoiceParameter("Search for custom lipid class",
 //          "If checked the algorithm searches for custom, by the user defined lipid classes",
@@ -73,7 +77,7 @@ public class SphingolipidAnnotationParameters extends SimpleParameterSet {
 
   public SphingolipidAnnotationParameters() {
     super(new Parameter[]{featureLists, lipidClasses, lipidChainParameters, mzTolerance,
-            searchForMSMSFragments,
+            searchForMSMSFragments, advanced,
             //customLipidClasses
         },
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_lipid_annotation/lipid-annotation.html");

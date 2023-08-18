@@ -51,6 +51,7 @@ public class LipidFragment {
   private static final String XML_LIPID_CLASS = "lipidclass";
   private static final String XML_CHAIN_LENGTH = "chainlength";
   private static final String XML_NUMBER_OF_DBES = "numberofdbes";
+  private static final String XML_NUMBER_OF_OXYGENS = "numberofoxygens";
   private static final String XML_LIPID_CHAIN_TYPE = "lipidchaintype";
 
   private final LipidFragmentationRuleType ruleType;
@@ -61,13 +62,14 @@ public class LipidFragment {
   private final ILipidClass lipidClass;
   private final Integer chainLength;
   private final Integer numberOfDBEs;
+  private final Integer numberOfOxygens;
   private final LipidChainType lipidChainType;
   private final Scan msMsScan;
 
   public LipidFragment(LipidFragmentationRuleType ruleType,
       LipidAnnotationLevel lipidFragmentInformationLevelType, Double mzExact, String ionFormula,
       DataPoint dataPoint, ILipidClass lipidClass, Integer chainLength, Integer numberOfDBEs,
-      LipidChainType lipidChainType, Scan msMsScan) {
+      Integer numberOfOxygens, LipidChainType lipidChainType, Scan msMsScan) {
     this.ruleType = ruleType;
     this.lipidFragmentInformationLevelType = lipidFragmentInformationLevelType;
     this.mzExact = mzExact;
@@ -76,6 +78,7 @@ public class LipidFragment {
     this.lipidClass = lipidClass;
     this.chainLength = chainLength;
     this.numberOfDBEs = numberOfDBEs;
+    this.numberOfOxygens = numberOfOxygens;
     this.lipidChainType = lipidChainType;
     this.msMsScan = msMsScan;
   }
@@ -110,6 +113,10 @@ public class LipidFragment {
 
   public Integer getNumberOfDBEs() {
     return numberOfDBEs;
+  }
+
+  public Integer getNumberOfOxygens() {
+    return numberOfOxygens;
   }
 
   public LipidChainType getLipidChainType() {
@@ -157,6 +164,13 @@ public class LipidFragment {
       writer.writeCharacters(CONST.XML_NULL_VALUE);
     }
     writer.writeEndElement();
+    writer.writeStartElement(XML_NUMBER_OF_OXYGENS);
+    if (numberOfOxygens != null) {
+      writer.writeCharacters(numberOfOxygens.toString());
+    } else {
+      writer.writeCharacters(CONST.XML_NULL_VALUE);
+    }
+    writer.writeEndElement();
     writer.writeStartElement(XML_LIPID_CHAIN_TYPE);
     if (lipidChainType != null) {
       writer.writeCharacters(lipidChainType.name());
@@ -188,6 +202,7 @@ public class LipidFragment {
     ILipidClass lipidClass = null;
     Integer chainLength = null;
     Integer numberOfDBEs = null;
+    Integer numberOfOxygens = null;
     LipidChainType lipidChainType = null;
     Scan msMsScan = null;
 
@@ -236,22 +251,28 @@ public class LipidFragment {
           }
           break;
         case XML_CHAIN_LENGTH:
-          if (lipidFragmentInformationLevelType != null && lipidFragmentInformationLevelType
-              .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
+          if (lipidFragmentInformationLevelType != null && lipidFragmentInformationLevelType.equals(
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
             chainLength = Integer.parseInt(reader.getElementText());
           }
           break;
         case XML_NUMBER_OF_DBES:
-          if (lipidFragmentInformationLevelType != null&&lipidFragmentInformationLevelType
-              .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
+          if (lipidFragmentInformationLevelType != null && lipidFragmentInformationLevelType.equals(
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
             numberOfDBEs = Integer.parseInt(reader.getElementText());
           }
           break;
+        case XML_NUMBER_OF_OXYGENS:
+          if (lipidFragmentInformationLevelType != null && lipidFragmentInformationLevelType.equals(
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
+            numberOfOxygens = Integer.parseInt(reader.getElementText());
+          }
+          break;
         case XML_LIPID_CHAIN_TYPE:
-          if (lipidFragmentInformationLevelType != null && lipidFragmentInformationLevelType
-              .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
-            lipidChainType =
-                    LipidParsingUtils.lipidChainTypeNameToLipidChainType(reader.getElementText());
+          if (lipidFragmentInformationLevelType != null && lipidFragmentInformationLevelType.equals(
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
+            lipidChainType = LipidParsingUtils.lipidChainTypeNameToLipidChainType(
+                reader.getElementText());
           }
           break;
         case CONST.XML_RAW_FILE_SCAN_ELEMENT:
@@ -263,8 +284,8 @@ public class LipidFragment {
     }
 
     return new LipidFragment(ruleType, lipidFragmentInformationLevelType, mzExact, ionFormula,
-        new SimpleDataPoint(mz, intensity), lipidClass, chainLength, numberOfDBEs, lipidChainType,
-        msMsScan);
+        new SimpleDataPoint(mz, intensity), lipidClass, chainLength, numberOfDBEs, numberOfOxygens,
+        lipidChainType, msMsScan);
   }
 
 }

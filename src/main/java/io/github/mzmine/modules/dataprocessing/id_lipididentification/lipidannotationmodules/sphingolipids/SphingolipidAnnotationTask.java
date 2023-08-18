@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.ILipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.SphingolipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
@@ -48,16 +49,14 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidAnnotationResolver;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationChainParameters;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -296,13 +295,23 @@ public class SphingolipidAnnotationTask extends AbstractTask {
       }
 
     }
-    addAnnotationsToFeatureList(row, possibleRowAnnotations);
+    if (!possibleRowAnnotations.isEmpty()) {
+      addAnnotationsToFeatureList(row, possibleRowAnnotations);
+    }
   }
 
   private void addAnnotationsToFeatureList(FeatureListRow row,
       Set<MatchedLipid> possibleRowAnnotations) {
-    List<MatchedLipid> finalResults = new ArrayList<>(possibleRowAnnotations);
-    finalResults.sort(Comparator.comparingDouble(MatchedLipid::getMsMsScore).reversed());
+    //consider previous annotations
+    List<MatchedLipid> previousLipidMatches = row.getLipidMatches();
+    if (!previousLipidMatches.isEmpty()) {
+      row.set(LipidMatchListType.class, null);
+      possibleRowAnnotations.addAll(previousLipidMatches);
+    }
+    LipidAnnotationResolver lipidAnnotationResolver = new LipidAnnotationResolver(true, true, true,
+        mzToleranceMS2, minMsMsScore);
+    List<MatchedLipid> finalResults = lipidAnnotationResolver.resolveFeatureListRowMatchedLipids(
+        row, possibleRowAnnotations);
     for (MatchedLipid matchedLipid : finalResults) {
       if (matchedLipid != null) {
         row.addLipidAnnotation(matchedLipid);
@@ -328,7 +337,7 @@ public class SphingolipidAnnotationTask extends AbstractTask {
         }
         DataPoint[] massList = null;
         massList = msmsScan.getMassList().getDataPoints();
-        massList = deisotopeMassList(massList);
+        massList = MSMSLipidTools.deisotopeMassList(massList, mzToleranceMS2);
         LipidFragmentationRule[] rules = lipid.getLipidClass().getFragmentationRules();
         Set<LipidFragment> annotatedFragments = new HashSet<>();
         if (rules != null && rules.length > 0) {
@@ -423,14 +432,5 @@ public class SphingolipidAnnotationTask extends AbstractTask {
     }
   }
 
-
-  private DataPoint[] deisotopeMassList(DataPoint[] massList) {
-    MassListDeisotoperParameters massListDeisotoperParameters = new MassListDeisotoperParameters();
-    massListDeisotoperParameters.setParameter(MassListDeisotoperParameters.maximumCharge, 1);
-    massListDeisotoperParameters.setParameter(MassListDeisotoperParameters.monotonicShape, true);
-    massListDeisotoperParameters.setParameter(MassListDeisotoperParameters.mzTolerance,
-        mzToleranceMS2);
-    return MassListDeisotoper.filterIsotopes(massList, massListDeisotoperParameters);
-  }
 
 }

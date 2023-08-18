@@ -60,6 +60,7 @@ public enum LipidMainClasses {
   CDPGLYCEROLS("CDP-Glycerols", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
 
   // Sphingolipids
+  SPHINGOIDBASES("Sphingoid bases", LipidCategories.SPHINGOLIPIDS),//
   CERAMIDES("Ceramides", LipidCategories.SPHINGOLIPIDS),//
 
   NEUTRALGLYCOSPHINGOLIPIDS("Neutral glycosphingolipids", LipidCategories.SPHINGOLIPIDS),//

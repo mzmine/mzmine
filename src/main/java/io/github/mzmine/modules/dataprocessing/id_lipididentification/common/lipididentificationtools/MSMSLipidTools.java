@@ -38,6 +38,8 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidChainFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -410,7 +412,7 @@ public class MSMSLipidTools {
   }
 
   public void sortMatchedLipidsBasedOnMSMSScore(List<MatchedLipid> matchedLipids) {
-    matchedLipids.sort(Comparator.comparingDouble(MatchedLipid::getMsMsScore));
+    matchedLipids.sort(Comparator.comparingDouble(MatchedLipid::getMsMsScore).reversed());
   }
 
   public Pair<Integer, Integer> getCarbonandDBEFromLipidAnnotaitonString(String lipidAnnotation) {
@@ -429,5 +431,14 @@ public class MSMSLipidTools {
     }
 
     return new Pair<>(numberOfCarbons, doubleBondEquivalents);
+  }
+
+  public static DataPoint[] deisotopeMassList(DataPoint[] massList, MZTolerance mzToleranceMS2) {
+    MassListDeisotoperParameters massListDeisotoperParameters = new MassListDeisotoperParameters();
+    massListDeisotoperParameters.setParameter(MassListDeisotoperParameters.maximumCharge, 1);
+    massListDeisotoperParameters.setParameter(MassListDeisotoperParameters.monotonicShape, true);
+    massListDeisotoperParameters.setParameter(MassListDeisotoperParameters.mzTolerance,
+        mzToleranceMS2);
+    return MassListDeisotoper.filterIsotopes(massList, massListDeisotoperParameters);
   }
 }

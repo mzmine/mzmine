@@ -31,6 +31,8 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 public class LipidAnnotationMsMsTestResource {
 
   private double[] mzFragments;
+
+  private double[] intensities;
   private IonizationType ionizationType;
   private ILipidAnnotation testLipid;
 
@@ -39,6 +41,13 @@ public class LipidAnnotationMsMsTestResource {
     this.mzFragments = mzFragments;
     this.ionizationType = ionizationType;
     this.testLipid = testLipid;
+    this.intensities = null;
+  }
+
+  public LipidAnnotationMsMsTestResource(double[] mzFragments, double[] intensities,
+      IonizationType ionizationType, ILipidAnnotation testLipid) {
+    this(mzFragments, ionizationType, testLipid);
+    this.intensities = intensities;
   }
 
   public double[] getMzFragments() {
@@ -65,4 +74,7 @@ public class LipidAnnotationMsMsTestResource {
     this.testLipid = testLipid;
   }
 
+  public double[] getIntensities() {
+    return intensities;
+  }
 }

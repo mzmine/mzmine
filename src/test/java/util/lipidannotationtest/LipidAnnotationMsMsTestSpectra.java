@@ -455,15 +455,253 @@ public class LipidAnnotationMsMsTestSpectra {
     return CL_16_0_18_1_18_2_18_2MMinusH;
   }
 
-  private final LipidAnnotationMsMsTestResource Cer_18_0_O2_16_0_OMPlusH = new LipidAnnotationMsMsTestResource(
-      new double[]{252.2686, 256.2635, 264.2686, 282.2791, 502.4982, 520.5088, 538.5193}, //
+  //Sphingolipids
+  private final LipidAnnotationMsMsTestResource SPB_18_1_2O = new LipidAnnotationMsMsTestResource(
+      new double[]{282.276, 264.261, 252.272}, //
       IonizationType.POSITIVE_HYDROGEN, //
-      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
-          LipidClasses.CERAMIDEANDDIHYDROCERAMIDEHYDROXYFATTYACID, new int[]{18, 16},
-          new int[]{0, 0}, new int[]{0, 0}));
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.SPHINGANINESANDSPHINGOSINES, 18, 1, 0));
 
-  public LipidAnnotationMsMsTestResource getCer_18_0_O2_16_0_OMPlusH() {
-    return Cer_18_0_O2_16_0_OMPlusH;
+  public LipidAnnotationMsMsTestResource getSPB_18_1_2O() {
+    return SPB_18_1_2O;
   }
 
+  private final LipidAnnotationMsMsTestResource SPB_18_1_3O = new LipidAnnotationMsMsTestResource(
+      new double[]{282.276, 270.279, 264.257, 252.272}, //
+      IonizationType.POSITIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.SPHINGANINESANDSPHINGOSINES, 18, 1, 0));
+
+  public LipidAnnotationMsMsTestResource getSPB_18_1_3O() {
+    return SPB_18_1_3O;
+  }
+
+  private final LipidAnnotationMsMsTestResource Cer_18_0_O2_26_0_OMPlusH = new LipidAnnotationMsMsTestResource(
+      new double[]{262.679, 644.670, 495.255, 396.420, 284.295, 266.284, 254.284}, //
+      IonizationType.POSITIVE_HYDROGEN, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
+          LipidClasses.CERAMIDEANDDIHYDROCERAMIDEHYDROXYFATTYACID, new int[]{18, 26},
+          new int[]{0, 0}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getCer_18_0_O2_26_0_OMPlusH() {
+    return Cer_18_0_O2_26_0_OMPlusH;
+  }
+
+  private final LipidAnnotationMsMsTestResource Cer_18_1_O2_14_0MPlusH = new LipidAnnotationMsMsTestResource(
+      new double[]{268.223999023438, 492.411041259766, 306.773071289063, 338.032073974609,
+          288.714050292969, 224.207061767578, 265.848052978516, 282.202056884766, 222.082061767578,
+          298.118072509766, 250.285003662109, 228.257064819336, 254.153030395508, 474.365051269531,
+          244.0810546875, 236.216064453125, 280.253051757813, 264.229034423828, 252.18505859375},
+      new double[]{151.947616577148, 158938.78125, 282.570495605469, 116.55738067627,
+          117.695709228516, 8923.9736328125, 316.561401367188, 9529.279296875, 202.457977294922,
+          290.960174560547, 366.401885986328, 1369.63806152344, 13241.578125, 18731.63671875,
+          141.203704833984, 103851.9375, 263.320343017578, 79178.5234375, 6597.490234375},
+      //
+      IonizationType.POSITIVE_HYDROGEN, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
+          LipidClasses.NACYLSPHINGOSINESANDNACYLSPHINGANINES, new int[]{18, 14}, new int[]{0, 0},
+          new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getCer_18_1_O2_14_0MPlusH() {
+    return Cer_18_1_O2_14_0MPlusH;
+  }
+
+  private final LipidAnnotationMsMsTestResource Cer_18_1_O2_16_0_O_Acetate = new LipidAnnotationMsMsTestResource(
+      new double[]{596.526, 518.494, 536.505, 506.495, 280.264, 237.223}, //
+      IonizationType.ACETATE, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
+          LipidClasses.NACYLSPHINGOSINESANDNACYLSPHINGANINES, new int[]{18, 16}, new int[]{1, 0},
+          new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getCer_18_1_O2_16_0_O_Acetate() {
+    return Cer_18_1_O2_16_0_O_Acetate;
+  }
+
+  private final LipidAnnotationMsMsTestResource Cer_18_0_2O_16_0MPlusCH3COO = new LipidAnnotationMsMsTestResource(
+      new double[]{598.542, 538.520, 506.494, 490.499, 280.264, 239.238, 237.249}, //
+      IonizationType.ACETATE, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
+          LipidClasses.NACYLSPHINGOSINESANDNACYLSPHINGANINES, new int[]{18, 16}, new int[]{0, 0},
+          new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getCer_18_0_2O_16_0MPlusCH3COO() {
+    return Cer_18_0_2O_16_0MPlusCH3COO;
+  }
+
+  private final LipidAnnotationMsMsTestResource Cer_14_0_2O_20_0MPlusHCOO = new LipidAnnotationMsMsTestResource(
+      new double[]{584.5254, 538.52, 506.4937, 490.4988, 244.2282, 352.3216, 336.3267, 310.3116,
+          183.1754, 293.3088}, //
+      IonizationType.FORMATE, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
+          LipidClasses.NACYLSPHINGOSINESANDNACYLSPHINGANINES, new int[]{14, 20}, new int[]{0, 0},
+          new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getCer_14_0_2O_20_0MPlusHCOO() {
+    return Cer_14_0_2O_20_0MPlusHCOO;
+  }
+
+  private final LipidAnnotationMsMsTestResource Cer_14_1_2O_18_0_OMPlusHCOO = new LipidAnnotationMsMsTestResource(
+      new double[]{570.4734, 524.4679, 506.4573, 492.4417, 476.4467, 240.1969, 224.202, 299.2592,
+          298.2751, 212.202, 281.2486, 183.1754, 181.1598, 253.2537}, //
+      IonizationType.FORMATE, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
+          LipidClasses.CERAMIDEANDDIHYDROCERAMIDEHYDROXYFATTYACID, new int[]{14, 18},
+          new int[]{1, 0}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getCer_14_1_2O_18_0_OMPlusHCOO() {
+    return Cer_14_1_2O_18_0_OMPlusHCOO;
+  }
+
+
+  private final LipidAnnotationMsMsTestResource Cer_18_1_2O_22_0_OMPlusCH3COO = new LipidAnnotationMsMsTestResource(
+      new double[]{696.615, 636.594, 606.583, 588.573, 380.353, 337, 311, 309.312, 267.235,
+          237.222}, //
+      IonizationType.ACETATE, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
+          LipidClasses.CERAMIDEANDDIHYDROCERAMIDEHYDROXYFATTYACID, new int[]{18, 22},
+          new int[]{1, 0}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getCer_18_1_2O_22_0_OMPlusCH3COO() {
+    return Cer_18_1_2O_22_0_OMPlusCH3COO;
+  }
+
+  private final LipidAnnotationMsMsTestResource Cer_20_1_2O_24_0_OMPlusH = new LipidAnnotationMsMsTestResource(
+      new double[]{694.671, 676.661, 628.612, 366.375, 310.311, 292.300, 280.300, 81.070}, //
+      IonizationType.POSITIVE_HYDROGEN, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
+          LipidClasses.CERAMIDEANDDIHYDROCERAMIDEHYDROXYFATTYACID, new int[]{20, 24},
+          new int[]{1, 0}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getCer_20_1_2O_24_0_OMPlusH() {
+    return Cer_20_1_2O_24_0_OMPlusH;
+  }
+
+  private final LipidAnnotationMsMsTestResource Cer_18_0_3O_16_0MPlusCH3COO = new LipidAnnotationMsMsTestResource(
+      new double[]{614.537, 554.515, 518.494, 310.274, 298.274, 267.232, 255.233, 254.248}, //
+      IonizationType.ACETATE, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(LipidClasses.NACYLFOURHYDROXYPHINGANINES,
+          new int[]{18, 16}, new int[]{0, 0}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getCer_18_0_3O_16_0MPlusCH3COO() {
+    return Cer_18_0_3O_16_0MPlusCH3COO;
+  }
+
+  private final LipidAnnotationMsMsTestResource Cer_18_1_3O_24_0_OMPlusH = new LipidAnnotationMsMsTestResource(
+      new double[]{682.634, 664.624, 646.613, 316.285, 298.274, 280.264, 262.253}, //
+      IonizationType.POSITIVE_HYDROGEN, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(LipidClasses.PHYTOCERAMIDEHYDROXYFATTYACID,
+          new int[]{18, 24}, new int[]{1, 0}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getCer_18_1_3O_24_0_OMPlusH() {
+    return Cer_18_1_3O_24_0_OMPlusH;
+  }
+
+  private final LipidAnnotationMsMsTestResource Cer_14_0_3O_16_0_O_HCOO = new LipidAnnotationMsMsTestResource(
+      new double[]{560.4526, 514.4471, 326.269, 271.2279, 225.2224, 169.1587}, //
+      IonizationType.FORMATE, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(LipidClasses.PHYTOCERAMIDEHYDROXYFATTYACID,
+          new int[]{14, 16}, new int[]{0, 0}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getCer_14_0_3O_16_0_O_HCOO() {
+    return Cer_14_0_3O_16_0_O_HCOO;
+  }
+
+  private final LipidAnnotationMsMsTestResource Cer_18_0_3O_20_0_OMPlusCH3COO = new LipidAnnotationMsMsTestResource(
+      new double[]{686.594, 626.573, 382.332, 327.291, 281.285, 225.221}, //
+      IonizationType.ACETATE, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(LipidClasses.PHYTOCERAMIDEHYDROXYFATTYACID,
+          new int[]{18, 20}, new int[]{0, 0}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getCer_18_0_3O_20_0_OMPlusCH3COO() {
+    return Cer_18_0_3O_20_0_OMPlusCH3COO;
+  }
+
+  private final LipidAnnotationMsMsTestResource CerP_18_1_2O_12_0_OMPlusH = new LipidAnnotationMsMsTestResource(
+      new double[]{562.424, 544.411, 482.457, 464.447, 446.436, 264.269}, //
+      IonizationType.POSITIVE_HYDROGEN, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(LipidClasses.CERAMIDEPHOSPHATES,
+          new int[]{18, 12}, new int[]{1, 0}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getCerP_18_1_2O_12_0_OMPlusH() {
+    return CerP_18_1_2O_12_0_OMPlusH;
+  }
+
+  private final LipidAnnotationMsMsTestResource CerP_18_1_2O_12_0_OMMinusH = new LipidAnnotationMsMsTestResource(
+      new double[]{560.408, 542.398, 378.241, 360.231, 96.969, 78.959}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.CERAMIDEPHOSPHATES, 30, 1, 0));
+
+  public LipidAnnotationMsMsTestResource getCerP_18_1_2O_12_0_OMMinusH() {
+    return CerP_18_1_2O_12_0_OMMinusH;
+  }
+
+  private final LipidAnnotationMsMsTestResource HexCer_18_1_2O_24_0MMPlusH = new LipidAnnotationMsMsTestResource(
+      new double[]{812.698, 794.687, 632.635, 614.624, 368.389, 282.279, 264.269, 252.269}, //
+      IonizationType.POSITIVE_HYDROGEN, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(LipidClasses.HEXOSYLCERAMIDES,
+          new int[]{18, 24}, new int[]{1, 0}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getHexCer_18_1_2O_24_0MMPlusH() {
+    return HexCer_18_1_2O_24_0MMPlusH;
+  }
+
+  private final LipidAnnotationMsMsTestResource HexCer_18_1_2O_20_0MMPlusCH3COO = new LipidAnnotationMsMsTestResource(
+      new double[]{814.641, 592.567, 336.327, 293.285, 237.222, 179.056}, //
+      IonizationType.ACETATE, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(LipidClasses.HEXOSYLCERAMIDES,
+          new int[]{18, 20}, new int[]{1, 0}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getHexCer_18_1_2O_20_0MMPlusCH3COO() {
+    return HexCer_18_1_2O_20_0MMPlusCH3COO;
+  }
+
+  private final LipidAnnotationMsMsTestResource HexCer_20_1_2O_16_0MMPlusHCOO = new LipidAnnotationMsMsTestResource(
+      new double[]{564.535, 546.523, 460.333, 308.296, 282.280, 265.255}, //
+      IonizationType.FORMATE, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(LipidClasses.HEXOSYLCERAMIDES,
+          new int[]{20, 16}, new int[]{1, 0}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getHexCer_20_1_2O_16_0MMPlusHCOO() {
+    return HexCer_20_1_2O_16_0MMPlusHCOO;
+  }
+
+
+  private final LipidAnnotationMsMsTestResource HexCer_18_1_2O_24_1_OMMPlusH = new LipidAnnotationMsMsTestResource(
+      new double[]{808.666, 646.614, 628.603, 282.279, 264.269, 252.269}, //
+      IonizationType.POSITIVE_HYDROGEN, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(LipidClasses.HEXOSYLCERAMIDEHYDROXYFATTYACID,
+          new int[]{18, 24}, new int[]{1, 1}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getHexCer_18_1_2O_24_1_OMMPlusH() {
+    return HexCer_18_1_2O_24_1_OMMPlusH;
+  }
+
+  private final LipidAnnotationMsMsTestResource HexCer_16_1_2O_26_1_OMMPlusCH3COO = new LipidAnnotationMsMsTestResource(
+      new double[]{824.662, 662.609, 406.368, 179.056}, //
+      IonizationType.ACETATE, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.HEXOSYLCERAMIDEHYDROXYFATTYACID, 42, 2, 0));
+
+  public LipidAnnotationMsMsTestResource getHexCer_16_1_2O_26_1_OMMPlusCH3COO() {
+    return HexCer_16_1_2O_26_1_OMMPlusCH3COO;
+  }
+
+  private final LipidAnnotationMsMsTestResource HexCer_18_0_3O_24_0_OMMPlusH = new LipidAnnotationMsMsTestResource(
+      new double[]{846.703, 684.650, 666.640, 318.300, 300.290, 282.279, 264.265}, //
+      IonizationType.POSITIVE_HYDROGEN, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
+          LipidClasses.HEXOSYLCERAMIDEHYDROXYFATTYACIDPHYTOSPHINGOSINE, new int[]{18, 24},
+          new int[]{0, 0}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getHexCer_18_0_3O_24_0_OMMPlusH() {
+    return HexCer_18_0_3O_24_0_OMMPlusH;
+  }
+
+  private final LipidAnnotationMsMsTestResource HexCer_18_0_3O_16_0_OAcetate = new LipidAnnotationMsMsTestResource(
+      new double[]{792.584, 732.563, 570.510, 326.269, 271.228, 225.222}, //
+      IonizationType.ACETATE, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
+          LipidClasses.HEXOSYLCERAMIDEHYDROXYFATTYACIDPHYTOSPHINGOSINE, new int[]{18, 16},
+          new int[]{0, 0}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getHexCer_18_0_3O_16_0_OAcetate() {
+    return HexCer_18_0_3O_16_0_OAcetate;
+  }
 }

@@ -465,6 +465,24 @@ class LipidMsOneLevelTest {
   }
 
   @Test
+  void molecularFormulaLevelTestSPB_18_1_3O() {
+    Double EXACT_MASS_SM_36_1_O2 = FormulaUtils.calculateExactMass("C18H37NO3");
+    IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.PHYTOSPHINGANINESANDPHYTOSPHINGOSINES, 18, 1, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(EXACT_MASS_SM_36_1_O2), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
+  }
+
+  @Test
+  void molecularFormulaLevelTestSPB_18_1_2O() {
+    Double EXACT_MASS_SM_36_1_O2 = FormulaUtils.calculateExactMass("C18H37NO2");
+    IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.SPHINGANINESANDSPHINGOSINES, 18, 1, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(EXACT_MASS_SM_36_1_O2), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
+  }
+
+  @Test
   void molecularFormulaLevelTestSM36_1_O2() {
     Double EXACT_MASS_SM_36_1_O2 = FormulaUtils.calculateExactMass("C41H83N2O6P");
     IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
@@ -541,6 +559,16 @@ class LipidMsOneLevelTest {
     Double EXACT_MASS_CER_34_0_O3 = FormulaUtils.calculateExactMass("C40H77NO9");
     IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
         LipidClasses.HEXOSYLCERAMIDEHYDROXYFATTYACID, 34, 1, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(EXACT_MASS_CER_34_0_O3), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
+  }
+
+  @Test
+  void molecularFormulaLevelTestHexCerO4() {
+    Double EXACT_MASS_CER_34_0_O3 = FormulaUtils.calculateExactMass("C41H77NO10");
+    IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
+            LipidClasses.HEXOSYLCERAMIDEHYDROXYFATTYACIDPHYTOSPHINGOSINE, 35, 2, 0)
+        .getMolecularFormula();
     assertEquals(NUMBER_FORMAT.format(EXACT_MASS_CER_34_0_O3), NUMBER_FORMAT.format(
         MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
   }
