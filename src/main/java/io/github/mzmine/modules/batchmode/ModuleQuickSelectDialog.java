@@ -84,8 +84,8 @@ public class ModuleQuickSelectDialog extends Stage {
   }
 
   private void runModuleAndHide(final MZmineRunnableModule module) {
-    MZmineCore.setupAndRunModule(module.getClass());
     hide();
+    MZmineCore.setupAndRunModule(module.getClass());
   }
 
   @Override
@@ -97,7 +97,7 @@ public class ModuleQuickSelectDialog extends Stage {
         .setAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     centerOnScreen();
     moduleTree.focusSearchField();
-    super.showAndWait();
+    super.show();
   }
 
 }
