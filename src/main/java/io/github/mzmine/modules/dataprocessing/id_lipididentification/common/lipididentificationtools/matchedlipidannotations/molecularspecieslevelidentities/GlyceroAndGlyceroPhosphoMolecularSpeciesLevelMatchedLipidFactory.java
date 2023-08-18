@@ -78,6 +78,11 @@ public class GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory im
     if (lipidAnnotation instanceof SpeciesLevelAnnotation) {
       totalNumberOfCAtoms = ((SpeciesLevelAnnotation) lipidAnnotation).getNumberOfCarbons();
       totalNumberOfDBEs = ((SpeciesLevelAnnotation) lipidAnnotation).getNumberOfDBEs();
+    } else if (lipidAnnotation instanceof MolecularSpeciesLevelAnnotation) {
+      totalNumberOfCAtoms = ((MolecularSpeciesLevelAnnotation) lipidAnnotation).getLipidChains()
+          .stream().mapToInt(ILipidChain::getNumberOfCarbons).sum();
+      totalNumberOfDBEs = ((MolecularSpeciesLevelAnnotation) lipidAnnotation).getLipidChains()
+          .stream().mapToInt(ILipidChain::getNumberOfDBEs).sum();
     }
     int chainsInLipid = lipidAnnotation.getLipidClass().getChainTypes().length;
 

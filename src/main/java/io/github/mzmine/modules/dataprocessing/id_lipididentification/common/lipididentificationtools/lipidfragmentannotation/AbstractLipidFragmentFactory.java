@@ -70,7 +70,7 @@ public abstract class AbstractLipidFragmentFactory {
     if (mzTolRangeMSMS.contains(mzFragmentExact)) {
       return new LipidFragment(rule.getLipidFragmentationRuleType(),
           rule.getLipidFragmentInformationLevelType(), mzFragmentExact, fragmentFormula, dataPoint,
-          lipidAnnotation.getLipidClass(), null, null, null, msMsScan);
+          lipidAnnotation.getLipidClass(), null, null, null, null, msMsScan);
     } else {
       return null;
     }
@@ -95,7 +95,7 @@ public abstract class AbstractLipidFragmentFactory {
       return new LipidFragment(rule.getLipidFragmentationRuleType(),
           rule.getLipidFragmentInformationLevelType(), mzFragmentExact,
           MolecularFormulaManipulator.getString(fragmentFormula), dataPoint,
-          lipidAnnotation.getLipidClass(), null, null, null, msMsScan);
+          lipidAnnotation.getLipidClass(), null, null, null, null, msMsScan);
     } else {
       return null;
     }

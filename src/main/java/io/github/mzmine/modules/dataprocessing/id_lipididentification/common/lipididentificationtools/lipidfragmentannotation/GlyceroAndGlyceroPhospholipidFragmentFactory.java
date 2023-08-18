@@ -147,7 +147,7 @@ public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
               rule.getLipidFragmentInformationLevelType(), mzExact,
               MolecularFormulaManipulator.getString(lipidChainFormula), dataPoint,
               lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
-              LipidChainType.ACYL_CHAIN, msMsScan);
+              lipidChain.getNumberOfOxygens(), LipidChainType.ACYL_CHAIN, msMsScan);
         }
       }
     }
@@ -179,7 +179,7 @@ public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
             rule.getLipidFragmentInformationLevelType(), mzExact,
             MolecularFormulaManipulator.getString(fragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
-            LipidChainType.ACYL_CHAIN, msMsScan);
+            lipidChain.getNumberOfOxygens(), LipidChainType.ACYL_CHAIN, msMsScan);
       }
     }
     return null;
@@ -214,7 +214,7 @@ public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
             rule.getLipidFragmentInformationLevelType(), mzExact,
             MolecularFormulaManipulator.getString(lipidMinusFragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
-            LipidChainType.ACYL_CHAIN, msMsScan);
+            lipidChain.getNumberOfOxygens(), LipidChainType.ACYL_CHAIN, msMsScan);
       }
     }
     return null;
@@ -243,7 +243,7 @@ public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
             rule.getLipidFragmentInformationLevelType(), mzExact,
             MolecularFormulaManipulator.getString(ionizedFragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
-            LipidChainType.ACYL_CHAIN, msMsScan);
+            lipidChain.getNumberOfOxygens(), LipidChainType.ACYL_CHAIN, msMsScan);
       }
     }
     return null;
@@ -278,7 +278,7 @@ public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
             rule.getLipidFragmentInformationLevelType(), mzExact,
             MolecularFormulaManipulator.getString(lipidMinusFragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
-            LipidChainType.ACYL_CHAIN, msMsScan);
+            lipidChain.getNumberOfOxygens(), LipidChainType.ACYL_CHAIN, msMsScan);
       }
     }
     return null;
@@ -313,7 +313,7 @@ public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
               lipidAnnotation.getLipidClass(),
               lipidChain1.getNumberOfCarbons() + lipidChain2.getNumberOfCarbons(),
               lipidChain1.getNumberOfDBEs() + lipidChain2.getNumberOfDBEs(),
-              LipidChainType.TWO_ACYL_CHAINS_COMBINED, msMsScan);
+              lipidChain2.getNumberOfOxygens(), LipidChainType.TWO_ACYL_CHAINS_COMBINED, msMsScan);
         }
       }
     }
@@ -342,7 +342,7 @@ public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
             rule.getLipidFragmentInformationLevelType(), mzExact,
             MolecularFormulaManipulator.getString(ionizedFragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
-            LipidChainType.ALKYL_CHAIN, msMsScan);
+            lipidChain.getNumberOfOxygens(), LipidChainType.ALKYL_CHAIN, msMsScan);
       }
     }
     return null;
