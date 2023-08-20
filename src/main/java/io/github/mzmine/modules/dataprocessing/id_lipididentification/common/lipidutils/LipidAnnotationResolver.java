@@ -5,7 +5,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.IMolecularSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.SphingoMolecularSpeciesLevelMatchedLipidFactory;
@@ -224,7 +224,7 @@ public class LipidAnnotationResolver {
     switch (lipidCategory) {
       case GLYCEROLIPIDS -> {
         if (lipid.getLipidAnnotation() instanceof MolecularSpeciesLevelAnnotation) {
-          IMolecularSpeciesLevelMatchedLipidFactory matchedMolecularSpeciesLipidFactory = new GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory();
+          IMolecularSpeciesLevelMatchedLipidFactory matchedMolecularSpeciesLipidFactory = new GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory();
           recalculatedMatches = matchedMolecularSpeciesLipidFactory.predictMolecularSpeciesLevelMatches(
               matchedFragments, lipid.getLipidAnnotation(), row.getAverageMZ(), dataPoints,
               minMsMsScore, mzToleranceMS2, lipid.getIonizationType());

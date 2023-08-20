@@ -26,7 +26,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-public class GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory implements
+public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implements
     IMolecularSpeciesLevelMatchedLipidFactory {
 
   private static final MSMSLipidTools MSMS_LIPID_TOOLS = new MSMSLipidTools();

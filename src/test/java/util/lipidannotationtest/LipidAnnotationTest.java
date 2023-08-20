@@ -34,7 +34,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.ILipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.SphingolipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.IMolecularSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.SphingoMolecularSpeciesLevelMatchedLipidFactory;
@@ -576,7 +576,7 @@ class LipidAnnotationTest {
       IMolecularSpeciesLevelMatchedLipidFactory matchedLipidFactory = null;
       switch (testSpectrum.getTestLipid().getLipidClass().getMainClass().getLipidCategory()) {
         case FATTYACYLS -> {
-          matchedLipidFactory = new GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory();
+          matchedLipidFactory = new GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory();
           Set<MatchedLipid> matchedMolecularSpeciesLevelMatches = matchedLipidFactory.predictMolecularSpeciesLevelMatches(
               annotatedFragments, speciesLevelAnnotation, 0.0, massList, 0.0, mzTolerance,
               testSpectrum.getIonizationType());
@@ -587,7 +587,7 @@ class LipidAnnotationTest {
           }
         }
         case GLYCEROLIPIDS -> {
-          matchedLipidFactory = new GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory();
+          matchedLipidFactory = new GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory();
           Set<MatchedLipid> matchedMolecularSpeciesLevelMatches = matchedLipidFactory.predictMolecularSpeciesLevelMatches(
               annotatedFragments, speciesLevelAnnotation, 0.0, massList, 0.0, mzTolerance,
               testSpectrum.getIonizationType());
@@ -598,7 +598,7 @@ class LipidAnnotationTest {
           }
         }
         case GLYCEROPHOSPHOLIPIDS -> {
-          matchedLipidFactory = new GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory();
+          matchedLipidFactory = new GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory();
           Set<MatchedLipid> matchedMolecularSpeciesLevelMatches = matchedLipidFactory.predictMolecularSpeciesLevelMatches(
               annotatedFragments, speciesLevelAnnotation, 0.0, massList, 0.0, mzTolerance,
               testSpectrum.getIonizationType());
