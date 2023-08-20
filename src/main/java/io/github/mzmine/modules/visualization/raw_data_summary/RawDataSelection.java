@@ -44,7 +44,7 @@ public enum RawDataSelection {
   public ScanDataType mapToScanType() {
     return switch (this) {
       case RAW_CENTROIDED -> ScanDataType.RAW;
-      case MASS_LIST -> ScanDataType.CENTROID;
+      case MASS_LIST -> ScanDataType.MASS_LIST;
     };
   }
 }
