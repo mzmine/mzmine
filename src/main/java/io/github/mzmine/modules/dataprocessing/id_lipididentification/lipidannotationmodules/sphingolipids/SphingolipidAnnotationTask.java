@@ -309,7 +309,7 @@ public class SphingolipidAnnotationTask extends AbstractTask {
       possibleRowAnnotations.addAll(previousLipidMatches);
     }
     LipidAnnotationResolver lipidAnnotationResolver = new LipidAnnotationResolver(true, true, true,
-        mzToleranceMS2, minMsMsScore);
+        mzToleranceMS2, minMsMsScore, searchForMSMSFragments, keepUnconfirmedAnnotations);
     List<MatchedLipid> finalResults = lipidAnnotationResolver.resolveFeatureListRowMatchedLipids(
         row, possibleRowAnnotations);
     for (MatchedLipid matchedLipid : finalResults) {

@@ -42,6 +42,26 @@ class LipidMsOneLevelTest {
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
   private static final NumberFormat NUMBER_FORMAT = new DecimalFormat("#.#####");
 
+  //Fatty Acyls
+  @Test
+  void molecularFormulaLevelTestFA() {
+    Double mzExact = FormulaUtils.calculateExactMass("C16H32O2");
+    IMolecularFormula testSpeciesMG = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.FREEFATTYACIDS, 16, 0, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(mzExact), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesMG, AtomContainerManipulator.MonoIsotopic)));
+  }
+
+  @Test
+  void molecularFormulaLevelTestFA_O() {
+    Double mzExact = FormulaUtils.calculateExactMass("C18H30O3");
+    IMolecularFormula testSpeciesMG = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.OXIDIZEDFREEFATTYACIDS, 18, 3, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(mzExact), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesMG, AtomContainerManipulator.MonoIsotopic)));
+  }
+
+  //Glycerolipids
   @Test
   void molecularFormulaLevelTestMG() {
     Double EXACT_MASS_MG_18_1 = FormulaUtils.calculateExactMass("C21H40O4");
