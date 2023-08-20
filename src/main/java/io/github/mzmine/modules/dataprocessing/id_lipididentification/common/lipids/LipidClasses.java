@@ -39,34 +39,54 @@ import javax.xml.stream.XMLStreamWriter;
  * This enum contains all lipid classes. Each enum has information on: name, abbreviation,
  * LipidCoreClass, LipidMainClass, lipid backbone sum formula, number of acyl chains, number of
  * alkychains and class specific fragmentation rules
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public enum LipidClasses implements ILipidClass {
 
+  //Fatty acyls
+  FREEFATTYACIDS("Free fatty acids", "FA", LipidCategories.FATTYACYLS,
+      LipidMainClasses.FATTYACIDSANDCONJUGATES, "H2O",
+      new LipidChainType[]{LipidChainType.ACYL_CHAIN},//
+      new LipidFragmentationRule[]{ //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.PRECURSOR, LipidAnnotationLevel.SPECIES_LEVEL)//
+      }), //
+  OXIDIZEDFREEFATTYACIDS("Oxidized fatty acids", "FA", LipidCategories.FATTYACYLS,
+      LipidMainClasses.FATTYACIDSANDCONJUGATES, "H2O",
+      new LipidChainType[]{LipidChainType.ACYL_MONO_HYDROXY_CHAIN},//
+      new LipidFragmentationRule[]{ //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
+              "H2O"),//
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
+              "H2CO2")//
+      }), //
+
   // Glycerolipids
   MONOACYLGLYCEROLS("Monoacylglycerols", "MG", LipidCategories.GLYCEROLIPIDS,
       LipidMainClasses.MONORADYLGLYCEROLS, "C3H8O3",
-      new LipidChainType[] {LipidChainType.ACYL_CHAIN}, new LipidFragmentationRule[] { //
-          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
-              LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
-              "NH3"), //
-          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
-              LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
-              "H5ON"), //
-          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
-              LipidFragmentationRuleType.ACYLCHAIN_MINUS_FORMULA_FRAGMENT_NL, //
-              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, //
-              "H5ON")}), //
+      new LipidChainType[]{LipidChainType.ACYL_CHAIN}, new LipidFragmentationRule[]{ //
+      new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
+          LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
+          "NH3"), //
+      new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
+          LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
+          "H5ON"), //
+      new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
+          LipidFragmentationRuleType.ACYLCHAIN_MINUS_FORMULA_FRAGMENT_NL, //
+          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, //
+          "H5ON")}), //
   MONOALKYLGLYCEROLS("Monoalkylglycerols", "MG", LipidCategories.GLYCEROLIPIDS,
       LipidMainClasses.MONORADYLGLYCEROLS, "C3H8O3",
-      new LipidChainType[] {LipidChainType.ALKYL_CHAIN}, new LipidFragmentationRule[] { //
-          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM), //
-      }), //
+      new LipidChainType[]{LipidChainType.ALKYL_CHAIN}, new LipidFragmentationRule[]{ //
+      new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM), //
+  }), //
   DIACYLGLYCEROLS("Diacylglycerols", "DG", LipidCategories.GLYCEROLIPIDS,
       LipidMainClasses.DIRADYLGLYCEROLS, "C3H8O3",
-      new LipidChainType[] {LipidChainType.ACYL_CHAIN, LipidChainType.ACYL_CHAIN},
-      new LipidFragmentationRule[] { //
+      new LipidChainType[]{LipidChainType.ACYL_CHAIN, LipidChainType.ACYL_CHAIN},
+      new LipidFragmentationRule[]{ //
           new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
               LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
               "NH3"), //

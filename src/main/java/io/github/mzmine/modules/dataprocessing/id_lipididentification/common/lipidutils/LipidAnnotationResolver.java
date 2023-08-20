@@ -37,22 +37,28 @@ public class LipidAnnotationResolver {
   private final double minMsMsScore;
   //-1 for infinity
   private int maximumIdNumber;
+  private final boolean searchForMSMSFragments;
+  private final boolean keepUnconfirmedAnnotations;
   private static final MSMSLipidTools MSMS_LIPID_TOOLS = new MSMSLipidTools();
 
   public LipidAnnotationResolver(boolean keepIsobars, boolean keepIsomers,
-      boolean addMissingSpeciesLevelAnnotation, MZTolerance mzToleranceMS2, double minMsMsScore) {
+      boolean addMissingSpeciesLevelAnnotation, MZTolerance mzToleranceMS2, double minMsMsScore,
+      boolean searchForMSMSFragments, boolean keepUnconfirmedAnnotations) {
     this.keepIsobars = keepIsobars;
     this.keepIsomers = keepIsomers;
     this.addMissingSpeciesLevelAnnotation = addMissingSpeciesLevelAnnotation;
     this.maximumIdNumber = -1;
     this.mzToleranceMS2 = mzToleranceMS2;
     this.minMsMsScore = minMsMsScore;
+    this.searchForMSMSFragments = searchForMSMSFragments;
+    this.keepUnconfirmedAnnotations = keepUnconfirmedAnnotations;
   }
 
   public LipidAnnotationResolver(boolean keepIsobars, boolean keepIsomers,
       boolean addMissingSpeciesLevelAnnotation, MZTolerance mzToleranceMS2, double minMsMsScore,
-      int maximumIdNumber) {
-    this(keepIsobars, keepIsomers, addMissingSpeciesLevelAnnotation, mzToleranceMS2, minMsMsScore);
+      int maximumIdNumber, boolean searchForMSMSFragments, boolean keepUnconfirmedAnnotations) {
+    this(keepIsobars, keepIsomers, addMissingSpeciesLevelAnnotation, mzToleranceMS2, minMsMsScore,
+        searchForMSMSFragments, keepUnconfirmedAnnotations);
     this.maximumIdNumber = maximumIdNumber;
   }
 
@@ -113,7 +119,9 @@ public class LipidAnnotationResolver {
       }
     }
     for (MatchedLipid lipid : matchedLipidsList) {
-      if (lipid.getMsMsScore() < minMsMsScore) {
+      if (keepUnconfirmedAnnotations || !searchForMSMSFragments) {
+        lipid.setComment("Warning, this annotation is based on MS1 mass accuracy only!");
+      } else {
         lipidsToRemove.add(lipid);
       }
     }
@@ -165,7 +173,11 @@ public class LipidAnnotationResolver {
     }
     for (MatchedLipid lipid : matchedLipidsList) {
       if (lipid.getMsMsScore() < minMsMsScore) {
-        lipidsToRemove.add(lipid);
+        if (keepUnconfirmedAnnotations || !searchForMSMSFragments) {
+          lipid.setComment("Warning, this annotation is based on MS1 mass accuracy only!");
+        } else {
+          lipidsToRemove.add(lipid);
+        }
       }
     }
     lipidsToRemove.forEach(matchedLipidsList::remove);

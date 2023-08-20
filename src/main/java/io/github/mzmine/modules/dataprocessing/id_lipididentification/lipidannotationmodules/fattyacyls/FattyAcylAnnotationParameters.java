@@ -54,7 +54,7 @@ public class FattyAcylAnnotationParameters extends SimpleParameterSet {
   public static final LipidClassParameter<Object> lipidClasses = new LipidClassParameter<>(
       "Lipid classes", "Selection of lipid backbones",
       LipidClassesProvider.getListOfLipidClassesByLipidCategories(
-          List.of(LipidCategories.GLYCEROLIPIDS, LipidCategories.GLYCEROPHOSPHOLIPIDS)).toArray());
+          List.of(LipidCategories.FATTYACYLS)).toArray());
 
   public static final ParameterSetParameter<FattyAcylAnnotationChainParameters> lipidChainParameters = new ParameterSetParameter<FattyAcylAnnotationChainParameters>(
       "Side chain parameters", "Optionally modify lipid chain parameters",

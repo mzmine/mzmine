@@ -58,8 +58,32 @@ public abstract class AbstractLipidFragmentFactory {
           checkForHeadgroupFragment(rule, mzTolRangeMSMS, lipidAnnotation, dataPoint, msMsScan);
       case HEADGROUP_FRAGMENT_NL ->
           checkForHeadgroupFragmentNL(rule, mzTolRangeMSMS, lipidAnnotation, dataPoint, msMsScan);
+      case PRECURSOR ->
+          checkForOnlyPrecursor(rule, mzTolRangeMSMS, lipidAnnotation, dataPoint, msMsScan);
       default -> null;
     };
+  }
+
+  private LipidFragment checkForOnlyPrecursor(LipidFragmentationRule rule,
+      Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
+      Scan msMsScan) {
+    IMolecularFormula lipidFormula = null;
+    try {
+      lipidFormula = (IMolecularFormula) lipidAnnotation.getMolecularFormula().clone();
+    } catch (CloneNotSupportedException e) {
+      throw new RuntimeException(e);
+    }
+    rule.getIonizationType().ionizeFormula(lipidFormula);
+    Double mzFragmentExact = FormulaUtils.calculateMzRatio(lipidFormula);
+
+    if (mzTolRangeMSMS.contains(mzFragmentExact)) {
+      return new LipidFragment(rule.getLipidFragmentationRuleType(),
+          rule.getLipidFragmentInformationLevelType(), mzFragmentExact,
+          MolecularFormulaManipulator.getString(lipidFormula), dataPoint,
+          lipidAnnotation.getLipidClass(), null, null, null, null, msMsScan);
+    } else {
+      return null;
+    }
   }
 
   private LipidFragment checkForHeadgroupFragment(LipidFragmentationRule rule,
@@ -90,7 +114,6 @@ public abstract class AbstractLipidFragmentFactory {
     rule.getIonizationType().ionizeFormula(lipidFormula);
     IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidFormula, formulaNL);
     Double mzFragmentExact = FormulaUtils.calculateMzRatio(fragmentFormula);
-
     if (mzTolRangeMSMS.contains(mzFragmentExact)) {
       return new LipidFragment(rule.getLipidFragmentationRuleType(),
           rule.getLipidFragmentInformationLevelType(), mzFragmentExact,

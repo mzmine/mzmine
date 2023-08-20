@@ -28,12 +28,17 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.li
 /**
  * Enum that contains all lipid main classes. Each enum contains information on the name and
  * lipidCoreClass
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public enum LipidMainClasses {
 
   // Fatty Acyls
+
+  FATTYACIDSANDCONJUGATES("Fatty acids and Conjugates", LipidCategories.FATTYACYLS),//
+  FATTYAMIDES("Fatty amides", LipidCategories.FATTYACYLS),//
+  FATTYAESTERS("Fatty esters", LipidCategories.FATTYACYLS),//
+
   RHAMNOLIPIDS("Rhamnolipids", LipidCategories.FATTYACYLS), //
 
   // Glycerolipids

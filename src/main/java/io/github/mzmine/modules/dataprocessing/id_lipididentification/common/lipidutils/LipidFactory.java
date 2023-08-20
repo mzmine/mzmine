@@ -128,7 +128,9 @@ public class LipidFactory {
       annotation = lipidClass.getAbbr() + " " + numberOfCarbons + ':' + numberOfDBEs;
     }
 
-    if (numberOfOxygens > 0) {
+    if (numberOfOxygens == 1) {
+      annotation = annotation + ";" + "O";
+    } else if (numberOfOxygens > 0) {
       annotation = annotation + ";" + numberOfOxygens + "O";
     }
     return annotation;
@@ -143,7 +145,9 @@ public class LipidFactory {
       return null;
     }
     annotation = lipidClass.getAbbr() + " " + numberOfCarbons + ':' + numberOfDBEs;
-    if (numberOfOxygens > 0) {
+    if (numberOfOxygens == 1) {
+      annotation = annotation + ";" + "O";
+    } else if (numberOfOxygens > 0) {
       annotation = annotation + ";" + numberOfOxygens + "O";
     }
     return annotation;

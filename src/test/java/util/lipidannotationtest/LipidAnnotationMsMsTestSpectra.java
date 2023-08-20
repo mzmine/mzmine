@@ -33,6 +33,25 @@ public class LipidAnnotationMsMsTestSpectra {
 
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
 
+  //Fatty acyls
+  private final LipidAnnotationMsMsTestResource FA_18_1MMinusH = new LipidAnnotationMsMsTestResource(
+      new double[]{281.249}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.FREEFATTYACIDS, 18, 1, 0));
+
+  public LipidAnnotationMsMsTestResource getFA_18_1MMinusH() {
+    return FA_18_1MMinusH;
+  }
+
+  private final LipidAnnotationMsMsTestResource FA_18_1_OMMinusH = new LipidAnnotationMsMsTestResource(
+      new double[]{281.249, 253.254}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.OXIDIZEDFREEFATTYACIDS, 18, 0, 0));
+
+  public LipidAnnotationMsMsTestResource getFA_18_1_OMMinusH() {
+    return FA_18_1_OMMinusH;
+  }
+
   // Glycerolipids////////////////////////////////////////////////////////////////////
   private final LipidAnnotationMsMsTestResource MG_18_OMPlusNH4 = new LipidAnnotationMsMsTestResource(
       new double[]{376.339, 359.339, 341.329}, //

@@ -501,6 +501,8 @@
       </Menu>
 
       <Menu text="Lipids">
+        <MenuItem text="Fatty acyl annotation" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.fattyacyls.FattyAcylAnnotationModule"/>
         <MenuItem text="Glycero- and Glycerophospholipid annotation" onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationModule"/>
         <MenuItem text="Sphingolipid annotation" onAction="#runModule"

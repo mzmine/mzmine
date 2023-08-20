@@ -71,6 +71,20 @@ class LipidAnnotationTest {
 
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
 
+  //Fatty aclys
+
+  @Test
+  void msMsRuleTestFA_18_1MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getFA_18_1MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestFA_18_1_OMMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getFA_18_1_OMMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
   // Glycerlipids##############################################################################
   @Test
   void msMsRuleTestMG_NH4() {
@@ -495,6 +509,11 @@ class LipidAnnotationTest {
         Range<Double> mzTolRangeMSMS = mzTolerance.getToleranceRange(massList[j].getMZ());
         ILipidFragmentFactory lipidFragmentFactory = null;
         switch (speciesLevelAnnotation.getLipidClass().getMainClass().getLipidCategory()) {
+          case FATTYACYLS ->
+              lipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
+                  mzTolRangeMSMS, speciesLevelAnnotation, testSpectrum.getIonizationType(), rules,
+                  massList[j], null,
+                  LIPID_CHAIN_PARAMETERS_GLYCERO_AND_GLYCEROPHOSPHOLIPIDS.getEmbeddedParameters());
           case GLYCEROLIPIDS ->
               lipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
                   mzTolRangeMSMS, speciesLevelAnnotation, testSpectrum.getIonizationType(), rules,
@@ -523,6 +542,13 @@ class LipidAnnotationTest {
     if (testSpectrum.getTestLipid() instanceof SpeciesLevelAnnotation) {
       ISpeciesLevelMatchedLipidFactory matchedLipidFactory = null;
       switch (testSpectrum.getTestLipid().getLipidClass().getMainClass().getLipidCategory()) {
+        case FATTYACYLS -> {
+          matchedLipidFactory = new GlyceroAndGlycerophosphoSpeciesLevelMatchedLipidFactory();
+          matchedLipids.add(
+              matchedLipidFactory.validateSpeciesLevelAnnotation(0.0, speciesLevelAnnotation,
+                  annotatedFragments, massList, 0.0, mzTolerance,
+                  testSpectrum.getIonizationType()));
+        }
         case GLYCEROLIPIDS -> {
           matchedLipidFactory = new GlyceroAndGlycerophosphoSpeciesLevelMatchedLipidFactory();
           matchedLipids.add(
@@ -549,6 +575,17 @@ class LipidAnnotationTest {
 
       IMolecularSpeciesLevelMatchedLipidFactory matchedLipidFactory = null;
       switch (testSpectrum.getTestLipid().getLipidClass().getMainClass().getLipidCategory()) {
+        case FATTYACYLS -> {
+          matchedLipidFactory = new GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory();
+          Set<MatchedLipid> matchedMolecularSpeciesLevelMatches = matchedLipidFactory.predictMolecularSpeciesLevelMatches(
+              annotatedFragments, speciesLevelAnnotation, 0.0, massList, 0.0, mzTolerance,
+              testSpectrum.getIonizationType());
+          for (MatchedLipid matchedLipid : matchedMolecularSpeciesLevelMatches) {
+            matchedLipids.add(matchedLipidFactory.validateMolecularSpeciesLevelAnnotation(0.0,
+                matchedLipid.getLipidAnnotation(), annotatedFragments, massList, 0.0, mzTolerance,
+                testSpectrum.getIonizationType()));
+          }
+        }
         case GLYCEROLIPIDS -> {
           matchedLipidFactory = new GlyceroAndGlyceroPhosphoMolecularSpeciesLevelMatchedLipidFactory();
           Set<MatchedLipid> matchedMolecularSpeciesLevelMatches = matchedLipidFactory.predictMolecularSpeciesLevelMatches(
