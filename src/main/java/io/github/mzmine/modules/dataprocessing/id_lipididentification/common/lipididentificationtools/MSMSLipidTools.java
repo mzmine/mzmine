@@ -403,9 +403,16 @@ public class MSMSLipidTools {
    */
   public Double calculateMsMsScore(DataPoint[] massList, Set<LipidFragment> annotatedFragments,
       Double precursor, MZTolerance mzTolRangeMSMS) {
-    Double intensityAllSignals = Arrays.stream(massList)
-        .filter(dp -> !mzTolRangeMSMS.checkWithinTolerance(dp.getMZ(), precursor))
-        .mapToDouble(DataPoint::getIntensity).sum();
+    Double intensityAllSignals = null;
+    boolean includePrecursor = annotatedFragments.stream().anyMatch(
+        lipidFragment -> lipidFragment.getRuleType().equals(LipidFragmentationRuleType.PRECURSOR));
+    if (includePrecursor) {
+      intensityAllSignals = Arrays.stream(massList).mapToDouble(DataPoint::getIntensity).sum();
+    } else {
+      intensityAllSignals = Arrays.stream(massList)
+          .filter(dp -> !mzTolRangeMSMS.checkWithinTolerance(dp.getMZ(), precursor))
+          .mapToDouble(DataPoint::getIntensity).sum();
+    }
     Double intensityMatchedSignals = annotatedFragments.stream().map(LipidFragment::getDataPoint)
         .mapToDouble(DataPoint::getIntensity).sum();
     return (intensityMatchedSignals / intensityAllSignals) * 100;
