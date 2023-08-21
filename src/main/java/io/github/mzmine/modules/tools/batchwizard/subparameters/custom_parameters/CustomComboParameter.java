@@ -71,7 +71,11 @@ public abstract class CustomComboParameter<E extends Enum<?>, VALUETYPE extends 
   @Override
   public void setValueFromComponent(
       final CustomComboComponent<E, VALUETYPE> eCustomComboComponent) {
-    value = eCustomComboComponent.getValue();
+    try {
+      value = eCustomComboComponent.getValue();
+    } catch (Exception e) {
+      value = null;
+    }
   }
 
   public boolean isValueRequired() {

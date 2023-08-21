@@ -33,9 +33,8 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Combo is on the top and center is free for additional controls
@@ -52,33 +51,48 @@ public class WizardMassDetectorComponent extends
       WizardMassDetectorNoiseLevels defaultValue) {
     super(options);
 
-    ColumnConstraints col = new ColumnConstraints();
-    col.setFillWidth(true);
-    col.setHgrow(Priority.ALWAYS);
+    txtMs1.setPrefColumnCount(6);
+    txtMsn.setPrefColumnCount(6);
+
+//    ColumnConstraints col = new ColumnConstraints();
+//    col.setFillWidth(true);
+//    col.setHgrow(Priority.ALWAYS);
 
     GridPane pane = new GridPane();
     pane.setPadding(new Insets(10));
     pane.setVgap(5);
     pane.setHgap(5);
-    pane.getColumnConstraints().addAll(new ColumnConstraints(), col);
+//    pane.getColumnConstraints().addAll(new ColumnConstraints(), col);
 
-    pane.add(new Label("MS1"), 0, 0);
-    pane.add(new Label("MS2..MSn"), 0, 1);
+    pane.add(labelFor("MS1"), 0, 0);
+    pane.add(labelFor("MS2..MSn"), 0, 1);
     pane.add(txtMs1, 1, 0);
     pane.add(txtMsn, 1, 1);
 
     setCenter(pane);
     comboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-      WizardMassDetectorNoiseLevels full = getValue();
-      if (full != null) {
-        setValue(full);
+
+      try {
+        WizardMassDetectorNoiseLevels full = getValue();
+        if (full != null) {
+          setValue(full);
+        }
+      } catch (IllegalArgumentException e) {
+        // wrong user input
       }
     });
     setValue(defaultValue);
   }
 
+  @NotNull
+  private static Label labelFor(String text) {
+    Label label = new Label(text);
+    label.setStyle("-fx-font-weight: bold");
+    return label;
+  }
 
-  public WizardMassDetectorNoiseLevels getValue() {
+
+  public WizardMassDetectorNoiseLevels getValue() throws IllegalArgumentException {
     MassDetectorWizardOptions value = comboBox.getValue();
     try {
       double ms1 = Double.parseDouble(txtMs1.getText());
