@@ -23,38 +23,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters;
+package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import javafx.scene.Node;
-import javafx.scene.layout.Priority;
-import org.jetbrains.annotations.Nullable;
+public enum MassDetectorWizardOptions {
+  ABSOLUTE_NOISE_LEVEL, FACTOR_OF_LOWEST_SIGNAL;
 
-/**
- * Parameter interface, represents parameters or variables used in the project
- */
-public interface UserParameter<ValueType, EditorComponent extends Node> extends
-    Parameter<ValueType> {
-
-  /**
-   * @return Detailed description of the parameter
-   */
-  String getDescription();
-
-  EditorComponent createEditingComponent();
-
-  void setValueFromComponent(EditorComponent component);
-
-  void setValueToComponent(EditorComponent component, @Nullable ValueType newValue);
-
-  UserParameter<ValueType, EditorComponent> cloneParameter();
-
-  /**
-   * Defines if the component grows in height in the layout
-   *
-   * @return row grow priority
-   */
-  default Priority getComponentVgrowPriority() {
-    return Priority.NEVER;
+  @Override
+  public String toString() {
+    return switch (this) {
+      case ABSOLUTE_NOISE_LEVEL -> "Absolute intensity";
+      case FACTOR_OF_LOWEST_SIGNAL -> "Factor of lowest signal (requires centroided data)";
+    };
   }
-
 }

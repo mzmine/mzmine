@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.tools.batchwizard.builders;
 
+import static io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions.FACTOR_OF_LOWEST_SIGNAL;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MobilityType;
@@ -48,9 +50,12 @@ import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderPa
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.SelectedScanTypes;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
@@ -121,9 +126,11 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationLocalC
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
@@ -193,8 +200,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final MobilityTolerance imsFwhmMobTolerance;
 
   // MS parameters currently all the same
-  protected final Double noiseLevelMsn;
-  protected final Double noiseLevelMs1;
+  protected final WizardMassDetectorNoiseLevels massDetectorOption;
   protected final Double minFeatureHeight;
   protected final MZTolerance mzTolScans;
   protected final MZTolerance mzTolFeaturesIntraSample;
@@ -248,8 +254,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     // mass spectrometer
     params = steps.get(WizardPart.MS);
     polarity = getValue(params, MassSpectrometerWizardParameters.polarity);
-    noiseLevelMsn = getValue(params, MassSpectrometerWizardParameters.msnNoiseLevel);
-    noiseLevelMs1 = getValue(params, MassSpectrometerWizardParameters.ms1NoiseLevel);
+    massDetectorOption = getValue(params, MassSpectrometerWizardParameters.massDetectorOption);
     minFeatureHeight = getValue(params, MassSpectrometerWizardParameters.minimumFeatureHeight);
     mzTolScans = getValue(params, MassSpectrometerWizardParameters.scanToScanMzTolerance);
     mzTolFeaturesIntraSample = getValue(params,
@@ -291,8 +296,20 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   }
 
   protected static void makeAndAddAdapChromatogramStep(final BatchQueue q,
-      final Double minFeatureHeight, final MZTolerance mzTolScans, final Double noiseLevelMs1,
-      final Integer minRtDataPoints, @Nullable final Range<Double> cropRtRange) {
+      final Double minFeatureHeight, final MZTolerance mzTolScans,
+      final WizardMassDetectorNoiseLevels massDetectorOption, final Integer minRtDataPoints,
+      @Nullable final Range<Double> cropRtRange) {
+    MassDetectorWizardOptions detectorType = massDetectorOption.getValueType();
+
+    double noiseLevelMs1;
+    if (detectorType == MassDetectorWizardOptions.ABSOLUTE_NOISE_LEVEL) {
+      noiseLevelMs1 = massDetectorOption.getMs1NoiseLevel() * 2d;
+    } else {
+      noiseLevelMs1 = minFeatureHeight / 5d;
+    }
+
+    noiseLevelMs1 = Math.min(minFeatureHeight, noiseLevelMs1);
+
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(ModularADAPChromatogramBuilderModule.class).cloneParameterSet();
     param.setParameter(ADAPChromatogramBuilderParameters.dataFiles,
@@ -569,7 +586,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(CorrelateGroupingParameters.RT_TOLERANCE,
         Objects.requireNonNullElse(rtTol, new RTTolerance(9999999, Unit.MINUTES)));
     param.setParameter(CorrelateGroupingParameters.MIN_HEIGHT, 0d);
-    param.setParameter(CorrelateGroupingParameters.NOISE_LEVEL, noiseLevelMs1);
+    param.setParameter(CorrelateGroupingParameters.NOISE_LEVEL,
+        massDetectorOption.getMs1NoiseLevel());
 
     // min samples
     var minSampleP = param.getParameter(CorrelateGroupingParameters.MIN_SAMPLES_FILTER)
@@ -838,42 +856,64 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected void makeAndAddMassDetectionStep(final BatchQueue q, int msLevel,
       SelectedScanTypes scanTypes) {
 
-    final ParameterSet detectorParam = MZmineCore.getConfiguration()
-        .getModuleParameters(AutoMassDetector.class).cloneParameterSet();
+    // use factor of lowest or auto mass detector
+    // factor of lowest only works on centroid for now
+    Class<? extends MassDetector> massDetectorClass = null;
+    ParameterSet detectorParam = null;
 
-    final double noiseLevel;
-    if (msLevel == 1 && scanTypes == SelectedScanTypes.MOBLITY_SCANS) {
-      noiseLevel = noiseLevelMs1 / 5; // lower threshold for mobility scans
-    } else if (msLevel >= 2) {
-      noiseLevel = noiseLevelMsn;
-    } else {
-      noiseLevel = noiseLevelMs1;
+    switch (massDetectorOption.getValueType()) {
+      case ABSOLUTE_NOISE_LEVEL -> {
+        massDetectorClass = AutoMassDetector.class;
+        detectorParam = MZmineCore.getConfiguration().getModuleParameters(massDetectorClass)
+            .cloneParameterSet();
+        // per default do not detect isotope signals below noise. this might introduce too many signals
+        // for the isotope finder later on and confuse users
+        detectorParam.setParameter(AutoMassDetectorParameters.detectIsotopes, false);
+        final DetectIsotopesParameter detectIsotopesParameter = detectorParam.getParameter(
+            AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters();
+        detectIsotopesParameter.setParameter(DetectIsotopesParameter.elements,
+            List.of(new Element("H"), new Element("C"), new Element("N"), new Element("O"),
+                new Element("S")));
+        detectIsotopesParameter.setParameter(DetectIsotopesParameter.isotopeMzTolerance,
+            mzTolFeaturesIntraSample);
+        detectIsotopesParameter.setParameter(DetectIsotopesParameter.maxCharge, 2);
+
+        final double noiseLevel;
+        if (msLevel == 1 && scanTypes == SelectedScanTypes.MOBLITY_SCANS) {
+          noiseLevel =
+              massDetectorOption.getMs1NoiseLevel() / 5; // lower threshold for mobility scans
+        } else if (msLevel >= 2) {
+          noiseLevel = massDetectorOption.getMsnNoiseLevel();
+        } else {
+          noiseLevel = massDetectorOption.getMs1NoiseLevel();
+        }
+        detectorParam.setParameter(AutoMassDetectorParameters.noiseLevel, noiseLevel);
+      }
+      case FACTOR_OF_LOWEST_SIGNAL -> {
+        massDetectorClass = FactorOfLowestMassDetector.class;
+        detectorParam = MZmineCore.getConfiguration().getModuleParameters(massDetectorClass)
+            .cloneParameterSet();
+        double noiseFactor = msLevel >= 2 ? massDetectorOption.getMsnNoiseLevel()
+            : massDetectorOption.getMs1NoiseLevel();
+        detectorParam.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, noiseFactor);
+      }
     }
-    detectorParam.setParameter(AutoMassDetectorParameters.noiseLevel, noiseLevel);
 
-    // per default do not detect isotope signals below noise. this might introduce too many signals
-    // for the isotope finder later on and confuse users
-    detectorParam.setParameter(AutoMassDetectorParameters.detectIsotopes, false);
-    final DetectIsotopesParameter detectIsotopesParameter = detectorParam.getParameter(
-        AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters();
-    detectIsotopesParameter.setParameter(DetectIsotopesParameter.elements,
-        List.of(new Element("H"), new Element("C"), new Element("N"), new Element("O"),
-            new Element("S")));
-    detectIsotopesParameter.setParameter(DetectIsotopesParameter.isotopeMzTolerance,
-        mzTolFeaturesIntraSample);
-    detectIsotopesParameter.setParameter(DetectIsotopesParameter.maxCharge, 2);
-
+    // set the main parameters
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(MassDetectionModule.class).cloneParameterSet();
+
+    boolean denormalize = massDetectorOption.getValueType() == FACTOR_OF_LOWEST_SIGNAL;
+    param.setParameter(MassDetectionParameters.denormalizeMSnScans, denormalize);
+
     param.setParameter(MassDetectionParameters.dataFiles,
         new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     // if MS level 0 then apply to all scans
     param.getParameter(MassDetectionParameters.scanSelection)
         .setValue(true, new ScanSelection(MsLevelFilter.of(msLevel, true)));
     param.setParameter(MassDetectionParameters.scanTypes, scanTypes);
-    param.setParameter(MassDetectionParameters.denormalizeMSnScans, false);
     param.setParameter(MassDetectionParameters.massDetector,
-        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class),
+        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(massDetectorClass),
             detectorParam));
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(MassDetectionModule.class),
@@ -972,7 +1012,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     groupMs2Params.setParameter(GroupMS2Parameters.mzTol, MZTolerance.max(mzTolScans, 0.01, 10.0));
     groupMs2Params.setParameter(GroupMS2Parameters.combineTimsMsMs, false);
     groupMs2Params.setParameter(GroupMS2Parameters.limitMobilityByFeature, true);
-    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevel, hasTims, noiseLevelMsn * 2);
+    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevel, hasTims,
+        massDetectorOption.getMsnNoiseLevel() * 2);
     groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevelRelative, hasTims, 0.01);
     groupMs2Params.setParameter(GroupMS2Parameters.minRequiredSignals, true, 1);
     groupMs2Params.setParameter(GroupMS2Parameters.minimumRelativeFeatureHeight, true, 0.25);

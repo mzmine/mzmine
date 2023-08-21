@@ -23,38 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters;
+package io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters;
 
-import javafx.scene.Node;
-import javafx.scene.layout.Priority;
-import org.jetbrains.annotations.Nullable;
+public class CustomComboValue<E extends Enum<?>> {
 
-/**
- * Parameter interface, represents parameters or variables used in the project
- */
-public interface UserParameter<ValueType, EditorComponent extends Node> extends
-    Parameter<ValueType> {
+  E valueType;
 
-  /**
-   * @return Detailed description of the parameter
-   */
-  String getDescription();
+  public CustomComboValue(E valueType) {
+    this.valueType = valueType;
+  }
 
-  EditorComponent createEditingComponent();
+  public E getValueType() {
+    return valueType;
+  }
 
-  void setValueFromComponent(EditorComponent component);
-
-  void setValueToComponent(EditorComponent component, @Nullable ValueType newValue);
-
-  UserParameter<ValueType, EditorComponent> cloneParameter();
-
-  /**
-   * Defines if the component grows in height in the layout
-   *
-   * @return row grow priority
-   */
-  default Priority getComponentVgrowPriority() {
-    return Priority.NEVER;
+  public void setValueType(E valueType) {
+    this.valueType = valueType;
   }
 
 }

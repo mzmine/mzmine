@@ -23,38 +23,43 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters;
+package io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters;
 
-import javafx.scene.Node;
-import javafx.scene.layout.Priority;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 
 /**
- * Parameter interface, represents parameters or variables used in the project
+ * Value for noise levels and mass detector in wizard
  */
-public interface UserParameter<ValueType, EditorComponent extends Node> extends
-    Parameter<ValueType> {
+public class WizardMassDetectorNoiseLevels extends CustomComboValue<MassDetectorWizardOptions> {
 
   /**
-   * @return Detailed description of the parameter
+   * MS1
    */
-  String getDescription();
-
-  EditorComponent createEditingComponent();
-
-  void setValueFromComponent(EditorComponent component);
-
-  void setValueToComponent(EditorComponent component, @Nullable ValueType newValue);
-
-  UserParameter<ValueType, EditorComponent> cloneParameter();
+  private final double ms1NoiseLevel;
 
   /**
-   * Defines if the component grows in height in the layout
-   *
-   * @return row grow priority
+   * MS2 and MSn
    */
-  default Priority getComponentVgrowPriority() {
-    return Priority.NEVER;
+  private final double msnNoiseLevel;
+
+  public WizardMassDetectorNoiseLevels(final MassDetectorWizardOptions value, final double ms1,
+      final double msn) {
+    super(value);
+    ms1NoiseLevel = ms1;
+    msnNoiseLevel = msn;
   }
 
+  /**
+   * @return MS1 noise level
+   */
+  public double getMs1NoiseLevel() {
+    return ms1NoiseLevel;
+  }
+
+  /**
+   * @return MS2 and MSn noise level
+   */
+  public double getMsnNoiseLevel() {
+    return msnNoiseLevel;
+  }
 }
