@@ -272,9 +272,19 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         MassSpectrum lastMS1ScanMassList = requireNonNullElse(lastMS1Scan.getMassList(),
             lastMS1Scan);
         Range<Double> toleranceRange = mzTolerance.getToleranceRange(precursorMz);
-        for (int i = 0; i < lastMS1ScanMassList.getNumberOfDataPoints(); i++) {
+        int ind = lastMS1ScanMassList.binarySearch(precursorMz, true);
+        for (int i = ind; i < lastMS1ScanMassList.getNumberOfDataPoints(); i++) {
           if (toleranceRange.contains(lastMS1ScanMassList.getMzValue(i))) {
             precursorIntensity += lastMS1ScanMassList.getIntensityValue(i);
+          } else {
+            break;
+          }
+        }
+        for (int i = ind - 1; i >= 0; i--) {
+          if (toleranceRange.contains(lastMS1ScanMassList.getMzValue(i))) {
+            precursorIntensity += lastMS1ScanMassList.getIntensityValue(i);
+          } else {
+            break;
           }
         }
       }
