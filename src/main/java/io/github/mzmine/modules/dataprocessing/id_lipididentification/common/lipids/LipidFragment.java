@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRuleRating;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
@@ -43,6 +44,7 @@ public class LipidFragment {
 
   private static final String XML_ELEMENT = "lipidfragment";
   private static final String XML_LIPID_FRAGMENTATION_RULE_TYPE = "ruletype";
+  private static final String XML_LIPID_FRAGMENTATION_RULE_RATING = "lipidFragmentationRuleRating";
   private static final String XML_LIPID_ANNOTAION_LEVEL = "lipidannotationlevel";
   private static final String XML_MZ_EXACT = "mzexact";
   private static final String XML_ION_FORMULA = "ionFormula";
@@ -56,6 +58,7 @@ public class LipidFragment {
 
   private final LipidFragmentationRuleType ruleType;
   private final LipidAnnotationLevel lipidFragmentInformationLevelType;
+  private final LipidFragmentationRuleRating lipidFragmentationRuleRating;
   private final Double mzExact;
   private final String ionFormula;
   private final DataPoint dataPoint;
@@ -67,11 +70,13 @@ public class LipidFragment {
   private final Scan msMsScan;
 
   public LipidFragment(LipidFragmentationRuleType ruleType,
-      LipidAnnotationLevel lipidFragmentInformationLevelType, Double mzExact, String ionFormula,
+      LipidAnnotationLevel lipidFragmentInformationLevelType,
+      LipidFragmentationRuleRating lipidFragmentationRuleRating, Double mzExact, String ionFormula,
       DataPoint dataPoint, ILipidClass lipidClass, Integer chainLength, Integer numberOfDBEs,
       Integer numberOfOxygens, LipidChainType lipidChainType, Scan msMsScan) {
     this.ruleType = ruleType;
     this.lipidFragmentInformationLevelType = lipidFragmentInformationLevelType;
+    this.lipidFragmentationRuleRating = lipidFragmentationRuleRating;
     this.mzExact = mzExact;
     this.ionFormula = ionFormula;
     this.dataPoint = dataPoint;
@@ -89,6 +94,10 @@ public class LipidFragment {
 
   public LipidAnnotationLevel getLipidFragmentInformationLevelType() {
     return lipidFragmentInformationLevelType;
+  }
+
+  public LipidFragmentationRuleRating getLipidFragmentationRuleRating() {
+    return lipidFragmentationRuleRating;
   }
 
   public Double getMzExact() {
@@ -132,6 +141,9 @@ public class LipidFragment {
     writer.writeAttribute(XML_ELEMENT, lipidFragmentInformationLevelType.name());
     writer.writeStartElement(XML_LIPID_FRAGMENTATION_RULE_TYPE);
     writer.writeCharacters(ruleType.name());
+    writer.writeEndElement();
+    writer.writeStartElement(XML_LIPID_FRAGMENTATION_RULE_RATING);
+    writer.writeCharacters(lipidFragmentationRuleRating.name());
     writer.writeEndElement();
     writer.writeStartElement(XML_LIPID_ANNOTAION_LEVEL);
     writer.writeCharacters(lipidFragmentInformationLevelType.name());
@@ -194,6 +206,7 @@ public class LipidFragment {
     }
 
     LipidFragmentationRuleType ruleType = null;
+    LipidFragmentationRuleRating rating = null;
     LipidAnnotationLevel lipidFragmentInformationLevelType = null;
     Double mzExact = null;
     String ionFormula = null;
@@ -223,6 +236,10 @@ public class LipidFragment {
       switch (reader.getLocalName()) {
         case XML_LIPID_FRAGMENTATION_RULE_TYPE:
           ruleType = LipidParsingUtils.lipidFragmentationRuleNameToLipidFragmentationRuleType(
+              reader.getElementText());
+          break;
+        case XML_LIPID_FRAGMENTATION_RULE_RATING:
+          rating = LipidParsingUtils.lipidFragmentationRuleNameToLipidFragmentationRuleRaiting(
               reader.getElementText());
           break;
         case XML_LIPID_ANNOTAION_LEVEL:
@@ -283,9 +300,9 @@ public class LipidFragment {
       }
     }
 
-    return new LipidFragment(ruleType, lipidFragmentInformationLevelType, mzExact, ionFormula,
-        new SimpleDataPoint(mz, intensity), lipidClass, chainLength, numberOfDBEs, numberOfOxygens,
-        lipidChainType, msMsScan);
+    return new LipidFragment(ruleType, lipidFragmentInformationLevelType, rating, mzExact,
+        ionFormula, new SimpleDataPoint(mz, intensity), lipidClass, chainLength, numberOfDBEs,
+        numberOfOxygens, lipidChainType, msMsScan);
   }
 
 }

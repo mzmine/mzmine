@@ -574,6 +574,25 @@ class LipidMsOneLevelTest {
         MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
   }
 
+
+  @Test
+  void molecularFormulaLevelTestHex2Cer() {
+    Double EXACT_MASS_CER_34_0_O3 = FormulaUtils.calculateExactMass("C46H87NO13");
+    IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.DIHEXOSYLCERAMIDES, 34, 1, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(EXACT_MASS_CER_34_0_O3), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
+  }
+
+  @Test
+  void molecularFormulaLevelTestHex3Cer() {
+    Double EXACT_MASS_CER_34_0_O3 = FormulaUtils.calculateExactMass("C52H97NO18");
+    IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.TRIHEXOSYLCERAMIDES, 34, 1, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(EXACT_MASS_CER_34_0_O3), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
+  }
+
   @Test
   void molecularFormulaLevelTestHexCerO3() {
     Double EXACT_MASS_CER_34_0_O3 = FormulaUtils.calculateExactMass("C40H77NO9");

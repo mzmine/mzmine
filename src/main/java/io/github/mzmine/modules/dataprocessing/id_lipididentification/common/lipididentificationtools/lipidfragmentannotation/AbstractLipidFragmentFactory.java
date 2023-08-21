@@ -78,8 +78,8 @@ public abstract class AbstractLipidFragmentFactory {
 
     if (mzTolRangeMSMS.contains(mzFragmentExact)) {
       return new LipidFragment(rule.getLipidFragmentationRuleType(),
-          rule.getLipidFragmentInformationLevelType(), mzFragmentExact,
-          MolecularFormulaManipulator.getString(lipidFormula), dataPoint,
+          rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+          mzFragmentExact, MolecularFormulaManipulator.getString(lipidFormula), dataPoint,
           lipidAnnotation.getLipidClass(), null, null, null, null, msMsScan);
     } else {
       return null;
@@ -93,8 +93,9 @@ public abstract class AbstractLipidFragmentFactory {
     Double mzFragmentExact = FormulaUtils.calculateMzRatio(fragmentFormula);
     if (mzTolRangeMSMS.contains(mzFragmentExact)) {
       return new LipidFragment(rule.getLipidFragmentationRuleType(),
-          rule.getLipidFragmentInformationLevelType(), mzFragmentExact, fragmentFormula, dataPoint,
-          lipidAnnotation.getLipidClass(), null, null, null, null, msMsScan);
+          rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+          mzFragmentExact, fragmentFormula, dataPoint, lipidAnnotation.getLipidClass(), null, null,
+          null, null, msMsScan);
     } else {
       return null;
     }
@@ -116,8 +117,8 @@ public abstract class AbstractLipidFragmentFactory {
     Double mzFragmentExact = FormulaUtils.calculateMzRatio(fragmentFormula);
     if (mzTolRangeMSMS.contains(mzFragmentExact)) {
       return new LipidFragment(rule.getLipidFragmentationRuleType(),
-          rule.getLipidFragmentInformationLevelType(), mzFragmentExact,
-          MolecularFormulaManipulator.getString(fragmentFormula), dataPoint,
+          rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+          mzFragmentExact, MolecularFormulaManipulator.getString(fragmentFormula), dataPoint,
           lipidAnnotation.getLipidClass(), null, null, null, null, msMsScan);
     } else {
       return null;

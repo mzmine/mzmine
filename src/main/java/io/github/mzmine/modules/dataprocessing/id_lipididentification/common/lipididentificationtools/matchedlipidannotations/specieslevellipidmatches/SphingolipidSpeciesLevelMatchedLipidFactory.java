@@ -2,6 +2,7 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.li
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRuleRating;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
@@ -27,25 +28,41 @@ public class SphingolipidSpeciesLevelMatchedLipidFactory implements
         lipidFragment -> lipidFragment.getLipidFragmentInformationLevelType()
             .equals(LipidAnnotationLevel.SPECIES_LEVEL)).collect(Collectors.toSet());
     if (!speciesLevelFragments.isEmpty()) {
-      IMolecularFormula lipidFormula = null;
-      try {
-        lipidFormula = (IMolecularFormula) speciesLevelAnnotation.getMolecularFormula().clone();
-      } catch (CloneNotSupportedException e) {
-        throw new RuntimeException(e);
-      }
-      ionizationType.ionizeFormula(lipidFormula);
-      double precursorMz = FormulaUtils.calculateMzRatio(lipidFormula);
-      Double msMsScore = MSMS_LIPID_TOOLS.calculateMsMsScore(massList, speciesLevelFragments,
-          precursorMz, mzTolRangeMSMS);
-      if (msMsScore >= minMsMsScore) {
-        return new MatchedLipid(speciesLevelAnnotation, accurateMz, ionizationType,
-            speciesLevelFragments, msMsScore);
+      if (checkLipidFragmentationRulesRating(speciesLevelFragments)) {
+        IMolecularFormula lipidFormula = null;
+        try {
+          lipidFormula = (IMolecularFormula) speciesLevelAnnotation.getMolecularFormula().clone();
+        } catch (CloneNotSupportedException e) {
+          throw new RuntimeException(e);
+        }
+        ionizationType.ionizeFormula(lipidFormula);
+        double precursorMz = FormulaUtils.calculateMzRatio(lipidFormula);
+        Double msMsScore = MSMS_LIPID_TOOLS.calculateMsMsScore(massList, speciesLevelFragments,
+            precursorMz, mzTolRangeMSMS);
+        if (msMsScore >= minMsMsScore) {
+          return new MatchedLipid(speciesLevelAnnotation, accurateMz, ionizationType,
+              speciesLevelFragments, msMsScore);
+        } else {
+          return null;
+        }
       } else {
         return null;
       }
     } else {
       return null;
     }
+  }
+
+  private boolean checkLipidFragmentationRulesRating(Set<LipidFragment> speciesLevelFragments) {
+    long majorCount = speciesLevelFragments.stream().filter(
+        fragment -> fragment.getLipidFragmentationRuleRating()
+            == LipidFragmentationRuleRating.MAJOR).count();
+
+    long minorCount = speciesLevelFragments.stream().filter(
+        fragment -> fragment.getLipidFragmentationRuleRating()
+            == LipidFragmentationRuleRating.MINOR).count();
+
+    return majorCount > 0 || minorCount >= 2;
   }
 
 }

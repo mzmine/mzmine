@@ -387,10 +387,11 @@ class LipidAnnotationTest {
   }
 
   @Test
-  void msMsRuleTestCer_18_1_O2_14_0MPlusH() {
-    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCer_18_1_O2_14_0MPlusH();
+  void msMsRuleTestCer_18_1_O2_24_0MPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCer_18_1_O2_24_0MPlusH();
     checkLipidAnnotation(testSpectrum);
   }
+
 
   @Test
   void msMsRuleTestCer_14_1_2O_18_0_OMPlusHCOO() {
@@ -451,6 +452,31 @@ class LipidAnnotationTest {
     LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHexCer_18_1_2O_24_0MMPlusH();
     checkLipidAnnotation(testSpectrum);
   }
+
+  @Test
+  void msMsRuleTestHex2Cer_18_1_2O_24_0MMPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHex2Cer_18_1_2O_16_0MMPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestHex2Cer_18_1_2O_16_0Acetate() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHex2Cer_18_1_2O_16_0Acetate();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestHex3Cer_18_1_2O_24_0MMPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHex3Cer_18_1_2O_16_0MMPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestHex3Cer_18_1_2O_24_0Acetate() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHex3Cer_42_1_2OAcetate();
+    checkLipidAnnotation(testSpectrum);
+  }
+
 
   @Test
   void msMsRuleTestHexCer_18_1_2O_20_0MMPlusCH3COO() {

@@ -12,6 +12,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRuleRating;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.GlyceroAndGlyceroPhospholipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.SphingolipidFragmentFactory;
@@ -71,8 +72,9 @@ public class LipidFragmentFactoryTest {
     List<LipidFragment> lipidHeadgroupFragments = lipidFragmentFactory.findCommonLipidFragment();
     LipidFragment testLipidHeadgroupFragment = new LipidFragment(
         LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
-        184.07332101009092, "C", TEST_DATA_POINT_HEADGROUP_FRAGMENT,
-        LipidClasses.DIACYLGLYCEROPHOSPHOCHOLINES, 32, 0, null, null, TEST_SCAN);
+        LipidFragmentationRuleRating.MAJOR, 184.07332101009092, "C",
+        TEST_DATA_POINT_HEADGROUP_FRAGMENT, LipidClasses.DIACYLGLYCEROPHOSPHOCHOLINES, 32, 0, null,
+        null, TEST_SCAN);
     compareTestAndBuildLipidFragments(lipidHeadgroupFragments, testLipidHeadgroupFragment);
 
     ILipidAnnotation testLipidAnnotationHeadgroupFragmentNL = LIPID_FACTORY.buildSpeciesLevelLipid(
@@ -86,7 +88,7 @@ public class LipidFragmentFactoryTest {
     List<LipidFragment> lipidHeadgroupNLFragments = lipidFragmentFactory.findCommonLipidFragment();
     LipidFragment testLipidHeadgroupNLFragment = new LipidFragment(
         LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
-        184.0733210100, "C", TEST_DATA_POINT_HEADGROUP_FRAGMENT,
+        LipidFragmentationRuleRating.MAJOR, 184.0733210100, "C", TEST_DATA_POINT_HEADGROUP_FRAGMENT,
         LipidClasses.DIACYLGLYCEROPHOSPHOCHOLINES, 32, 0, null, null, TEST_SCAN);
     compareTestAndBuildLipidFragments(lipidHeadgroupNLFragments, testLipidHeadgroupNLFragment);
   }
@@ -105,8 +107,8 @@ public class LipidFragmentFactoryTest {
     List<LipidFragment> lipidAcylChainFragments = lipidFragmentFactory.findLipidFragments();
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
         LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT, LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL,
-        283.2643, "C", testDataPointAcylChain, LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS, 18, 0, 0,
-        LipidChainType.ACYL_CHAIN, TEST_SCAN);
+        LipidFragmentationRuleRating.MAJOR, 283.2643, "C", testDataPointAcylChain,
+        LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS, 18, 0, 0, LipidChainType.ACYL_CHAIN, TEST_SCAN);
     compareTestAndBuildLipidFragments(lipidAcylChainFragments, testLipidAcylChainFragment);
   }
 
@@ -124,8 +126,9 @@ public class LipidFragmentFactoryTest {
     List<LipidFragment> lipidAcylChainFragments = lipidFragmentFactory.findLipidFragments();
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
         LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT_NL,
-        LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, 601.2783, "C", testDataPointAcylChain,
-        LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS, 18, 0, 0, LipidChainType.ACYL_CHAIN, TEST_SCAN);
+        LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, LipidFragmentationRuleRating.MAJOR, 601.2783,
+        "C", testDataPointAcylChain, LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS, 18, 0, 0,
+        LipidChainType.ACYL_CHAIN, TEST_SCAN);
     compareTestAndBuildLipidFragments(lipidAcylChainFragments, testLipidAcylChainFragment);
   }
 
@@ -143,8 +146,9 @@ public class LipidFragmentFactoryTest {
     List<LipidFragment> lipidAcylChainFragments = lipidFragmentFactory.findLipidFragments();
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
         LipidFragmentationRuleType.ACYLCHAIN_MINUS_FORMULA_FRAGMENT_NL,
-        LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, 619.2889, "C", testDataPointAcylChain,
-        LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS, 18, 0, 0, LipidChainType.ACYL_CHAIN, TEST_SCAN);
+        LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, LipidFragmentationRuleRating.MAJOR, 619.2889,
+        "C", testDataPointAcylChain, LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS, 18, 0, 0,
+        LipidChainType.ACYL_CHAIN, TEST_SCAN);
     compareTestAndBuildLipidFragments(lipidAcylChainFragments, testLipidAcylChainFragment);
   }
 
@@ -162,8 +166,9 @@ public class LipidFragmentFactoryTest {
     List<LipidFragment> lipidAcylChainFragments = lipidFragmentFactory.findLipidFragments();
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
         LipidFragmentationRuleType.ACYLCHAIN_PLUS_FORMULA_FRAGMENT_NL,
-        LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, 419.2568, "C", testDataPointAcylChain,
-        LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS, 18, 0, 0, LipidChainType.ACYL_CHAIN, TEST_SCAN);
+        LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, LipidFragmentationRuleRating.MAJOR, 419.2568,
+        "C", testDataPointAcylChain, LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS, 18, 0, 0,
+        LipidChainType.ACYL_CHAIN, TEST_SCAN);
     compareTestAndBuildLipidFragments(lipidAcylChainFragments, testLipidAcylChainFragment);
   }
 
@@ -180,9 +185,9 @@ public class LipidFragmentFactoryTest {
     List<LipidFragment> lipidAcylChainFragments = lipidFragmentFactory.findLipidFragments();
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
         LipidFragmentationRuleType.TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT,
-        LipidAnnotationLevel.SPECIES_LEVEL, 601.519, "C", testDataPointAcylChain,
-        LipidClasses.DIACYLGLYCEROPHOSPHOGLYCEROPHOSPHODIRADYLGLYCEROLS, 36, 3, 0,
-        LipidChainType.TWO_ACYL_CHAINS_COMBINED, TEST_SCAN);
+        LipidAnnotationLevel.SPECIES_LEVEL, LipidFragmentationRuleRating.MAJOR, 601.519, "C",
+        testDataPointAcylChain, LipidClasses.DIACYLGLYCEROPHOSPHOGLYCEROPHOSPHODIRADYLGLYCEROLS, 36,
+        3, 0, LipidChainType.TWO_ACYL_CHAINS_COMBINED, TEST_SCAN);
     compareTestAndBuildLipidFragments(lipidAcylChainFragments, testLipidAcylChainFragment);
   }
 
@@ -200,9 +205,9 @@ public class LipidFragmentFactoryTest {
     List<LipidFragment> lipidAcylChainFragments = lipidFragmentFactory.findLipidFragments();
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
         LipidFragmentationRuleType.ALKYLCHAIN_PLUS_FORMULA_FRAGMENT,
-        LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, 377.2462, "C", testDataPointAcylChain,
-        LipidClasses.ALKYLACYLGLYCEROPHOSPHOINOSITOLS, 16, 0, 0, LipidChainType.ALKYL_CHAIN,
-        TEST_SCAN);
+        LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, LipidFragmentationRuleRating.MAJOR, 377.2462,
+        "C", testDataPointAcylChain, LipidClasses.ALKYLACYLGLYCEROPHOSPHOINOSITOLS, 16, 0, 0,
+        LipidChainType.ALKYL_CHAIN, TEST_SCAN);
     compareTestAndBuildLipidFragments(lipidAcylChainFragments, testLipidAcylChainFragment);
   }
 
@@ -220,8 +225,8 @@ public class LipidFragmentFactoryTest {
     List<LipidFragment> lipidAcylChainFragments = lipidFragmentFactory.findLipidFragments();
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
         LipidFragmentationRuleType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT,
-        LipidAnnotationLevel.SPECIES_LEVEL, 264.2686, "C", testDataPointAcylChain,
-        LipidClasses.CERAMIDEPHOSPHOCHOLINES, 18, 0, 0,
+        LipidAnnotationLevel.SPECIES_LEVEL, LipidFragmentationRuleRating.MAJOR, 264.2686, "C",
+        testDataPointAcylChain, LipidClasses.CERAMIDEPHOSPHOCHOLINES, 18, 0, 0,
         LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN, TEST_SCAN);
     compareTestAndBuildLipidFragments(lipidAcylChainFragments, testLipidAcylChainFragment);
   }
@@ -241,8 +246,8 @@ public class LipidFragmentFactoryTest {
     List<LipidFragment> lipidAcylChainFragments = lipidFragmentFactory.findLipidFragments();
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
         LipidFragmentationRuleType.AMID_MONO_HYDROXY_CHAIN_PLUS_FORMULA_FRAGMENT,
-        LipidAnnotationLevel.SPECIES_LEVEL, 225.2224, "C", testDataPointAcylChain,
-        LipidClasses.CERAMIDEANDDIHYDROCERAMIDEHYDROXYFATTYACID, 18, 0, 0,
+        LipidAnnotationLevel.SPECIES_LEVEL, LipidFragmentationRuleRating.MAJOR, 225.2224, "C",
+        testDataPointAcylChain, LipidClasses.CERAMIDEANDDIHYDROCERAMIDEHYDROXYFATTYACID, 18, 0, 0,
         LipidChainType.AMID_MONO_HYDROXY_CHAIN, TEST_SCAN);
     compareTestAndBuildLipidFragments(lipidAcylChainFragments, testLipidAcylChainFragment);
   }

@@ -140,8 +140,8 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
         return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact,
-            MolecularFormulaManipulator.getString(sphingosineFormula), dataPoint,
+            rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+            mzExact, MolecularFormulaManipulator.getString(sphingosineFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(),
             LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN, msMsScan);
@@ -164,8 +164,8 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
         return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact,
-            MolecularFormulaManipulator.getString(sphingosineFormula), dataPoint,
+            rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+            mzExact, MolecularFormulaManipulator.getString(sphingosineFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(), LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN,
             msMsScan);
@@ -188,8 +188,8 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
         return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact,
-            MolecularFormulaManipulator.getString(sphingosineFormula), dataPoint,
+            rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+            mzExact, MolecularFormulaManipulator.getString(sphingosineFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(), LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN,
             msMsScan);
@@ -216,8 +216,8 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
         return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact,
-            MolecularFormulaManipulator.getString(fragmentFormula), dataPoint,
+            rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+            mzExact, MolecularFormulaManipulator.getString(fragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(),
             LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN, msMsScan);
@@ -245,8 +245,8 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
         return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact,
-            MolecularFormulaManipulator.getString(fragmentFormula), dataPoint,
+            rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+            mzExact, MolecularFormulaManipulator.getString(fragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(), LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN,
             msMsScan);
@@ -269,12 +269,13 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
           modificationFormula);
       ionizeFragmentBasedOnPolarity(fragmentFormula, rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(fragmentFormula);
+
       if (mzTolRangeMSMS.contains(mzExact)) {
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
         return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact,
-            MolecularFormulaManipulator.getString(fragmentFormula), dataPoint,
+            rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+            mzExact, MolecularFormulaManipulator.getString(fragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(), LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN,
             msMsScan);
@@ -299,8 +300,8 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
           int chainLength = lipidChain.getNumberOfCarbons();
           int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
           return new LipidFragment(rule.getLipidFragmentationRuleType(),
-              rule.getLipidFragmentInformationLevelType(), mzExact,
-              MolecularFormulaManipulator.getString(lipidChainFormula), dataPoint,
+              rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+              mzExact, MolecularFormulaManipulator.getString(lipidChainFormula), dataPoint,
               lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
               lipidChain.getNumberOfOxygens(), LipidChainType.AMID_CHAIN, msMsScan);
         }
@@ -328,8 +329,8 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
         return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact,
-            MolecularFormulaManipulator.getString(ionizedFragmentFormula), dataPoint,
+            rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+            mzExact, MolecularFormulaManipulator.getString(ionizedFragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(), LipidChainType.AMID_CHAIN, msMsScan);
       }
@@ -356,8 +357,8 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
         return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact,
-            MolecularFormulaManipulator.getString(ionizedFragmentFormula), dataPoint,
+            rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+            mzExact, MolecularFormulaManipulator.getString(ionizedFragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(), LipidChainType.AMID_CHAIN, msMsScan);
       }
@@ -377,12 +378,13 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
         ionizeFragmentBasedOnPolarity(lipidChainFormula, rule.getPolarityType());
         Double mzExact = FormulaUtils.calculateMzRatio(lipidChainFormula);
+
         if (mzTolRangeMSMS.contains(mzExact)) {
           int chainLength = lipidChain.getNumberOfCarbons();
           int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
           return new LipidFragment(rule.getLipidFragmentationRuleType(),
-              rule.getLipidFragmentInformationLevelType(), mzExact,
-              MolecularFormulaManipulator.getString(lipidChainFormula), dataPoint,
+              rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+              mzExact, MolecularFormulaManipulator.getString(lipidChainFormula), dataPoint,
               lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
               lipidChain.getNumberOfOxygens(), LipidChainType.AMID_MONO_HYDROXY_CHAIN, msMsScan);
         }
@@ -410,8 +412,8 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
         return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact,
-            MolecularFormulaManipulator.getString(ionizedFragmentFormula), dataPoint,
+            rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+            mzExact, MolecularFormulaManipulator.getString(ionizedFragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(), LipidChainType.AMID_MONO_HYDROXY_CHAIN, msMsScan);
       }
@@ -438,8 +440,8 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         int chainLength = lipidChain.getNumberOfCarbons();
         int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
         return new LipidFragment(rule.getLipidFragmentationRuleType(),
-            rule.getLipidFragmentInformationLevelType(), mzExact,
-            MolecularFormulaManipulator.getString(ionizedFragmentFormula), dataPoint,
+            rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+            mzExact, MolecularFormulaManipulator.getString(ionizedFragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(), LipidChainType.AMID_MONO_HYDROXY_CHAIN, msMsScan);
       }

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils;
 
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRuleRating;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
@@ -36,8 +37,7 @@ public class LipidParsingUtils {
 
     public static LipidFragmentationRuleType lipidFragmentationRuleNameToLipidFragmentationRuleType(
             String lipidFragmentationRuleName) {
-        LipidFragmentationRuleType[] lipidFragmentationRuleTypes =
-                LipidFragmentationRuleType.class.getEnumConstants();
+        LipidFragmentationRuleType[] lipidFragmentationRuleTypes = LipidFragmentationRuleType.class.getEnumConstants();
         for (LipidFragmentationRuleType lipidFragmentationRuleType : lipidFragmentationRuleTypes) {
             if (lipidFragmentationRuleType.name().equals(lipidFragmentationRuleName)) {
                 return lipidFragmentationRuleType;
@@ -46,8 +46,19 @@ public class LipidParsingUtils {
         return null;
     }
 
+    public static LipidFragmentationRuleRating lipidFragmentationRuleNameToLipidFragmentationRuleRaiting(
+        String lipidFragmentationRuleName) {
+        LipidFragmentationRuleRating[] lipidFragmentationRuleRatings = LipidFragmentationRuleRating.class.getEnumConstants();
+        for (LipidFragmentationRuleRating lipidFragmentationRuleRating : lipidFragmentationRuleRatings) {
+            if (lipidFragmentationRuleRating.name().equals(lipidFragmentationRuleName)) {
+                return lipidFragmentationRuleRating;
+            }
+        }
+        return null;
+    }
+
     public static LipidAnnotationLevel lipidAnnotationLevelNameToLipidAnnotationLevel(
-            String lipidAnnotationLevelName) {
+        String lipidAnnotationLevelName) {
         LipidAnnotationLevel[] lipidAnnotationLevels = LipidAnnotationLevel.class.getEnumConstants();
         for (LipidAnnotationLevel lipidAnnotationLevel : lipidAnnotationLevels) {
             if (lipidAnnotationLevel.name().equals(lipidAnnotationLevelName)) {
