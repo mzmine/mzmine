@@ -81,6 +81,6 @@ public class WizardMassDetectorParameter extends
   @Override
   public UserParameter<WizardMassDetectorNoiseLevels, CustomComboComponent<MassDetectorWizardOptions, WizardMassDetectorNoiseLevels>> cloneParameter() {
     return new WizardMassDetectorParameter(getName(), getDescription(), options, isValueRequired(),
-        value);
+        value.copy());
   }
 }

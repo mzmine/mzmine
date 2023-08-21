@@ -25,9 +25,9 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters;
 
-public class CustomComboValue<E extends Enum<?>> {
+public abstract class CustomComboValue<E extends Enum<?>> {
 
-  E valueType;
+  final E valueType;
 
   public CustomComboValue(E valueType) {
     this.valueType = valueType;
@@ -37,8 +37,5 @@ public class CustomComboValue<E extends Enum<?>> {
     return valueType;
   }
 
-  public void setValueType(E valueType) {
-    this.valueType = valueType;
-  }
-
+  public abstract CustomComboValue<E> copy();
 }

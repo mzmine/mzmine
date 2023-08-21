@@ -62,4 +62,9 @@ public class WizardMassDetectorNoiseLevels extends CustomComboValue<MassDetector
   public double getMsnNoiseLevel() {
     return msnNoiseLevel;
   }
+
+  @Override
+  public WizardMassDetectorNoiseLevels copy() {
+    return new WizardMassDetectorNoiseLevels(valueType, ms1NoiseLevel, msnNoiseLevel);
+  }
 }
