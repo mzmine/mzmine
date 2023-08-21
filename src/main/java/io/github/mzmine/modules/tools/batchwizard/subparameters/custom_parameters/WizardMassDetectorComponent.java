@@ -54,15 +54,10 @@ public class WizardMassDetectorComponent extends
     txtMs1.setPrefColumnCount(6);
     txtMsn.setPrefColumnCount(6);
 
-//    ColumnConstraints col = new ColumnConstraints();
-//    col.setFillWidth(true);
-//    col.setHgrow(Priority.ALWAYS);
-
     GridPane pane = new GridPane();
     pane.setPadding(new Insets(10));
     pane.setVgap(5);
     pane.setHgap(5);
-//    pane.getColumnConstraints().addAll(new ColumnConstraints(), col);
 
     pane.add(labelFor("MS1"), 0, 0);
     pane.add(labelFor("MS2..MSn"), 0, 1);
