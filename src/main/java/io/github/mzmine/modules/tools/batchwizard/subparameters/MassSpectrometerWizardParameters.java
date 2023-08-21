@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,8 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorParameter;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -40,13 +42,15 @@ public final class MassSpectrometerWizardParameters extends WizardStepParameters
   public static final ComboParameter<Polarity> polarity = new ComboParameter<>("Ion mode",
       "Polarity of the ion mode", Polarity.values(), Polarity.Positive);
 
-  public static final DoubleParameter ms1NoiseLevel = new DoubleParameter("MS1 noise level",
-      "Noise level for peaks in MS1 spectra. Should remove noise but keep analyte signals.",
-      MZmineCore.getConfiguration().getIntensityFormat());
-
-  public static final DoubleParameter msnNoiseLevel = new DoubleParameter("MS2..MSn noise level",
-      "Noise level for signals in MS2 to MSn spectra. Should remove noise but keep analyte signals.",
-      MZmineCore.getConfiguration().getIntensityFormat());
+  /**
+   * No need for version increase as default is the same as before
+   */
+  public static final WizardMassDetectorParameter massDetectorOption = new WizardMassDetectorParameter(
+      "Noise threshold", """
+      TOF-MS usually uses an absolute noise level and FTMS uses the 'factor of the lowest signal' mass detector -
+      which is only available for already centroided data.""", MassDetectorWizardOptions.values(),
+      true,
+      new WizardMassDetectorNoiseLevels(MassDetectorWizardOptions.ABSOLUTE_NOISE_LEVEL, 0, 0));
 
   public static final DoubleParameter minimumFeatureHeight = new DoubleParameter(
       "Minimum feature height",
@@ -56,13 +60,13 @@ public final class MassSpectrometerWizardParameters extends WizardStepParameters
   public static final MZToleranceParameter scanToScanMzTolerance = new MZToleranceParameter(
       ToleranceType.SCAN_TO_SCAN,
       "Describes the m/z fluctuations of peaks from one scan to another within the same"
-          + " sample.\nUsed for chromatogram building.");
+      + " sample.\nUsed for chromatogram building.");
 
   public static final MZToleranceParameter featureToFeatureMzTolerance = new MZToleranceParameter(
       ToleranceType.INTRA_SAMPLE,
       "Describes the m/z variations of features that belong together, such as isotopic"
-          + " signals. The values are averaged along the whole feature.\nUsed for recognition of"
-          + "isotopic signals and ion identity networks.");
+      + " signals. The values are averaged along the whole feature.\nUsed for recognition of"
+      + "isotopic signals and ion identity networks.");
 
   public static final MZToleranceParameter sampleToSampleMzTolerance = new MZToleranceParameter(
       ToleranceType.SAMPLE_TO_SAMPLE,
@@ -71,21 +75,25 @@ public final class MassSpectrometerWizardParameters extends WizardStepParameters
   public MassSpectrometerWizardParameters(MassSpectrometerWizardParameterFactory preset) {
     super(WizardPart.MS, preset,
         // parameters
-        polarity, ms1NoiseLevel, msnNoiseLevel, minimumFeatureHeight, scanToScanMzTolerance,
+        polarity, massDetectorOption, minimumFeatureHeight, scanToScanMzTolerance,
         featureToFeatureMzTolerance, sampleToSampleMzTolerance);
   }
 
   public MassSpectrometerWizardParameters(final MassSpectrometerWizardParameterFactory preset,
-      final double ms1noise, final double ms2noise, final double minHeight,
-      final MZTolerance scan2scanMzTolerance, final MZTolerance f2fMzTolerance,
-      final MZTolerance sample2sampleMzTolerance) {
+      final MassDetectorWizardOptions massDetector, final double ms1noise, final double ms2noise,
+      final double minHeight, final MZTolerance scan2scanMzTolerance,
+      final MZTolerance f2fMzTolerance, final MZTolerance sample2sampleMzTolerance) {
     this(preset);
-    setParameter(ms1NoiseLevel, ms1noise);
-    setParameter(msnNoiseLevel, ms2noise);
+    setParameter(massDetectorOption,
+        new WizardMassDetectorNoiseLevels(massDetector, ms1noise, ms2noise));
     setParameter(minimumFeatureHeight, minHeight);
     setParameter(scanToScanMzTolerance, scan2scanMzTolerance);
     setParameter(featureToFeatureMzTolerance, f2fMzTolerance);
     setParameter(sampleToSampleMzTolerance, sample2sampleMzTolerance);
   }
 
+  @Override
+  public int getVersion() {
+    return 2;
+  }
 }

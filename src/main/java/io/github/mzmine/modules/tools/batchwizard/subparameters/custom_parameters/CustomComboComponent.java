@@ -23,38 +23,49 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters;
+package io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters;
 
-import javafx.scene.Node;
-import javafx.scene.layout.Priority;
-import org.jetbrains.annotations.Nullable;
+import javafx.collections.FXCollections;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
 
 /**
- * Parameter interface, represents parameters or variables used in the project
+ * Combo is on the top and center is free for additional controls
+ *
+ * @param <E>
  */
-public interface UserParameter<ValueType, EditorComponent extends Node> extends
-    Parameter<ValueType> {
+public abstract class CustomComboComponent<E extends Enum<?>, V extends CustomComboValue<E>> extends
+    BorderPane {
 
-  /**
-   * @return Detailed description of the parameter
-   */
-  String getDescription();
+  protected final ComboBox<E> comboBox;
 
-  EditorComponent createEditingComponent();
+  protected V value;
 
-  void setValueFromComponent(EditorComponent component);
+  public CustomComboComponent(E[] options) {
+    comboBox = new ComboBox<>(FXCollections.observableArrayList(options));
+    comboBox.getSelectionModel().select(0);
 
-  void setValueToComponent(EditorComponent component, @Nullable ValueType newValue);
+    setTop(comboBox);
+  }
 
-  UserParameter<ValueType, EditorComponent> cloneParameter();
+  public CustomComboComponent(E[] options, CustomComboValue<E> defaultValue) {
+    this(options);
+    comboBox.setValue(defaultValue.getValueType());
+  }
 
-  /**
-   * Defines if the component grows in height in the layout
-   *
-   * @return row grow priority
-   */
-  default Priority getComponentVgrowPriority() {
-    return Priority.NEVER;
+  public abstract V getValue();
+
+  public void setValue(V value) {
+    if (value == null) {
+      comboBox.setValue(null);
+      return;
+    }
+    comboBox.setValue(value.getValueType());
+  }
+
+  public void setToolTipText(String toolTip) {
+    comboBox.setTooltip(new Tooltip(toolTip));
   }
 
 }
