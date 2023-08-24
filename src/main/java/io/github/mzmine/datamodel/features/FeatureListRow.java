@@ -454,8 +454,8 @@ public interface FeatureListRow extends ModularDataModel {
    */
   default double getSumIntensity() {
     return this.getFeatures().stream().filter(Objects::nonNull)
-        .filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN).mapToDouble(Feature::getHeight)
-        .filter(Objects::nonNull).sum();
+        .filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN).map(Feature::getHeight)
+        .filter(Objects::nonNull).mapToDouble(Float::doubleValue).sum();
   }
 
   /**
