@@ -74,7 +74,7 @@ public class AreaShareType extends DataType<Map<RawDataFile, ModularFeature>>
   @Override
   public Node getCellNode(
       TreeTableCell<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> cell,
-      TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> coll,
+      TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> coll, DataType type,
       Map<RawDataFile, ModularFeature> cellData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTableRow().getItem();
     if (row == null)

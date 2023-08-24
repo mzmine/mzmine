@@ -31,14 +31,12 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
+import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,10 +46,10 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class DataTypeCellFactory implements
+public class DataTypeGraphicalCellFactory<S, T extends DataType<S> & GraphicalColumType<S>> implements
     Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
 
-  private static final Logger logger = Logger.getLogger(DataTypeCellFactory.class.getName());
+  private static final Logger logger = Logger.getLogger(DataTypeGraphicalCellFactory.class.getName());
   @NotNull
   private final DataType type;
   @Nullable
@@ -61,7 +59,7 @@ public class DataTypeCellFactory implements
   private final int subcolumn;
 
 
-  public DataTypeCellFactory(@Nullable RawDataFile raw, @NotNull DataType type,
+  public DataTypeGraphicalCellFactory(@Nullable RawDataFile raw, @NotNull DataType type,
       @Nullable SubColumnsFactory parent, int subcolumn) {
     this.parent = parent;
     this.type = type;
@@ -83,35 +81,32 @@ public class DataTypeCellFactory implements
 
       @Override
       protected void updateItem(Object item, boolean empty) {
+
         try {
           super.updateItem(item, empty);
           // needs to check for row visibility
           // this makes scrambles the column order - rows seem to be flagged invisible wrongly
           if (empty || item == null) {
             setGraphic(null);
-            setText(null);
             return;
           }
 
-          // dirty fix for NumberRangeType as those types do not return sub types for each
-          // column, but rather use NumberRangeType.this as type
-          if (type instanceof NumberRangeType rangeType) {
-            // use special method in NumberRangeType - this needs a number instead of Range
-            setText(rangeType.getFormattedString((Number) item, false));
-            setGraphic(null);
+//        logger.log(Level.INFO, "updateItem in Cell (DataTypeCellFactory)");
+          if (type instanceof LinkedGraphicalType lgType) {
+            // convert Boolean to boolean
+            boolean cellActive = item != null && ((Boolean) item).booleanValue();
+            // first handle linked graphical types (like charts) that are dependent on other data
+            Node node = ((GraphicalColumType) lgType).getCellNode(this, param, type, cellActive, raw);
+            getTableColumn().setMinWidth(lgType.getColumnWidth());
+            setGraphic(node);
             return;
-          } else {
-            setText(type.getFormattedString(item));
-            setGraphic(null);
           }
 
-
-          if (type instanceof NumberType) {
-            setAlignment(Pos.CENTER_RIGHT);
-            setGraphic(null);
-          } else {
-            setAlignment(Pos.CENTER);
-            setGraphic(null);
+          if (type instanceof GraphicalColumType graphicalColumType) {
+            Node node = graphicalColumType.getCellNode(this, param, type, item, raw);
+            getTableColumn().setMinWidth(graphicalColumType.getColumnWidth());
+            setGraphic(node);
+            return;
           }
 
         } catch (Exception ex) {

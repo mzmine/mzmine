@@ -76,9 +76,9 @@ public class FeatureTableTab extends MZmineTab {
     controller = loader.getController();
 
     controller.setFeatureList(flist);
-    final NodeGenerationThread nodeGenerationThread = new NodeGenerationThread(null, Instant.now(),
-        flist);
-    MZmineCore.getTaskController().addTask(nodeGenerationThread);
+    //final NodeGenerationThread nodeGenerationThread = new NodeGenerationThread(null, Instant.now(),
+    //    flist);
+    //MZmineCore.getTaskController().addTask(nodeGenerationThread);
 
     // TODO: if there would be only selectColumnsButton in the toolbar, then remove toolbar and
     //  improve "+" button behaviour of the feature table header

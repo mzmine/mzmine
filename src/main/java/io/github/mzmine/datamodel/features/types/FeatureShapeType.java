@@ -69,11 +69,11 @@ public class FeatureShapeType extends LinkedGraphicalType {
     if (row == null || cellData == null || !cellData) {
       return null;
     }
-    StackPane node = (StackPane) row.getBufferedColChart(getHeaderString());
+    /*StackPane node = (StackPane) row.getBufferedColChart(getHeaderString());
     if (node == null) {
       logger.info("Cannot create shape chart, no buffered chart available for row.");
       return null;
-    }
+    }*/
 
     var chart = new FeatureShapeChart(row, progress);
     return chart;

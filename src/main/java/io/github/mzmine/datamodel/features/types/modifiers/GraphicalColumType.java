@@ -30,10 +30,12 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,16 +57,16 @@ public interface GraphicalColumType<T> {
   /**
    * @param cell
    * @param coll
+   * @param type
    * @param cellData same as cell.getItem
    * @param raw      only provided for sample specific DataTypes
    * @return
    */
   public default Node getCellNode(TreeTableCell<ModularFeatureListRow, T> cell,
-      TreeTableColumn<ModularFeatureListRow, T> coll, T cellData, RawDataFile raw) {
+      TreeTableColumn<ModularFeatureListRow, T> coll, DataType type, T cellData, RawDataFile raw) {
     final ModularFeatureListRow row = cell.getTableRow().getItem();
 
-    Node content = null;
-    if (raw == null) {
+    /*if (raw == null) {
       content = row.getBufferedColChart(coll.getText());
       if (content == null) {
         content = new StackPane(new Label("Preparing content..."));
@@ -80,8 +82,12 @@ public interface GraphicalColumType<T> {
         content = new StackPane(new Label("Preparing content..."));
         feature.addBufferedColChart(coll.getText(), content);
       }
+    }*/
+
+    if(row.getFeatureList() != null) {
+      return row.getFeatureList().getChartForRow(row, type, raw);
     }
-    return content;
+    throw new IllegalStateException("No feature list associated with row.");
   }
 
   /**

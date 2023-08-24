@@ -74,7 +74,7 @@ public class AreaBarType extends DataType<Map<RawDataFile, ModularFeature>> impl
   @Override
   public Node getCellNode(
       TreeTableCell<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> cell,
-      TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> coll,
+      TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> coll, DataType type,
       Map<RawDataFile, ModularFeature> cellData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
     if (row == null) {

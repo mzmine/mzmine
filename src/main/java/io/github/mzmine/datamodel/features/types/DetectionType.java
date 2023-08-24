@@ -73,7 +73,7 @@ public class DetectionType extends DataType<FeatureStatus> implements
 
   @Override
   public Node getCellNode(TreeTableCell<ModularFeatureListRow, FeatureStatus> cell,
-      TreeTableColumn<ModularFeatureListRow, FeatureStatus> coll, FeatureStatus cellData,
+      TreeTableColumn<ModularFeatureListRow, FeatureStatus> coll, DataType type, FeatureStatus cellData,
       RawDataFile raw) {
     if (cellData == null) {
       return null;

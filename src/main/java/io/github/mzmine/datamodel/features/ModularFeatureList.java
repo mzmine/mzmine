@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
 import io.github.mzmine.datamodel.features.types.tasks.NodeRequest;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
@@ -50,6 +51,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -63,6 +65,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -71,7 +75,9 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,6 +100,10 @@ public class ModularFeatureList implements FeatureList {
   // unmodifiable list
   private final ObservableList<RawDataFile> dataFiles;
   private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
+
+  private NodeGenerationThread nodeThread;
+  private final ReentrantReadWriteLock nodeThreadLock = new ReentrantReadWriteLock(false);
+
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
@@ -112,7 +122,7 @@ public class ModularFeatureList implements FeatureList {
   // grouping
   private List<RowGroup> groups;
 
-  private final Map<String, Map<Integer, Node>> bufferedCharts = new HashMap<>();
+  private final Map<String, Node> bufferedCharts = new HashMap<>();
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
       @NotNull RawDataFile... dataFiles) {
@@ -863,26 +873,42 @@ public class ModularFeatureList implements FeatureList {
     }
   }
 
-  public <S, T extends DataType<S> & GraphicalColumType<?>> Node getChartForRow(FeatureListRow row,
-      T type, RawDataFile file, Pane parentPane) {
+  public <S, T extends DataType<S>> Node getChartForRow(FeatureListRow row,
+      T type, RawDataFile file) {
 
-    final String key = type.getUniqueID() + (file != null ? file.getName() : "");
-    var idNodeMap = bufferedCharts.get(key);
+    final String key = "%d-%s-%s".formatted(row.getID(), type.getUniqueID(), (file != null ? file.getName() : ""));
+    final Node node = bufferedCharts.get(key);
 
-    if (idNodeMap == null) {
-      synchronized (bufferedCharts) { // thread safe generation of new type map
-        idNodeMap = new HashMap<>();
-        bufferedCharts.put(key, idNodeMap);
-      }
-    }
-
-    final Node node = idNodeMap.get(row.getID());
-    if(node != null && node.getParent() == null) {
+    if (node != null && node.getParent() == null) {
       return node;
     }
 
-    final NodeRequest<S> request = new NodeRequest<>((ModularFeatureListRow) row, type,
-        row.get(type), file, parentPane); // todo add node request to task
+    final StackPane parentPane = new StackPane(new Label("Preparing content..."));
+    bufferedCharts.putIfAbsent(key, parentPane);
+
+    ensureNodeThreadRunnning();
+    nodeThread.requestNode((ModularFeatureListRow) row, type, row.get(type), file, parentPane);
+
     return parentPane;
+  }
+
+  private void ensureNodeThreadRunnning() {
+
+    nodeThreadLock.writeLock().lock();
+    if (nodeThread == null || nodeThread.isFinished()) {
+      nodeThread = new NodeGenerationThread(null, Instant.now(), this);
+      logger.finest("Starting new node thread.");
+      MZmineCore.getTaskController().addTask(nodeThread);
+    }
+    nodeThreadLock.writeLock().unlock();
+  }
+
+  public void onFeatureTableFxClosed() {
+    if (nodeThread != null) {
+      nodeThread.cancel();
+      nodeThread = null;
+    }
+
+    bufferedCharts.clear();
   }
 }
