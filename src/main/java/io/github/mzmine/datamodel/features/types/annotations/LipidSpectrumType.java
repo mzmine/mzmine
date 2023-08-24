@@ -38,10 +38,8 @@ import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidS
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.scene.Node;
-import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LipidSpectrumType extends LinkedGraphicalType {
 
@@ -60,18 +58,8 @@ public class LipidSpectrumType extends LinkedGraphicalType {
   }
 
   @Override
-  public @org.jetbrains.annotations.Nullable Node createCellContent(ModularFeatureListRow row,
-      Boolean cellData, RawDataFile raw, AtomicDouble progress) {
-    if (row == null || !cellData) {
-      return null;
-    }
-
-    StackPane node = (StackPane) row.getBufferedColChart(getHeaderString());
-    if (node == null) {
-      logger.info("Cannot create lipid chart, no buffered chart available for row.");
-      return null;
-    }
-
+  public @Nullable Node createCellContent(@NotNull ModularFeatureListRow row, Boolean cellData,
+      @Nullable RawDataFile raw, AtomicDouble progress) {
     List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
     if (matchedLipids == null || matchedLipids.isEmpty()) {
       return null;
@@ -82,13 +70,13 @@ public class LipidSpectrumType extends LinkedGraphicalType {
 
   @Override
   public double getColumnWidth() {
-    return DEFAULT_GRAPHICAL_CELL_WIDTH + 50;
+    return LARGE_GRAPHICAL_CELL_WIDTH;
   }
 
   @Nullable
   @Override
-  public Runnable getDoubleClickAction(@Nonnull ModularFeatureListRow row,
-      @Nonnull List<RawDataFile> file, DataType<?> superType,
+  public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
+      @NotNull List<RawDataFile> file, DataType<?> superType,
       @org.jetbrains.annotations.Nullable final Object value) {
     List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
     if (matchedLipids != null) {

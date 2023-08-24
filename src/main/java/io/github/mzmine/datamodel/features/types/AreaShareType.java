@@ -29,19 +29,12 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.AreaShareChart;
+import io.github.mzmine.datamodel.features.types.graphicalnodes.AreaBarChart;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
-import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
 import java.util.Map;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
-import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,27 +65,17 @@ public class AreaShareType extends DataType<Map<RawDataFile, ModularFeature>>
   }
 
   @Override
-  public Node getCellNode(
-      TreeTableCell<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> cell,
-      TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> coll, DataType type,
-      Map<RawDataFile, ModularFeature> cellData, RawDataFile raw) {
-    ModularFeatureListRow row = cell.getTableRow().getItem();
-    if (row == null)
+  public @Nullable Node createCellContent(ModularFeatureListRow row,
+      Map<RawDataFile, ModularFeature> cellData, RawDataFile raw, AtomicDouble progress) {
+
+    if(row.get(AreaShareType.class) != null) {
       return null;
+    }
 
-    // get existing buffered node from row (for column name)
-    // TODO listen to changes in features data
-    Node node = row.getBufferedColChart(coll.getText());
-    if (node != null)
-      return node;
-
-    StackPane pane = new StackPane();
-
-    // TODO stop task if new task is started
-    Task task = new FeaturesGraphicalNodeTask(AreaShareChart.class, pane, row, coll.getText());
-    MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
-
-    return pane;
+    if(row.getNumberOfFeatures() > 1) {
+      return new AreaBarChart(row, progress);
+    };
+    return null;
   }
 
   @Override
@@ -100,9 +83,4 @@ public class AreaShareType extends DataType<Map<RawDataFile, ModularFeature>>
     return 150;
   }
 
-  @Override
-  public @Nullable Node createCellContent(ModularFeatureListRow row,
-      Map<RawDataFile, ModularFeature> cellData, RawDataFile raw, AtomicDouble progress) {
-    return null;
-  }
 }

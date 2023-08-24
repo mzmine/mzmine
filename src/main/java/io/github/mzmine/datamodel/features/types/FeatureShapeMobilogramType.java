@@ -75,12 +75,6 @@ public class FeatureShapeMobilogramType extends LinkedGraphicalType {
       return null;
     }
 
-    Node node = row.getBufferedColChart(getHeaderString());
-    if (node == null) {
-      logger.info("Cannot create mobilogram chart, no buffered chart available for row.");
-      return null;
-    }
-
     var chart = new FeatureShapeMobilogramChart(row, progress);
     return chart;
   }

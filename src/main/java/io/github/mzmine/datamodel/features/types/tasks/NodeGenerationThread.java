@@ -26,14 +26,10 @@
 package io.github.mzmine.datamodel.features.types.tasks;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -41,21 +37,15 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,9 +55,8 @@ public class NodeGenerationThread extends AbstractTask {
 
   private FeatureList flist;
 
-  private Map<Node, Node> nodeChartMap = new ConcurrentHashMap<>();
-
-  private final Queue<NodeRequest<?>> nodeQueue = new ConcurrentLinkedQueue<>();
+  private final Queue<NodeRequest<?>> nodeRequestQueue = new ConcurrentLinkedQueue<>();
+  private final Queue<FinishedNodePair> finishedNodes = new ConcurrentLinkedQueue<>();
 
   private double progress = 0;
 
@@ -79,7 +68,7 @@ public class NodeGenerationThread extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Creating charts for row %d rows".formatted(nodeQueue.size());
+    return "Creating charts for row %d rows".formatted(nodeRequestQueue.size());
   }
 
   @Override
@@ -95,7 +84,7 @@ public class NodeGenerationThread extends AbstractTask {
 
     while (!isCanceled()) {
 
-      final NodeRequest<?> request = nodeQueue.poll();
+      final NodeRequest<?> request = nodeRequestQueue.poll();
       if (request == null || !(request.type() instanceof GraphicalColumType graphicalType)) {
         try {
           TimeUnit.MILLISECONDS.sleep(10);
@@ -113,33 +102,32 @@ public class NodeGenerationThread extends AbstractTask {
           final Node node = graphicalType.createCellContent(row, request.value(), request.raw(),
               new AtomicDouble());
           final Pane parentNode = request.parentNode();
-          nodeChartMap.put(parentNode, node);
+          finishedNodes.add(new FinishedNodePair(parentNode, node));
         } catch (Exception e) {
           // sometimes some exceptions occur during the drawing, catch them here.
           logger.log(Level.FINE, e.getMessage(), e);
         }
       }
 
-      progress = nodeChartMap.size() / (double) (nodeChartMap.size() + nodeQueue.size());
+      final int numFinishedNodes = finishedNodes.size();
+      progress = numFinishedNodes / (double) (numFinishedNodes + nodeRequestQueue.size());
 
-      if ((nodeQueue.isEmpty() && !nodeChartMap.isEmpty()) || nodeChartMap.size() > 10) {
+      if ((nodeRequestQueue.isEmpty() && !finishedNodes.isEmpty()) || numFinishedNodes > 10) {
         MZmineCore.runLater(() -> {
-          logger.info("Updating %d charts.".formatted(nodeChartMap.size()));
-          final ArrayList<Node> updated = new ArrayList<>(nodeChartMap.size());
-          nodeChartMap.forEach((pane, chart) -> {
-            if (chart == null) {
+          logger.info("Updating %d charts.".formatted(finishedNodes.size()));
+          FinishedNodePair pair = null;
+          while ((pair = finishedNodes.poll()) != null) {
+            if (pair.child() == null) {
               return;
             }
 
             try {
-              ((Pane) pane).getChildren().clear();
-              ((Pane) pane).getChildren().add(chart);
-              updated.add(pane);
+              pair.parent().getChildren().clear();
+              pair.parent().getChildren().add(pair.child());
             } catch (ClassCastException e) {
               logger.log(Level.INFO, e.getMessage(), e);
             }
-          });
-          updated.forEach(nodeChartMap::remove);
+          }
         });
       }
     }
@@ -219,6 +207,10 @@ public class NodeGenerationThread extends AbstractTask {
 
   public <T> void requestNode(@NotNull ModularFeatureListRow row, DataType<T> type, T value,
       RawDataFile raw, Pane parentNode) {
-    nodeQueue.add(new NodeRequest<>(row, type, value, raw, parentNode));
+    nodeRequestQueue.add(new NodeRequest<>(row, type, value, raw, parentNode));
+  }
+
+  private record FinishedNodePair(Pane parent, Node child) {
+
   }
 }

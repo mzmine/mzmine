@@ -596,9 +596,6 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRow(FeatureListRow row) {
-    // remove buffered charts, otherwise the reference is kept alive. What references the row, though?
-    ((ModularFeatureListRow) row).clearBufferedColCharts();
-    //    logger.finest("REMOVE ROW");
     featureListRows.remove(row);
   }
 
@@ -617,7 +614,6 @@ public class ModularFeatureList implements FeatureList {
   public void removeRow(int rowNum, FeatureListRow row) {
     removeRow(featureListRows.get(rowNum));
     // remove buffered charts, otherwise the reference is kept alive. What references the row, though?
-    ((ModularFeatureListRow) row).clearBufferedColCharts();
     featureListRows.remove(rowNum);
   }
 
@@ -873,10 +869,11 @@ public class ModularFeatureList implements FeatureList {
     }
   }
 
-  public <S, T extends DataType<S>> Node getChartForRow(FeatureListRow row,
-      T type, RawDataFile file) {
+  public <S, T extends DataType<S>> Node getChartForRow(FeatureListRow row, T type,
+      RawDataFile file) {
 
-    final String key = "%d-%s-%s".formatted(row.getID(), type.getUniqueID(), (file != null ? file.getName() : ""));
+    final String key = "%d-%s-%s".formatted(row.getID(), type.getUniqueID(),
+        (file != null ? file.getName() : ""));
     final Node node = bufferedCharts.get(key);
 
     if (node != null && node.getParent() == null) {
@@ -908,6 +905,15 @@ public class ModularFeatureList implements FeatureList {
       nodeThread.cancel();
       nodeThread = null;
     }
+
+    // We used this before when charts were stored at the row/feature level.
+    // leave it here for now for reference.
+    /*bufferedCharts.forEach((k, v) -> {
+      if (v instanceof Pane p && p.getParent() instanceof Pane pane) {
+        // remove the node from the parent so there is no more reference and it can be GC'ed
+        pane.getChildren().remove(v);
+      }
+    });*/
 
     bufferedCharts.clear();
   }

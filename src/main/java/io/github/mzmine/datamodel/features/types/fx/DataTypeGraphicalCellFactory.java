@@ -91,22 +91,10 @@ public class DataTypeGraphicalCellFactory<S, T extends DataType<S> & GraphicalCo
             return;
           }
 
-//        logger.log(Level.INFO, "updateItem in Cell (DataTypeCellFactory)");
-          if (type instanceof LinkedGraphicalType lgType) {
-            // convert Boolean to boolean
-            boolean cellActive = item != null && ((Boolean) item).booleanValue();
-            // first handle linked graphical types (like charts) that are dependent on other data
-            Node node = ((GraphicalColumType) lgType).getCellNode(this, param, type, cellActive, raw);
-            getTableColumn().setMinWidth(lgType.getColumnWidth());
-            setGraphic(node);
-            return;
-          }
-
           if (type instanceof GraphicalColumType graphicalColumType) {
             Node node = graphicalColumType.getCellNode(this, param, type, item, raw);
             getTableColumn().setMinWidth(graphicalColumType.getColumnWidth());
             setGraphic(node);
-            return;
           }
 
         } catch (Exception ex) {
