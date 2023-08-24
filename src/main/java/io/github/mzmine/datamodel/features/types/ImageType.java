@@ -90,8 +90,4 @@ public class ImageType extends LinkedGraphicalType {
     return true;
   }
 
-  @Override
-  public Class<? extends Node> getNodeClass() {
-    return ImageChart.class;
-  }
 }

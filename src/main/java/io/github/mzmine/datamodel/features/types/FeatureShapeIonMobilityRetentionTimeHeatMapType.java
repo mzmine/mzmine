@@ -63,11 +63,6 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedGraph
   }
 
   @Override
-  public Class<? extends Node> getNodeClass() {
-    return FeatureShapeIonMobilityRetentionTimeHeatMapChart.class;
-  }
-
-  @Override
   public @Nullable Node createCellContent(ModularFeatureListRow row, Boolean cellData,
       RawDataFile raw, AtomicDouble progress) {
     if (row == null || (cellData != null && !cellData) || !(raw instanceof IMSRawDataFile)

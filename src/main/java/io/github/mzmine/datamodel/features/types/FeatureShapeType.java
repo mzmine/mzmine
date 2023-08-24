@@ -35,7 +35,6 @@ import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualize
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.scene.Node;
-import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,11 +76,6 @@ public class FeatureShapeType extends LinkedGraphicalType {
 
     var chart = new FeatureShapeChart(row, progress);
     return chart;
-  }
-
-  @Override
-  public Class<? extends Node> getNodeClass() {
-    return FeatureShapeChart.class;
   }
 
   @Override

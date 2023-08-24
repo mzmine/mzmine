@@ -38,5 +38,4 @@ import javafx.scene.Node;
 public abstract class LinkedGraphicalType extends BooleanType implements NoTextColumn,
     GraphicalColumType<Boolean> {
 
-  public abstract Class<? extends Node> getNodeClass();
 }
