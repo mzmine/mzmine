@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,13 +25,10 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import io.github.mzmine.gui.framework.fx.FilterableTreeItem;
-import io.github.mzmine.gui.framework.fx.TreeItemPredicate;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineModuleCategory.MainCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -54,9 +51,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
@@ -66,9 +61,6 @@ import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
@@ -85,9 +77,6 @@ public class BatchComponentController implements LastFilesComponent {
 
   private final static Logger logger = Logger.getLogger(BatchComponentController.class.getName());
 
-  // by using linked hash map, the items will be added to the tree view as specified in the modules list
-  private final Map<MainCategory, FilterableTreeItem<Object>> mainCategoryItems = new LinkedHashMap<>();
-  private final Map<MZmineModuleCategory, FilterableTreeItem<Object>> categoryItems = new LinkedHashMap<>();
 
   @FXML
   public AnchorPane root;
@@ -100,7 +89,7 @@ public class BatchComponentController implements LastFilesComponent {
   @FXML
   public ListView<MZmineProcessingStep<MZmineProcessingModule>> currentStepsList;
   @FXML
-  public TreeView<Object> tvModules;
+  public BatchModuleTreePane tvModules;
   @FXML
   public Button btnLoad;
   @FXML
@@ -109,8 +98,6 @@ public class BatchComponentController implements LastFilesComponent {
   public Button btnSave;
   @FXML
   public Button btnClear;
-  @FXML
-  public TextField searchField;
 
   @FXML
   public ComboBox<OriginalFeatureListOption> cmbHandleFlists;
@@ -146,55 +133,6 @@ public class BatchComponentController implements LastFilesComponent {
     });
     currentStepsList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
-    for (Class<? extends MZmineProcessingModule> moduleClass : BatchModeModulesList.MODULES) {
-      final MZmineProcessingModule module = MZmineCore.getModuleInstance(moduleClass);
-      final MZmineModuleCategory category = module.getModuleCategory();
-      final FilterableTreeItem<Object> categoryItem = categoryItems.computeIfAbsent(category, c -> {
-        final FilterableTreeItem<Object> item = new FilterableTreeItem<>(c);
-        final FilterableTreeItem<Object> mainItem = mainCategoryItems.computeIfAbsent(
-            c.getMainCategory(), FilterableTreeItem::new);
-        mainItem.getSourceChildren().add(item);
-        return item;
-      });
-      categoryItem.getSourceChildren()
-          .add(new FilterableTreeItem<>(new BatchModuleWrapper(module)));
-    }
-
-    final FilterableTreeItem<Object> originalRoot = new FilterableTreeItem<>("Root");
-    originalRoot.getSourceChildren().addAll(mainCategoryItems.values());
-    tvModules.setRoot(originalRoot);
-    tvModules.setShowRoot(false);
-
-    searchField.textProperty().addListener((observable, oldValue, newValue) -> {
-      // filter, expand, and select
-      TreeItemPredicate<Object> predicate = TreeItemPredicate.createSubStringPredicate(
-          newValue.split(" "));
-
-      var firstMatchingNode = originalRoot.expandAllMatches(predicate);
-      tvModules.getSelectionModel().select(firstMatchingNode);
-    });
-
-    searchField.setOnKeyPressed(event -> {
-      if (event.getCode() == KeyCode.ENTER) {
-        event.consume();
-        onAddModulePressed();
-      }
-    });
-
-    tvModules.setOnMouseClicked(e -> {
-      if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
-        e.consume();
-        onAddModulePressed();
-      }
-    });
-
-    tvModules.setOnKeyPressed(event -> {
-      if (event.getCode() == KeyCode.ENTER) {
-        event.consume();
-        onAddModulePressed();
-      }
-    });
-
     currentStepsList.setOnMouseClicked(e -> {
       if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
         e.consume();
@@ -204,6 +142,8 @@ public class BatchComponentController implements LastFilesComponent {
 
     cmbHandleFlists.setItems(FXCollections.observableArrayList(OriginalFeatureListOption.values()));
     cmbHandleFlists.setValue(OriginalFeatureListOption.REMOVE);
+
+    tvModules.setOnAddModuleEventHandler(this::addModule);
 
     // add key support
     currentStepsList.setOnKeyPressed(event -> {
@@ -245,18 +185,16 @@ public class BatchComponentController implements LastFilesComponent {
 
 
   public void onAddModulePressed() {
-    // Processing module selected?
-    TreeItem<Object> selectedNode = tvModules.getSelectionModel().getSelectedItem();
-    if (selectedNode == null || selectedNode.getValue() == null) {
-      return;
-    }
-    final Object selectedItem = selectedNode.getValue();
-    if (!(selectedItem instanceof BatchModuleWrapper wrappedModule)) {
+    tvModules.addSelectedModule();
+  }
+
+  public void addModule(MZmineRunnableModule module) {
+    // only works for processing modules
+    if (!(module instanceof MZmineProcessingModule selectedMethod)) {
       return;
     }
 
     // Show method's set-up dialog.
-    final MZmineProcessingModule selectedMethod = (MZmineProcessingModule) wrappedModule.getModule();
     final ParameterSet methodParams = MZmineCore.getConfiguration()
         .getModuleParameters(selectedMethod.getClass());
 

@@ -25,10 +25,13 @@
 
 package io.github.mzmine.modules.tools.batchwizard.builders;
 
+import static io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions.FACTOR_OF_LOWEST_SIGNAL;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -47,9 +50,12 @@ import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderPa
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.SelectedScanTypes;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
@@ -77,6 +83,9 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.F
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.InterSampleHeightCorrParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingParameters;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingModule;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingParameters;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
@@ -91,11 +100,15 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportParameters;
+import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule;
+import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalParameters;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitParameters;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportParameters;
+import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportModule;
+import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
@@ -113,13 +126,17 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationLocalC
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.FilterWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonMobilityWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
+import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt.Mode;
@@ -139,6 +156,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
+import io.github.mzmine.util.DimensionUnitUtil.DimUnit;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -182,8 +200,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final MobilityTolerance imsFwhmMobTolerance;
 
   // MS parameters currently all the same
-  protected final Double noiseLevelMsn;
-  protected final Double noiseLevelMs1;
+  protected final WizardMassDetectorNoiseLevels massDetectorOption;
   protected final Double minFeatureHeight;
   protected final MZTolerance mzTolScans;
   protected final MZTolerance mzTolFeaturesIntraSample;
@@ -237,8 +254,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     // mass spectrometer
     params = steps.get(WizardPart.MS);
     polarity = getValue(params, MassSpectrometerWizardParameters.polarity);
-    noiseLevelMsn = getValue(params, MassSpectrometerWizardParameters.msnNoiseLevel);
-    noiseLevelMs1 = getValue(params, MassSpectrometerWizardParameters.ms1NoiseLevel);
+    massDetectorOption = getValue(params, MassSpectrometerWizardParameters.massDetectorOption);
     minFeatureHeight = getValue(params, MassSpectrometerWizardParameters.minimumFeatureHeight);
     mzTolScans = getValue(params, MassSpectrometerWizardParameters.scanToScanMzTolerance);
     mzTolFeaturesIntraSample = getValue(params,
@@ -280,8 +296,20 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   }
 
   protected static void makeAndAddAdapChromatogramStep(final BatchQueue q,
-      final Double minFeatureHeight, final MZTolerance mzTolScans, final Double noiseLevelMs1,
-      final Integer minRtDataPoints, @Nullable final Range<Double> cropRtRange) {
+      final Double minFeatureHeight, final MZTolerance mzTolScans,
+      final WizardMassDetectorNoiseLevels massDetectorOption, final Integer minRtDataPoints,
+      @Nullable final Range<Double> cropRtRange) {
+    MassDetectorWizardOptions detectorType = massDetectorOption.getValueType();
+
+    double noiseLevelMs1;
+    if (detectorType == MassDetectorWizardOptions.ABSOLUTE_NOISE_LEVEL) {
+      noiseLevelMs1 = massDetectorOption.getMs1NoiseLevel() * 2d;
+    } else {
+      noiseLevelMs1 = minFeatureHeight / 5d;
+    }
+
+    noiseLevelMs1 = Math.min(minFeatureHeight, noiseLevelMs1);
+
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(ModularADAPChromatogramBuilderModule.class).cloneParameterSet();
     param.setParameter(ADAPChromatogramBuilderParameters.dataFiles,
@@ -299,9 +327,24 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         MZmineCore.getModuleInstance(ModularADAPChromatogramBuilderModule.class), param));
   }
 
+  protected static void makeAndAddDdaExportSteps(final BatchQueue q, final WizardSequence steps) {
+    // DDA workflow parameters
+    var params = steps.get(WizardPart.WORKFLOW);
+    OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
+    boolean isExportActive = optional.active();
+    File exportPath = optional.value();
+    boolean exportGnps = getValue(params, WorkflowDdaWizardParameters.exportGnps);
+    boolean exportSirius = getValue(params, WorkflowDdaWizardParameters.exportSirius);
+    boolean exportAnnotationGraphics = getValue(params,
+        WorkflowDdaWizardParameters.exportAnnotationGraphics);
+    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
+        exportAnnotationGraphics);
+  }
+
   // export for DDA
-  protected static void makeAndAddDdaExportSteps(final BatchQueue q, final Boolean isExportActive,
-      final File exportPath, final Boolean exportGnps, final Boolean exportSirius) {
+  protected static void makeAndAddDdaExportSteps(final BatchQueue q, final boolean isExportActive,
+      final File exportPath, final boolean exportGnps, final boolean exportSirius,
+      final boolean exportAnnotationGraphics) {
     if (isExportActive && exportPath != null) {
       if (exportGnps) {
         makeAndAddIimnGnpsExportStep(q, exportPath);
@@ -310,7 +353,43 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         makeAndAddSiriusExportStep(q, exportPath);
       }
       makeAndAddAllAnnotationExportStep(q, exportPath);
+      // have this last as it might fail
+      if (exportAnnotationGraphics) {
+        makeAndAddAnnotationGraphicsExportStep(q, exportPath);
+      }
     }
+  }
+
+  public static void makeAndAddAnnotationGraphicsExportStep(final BatchQueue q,
+      final File exportPath) {
+    final ParameterSet param = new ExportAllIdsGraphicalParameters().cloneParameterSet();
+
+    File fileName = FileAndPathUtil.eraseFormat(exportPath);
+    fileName = new File(fileName.getParentFile(), "graphics");
+
+    param.setParameter(ExportAllIdsGraphicalParameters.flists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    // going back into scans so rather use scan mz tol
+    param.setParameter(ExportAllIdsGraphicalParameters.exportSpectralLibMatches, true);
+
+    param.setParameter(ExportAllIdsGraphicalParameters.exportLipidMatches, false);
+    param.setParameter(ExportAllIdsGraphicalParameters.exportMobilogram, false);
+    param.setParameter(ExportAllIdsGraphicalParameters.exportImages, false);
+    param.setParameter(ExportAllIdsGraphicalParameters.exportShape, false);
+    // formats
+    param.setParameter(ExportAllIdsGraphicalParameters.exportPdf, true);
+    param.setParameter(ExportAllIdsGraphicalParameters.exportPng, false);
+    param.setParameter(ExportAllIdsGraphicalParameters.dir, fileName);
+    param.setParameter(ExportAllIdsGraphicalParameters.dpiScalingFactor, 3);
+    param.setParameter(ExportAllIdsGraphicalParameters.numMatches, 1);
+    //
+    GraphicsExportParameters exp = param.getValue(ExportAllIdsGraphicalParameters.export);
+    exp.setParameter(GraphicsExportParameters.unit, DimUnit.MM);
+    exp.setParameter(GraphicsExportParameters.width, 180d);
+    exp.setParameter(GraphicsExportParameters.height, true, 60d);
+
+    q.add(new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(ExportAllIdsGraphicalModule.class), param));
   }
 
   protected static void makeAndAddIimnGnpsExportStep(final BatchQueue q, final File exportPath) {
@@ -507,7 +586,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(CorrelateGroupingParameters.RT_TOLERANCE,
         Objects.requireNonNullElse(rtTol, new RTTolerance(9999999, Unit.MINUTES)));
     param.setParameter(CorrelateGroupingParameters.MIN_HEIGHT, 0d);
-    param.setParameter(CorrelateGroupingParameters.NOISE_LEVEL, noiseLevelMs1);
+    param.setParameter(CorrelateGroupingParameters.NOISE_LEVEL,
+        massDetectorOption.getMs1NoiseLevel());
 
     // min samples
     var minSampleP = param.getParameter(CorrelateGroupingParameters.MIN_SAMPLES_FILTER)
@@ -776,42 +856,64 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected void makeAndAddMassDetectionStep(final BatchQueue q, int msLevel,
       SelectedScanTypes scanTypes) {
 
-    final ParameterSet detectorParam = MZmineCore.getConfiguration()
-        .getModuleParameters(AutoMassDetector.class).cloneParameterSet();
+    // use factor of lowest or auto mass detector
+    // factor of lowest only works on centroid for now
+    Class<? extends MassDetector> massDetectorClass = null;
+    ParameterSet detectorParam = null;
 
-    final double noiseLevel;
-    if (msLevel == 1 && scanTypes == SelectedScanTypes.MOBLITY_SCANS) {
-      noiseLevel = noiseLevelMs1 / 5; // lower threshold for mobility scans
-    } else if (msLevel >= 2) {
-      noiseLevel = noiseLevelMsn;
-    } else {
-      noiseLevel = noiseLevelMs1;
+    switch (massDetectorOption.getValueType()) {
+      case ABSOLUTE_NOISE_LEVEL -> {
+        massDetectorClass = AutoMassDetector.class;
+        detectorParam = MZmineCore.getConfiguration().getModuleParameters(massDetectorClass)
+            .cloneParameterSet();
+        // per default do not detect isotope signals below noise. this might introduce too many signals
+        // for the isotope finder later on and confuse users
+        detectorParam.setParameter(AutoMassDetectorParameters.detectIsotopes, false);
+        final DetectIsotopesParameter detectIsotopesParameter = detectorParam.getParameter(
+            AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters();
+        detectIsotopesParameter.setParameter(DetectIsotopesParameter.elements,
+            List.of(new Element("H"), new Element("C"), new Element("N"), new Element("O"),
+                new Element("S")));
+        detectIsotopesParameter.setParameter(DetectIsotopesParameter.isotopeMzTolerance,
+            mzTolFeaturesIntraSample);
+        detectIsotopesParameter.setParameter(DetectIsotopesParameter.maxCharge, 2);
+
+        final double noiseLevel;
+        if (msLevel == 1 && scanTypes == SelectedScanTypes.MOBLITY_SCANS) {
+          noiseLevel =
+              massDetectorOption.getMs1NoiseLevel() / 5; // lower threshold for mobility scans
+        } else if (msLevel >= 2) {
+          noiseLevel = massDetectorOption.getMsnNoiseLevel();
+        } else {
+          noiseLevel = massDetectorOption.getMs1NoiseLevel();
+        }
+        detectorParam.setParameter(AutoMassDetectorParameters.noiseLevel, noiseLevel);
+      }
+      case FACTOR_OF_LOWEST_SIGNAL -> {
+        massDetectorClass = FactorOfLowestMassDetector.class;
+        detectorParam = MZmineCore.getConfiguration().getModuleParameters(massDetectorClass)
+            .cloneParameterSet();
+        double noiseFactor = msLevel >= 2 ? massDetectorOption.getMsnNoiseLevel()
+            : massDetectorOption.getMs1NoiseLevel();
+        detectorParam.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, noiseFactor);
+      }
     }
-    detectorParam.setParameter(AutoMassDetectorParameters.noiseLevel, noiseLevel);
 
-    // per default do not detect isotope signals below noise. this might introduce too many signals
-    // for the isotope finder later on and confuse users
-    detectorParam.setParameter(AutoMassDetectorParameters.detectIsotopes, false);
-    final DetectIsotopesParameter detectIsotopesParameter = detectorParam.getParameter(
-        AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters();
-    detectIsotopesParameter.setParameter(DetectIsotopesParameter.elements,
-        List.of(new Element("H"), new Element("C"), new Element("N"), new Element("O"),
-            new Element("S")));
-    detectIsotopesParameter.setParameter(DetectIsotopesParameter.isotopeMzTolerance,
-        mzTolFeaturesIntraSample);
-    detectIsotopesParameter.setParameter(DetectIsotopesParameter.maxCharge, 2);
-
+    // set the main parameters
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(MassDetectionModule.class).cloneParameterSet();
+
+    boolean denormalize = massDetectorOption.getValueType() == FACTOR_OF_LOWEST_SIGNAL;
+    param.setParameter(MassDetectionParameters.denormalizeMSnScans, denormalize);
+
     param.setParameter(MassDetectionParameters.dataFiles,
         new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     // if MS level 0 then apply to all scans
-    param.setParameter(MassDetectionParameters.scanSelection,
-        new ScanSelection(MsLevelFilter.of(msLevel, true)));
+    param.getParameter(MassDetectionParameters.scanSelection)
+        .setValue(true, new ScanSelection(MsLevelFilter.of(msLevel, true)));
     param.setParameter(MassDetectionParameters.scanTypes, scanTypes);
-    param.setParameter(MassDetectionParameters.denormalizeMSnScans, false);
     param.setParameter(MassDetectionParameters.massDetector,
-        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class),
+        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(massDetectorClass),
             detectorParam));
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(MassDetectionModule.class),
@@ -910,7 +1012,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     groupMs2Params.setParameter(GroupMS2Parameters.mzTol, MZTolerance.max(mzTolScans, 0.01, 10.0));
     groupMs2Params.setParameter(GroupMS2Parameters.combineTimsMsMs, false);
     groupMs2Params.setParameter(GroupMS2Parameters.limitMobilityByFeature, true);
-    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevel, hasTims, noiseLevelMsn * 2);
+    groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevel, hasTims,
+        massDetectorOption.getMsnNoiseLevel() * 2);
     groupMs2Params.setParameter(GroupMS2Parameters.outputNoiseLevelRelative, hasTims, 0.01);
     groupMs2Params.setParameter(GroupMS2Parameters.minRequiredSignals, true, 1);
     groupMs2Params.setParameter(GroupMS2Parameters.minimumRelativeFeatureHeight, true, 0.25);
@@ -989,6 +1092,45 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IsotopeFinderModule.class),
         param));
+  }
+
+  protected void makeAndAddSpectralNetworkingSteps(final BatchQueue q, final boolean isExportActive,
+      final File exportPath) {
+    // NETWORKING
+    ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(SpectralNetworkingModule.class).cloneParameterSet();
+
+    param.setParameter(SpectralNetworkingParameters.FEATURE_LISTS,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(SpectralNetworkingParameters.MAX_MZ_DELTA, true, 500d);
+    param.setParameter(SpectralNetworkingParameters.MIN_MATCH, 4);
+    param.setParameter(SpectralNetworkingParameters.CHECK_NEUTRAL_LOSS_SIMILARITY, false);
+    param.setParameter(SpectralNetworkingParameters.MIN_COSINE_SIMILARITY, 0.7);
+    param.setParameter(SpectralNetworkingParameters.ONLY_BEST_MS2_SCAN, true);
+    param.setParameter(SpectralNetworkingParameters.MZ_TOLERANCE, mzTolScans);
+
+    param.getParameter(SpectralNetworkingParameters.signalFilters).getEmbeddedParameters()
+        .setValue(SpectralSignalFilter.DEFAULT);
+
+    MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(SpectralNetworkingModule.class), param);
+    q.add(step);
+
+    // GRAPHML EXPORT
+    if (isExportActive) {
+      ParameterSet graphml = MZmineCore.getConfiguration()
+          .getModuleParameters(NetworkGraphMlExportModule.class).cloneParameterSet();
+
+      graphml.setParameter(NetworkGraphMlExportParameters.featureLists,
+          new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+      File file = FileAndPathUtil.getRealFilePathWithSuffix(exportPath, "_mzmine_networking",
+          "graphml");
+      graphml.setParameter(NetworkGraphMlExportParameters.filename, file);
+
+      step = new MZmineProcessingStepImpl<>(
+          MZmineCore.getModuleInstance(NetworkGraphMlExportModule.class), graphml);
+      q.add(step);
+    }
   }
 
   protected void makeAndAddLibrarySearchStep(final BatchQueue q,

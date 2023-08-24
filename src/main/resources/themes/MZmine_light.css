@@ -61,18 +61,6 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
   -fx-prompt-text-fill: gray;
 }
 
-/** Controls **/
-.button, .combo-box, .choice-box, .check-box > .box  {
-  -fx-background-color: -control-bg;
-  -fx-border-color: -control-bg;
-}
-
-.button:hover, .choice-box:hover, .combo-box:hover, .check-box > .box:hover {
-  -fx-background-color: -control-bg-hovered;
-  -fx-border-color: -selection-highlight-outline;
-  -fx-text-fill: white;
-}
-
 .separator *.line {
   -fx-background-color: #3C3C3C;
   -fx-border-style: solid;
@@ -103,12 +91,52 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
   -fx-text-fill: -text-color;
 }
 
-.table-row-cell:selected {
+/* Selected rows */
+.list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
+.tree-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-cell:filled:selected,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled:selected,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled:selected,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
+    -fx-background: -highlight;
+    -fx-background-color: -highlight;
+}
+
+/* Selected when control is not focused */
+.list-cell:filled:selected,
+.tree-cell:filled:selected,
+.table-row-cell:filled:selected,
+.tree-table-row-cell:filled:selected,
+.table-row-cell:filled > .table-cell:selected,
+.tree-table-row-cell:filled > .tree-table-cell:selected {
+    -fx-background: -highlight;
     -fx-background-color: -highlight;
 }
 
 .table-row-cell:selected .text {
        -fx-fill: white ;
+}
+
+
+
+/** Controls **/
+.button, .combo-box, .choice-box, .check-box > .box  {
+  -fx-background-color: -control-bg;
+  -fx-border-color: -control-bg;
+}
+
+.button:hover, .choice-box:hover, .combo-box:hover, .check-box > .box:hover {
+  -fx-background-color: -control-bg-hovered;
+  -fx-border-color: -selection-highlight-outline;
+  -fx-text-fill: white;
+}
+
+.combo-box-base {
+    -fx-background-color: -control-bg, -control-bg;
+}
+
+.combo-box > .list-cell {
+    -fx-background-color: -control-bg, -control-bg;
 }
 
   /** also counts for TreeTableView **/

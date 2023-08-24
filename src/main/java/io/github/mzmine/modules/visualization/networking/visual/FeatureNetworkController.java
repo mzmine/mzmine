@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,7 +57,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
-import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.SearchableComboBox;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.TextFields;
@@ -79,7 +78,7 @@ public class FeatureNetworkController {
   public SearchableComboBox<EdgeAtt> comboEdgeSize;
   public SearchableComboBox<EdgeAtt> comboEdgeLabel;
   public ToggleSwitch cbCollapseIons;
-  public CheckComboBox<String> cbComboVisibleEdgeTypes;
+  //  public CheckComboBox<String> cbComboVisibleEdgeTypes;
   public Spinner<Integer> spinnerNodeNeighbors;
   public BorderPane mainPane;
   public TextField txtFilterAnnotations;
@@ -114,7 +113,7 @@ public class FeatureNetworkController {
       final @NotNull ObservableList<FeatureListRow> focussedRows) {
     // create graph and add to center
     FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
-    var fullGraph = generator.createNewGraph(flist, false, false);
+    var fullGraph = generator.createNewGraph(flist, true, true, false);
     networkPane = new FeatureNetworkPane(this, flist, focussedRows, generator, fullGraph);
     mainPane.setCenter(networkPane);
 
@@ -157,17 +156,17 @@ public class FeatureNetworkController {
 
   private void addMenuOptions() {
     // defaults
-    addComboOptions(comboNodeColor, COLOR, NodeAtt.values(), NodeAtt.MZ);
-    addComboOptions(comboNodeLabel, LABEL, NodeAtt.values(), NodeAtt.LABEL);
+    addComboOptions(comboNodeColor, COLOR, NodeAtt.values(), NodeAtt.RT);
+    addComboOptions(comboNodeLabel, LABEL, NodeAtt.values(), NodeAtt.ANNOTATION);
     addComboOptions(comboNodeSize, SIZE, NodeAtt.values(), NodeAtt.LOG10_SUM_INTENSITY);
     addComboOptions(comboEdgeColor, COLOR, EdgeAtt.values(), EdgeAtt.NEIGHBOR_DISTANCE);
     addComboOptions(comboEdgeSize, SIZE, EdgeAtt.values(), EdgeAtt.SCORE);
-    addComboOptions(comboEdgeLabel, LABEL, EdgeAtt.values(), EdgeAtt.DELTA_MZ);
+    addComboOptions(comboEdgeLabel, LABEL, EdgeAtt.values(), EdgeAtt.NONE);
 
     cbCollapseIons.selectedProperty()
         .addListener((observable, oldValue, newValue) -> networkPane.collapseIonNodes(newValue));
 
-    cbComboVisibleEdgeTypes.getItems().addAll(networkPane.getUniqueEdgeTypes());
+//    cbComboVisibleEdgeTypes.getItems().addAll(networkPane.getUniqueEdgeTypes());
     // TODO check all and bind visibility
 
     // #######################################################
@@ -264,4 +263,11 @@ public class FeatureNetworkController {
     networkPane.focusSelectedNodes();
   }
 
+  public void onShowAllNodes(final ActionEvent actionEvent) {
+    networkPane.showFullGraph();
+  }
+
+  public void onZoomSelectedNodes(final ActionEvent actionEvent) {
+    networkPane.zoomOnSelectedNodes();
+  }
 }

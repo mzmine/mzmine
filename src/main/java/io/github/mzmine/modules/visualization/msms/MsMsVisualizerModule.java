@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,9 +38,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class MsMsVisualizerModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "MS/MS data visualizer";
+  private static final String MODULE_NAME = "MS/MS scatter plot";
   private static final String MODULE_DESCRIPTION = "Scatter plot for MS/MS data visualization, four"
-      + "axes types supported: retention time, precursor m/z, product m/z, neutral loss";
+                                                   + "axes types supported: retention time, precursor m/z, product m/z, neutral loss";
 
   @Override
   @NotNull

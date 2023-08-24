@@ -235,7 +235,7 @@ public class MsMsQualityExportTask extends AbstractTask {
       ModularFeature feature, FeatureAnnotation annotation, String formula) throws IOException {
     final IMSRawDataFile imsFile = (IMSRawDataFile) feature.getRawDataFile();
     final MobilityScanDataAccess mobScanAccess = mobScanAccessMap.computeIfAbsent(imsFile,
-        f -> new MobilityScanDataAccess(f, MobilityScanDataType.CENTROID,
+        f -> new MobilityScanDataAccess(f, MobilityScanDataType.MASS_LIST,
             (List<Frame>) f.getFrames(1)));
 
     for (Scan msmsScan : feature.getAllMS2FragmentScans()) {

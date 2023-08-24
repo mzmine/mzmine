@@ -165,7 +165,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final BooleanParameter showPrecursorWindow = new BooleanParameter(
       "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
-      false);
+      true);
 
   public static final BooleanParameter showTempFolderAlert = new BooleanParameter("Show temp alert",
       "Show temp folder alert", true);
@@ -176,9 +176,9 @@ public class MZminePreferences extends SimpleParameterSet {
           + "only applies to newly generated plots.", ImageNormalization.values(),
       ImageNormalization.NO_NORMALIZATION);
   private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
-      new DecimalFormat("0.###"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
+      new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
       new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.##"),
-      new DecimalFormat("0.##"), UnitFormat.DIVIDE);
+      new DecimalFormat("0.###"), UnitFormat.DIVIDE);
   private final boolean isDarkMode = false;
   private NumberFormats guiFormat = exportFormat; // default value
 
