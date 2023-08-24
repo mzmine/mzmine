@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,10 +36,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -52,12 +49,9 @@ import org.jetbrains.annotations.Nullable;
 public class NodeGenerationThread extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(NodeGenerationThread.class.getName());
-
-  private FeatureList flist;
-
   private final Queue<NodeRequest<?>> nodeRequestQueue = new ConcurrentLinkedQueue<>();
   private final Queue<FinishedNodePair> finishedNodes = new ConcurrentLinkedQueue<>();
-
+  private FeatureList flist;
   private double progress = 0;
 
   public NodeGenerationThread(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
@@ -94,19 +88,17 @@ public class NodeGenerationThread extends AbstractTask {
         continue;
       }
 
-      if (request.raw() == null) {
-        var row = request.row();
-        DataType type = request.type();
-        try {
+      var row = request.row();
+      DataType type = request.type();
+      try {
 
-          final Node node = graphicalType.createCellContent(row, request.value(), request.raw(),
-              new AtomicDouble());
-          final Pane parentNode = request.parentNode();
-          finishedNodes.add(new FinishedNodePair(parentNode, node));
-        } catch (Exception e) {
-          // sometimes some exceptions occur during the drawing, catch them here.
-          logger.log(Level.FINE, e.getMessage(), e);
-        }
+        final Node node = graphicalType.createCellContent(row, request.value(), request.raw(),
+            new AtomicDouble());
+        final Pane parentNode = request.parentNode();
+        finishedNodes.add(new FinishedNodePair(parentNode, node));
+      } catch (Exception e) {
+        // sometimes some exceptions occur during the drawing, catch them here.
+        logger.log(Level.FINE, e.getMessage(), e);
       }
 
       final int numFinishedNodes = finishedNodes.size();
