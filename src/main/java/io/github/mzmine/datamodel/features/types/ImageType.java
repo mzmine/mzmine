@@ -86,6 +86,11 @@ public class ImageType extends LinkedGraphicalType {
   }
 
   @Override
+  public double getCellHeight() {
+    return DEFAULT_IMAGE_CELL_HEIGHT;
+  }
+
+  @Override
   public boolean getDefaultVisibility() {
     return true;
   }

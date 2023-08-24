@@ -881,6 +881,9 @@ public class ModularFeatureList implements FeatureList {
     }
 
     final StackPane parentPane = new StackPane(new Label("Preparing content..."));
+    parentPane.setPrefHeight(((GraphicalColumType)type).getCellHeight());
+    parentPane.setMinHeight(((GraphicalColumType)type).getCellHeight());
+    parentPane.setMaxHeight(((GraphicalColumType)type).getCellHeight());
     bufferedCharts.putIfAbsent(key, parentPane);
 
     ensureNodeThreadRunnning();

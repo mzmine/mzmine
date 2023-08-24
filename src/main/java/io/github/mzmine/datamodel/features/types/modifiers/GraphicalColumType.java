@@ -97,6 +97,10 @@ public interface GraphicalColumType<T> {
    */
   public double getColumnWidth();
 
+  default double getCellHeight() {
+    return DEFAULT_GRAPHICAL_CELL_HEIGHT;
+  }
+
   @Nullable Node createCellContent(@NotNull ModularFeatureListRow row, T cellData,
       @Nullable RawDataFile raw, AtomicDouble progress);
 }
