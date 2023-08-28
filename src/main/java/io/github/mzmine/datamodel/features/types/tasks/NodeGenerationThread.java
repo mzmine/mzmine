@@ -41,8 +41,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.animation.PauseTransition;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
+import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,7 +78,11 @@ public class NodeGenerationThread extends AbstractTask {
 
     // generateAllCharts();
 
-    while (!isCanceled()) {
+    // if there was no chart request for this time, stop the thread
+    final PauseTransition waitTimer = new PauseTransition(new Duration(500));
+    waitTimer.setOnFinished(e -> setStatus(TaskStatus.CANCELED));
+
+    while (getStatus() == TaskStatus.PROCESSING) {
 
       final NodeRequest<?> request = nodeRequestQueue.poll();
       if (request == null || !(request.type() instanceof GraphicalColumType graphicalType)) {
@@ -87,6 +93,9 @@ public class NodeGenerationThread extends AbstractTask {
         }
         continue;
       }
+
+      // There was a chart requested, so keep going
+      waitTimer.playFromStart();
 
       var row = request.row();
       DataType type = request.type();
@@ -106,7 +115,6 @@ public class NodeGenerationThread extends AbstractTask {
 
       if ((nodeRequestQueue.isEmpty() && !finishedNodes.isEmpty()) || numFinishedNodes > 10) {
         MZmineCore.runLater(() -> {
-          logger.info("Updating %d charts.".formatted(finishedNodes.size()));
           FinishedNodePair pair = null;
           while ((pair = finishedNodes.poll()) != null) {
             if (pair.child() == null) {
