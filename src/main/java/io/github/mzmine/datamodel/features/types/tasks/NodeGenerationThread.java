@@ -35,16 +35,15 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.Timer;
 import java.time.Instant;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.animation.PauseTransition;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
-import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,8 +76,7 @@ public class NodeGenerationThread extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     // if there was no chart request for this time, stop the thread
-    final PauseTransition waitTimer = new PauseTransition(new Duration(500));
-    waitTimer.setOnFinished(e -> setStatus(TaskStatus.CANCELED));
+    final Timer waitTimer = new Timer(500, () -> setStatus(TaskStatus.CANCELED));
 
     while (getStatus() == TaskStatus.PROCESSING) {
 
@@ -86,6 +84,7 @@ public class NodeGenerationThread extends AbstractTask {
       if (request == null || !(request.type() instanceof GraphicalColumType graphicalType)) {
         try {
           TimeUnit.MILLISECONDS.sleep(10);
+          waitTimer.tick();
         } catch (InterruptedException e) {
           logger.log(Level.WARNING, e.getMessage(), e);
           setStatus(TaskStatus.CANCELED);
@@ -95,7 +94,7 @@ public class NodeGenerationThread extends AbstractTask {
       }
 
       // There was a chart requested, so keep going
-      waitTimer.playFromStart();
+      waitTimer.restart();
 
       var row = request.row();
       DataType type = request.type();
@@ -124,7 +123,7 @@ public class NodeGenerationThread extends AbstractTask {
             try {
               pair.parent().getChildren().clear();
               pair.parent().getChildren().add(pair.child());
-            } catch (ClassCastException e) {
+            } catch (Exception e) {
               logger.log(Level.INFO, e.getMessage(), e);
             }
           }
