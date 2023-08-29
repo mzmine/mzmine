@@ -893,7 +893,9 @@ public class ModularFeatureList implements FeatureList {
     bufferedCharts.putIfAbsent(key, parentPane);
 
     ensureNodeThreadRunnning();
-    nodeThread.requestNode((ModularFeatureListRow) row, type, row.get(type), file, parentPane);
+    nodeThread.requestNode((ModularFeatureListRow) row, type,
+        file != null ? ((ModularFeature) row.getFeature(file)).get(type) : row.get(type), file,
+        parentPane);
 
     return parentPane;
   }

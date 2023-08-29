@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,8 +36,6 @@ import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
 import javafx.scene.shape.Circle;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -47,6 +45,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class DetectionType extends DataType<FeatureStatus> implements
     GraphicalColumType<FeatureStatus> {
+
+  private static final int CIRCLE_RADIUS = 10;;
 
   @NotNull
   @Override
@@ -72,9 +72,13 @@ public class DetectionType extends DataType<FeatureStatus> implements
   }
 
   @Override
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, FeatureStatus> cell,
-      TreeTableColumn<ModularFeatureListRow, FeatureStatus> coll, DataType type, FeatureStatus cellData,
-      RawDataFile raw) {
+  public double getColumnWidth() {
+    return 10;
+  }
+
+  @Override
+  public @Nullable Node createCellContent(ModularFeatureListRow row, FeatureStatus cellData,
+      RawDataFile raw, AtomicDouble progress) {
     if (cellData == null) {
       return null;
     }
@@ -83,17 +87,6 @@ public class DetectionType extends DataType<FeatureStatus> implements
     circle.setRadius(10);
     circle.setFill(cellData.getColorFX());
     return circle;
-  }
-
-  @Override
-  public double getColumnWidth() {
-    return 10;
-  }
-
-  @Override
-  public @Nullable Node createCellContent(ModularFeatureListRow row, FeatureStatus cellData,
-      RawDataFile raw, AtomicDouble progress) {
-    return null;
   }
 
   @Override

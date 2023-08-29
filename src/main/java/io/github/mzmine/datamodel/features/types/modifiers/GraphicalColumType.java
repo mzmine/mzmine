@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,17 +26,12 @@
 package io.github.mzmine.datamodel.features.types.modifiers;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,9 +50,11 @@ public interface GraphicalColumType<T> {
 
 
   /**
-   * @param cell
-   * @param coll
-   * @param type
+   * Generates a default graphical cell node. A placeholder text is added to this node. The actual
+   * content, e.g. chart, will be created in the
+   * {@link #createCellContent(ModularFeatureListRow, Object, RawDataFile, AtomicDouble)} method,
+   * which is executed outside the JavaFX thread for a lag-free experience.
+   *
    * @param cellData same as cell.getItem
    * @param raw      only provided for sample specific DataTypes
    * @return
@@ -66,25 +63,7 @@ public interface GraphicalColumType<T> {
       TreeTableColumn<ModularFeatureListRow, T> coll, DataType type, T cellData, RawDataFile raw) {
     final ModularFeatureListRow row = cell.getTableRow().getItem();
 
-    /*if (raw == null) {
-      content = row.getBufferedColChart(coll.getText());
-      if (content == null) {
-        content = new StackPane(new Label("Preparing content..."));
-        row.addBufferedColChart(coll.getText(), content);
-      }
-    } else {
-      final ModularFeature feature = row.getFeature(raw);
-      if (feature == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
-        return content;
-      }
-      content = feature.getBufferedColChart(coll.getText());
-      if (content == null) {
-        content = new StackPane(new Label("Preparing content..."));
-        feature.addBufferedColChart(coll.getText(), content);
-      }
-    }*/
-
-    if(row.getFeatureList() != null) {
+    if (row.getFeatureList() != null) {
       return row.getFeatureList().getChartForRow(row, type, raw);
     }
     throw new IllegalStateException("No feature list associated with row.");
@@ -101,6 +80,14 @@ public interface GraphicalColumType<T> {
     return DEFAULT_GRAPHICAL_CELL_HEIGHT;
   }
 
+  /**
+   * Create the actual graphical content for this data type. This method is executed outside the
+   * JavaFX thread and is only meant to return the graphical content. All calculations should be
+   * executed here for a lag-free feature table. The node is then added to the actual cell and also
+   * buffered in the {@link io.github.mzmine.datamodel.features.ModularFeatureList#bufferedCharts}
+   * field.
+   *
+   */
   @Nullable Node createCellContent(@NotNull ModularFeatureListRow row, T cellData,
       @Nullable RawDataFile raw, AtomicDouble progress);
 }
