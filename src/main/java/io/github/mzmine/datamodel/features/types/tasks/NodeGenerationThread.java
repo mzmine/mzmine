@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -76,8 +76,6 @@ public class NodeGenerationThread extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    // generateAllCharts();
-
     // if there was no chart request for this time, stop the thread
     final PauseTransition waitTimer = new PauseTransition(new Duration(500));
     waitTimer.setOnFinished(e -> setStatus(TaskStatus.CANCELED));
@@ -89,7 +87,9 @@ public class NodeGenerationThread extends AbstractTask {
         try {
           TimeUnit.MILLISECONDS.sleep(10);
         } catch (InterruptedException e) {
-          throw new RuntimeException(e);
+          logger.log(Level.WARNING, e.getMessage(), e);
+          setStatus(TaskStatus.CANCELED);
+          return;
         }
         continue;
       }
@@ -134,76 +134,6 @@ public class NodeGenerationThread extends AbstractTask {
 
     setStatus(TaskStatus.FINISHED);
   }
-
-/*  private boolean generateAllCharts() {
-    final List<LinkedGraphicalType> rowTypes = flist.getRowTypes().values().stream()
-        .filter(type -> type instanceof LinkedGraphicalType).map(t -> (LinkedGraphicalType) t)
-        .toList();
-    final List<LinkedGraphicalType> featureTypes = flist.getFeatureTypes().values().stream()
-        .filter(type -> type instanceof LinkedGraphicalType).map(t -> (LinkedGraphicalType) t)
-        .toList();
-
-    for (FeatureListRow row : flist.getRows()) {
-      for (LinkedGraphicalType rowType : rowTypes) {
-        final String header = rowType.getHeaderString();
-        Node base = ((ModularFeatureListRow) row).getBufferedColChart(header);
-        if (base == null) {
-          base = new StackPane(new Label("Preparing content..."));
-          ((ModularFeatureListRow) row).addBufferedColChart(header, base);
-        }
-        try {
-          var chart = rowType.createCellContent((ModularFeatureListRow) row, row.get(rowType), null,
-              new AtomicDouble());
-          nodeChartMap.put(base, chart);
-        } catch (Exception ex) {
-          logger.log(Level.WARNING, "Cannot create chart " + ex.getMessage(), ex);
-          nodeChartMap.put(base, new Label("Failed to create chart"));
-        }
-      }
-
-      for (LinkedGraphicalType featureType : featureTypes) {
-        for (ModularFeature feature : row.getFeatures()) {
-          if (feature != null && feature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
-            final String header = featureType.getHeaderString();
-            Node base = ((ModularFeature) feature).getBufferedColChart(header);
-            if (base == null) {
-              base = new StackPane(new Label("Preparing content..."));
-              ((ModularFeature) feature).addBufferedColChart(header, base);
-            }
-            try {
-              var chart = featureType.createCellContent((ModularFeatureListRow) row,
-                  row.get(featureType), feature.getRawDataFile(), new AtomicDouble());
-              nodeChartMap.put(base, chart);
-            } catch (Exception ex) {
-              logger.log(Level.WARNING, "Cannot create chart " + ex.getMessage(), ex);
-              nodeChartMap.put(base, new Label("Failed to create chart"));
-            }
-          }
-        }
-      }
-      if (isCanceled()) {
-        return true;
-      }
-      rows++;
-    }
-
-    Platform.runLater(() -> {
-      logger.info("Updating all charts.");
-      nodeChartMap.forEach((node, chart) -> {
-        if (chart == null) {
-          return;
-        }
-        try {
-          ((StackPane) node).getChildren().clear();
-          ((StackPane) node).getChildren().add(chart);
-        } catch (ClassCastException e) {
-          logger.log(Level.INFO, e.getMessage(), e);
-        }
-      });
-      logger.info("All charts updated.");
-    });
-    return false;
-  }*/
 
   public <T> void requestNode(@NotNull ModularFeatureListRow row, DataType<T> type, T value,
       RawDataFile raw, Pane parentNode) {

@@ -40,7 +40,6 @@ import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationTyp
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
-import io.github.mzmine.datamodel.features.types.tasks.NodeRequest;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
@@ -65,7 +64,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -76,7 +74,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -122,6 +119,15 @@ public class ModularFeatureList implements FeatureList {
   // grouping
   private List<RowGroup> groups;
 
+  /**
+   * Used to buffer charts of rows and features to display in the
+   * {@link io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX}. The key
+   * is of the following format: "<row id>-<DataType.getUniqueID()>-<raw file name or empty
+   * string>:
+   * <p>
+   * final String key = "%d-%s-%s".formatted(row.getID(), type.getUniqueID(), (file != null ?
+   * file.getName() : ""));
+   */
   private final Map<String, Node> bufferedCharts = new HashMap<>();
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
@@ -881,9 +887,9 @@ public class ModularFeatureList implements FeatureList {
     }
 
     final StackPane parentPane = new StackPane(new Label("Preparing content..."));
-    parentPane.setPrefHeight(((GraphicalColumType)type).getCellHeight());
-    parentPane.setMinHeight(((GraphicalColumType)type).getCellHeight());
-    parentPane.setMaxHeight(((GraphicalColumType)type).getCellHeight());
+    parentPane.setPrefHeight(((GraphicalColumType) type).getCellHeight());
+    parentPane.setMinHeight(((GraphicalColumType) type).getCellHeight());
+    parentPane.setMaxHeight(((GraphicalColumType) type).getCellHeight());
     bufferedCharts.putIfAbsent(key, parentPane);
 
     ensureNodeThreadRunnning();

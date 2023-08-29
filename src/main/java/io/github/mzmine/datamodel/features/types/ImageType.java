@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -69,12 +69,6 @@ public class ImageType extends LinkedGraphicalType {
         || feature.getFeatureData() == null) {
       return null;
     }
-
-//    StackPane node = (StackPane) row.getBufferedColChart(getHeaderString());
-//    if (node == null) {
-//      logger.info("Cannot create mobilogram chart, no buffered chart available for row.");
-//      return null;
-//    }
 
     var chart = new ImageChart(feature, progress);
     return chart;

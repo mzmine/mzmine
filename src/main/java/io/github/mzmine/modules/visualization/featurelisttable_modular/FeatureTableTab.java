@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,12 +27,9 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Level;
@@ -76,9 +73,6 @@ public class FeatureTableTab extends MZmineTab {
     controller = loader.getController();
 
     controller.setFeatureList(flist);
-    //final NodeGenerationThread nodeGenerationThread = new NodeGenerationThread(null, Instant.now(),
-    //    flist);
-    //MZmineCore.getTaskController().addTask(nodeGenerationThread);
 
     // TODO: if there would be only selectColumnsButton in the toolbar, then remove toolbar and
     //  improve "+" button behaviour of the feature table header

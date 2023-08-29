@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -74,12 +74,6 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedGraph
     if (feature == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
       return null;
     }
-
-    /*StackPane node = (StackPane) row.getBufferedColChart(getHeaderString());
-    if (node == null) {
-      logger.info("Cannot create mobilogram chart, no buffered chart available for row.");
-      return null;
-    }*/
 
     if (!(feature.getFeatureData() instanceof IonMobilogramTimeSeries)) {
       Label label = new Label("Processed with\nLC-MS workflow");
