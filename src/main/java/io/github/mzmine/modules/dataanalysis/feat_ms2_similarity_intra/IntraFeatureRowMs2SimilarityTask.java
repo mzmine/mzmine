@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
 import io.github.mzmine.datamodel.features.types.numbers.IntraFeatureMs2SimilarityType;
 import io.github.mzmine.datamodel.features.types.numbers.SimpleStatistics;
@@ -80,6 +81,7 @@ public class IntraFeatureRowMs2SimilarityTask extends AbstractTask {
       .scoreFormat();
 
   private final AtomicInteger processedRows = new AtomicInteger(0);
+  private final ParameterSet parameters;
   private int totalRows = 0;
   private @Nullable ParallelTextWriterTask writerTask;
 
@@ -97,6 +99,7 @@ public class IntraFeatureRowMs2SimilarityTask extends AbstractTask {
         IntraFeatureRowMs2SimilarityParameters.minMatchedSignals);
     signalFilters = parameters.getValue(IntraFeatureRowMs2SimilarityParameters.signalFilters)
         .createFilter();
+    this.parameters = parameters;
   }
 
   @Override
@@ -160,6 +163,9 @@ public class IntraFeatureRowMs2SimilarityTask extends AbstractTask {
           return sim;
         }).sum();
     logger.info("Compared a total of %d MS2 pairs within features".formatted(totalMatches));
+    featureList.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(IntraFeatureRowMs2SimilarityModule.class, parameters,
+            getModuleCallDate()));
   }
 
   /**
