@@ -26,16 +26,13 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.*;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.nio.DoubleBuffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.nio.DoubleBuffer;
 
 /**
  * Simple implementation of the Scan interface.
@@ -212,6 +209,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     return massList;
   }
 
+  @NotNull
   @Override
   public RawDataFile getDataFile() {
     return dataFile;
