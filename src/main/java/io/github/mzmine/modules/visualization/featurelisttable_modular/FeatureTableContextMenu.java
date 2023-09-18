@@ -23,7 +23,6 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import com.google.common.collect.Range;
@@ -41,6 +40,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
@@ -79,6 +79,7 @@ import io.github.mzmine.modules.visualization.image_allmsms.ImageAllMsMsTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
+import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
@@ -131,6 +132,7 @@ public class FeatureTableContextMenu extends ContextMenu {
   final Menu searchMenu;
   final Menu idsMenu;
   final Menu exportMenu;
+
   private final FeatureTableFX table;
   @Nullable ModularFeatureListRow selectedRow;
   private Set<DataType<?>> selectedRowTypes;
@@ -255,6 +257,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     return annotations.get(0);
   }
 
+
   private void initExportMenu() {
     final MenuItem exportIsotopesItem = new ConditionalMenuItem("Export isotope pattern",
         () -> selectedRows.size() == 1 && selectedRows.get(0).getBestIsotopePattern() != null);
@@ -328,6 +331,11 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void initShowMenu() {
+
+    final MenuItem showNetworkVisualizerItem = new ConditionalMenuItem("Feature overview (network)",
+        () -> hasMs2(selectedRows));
+    showNetworkVisualizerItem.setOnAction(e -> showNetworkVisualizer());
+
     final MenuItem showXICItem = new ConditionalMenuItem("XIC (quick)",
         () -> !selectedRows.isEmpty());
     showXICItem.setOnAction(
@@ -471,7 +479,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     });
 
     final MenuItem showAllMSMSItem = new ConditionalMenuItem("All MS/MS",
-        () -> !selectedRows.isEmpty() && !selectedRows.get(0).getAllFragmentScans().isEmpty());
+        () -> hasMs2(selectedRows));
     showAllMSMSItem.setOnAction(e -> onShowAllMsMsClicked());
 
     final MenuItem showIsotopePatternItem = new ConditionalMenuItem("Isotope pattern",
@@ -509,13 +517,30 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,
-            new SeparatorMenuItem(), show2DItem, show3DItem, showIntensityPlotItem,
-            showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem, new SeparatorMenuItem(),
-            showSpectrumItem, showFeatureFWHMMs1Item, showBestMobilityScanItem,
-            extractSumSpectrumFromMobScans, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
-            showDiaIons, showDiaMirror, new SeparatorMenuItem(), showIsotopePatternItem,
-            showCompoundDBResults, showSpectralDBResults, showMatchedLipidSignals,
-            new SeparatorMenuItem(), showPeakRowSummaryItem);
+            new SeparatorMenuItem(), showNetworkVisualizerItem, show2DItem, show3DItem,
+            showIntensityPlotItem, showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem,
+            new SeparatorMenuItem(), showSpectrumItem, showFeatureFWHMMs1Item,
+            showBestMobilityScanItem, extractSumSpectrumFromMobScans, showMSMSItem,
+            showMSMSMirrorItem, showAllMSMSItem, showDiaIons, showDiaMirror,
+            new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
+            showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
+            showPeakRowSummaryItem);
+  }
+
+  private boolean hasMs2(final List<ModularFeatureListRow> selectedRows) {
+    return selectedRows.stream().anyMatch(FeatureListRow::hasMs2Fragmentation);
+  }
+
+  /**
+   * Open molecular network and center on node
+   */
+  private void showNetworkVisualizer() {
+    var featureList = table.getFeatureList();
+    if (selectedRows.isEmpty() || featureList == null) {
+      return;
+    }
+    NetworkOverviewWindow networks = new NetworkOverviewWindow(featureList, table, selectedRows);
+    networks.show();
   }
 
   private void onShowAllMsMsClicked() {

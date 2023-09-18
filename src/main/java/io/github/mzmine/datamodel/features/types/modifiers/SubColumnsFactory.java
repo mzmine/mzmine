@@ -212,12 +212,10 @@ public interface SubColumnsFactory {
       final @Nullable ModularFeature feature, final @Nullable RawDataFile file, final Object value)
       throws XMLStreamException {
 
-    writer.writeStartElement(SUB_TYPES_XML_ELEMENT);
-
     if (value == null) {
-      writer.writeEndElement();
       return;
     }
+    writer.writeStartElement(SUB_TYPES_XML_ELEMENT);
     var cols = getNumberOfSubColumns();
     for (int i = 0; i < cols; i++) {
       DataType sub = getType(i);
@@ -236,10 +234,10 @@ public interface SubColumnsFactory {
             "Error while writing data type " + sub.getClass().getSimpleName() + " with value "
             + subValue + " to xml.", e);
       }
-
+      // end sub column
       writer.writeEndElement();
     }
-
+    // end outer list of sub columns
     writer.writeEndElement();
   }
 

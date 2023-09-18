@@ -57,6 +57,9 @@ public interface ModularDataModel {
    */
   ObservableMap<DataType, Object> getMap();
 
+  default boolean isEmpty() {
+    return getMap().isEmpty();
+  }
   /**
    * Get DataType column of this DataModel
    *

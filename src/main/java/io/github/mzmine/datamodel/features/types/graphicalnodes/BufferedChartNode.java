@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,10 +41,11 @@ import org.jfree.chart.fx.ChartViewer;
 public class BufferedChartNode extends BorderPane {
 
   private static final Logger logger = Logger.getLogger(BufferedChartNode.class.getName());
+
   private ChartViewer chart;
+
   private ImageView imageView;
   private boolean makeInteractiveOnClick;
-
   public BufferedChartNode(final boolean makeInteractiveOnClick) {
     this.makeInteractiveOnClick = makeInteractiveOnClick;
     PauseTransition resizer = new PauseTransition(Duration.seconds(2));
@@ -106,5 +107,9 @@ public class BufferedChartNode extends BorderPane {
    */
   public void showInteractiveChart() {
     MZmineCore.runLater(() -> setCenter(chart));
+  }
+
+  public ChartViewer getChart() {
+    return chart;
   }
 }

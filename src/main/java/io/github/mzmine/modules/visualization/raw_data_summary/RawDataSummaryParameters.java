@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.visualization.raw_data_summary;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -44,11 +43,11 @@ public class RawDataSummaryParameters extends SimpleParameterSet {
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
       new ScanSelection(1));
 
-  public static final ComboParameter<ScanDataType> scanDataType = new ComboParameter<>(
+  public static final ComboParameter<RawDataSelection> scanDataType = new ComboParameter<>(
       "MS data selection",
       "Show either raw data or filtered centroid data (after mass detection and other filters).\n"
       + "RAW on profile mode spectra may result in unwanted results, apply mass detection and choose centroid instead. ",
-      ScanDataType.values(), ScanDataType.RAW);
+      RawDataSelection.values(), RawDataSelection.RAW_CENTROIDED);
 
   public static final OptionalParameter<MZRangeParameter> mzRange = new OptionalParameter<>(
       new MZRangeParameter(true), false);

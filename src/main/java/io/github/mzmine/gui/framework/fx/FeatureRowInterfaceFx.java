@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,21 +23,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual;
+package io.github.mzmine.gui.framework.fx;
 
-public enum EdgeAtt {
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
-  SCORE, SIM_N, TYPE, LABEL, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ, NUMBER_OF_COLLAPSED_EDGES;
+/**
+ * a JavaFX interface that can handle changes in selected rows, update the content based on the
+ * rows
+ */
+public interface FeatureRowInterfaceFx {
 
-  @Override
-  public String toString() {
-    return super.toString().replaceAll("_", " ");
+  /**
+   * Defines if this JavaFX node has row specific content like annotations, charts, etc
+   *
+   * @return true if content available
+   */
+  boolean hasContent();
+
+  /**
+   * Defines if this JavaFX node has NO row specific content like annotations, charts, etc
+   *
+   * @return true if NO content available; opposite of {@link #hasContent()}
+   */
+  default boolean isEmptyContent() {
+    return !hasContent();
   }
 
-  public boolean isNumber() {
-    return switch (this) {
-      case TYPE, LABEL -> false;
-      case SCORE, SIM_N, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ, NUMBER_OF_COLLAPSED_EDGES -> true;
-    };
-  }
+  /**
+   * Set the selected rows and update this interface
+   *
+   * @param selectedRows new list of rows - the old is replaced
+   */
+  void setFeatureRows(final @NotNull List<? extends FeatureListRow> selectedRows);
+
 }

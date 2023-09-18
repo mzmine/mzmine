@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -66,4 +67,26 @@ public class SignalFiltersParameters extends SimpleParameterSet {
         intensityPercentFilter);
   }
 
+  public SpectralSignalFilter createFilter() {
+    return createFilter(this);
+  }
+
+  public static SpectralSignalFilter createFilter(ParameterSet params) {
+    boolean isRemovePrecursor = params.getValue(SignalFiltersParameters.removePrecursor);
+    var removePrecursorMz = params.getEmbeddedParameterValueIfSelectedOrElse(
+        SignalFiltersParameters.removePrecursor, 0d);
+    var cropToMaxSignals = params.getValue(SignalFiltersParameters.cropToMaxSignals);
+    var signalThresholdForTargetIntensityPercent = params.getValue(
+        SignalFiltersParameters.signalThresholdIntensityFilter);
+    var targetIntensityPercentage = params.getValue(SignalFiltersParameters.intensityPercentFilter);
+    return new SpectralSignalFilter(isRemovePrecursor, removePrecursorMz, cropToMaxSignals,
+        signalThresholdForTargetIntensityPercent, targetIntensityPercentage);
+  }
+
+  public void setValue(SpectralSignalFilter filter) {
+    setParameter(removePrecursor, filter.isRemovePrecursor(), filter.removePrecursorMz());
+    setParameter(intensityPercentFilter, filter.targetIntensityPercentage());
+    setParameter(signalThresholdIntensityFilter, filter.signalThresholdForTargetIntensityPercent());
+    setParameter(cropToMaxSignals, filter.cropToMaxSignals());
+  }
 }

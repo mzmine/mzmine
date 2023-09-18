@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.io.File;
 import java.io.IOException;
@@ -64,9 +65,7 @@ public class BioTransformerTask extends AbstractTask {
   private final MZTolerance mzTolerance;
   private final SmilesSource smilesSource;
   private final IonNetworkLibrary ionLibrary;
-  private String description;
   private final FeatureList flist;
-
   private final boolean useFilterParam;
   private final boolean eductMustHaveMsMs;
   private final boolean productMustHaveMsMs;
@@ -74,7 +73,7 @@ public class BioTransformerTask extends AbstractTask {
   private final boolean checkProductIntensity;
   private final double minEductIntensity;
   private final double minProductIntensity;
-
+  private String description;
   private int numEducts = 0;
   private int predictions = 1;
 
@@ -103,6 +102,59 @@ public class BioTransformerTask extends AbstractTask {
 
     description = "Biotransformer process";
     this.flist = flist;
+  }
+
+  /**
+   * @param id                 A unique id for the transformation (e.g. row id)
+   * @param prefix             Prefix for the transformation names. (e.g. Valsartan for
+   *                           Valsartan_transformation_1)
+   * @param bioTransformerPath The path to bio transformer
+   * @param parameters         A {@link BioTransformerParameters} set to read the parameters for the
+   *                           transformation from.
+   * @return A list of transformation products, already ionized with the given ion library in
+   * {@link BioTransformerParameters#ionLibrary}.
+   */
+  public static List<CompoundDBAnnotation> singleRowPrediction(final int id,
+      @NotNull String bestSmiles, @Nullable String prefix, @NotNull File bioTransformerPath,
+      @NotNull ParameterSet parameters) throws IOException {
+    var ionLibraryParam = parameters.getParameter(BioTransformerParameters.ionLibrary).getValue();
+    var ionLibrary = new IonNetworkLibrary((IonLibraryParameterSet) ionLibraryParam);
+
+    return singleRowPrediction(id, bestSmiles, prefix, bioTransformerPath, parameters, ionLibrary);
+  }
+
+  /**
+   * @param id                 A unique id for the transformation (e.g. row id)
+   * @param prefix             Prefix for the transformation names. (e.g. Valsartan for
+   *                           Valsartan_transformation_1)
+   * @param bioTransformerPath The path to bio transformer
+   * @param parameters         A {@link BioTransformerParameters} set to read the parameters for the
+   *                           transformation from.
+   * @param ionLibrary         The ion library to use.
+   * @return A list of transformation products, already ionized with the given ion library.
+   */
+  @NotNull
+  public static List<CompoundDBAnnotation> singleRowPrediction(final int id,
+      @NotNull String bestSmiles, @Nullable String prefix, @NotNull File bioTransformerPath,
+      @NotNull ParameterSet parameters, @NotNull IonNetworkLibrary ionLibrary) throws IOException {
+
+    String filename = id + "_transformation";
+    final File file;
+    // will be cleaned by temp file cleanup (windows)
+    file = FileAndPathUtil.createTempFile("mzmine_bio_" + filename, ".csv");
+    file.deleteOnExit();
+
+    final List<String> cmd = BioTransformerUtil.buildCommandLineArguments(bestSmiles, parameters,
+        file);
+
+    BioTransformerUtil.runCommandAndWait(bioTransformerPath.getParentFile(), cmd);
+
+    final List<CompoundDBAnnotation> bioTransformerAnnotations = BioTransformerUtil.parseLibrary(
+        file, ionLibrary);
+
+    bioTransformerAnnotations.forEach(a -> a.put(CompoundNameType.class,
+        Objects.requireNonNullElse(prefix, "") + "_" + a.get(CompoundNameType.class)));
+    return bioTransformerAnnotations;
   }
 
   @Override
@@ -196,59 +248,6 @@ public class BioTransformerTask extends AbstractTask {
           + e.getMessage());
       setStatus(TaskStatus.ERROR);
     }
-  }
-
-  /**
-   * @param id                 A unique id for the transformation (e.g. row id)
-   * @param prefix             Prefix for the transformation names. (e.g. Valsartan for
-   *                           Valsartan_transformation_1)
-   * @param bioTransformerPath The path to bio transformer
-   * @param parameters         A {@link BioTransformerParameters} set to read the parameters for the
-   *                           transformation from.
-   * @return A list of transformation products, already ionized with the given ion library in
-   * {@link BioTransformerParameters#ionLibrary}.
-   */
-  public static List<CompoundDBAnnotation> singleRowPrediction(final int id,
-      @NotNull String bestSmiles, @Nullable String prefix, @NotNull File bioTransformerPath,
-      @NotNull ParameterSet parameters) throws IOException {
-    var ionLibraryParam = parameters.getParameter(BioTransformerParameters.ionLibrary).getValue();
-    var ionLibrary = new IonNetworkLibrary((IonLibraryParameterSet) ionLibraryParam);
-
-    return singleRowPrediction(id, bestSmiles, prefix, bioTransformerPath, parameters, ionLibrary);
-  }
-
-  /**
-   * @param id                 A unique id for the transformation (e.g. row id)
-   * @param prefix             Prefix for the transformation names. (e.g. Valsartan for
-   *                           Valsartan_transformation_1)
-   * @param bioTransformerPath The path to bio transformer
-   * @param parameters         A {@link BioTransformerParameters} set to read the parameters for the
-   *                           transformation from.
-   * @param ionLibrary         The ion library to use.
-   * @return A list of transformation products, already ionized with the given ion library.
-   */
-  @NotNull
-  public static List<CompoundDBAnnotation> singleRowPrediction(final int id,
-      @NotNull String bestSmiles, @Nullable String prefix, @NotNull File bioTransformerPath,
-      @NotNull ParameterSet parameters, @NotNull IonNetworkLibrary ionLibrary) throws IOException {
-
-    String filename = id + "_transformation";
-    final File file;
-    // will be cleaned by temp file cleanup (windows)
-    file = File.createTempFile("mzmine_bio_" + filename, ".csv");
-    file.deleteOnExit();
-
-    final List<String> cmd = BioTransformerUtil.buildCommandLineArguments(bestSmiles, parameters,
-        file);
-
-    BioTransformerUtil.runCommandAndWait(bioTransformerPath.getParentFile(), cmd);
-
-    final List<CompoundDBAnnotation> bioTransformerAnnotations = BioTransformerUtil.parseLibrary(
-        file, ionLibrary);
-
-    bioTransformerAnnotations.forEach(a -> a.put(CompoundNameType.class,
-        Objects.requireNonNullElse(prefix, "") + "_" + a.get(CompoundNameType.class)));
-    return bioTransformerAnnotations;
   }
 
   /**

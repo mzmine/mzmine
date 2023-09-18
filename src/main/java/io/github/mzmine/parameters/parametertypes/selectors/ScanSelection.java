@@ -222,16 +222,16 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
       return false;
     }
 
-    if (scan instanceof Frame) {
+    if (scan instanceof MobilityScan mobScan) {
+      if ((scanMobilityRange != null) && (!scanMobilityRange.contains(mobScan.getMobility()))) {
+        return false;
+      }
+    } else if (scan instanceof Frame) {
       if (scanMobilityRange != null && !((Frame) scan).getMobilityRange()
           .isConnected(scanMobilityRange)) {
         return false;
       }
-    } /*else {
-      if ((scanMobilityRange != null) && (!scanMobilityRange.contains(scan.getMobility()))) {
-        return false;
-      }
-    }*/
+    }
 
     if (!Strings.isNullOrEmpty(scanDefinition)) {
 
@@ -264,56 +264,6 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
       }
     }
     return matches(scan, offset);
-  }
-
-  /**
-   * @param scan
-   * @param scanNumberOffset is used for baseFilteringInteger (filter every n-th scan)
-   * @return
-   */
-  public boolean matches(MobilityScan scan, int scanNumberOffset) {
-    if (msLevel != null && !msLevel.accept(scan)) {
-      return false;
-    }
-
-    if ((polarity != null) && (!polarity.equals(scan.getFrame().getPolarity()))) {
-      return false;
-    }
-
-    if ((spectrumType != null) && (!spectrumType.equals(scan.getSpectrumType()))) {
-      return false;
-    }
-
-    if ((scanNumberRange != null) && (!scanNumberRange.contains(scan.getFrame().getScanNumber()))) {
-      return false;
-    }
-
-    if ((baseFilteringInteger != null) && (
-        (scan.getFrame().getScanNumber() - scanNumberOffset) % baseFilteringInteger != 0)) {
-      return false;
-    }
-
-    if ((scanRTRange != null) && (!scanRTRange.contains((double) scan.getRetentionTime()))) {
-      return false;
-    }
-
-    if ((scanMobilityRange != null) && (!scanMobilityRange.contains(scan.getMobility()))) {
-      return false;
-    }
-
-    if (!Strings.isNullOrEmpty(scanDefinition)) {
-
-      final String actualScanDefinition = scan.getFrame().getScanDefinition();
-
-      if (Strings.isNullOrEmpty(actualScanDefinition)) {
-        return false;
-      }
-
-      final String regex = TextUtils.createRegexFromWildcards(scanDefinition);
-
-      return actualScanDefinition.matches(regex);
-    }
-    return true;
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -64,6 +64,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
   private final Boolean rtSmoothing;
   private final Double minPearson;
   private final Integer minCorrelatedPoints;
+  private final Boolean exportAnnotationGraphics;
 
   protected WizardBatchBuilderLcDIA(WizardSequence steps) {
     super(steps);
@@ -86,6 +87,8 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     exportPath = optional.value();
     exportGnps = getValue(params, WorkflowDiaWizardParameters.exportGnps);
     exportSirius = getValue(params, WorkflowDiaWizardParameters.exportSirius);
+    exportAnnotationGraphics = getValue(params,
+        WorkflowDiaWizardParameters.exportAnnotationGraphics);
     minPearson = getValue(params, WorkflowDiaWizardParameters.minPearson);
     minCorrelatedPoints = getValue(params, WorkflowDiaWizardParameters.minCorrelatedPoints);
   }
@@ -95,8 +98,8 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
-    makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, noiseLevelMs1, minRtDataPoints,
-        cropRtRange);
+    makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
+        minRtDataPoints, cropRtRange);
     makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
 
     var groupMs2Params = createMs2GrouperParameters();
@@ -127,7 +130,8 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     makeAndAddLibrarySearchStep(q, false);
     makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
     // export
-    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius);
+    makeAndAddDdaExportSteps(q, isExportActive, exportPath, exportGnps, exportSirius,
+        exportAnnotationGraphics);
     return q;
   }
 

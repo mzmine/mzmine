@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,6 +52,7 @@ import org.jetbrains.annotations.Nullable;
 public class FileAndPathUtil {
 
   private final static File USER_MZMINE_DIR = new File(FileUtils.getUserDirectory(), ".mzmine/");
+  private static File MZMINE_TEMP_DIR = new File(System.getProperty("java.io.tmpdir"));
 
   /**
    * Count the number of lines in a text file (should be seconds even for large files)
@@ -632,4 +633,29 @@ public class FileAndPathUtil {
     }
   }
 
+  public static File getTempDir() {
+    return MZMINE_TEMP_DIR;
+  }
+
+  /**
+   * Sets the temp dir.
+   */
+  public static void setTempDir(@NotNull final File path) {
+    MZMINE_TEMP_DIR = path;
+  }
+
+  /**
+   * Creates a temp file in the set mzmine temp directory.
+   */
+  public static File createTempFile(String prefix, String suffix) throws IOException {
+    final File tempFile = Files.createTempFile(MZMINE_TEMP_DIR.toPath(), prefix, suffix).toFile();
+    return tempFile;
+  }
+
+  /**
+   * Creates a temp folder in the set mzmine temp directory.
+   */
+  public static Path createTempDirectory(String name) throws IOException {
+    return Files.createTempDirectory(MZMINE_TEMP_DIR.toPath(), name);
+  }
 }

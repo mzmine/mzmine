@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,30 +25,43 @@
 
 package io.github.mzmine.modules.visualization.compdb;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.FeatureUtils;
-import java.util.Collection;
-import java.util.Collections;
+import io.github.mzmine.util.javafx.WeakAdapter;
 import java.util.List;
-import javafx.collections.ListChangeListener;
 import javafx.geometry.Orientation;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Separator;
-import javafx.scene.control.TreeItem;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
 
-public class CompoundDatabaseMatchTab extends MZmineTab {
+public class CompoundDatabaseMatchTab extends SimpleTab implements FeatureRowInterfaceFx {
 
+  private final WeakAdapter weak = new WeakAdapter();
   private final FeatureTableFX table;
   private final ScrollPane scrollPane;
+  private int matches = 0;
+
+  public CompoundDatabaseMatchTab(FeatureTableFX table) {
+    super("Compound database matches", true, true);
+    setOnCloseRequest(event -> weak.dipose());
+
+    this.table = table;
+    scrollPane = new ScrollPane();
+    scrollPane.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
+    scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+    setContent(scrollPane);
+
+    weak.addListChangeListener(table.getSelectionModel().getSelectedItems(),
+        c -> selectionChanged());
+  }
 
   public static void addNewTab(final FeatureTableFX table) {
     MZmineCore.runLater(() -> {
@@ -58,29 +71,45 @@ public class CompoundDatabaseMatchTab extends MZmineTab {
     });
   }
 
-  public CompoundDatabaseMatchTab(FeatureTableFX table) {
-    super("Compound database matches", true, true);
-    this.table = table;
-    scrollPane = new ScrollPane();
-    scrollPane.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
-    scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
-    setContent(scrollPane);
-
-    final ListChangeListener<TreeItem<ModularFeatureListRow>> listener = c -> selectionChanged();
-    table.getSelectionModel().getSelectedItems().addListener(listener);
-    setOnClosed(e -> table.getSelectionModel().getSelectedItems().removeListener(listener));
-  }
-
   private void selectionChanged() {
-    final ModularFeatureListRow selectedRow = table.getSelectedRow();
-    if(selectedRow == null) {
+    if (weak.isDisposed()) {
       return;
     }
-    GridPane pane = new GridPane();
+    final ModularFeatureListRow selectedRow = table.getSelectedRow();
+    if (selectedRow == null) {
+      return;
+    }
+    setFeatureRow(selectedRow);
+  }
 
+  @Override
+  public void setFeatureRows(final @NotNull List<? extends FeatureListRow> selectedRows) {
+    matches = 0;
+    GridPane pane = new GridPane();
+    int j = 0;
+    for (var row : selectedRows) {
+      if (!(row instanceof ModularFeatureListRow selectedRow)) {
+        continue;
+      }
+      final List<CompoundDBAnnotation> compoundAnnotations = FeatureUtils.extractAllCompoundAnnotations(
+          selectedRow);
+
+      for (CompoundDBAnnotation annotation : compoundAnnotations) {
+        final CompoundDatabaseMatchPane matchPane = new CompoundDatabaseMatchPane(annotation,
+            selectedRow);
+        pane.add(matchPane, 0, j++);
+        pane.add(new Separator(Orientation.HORIZONTAL), 0, j++);
+        matches++;
+      }
+    }
+    scrollPane.setContent(pane);
+  }
+
+  public void setFeatureRow(final ModularFeatureListRow selectedRow) {
     final List<CompoundDBAnnotation> compoundAnnotations = FeatureUtils.extractAllCompoundAnnotations(
         selectedRow);
 
+    GridPane pane = new GridPane();
     for (int i = 0, j = 0; i < compoundAnnotations.size(); i++) {
       CompoundDBAnnotation annotation = compoundAnnotations.get(i);
       final CompoundDatabaseMatchPane matchPane = new CompoundDatabaseMatchPane(annotation,
@@ -92,32 +121,7 @@ public class CompoundDatabaseMatchTab extends MZmineTab {
   }
 
   @Override
-  public @NotNull Collection<? extends RawDataFile> getRawDataFiles() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public @NotNull Collection<? extends FeatureList> getFeatureLists() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public @NotNull Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-
-  }
-
-  @Override
-  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
-  }
-
-  @Override
-  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
+  public boolean hasContent() {
+    return matches > 0;
   }
 }

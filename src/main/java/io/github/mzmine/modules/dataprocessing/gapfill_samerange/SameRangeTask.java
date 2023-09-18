@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -63,15 +64,12 @@ class SameRangeTask extends AbstractTask {
   private final MZmineProject project;
   private final OriginalFeatureListOption handleOriginal;
   private final ModularFeatureList peakList;
-  private ModularFeatureList processedPeakList;
-
   private final String suffix;
   private final MZTolerance mzTolerance;
-
-  private int totalRows;
   private final AtomicInteger processedRowsAtomic = new AtomicInteger(0);
-
   private final ParameterSet parameters;
+  private ModularFeatureList processedPeakList;
+  private int totalRows;
 
   SameRangeTask(MZmineProject project, FeatureList peakList, ParameterSet parameters,
       @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
@@ -85,7 +83,6 @@ class SameRangeTask extends AbstractTask {
     mzTolerance = parameters.getParameter(SameRangeGapFillerParameters.mzTolerance).getValue();
     handleOriginal = parameters.getParameter(SameRangeGapFillerParameters.handleOriginal)
         .getValue();
-
   }
 
   @Override
@@ -104,6 +101,8 @@ class SameRangeTask extends AbstractTask {
     // Create new feature list
     processedPeakList = new ModularFeatureList(peakList + " " + suffix, getMemoryMapStorage(),
         columns);
+    peakList.getRawDataFiles()
+        .forEach(file -> processedPeakList.setSelectedScans(file, peakList.getSeletedScans(file)));
 
     List<FeatureListRow> outputList = Collections.synchronizedList(new ArrayList<>());
 
@@ -164,7 +163,7 @@ class SameRangeTask extends AbstractTask {
 
   }
 
-  private Feature fillGap(FeatureListRow row, RawDataFile column) {
+  private Feature fillGap(FeatureListRow row, RawDataFile fileToFill) {
 
     Range<Double> mzRange = null;
     Range<Float> rtRange = null;
@@ -191,14 +190,16 @@ class SameRangeTask extends AbstractTask {
     final double centerMZ = RangeUtils.rangeCenter(mzRangeWithTol);
 
     // Get scan numbers
-    Scan[] scanNumbers = column.getScanNumbers(1, rtRange);
+    final ScanSelection scanSelection = new ScanSelection(1, rtRange);
+    final List<Scan> matchingScans = scanSelection.getMatchingScans(
+        (List<Scan>) processedPeakList.getSeletedScans(fileToFill));
 
     boolean dataPointFound = false;
 
     // results
     SimpleGapFeature gapFeature = new SimpleGapFeature();
 
-    for (Scan scan : scanNumbers) {
+    for (Scan scan : matchingScans) {
 
       if (isCanceled()) {
         return null;
@@ -224,11 +225,11 @@ class SameRangeTask extends AbstractTask {
       if (gapFeature.isEmpty()) {
         return null;
       }
-      final ModularFeature feature = new ModularFeature(processedPeakList, column,
+      final ModularFeature feature = new ModularFeature(processedPeakList, fileToFill,
           gapFeature.toIonTimeSeries(processedPeakList.getMemoryMapStorage()),
           FeatureStatus.ESTIMATED);
 
-      var allMS2 = ScanUtils.streamAllMS2FragmentScans(column, rtRange, mzRange).toList();
+      var allMS2 = ScanUtils.streamAllMS2FragmentScans(fileToFill, rtRange, mzRange).toList();
       feature.setAllMS2FragmentScans(allMS2);
       return feature;
     }

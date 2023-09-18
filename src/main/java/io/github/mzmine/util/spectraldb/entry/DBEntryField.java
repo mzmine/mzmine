@@ -59,10 +59,8 @@ import org.jetbrains.annotations.NotNull;
 public enum DBEntryField {
   // Compound specific
   ENTRY_ID, NAME, SYNONYMS, COMMENT, DESCRIPTION, MOLWEIGHT(Double.class), EXACT_MASS(
-      Double.class),
-  // structure
-  FORMULA, INCHI, INCHIKEY, SMILES, PEPTIDE_SEQ,
-  // identifier
+      Double.class), // structure
+  FORMULA, INCHI, INCHIKEY, SMILES, PEPTIDE_SEQ, // identifier
   CAS, PUBMED, PUBCHEM, GNPS_ID, MONA_ID, CHEMSPIDER, FEATURE_ID,
 
   // spectrum specific
@@ -76,7 +74,7 @@ public enum DBEntryField {
   MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS,
 
   // Instrument specific
-  INSTRUMENT_TYPE, INSTRUMENT, ION_SOURCE, RESOLUTION, POLARITY,
+  INSTRUMENT_TYPE, INSTRUMENT, IMS_TYPE, ION_SOURCE, RESOLUTION, POLARITY,
 
   // other
   PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE,
@@ -101,8 +99,8 @@ public enum DBEntryField {
   // group of DBEntryFields logically
   public static final DBEntryField[] OTHER_FIELDS = new DBEntryField[]{PRINCIPAL_INVESTIGATOR,
       DATA_COLLECTOR, ENTRY_ID, COMMENT};
-  public static final DBEntryField[] DATABASE_FIELDS = new DBEntryField[]{PUBMED, PUBCHEM, MONA_ID,
-      CHEMSPIDER, CAS};
+  public static final DBEntryField[] DATABASE_FIELDS = new DBEntryField[]{USI, PUBMED, PUBCHEM,
+      MONA_ID, CHEMSPIDER, CAS};
   public static final DBEntryField[] COMPOUND_FIELDS = new DBEntryField[]{NAME, SYNONYMS, FORMULA,
       MOLWEIGHT, EXACT_MASS, ION_TYPE, PRECURSOR_MZ, CHARGE, RT, CCS, POLARITY, INCHI, INCHIKEY,
       SMILES, NUM_PEAKS, FEATURE_ID};
@@ -228,7 +226,8 @@ public enum DBEntryField {
           INSTRUMENT_TYPE, POLARITY, ION_SOURCE, PRINCIPAL_INVESTIGATOR, PUBMED, PUBCHEM,  //
           CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, //
           QUALITY, QUALITY_CHIMERIC, FILENAME, //
-          SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES ->
+          SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, //
+          IMS_TYPE ->
           StringType.class;
       case SCAN_NUMBER -> BestScanNumberType.class;
       case MS_LEVEL, NUM_PEAKS, FEATURE_ID -> IntegerType.class;
@@ -283,6 +282,7 @@ public enum DBEntryField {
       case ION_TYPE -> "adduct";
       case POLARITY -> "polarity";
       case ION_SOURCE -> "ion_source";
+      case IMS_TYPE -> "ims_type";
       case PRECURSOR_MZ -> "precursor_mz";
       case NAME -> "compound_name";
       case PRINCIPAL_INVESTIGATOR -> "investigator";
@@ -343,6 +343,7 @@ public enum DBEntryField {
       case ION_TYPE -> "Precursor_type";
       case POLARITY -> "Ion_mode"; // P / N
       case ION_SOURCE -> "";
+      case IMS_TYPE -> "ims_type";
       case PRECURSOR_MZ -> "PrecursorMZ";
       case NAME -> "Name";
       case SPLASH -> "Splash";
@@ -399,6 +400,7 @@ public enum DBEntryField {
       case ION_TYPE -> "ADDUCT";
       case POLARITY -> "IONMODE"; // Positive Negative
       case ION_SOURCE -> "ION_SOURCE";
+      case IMS_TYPE -> "IMS_TYPE";
       case PRECURSOR_MZ -> "PEPMASS";
       case NAME -> "NAME";
       case PRINCIPAL_INVESTIGATOR -> "PI";
@@ -432,6 +434,7 @@ public enum DBEntryField {
       case UNSPECIFIED -> "";
     };
   }
+
   /**
    * @return The mgf format (used by GNPS)
    */
@@ -443,6 +446,7 @@ public enum DBEntryField {
       case PRECURSOR_MZ -> "MOLECULEMASS";
       case INSTRUMENT_TYPE -> "INSTRUMENT";
       case ION_SOURCE -> "IONSOURCE";
+      case IMS_TYPE -> "IMS_TYPE";
       case SCAN_NUMBER -> "EXTRACTSCAN";
       case SMILES -> "SMILES";
       case INCHI -> "INCHI";
@@ -467,7 +471,7 @@ public enum DBEntryField {
       case CCS -> "CCS";
       case SPLASH -> "SPLASH";
       case MERGED_SPEC_TYPE -> "SPECTYPE";
-      case  NUM_PEAKS, GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RESOLUTION, SYNONYMS, //
+      case NUM_PEAKS, GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RESOLUTION, SYNONYMS, //
           MOLWEIGHT, SOFTWARE, COLLISION_ENERGY -> toString();
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
       case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
@@ -506,6 +510,7 @@ public enum DBEntryField {
       case COLLISION_ENERGY -> "";
       case COMMENT -> "";
       case DESCRIPTION -> "";
+      case IMS_TYPE -> "";
       case DATA_COLLECTOR -> "";
       case EXACT_MASS -> "##MW";
       case FORMULA -> "##MOLFORM";
@@ -583,7 +588,8 @@ public enum DBEntryField {
           FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, //
           MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, //
           DATASET_ID, USI, SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC, //
-          OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, QUALITY_PRECURSOR_PURITY, PEPTIDE_SEQ ->
+          OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, QUALITY_PRECURSOR_PURITY, PEPTIDE_SEQ, //
+          IMS_TYPE ->
           value.toString();
       case RT -> switch (value) {
         // float is default for RT but handle Double in case wrong value was present

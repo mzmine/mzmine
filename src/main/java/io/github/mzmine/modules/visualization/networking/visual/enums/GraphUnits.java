@@ -23,30 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual;
-
-import java.util.stream.Stream;
-import org.graphstream.graph.Element;
-import org.graphstream.graph.Graph;
+package io.github.mzmine.modules.visualization.networking.visual.enums;
 
 /**
- * Defines access to different objects in the graph
- *
- * @author Robin Schmid (https://github.com/robinschmid)
+ * size units in graphs
  */
-public enum GraphObject {
-  NODE, EDGE;
-
-  /**
-   * Stream all elements in graph of this type
-   *
-   * @param graph the target graph
-   * @return a stream of nodes or edges
-   */
-  public Stream<? extends Element> stream(Graph graph) {
-    return switch (this) {
-      case NODE -> graph.nodes();
-      case EDGE -> graph.edges();
-    };
-  }
+public enum GraphUnits {
+  gu, px;
 }
