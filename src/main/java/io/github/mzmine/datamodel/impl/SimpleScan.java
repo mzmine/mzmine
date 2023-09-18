@@ -26,16 +26,13 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.*;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.nio.DoubleBuffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.nio.DoubleBuffer;
 
 /**
  * Simple implementation of the Scan interface.
@@ -56,10 +53,21 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   private MsMsInfo msMsInfo;
 
   /**
-   * Clone constructor
+   * clone scan with new data
    */
   public SimpleScan(@NotNull RawDataFile dataFile, Scan sc, double[] newMzValues,
       double[] newIntensityValues) {
+
+    this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getMsMsInfo(),
+        newMzValues, newIntensityValues, sc.getSpectrumType(), sc.getPolarity(),
+        sc.getScanDefinition(), sc.getScanningMZRange(), sc.getInjectionTime());
+  }
+
+  /**
+   * clone scan with new data
+   */
+  public SimpleScan(@NotNull RawDataFile dataFile, Scan sc, DoubleBuffer newMzValues,
+      DoubleBuffer newIntensityValues) {
 
     this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getMsMsInfo(),
         newMzValues, newIntensityValues, sc.getSpectrumType(), sc.getPolarity(),
@@ -201,8 +209,8 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     return massList;
   }
 
-  @Override
   @NotNull
+  @Override
   public RawDataFile getDataFile() {
     return dataFile;
   }

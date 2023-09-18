@@ -29,17 +29,17 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * <p>MzMLBinaryDataInfo class.</p>
- *
  */
 public class MzMLBinaryDataInfo {
 
   private final int encodedLength;
   private final int arrayLength;
   private long position;
-  private @NotNull
-  MzMLCompressionType compressionType;
+  private @NotNull MzMLCompressionType compressionType;
   private MzMLBitLength bitLength;
   private MzMLArrayType arrayType;
+  // the binary text content
+  private String xmlBinaryContent;
 
   /**
    * <p>
@@ -47,7 +47,7 @@ public class MzMLBinaryDataInfo {
    * </p>
    *
    * @param encodedLength the length of the base64 encoded data (number of bytes)
-   * @param arrayLength number of data points in the decoded data array
+   * @param arrayLength   number of data points in the decoded data array
    */
   public MzMLBinaryDataInfo(int encodedLength, int arrayLength) {
     this.encodedLength = encodedLength;
@@ -58,8 +58,8 @@ public class MzMLBinaryDataInfo {
   /**
    * <p>Getter for the field <code>bitLength</code>.</p>
    *
-   * @return a {@link MzMLBitLength MzMLBitLength} corresponding to the
-   *         bit length of the binary data array
+   * @return a {@link MzMLBitLength MzMLBitLength} corresponding to the bit length of the binary
+   * data array
    */
   public MzMLBitLength getBitLength() {
     return bitLength;
@@ -105,13 +105,14 @@ public class MzMLBinaryDataInfo {
    * </p>
    *
    * @param accession The CV Parameter accession as {@link String String}
-   * @return a {@link MzMLBitLength MzMLBitLength} enum constant if the
-   *         accession corresponds to a valid bit length, null otherwise
+   * @return a {@link MzMLBitLength MzMLBitLength} enum constant if the accession corresponds to a
+   * valid bit length, null otherwise
    */
   public MzMLBitLength getBitLength(String accession) {
     for (MzMLBitLength bitLength : MzMLBitLength.values()) {
-      if (bitLength.getValue().equals(accession))
+      if (bitLength.getValue().equals(accession)) {
         return bitLength;
+      }
     }
     return null;
   }
@@ -119,8 +120,8 @@ public class MzMLBinaryDataInfo {
   /**
    * <p>Getter for the field <code>compressionType</code>.</p>
    *
-   * @return a {@link MzMLCompressionType MzMLCompressionType}
-   *         corresponding to the compression of the binary data array
+   * @return a {@link MzMLCompressionType MzMLCompressionType} corresponding to the compression of
+   * the binary data array
    */
   public MzMLCompressionType getCompressionType() {
     return compressionType;
@@ -166,13 +167,14 @@ public class MzMLBinaryDataInfo {
    * </p>
    *
    * @param accession The CV Parameter accession as {@link String String}
-   * @return a {@link MzMLCompressionType MzMLCompressionType} enum
-   *         constant if the accession corresponds to a valid compression type, null otherwise
+   * @return a {@link MzMLCompressionType MzMLCompressionType} enum constant if the accession
+   * corresponds to a valid compression type, null otherwise
    */
   public MzMLCompressionType getCompressionType(String accession) {
     for (MzMLCompressionType compressionType : MzMLCompressionType.values()) {
-      if (compressionType.getAccession().equals(accession))
+      if (compressionType.getAccession().equals(accession)) {
         return compressionType;
+      }
     }
     return null;
   }
@@ -180,8 +182,8 @@ public class MzMLBinaryDataInfo {
   /**
    * <p>Getter for the field <code>arrayType</code>.</p>
    *
-   * @return a {@link MzMLArrayType MzMLArrayType} enum constant
-   *         corresponding to the the array type of the binary data array
+   * @return a {@link MzMLArrayType MzMLArrayType} enum constant corresponding to the the array type
+   * of the binary data array
    */
   public MzMLArrayType getArrayType() {
     return arrayType;
@@ -216,7 +218,7 @@ public class MzMLBinaryDataInfo {
    *
    * @param arrayTypeAccession the CV Parameter accession as {@link String String}
    * @return true if the given accession is of a binary data array type CV Parameter, false
-   *         otherwise
+   * otherwise
    */
   public boolean isArrayTypeAccession(String arrayTypeAccession) {
     return getArrayType(arrayTypeAccession) != null;
@@ -228,13 +230,14 @@ public class MzMLBinaryDataInfo {
    * </p>
    *
    * @param accession The CV Parameter accession as {@link String String}
-   * @return a {@link MzMLArrayType MzMLArrayType} enum constant if the
-   *         accession corresponds to a valid binary data array type, null otherwise
+   * @return a {@link MzMLArrayType MzMLArrayType} enum constant if the accession corresponds to a
+   * valid binary data array type, null otherwise
    */
   public MzMLArrayType getArrayType(String accession) {
     for (MzMLArrayType arrayType : MzMLArrayType.values()) {
-      if (arrayType.getAccession().equals(accession))
+      if (arrayType.getAccession().equals(accession)) {
         return arrayType;
+      }
     }
     return null;
   }
@@ -243,7 +246,7 @@ public class MzMLBinaryDataInfo {
    * <p>Getter for the field <code>position</code>.</p>
    *
    * @return The position of the binary array in the {@link java.io.InputStream InputStream}
-   *         corresponding to the MzML format data
+   * corresponding to the MzML format data
    */
   public long getPosition() {
     return position;
@@ -252,12 +255,12 @@ public class MzMLBinaryDataInfo {
   /**
    * <p>
    * Set the position of the binary array in the {@link java.io.InputStream InputStream}
-   * corresponding to the MzML format data
-   * Deprecated at the moment due to the problems with xml reader random access in case of 3- and 4-byte characters
+   * corresponding to the MzML format data Deprecated at the moment due to the problems with xml
+   * reader random access in case of 3- and 4-byte characters
    * </p>
    *
    * @param position a <code>long</code> number defining the position of the binary array in the
-   *        {@link java.io.InputStream InputStream} corresponding to the MzML format data
+   *                 {@link java.io.InputStream InputStream} corresponding to the MzML format data
    */
   @Deprecated
   public void setPosition(long position) {
@@ -282,4 +285,21 @@ public class MzMLBinaryDataInfo {
     return arrayLength;
   }
 
+  /**
+   * binary text content that is later parsed
+   *
+   * @param xmlBinaryContent the text content
+   */
+  public void setTextContent(final String xmlBinaryContent) {
+    this.xmlBinaryContent = xmlBinaryContent;
+  }
+
+  /**
+   * binary text content that is later parsed
+   *
+   * @return the text content
+   */
+  public String getXmlBinaryContent() {
+    return xmlBinaryContent;
+  }
 }

@@ -26,22 +26,17 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.*;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-import java.util.Arrays;
-import java.util.Iterator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
+import java.util.Iterator;
 
 /**
  * During raw data import, we need to cache the m/z and intensity values of mobility scans, so we
@@ -196,6 +191,7 @@ public class BuildingMobilityScan implements MobilityScan {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 
+  @NotNull
   @Override
   public double getMobility() {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());

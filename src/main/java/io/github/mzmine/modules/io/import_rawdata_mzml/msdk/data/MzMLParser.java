@@ -25,12 +25,10 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
-import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.Chromatogram;
-import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.TagTracker;
-import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,42 +51,27 @@ import javolution.xml.stream.XMLStreamReader;
  */
 public class MzMLParser {
 
-  private Vars vars;
-  private TagTracker tracker;
-  private final MzMLRawDataFile newRawFile;
-  private final MzMLFileImportMethod importer;
-  private int totalScans = 0, parsedScans = 0;
   private static final Logger logger = Logger.getLogger(MzMLParser.class.getName());
 
-  private ParameterSet advancedParameters;
+  private final Vars vars;
+  private final TagTracker tracker;
+  private final MzMLFileImportMethod importer;
+  private final MemoryMapStorage storage;
+  private final ScanImportProcessorConfig scanProcessorConfig;
 
-  private MemoryMapStorage storage;
+  private int totalScans = 0, parsedScans = 0;
+  private final MzMLRawDataFile newRawFile;
 
-  /**
-   * <p>
-   * Constructor for {@link MzMLParser MzMLParser}
-   * </p>
-   *
-   * @param importer an instance of an initialized
-   *                 {@link MzMLFileImportMethod MzMLFileImportMethod}
-   */
-  public MzMLParser(MzMLFileImportMethod importer) {
-    this.vars = new Vars();
-    this.tracker = new TagTracker();
-    this.importer = importer;
-    this.newRawFile = new MzMLRawDataFile(importer.getMzMLFile(), vars.msFunctionsList,
-        vars.spectrumList, vars.chromatogramsList);
-  }
 
   public MzMLParser(MzMLFileImportMethod importer, MemoryMapStorage storage,
-      ParameterSet advancedParameters) {
+      ScanImportProcessorConfig scanProcessorConfig) {
     this.vars = new Vars();
     this.tracker = new TagTracker();
     this.importer = importer;
     this.newRawFile = new MzMLRawDataFile(importer.getMzMLFile(), vars.msFunctionsList,
         vars.spectrumList, vars.chromatogramsList);
     this.storage = storage;
-    this.advancedParameters = advancedParameters;
+    this.scanProcessorConfig = scanProcessorConfig;
   }
 
   /**
@@ -101,9 +84,8 @@ public class MzMLParser {
    * @param is              {@link InputStream InputStream} of the mzML data
    * @param openingTagName  The tag <code>xmlStreamReader</code> entered
    */
-  public void processOpeningTag(XMLStreamReaderImpl xmlStreamReader, InputStream is,
-      CharArray openingTagName)
-      throws XMLStreamException, IOException, DataFormatException, MSDKException {
+  public void processOpeningTag(XMLStreamReaderImpl xmlStreamReader, CharArray openingTagName)
+      throws XMLStreamException, IOException, DataFormatException {
     tracker.enter(openingTagName);
 
     if (tracker.current().contentEquals((MzMLTags.TAG_RUN))) {
@@ -129,11 +111,12 @@ public class MzMLParser {
       newRawFile.setDefaultDataProcessingScan(defaultDataProcessingRefScan.toString());
     }
 
-    if (tracker.current().contentEquals((MzMLTags.TAG_CHROMATOGRAM_LIST))) {
-      final CharArray defaultDataProcessingRefChromatogram = getRequiredAttribute(xmlStreamReader,
-          MzMLTags.ATTR_DEFAULT_DATA_PROCESSING_REF);
-      newRawFile.setDefaultDataProcessingScan(defaultDataProcessingRefChromatogram.toString());
-    }
+//    if (tracker.current().contentEquals((MzMLTags.TAG_CHROMATOGRAM_LIST))) {
+//      final CharArray defaultDataProcessingRefChromatogram = getRequiredAttribute(xmlStreamReader,
+//          MzMLTags.ATTR_DEFAULT_DATA_PROCESSING_REF);
+//      newRawFile.setDefaultDataProcessingChromatogram(
+//          defaultDataProcessingRefChromatogram.toString());
+//    }
 
     if (openingTagName.contentEquals((MzMLTags.TAG_SPECTRUM_LIST))) {
       final CharArray count = getRequiredAttribute(xmlStreamReader, "count");
@@ -156,13 +139,12 @@ public class MzMLParser {
     if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST)) {
       if (openingTagName.contentEquals(MzMLTags.TAG_SPECTRUM)) {
         String id = getRequiredAttribute(xmlStreamReader, "id").toString();
-        Integer index = getRequiredAttribute(xmlStreamReader, "index").toInt();
+        int index = getRequiredAttribute(xmlStreamReader, "index").toInt();
         vars.defaultArrayLength = getRequiredAttribute(xmlStreamReader,
             "defaultArrayLength").toInt();
         Integer scanNumber = getScanNumber(id).orElse(index + 1);
         //        vars.spectrum = new BuildingMzMLMsScan(newRawFile, id, scanNumber, vars.defaultArrayLength);
-        vars.spectrum = new BuildingMzMLMsScan(newRawFile, id, scanNumber, vars.defaultArrayLength,
-            storage, advancedParameters);
+        vars.spectrum = new BuildingMzMLMsScan(id, scanNumber, vars.defaultArrayLength);
 
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
@@ -238,12 +220,10 @@ public class MzMLParser {
         if (vars.spectrum != null && !vars.skipBinaryDataArray) {
           //here we obtain the text value of the whole TAG_BINARY
           //using getElementText() requires exiting the tracker afterwards, otherwise xmlStreamReader produces an error
-          vars.spectrum.processBinaryScanValues(xmlStreamReader.getElementText(),
-              vars.binaryDataInfo);
+          var binaryContent = xmlStreamReader.getElementText().toString();
+          vars.binaryDataInfo.setTextContent(binaryContent);
           tracker.exit(tracker.current());
         }
-
-
       } else if (openingTagName.contentEquals(MzMLTags.TAG_REF_PARAM_GROUP_REF)) {
         String refValue = getRequiredAttribute(xmlStreamReader, "ref").toString();
         for (MzMLReferenceableParamGroup ref : vars.referenceableParamGroupList) {
@@ -315,128 +295,127 @@ public class MzMLParser {
         }
 
       }
-
-    } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
-      if (openingTagName.contentEquals(MzMLTags.TAG_CHROMATOGRAM)) {
-        String chromatogramId = getRequiredAttribute(xmlStreamReader, "id").toString();
-        Integer chromatogramNumber = getRequiredAttribute(xmlStreamReader, "index").toInt() + 1;
-        vars.defaultArrayLength = getRequiredAttribute(xmlStreamReader,
-            "defaultArrayLength").toInt();
-        vars.chromatogram = new MzMLChromatogram(newRawFile, chromatogramId, chromatogramNumber,
-            vars.defaultArrayLength);
-
-      } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
-        if (!tracker.inside(MzMLTags.TAG_BINARY_DATA_ARRAY) && !tracker.inside(
-            MzMLTags.TAG_PRECURSOR) && !tracker.inside(MzMLTags.TAG_PRODUCT)
-            && vars.chromatogram != null) {
-          MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
-          vars.chromatogram.getCVParams().addCVParam(cvParam);
-        }
-
-      } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
-        vars.skipBinaryDataArray = false;
-        int encodedLength = getRequiredAttribute(xmlStreamReader, "encodedLength").toInt();
-        final CharArray arrayLength = xmlStreamReader.getAttributeValue(null, "arrayLength");
-        if (arrayLength != null) {
-          vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, arrayLength.toInt());
-        } else {
-          vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, vars.defaultArrayLength);
-        }
-
-      } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY)) {
-        if (vars.chromatogram != null && !vars.skipBinaryDataArray) {
-          vars.chromatogram.processBinaryChromatogramValues(xmlStreamReader.getElementText(),
-              vars.binaryDataInfo);
-          tracker.exit(tracker.current());
-        }
-        if (!vars.skipBinaryDataArray) {
-          if (MzMLCV.cvRetentionTimeArray.equals(
-              vars.binaryDataInfo.getArrayType().getAccession())) {
-            vars.chromatogram.setRtBinaryDataInfo(vars.binaryDataInfo);
-          }
-          if (MzMLCV.cvIntensityArray.equals(vars.binaryDataInfo.getArrayType().getAccession())) {
-            vars.chromatogram.setIntensityBinaryDataInfo(vars.binaryDataInfo);
-          }
-        }
-
-      } else if (openingTagName.contentEquals(MzMLTags.TAG_REF_PARAM_GROUP_REF)) {
-        String refValue = xmlStreamReader.getAttributeValue(null, "ref").toString();
-        for (MzMLReferenceableParamGroup ref : vars.referenceableParamGroupList) {
-          if (ref.getParamGroupName().equals(refValue)) {
-            vars.chromatogram.getCVParams().getCVParamsList().addAll(ref.getCVParamsList());
-            break;
-          }
-        }
-
-      }
-
-      if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM) && tracker.inside(
-          MzMLTags.TAG_BINARY_DATA_ARRAY) && openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)
-          && vars.binaryDataInfo != null && !vars.skipBinaryDataArray) {
-        String accession = getRequiredAttribute(xmlStreamReader, "accession").toString();
-        if (vars.binaryDataInfo.isBitLengthAccession(accession)) {
-          vars.binaryDataInfo.setBitLength(accession);
-        } else if (vars.binaryDataInfo.isCompressionTypeAccession(accession)) {
-          manageCompression(vars.binaryDataInfo, accession);
-        } else if (vars.binaryDataInfo.isArrayTypeAccession(accession)) {
-          vars.binaryDataInfo.setArrayType(accession);
-        } else {
-          vars.skipBinaryDataArray = true;
-        }
-
-      }
-
-      if (openingTagName.contentEquals(MzMLTags.TAG_PRECURSOR)) {
-        final CharArray spectrumRef = xmlStreamReader.getAttributeValue(null, "spectrumRef");
-        String spectrumRefString = spectrumRef == null ? null : spectrumRef.toString();
-        vars.precursor = new MzMLPrecursorElement(spectrumRefString);
-
-      } else if (openingTagName.contentEquals(MzMLTags.TAG_PRODUCT)) {
-        vars.product = new MzMLProduct();
-
-      } else if (tracker.inside(MzMLTags.TAG_PRECURSOR)) {
-        if (openingTagName.contentEquals(MzMLTags.TAG_ISOLATION_WINDOW)) {
-          vars.isolationWindow = new MzMLIsolationWindow();
-          vars.selectedIonList = new MzMLPrecursorSelectedIonList();
-
-        } else if (openingTagName.contentEquals(MzMLTags.TAG_ACTIVATION)) {
-          vars.activation = new MzMLPrecursorActivation();
-
-        } else if (tracker.inside(MzMLTags.TAG_ISOLATION_WINDOW)) {
-          if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
-            MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
-            vars.isolationWindow.addCVParam(cvParam);
-          }
-
-        } else if (tracker.inside(MzMLTags.TAG_SELECTED_ION_LIST)) {
-          if (openingTagName.contentEquals(MzMLTags.TAG_SELECTED_ION)) {
-            vars.selectedIon = new MzMLPrecursorSelectedIon();
-          } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
-            MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
-            vars.selectedIon.addCVParam(cvParam);
-          }
-
-        } else if (tracker.inside(MzMLTags.TAG_ACTIVATION)) {
-          if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
-            MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
-            vars.activation.addCVParam(cvParam);
-          }
-        }
-      } else if (tracker.inside(MzMLTags.TAG_PRODUCT)) {
-        if (openingTagName.contentEquals(MzMLTags.TAG_ISOLATION_WINDOW)) {
-          vars.isolationWindow = new MzMLIsolationWindow();
-
-        } else if (tracker.inside(MzMLTags.TAG_ISOLATION_WINDOW)) {
-          if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
-            MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
-            vars.isolationWindow.addCVParam(cvParam);
-
-          }
-
-        }
-      }
-
     }
+//    else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
+//      if (openingTagName.contentEquals(MzMLTags.TAG_CHROMATOGRAM)) {
+//        String chromatogramId = getRequiredAttribute(xmlStreamReader, "id").toString();
+//        Integer chromatogramNumber = getRequiredAttribute(xmlStreamReader, "index").toInt() + 1;
+//        vars.defaultArrayLength = getRequiredAttribute(xmlStreamReader,
+//            "defaultArrayLength").toInt();
+//        vars.chromatogram = new MzMLChromatogram(newRawFile, chromatogramId, chromatogramNumber,
+//            vars.defaultArrayLength);
+//
+//      } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
+//        if (!tracker.inside(MzMLTags.TAG_BINARY_DATA_ARRAY) && !tracker.inside(
+//            MzMLTags.TAG_PRECURSOR) && !tracker.inside(MzMLTags.TAG_PRODUCT)
+//            && vars.chromatogram != null) {
+//          MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
+//          vars.chromatogram.getCVParams().addCVParam(cvParam);
+//        }
+//
+//      } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
+//        vars.skipBinaryDataArray = false;
+//        int encodedLength = getRequiredAttribute(xmlStreamReader, "encodedLength").toInt();
+//        final CharArray arrayLength = xmlStreamReader.getAttributeValue(null, "arrayLength");
+//        if (arrayLength != null) {
+//          vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, arrayLength.toInt());
+//        } else {
+//          vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, vars.defaultArrayLength);
+//        }
+//
+//      } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY)) {
+//        if (vars.chromatogram != null && !vars.skipBinaryDataArray) {
+//          vars.chromatogram.processBinaryChromatogramValues(xmlStreamReader.getElementText(),
+//              vars.binaryDataInfo);
+//          tracker.exit(tracker.current());
+//        }
+//        if (!vars.skipBinaryDataArray) {
+//          if (MzMLCV.cvRetentionTimeArray.equals(
+//              vars.binaryDataInfo.getArrayType().getAccession())) {
+//            vars.chromatogram.setRtBinaryDataInfo(vars.binaryDataInfo);
+//          }
+//          if (MzMLCV.cvIntensityArray.equals(vars.binaryDataInfo.getArrayType().getAccession())) {
+//            vars.chromatogram.setIntensityBinaryDataInfo(vars.binaryDataInfo);
+//          }
+//        }
+//
+//      } else if (openingTagName.contentEquals(MzMLTags.TAG_REF_PARAM_GROUP_REF)) {
+//        String refValue = xmlStreamReader.getAttributeValue(null, "ref").toString();
+//        for (MzMLReferenceableParamGroup ref : vars.referenceableParamGroupList) {
+//          if (ref.getParamGroupName().equals(refValue)) {
+//            vars.chromatogram.getCVParams().getCVParamsList().addAll(ref.getCVParamsList());
+//            break;
+//          }
+//        }
+//
+//      }
+//
+//      if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM) && tracker.inside(
+//          MzMLTags.TAG_BINARY_DATA_ARRAY) && openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)
+//          && vars.binaryDataInfo != null && !vars.skipBinaryDataArray) {
+//        String accession = getRequiredAttribute(xmlStreamReader, "accession").toString();
+//        if (vars.binaryDataInfo.isBitLengthAccession(accession)) {
+//          vars.binaryDataInfo.setBitLength(accession);
+//        } else if (vars.binaryDataInfo.isCompressionTypeAccession(accession)) {
+//          manageCompression(vars.binaryDataInfo, accession);
+//        } else if (vars.binaryDataInfo.isArrayTypeAccession(accession)) {
+//          vars.binaryDataInfo.setArrayType(accession);
+//        } else {
+//          vars.skipBinaryDataArray = true;
+//        }
+//
+//      }
+//
+//      if (openingTagName.contentEquals(MzMLTags.TAG_PRECURSOR)) {
+//        final CharArray spectrumRef = xmlStreamReader.getAttributeValue(null, "spectrumRef");
+//        String spectrumRefString = spectrumRef == null ? null : spectrumRef.toString();
+//        vars.precursor = new MzMLPrecursorElement(spectrumRefString);
+//
+//      } else if (openingTagName.contentEquals(MzMLTags.TAG_PRODUCT)) {
+//        vars.product = new MzMLProduct();
+//
+//      } else if (tracker.inside(MzMLTags.TAG_PRECURSOR)) {
+//        if (openingTagName.contentEquals(MzMLTags.TAG_ISOLATION_WINDOW)) {
+//          vars.isolationWindow = new MzMLIsolationWindow();
+//          vars.selectedIonList = new MzMLPrecursorSelectedIonList();
+//
+//        } else if (openingTagName.contentEquals(MzMLTags.TAG_ACTIVATION)) {
+//          vars.activation = new MzMLPrecursorActivation();
+//
+//        } else if (tracker.inside(MzMLTags.TAG_ISOLATION_WINDOW)) {
+//          if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
+//            MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
+//            vars.isolationWindow.addCVParam(cvParam);
+//          }
+//
+//        } else if (tracker.inside(MzMLTags.TAG_SELECTED_ION_LIST)) {
+//          if (openingTagName.contentEquals(MzMLTags.TAG_SELECTED_ION)) {
+//            vars.selectedIon = new MzMLPrecursorSelectedIon();
+//          } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
+//            MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
+//            vars.selectedIon.addCVParam(cvParam);
+//          }
+//
+//        } else if (tracker.inside(MzMLTags.TAG_ACTIVATION)) {
+//          if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
+//            MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
+//            vars.activation.addCVParam(cvParam);
+//          }
+//        }
+//      } else if (tracker.inside(MzMLTags.TAG_PRODUCT)) {
+//        if (openingTagName.contentEquals(MzMLTags.TAG_ISOLATION_WINDOW)) {
+//          vars.isolationWindow = new MzMLIsolationWindow();
+//
+//        } else if (tracker.inside(MzMLTags.TAG_ISOLATION_WINDOW)) {
+//          if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
+//            MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
+//            vars.isolationWindow.addCVParam(cvParam);
+//
+//          }
+//
+//        }
+//      }
+//    }
   }
 
   private MzMLUserParam createMzMLUserParam(XMLStreamReaderImpl xmlStreamReader) {
@@ -477,9 +456,10 @@ public class MzMLParser {
     } else if (closingTagName.equals(MzMLTags.TAG_PRODUCT)) {
       if (tracker.inside(MzMLTags.TAG_SPECTRUM)) {
         vars.spectrum.getProductList().addProduct(vars.product);
-      } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM)) {
-        vars.chromatogram.setProdcut(vars.product);
       }
+//      else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM)) {
+//        vars.chromatogram.setProdcut(vars.product);
+//      }
 
     } else if (closingTagName.equals(MzMLTags.TAG_SELECTED_ION_LIST)) {
       vars.precursor.setSelectedIonList(vars.selectedIonList);
@@ -493,9 +473,11 @@ public class MzMLParser {
     } else if (closingTagName.equals(MzMLTags.TAG_PRECURSOR)) {
       if (tracker.inside(MzMLTags.TAG_SPECTRUM)) {
         vars.spectrum.getPrecursorList().addPrecursor(vars.precursor);
-      } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM)) {
-        vars.chromatogram.setPrecursor(vars.precursor);
       }
+
+//      else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM)) {
+//        vars.chromatogram.setPrecursor(vars.precursor);
+//      }
 
     } else if (closingTagName.equals(MzMLTags.TAG_SCAN_WINDOW)) {
       vars.scanWindowList.addScanWindow(vars.scanWindow);
@@ -512,25 +494,35 @@ public class MzMLParser {
 
     } else if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST)) {
       if (closingTagName.contentEquals(MzMLTags.TAG_SPECTRUM)) {
-        if (vars.spectrum.getMzBinaryDataInfo() != null
-            && vars.spectrum.getIntensityBinaryDataInfo() != null && (importer.getMzMLFile() != null
-            || importer.getMsScanPredicate().test(vars.spectrum))) {
-          vars.spectrumList.add(vars.spectrum);
-        }
-      }
-
-    } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
-      if (closingTagName.contentEquals(MzMLTags.TAG_CHROMATOGRAM)) {
-        if (vars.chromatogram.getRtBinaryDataInfo() != null
-            && vars.chromatogram.getIntensityBinaryDataInfo() != null && (
-            importer.getMzMLFile() != null || importer.getChromatogramPredicate()
-                .test(vars.chromatogram))) {
-          vars.chromatogramsList.add(vars.chromatogram);
-        }
+        filterProcessFinalizeScan();
       }
 
     }
 
+//    else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
+//      if (closingTagName.contentEquals(MzMLTags.TAG_CHROMATOGRAM)) {
+//        if (vars.chromatogram.getRtBinaryDataInfo() != null
+//            && vars.chromatogram.getIntensityBinaryDataInfo() != null && (importer.getMzMLFile()
+//                                                                          != null)) {
+//          vars.chromatogramsList.add(vars.chromatogram);
+//        }
+//      }
+//    }
+
+  }
+
+  /**
+   * Called when spectrum end is read. Check if spectrum is filtered - skip this scan if not in
+   * filter. Then process data points and memory map resulting data to disk to save RAM.
+   */
+  private void filterProcessFinalizeScan() {
+    var spectrum = vars.spectrum;
+    if (scanProcessorConfig.scanFilter().matches(spectrum)) {
+      if (spectrum.loadProcessMemMapData(storage, scanProcessorConfig.processor())) {
+        vars.spectrumList.add(spectrum);
+      }
+    }
+    vars.spectrum = null;
   }
 
   /**
@@ -547,30 +539,18 @@ public class MzMLParser {
   public void processCharacters(XMLStreamReaderImpl xmlStreamReader) {
     if (!newRawFile.getOriginalFile().isPresent() && tracker.current()
         .contentEquals(MzMLTags.TAG_BINARY) && !vars.skipBinaryDataArray) {
-      if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST) && importer.getMsScanPredicate()
-          .test(vars.spectrum)) {
+      if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST) && scanProcessorConfig.scanFilter().matches(vars.spectrum)) {
         switch (vars.binaryDataInfo.getArrayType().getAccession()) {
-          case MzMLCV.cvMzArray:
-            vars.spectrum.getDoubleBufferMzValues();
-            break;
-
-          case MzMLCV.cvIntensityArray:
-            vars.spectrum.getDoubleBufferIntensityValues();
-            break;
-        }
-      } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)
-          && importer.getChromatogramPredicate().test(vars.chromatogram)) {
-        switch (vars.binaryDataInfo.getArrayType().getAccession()) {
-          case MzMLCV.cvRetentionTimeArray:
-            vars.chromatogram.getDoubleRetentionTimes();
-//            vars.chromatogram.getDoubleBufferRetentionTimes();
-            break;
-
-          case MzMLCV.cvIntensityArray:
-            vars.chromatogram.getIntensityBinaryDataInfo();
-            break;
+          case MzMLCV.cvMzArray -> vars.spectrum.getDoubleBufferMzValues();
+          case MzMLCV.cvIntensityArray -> vars.spectrum.getDoubleBufferIntensityValues();
         }
       }
+//      else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
+//        switch (vars.binaryDataInfo.getArrayType().getAccession()) {
+//          case MzMLCV.cvRetentionTimeArray -> vars.chromatogram.getDoubleRetentionTimes();
+//          case MzMLCV.cvIntensityArray -> vars.chromatogram.getIntensityBinaryDataInfo();
+//        }
+//      }
     }
   }
 
@@ -622,7 +602,7 @@ public class MzMLParser {
     // So, get the value of the index tag if the scanNumber is not present in the ID
     if (scanNumberFound) {
       Integer scanNumber = Integer.parseInt(matcher.group(1));
-      return Optional.ofNullable(scanNumber);
+      return Optional.of(scanNumber);
     }
 
     // agilent
@@ -631,10 +611,10 @@ public class MzMLParser {
     boolean agilentScanNumberFound = agilentMatcher.find();
     if (agilentScanNumberFound) {
       Integer scanNumber = Integer.parseInt(agilentMatcher.group(1));
-      return Optional.ofNullable(scanNumber);
+      return Optional.of(scanNumber);
     }
 
-    return Optional.ofNullable(null);
+    return Optional.empty();
   }
 
   /**
@@ -652,7 +632,7 @@ public class MzMLParser {
     if (attrValue == null) {
       throw new IllegalStateException(
           "Tag " + xmlStreamReader.getLocalName() + " must provide an `" + attr
-              + "`attribute (Line " + xmlStreamReader.getLocation().getLineNumber() + ")");
+          + "`attribute (Line " + xmlStreamReader.getLocation().getLineNumber() + ")");
     }
     return attrValue;
   }
@@ -671,31 +651,21 @@ public class MzMLParser {
     } else {
       if (binaryInfo.getCompressionType(accession) == MzMLCompressionType.ZLIB) {
         switch (binaryInfo.getCompressionType()) {
-          case NUMPRESS_LINPRED:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_LINPRED_ZLIB);
-            break;
-          case NUMPRESS_POSINT:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_POSINT_ZLIB);
-            break;
-          case NUMPRESS_SHLOGF:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_SHLOGF_ZLIB);
-            break;
-          default:
-            break;
+          case NUMPRESS_LINPRED ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_LINPRED_ZLIB);
+          case NUMPRESS_POSINT ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_POSINT_ZLIB);
+          case NUMPRESS_SHLOGF ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_SHLOGF_ZLIB);
         }
       } else {
         switch (binaryInfo.getCompressionType(accession)) {
-          case NUMPRESS_LINPRED:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_LINPRED_ZLIB);
-            break;
-          case NUMPRESS_POSINT:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_POSINT_ZLIB);
-            break;
-          case NUMPRESS_SHLOGF:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_SHLOGF_ZLIB);
-            break;
-          default:
-            break;
+          case NUMPRESS_LINPRED ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_LINPRED_ZLIB);
+          case NUMPRESS_POSINT ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_POSINT_ZLIB);
+          case NUMPRESS_SHLOGF ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_SHLOGF_ZLIB);
         }
       }
     }
@@ -733,7 +703,7 @@ public class MzMLParser {
     MzMLScanWindowList scanWindowList;
     MzMLScanWindow scanWindow;
     ArrayList<MzMLReferenceableParamGroup> referenceableParamGroupList;
-    List<MsScan> spectrumList;
+    List<BuildingMzMLMsScan> spectrumList;
     List<Chromatogram> chromatogramsList;
     List<String> msFunctionsList;
 

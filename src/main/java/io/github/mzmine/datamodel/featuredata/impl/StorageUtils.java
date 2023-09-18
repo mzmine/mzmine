@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.featuredata.IonSeries;
+import io.github.mzmine.datamodel.impl.AbstractStorableSpectrum;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
@@ -169,6 +170,9 @@ public class StorageUtils {
   @NotNull
   public static DoubleBuffer storeValuesToDoubleBuffer(@Nullable final MemoryMapStorage storage,
       @NotNull final double[] values) {
+    if (values.length == 0) {
+      return AbstractStorableSpectrum.EMPTY_BUFFER;
+    }
 
     DoubleBuffer buffer;
     if (storage != null) {

@@ -25,14 +25,23 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 
 public class AdvancedSpectraImportParameters extends SimpleParameterSet {
+
+  public static final ScanSelectionParameter scanFilter = new ScanSelectionParameter();
+
+  public static final OptionalParameter<DoubleRangeParameter> mzRange = new OptionalParameter<>(
+      new DoubleRangeParameter("Crop MS1 m/z", "m/z boundary of the cropped region",
+          MZmineCore.getConfiguration().getMZFormat()), false);
 
   public static final OptionalParameter<ModuleComboParameter<MassDetector>> msMassDetection = new OptionalParameter<>(
       new ModuleComboParameter<MassDetector>("MS1 detector (Advanced)",
@@ -51,8 +60,9 @@ public class AdvancedSpectraImportParameters extends SimpleParameterSet {
       This reduces the intensity differences between spectra acquired with different injection times
       and reverts to "raw" intensities.""", false);
 
+
   public AdvancedSpectraImportParameters() {
-    super(msMassDetection, ms2MassDetection, denormalizeMSnScans);
+    super(scanFilter, mzRange, msMassDetection, ms2MassDetection, denormalizeMSnScans);
   }
 
 }

@@ -25,6 +25,9 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Range;
+
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -34,7 +37,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.io.import_rawdata_aird.AirdImportTask;
+import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFImportTask;
@@ -43,6 +47,13 @@ import io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportTask;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.CropMzMsProcessor;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.DenormalizeInjectTimeMsProcessor;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MassDetectorMsProcessor;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessor;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessorList;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.ScanImportProcessorConfig;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SortByMzMsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
@@ -51,6 +62,7 @@ import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportTask;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -63,6 +75,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -149,6 +162,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         useAdvancedOptions ? parameters.getParameter(AllSpectralDataImportParameters.advancedImport)
             .getEmbeddedParameters() : null;
 
+    ScanImportProcessorConfig scanProcessorConfig = createSpectralProcessors(advancedParam);
+
     // start importing spectral libraries first
     final File[] libraryFiles = parameters.getValue(SpectralLibraryImportParameters.dataBaseFiles);
 
@@ -219,12 +234,12 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         RawDataFile newMZmineFile = createDataFile(fileType, fileName.getAbsolutePath(),
             fileName.getName(), storage);
 
-        final AbstractTask newTask =
-            useAdvancedOptions && advancedParam != null ? createAdvancedTask(fileType, project,
-                fileName, newMZmineFile, advancedParam, AllSpectralDataImportModule.class,
-                parameters, moduleCallDate, storage)
-                : createTask(fileType, project, fileName, newMZmineFile,
-                    AllSpectralDataImportModule.class, parameters, moduleCallDate, storage);
+        final AbstractTask newTask = useAdvancedOptions && advancedParam != null ? //
+            createAdvancedTask(fileType, project, fileName, newMZmineFile, scanProcessorConfig,
+                AllSpectralDataImportModule.class, parameters, moduleCallDate, storage,
+                advancedParam)
+            : createTask(fileType, project, fileName, newMZmineFile, scanProcessorConfig,
+                AllSpectralDataImportModule.class, parameters, moduleCallDate, storage);
 
         // add task to list
         if (newTask != null) {
@@ -253,6 +268,49 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 
     return ExitCode.OK;
   }
+
+  /**
+   * Define filters and processors for scans
+   */
+  public static @NotNull ScanImportProcessorConfig createSpectralProcessors(
+      final ParameterSet advanced) {
+    List<MsProcessor> processors = new ArrayList<>();
+    processors.add(new SortByMzMsProcessor());
+
+    ScanSelection scanFilter = ScanSelection.ALL_SCANS;
+    boolean applyMassDetection = false;
+    if (advanced != null) {
+      MZmineProcessingStep<MassDetector> ms1Detector = advanced.getEmbeddedParameterValueIfSelectedOrElse(
+          AdvancedSpectraImportParameters.msMassDetection, null);
+      MZmineProcessingStep<MassDetector> ms2Detector = advanced.getEmbeddedParameterValueIfSelectedOrElse(
+          AdvancedSpectraImportParameters.ms2MassDetection, null);
+
+      applyMassDetection = ms1Detector != null || ms2Detector != null;
+
+      boolean denormalizeMsn = advanced.getValue(
+          AdvancedSpectraImportParameters.denormalizeMSnScans);
+      Range<Double> cropMzRange = advanced.getEmbeddedParameterValueIfSelectedOrElse(
+          AdvancedSpectraImportParameters.mzRange, null);
+      // create more steps
+      if (cropMzRange != null) {
+        processors.add(
+            new CropMzMsProcessor(cropMzRange.lowerEndpoint(), cropMzRange.upperEndpoint()));
+      }
+      if (applyMassDetection) {
+        processors.add(new MassDetectorMsProcessor(advanced));
+      }
+      if (denormalizeMsn) {
+        processors.add(new DenormalizeInjectTimeMsProcessor());
+      }
+
+      scanFilter = advanced.getValue(AdvancedSpectraImportParameters.scanFilter);
+    }
+    var conf = new ScanImportProcessorConfig(scanFilter, new MsProcessorList(processors),
+        applyMassDetection);
+    logger.info("Data import uses advanced direct data processing with these settings:\n" + conf);
+    return conf;
+  }
+
 
   /**
    * @return true if duplciates found in import list and already loaded files
@@ -304,13 +362,14 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   }
 
   /**
-   * @param newMZmineFile null for mzml files, can be ims or non ims. must be determined in import
-   *                      task.
+   * @param newMZmineFile       null for mzml files, can be ims or non ims. must be determined in
+   *                            import task.
+   * @param scanProcessorConfig
    */
   private AbstractTask createTask(RawDataFileType fileType, MZmineProject project, File file,
-      @Nullable RawDataFile newMZmineFile, Class<? extends MZmineModule> module,
-      ParameterSet parameters, @NotNull Instant moduleCallDate,
-      @Nullable final MemoryMapStorage storage) {
+      @Nullable RawDataFile newMZmineFile, final ScanImportProcessorConfig scanProcessorConfig,
+      Class<? extends MZmineModule> module, ParameterSet parameters,
+      @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
     return switch (fileType) {
       // imaging
       case IMZML ->
@@ -318,17 +377,17 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
               moduleCallDate);
       // imaging, maldi, or LC-MS
       case BRUKER_TSF ->
-          new TSFImportTask(project, file, storage, module, parameters,
-              moduleCallDate);
+          new TSFImportTask(project, file, storage, module, parameters, moduleCallDate);
       // IMS
       case BRUKER_TDF ->
           new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile, module, parameters,
               moduleCallDate);
       // MS
       case MZML, MZML_IMS ->
-          new MSDKmzMLImportTask(project, file, module, parameters, moduleCallDate, storage);
+          new MSDKmzMLImportTask(project, file, scanProcessorConfig, module, parameters,
+              moduleCallDate, storage);
       case MZXML ->
-          new MzXMLImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
+          new MzXMLImportTask(project, file, newMZmineFile, scanProcessorConfig, module, parameters, moduleCallDate);
       case MZDATA ->
           new MzDataImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
       case NETCDF ->
@@ -336,7 +395,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case WATERS_RAW ->
           new WatersRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
       case THERMO_RAW ->
-          new ThermoRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
+          new ThermoRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate,
+              scanProcessorConfig);
       case ICPMSMS_CSV ->
           new IcpMsCVSImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
       case MZML_GZIP, MZML_ZIP ->
@@ -349,37 +409,40 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    * Create a task that imports an directly applies mass detection. Not supported by all imports
    * yet
    *
-   * @param advancedParam the advanced parameters
+   * @param scanProcessorConfig the advanced parameters
+   * @param advancedParams
    * @return the task or null if the data format is not supported for direct mass detection
    */
   private AbstractTask createAdvancedTask(RawDataFileType fileType, MZmineProject project,
       File file, @Nullable RawDataFile newMZmineFile,
-      @NotNull AdvancedSpectraImportParameters advancedParam, Class<? extends MZmineModule> module,
+      @NotNull ScanImportProcessorConfig scanProcessorConfig, Class<? extends MZmineModule> module,
       ParameterSet parameters, @NotNull Instant moduleCallDate,
-      @Nullable final MemoryMapStorage storage) {
+      @Nullable final MemoryMapStorage storage,
+      final AdvancedSpectraImportParameters advancedParams) {
     return switch (fileType) {
       // MS
       case MZML, MZML_IMS ->
-          new MSDKmzMLImportTask(project, file, null, advancedParam, module, parameters,
+          new MSDKmzMLImportTask(project, file, null, scanProcessorConfig, module, parameters,
               moduleCallDate, storage);
       case MZXML ->
-          new MzXMLImportTask(project, file, newMZmineFile, advancedParam, module, parameters,
+          new MzXMLImportTask(project, file, newMZmineFile, scanProcessorConfig, module, parameters,
               moduleCallDate);
       case BRUKER_TDF ->
-          new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile, advancedParam, module,
+          new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile, advancedParams, module,
               parameters, moduleCallDate);
-      case AIRD ->
-          new AirdImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
+      case THERMO_RAW ->
+          new ThermoRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate,
+              scanProcessorConfig);
       // all unsupported tasks are wrapped to apply import and mass detection separately
-      case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV, IMZML ->
-          createWrappedAdvancedTask(fileType, project, file, newMZmineFile, advancedParam, module,
-              parameters, moduleCallDate, storage);
+      case AIRD, MZDATA, WATERS_RAW, NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV, IMZML ->
+          createWrappedAdvancedTask(fileType, project, file, newMZmineFile, scanProcessorConfig,
+              module, parameters, moduleCallDate, storage);
       default -> throw new IllegalStateException("Unexpected data type: " + fileType);
     };
   }
 
   private AbstractTask createWrappedAdvancedTask(RawDataFileType fileType, MZmineProject project,
-      File file, RawDataFile newMZmineFile, @NotNull AdvancedSpectraImportParameters advancedParam,
+      File file, RawDataFile newMZmineFile, @NotNull ScanImportProcessorConfig scanProcessorConfig,
       Class<? extends MZmineModule> module, ParameterSet parameters,
       @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
     // log
@@ -387,8 +450,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         + " and file " + file.getAbsolutePath());
     // create wrapped task to apply import and mass detection
     return new MsDataImportAndMassDetectWrapperTask(getMassListStorage(), newMZmineFile,
-        createTask(fileType, project, file, newMZmineFile, module, parameters, moduleCallDate,
-            storage), advancedParam, moduleCallDate);
+        createTask(fileType, project, file, newMZmineFile, scanProcessorConfig, module, parameters,
+            moduleCallDate, storage), scanProcessorConfig, moduleCallDate);
   }
 
   @Nullable

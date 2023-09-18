@@ -25,15 +25,18 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
+import com.google.common.io.CharSource;
 import com.google.common.io.LittleEndianDataInputStream;
 import io.github.msdk.MSDKException;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.MSNumpress;
-import io.github.mzmine.util.MemoryMapStorage;
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 import java.util.zip.InflaterInputStream;
 import javolution.text.CharArray;
@@ -46,6 +49,8 @@ import org.apache.commons.io.IOUtils;
  */
 public class MzMLPeaksDecoder {
 
+  private static final Logger logger = Logger.getLogger(MzMLPeaksDecoder.class.getName());
+
   /**
    * Converts a base64 encoded mz or intensity string used in mzML files to an array of floats. If
    * the original precision was 64 bit, you still get floats as output.
@@ -53,8 +58,8 @@ public class MzMLPeaksDecoder {
    * @param binaryDataInfo meta-info about the compressed data
    * @param data           an array of float.
    * @return a float array containing the decoded values
-   * @throws IOException         if any.
-   * @throws MSDKException       if any. //   * @param inputStream a {@link InputStream} object.
+   * @throws IOException   if any.
+   * @throws MSDKException if any. //   * @param inputStream a {@link InputStream} object.
    */
   public static float[] decodeToFloat(CharArray binaryData, MzMLBinaryDataInfo binaryDataInfo,
       float[] data) throws IOException, MSDKException {
@@ -146,7 +151,7 @@ public class MzMLPeaksDecoder {
         dis.close();
         throw new IllegalArgumentException(
             "Precision MUST be specified and be either 32-bit or 64-bit, "
-                + "if MS-NUMPRESS compression was not used");
+            + "if MS-NUMPRESS compression was not used");
     }
 
     try {
@@ -188,14 +193,29 @@ public class MzMLPeaksDecoder {
    * the original precision was 32 bit, you still get doubles as output.
    *
    * @param binaryDataInfo meta-info about encoded data
+   * @return a double array containing the decoded values
+   * @throws DataFormatException if any.
+   * @throws IOException         if any.
+   * @throws MSDKException       if any. //   * @param inputStream a {@link InputStream} object.
+   */
+  public static double[] decodeToDouble(MzMLBinaryDataInfo binaryDataInfo)
+      throws IOException, MSDKException {
+    return decodeToDouble(binaryDataInfo.getXmlBinaryContent(), binaryDataInfo, null);
+  }
+
+  /**
+   * Converts a base64 encoded mz or intensity string used in mzML files to an array of doubles. If
+   * the original precision was 32 bit, you still get doubles as output.
+   *
+   * @param binaryDataInfo meta-info about encoded data
    * @param data           an array of double.
    * @return a double array containing the decoded values
    * @throws DataFormatException if any.
    * @throws IOException         if any.
    * @throws MSDKException       if any. //   * @param inputStream a {@link InputStream} object.
    */
-  public static double[] decodeToDouble(CharArray binaryData, MzMLBinaryDataInfo binaryDataInfo,
-      MemoryMapStorage storage, double[] data) throws IOException, MSDKException {
+  public static double[] decodeToDouble(String binaryData, MzMLBinaryDataInfo binaryDataInfo,
+      double[] data) throws IOException, MSDKException {
 //  public static DoubleBuffer decodeToDouble(CharArray binaryData, MzMLBinaryDataInfo binaryDataInfo,
 //      MemoryMapStorage storage, double[] data) throws IOException, MSDKException {
 
@@ -203,16 +223,18 @@ public class MzMLPeaksDecoder {
     int numPoints = binaryDataInfo.getArrayLength();
 
     InputStream is;
+//    InputStream is = new ByteArrayInputStream(binaryData.getBytes());
+//    try (InputStream inputStream = new ByteBufferInputStream(
+//        ByteBuffer.wrap(binaryData.getBytes(StandardCharsets.UTF_8))
+//            .order(ByteOrder.LITTLE_ENDIAN))) {
 
-    InputStream inputStream = new ByteArrayInputStream(binaryData.toString().getBytes());
-
-    is = Base64.getDecoder().wrap(inputStream);
+    is = CharSource.wrap(binaryData).asByteSource(StandardCharsets.UTF_8).openStream();
+    is = Base64.getDecoder().wrap(is);
 
     // for some reason there sometimes might be zero length <peaks> tags
     // (ms2 usually)
     // in this case we just return an empty result
     if (lengthIn == 0) {
-//      return StorageUtils.storeValuesToDoubleBuffer(storage, new double[0]);
       return new double[0];
     }
 
@@ -251,7 +273,6 @@ public class MzMLPeaksDecoder {
           if (numDecodedDoubles < 0) {
             throw new MSDKException("MSNumpress linear decoder failed");
           }
-//          return StorageUtils.storeValuesToDoubleBuffer(storage, data);
           return data;
         case NUMPRESS_POSINT:
         case NUMPRESS_POSINT_ZLIB:
@@ -260,7 +281,6 @@ public class MzMLPeaksDecoder {
           if (numDecodedDoubles < 0) {
             throw new MSDKException("MSNumpress positive integer decoder failed");
           }
-//          return StorageUtils.storeValuesToDoubleBuffer(storage, data);
           return data;
         case NUMPRESS_SHLOGF:
         case NUMPRESS_SHLOGF_ZLIB:
@@ -269,7 +289,6 @@ public class MzMLPeaksDecoder {
           if (numDecodedDoubles < 0) {
             throw new MSDKException("MSNumpress short logged float decoder failed");
           }
-//          return StorageUtils.storeValuesToDoubleBuffer(storage, data);
           return data;
         default:
           break;
@@ -292,7 +311,7 @@ public class MzMLPeaksDecoder {
         dis.close();
         throw new IllegalArgumentException(
             "Precision MUST be specified and be either 32-bit or 64-bit, "
-                + "if MS-NUMPRESS compression was not used");
+            + "if MS-NUMPRESS compression was not used");
     }
 
     try {
@@ -317,14 +336,16 @@ public class MzMLPeaksDecoder {
         }
       }
     } catch (EOFException eof) {
+      logger.log(Level.WARNING, "Error in PeaksDecoder " + eof.getMessage(), eof);
       // If the stream reaches EOF unexpectedly, it is probably because the particular
       // scan/chromatogram didn't pass the Predicate
       throw new MSDKException(
           "Couldn't obtain values. Please make sure the scan/chromatogram passes the Predicate.");
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Error in PeaksDecoder " + e.getMessage(), e);
     } finally {
       dis.close();
     }
-//    return StorageUtils.storeValuesToDoubleBuffer(storage, data);
     return data;
   }
 

@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
 
   private static final Logger logger = Logger.getLogger(AbstractStorableSpectrum.class.getName());
-  private static final DoubleBuffer EMPTY_BUFFER = DoubleBuffer.wrap(new double[0]);
+  public static final DoubleBuffer EMPTY_BUFFER = DoubleBuffer.wrap(new double[0]);
 
   protected DoubleBuffer mzValues;
   protected DoubleBuffer intensityValues;

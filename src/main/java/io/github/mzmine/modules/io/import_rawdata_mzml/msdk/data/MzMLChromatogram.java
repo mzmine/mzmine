@@ -110,7 +110,7 @@ class MzMLChromatogram implements Chromatogram {
   @Override
   @Nullable
   public RawDataFile getRawDataFile() {
-    return dataFile;
+    throw new UnsupportedOperationException("DataFile was changed in type");
   }
 
   /**
@@ -412,10 +412,10 @@ class MzMLChromatogram implements Chromatogram {
     try {
       double[] array = new double[this.numOfDataPoints];
       if (MzMLCV.cvRetentionTimeArray.equals(binaryDataInfo.getArrayType().getAccession())) {
-        this.rtValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent, binaryDataInfo, storage, array);
+        this.rtValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent.toString(), binaryDataInfo, array);
       }
       if (MzMLCV.cvIntensityArray.equals(binaryDataInfo.getArrayType().getAccession())) {
-        this.intensityValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent, binaryDataInfo, storage, array);
+        this.intensityValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent.toString(), binaryDataInfo, array);
       }
     } catch (Exception e) {
       throw (new MSDKRuntimeException(e));

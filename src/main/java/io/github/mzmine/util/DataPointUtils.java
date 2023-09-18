@@ -30,7 +30,8 @@ import com.google.common.primitives.Doubles;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SimpleSpectralArrays;
+import io.github.mzmine.util.collections.BinarySearch; #todo check if this import is needed
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -228,7 +229,8 @@ public class DataPointUtils {
     return getDataPointsAsDoubleArray(dps);
   }
 
-  public static double[][] sort(DoubleBuffer mzs, DoubleBuffer intensities, DataPointSorter sorter) {
+  public static double[][] sort(DoubleBuffer mzs, DoubleBuffer intensities,
+      DataPointSorter sorter) {
     assert mzs.array().length == intensities.array().length;
     DataPoint[] dps = DataPointUtils.getDataPoints(mzs.array(), intensities.array());
     Arrays.sort(dps, sorter);
@@ -253,6 +255,20 @@ public class DataPointUtils {
   }
 
 
+  /**
+   * Sorts the two arrays as data points
+   *
+   * @param spectrum spectral data
+   * @param sorter   sorting direction and property
+   * @return sorted spectral data
+   */
+  public static SimpleSpectralArrays sort(final SimpleSpectralArrays spectrum,
+      final DataPointSorter sorter) {
+    var values = DataPointUtils.sort(spectrum.mzs(), spectrum.intensities(), sorter);
+    return new SimpleSpectralArrays(values[0], values[1]);
+  }
+
+  #todo - check if those methods are needed
   /**
    * Apply intensityPercentage filter so that the returned array contains all data points that make
    * X % of the total intensity. The result is further cropped to a maxNumSignals.
@@ -348,4 +364,5 @@ public class DataPointUtils {
   }
 
 
+  #finish check here
 }

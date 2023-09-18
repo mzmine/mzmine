@@ -47,7 +47,8 @@ public interface MobilityScan extends Scan {
 
   static final double DEFAULT_MOBILITY = -1.0d;
 
-  @NotNull RawDataFile getDataFile();
+  @NotNull
+  RawDataFile getDataFile();
 
   /**
    * @return The mobility of this sub-spectrum. The unit will depend on the respective mass
