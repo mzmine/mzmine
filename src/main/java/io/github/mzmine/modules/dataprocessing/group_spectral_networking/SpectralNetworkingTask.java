@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,27 +26,33 @@
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
 
+import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.CLUSTER_ID;
+import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.CLUSTER_SIZE;
+import static io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt.COMMUNITY_ID;
+
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RSpectralSimilarity;
 import io.github.mzmine.datamodel.features.correlation.R2RSpectralSimilarityList;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
+import io.github.mzmine.datamodel.features.types.networking.NetworkStats;
+import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
+import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkGenerator;
+import io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureListRowSorter;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.GraphStreamUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.maths.Combinatorics;
 import io.github.mzmine.util.maths.similarity.Similarity;
@@ -54,6 +60,7 @@ import io.github.mzmine.util.scans.ScanAlignment;
 import io.github.mzmine.util.scans.ScanMZDiffConverter;
 import io.github.mzmine.util.scans.similarity.Weights;
 import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -61,23 +68,22 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+import org.graphstream.algorithm.community.Community;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SpectralNetworkingTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(SpectralNetworkingTask.class.getName());
-
-  public static final DataPointSorter dpSorter = new DataPointSorter(SortingProperty.Intensity,
-      SortingDirection.Descending);
   public final static Function<List<DataPoint[]>, Integer> DIFF_OVERLAP = list -> ScanMZDiffConverter.getOverlapOfAlignedDiff(
       list, 0, 1);
   public final static Function<List<DataPoint[]>, Integer> SIZE_OVERLAP = SpectralNetworkingTask::calcOverlap;
+  private static final Logger logger = Logger.getLogger(SpectralNetworkingTask.class.getName());
   // Logger.
   private final AtomicLong processedPairs = new AtomicLong(0);
   private final int minMatch;
@@ -85,25 +91,19 @@ public class SpectralNetworkingTask extends AbstractTask {
   private final double minCosineSimilarity;
   private final int maxDPForDiff;
   private final boolean onlyBestMS2Scan;
-  private final ModularFeatureList featureList;
+  private final ParameterSet params;
+  private final @Nullable ModularFeatureList featureList;
   // target
   private final boolean checkNeutralLoss;
-  private List<FeatureListRow> rows;
-  private final boolean isRemovePrecursor;
-  private final double removePrecursorMz;
+  private final SpectralSignalFilter signalFilter;
   private final double maxMzDelta;
-
-  // use a maximum
-  private final int signalThresholdForTargetIntensityPercent;
-  private final double targetIntensityPercentage;
-  // hard cut off of noisy spectra
-  private final int cropAfterSignalsCount;
-
+  private List<FeatureListRow> rows;
   private long totalMaxPairs = 0;
 
   public SpectralNetworkingTask(final ParameterSet params, @Nullable ModularFeatureList featureList,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
+    this.params = params;
     this.featureList = featureList;
     mzTolerance = params.getValue(SpectralNetworkingParameters.MZ_TOLERANCE);
     maxMzDelta = params.getEmbeddedParameterValueIfSelectedOrElse(
@@ -122,16 +122,7 @@ public class SpectralNetworkingTask extends AbstractTask {
       maxDPForDiff = 0;
     }
     // embedded signal filters
-    var filterParams = params.getValue(SpectralNetworkingParameters.signalFilters);
-
-    isRemovePrecursor = filterParams.getValue(SignalFiltersParameters.removePrecursor);
-    removePrecursorMz = filterParams.getEmbeddedParameterValueIfSelectedOrElse(
-        SignalFiltersParameters.removePrecursor, 0d);
-    cropAfterSignalsCount = filterParams.getValue(SignalFiltersParameters.cropToMaxSignals);
-    signalThresholdForTargetIntensityPercent = filterParams.getValue(
-        SignalFiltersParameters.signalThresholdIntensityFilter);
-    targetIntensityPercentage = filterParams.getValue(
-        SignalFiltersParameters.intensityPercentFilter);
+    signalFilter = params.getValue(SpectralNetworkingParameters.signalFilters).createFilter();
   }
 
   /**
@@ -185,6 +176,7 @@ public class SpectralNetworkingTask extends AbstractTask {
    * @param mzTol    the tolerance to match signals
    * @return the spectral similarity if number of overlapping signals >= minimum, else null
    */
+  @Nullable
   public static SpectralSimilarity createMS2Sim(MZTolerance mzTol, DataPoint[] sortedA,
       DataPoint[] sortedB, int minMatch, Weights weights) {
     return createMS2SimModificationAware(mzTol, weights, sortedA, sortedB, minMatch, SIZE_OVERLAP,
@@ -380,12 +372,20 @@ public class SpectralNetworkingTask extends AbstractTask {
       if (featureList != null) {
         featureList.addRowsRelationships(mapCosineSim, Type.MS2_COSINE_SIM);
         featureList.addRowsRelationships(mapNeutralLoss, Type.MS2_NEUTRAL_LOSS_SIM);
+
+        addNetworkStatisticsToRows();
       }
 
       logger.info("Added %d edges for %s".formatted(mapCosineSim.size(), Type.MS2_COSINE_SIM));
       if (checkNeutralLoss) {
         logger.info(
             "Added %d edges for %s".formatted(mapNeutralLoss.size(), Type.MS2_NEUTRAL_LOSS_SIM));
+      }
+
+      if (featureList != null) {
+        featureList.addDescriptionOfAppliedTask(
+            new SimpleFeatureListAppliedMethod(SpectralNetworkingModule.class, params,
+                getModuleCallDate()));
       }
 
       setStatus(TaskStatus.FINISHED);
@@ -396,6 +396,36 @@ public class SpectralNetworkingTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       return;
     }
+  }
+
+  private void addNetworkStatisticsToRows() {
+    // create graph from Type.MS2_COSINE_SIM
+    // set community and cluster_index
+    FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
+    var fullCosineMap = Map.of(Type.MS2_COSINE_SIM,
+        Objects.requireNonNull(featureList.getRowMap(Type.MS2_COSINE_SIM)));
+    var graph = generator.createNewGraph(featureList.getRows(), false, true, fullCosineMap, false);
+    GraphStreamUtils.detectCommunities(graph);
+
+    Object2IntMap<Object> communitySizes = GraphStreamUtils.getCommunitySizes(graph);
+    // add cluster id
+    GraphStreamUtils.detectClusters(graph, true);
+
+    // for each node in cluster
+    graph.nodes().forEach(node -> {
+      if (node.getAttribute(NodeAtt.ROW.toString()) instanceof FeatureListRow row) {
+        Object communityKey = node.getAttribute(COMMUNITY_ID.toString());
+
+        int communityId = communityKey instanceof Community com ? com.id() : -1;
+        int communitySize = communitySizes.getOrDefault(communityKey, 0);
+        int clusterId = (int) node.getAttribute(CLUSTER_ID.toString());
+        int clusterSize = (int) node.getAttribute(CLUSTER_SIZE.toString());
+
+        var stats = new NetworkStats(clusterId, communityId, (int) node.edges().count(),
+            clusterSize, communitySize);
+        row.set(NetworkStatsType.class, stats);
+      }
+    });
   }
 
   /**
@@ -546,7 +576,7 @@ public class SpectralNetworkingTask extends AbstractTask {
         // create mass diff array
         if (checkNeutralLoss) {
           massDiffA = ScanMZDiffConverter.getAllMZDiff(dpa, mzTolerance, -1, maxDPForDiff);
-          Arrays.sort(massDiffA, dpSorter);
+          Arrays.sort(massDiffA, DataPointSorter.DEFAULT_INTENSITY);
         }
         for (Feature fb : b.getFeatures()) {
           DataPoint[] dpb = mapFeatureData.get(fb).data();
@@ -561,7 +591,7 @@ public class SpectralNetworkingTask extends AbstractTask {
             // alignment and sim of neutral losses
             if (checkNeutralLoss) {
               massDiffB = ScanMZDiffConverter.getAllMZDiff(dpb, mzTolerance, maxDPForDiff);
-              Arrays.sort(massDiffB, dpSorter);
+              Arrays.sort(massDiffB, DataPointSorter.DEFAULT_INTENSITY);
               SpectralSimilarity massDiffSim = createMS2Sim(mzTolerance, massDiffA, massDiffB,
                   minMatch, DIFF_OVERLAP);
 
@@ -598,35 +628,9 @@ public class SpectralNetworkingTask extends AbstractTask {
     if (ms2 == null) {
       return null;
     }
-    MassList masses = ms2.getMassList();
-    if (masses == null) {
-      throw new MissingMassListException(ms2);
-    }
-    if (masses.getNumberOfDataPoints() < minDP) {
-      return null;
-    }
-    DataPoint[] dps = masses.getDataPoints();
     // remove precursor signals
-    if (isRemovePrecursor && removePrecursorMz > 0) {
-      dps = DataPointUtils.removePrecursorMz(dps, precursorMz, removePrecursorMz);
-      if (dps.length < minDP) {
-        return null;
-      }
-    }
-
-    // sort by intensity
-    Arrays.sort(dps, dpSorter);
-
-    // apply some filters to avoid noisy spectra with too many signals
-    if (dps.length > signalThresholdForTargetIntensityPercent) {
-      dps = DataPointUtils.filterDataByIntensityPercent(dps, targetIntensityPercentage,
-          cropAfterSignalsCount);
-    }
-
-    if (dps.length < minDP) {
-      return null;
-    }
-    return new FilteredRowData(row, dps);
+    DataPoint[] dps = signalFilter.applyFilterAndSortByIntensity(ms2, precursorMz, minDP);
+    return dps != null ? new FilteredRowData(row, dps) : null;
   }
 
 

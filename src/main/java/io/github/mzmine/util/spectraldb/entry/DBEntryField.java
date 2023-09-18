@@ -59,8 +59,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public enum DBEntryField {
   // Compound specific
-  ENTRY_ID, NAME, SYNONYMS, COMMENT, DESCRIPTION, MOLWEIGHT(Double.class), EXACT_MASS(
-      Double.class), // structure
+  ENTRY_ID, NAME, SYNONYMS, COMMENT, DESCRIPTION, MOLWEIGHT(Double.class), EXACT_MASS(Double.class),
+
+  // structure
   FORMULA, INCHI, INCHIKEY, SMILES, ISOMERIC_SMILES, PEPTIDE_SEQ,
 
   // identifier
@@ -77,7 +78,7 @@ public enum DBEntryField {
   MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS,
 
   // Instrument specific
-  INSTRUMENT_TYPE, INSTRUMENT, ION_SOURCE, RESOLUTION, POLARITY,
+  INSTRUMENT_TYPE, INSTRUMENT, IMS_TYPE, ION_SOURCE, RESOLUTION, POLARITY,
 
   // other
   PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE,
@@ -102,8 +103,8 @@ public enum DBEntryField {
   // group of DBEntryFields logically
   public static final DBEntryField[] OTHER_FIELDS = new DBEntryField[]{PRINCIPAL_INVESTIGATOR,
       DATA_COLLECTOR, ENTRY_ID, COMMENT};
-  public static final DBEntryField[] DATABASE_FIELDS = new DBEntryField[]{PUBMED, PUBCHEM, MONA_ID,
-      CHEMSPIDER, CAS, CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL};
+  public static final DBEntryField[] DATABASE_FIELDS = new DBEntryField[]{USI, PUBMED, PUBCHEM,
+      MONA_ID, CHEMSPIDER, CAS, CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL};
   public static final DBEntryField[] COMPOUND_FIELDS = new DBEntryField[]{NAME, SYNONYMS, FORMULA,
       MOLWEIGHT, EXACT_MASS, ION_TYPE, PRECURSOR_MZ, CHARGE, RT, CCS, POLARITY, INCHI, INCHIKEY,
       SMILES, NUM_PEAKS, FEATURE_ID};
@@ -177,24 +178,6 @@ public enum DBEntryField {
     return null;
   }
 
-  public Class getObjectClass() {
-    return clazz;
-  }
-
-  @Override
-  public String toString() {
-    return switch (this) {
-      case RT, SMILES, CAS -> super.toString().replace('_', ' ');
-      case ENTRY_ID -> "Entry ID";
-      case INCHI -> "InChI";
-      case INCHIKEY -> "InChI key";
-      case MOLWEIGHT -> "Mol. weight";
-      case MONA_ID -> "MoNA ID";
-      case PRECURSOR_MZ -> "Precursor m/z";
-      default -> StringUtils.capitalize(super.toString().replace('_', ' ').toLowerCase());
-    };
-  }
-
   /**
    * @return enum field for a DataType or {@link #UNSPECIFIED} if no clear mapping exists
    */
@@ -220,6 +203,24 @@ public enum DBEntryField {
     };
   }
 
+  public Class getObjectClass() {
+    return clazz;
+  }
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case RT, SMILES, CAS -> super.toString().replace('_', ' ');
+      case ENTRY_ID -> "Entry ID";
+      case INCHI -> "InChI";
+      case INCHIKEY -> "InChI key";
+      case MOLWEIGHT -> "Mol. weight";
+      case MONA_ID -> "MoNA ID";
+      case PRECURSOR_MZ -> "Precursor m/z";
+      default -> StringUtils.capitalize(super.toString().replace('_', ' ').toLowerCase());
+    };
+  }
+
   /**
    * @return The mzmine json format key or an empty String
    */
@@ -230,8 +231,8 @@ public enum DBEntryField {
           CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, //
           CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL, //
           QUALITY, QUALITY_CHIMERIC, FILENAME, //
-          SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES ->
-          StringType.class;
+          SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, //
+          IMS_TYPE -> StringType.class;
       case COMMENT -> CommentType.class;
       case SCAN_NUMBER -> BestScanNumberType.class;
       case MS_LEVEL, NUM_PEAKS, FEATURE_ID -> IntegerType.class;
@@ -287,6 +288,7 @@ public enum DBEntryField {
       case ION_TYPE -> "adduct";
       case POLARITY -> "polarity";
       case ION_SOURCE -> "ion_source";
+      case IMS_TYPE -> "ims_type";
       case PRECURSOR_MZ -> "precursor_mz";
       case NAME -> "compound_name";
       case PRINCIPAL_INVESTIGATOR -> "investigator";
@@ -350,6 +352,7 @@ public enum DBEntryField {
       case ION_TYPE -> "Precursor_type";
       case POLARITY -> "Ion_mode"; // P / N
       case ION_SOURCE -> "";
+      case IMS_TYPE -> "ims_type";
       case PRECURSOR_MZ -> "PrecursorMZ";
       case NAME -> "Name";
       case SPLASH -> "Splash";
@@ -407,6 +410,7 @@ public enum DBEntryField {
       case ION_TYPE -> "ADDUCT";
       case POLARITY -> "IONMODE"; // Positive Negative
       case ION_SOURCE -> "ION_SOURCE";
+      case IMS_TYPE -> "IMS_TYPE";
       case PRECURSOR_MZ -> "PEPMASS";
       case NAME -> "NAME";
       case PRINCIPAL_INVESTIGATOR -> "PI";
@@ -453,6 +457,7 @@ public enum DBEntryField {
       case PRECURSOR_MZ -> "MOLECULEMASS";
       case INSTRUMENT_TYPE -> "INSTRUMENT";
       case ION_SOURCE -> "IONSOURCE";
+      case IMS_TYPE -> "IMS_TYPE";
       case SCAN_NUMBER -> "EXTRACTSCAN";
       case SMILES -> "SMILES";
       case INCHI -> "INCHI";
@@ -507,7 +512,7 @@ public enum DBEntryField {
    */
   public String getJdxID() {
     return switch (this) {
-      case SCAN_NUMBER, ENTRY_ID, MERGED_SPEC_TYPE, ACQUISITION, SOFTWARE, CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL, COLLISION_ENERGY, ISOMERIC_SMILES, CHARGE, COMMENT, DESCRIPTION ->
+      case IMS_TYPE, SCAN_NUMBER, ENTRY_ID, MERGED_SPEC_TYPE, ACQUISITION, SOFTWARE, CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL, COLLISION_ENERGY, ISOMERIC_SMILES, CHARGE, COMMENT, DESCRIPTION ->
           "";
       case CAS -> "##CAS REGISTRY NO";
       case EXACT_MASS -> "##MW";
@@ -588,7 +593,8 @@ public enum DBEntryField {
           MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, //
           DATASET_ID, USI, SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC, //
           OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, QUALITY_PRECURSOR_PURITY, PEPTIDE_SEQ, //
-          CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL -> value.toString();
+          CHEBI, CHEMBL, HMDB, LIPIDMAPS, KEGG, UNII, DRUGBANK, DRUGCENTRAL, IMS_TYPE //
+          -> value.toString();
       case RT -> switch (value) {
         // float is default for RT but handle Double in case wrong value was present
         case Float f -> "%.2f".formatted(f * 60.f);

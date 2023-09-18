@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.gui.WindowLocation;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.batchmode.ModuleQuickSelectDialog;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
@@ -231,6 +232,10 @@ public class MainMenuController {
   public void showSpectralMirrorDialog(ActionEvent event) {
     MirrorScanWindowFXML window = new MirrorScanWindowFXML();
     window.show();
+  }
+
+  public void openQuickSearch(final ActionEvent e) {
+    ModuleQuickSelectDialog.openQuickSearch();
   }
 }
 

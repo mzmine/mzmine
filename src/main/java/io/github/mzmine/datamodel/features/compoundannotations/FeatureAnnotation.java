@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,7 +55,7 @@ public sealed interface FeatureAnnotation permits CompoundDBAnnotation, Spectral
 
     return switch (reader.getAttributeValue(null, XML_TYPE_ATTR)) {
       case SpectralDBAnnotation.XML_ATTR ->
-          SpectralDBAnnotation.loadFromXML(reader, project.getCurrentRawDataFiles());
+          SpectralDBAnnotation.loadFromXML(reader, project, project.getCurrentRawDataFiles());
       case SimpleCompoundDBAnnotation.XML_ATTR ->
           SimpleCompoundDBAnnotation.loadFromXML(reader, project, flist, row);
       default -> null;

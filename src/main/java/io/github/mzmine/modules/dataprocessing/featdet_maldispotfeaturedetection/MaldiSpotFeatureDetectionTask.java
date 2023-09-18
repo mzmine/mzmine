@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -128,8 +128,8 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
         (List<Frame>) (List<? extends Scan>) file.getScans());
 
     final MobilityScanDataAccess mobilityAccess = new MobilityScanDataAccess(file,
-        MobilityScanDataType.CENTROID, scans);
-    final ScanDataAccess frameAccess = EfficientDataAccess.of(file, ScanDataType.CENTROID,
+        MobilityScanDataType.MASS_LIST, scans);
+    final ScanDataAccess frameAccess = EfficientDataAccess.of(file, ScanDataType.MASS_LIST,
         selection);
 
     final Map<String, RangeMap<Double, ExpandingTrace>> spotTracesMap = new HashMap<>();

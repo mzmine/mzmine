@@ -107,6 +107,9 @@ public interface MZmineConfiguration {
 
   void saveConfiguration(File file) throws IOException;
 
+  default NumberFormats getFormats(boolean export) {
+    return export ? getExportFormats() : getGuiFormats();
+  }
   NumberFormats getGuiFormats();
 
   NumberFormats getExportFormats();

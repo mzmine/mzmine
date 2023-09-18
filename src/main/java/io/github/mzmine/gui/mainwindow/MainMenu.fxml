@@ -195,6 +195,8 @@
       <MenuItem onAction="#runModule"
         text="FTMS shoulder peak filter"
         userData="io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.ShoulderPeaksFilterModule"/>
+      <MenuItem onAction="#runModule" text="Scan signal removal"
+        userData="io.github.mzmine.modules.dataprocessing.filter_scan_signals.ScanSignalRemovalModule"/>
       <MenuItem onAction="#runModule"
         text="Mass calibration"
         userData="io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationModule"/>
@@ -297,6 +299,11 @@
 <!--    </Menu>-->
 
     <Menu text="Export feature list">
+      <Menu text="Graphics">
+        <MenuItem text="Annotations graphics export (pdf, png)" onAction="#runModule"
+          userData="io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule"/>
+      </Menu>
+
       <MenuItem text="CSV" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule"/>
       <MenuItem text="Export compound annotations to csv" onAction="#runModule"
@@ -326,6 +333,8 @@
         userData="io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule"/>
       <MenuItem text="Export feature networks to csv" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule"/>
+      <MenuItem text="Export spectral networks to graphml (FBMN/IIMN)" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportModule"/>
       <MenuItem text="Spectral library batch generation" onAction="#runModule"
         userData="io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGenerationModule"/>
       <MenuItem text="Export to GNPS batch library submission" onAction="#runModule"
@@ -349,6 +358,8 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_groupms2_refine.GroupedMs2RefinementModule"/>
       <MenuItem onAction="#runModule" text="Precursor purity checker (chimerity)"
         userData="io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.PrecursorPurityCheckerModule"/>
+      <MenuItem onAction="#runModule" text="Score intra-row purity by MS2 similarity"
+        userData="io.github.mzmine.modules.dataanalysis.feat_ms2_similarity_intra.IntraFeatureRowMs2SimilarityModule"/>
       <MenuItem onAction="#runModule"
         text="Internal reference CCS calibration"
         userData="io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule"/>
@@ -566,8 +577,8 @@
 
     <MenuItem onAction="#runModule" text="MS/MS scatter plot"
       userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="Interactive Ion Identity Molecular Networks"
-      userData="io.github.mzmine.modules.visualization.networking.AnnotationNetworkModule"/>
+    <MenuItem onAction="#runModule" text="Feature overview / Interactive Ion Identity Molecular Networks"
+      userData="io.github.mzmine.modules.visualization.network_overview.FeatureNetworkOverviewModule"/>
     <MenuItem onAction="#runModule" text="Correlated features Δm/z histogram"
       userData="io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule"/>
     <MenuItem onAction="#runModule"
@@ -602,8 +613,13 @@
 
   <!-- TOOLS -->
   <Menu text="Tools">
-    <MenuItem text="Isotope pattern preview"
-      onAction="#runModule"
+      <MenuItem onAction="#openQuickSearch" text="Quick search">
+        <accelerator>
+          <KeyCodeCombination alt="UP" code="F"
+            control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+        </accelerator>
+      </MenuItem>
+    <MenuItem text="Isotope pattern preview" onAction="#runModule"
       userData="io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule"/>
     <MenuItem onAction="#showSpectralMirrorDialog" text="Spectral mirror (USI enabled)"/>
 <!--    There is an exception with a combobox value being null in the dialog. not sure how to fix -->

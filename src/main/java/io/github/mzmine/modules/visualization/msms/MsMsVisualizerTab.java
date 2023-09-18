@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,9 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.util.Collection;
 import java.util.Collections;
@@ -76,18 +74,22 @@ public class MsMsVisualizerTab extends MZmineTab {
   private static final Image POINTS_ICON =
       FxIconUtil.loadImageFromResources("icons/pointsicon.png");
 
-  private static final Image Z_ASC_ICON =
-      FxIconUtil.loadImageFromResources("icons/msms_points_asc.png");
+  private static final Image Z_ASC_ICON = FxIconUtil.loadImageFromResources(
+      "icons/msms_points_asc.png");
 
-  private static final Image Z_DESC_ICON =
-      FxIconUtil.loadImageFromResources("icons/msms_points_desc.png");
+  private static final Image Z_DESC_ICON = FxIconUtil.loadImageFromResources(
+      "icons/msms_points_desc.png");
 
   // Highlighted points utility variables
   Range<Double> range1, range2;
   MsMsXYAxisType valueType1, valueType2;
 
+  public MsMsVisualizerTab(RawDataFile[] raws) {
+    this(MsMsParameters.getDefaultMsMsPrecursorParameters(raws));
+  }
+
   public MsMsVisualizerTab(ParameterSet parameters) {
-    super("MS/MS visualizer", true, false);
+    super("MS/MS scatter plot", true, false);
 
     this.parameters = parameters;
     dataFile = parameters.getParameter(MsMsParameters.dataFiles).getValue()
@@ -99,12 +101,6 @@ public class MsMsVisualizerTab extends MZmineTab {
     // Chart
     chart = new MsMsChart(parameters);
     borderPane.setCenter(chart);
-    chart.datasetStatusProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue == TaskStatus.FINISHED) {
-        assert MZmineCore.getDesktop() != null;
-        MZmineCore.getDesktop().addTab(this);
-      }
-    });
 
     // Axes selection
     ComboBox<MsMsXYAxisType> xAxisTypes = new ComboBox<>();
@@ -128,8 +124,8 @@ public class MsMsVisualizerTab extends MZmineTab {
       chart.setZAxisType(zAxisTypes.getValue());
     });
     HBox bottomBox = new HBox();
-    bottomBox.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY,
-        Insets.EMPTY)));
+    bottomBox.setBackground(
+        new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
     bottomBox.setPadding(new Insets(5, 5, 5, 5));
     bottomBox.setAlignment(Pos.BASELINE_CENTER);
     Text xAxisText = new Text("  X axis: ");
@@ -138,10 +134,9 @@ public class MsMsVisualizerTab extends MZmineTab {
     yAxisText.setStyle("-fx-font-weight: bold");
     Text zAxisText = new Text("  Z axis: ");
     zAxisText.setStyle("-fx-font-weight: bold");
-    bottomBox.getChildren().addAll(new Separator(Orientation.VERTICAL), xAxisText, xAxisTypes,
-        new Text("   "), new Separator(Orientation.VERTICAL), yAxisText, yAxisTypes,
-        new Text("   "), new Separator(Orientation.VERTICAL), zAxisText, zAxisTypes,
-        new Text("   "), new Separator(Orientation.VERTICAL));
+    bottomBox.getChildren()
+        .addAll(xAxisText, xAxisTypes, new Text("   "), yAxisText, yAxisTypes, new Text("   "),
+            zAxisText, zAxisTypes, new Text("   "));
     borderPane.setBottom(bottomBox);
 
     // Tool bar

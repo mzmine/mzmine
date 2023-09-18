@@ -23,8 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual;
+package io.github.mzmine.modules.visualization.networking.visual.enums;
 
-public enum NodeType {
-  NEUTRAL_M, ION_FEATURE, SINGLE_FEATURE, NEUTRAL_LOSS_CENTER
+/**
+ * size units in graphs
+ */
+public enum GraphUnits {
+  gu, px;
 }

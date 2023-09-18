@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,12 +34,20 @@ import java.io.File;
 
 public final class WorkflowDdaWizardParameters extends WorkflowWizardParameters {
 
+  public static final BooleanParameter applySpectralNetworking = new BooleanParameter(
+      "Apply spectral networking (FBMN/IIMN)", """
+      Applies feature-based molecular networking/ion identity molecular networking
+      by comparing all MS2 spectra. Adds graphml export and enables use of visualizer. 
+      """, true);
+
   public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
       true);
   public static final BooleanParameter exportGnps = new BooleanParameter(
       "Export for molecular networking (e.g., GNPS, FBMN, IIMN, MetGem)",
       "Export to Feature-based Molecular Networking (FBMN) and Ion Identity Molecular Networking (IIMN) on GNPS and other tools",
       true);
+  public static final BooleanParameter exportAnnotationGraphics = new BooleanParameter(
+      "Export annotation graphics", "Exports annotations to png and pdf images.", false);
 
   public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
       new FileNameParameter("Export path",
@@ -50,17 +58,20 @@ public final class WorkflowDdaWizardParameters extends WorkflowWizardParameters 
   public WorkflowDdaWizardParameters() {
     super(WorkflowWizardParameterFactory.DDA,
         // actual parameters
-        exportPath, exportGnps, exportSirius);
+        applySpectralNetworking, exportPath, exportGnps, exportSirius, exportAnnotationGraphics);
   }
 
 
-  public WorkflowDdaWizardParameters(final boolean exportActive, final File exportBasePath,
-      final boolean exportGnpsActive, boolean exportSiriusActive) {
+  public WorkflowDdaWizardParameters(final boolean applyMolNetworking, final boolean exportActive,
+      final File exportBasePath, final boolean exportGnpsActive, boolean exportSiriusActive,
+      boolean exportAnnotationGraphicsActive) {
     this();
+    setParameter(applySpectralNetworking, applyMolNetworking);
     setParameter(exportPath, exportActive);
     getParameter(exportPath).getEmbeddedParameter().setValue(exportBasePath);
     setParameter(exportGnps, exportGnpsActive);
     setParameter(exportSirius, exportSiriusActive);
+    setParameter(exportAnnotationGraphics, exportAnnotationGraphicsActive);
   }
 
 }

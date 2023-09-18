@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -117,7 +117,7 @@ public class ImsExpanderSubTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.finest("Initialising data access for file " + imsFile.getName());
     final MobilityScanDataAccess access = new MobilityScanDataAccess(imsFile,
-        useRawData ? MobilityScanDataType.RAW : MobilityScanDataType.CENTROID, frames);
+        useRawData ? MobilityScanDataType.RAW : MobilityScanDataType.MASS_LIST, frames);
 
     final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 

@@ -234,7 +234,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     ExpandedDataPoint[] allMzValues = new ExpandedDataPoint[totalDps];
 
-    ScanDataAccess scanData = EfficientDataAccess.of(dataFile, ScanDataType.CENTROID,
+    ScanDataAccess scanData = EfficientDataAccess.of(dataFile, ScanDataType.MASS_LIST,
         scanSelection);
 
     progress = 0;

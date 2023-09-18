@@ -23,30 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual;
-
-import java.util.stream.Stream;
-import org.graphstream.graph.Element;
-import org.graphstream.graph.Graph;
+package io.github.mzmine.modules.visualization.networking.visual.enums;
 
 /**
- * Defines access to different objects in the graph
+ * Graphstream style attributes
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public enum GraphObject {
-  NODE, EDGE;
+public enum GraphStyleAttribute {
+  COLOR, SIZE, LABEL, CLASS;
 
   /**
-   * Stream all elements in graph of this type
+   * UI attribute String to access or set the attribute in graph stream
    *
-   * @param graph the target graph
-   * @return a stream of nodes or edges
+   * @return
    */
-  public Stream<? extends Element> stream(Graph graph) {
+  public String getUIString() {
     return switch (this) {
-      case NODE -> graph.nodes();
-      case EDGE -> graph.edges();
+      case COLOR -> "ui.color";
+      case SIZE -> "ui.size";
+      case LABEL -> "ui.label";
+      case CLASS -> "ui.class";
     };
   }
 }

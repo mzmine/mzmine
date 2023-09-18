@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.features.compoundannotations;
 import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -81,7 +82,7 @@ public final class SpectralDBAnnotation implements FeatureAnnotation, Comparable
     this(id.getEntry(), id.getSimilarity(), id.getQueryScan(), id.getCCSError());
   }
 
-  public static FeatureAnnotation loadFromXML(XMLStreamReader reader,
+  public static FeatureAnnotation loadFromXML(XMLStreamReader reader, MZmineProject project,
       Collection<RawDataFile> possibleFiles) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))
         || !reader.getAttributeValue(null, XML_TYPE_ATTR).equals(XML_ATTR)) {
@@ -102,7 +103,7 @@ public final class SpectralDBAnnotation implements FeatureAnnotation, Comparable
 
       switch (reader.getLocalName()) {
         case SpectralLibraryEntry.XML_ELEMENT_ENTRY ->
-            entry = SpectralLibraryEntry.loadFromXML(reader);
+            entry = SpectralLibraryEntry.loadFromXML(reader, project);
         case SpectralSimilarity.XML_ELEMENT -> similarity = SpectralSimilarity.loadFromXML(reader);
         case CONST.XML_RAW_FILE_SCAN_ELEMENT -> scan = Scan.loadScanFromXML(reader, possibleFiles);
         case XML_CCS_ERROR_ELEMENT -> {

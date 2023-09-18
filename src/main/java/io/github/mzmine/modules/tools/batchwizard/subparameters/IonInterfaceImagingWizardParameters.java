@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,8 +33,9 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 public final class IonInterfaceImagingWizardParameters extends IonInterfaceWizardParameters {
 
   public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
-      "Minimum consecutive scans", "Minimum number of consecutive scans with detected data points as used in image building", 25, 1,
-      Integer.MAX_VALUE);
+      "Minimum number of pixels",
+      "Minimum number of pixels a m/z must be detected in. Consider the number of pixels in your imaging analysis.",
+      25, 1, Integer.MAX_VALUE);
 
   public static final BooleanParameter enableDeisotoping = new BooleanParameter(
       "Enable deisotoping", "Enables feature list deisotoping during the workflow.\n"

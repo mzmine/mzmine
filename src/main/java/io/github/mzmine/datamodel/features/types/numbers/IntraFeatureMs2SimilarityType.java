@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,21 +23,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual;
+package io.github.mzmine.datamodel.features.types.numbers;
 
-public enum EdgeAtt {
+import io.github.mzmine.main.MZmineCore;
+import org.jetbrains.annotations.NotNull;
 
-  SCORE, SIM_N, TYPE, LABEL, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ, NUMBER_OF_COLLAPSED_EDGES;
+public class IntraFeatureMs2SimilarityType extends SimpleStatisticsType {
 
-  @Override
-  public String toString() {
-    return super.toString().replaceAll("_", " ");
+  public IntraFeatureMs2SimilarityType() {
+    super(MZmineCore.getConfiguration().getGuiFormats().scoreFormat(),
+        MZmineCore.getConfiguration().getExportFormats().scoreFormat());
   }
 
-  public boolean isNumber() {
-    return switch (this) {
-      case TYPE, LABEL -> false;
-      case SCORE, SIM_N, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ, NUMBER_OF_COLLAPSED_EDGES -> true;
-    };
+  @Override
+  public @NotNull String getUniqueID() {
+    return "intra_row_ms2_similarity";
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Intra-row MS2 similarity";
+  }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
   }
 }
