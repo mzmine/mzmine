@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -156,7 +156,8 @@ public record Database(@NotNull String shortName, @NotNull String name, @NotNull
           FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION, MSN_COLLISION_ENERGIES, //
           MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE,//
           INSTRUMENT, ION_SOURCE, RESOLUTION, POLARITY, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, //
-          SOFTWARE, DATASET_ID, FILENAME, USI, SCAN_NUMBER, SPLASH, CAS, FEATURE_ID -> null;
+          SOFTWARE, DATASET_ID, FILENAME, USI, SCAN_NUMBER, SPLASH, CAS, FEATURE_ID, IMS_TYPE ->
+          null;
       // identifier
       case PUBMED -> PUBMED;
       case PUBCHEM -> PUBCHEM;

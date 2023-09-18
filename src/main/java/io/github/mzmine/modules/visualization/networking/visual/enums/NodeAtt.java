@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.networking.visual.enums;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.SpectralDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.networking.MolNetClusterIdType;
@@ -37,7 +38,6 @@ import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Objects;
