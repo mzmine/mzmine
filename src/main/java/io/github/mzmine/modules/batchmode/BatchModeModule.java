@@ -66,18 +66,19 @@ public class BatchModeModule implements MZmineProcessingModule {
    */
   public static ExitCode runBatch(@NotNull MZmineProject project, File batchFile,
       @NotNull Instant moduleCallDate) {
-    return runBatch(project, batchFile, null, moduleCallDate);
+    return runBatch(project, batchFile, null, null, moduleCallDate);
   }
 
   /**
    * Run from batch file (usually in headless mode)
    *
-   * @param batchFile         local file
-   * @param overrideDataFiles change the data import to those files if not null
+   * @param batchFile                    local file
+   * @param overrideDataFiles            change the data import to those files if not null
+   * @param overrideSpectralLibraryFiles change the spectral libraries imported
    * @return exit code that reflects if the batch mode was started
    */
   public static ExitCode runBatch(@NotNull MZmineProject project, File batchFile,
-      @Nullable File[] overrideDataFiles, @NotNull Instant moduleCallDate) {
+      @Nullable File[] overrideDataFiles, final File[] overrideSpectralLibraryFiles, @NotNull Instant moduleCallDate) {
     if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
       MZmineCore.getDesktop().displayErrorMessage(
           "Cannot run a second batch while the current batch is not finished.");
@@ -102,12 +103,21 @@ public class BatchModeModule implements MZmineProcessingModule {
         }
       }
 
-      if (overrideDataFiles != null) {
-        if (!newQueue.setImportFiles(overrideDataFiles)) {
-          logger.log(Level.SEVERE,
-              "Could not change the input files to " + Arrays.stream(overrideDataFiles)
-                  .map(file -> file != null ? file.getAbsolutePath() : "null")
-                  .collect(Collectors.joining("\n")));
+      // change input files and spectral libraries, e.g., by command line arguments
+      if (overrideDataFiles != null || overrideSpectralLibraryFiles !=null) {
+        if (!newQueue.setImportFiles(overrideDataFiles, overrideSpectralLibraryFiles)) {
+          if (overrideDataFiles != null) {
+            logger.log(Level.SEVERE,
+                "Could not change the input files to " + Arrays.stream(overrideDataFiles)
+                    .map(file -> file != null ? file.getAbsolutePath() : "null")
+                    .collect(Collectors.joining("\n")));
+          }
+          if (overrideSpectralLibraryFiles != null) {
+            logger.log(Level.SEVERE,
+                "Could not change the import spectral library files to " + Arrays.stream(overrideSpectralLibraryFiles)
+                    .map(file -> file != null ? file.getAbsolutePath() : "null")
+                    .collect(Collectors.joining("\n")));
+          }
           return ExitCode.ERROR;
         }
       }

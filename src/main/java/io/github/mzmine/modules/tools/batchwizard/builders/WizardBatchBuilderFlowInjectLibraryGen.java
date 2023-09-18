@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,6 +50,7 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuild
   private final Boolean exportSirius;
   private final File exportPath;
   private final LibraryBatchMetadataParameters libGenMetadata;
+  private final Boolean applySpectralNetworking;
 
   public WizardBatchBuilderFlowInjectLibraryGen(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -62,6 +63,8 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuild
 
     // library generation workflow parameters
     params = steps.get(WizardPart.WORKFLOW);
+    applySpectralNetworking = getValue(params,
+        WorkflowLibraryGenerationWizardParameters.applySpectralNetworking);
     exportPath = getValue(params, WorkflowLibraryGenerationWizardParameters.exportPath);
     exportGnps = getValue(params, WorkflowLibraryGenerationWizardParameters.exportGnps);
     exportSirius = getValue(params, WorkflowLibraryGenerationWizardParameters.exportSirius);
@@ -103,10 +106,15 @@ public class WizardBatchBuilderFlowInjectLibraryGen extends BaseWizardBatchBuild
     makeAndAddLibrarySearchStep(q, true);
 
     // export
-    makeAndAddDdaExportSteps(q, true, exportPath, exportGnps, exportSirius);
+    makeAndAddDdaExportSteps(q, true, exportPath, exportGnps, exportSirius, false);
 
     // convert library to feature list
     makeAndAddLibraryToFeatureListStep(q);
+
+    // networking
+    if (applySpectralNetworking) {
+      makeAndAddSpectralNetworkingSteps(q, true, exportPath);
+    }
 
     return q;
   }

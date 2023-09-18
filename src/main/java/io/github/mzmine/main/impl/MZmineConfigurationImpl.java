@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -345,7 +346,8 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
       configRoot.appendChild(modulesElement);
 
       // traverse modules
-      for (MZmineModule module : MZmineCore.getAllModules()) {
+      List<MZmineModule> allModules = new ArrayList<>(MZmineCore.getAllModules());
+      for (MZmineModule module : allModules) {
 
         String className = module.getClass().getName();
 

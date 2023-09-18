@@ -31,11 +31,13 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -196,28 +198,48 @@ public class ParsingUtils {
     return null;
   }
 
-  public static String mobilityScanListToString(List<MobilityScan> scans) {
-    // {frameindex}[mobilityscanindices]\\
-    StringBuilder b = new StringBuilder();
-    final Map<Frame, List<MobilityScan>> mapping = scans.stream()
-        .collect(Collectors.groupingBy(MobilityScan::getFrame));
-    for (Iterator<Entry<Frame, List<MobilityScan>>> it = mapping.entrySet().iterator();
-        it.hasNext(); ) {
-      Entry<Frame, List<MobilityScan>> entry = it.next();
-      Frame frame = entry.getKey();
-      List<MobilityScan> mobilityScans = entry.getValue();
-      mobilityScans.sort(Comparator.comparingInt(MobilityScan::getMobilityScanNumber));
-      b.append("{").append(frame.getDataFile().getScans().indexOf(frame)).append("}");
+  /**
+   * Maps a list of mobility scans to their respective {@link RawDataFile} and represents them as a
+   * parseable string. Repeating element: {frameindex}[mobilityscanindices]. Indices are seperated
+   * by ';' and repeating elements are split by ';;'
+   *
+   * @param scans A list of mobility scans.
+   * @return A hash map key = data file; value = string as described above
+   */
+  public static Map<RawDataFile, String> mobilityScanListToStrings(List<MobilityScan> scans) {
 
-      int[] indices = ParsingUtils.getIndicesOfSubListElements(mobilityScans,
-          frame.getMobilityScans());
-      b.append("[").append(ParsingUtils.intArrayToString(indices, indices.length)).append("]");
+    final Map<RawDataFile, String> result = new HashMap<>();
 
-      if (it.hasNext()) {
-        b.append(SEPARATOR).append(SEPARATOR);
+    // first group scans by file
+    final Map<RawDataFile, List<MobilityScan>> fileScanMapping = scans.stream()
+        .collect(Collectors.groupingBy(MobilityScan::getDataFile));
+
+    for (Entry<RawDataFile, List<MobilityScan>> fileScansEntry : fileScanMapping.entrySet()) {
+      // {frameindex}[mobilityscanindices]\\
+      StringBuilder b = new StringBuilder();
+
+      // group mobility scans of a single file by frame
+      final Map<Frame, List<MobilityScan>> mapping = fileScansEntry.getValue().stream()
+          .collect(Collectors.groupingBy(MobilityScan::getFrame));
+      for (Iterator<Entry<Frame, List<MobilityScan>>> it = mapping.entrySet().iterator();
+          it.hasNext(); ) {
+        Entry<Frame, List<MobilityScan>> entry = it.next();
+        Frame frame = entry.getKey();
+        List<MobilityScan> mobilityScans = entry.getValue();
+        mobilityScans.sort(Comparator.comparingInt(MobilityScan::getMobilityScanNumber));
+        b.append("{").append(frame.getDataFile().getScans().indexOf(frame)).append("}");
+
+        int[] indices = ParsingUtils.getIndicesOfSubListElements(mobilityScans,
+            frame.getMobilityScans());
+        b.append("[").append(ParsingUtils.intArrayToString(indices, indices.length)).append("]");
+
+        if (it.hasNext()) {
+          b.append(SEPARATOR).append(SEPARATOR);
+        }
       }
+      result.put(fileScansEntry.getKey(), b.toString());
     }
-    return b.toString();
+    return result;
   }
 
   @Nullable

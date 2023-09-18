@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -206,7 +206,7 @@ public abstract class ScanDataAccess implements Scan {
           currentNumberOfDataPoints = 0;
         }
       }
-      case CENTROID -> {
+      case MASS_LIST -> {
         MassList masses = scan.getMassList();
         if (masses == null) {
           throw new MissingMassListException(scan);
@@ -247,7 +247,7 @@ public abstract class ScanDataAccess implements Scan {
    */
   private int getMaxNumberOfDataPoints() {
     return switch (type) {
-      case CENTROID -> dataFile.getMaxCentroidDataPoints();
+      case MASS_LIST -> dataFile.getMaxCentroidDataPoints();
       case RAW -> dataFile.getMaxRawDataPoints();
     };
   }
@@ -261,7 +261,7 @@ public abstract class ScanDataAccess implements Scan {
         Scan scan = getCurrentScan();
         yield scan == null ? null : scan.getSpectrumType();
       }
-      case CENTROID -> MassSpectrumType.CENTROIDED;
+      case MASS_LIST -> MassSpectrumType.CENTROIDED;
     };
   }
 
@@ -308,7 +308,7 @@ public abstract class ScanDataAccess implements Scan {
   public MassSpectrum getCurrentDataSource() {
     return switch (type) {
       case RAW -> getCurrentScan();
-      case CENTROID -> getMassList();
+      case MASS_LIST -> getMassList();
     };
   }
 

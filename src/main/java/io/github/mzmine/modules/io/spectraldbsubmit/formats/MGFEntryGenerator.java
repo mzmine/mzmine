@@ -45,29 +45,9 @@ import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import org.jetbrains.annotations.Nullable;
 
 public class MGFEntryGenerator {
-
-//  public static final List<DBEntryField> EXPORT_FIELDS = List.of(DBEntryField.SCAN_NUMBER,
-//      DBEntryField.MS_LEVEL, DBEntryField.CHARGE, DBEntryField.NAME, DBEntryField.PRECURSOR_MZ,
-//      DBEntryField.ION_TYPE, DBEntryField.RT, DBEntryField.CCS, DBEntryField.EXACT_MASS,
-//      DBEntryField.FORMULA, DBEntryField.SMILES, DBEntryField.INCHI, DBEntryField.INCHIKEY,
-//     DBEntryField.ISOLATION_WINDOW,
-//
-//      // instrument
-//      DBEntryField.FRAGMENTATION_METHOD, DBEntryField.COLLISION_ENERGY, DBEntryField.INSTRUMENT, DBEntryField.INSTRUMENT_FIELDS
-//      // MSn
-//      DBEntryField.MSN_FRAGMENTATION_METHODS, DBEntryField.MSN_COLLISION_ENERGIES,
-//      DBEntryField.MSN_PRECURSOR_MZS, DBEntryField.MSN_ISOLATION_WINDOWS,
-//      // reference to dataset
-//      DBEntryField.DATASET_ID, DBEntryField.USI,
-//      //
-//      DBEntryField.ACQUISITION,
-//      //
-//      DBEntryField.MERGED_SPEC_TYPE,
-//      // quality
-//      DBEntryField.QUALITY_CHIMERIC,
-//      DBEntryField.SOFTWARE);
 
   /**
    * Creates a simple MSP nist format DB entry
@@ -146,6 +126,15 @@ public class MGFEntryGenerator {
    * Creates a simple MSP nist format DB entry
    */
   public static String createMGFEntry(SpectralLibraryEntry entry) {
+    return createMGFEntry(entry, entry.getOrElse(DBEntryField.SCAN_NUMBER, null));
+  }
+
+  /**
+   * Creates a simple MSP nist format DB entry
+   *
+   * @param scanNumber overwrite the scannumber used for this entry
+   */
+  public static String createMGFEntry(SpectralLibraryEntry entry, @Nullable Integer scanNumber) {
     String br = "\n";
     StringBuilder s = new StringBuilder();
     s.append("BEGIN IONS").append(br);
@@ -156,7 +145,14 @@ public class MGFEntryGenerator {
       if (id == null || id.isBlank()) {
         continue;
       }
-      entry.getField(field).ifPresent(value -> appendValue(s, field, value));
+      // if scanNumber override is set - replace scan number and featureID (used by GNPS)
+      if (scanNumber != null && (field == DBEntryField.SCAN_NUMBER
+                                 || field == DBEntryField.FEATURE_ID)) {
+        appendValue(s, field, scanNumber);
+      } else {
+        // just use the value
+        entry.getField(field).ifPresent(value -> appendValue(s, field, value));
+      }
     }
 
     // num peaks and data

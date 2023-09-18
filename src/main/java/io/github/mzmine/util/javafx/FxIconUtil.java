@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -79,6 +79,18 @@ public class FxIconUtil {
 
   /**
    * Get FontIcon from Ikonli library
+   * <a href="https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html">Icon list</a>
+   *
+   * @param iconCode icon code
+   * @return Icon in color and size
+   */
+  public static FontIcon getFontIcon(String iconCode, int size) {
+    return new FontIcon(iconCode + ":" + size);
+  }
+
+  /**
+   * Get FontIcon from Ikonli library
+   * <a href="https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html">Icon list</a>
    *
    * @param iconCode icon code
    * @return Icon in color and size
@@ -86,10 +98,11 @@ public class FxIconUtil {
   public static FontIcon getFontIcon(String iconCode, int size, Color color) {
     FontIcon icon = new FontIcon();
     String b = "-fx-icon-color:" + FxColorUtil.colorToHex(color) + ";-fx-icon-code:" + iconCode
-        + ";-fx-icon-size:" + size + ";";
+               + ";-fx-icon-size:" + size + ";";
     icon.setStyle(b);
     return icon;
   }
+
 
   public static FontIcon getCheckedIcon() {
     return getFontIcon("bi-check2-circle", 12, MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColor());

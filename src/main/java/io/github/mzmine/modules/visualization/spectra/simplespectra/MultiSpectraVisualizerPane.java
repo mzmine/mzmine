@@ -188,7 +188,12 @@ public class MultiSpectraVisualizerPane extends BorderPane {
   public void setData(FeatureListRow row, RawDataFile raw) {
     rawFiles = row.getRawDataFiles();
     this.row = row;
-    setRawFileAndShow(raw);
+
+    if(row.getFeature(raw) != null) {
+      setRawFileAndShow(raw);
+    } else {
+      setRawFileAndShow(row.getBestFeature().getRawDataFile());
+    }
   }
 
   /**
@@ -199,6 +204,9 @@ public class MultiSpectraVisualizerPane extends BorderPane {
    */
   public boolean setRawFileAndShow(RawDataFile raw) {
     Feature peak = row.getFeature(raw);
+    if(peak == null && row.getRawDataFiles().size() == 1 && row.getBestFeature() != null) {
+      peak = row.getBestFeature();
+    }
     // no peak / no ms2 - return false
     if (peak == null || peak.getAllMS2FragmentScans() == null
         || peak.getAllMS2FragmentScans().size() == 0) {

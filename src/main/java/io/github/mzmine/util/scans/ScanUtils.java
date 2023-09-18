@@ -161,8 +161,11 @@ public class ScanUtils {
         && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
       buf.append(" (").append(mzFormat.format(dda.getIsolationMz())).append(")");
     }
-    if (scan.getMsMsInfo() != null && scan.getMsMsInfo().getActivationEnergy() != null) {
-      buf.append(" CE: ").append(scan.getMsMsInfo().getActivationEnergy());
+
+    final List<Float> CEs = extractCollisionEnergies(scan);
+    if (!CEs.isEmpty()) {
+      buf.append(", CE: ");
+      buf.append(CEs.stream().sorted().map("%.1f"::formatted).collect(Collectors.joining(", ")));
     }
 
     switch (scan.getSpectrumType()) {
@@ -178,11 +181,8 @@ public class ScanUtils {
       buf.append(" merged ");
       buf.append(((MergedMassSpectrum) scan).getSourceSpectra().size());
       buf.append(" spectra");
-      if (scan instanceof MergedMsMsSpectrum) {
-        buf.append(", CE: ");
-        buf.append(String.format("%.1f", ((MergedMsMsSpectrum) scan).getCollisionEnergy()));
-      }
     }
+
 
     /*
      * if ((scan.getScanDefinition() != null) && (scan.getScanDefinition().length() > 0)) {
@@ -190,6 +190,28 @@ public class ScanUtils {
      */
 
     return buf.toString();
+  }
+
+  private static Float extractCollisionEnergy(MassSpectrum spectrum) {
+    return switch (spectrum) {
+      case MobilityScan mob ->
+          mob.getMsMsInfo() != null ? mob.getMsMsInfo().getActivationEnergy() : null;
+      case Scan scan ->
+          scan.getMsMsInfo() != null ? scan.getMsMsInfo().getActivationEnergy() : null;
+      default -> null;
+    };
+  }
+
+  public static List<Float> extractCollisionEnergies(MassSpectrum spectrum) {
+    return switch (spectrum) {
+      case MergedMassSpectrum merged ->
+          merged.getSourceSpectra().stream().map(ScanUtils::extractCollisionEnergy).distinct()
+              .filter(Objects::nonNull).toList();
+      case Scan scan ->
+          scan.getMsMsInfo() != null && scan.getMsMsInfo().getActivationEnergy() != null ? List.of(
+              scan.getMsMsInfo().getActivationEnergy()) : List.of();
+      default -> List.of();
+    };
   }
 
   /**

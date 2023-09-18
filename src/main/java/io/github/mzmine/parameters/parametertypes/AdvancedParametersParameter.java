@@ -184,4 +184,20 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
     return ParameterUtils.equalValues(getEmbeddedParameters(), thatOpt.getEmbeddedParameters(),
         false, false);
   }
+
+  public <V> V getValueOrDefault(Parameter parameter, V defaultValue) {
+    if (!this.getValue()) {
+      return defaultValue;
+    }
+
+    if (parameter instanceof OptionalParameter<?> optional) {
+      if (!optional.getValue()) {
+        return defaultValue;
+      } else {
+        return (V) optional.getEmbeddedParameter().getValue();
+      }
+    } else {
+      return (V) getEmbeddedParameters().getParameter(parameter).getValue();
+    }
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,13 +25,15 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.TableViewUtils;
+import io.github.mzmine.util.javafx.WeakAdapter;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,7 +46,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -72,23 +73,25 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de) & SteffenHeu (s_heuc03@uni-muenster.de)
  */
-public class SpectraIdentificationResultsWindowFX extends SimpleTab {
+public class SpectraIdentificationResultsWindowFX extends SimpleTab implements
+    FeatureRowInterfaceFx {
 
   private static final Logger logger = Logger.getLogger(
       SpectraIdentificationResultsWindowFX.class.getName());
 
+  private final WeakAdapter weak = new WeakAdapter();
+
   // link row selection to results
-  private final FeatureTableFX table;
   private final Font headerFont = new Font("Dialog Bold", 16);
   private final ObservableList<SpectralDBAnnotation> totalMatches;
   private final ObservableList<SpectralDBAnnotation> visibleMatches;
 
   private final Map<SpectralDBAnnotation, SpectralMatchPanelFX> matchPanels;
   private final VBox mainBox;
-  // couple y zoom (if one is changed - change the other in a mirror plot)
-  private boolean isCouplingZoomY;
   private final Label noMatchesFound;
   private final BorderPane pnMain;
+  // couple y zoom (if one is changed - change the other in a mirror plot)
+  private boolean isCouplingZoomY;
   private int currentIndex = 0;
   private int showBestN = 15;
   private Label shownMatchesLbl;
@@ -100,7 +103,8 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
 
   public SpectraIdentificationResultsWindowFX(@Nullable final FeatureTableFX table) {
     super("Spectral matches", false, false);
-    this.table = table;
+    setOnCloseRequest(event -> weak.dipose());
+
     addRowSelectionListener(table);
 
     totalMatches = FXCollections.observableList(Collections.synchronizedList(new ArrayList<>()));
@@ -129,17 +133,28 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
     if (table == null) {
       return;
     }
-    table.getSelectedTableRows()
-        .addListener((ListChangeListener<? super TreeItem<ModularFeatureListRow>>) c -> {
-          var rows = c.getList().stream().map(TreeItem::getValue).toList();
-          var allMatches = rows.stream().map(ModularFeatureListRow::getSpectralLibraryMatches)
-              .flatMap(Collection::stream).toList();
-          setMatches(allMatches);
+    weak.addListChangeListener(table.getSelectedTableRows(), c -> {
+      if (weak.isDisposed()) {
+        return;
+      }
 
-          setTitle(rows);
-        });
+      var rows = c.getList().stream().map(TreeItem::getValue).toList();
+      setFeatureRows(rows);
+    });
   }
 
+  @Override
+  public boolean hasContent() {
+    return !totalMatches.isEmpty();
+  }
+
+  @Override
+  public void setFeatureRows(final @NotNull List<? extends FeatureListRow> rows) {
+    var allMatches = rows.stream().map(FeatureListRow::getSpectralLibraryMatches)
+        .flatMap(Collection::stream).toList();
+    setMatches(allMatches);
+    setTitle(rows);
+  }
 
   @NotNull
   private HBox createButtonMenu() {
@@ -241,7 +256,7 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
   /**
    * Column header title
    */
-  public void setTitle(List<ModularFeatureListRow> rows) {
+  public void setTitle(List<? extends FeatureListRow> rows) {
     column.setText(rows.stream().map(FeatureUtils::rowToString).collect(Collectors.joining("; ")));
   }
 
@@ -309,8 +324,7 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab {
 
   public void setMatchingFinished() {
     if (totalMatches.isEmpty()) {
-      noMatchesFound.setText("Sorry no matches found.\n"
-                             + "Please visualize NIST spectral search results through NIST MS Search software.");
+      noMatchesFound.setText("Sorry no matches found.");
       noMatchesFound.setTextFill(Color.RED);
     }
   }

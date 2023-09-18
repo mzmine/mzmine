@@ -82,7 +82,7 @@ public class GNPSUtils {
 
 
   public static final String ACCESS_LIBRARY_SPECTRUM = "https://gnps.ucsd.edu/ProteoSAFe/SpectrumCommentServlet?SpectrumID=";
-  public static final String ACCESS_USI_SPECTRUM = "https://metabolomics-usi.ucsd.edu/json/?usi1=";
+  public static final String ACCESS_USI_SPECTRUM = "https://metabolomics-usi.gnps2.org/json/?usi1=";
   // Logger.
   private static final Logger logger = Logger.getLogger(GNPSUtils.class.getName());
 

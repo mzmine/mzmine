@@ -25,126 +25,27 @@
   ~ OTHER DEALINGS IN THE SOFTWARE.
   -->
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Accordion?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="650.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController">
-   <center>
-      <GridPane BorderPane.alignment="CENTER">
-         <children>
-            <SplitPane dividerPositions="0.7">
-               <items>
-                  <BorderPane fx:id="pnMirror">
-                     <top>
-                        <VBox BorderPane.alignment="CENTER">
-                           <children>
-                              <Label fx:id="lbTitleCos" text="MS/MS mirror (modified cosine)">
-                                 <font>
-                                    <Font name="System Bold" size="12.0" />
-                                 </font>
-                              </Label>
-                              <Label fx:id="lbMirrorStats" text="scores" />
-                              <Label fx:id="lbMirrorModifiedStats" text="scores" />
-                           </children>
-                           <padding>
-                              <Insets left="5.0" />
-                           </padding>
-                        </VBox>
-                     </top>
-                  </BorderPane>
-                  <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
-                     <center>
-                        <ScrollPane fitToHeight="true" fitToWidth="true">
-                           <BorderPane>
-                              <center>
-                                 <TableView fx:id="tableMirror" BorderPane.alignment="CENTER">
-                                    <columns>
-                                       <TableColumn editable="false" prefWidth="75.0" text="top">
-                                          <columns>
-                                             <TableColumn fx:id="colMzTop" prefWidth="75.0" text="mz" />
-                                             <TableColumn fx:id="colIntensityTop" editable="false" prefWidth="70.0" text="intensity" />
-                                          </columns>
-                                       </TableColumn>
-                                       <TableColumn editable="false" prefWidth="75.0" text="bottom">
-                                          <columns>
-                                             <TableColumn fx:id="colMzBottom" editable="false" prefWidth="75.0" text="mz" />
-                                             <TableColumn fx:id="colIntensityBottom" editable="false" prefWidth="70.0" text="intensity" />
-                                          </columns>
-                                       </TableColumn>
-                                       <TableColumn fx:id="colMatchColor" editable="false" prefWidth="25" text="c" />
-                                       <TableColumn fx:id="colMatch" editable="false" prefWidth="75.0" text="match" />
-                                       <TableColumn fx:id="colContribution" editable="false" prefWidth="100.0" text="contribution" />
-                                    </columns>
-                                 </TableView>
-                              </center>
-                           </BorderPane>
-                        </ScrollPane>
-                     </center>
-                  </BorderPane>
-               </items>
-            </SplitPane>
-            <SplitPane dividerPositions="0.7" GridPane.rowIndex="1">
-               <items>
-                  <BorderPane fx:id="pnNLMirror">
-                     <top>
-                        <VBox BorderPane.alignment="CENTER">
-                           <children>
-                              <Label fx:id="lbTitleNL" text="Neutral loss mirror">
-                                 <font>
-                                    <Font name="System Bold" size="12.0" />
-                                 </font>
-                              </Label>
-                              <Label fx:id="lbNeutralLossStats" text="scores" />
-                           </children>
-                           <padding>
-                              <Insets left="5.0" />
-                           </padding>
-                        </VBox>
-                     </top>
-                  </BorderPane>
-                  <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
-                     <center>
-                        <ScrollPane fitToHeight="true" fitToWidth="true">
-                           <BorderPane>
-                              <center>
-                                 <TableView fx:id="tableNLMIrror" BorderPane.alignment="CENTER">
-                                    <columns>
-                                       <TableColumn editable="false" prefWidth="75.0" text="top">
-                                          <columns>
-                                             <TableColumn fx:id="colMzTop1" prefWidth="75.0" text="mz" />
-                                             <TableColumn fx:id="colIntensityTop1" editable="false" prefWidth="70.0" text="intensity" />
-                                          </columns>
-                                       </TableColumn>
-                                       <TableColumn editable="false" prefWidth="75.0" text="bottom">
-                                          <columns>
-                                             <TableColumn fx:id="colMzBottom1" editable="false" prefWidth="75.0" text="mz" />
-                                             <TableColumn fx:id="colIntensityBottom1" editable="false" prefWidth="70.0" text="intensity" />
-                                          </columns>
-                                       </TableColumn>
-                                       <TableColumn fx:id="colMatchColor1" editable="false" prefWidth="25" text="c" />
-                                       <TableColumn fx:id="colMatch1" editable="false" prefWidth="75.0" text="match" />
-                                       <TableColumn fx:id="colContribution1" editable="false" prefWidth="100.0" text="contribution" />
-                                    </columns>
-                                 </TableView>
-                              </center>
-                           </BorderPane>
-                        </ScrollPane>
-                     </center>
-                  </BorderPane>
-               </items>
-            </SplitPane>
-         </children>
-         <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES" />
-         </columnConstraints>
-         <rowConstraints>
-            <RowConstraints vgrow="SOMETIMES" />
-            <RowConstraints vgrow="SOMETIMES" />
-         </rowConstraints>
-      </GridPane>
-   </center>
+<BorderPane fx:id="mainPane" prefHeight="650.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController">
    <top>
       <Accordion BorderPane.alignment="CENTER">
          <panes>
@@ -188,4 +89,127 @@
          </panes>
       </Accordion>
    </top>
+   <center>
+      <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+        <tabs>
+          <Tab text="MS/MS mirror (modified cosine)">
+            <content>
+                  <BorderPane>
+                     <center>
+                        <SplitPane dividerPositions="0.7" BorderPane.alignment="CENTER">
+                           <items>
+                              <BorderPane fx:id="pnMirror">
+                                 <top>
+                                    <VBox BorderPane.alignment="CENTER">
+                                       <children>
+                                          <Label fx:id="lbTitleCos" text="MS/MS mirror (modified cosine)">
+                                             <font>
+                                                <Font name="System Bold" size="12.0" />
+                                             </font>
+                                          </Label>
+                                          <Label fx:id="lbMirrorStats" text="scores" />
+                                          <Label fx:id="lbMirrorModifiedStats" text="scores" />
+                                       </children>
+                                       <padding>
+                                          <Insets left="5.0" />
+                                       </padding>
+                                    </VBox>
+                                 </top>
+                              </BorderPane>
+                              <BorderPane>
+                                 <center>
+                                    <ScrollPane fitToHeight="true" fitToWidth="true">
+                                       <BorderPane>
+                                          <center>
+                                             <TableView fx:id="tableMirror" BorderPane.alignment="CENTER">
+                                                <columns>
+                                                   <TableColumn editable="false" prefWidth="75.0" text="top">
+                                                      <columns>
+                                                         <TableColumn fx:id="colMzTop" prefWidth="75.0" text="mz" />
+                                                         <TableColumn fx:id="colIntensityTop" editable="false" prefWidth="70.0" text="intensity" />
+                                                      </columns>
+                                                   </TableColumn>
+                                                   <TableColumn editable="false" prefWidth="75.0" text="bottom">
+                                                      <columns>
+                                                         <TableColumn fx:id="colMzBottom" editable="false" prefWidth="75.0" text="mz" />
+                                                         <TableColumn fx:id="colIntensityBottom" editable="false" prefWidth="70.0" text="intensity" />
+                                                      </columns>
+                                                   </TableColumn>
+                                                   <TableColumn fx:id="colMatchColor" editable="false" prefWidth="25" text="c" />
+                                                   <TableColumn fx:id="colMatch" editable="false" prefWidth="75.0" text="match" />
+                                                   <TableColumn fx:id="colContribution" editable="false" prefWidth="100.0" text="contribution" />
+                                                </columns>
+                                             </TableView>
+                                          </center>
+                                       </BorderPane>
+                                    </ScrollPane>
+                                 </center>
+                              </BorderPane>
+                           </items>
+                        </SplitPane>
+                     </center>
+                  </BorderPane>
+            </content>
+          </Tab>
+          <Tab text="Neutral loss mirror">
+            <content>
+                  <BorderPane>
+                     <center>
+                        <SplitPane dividerPositions="0.7" BorderPane.alignment="CENTER">
+                           <items>
+                              <BorderPane fx:id="pnNLMirror">
+                                 <top>
+                                    <VBox BorderPane.alignment="CENTER">
+                                       <children>
+                                          <Label fx:id="lbTitleNL" text="Neutral loss mirror">
+                                             <font>
+                                                <Font name="System Bold" size="12.0" />
+                                             </font>
+                                          </Label>
+                                          <Label fx:id="lbNeutralLossStats" text="scores" />
+                                       </children>
+                                       <padding>
+                                          <Insets left="5.0" />
+                                       </padding>
+                                    </VBox>
+                                 </top>
+                              </BorderPane>
+                              <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                                 <center>
+                                    <ScrollPane fitToHeight="true" fitToWidth="true">
+                                       <BorderPane>
+                                          <center>
+                                             <TableView fx:id="tableNLMIrror" BorderPane.alignment="CENTER">
+                                                <columns>
+                                                   <TableColumn editable="false" prefWidth="75.0" text="top">
+                                                      <columns>
+                                                         <TableColumn fx:id="colMzTop1" prefWidth="75.0" text="mz" />
+                                                         <TableColumn fx:id="colIntensityTop1" editable="false" prefWidth="70.0" text="intensity" />
+                                                      </columns>
+                                                   </TableColumn>
+                                                   <TableColumn editable="false" prefWidth="75.0" text="bottom">
+                                                      <columns>
+                                                         <TableColumn fx:id="colMzBottom1" editable="false" prefWidth="75.0" text="mz" />
+                                                         <TableColumn fx:id="colIntensityBottom1" editable="false" prefWidth="70.0" text="intensity" />
+                                                      </columns>
+                                                   </TableColumn>
+                                                   <TableColumn fx:id="colMatchColor1" editable="false" prefWidth="25" text="c" />
+                                                   <TableColumn fx:id="colMatch1" editable="false" prefWidth="75.0" text="match" />
+                                                   <TableColumn fx:id="colContribution1" editable="false" prefWidth="100.0" text="contribution" />
+                                                </columns>
+                                             </TableView>
+                                          </center>
+                                       </BorderPane>
+                                    </ScrollPane>
+                                 </center>
+                              </BorderPane>
+                           </items>
+                        </SplitPane>
+                     </center>
+                  </BorderPane>
+            </content>
+          </Tab>
+        </tabs>
+      </TabPane>
+   </center>
 </BorderPane>
