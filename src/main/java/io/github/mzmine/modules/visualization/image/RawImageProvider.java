@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -263,7 +263,7 @@ public class RawImageProvider implements PlotXYZDataProvider {
 
     logger.info("ImageViewer: Start data point extraction");
     MobilityScanDataAccess scanAccess = EfficientDataAccess.of(imsRaw,
-        MobilityScanDataType.CENTROID, scanSelection);
+        MobilityScanDataType.MASS_LIST, scanSelection);
     int numberOfFrames = scanAccess.getNumberOfScans();
     DoubleArrayList mzs = new DoubleArrayList(numberOfFrames);
     DoubleArrayList intensities = new DoubleArrayList(numberOfFrames);

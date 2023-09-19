@@ -23,38 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters;
+package io.github.mzmine.modules.visualization.raw_data_summary;
 
-import javafx.scene.Node;
-import javafx.scene.layout.Priority;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 
 /**
- * Parameter interface, represents parameters or variables used in the project
+ *
  */
-public interface UserParameter<ValueType, EditorComponent extends Node> extends
-    Parameter<ValueType> {
+public enum RawDataSelection {
+  RAW_CENTROIDED, MASS_LIST;
 
-  /**
-   * @return Detailed description of the parameter
-   */
-  String getDescription();
-
-  EditorComponent createEditingComponent();
-
-  void setValueFromComponent(EditorComponent component);
-
-  void setValueToComponent(EditorComponent component, @Nullable ValueType newValue);
-
-  UserParameter<ValueType, EditorComponent> cloneParameter();
-
-  /**
-   * Defines if the component grows in height in the layout
-   *
-   * @return row grow priority
-   */
-  default Priority getComponentVgrowPriority() {
-    return Priority.NEVER;
+  @Override
+  public String toString() {
+    return switch (this) {
+      case RAW_CENTROIDED -> "RAW (centroid)";
+      case MASS_LIST -> "Mass lists (after mass detection)";
+    };
   }
 
+  public ScanDataType mapToScanType() {
+    return switch (this) {
+      case RAW_CENTROIDED -> ScanDataType.RAW;
+      case MASS_LIST -> ScanDataType.MASS_LIST;
+    };
+  }
 }

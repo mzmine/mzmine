@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -91,6 +91,9 @@ public class RangeUtils {
    * @return Converted Float range
    */
   public static <N extends Number & Comparable<N>> Range<Float> toFloatRange(Range<N> range) {
+    if (!(range.hasLowerBound() && range.hasUpperBound())) {
+      return Range.all();
+    }
     return Range.closed(range.lowerEndpoint().floatValue(), range.upperEndpoint().floatValue());
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -165,7 +165,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final BooleanParameter showPrecursorWindow = new BooleanParameter(
       "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
-      false);
+      true);
 
   public static final BooleanParameter showTempFolderAlert = new BooleanParameter("Show temp alert",
       "Show temp folder alert", true);

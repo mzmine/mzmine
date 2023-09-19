@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,7 +51,7 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
   private SortOrder zOrder;
 
   public MsMsChart(ParameterSet parameters) {
-    super("MS/MS visualizer");
+    super("");
 
     MsMsXYAxisType xAxisType = parameters.getParameter(MsMsParameters.xAxisType).getValue();
     MsMsXYAxisType yAxisType = parameters.getParameter(MsMsParameters.yAxisType).getValue();
@@ -98,6 +98,9 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
 
     // Do not show legend
     setLegendCanvas(new Canvas());
+
+    // apply the theme here, let's see how that works
+    MZmineCore.getConfiguration().getDefaultChartTheme().apply(chart);
   }
 
   public MsMsXYAxisType getXAxisType() {
