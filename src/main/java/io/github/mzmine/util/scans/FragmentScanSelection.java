@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -112,6 +112,10 @@ public record FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSep
     final List<Scan> noMergedScans = scans.stream().filter(
         scan -> !(scan instanceof MergedMassSpectrum merged)
             || merged.getMergingType() == MergingType.PASEF_SINGLE).toList();
+
+    if (noMergedScans.isEmpty()) {
+      return List.of();
+    }
 
     Map<Float, List<Scan>> byFragmentationEnergy = ScanUtils.splitByFragmentationEnergy(
         noMergedScans);
