@@ -35,20 +35,12 @@ public enum EdgeType implements ElementType {
 
   FEATURE_SHAPE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE, OTHER;
 
-
   public static EdgeType of(String type) {
     if (type == null || type.isBlank()) {
       return OTHER;
     }
 
-    return switch (Type.parse(type)) {
-      case MS1_FEATURE_CORR -> FEATURE_SHAPE_CORRELATION;
-      case ION_IDENTITY_NET -> ION_IDENTITY;
-      case MS2_COSINE_SIM -> MS2_MODIFIED_COSINE;
-      case MS2_NEUTRAL_LOSS_SIM -> NETWORK_RELATIONS;
-      case MS2_GNPS_COSINE_SIM -> GNPS_MODIFIED_COSINE;
-      case null -> OTHER;
-    };
+    return of(Type.parse(type));
   }
 
   public static EdgeType of(Type type) {
@@ -58,8 +50,26 @@ public enum EdgeType implements ElementType {
       case MS2_COSINE_SIM -> MS2_MODIFIED_COSINE;
       case MS2_NEUTRAL_LOSS_SIM -> NETWORK_RELATIONS;
       case MS2_GNPS_COSINE_SIM -> GNPS_MODIFIED_COSINE;
+      case OTHER -> OTHER;
       case null -> OTHER;
     };
+  }
+
+  public static Type toR2RType(EdgeType type) {
+    return switch (type) {
+      case FEATURE_SHAPE_CORRELATION -> Type.MS1_FEATURE_CORR;
+      case ION_IDENTITY -> Type.ION_IDENTITY_NET;
+      case MS2_MODIFIED_COSINE -> Type.MS2_COSINE_SIM;
+      case NETWORK_RELATIONS -> Type.MS2_NEUTRAL_LOSS_SIM;
+      case GNPS_MODIFIED_COSINE -> Type.MS2_GNPS_COSINE_SIM;
+      case OTHER -> Type.OTHER;
+      case null -> Type.OTHER;
+    };
+  }
+
+  @Override
+  public String toString() {
+    return toR2RType(this).toString();
   }
 
   /**

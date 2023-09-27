@@ -130,7 +130,11 @@ public interface RowsRelationship {
     /**
      * GNPS modified cosine similarity, see {@link GNPSResultsImportTask}
      */
-    MS2_GNPS_COSINE_SIM;
+    MS2_GNPS_COSINE_SIM,
+    /**
+     * External or other undefined
+     */
+    OTHER;
 
     @Nullable
     public static Type parse(final String type) {
@@ -155,6 +159,7 @@ public interface RowsRelationship {
         case MS2_COSINE_SIM -> "MS2 mod-cosine";
         case MS2_NEUTRAL_LOSS_SIM -> "MS2 neutral loss cosine";
         case MS2_GNPS_COSINE_SIM -> "GNPS mod-cosine";
+        case OTHER -> "Other";
       };
     }
   }
