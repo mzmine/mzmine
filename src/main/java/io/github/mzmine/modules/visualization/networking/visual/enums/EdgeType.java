@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.networking.visual.enums;
 
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -65,6 +66,11 @@ public enum EdgeType implements ElementType {
       case OTHER -> Type.OTHER;
       case null -> Type.OTHER;
     };
+  }
+
+  public static List<EdgeType> getDefaultVisibleColumns() {
+    return List.of(ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE,
+        OTHER);
   }
 
   @Override

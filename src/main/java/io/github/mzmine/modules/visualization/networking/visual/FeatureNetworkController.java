@@ -32,7 +32,9 @@ import static io.github.mzmine.modules.visualization.networking.visual.enums.Gra
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFlavor;
 import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeAtt;
+import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeType;
 import io.github.mzmine.modules.visualization.networking.visual.enums.GraphElementAttr;
 import io.github.mzmine.modules.visualization.networking.visual.enums.GraphObject;
 import io.github.mzmine.modules.visualization.networking.visual.enums.GraphStyleAttribute;
@@ -93,14 +95,15 @@ public class FeatureNetworkController {
    * @throws IOException
    */
   public static FeatureNetworkController create(@NotNull FeatureList flist,
-      @NotNull ObservableList<FeatureListRow> focussedRows) throws IOException {
+      @NotNull ObservableList<FeatureListRow> focussedRows, final NetworkOverviewFlavor flavor)
+      throws IOException {
     // Load the window FXML
     FXMLLoader loader = new FXMLLoader(
         FeatureNetworkController.class.getResource("FeatureNetworkPane.fxml"));
     BorderPane rootPane = loader.load();
     FeatureNetworkController controller = loader.getController();
 
-    controller.setFeatureListCreateNetworkPane(flist, focussedRows);
+    controller.setFeatureListCreateNetworkPane(flist, focussedRows, flavor);
     return controller;
   }
 
@@ -111,14 +114,15 @@ public class FeatureNetworkController {
   }
 
   private void setFeatureListCreateNetworkPane(final @NotNull FeatureList flist,
-      final @NotNull ObservableList<FeatureListRow> focussedRows) {
+      final @NotNull ObservableList<FeatureListRow> focussedRows,
+      final NetworkOverviewFlavor flavor) {
     // create graph and add to center
     FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
     var fullGraph = generator.createNewGraph(flist, true, true, false);
     networkPane = new FeatureNetworkPane(this, flist, focussedRows, generator, fullGraph);
     mainPane.setCenter(networkPane);
 
-    addMenuOptions();
+    addMenuOptions(flavor);
     addAnnotationFilterOptions(flist);
     addBindings();
   }
@@ -155,7 +159,7 @@ public class FeatureNetworkController {
   }
 
 
-  private void addMenuOptions() {
+  private void addMenuOptions(final NetworkOverviewFlavor flavor) {
     // defaults
     addComboOptions(comboNodeColor, COLOR, NodeAtt.values(), NodeAtt.RT);
     addComboOptions(comboNodeLabel, LABEL, NodeAtt.values(), NodeAtt.ANNOTATION);
@@ -168,11 +172,16 @@ public class FeatureNetworkController {
         .addListener((observable, oldValue, newValue) -> networkPane.collapseIonNodes(newValue));
 
     cbComboVisibleEdgeTypes.getItems().addAll(networkPane.getUniqueEdgeTypes());
-    cbComboVisibleEdgeTypes.getCheckModel().checkAll();
-    ObservableList<String> checkedItems = cbComboVisibleEdgeTypes.getCheckModel().getCheckedItems();
-    checkedItems.addListener((ListChangeListener<? super String>) c -> networkPane.getGraph()
-        .getEdgeTypeFilter(new EdgeTypeFilter(checkedItems)));
 
+    switch (flavor) {
+      case IIMN -> EdgeType.getDefaultVisibleColumns().stream().map(EdgeType::toString)
+          .forEach(type -> cbComboVisibleEdgeTypes.getCheckModel().check(type));
+      case FULL_NETWORKS -> cbComboVisibleEdgeTypes.getCheckModel().checkAll();
+    }
+
+    ObservableList<String> checkedItems = cbComboVisibleEdgeTypes.getCheckModel().getCheckedItems();
+    checkedItems.addListener((ListChangeListener<? super String>) c -> setEdgeFilterToGraph(true));
+    setEdgeFilterToGraph(false);
     // #######################################################
     // add buttons
 //
@@ -229,6 +238,11 @@ public class FeatureNetworkController {
 //    pnRightMenu.setSpacing(10);
 //    pnRightMenu.setPadding(new Insets(0, 20, 10, 20));
 //    this.setRight(pnRightMenu);
+  }
+
+  private void setEdgeFilterToGraph(boolean update) {
+    ObservableList<String> checkedItems = cbComboVisibleEdgeTypes.getCheckModel().getCheckedItems();
+    networkPane.getGraph().setEdgeTypeFilter(new EdgeTypeFilter(checkedItems), update);
   }
 
   private <T extends GraphElementAttr> void addComboOptions(final SearchableComboBox<T> combo,

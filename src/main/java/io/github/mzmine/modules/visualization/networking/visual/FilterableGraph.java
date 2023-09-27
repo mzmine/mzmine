@@ -38,9 +38,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -55,8 +53,8 @@ public class FilterableGraph extends MultiGraph {
   private final MultiGraph fullGraph;
   private final IntegerProperty distanceProperty = new SimpleIntegerProperty(1);
   private final List<Consumer<FilterableGraph>> graphChangeListener = new ArrayList<>();
-  private final ObjectProperty<EdgeTypeFilter> edgeFilterProperty = new SimpleObjectProperty<>();
   private final ObservableList<Node> centered = FXCollections.observableArrayList();
+  private EdgeTypeFilter edgeFilter;
   private @Nullable MultiGraph edgeFilteredGraph;
   private boolean fullGraphLayoutApplied = false;
   private boolean fullGraphLayoutFinished = false;
@@ -71,22 +69,23 @@ public class FilterableGraph extends MultiGraph {
     if (showFullNetwork) {
       showFullNetwork();
     }
-    edgeFilterProperty.addListener((c, o, n) -> filterEdges());
     centered.addListener((ListChangeListener<? super Node>) c -> filterCenterNeighbors());
   }
 
-  private void filterEdges() {
-    if (edgeFilterProperty.get() == null) {
+  private void filterEdges(boolean update) {
+    edgeGraphLayoutApplied = false;
+    edgeGraphLayoutFinished = false;
+    if (edgeFilter == null) {
       edgeFilteredGraph = null;
       return;
     }
-    List<Edge> edges = fullGraph.edges().filter(e -> edgeFilterProperty.get().accept(e)).toList();
+    List<Edge> edges = fullGraph.edges().filter(e -> edgeFilter.accept(e)).toList();
     edgeFilteredGraph = GraphStreamUtils.createFilteredCopy(fullGraph, edges);
-    edgeGraphLayoutApplied = false;
-    edgeGraphLayoutFinished = false;
 
     // show graph
-    filterCenterNeighbors();
+    if (update) {
+      filterCenterNeighbors();
+    }
   }
 
   private void filterCenterNeighbors() {
@@ -222,7 +221,8 @@ public class FilterableGraph extends MultiGraph {
     centered.setAll(central);
   }
 
-  public void getEdgeTypeFilter(final EdgeTypeFilter filter) {
-    edgeFilterProperty.set(filter);
+  public void setEdgeTypeFilter(final EdgeTypeFilter filter, final boolean update) {
+    edgeFilter = filter;
+    filterEdges(update);
   }
 }

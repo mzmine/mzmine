@@ -23,27 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual;
+package io.github.mzmine.modules.visualization.network_overview;
 
-import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeAtt;
-import java.util.List;
-import java.util.Set;
-import org.graphstream.graph.Edge;
-
-public class EdgeTypeFilter implements EdgeFilter {
-
-  private final Set<String> edgeTypes;
-
-  public EdgeTypeFilter(final Set<String> edgeTypes) {
-    this.edgeTypes = edgeTypes;
-  }
-
-  public EdgeTypeFilter(final List<? extends String> list) {
-    edgeTypes = Set.of(list.toArray(String[]::new));
-  }
-
-  @Override
-  public boolean accept(final Edge edge) {
-    return edgeTypes.contains(edge.getAttribute(EdgeAtt.TYPE_STRING.toString()).toString());
-  }
+public enum NetworkOverviewFlavor {
+  IIMN, FULL_NETWORKS
 }
