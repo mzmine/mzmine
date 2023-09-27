@@ -25,14 +25,15 @@ edge.FEATURECORR {
   fill-color: rgb(151, 124, 70);
   stroke-width: 1px;
 }
-edge.OTHER {
-  fill-color: rgb(79,79,79);
-  stroke-width: 1px;
-}
 edge.COSINE {
   size-mode: dyn-size;
   fill-mode: dyn-plain;
   fill-color: #8be4ff, #008eff, #19475d, #0d3549;
+}
+edge.OTHER {
+  size-mode: dyn-size;
+  fill-mode: dyn-plain;
+  fill-color: #ffe519, #ffa63e, #da7e0e, #885313, #492d0d;
 }
 edge.GNPS {
   fill-color: rgb(77, 108, 187);
