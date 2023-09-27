@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -365,7 +365,7 @@ public class MobilityScanDataAccess implements MobilityScan {
     return switch (type) {
       case RAW -> frames.stream().mapToInt(Frame::getTotalMobilityScanRawDataPoints).max()
           .orElse(0);
-      case CENTROID -> frames.stream().mapToInt(Frame::getTotalMobilityScanMassListDataPoints).max()
+      case MASS_LIST -> frames.stream().mapToInt(Frame::getTotalMobilityScanMassListDataPoints).max()
           .orElse(0);
     };
   }
@@ -377,7 +377,7 @@ public class MobilityScanDataAccess implements MobilityScan {
   public MassSpectrumType getSpectrumType() {
     return switch (type) {
       case RAW -> currentFrame.getSpectrumType();
-      case CENTROID -> MassSpectrumType.CENTROIDED;
+      case MASS_LIST -> MassSpectrumType.CENTROIDED;
     };
   }
 
@@ -401,7 +401,7 @@ public class MobilityScanDataAccess implements MobilityScan {
     switch (type) {
       case RAW:
         return getCurrentMobilityScan().getBasePeakIndex();
-      case CENTROID:
+      case MASS_LIST:
         MassList masses = getMassList();
         return masses == null ? null : masses.getBasePeakIndex();
       default:
@@ -415,7 +415,7 @@ public class MobilityScanDataAccess implements MobilityScan {
     switch (type) {
       case RAW:
         return getCurrentMobilityScan().getDataPointMZRange();
-      case CENTROID:
+      case MASS_LIST:
         MassList masses = getMassList();
         return masses == null ? null : masses.getDataPointMZRange();
       default:

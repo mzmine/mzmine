@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
+import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra.PseudoSpectrum;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.pseudospectra.PseudoSpectrumDataSet;
@@ -62,6 +63,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
@@ -71,7 +73,7 @@ import org.jfree.chart.axis.ValueAxis;
  *
  * @author Robin Schmid
  */
-public class SpectraStackVisualizerPane extends BorderPane {
+public class SpectraStackVisualizerPane extends BorderPane implements FeatureRowInterfaceFx {
 
   public static final int ROW_LIMIT = 50;
 
@@ -307,7 +309,7 @@ public class SpectraStackVisualizerPane extends BorderPane {
   /**
    * Create charts and show
    */
-  public void setData(List<FeatureListRow> rows, boolean createMS1) {
+  public void setData(List<? extends FeatureListRow> rows, boolean createMS1) {
     setData(rows.toArray(FeatureListRow[]::new), null, null, createMS1);
   }
 
@@ -529,5 +531,15 @@ public class SpectraStackVisualizerPane extends BorderPane {
 
   public void setApplyMzSorting(final boolean applyMzSorting) {
     this.applyMzSorting = applyMzSorting;
+  }
+
+  @Override
+  public boolean hasContent() {
+    return group != null && group.size() > 0;
+  }
+
+  @Override
+  public void setFeatureRows(final @NotNull List<? extends FeatureListRow> selectedRows) {
+    setData(selectedRows, createMS1);
   }
 }

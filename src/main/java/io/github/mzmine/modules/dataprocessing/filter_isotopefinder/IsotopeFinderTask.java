@@ -152,7 +152,7 @@ class IsotopeFinderTask extends AbstractTask {
     RawDataFile raw = featureList.getRawDataFile(0);
 
     // Loop through all rows
-    final ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.CENTROID,
+    final ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.MASS_LIST,
         featureList.getSeletedScans(raw));
 
     final MobilityScanDataAccess mobScans = initMobilityScanDataAccess(raw);
@@ -350,7 +350,7 @@ class IsotopeFinderTask extends AbstractTask {
   private MobilityScanDataAccess initMobilityScanDataAccess(RawDataFile raw) {
     return
         raw instanceof IMSRawDataFile imsFile && featureList.hasFeatureType(MobilityUnitType.class)
-            ? new MobilityScanDataAccess(imsFile, MobilityScanDataType.CENTROID,
+            ? new MobilityScanDataAccess(imsFile, MobilityScanDataType.MASS_LIST,
             (List<Frame>) featureList.getSeletedScans(imsFile)) : null;
   }
 

@@ -34,6 +34,12 @@ import java.io.File;
 
 public final class WorkflowDdaWizardParameters extends WorkflowWizardParameters {
 
+  public static final BooleanParameter applySpectralNetworking = new BooleanParameter(
+      "Apply spectral networking (FBMN/IIMN)", """
+      Applies feature-based molecular networking/ion identity molecular networking
+      by comparing all MS2 spectra. Adds graphml export and enables use of visualizer. 
+      """, true);
+
   public static final BooleanParameter exportSirius = new BooleanParameter("Export for SIRIUS", "",
       true);
   public static final BooleanParameter exportGnps = new BooleanParameter(
@@ -52,14 +58,15 @@ public final class WorkflowDdaWizardParameters extends WorkflowWizardParameters 
   public WorkflowDdaWizardParameters() {
     super(WorkflowWizardParameterFactory.DDA,
         // actual parameters
-        exportPath, exportGnps, exportSirius, exportAnnotationGraphics);
+        applySpectralNetworking, exportPath, exportGnps, exportSirius, exportAnnotationGraphics);
   }
 
 
-  public WorkflowDdaWizardParameters(final boolean exportActive, final File exportBasePath,
-      final boolean exportGnpsActive, boolean exportSiriusActive,
+  public WorkflowDdaWizardParameters(final boolean applyMolNetworking, final boolean exportActive,
+      final File exportBasePath, final boolean exportGnpsActive, boolean exportSiriusActive,
       boolean exportAnnotationGraphicsActive) {
     this();
+    setParameter(applySpectralNetworking, applyMolNetworking);
     setParameter(exportPath, exportActive);
     getParameter(exportPath).getEmbeddedParameter().setValue(exportBasePath);
     setParameter(exportGnps, exportGnpsActive);

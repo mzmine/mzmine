@@ -165,7 +165,7 @@ public class IonTimeSeriesUtils {
   public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull RawDataFile file,
       @NotNull ScanSelection selection, @NotNull Range<Double> mzRange,
       @Nullable MemoryMapStorage storage) {
-    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.CENTROID, selection);
+    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.MASS_LIST, selection);
     return extractIonTimeSeries(access, mzRange, null, storage);
   }
 
@@ -175,7 +175,7 @@ public class IonTimeSeriesUtils {
   public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull RawDataFile file,
       @NotNull List<Scan> scans, @NotNull Range<Double> mzRange, @Nullable Range<Float> rtRange,
       @Nullable MemoryMapStorage storage) {
-    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.CENTROID, scans);
+    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.MASS_LIST, scans);
     return extractIonTimeSeries(access, mzRange, rtRange, storage);
   }
 

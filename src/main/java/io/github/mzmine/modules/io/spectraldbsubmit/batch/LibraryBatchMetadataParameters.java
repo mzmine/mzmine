@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -88,8 +88,7 @@ public class LibraryBatchMetadataParameters extends SimpleParameterSet {
 
   public LibraryBatchMetadataParameters() {
     super(new Parameter[]{DESCRIPTION, DATASET_ID, INSTRUMENT_NAME, INSTRUMENT, ION_MOBILITY,
-        ION_SOURCE,
-        ACQUISITION, PI, DATA_COLLECTOR, IONMODE});
+        ION_SOURCE, ACQUISITION, PI, DATA_COLLECTOR, IONMODE});
   }
 
   public Map<DBEntryField, Object> asMap() {
@@ -103,8 +102,9 @@ public class LibraryBatchMetadataParameters extends SimpleParameterSet {
     putIfNotEmpty(map, ACQUISITION, DBEntryField.ACQUISITION);
     putIfNotEmpty(map, PI, DBEntryField.PRINCIPAL_INVESTIGATOR);
     putIfNotEmpty(map, DATA_COLLECTOR, DBEntryField.DATA_COLLECTOR);
+    // only overwrite value if optional was activated
     if (getValue(IONMODE)) {
-      putIfNotEmpty(map, getParameter(IONMODE).getEmbeddedParameter(), DBEntryField.POLARITY);
+      map.put(DBEntryField.POLARITY, getEmbeddedParameterValue(IONMODE));
     }
     return map;
   }

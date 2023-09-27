@@ -134,6 +134,7 @@ import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCS
 import io.github.mzmine.modules.io.export_library_gnps_batch.GNPSLibraryBatchExportModule;
 import io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule;
 import io.github.mzmine.modules.io.export_msn_tree.MSnTreeExportModule;
+import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportModule;
 import io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule;
 import io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFExportModule;
 import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
@@ -171,7 +172,7 @@ import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotM
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
-import io.github.mzmine.modules.visualization.networking.AnnotationNetworkModule;
+import io.github.mzmine.modules.visualization.network_overview.FeatureNetworkOverviewModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
 import io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule;
@@ -368,6 +369,7 @@ public class BatchModeModulesList {
       GnpsFbmnExportAndSubmitModule.class, //
       GnpsGcExportAndSubmitModule.class, //
       ExportCorrAnnotationModule.class, //
+      NetworkGraphMlExportModule.class, //
       MetaboAnalystExportModule.class, //
       AdapMgfExportModule.class, //
       GNPSResultsImportModule.class, //
@@ -424,7 +426,7 @@ public class BatchModeModulesList {
       MassvoltammogramFromFeatureListModule.class, //
       MSnTreeVisualizerModule.class, //
       MsMsVisualizerModule.class, //
-      AnnotationNetworkModule.class, //
+      FeatureNetworkOverviewModule.class, //
       CorrelatedFeaturesMzHistogramModule.class, //
       FeatureCorrelationHistogramModule.class, //
       RawDataSummaryModule.class, //

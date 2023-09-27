@@ -189,7 +189,7 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
     final IMSImagingRawDataFile file = (IMSImagingRawDataFile) flist.getRawDataFile(0);
 
     final MobilityScanDataAccess access = new MobilityScanDataAccess(file,
-        MobilityScanDataType.CENTROID, (List<Frame>) file.getFrames(1));
+        MobilityScanDataType.MASS_LIST, (List<Frame>) file.getFrames(1));
 
     if (flist.getNumberOfRows() == 0) {
       setStatus(TaskStatus.FINISHED);

@@ -26,21 +26,48 @@
 package io.github.mzmine.gui.mainwindow;
 
 import io.github.mzmine.modules.batchmode.ModuleQuickSelectDialog;
+import java.time.Duration;
+import java.time.Instant;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
 /**
  * Those keys can be added to other dialogs to enable the same behavior like in the main window.
- * E.g. quick search
+ * E.g. quick search. Adds support for double-click on keys like double shift
  */
 public class GlobalKeyHandler implements EventHandler<KeyEvent> {
 
+  public static final GlobalKeyHandler instance = new GlobalKeyHandler();
+  private KeyEvent lastKeyEvent = null;
+  private Instant lastKeyEventTime;
+
+  private GlobalKeyHandler() {
+  }
+
+  public static GlobalKeyHandler getInstance() {
+    return instance;
+  }
+
   @Override
   public void handle(final KeyEvent event) {
+    Instant now = Instant.now();
+    if (lastKeyEventTime != null && Duration.between(lastKeyEventTime, now).toMillis() > 500) {
+      lastKeyEvent = null;
+    }
+
     if (event.getCode() == KeyCode.F && event.isShortcutDown()) {
       ModuleQuickSelectDialog.openQuickSearch();
       event.consume();
+    } else if (event.getCode() == KeyCode.SHIFT) {
+      if (lastKeyEvent != null && lastKeyEvent.getCode() == KeyCode.SHIFT) {
+        ModuleQuickSelectDialog.openQuickSearch();
+        event.consume();
+        lastKeyEvent = null;
+        return;
+      }
     }
+    lastKeyEventTime = now;
+    lastKeyEvent = event;
   }
 }

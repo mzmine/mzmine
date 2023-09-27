@@ -25,7 +25,9 @@
 
 package io.github.mzmine.modules.visualization.networking.visual;
 
+import com.google.common.collect.Range;
 import com.google.common.io.Resources;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
@@ -302,35 +304,23 @@ public class NetworkPane extends BorderPane {
     view.setOnScroll(this::setZoomOnMouseScroll);
 
     view.setOnMouseDragged(e -> {
-      if (lastDragX == -1000) {
-        return;
-      }
       if (e.getButton() == MouseButton.PRIMARY) {
-        Point3 c = view.getCamera().getViewCenter();
-        Point3 end = view.getCamera().transformPxToGu(e.getX(), e.getY());
-        Point3 start = view.getCamera().transformPxToGu(lastDragX, lastDragY);
-        double x = end.x - start.x;
-        double y = end.y - start.y;
-        view.getCamera().setViewCenter(c.x - x, c.y - y, c.z);
+        if (lastDragX != -1000) {
+          Point3 c = view.getCamera().getViewCenter();
+          Point3 end = view.getCamera().transformPxToGu(e.getX(), e.getY());
+          Point3 start = view.getCamera().transformPxToGu(lastDragX, lastDragY);
+          double x = end.x - start.x;
+          double y = end.y - start.y;
+          view.getCamera().setViewCenter(c.x - x, c.y - y, c.z);
 
-        lastDragX = e.getX();
-        lastDragY = e.getY();
+          lastDragX = e.getX();
+          lastDragY = e.getY();
+        } else if (findNodeAt(e.getX(), e.getY()) == null) {
+          // no node - drag activated
+          lastDragX = e.getX();
+          lastDragY = e.getY();
+        }
       }
-    });
-    view.setOnMousePressed(e -> {
-      mouseClickedNode = findNodeAt(e.getX(), e.getY()); //for retrieving mouse-clicked node
-      if (mouseClickedNode != null) {
-        // node drag is handled automatically
-        lastDragX = -1000;
-        lastDragY = -1000;
-        return;
-      }
-      if (e.getButton() == MouseButton.PRIMARY) {
-        lastDragX = e.getX();
-        lastDragY = e.getY();
-      }
-    });
-    view.setOnMouseReleased(event -> {
     });
     view.setOnMouseClicked(e -> {
       if (lastDragX != -1000) {
@@ -388,7 +378,7 @@ public class NetworkPane extends BorderPane {
     if (node != null) {
       // shift - add to selection
       if (e.isShiftDown()) {
-        addSelection(node);
+        toggleSelection(node);
       } else {
         setSelectedNode(node);
       }
@@ -464,13 +454,11 @@ public class NetworkPane extends BorderPane {
 
   private void setZoomOnMouseScroll(ScrollEvent e) {
     if (e.getDeltaY() < 0) {
-      double new_view_percent = view.getCamera().getViewPercent() + 0.05;
+      double new_view_percent = view.getCamera().getViewPercent() / 0.9;
       view.getCamera().setViewPercent(new_view_percent);
     } else if (e.getDeltaY() > 0) {
-      double current_view_percent = view.getCamera().getViewPercent();
-      if (current_view_percent > 0.05) {
-        view.getCamera().setViewPercent(current_view_percent - 0.05);
-      }
+      double new_view_percent = view.getCamera().getViewPercent() * 0.9;
+      view.getCamera().setViewPercent(new_view_percent);
     }
   }
 
@@ -631,16 +619,23 @@ public class NetworkPane extends BorderPane {
   }
 
 
-  public void addSelection(Element element) {
+  public void toggleSelection(Element element) {
     if (element instanceof Node node) {
-      node.setAttribute("ui.clicked");
-//      node.setAttribute("ui.class", "big, important");
-      selectedNodes.add(node);
+      if (selectedNodes.remove(node)) {
+        node.removeAttribute("ui.clicked");
+      } else {
+        node.setAttribute("ui.clicked");
+        selectedNodes.add(node);
+      }
     }
     if (element instanceof Edge edge) {
-      edge.setAttribute("ui.clicked");
-      selectedEdges.add(edge);
-      selectedNodes.setAll(List.of(edge.getNode0(), edge.getNode1()));
+      if (selectedEdges.remove(edge)) {
+        edge.removeAttribute("ui.clicked");
+      } else {
+        edge.setAttribute("ui.clicked");
+        selectedEdges.add(edge);
+        selectedNodes.setAll(List.of(edge.getNode0(), edge.getNode1()));
+      }
     }
   }
 
@@ -653,6 +648,42 @@ public class NetworkPane extends BorderPane {
   public void resetZoom() {
     viewPercent = 1;
     view.getCamera().resetView();
+  }
+
+  public void zoomOnSelectedNodes() {
+    zoomOnNodes(selectedNodes);
+  }
+
+  public void zoomOnNodes(List<Node> nodes) {
+    List<GraphicNode> graphicNodes = nodes.stream()
+        .map(n -> (GraphicNode) getGraphicGraph().getNode(n.getId())).filter(Objects::nonNull)
+        .toList();
+    Range<Double> rx = null;
+    Range<Double> ry = null;
+    for (final GraphicNode n : graphicNodes) {
+      double x = n.getX();
+      double y = n.getY();
+      if (rx == null) {
+        rx = Range.singleton(x);
+        ry = Range.singleton(y);
+      } else {
+        rx = rx.span(Range.singleton(x));
+        ry = ry.span(Range.singleton(y));
+      }
+    }
+    if (rx == null) {
+      return;
+    }
+    Camera camera = view.getCamera();
+
+    double distX = RangeUtils.rangeCenter(rx);
+    double distY = RangeUtils.rangeCenter(ry);
+    camera.setViewCenter(distX, distY, 0);
+//    GraphMetrics metrics = camera.getMetrics();
+//    double diag = Math.sqrt(distX * distX + distY * distY);
+//    double[] size = metrics.size.data;
+//    double zoom = Math.max(distX / size[0], distY / size[1]) * 1.5;
+//    camera.setViewPercent(zoom);
   }
 
   public Pane getPnSettings() {
@@ -694,5 +725,9 @@ public class NetworkPane extends BorderPane {
 
   public FilterableGraph getGraph() {
     return graph;
+  }
+
+  public void showFullGraph() {
+    graph.showFullNetwork();
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -78,10 +78,15 @@ public class SignalFiltersParameters extends SimpleParameterSet {
     var cropToMaxSignals = params.getValue(SignalFiltersParameters.cropToMaxSignals);
     var signalThresholdForTargetIntensityPercent = params.getValue(
         SignalFiltersParameters.signalThresholdIntensityFilter);
-    var targetIntensityPercentage = params.getValue(
-        SignalFiltersParameters.intensityPercentFilter);
+    var targetIntensityPercentage = params.getValue(SignalFiltersParameters.intensityPercentFilter);
     return new SpectralSignalFilter(isRemovePrecursor, removePrecursorMz, cropToMaxSignals,
         signalThresholdForTargetIntensityPercent, targetIntensityPercentage);
   }
 
+  public void setValue(SpectralSignalFilter filter) {
+    setParameter(removePrecursor, filter.isRemovePrecursor(), filter.removePrecursorMz());
+    setParameter(intensityPercentFilter, filter.targetIntensityPercentage());
+    setParameter(signalThresholdIntensityFilter, filter.signalThresholdForTargetIntensityPercent());
+    setParameter(cropToMaxSignals, filter.cropToMaxSignals());
+  }
 }

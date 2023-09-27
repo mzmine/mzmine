@@ -211,8 +211,8 @@ public final class MZmineCore {
       if (!getInstance().headLessMode) {
         try {
           logger.info("Starting MZmine GUI");
-          Application.launch(MZmineGUI.class, args);
           isFxInitialized = true;
+          Application.launch(MZmineGUI.class, args);
         } catch (Throwable e) {
           e.printStackTrace();
           logger.log(Level.SEVERE, "Could not initialize GUI", e);

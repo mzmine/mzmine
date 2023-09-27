@@ -113,7 +113,7 @@ public class FeatureNetworkController {
       final @NotNull ObservableList<FeatureListRow> focussedRows) {
     // create graph and add to center
     FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
-    var fullGraph = generator.createNewGraph(flist, false, false);
+    var fullGraph = generator.createNewGraph(flist, true, true, false);
     networkPane = new FeatureNetworkPane(this, flist, focussedRows, generator, fullGraph);
     mainPane.setCenter(networkPane);
 
@@ -156,8 +156,8 @@ public class FeatureNetworkController {
 
   private void addMenuOptions() {
     // defaults
-    addComboOptions(comboNodeColor, COLOR, NodeAtt.values(), NodeAtt.MZ);
-    addComboOptions(comboNodeLabel, LABEL, NodeAtt.values(), NodeAtt.LABEL);
+    addComboOptions(comboNodeColor, COLOR, NodeAtt.values(), NodeAtt.RT);
+    addComboOptions(comboNodeLabel, LABEL, NodeAtt.values(), NodeAtt.ANNOTATION);
     addComboOptions(comboNodeSize, SIZE, NodeAtt.values(), NodeAtt.LOG10_SUM_INTENSITY);
     addComboOptions(comboEdgeColor, COLOR, EdgeAtt.values(), EdgeAtt.NEIGHBOR_DISTANCE);
     addComboOptions(comboEdgeSize, SIZE, EdgeAtt.values(), EdgeAtt.SCORE);
@@ -263,4 +263,11 @@ public class FeatureNetworkController {
     networkPane.focusSelectedNodes();
   }
 
+  public void onShowAllNodes(final ActionEvent actionEvent) {
+    networkPane.showFullGraph();
+  }
+
+  public void onZoomSelectedNodes(final ActionEvent actionEvent) {
+    networkPane.zoomOnSelectedNodes();
+  }
 }

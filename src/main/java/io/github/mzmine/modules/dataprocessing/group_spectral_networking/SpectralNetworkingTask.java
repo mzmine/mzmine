@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -92,7 +92,7 @@ public class SpectralNetworkingTask extends AbstractTask {
   private final int maxDPForDiff;
   private final boolean onlyBestMS2Scan;
   private final ParameterSet params;
-  private final ModularFeatureList featureList;
+  private final @Nullable ModularFeatureList featureList;
   // target
   private final boolean checkNeutralLoss;
   private final SpectralSignalFilter signalFilter;
@@ -382,9 +382,11 @@ public class SpectralNetworkingTask extends AbstractTask {
             "Added %d edges for %s".formatted(mapNeutralLoss.size(), Type.MS2_NEUTRAL_LOSS_SIM));
       }
 
-      featureList.addDescriptionOfAppliedTask(
-          new SimpleFeatureListAppliedMethod(SpectralNetworkingModule.class, params,
-              getModuleCallDate()));
+      if (featureList != null) {
+        featureList.addDescriptionOfAppliedTask(
+            new SimpleFeatureListAppliedMethod(SpectralNetworkingModule.class, params,
+                getModuleCallDate()));
+      }
 
       setStatus(TaskStatus.FINISHED);
 
@@ -402,7 +404,7 @@ public class SpectralNetworkingTask extends AbstractTask {
     FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
     var fullCosineMap = Map.of(Type.MS2_COSINE_SIM,
         Objects.requireNonNull(featureList.getRowMap(Type.MS2_COSINE_SIM)));
-    var graph = generator.createNewGraph(featureList.getRows(), true, fullCosineMap, false);
+    var graph = generator.createNewGraph(featureList.getRows(), false, true, fullCosineMap, false);
     GraphStreamUtils.detectCommunities(graph);
 
     Object2IntMap<Object> communitySizes = GraphStreamUtils.getCommunitySizes(graph);
