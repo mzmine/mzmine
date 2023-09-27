@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.networking.visual;
 
 import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeAtt;
 import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeType;
+import java.util.Objects;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 
@@ -39,6 +40,7 @@ public class ConsensusEdge {
   private final Node a;
   private final Node b;
   private final EdgeType type;
+  private final String typeString;
   private Double score;
   private String annotation;
   private Edge bestEdge;
@@ -50,6 +52,7 @@ public class ConsensusEdge {
     this.b = b;
     numberOfEdges = 1;
     type = edge.getAttribute(EdgeAtt.TYPE.toString(), EdgeType.class);
+    typeString = edge.getAttribute(EdgeAtt.TYPE_STRING.toString(), String.class);
     annotation = edge.getAttribute(EdgeAtt.LABEL.toString(), String.class);
     score = getScore(edge);
   }
@@ -84,8 +87,12 @@ public class ConsensusEdge {
     return type;
   }
 
-  public boolean matchingType(EdgeType type) {
-    return type == this.type;
+  public String getTypeString() {
+    return typeString;
+  }
+
+  public boolean matchingType(String type) {
+    return Objects.equals(type, this.type);
   }
 
   public Edge getBestEdge() {

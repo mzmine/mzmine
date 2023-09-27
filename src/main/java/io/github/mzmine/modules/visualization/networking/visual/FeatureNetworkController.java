@@ -57,6 +57,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
+import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.SearchableComboBox;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.control.textfield.TextFields;
@@ -78,7 +79,7 @@ public class FeatureNetworkController {
   public SearchableComboBox<EdgeAtt> comboEdgeSize;
   public SearchableComboBox<EdgeAtt> comboEdgeLabel;
   public ToggleSwitch cbCollapseIons;
-  //  public CheckComboBox<String> cbComboVisibleEdgeTypes;
+  public CheckComboBox<String> cbComboVisibleEdgeTypes;
   public Spinner<Integer> spinnerNodeNeighbors;
   public BorderPane mainPane;
   public TextField txtFilterAnnotations;
@@ -166,7 +167,11 @@ public class FeatureNetworkController {
     cbCollapseIons.selectedProperty()
         .addListener((observable, oldValue, newValue) -> networkPane.collapseIonNodes(newValue));
 
-//    cbComboVisibleEdgeTypes.getItems().addAll(networkPane.getUniqueEdgeTypes());
+    cbComboVisibleEdgeTypes.getItems().addAll(networkPane.getUniqueEdgeTypes());
+    ObservableList<String> checkedItems = cbComboVisibleEdgeTypes.getCheckModel().getCheckedItems();
+    checkedItems.addListener((ListChangeListener<? super String>) c -> networkPane.getGraph()
+        .getEdgeTypeFilter(new EdgeTypeFilter(checkedItems)));
+
     // TODO check all and bind visibility
 
     // #######################################################
@@ -245,6 +250,10 @@ public class FeatureNetworkController {
     GraphObject go = selectedValue.getGraphObject();
     combo.setTooltip(new Tooltip(go + " " + attribute)); // e.g., Node color
     combo.getSelectionModel().select(selectedValue);
+  }
+
+  public CheckComboBox<String> getCbComboVisibleEdgeTypes() {
+    return cbComboVisibleEdgeTypes;
   }
 
   public void updateGraph() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.Spectra
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportTask;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Relationship between two rows - describes the edge in a network where the nodes are {@link
@@ -69,7 +70,7 @@ public interface RowsRelationship {
    *
    * @return formatted score string
    */
-  default String getScoreFormatted() {
+  default @NotNull String getScoreFormatted() {
     double score = getScore();
     return Double.isNaN(score) ? "NaN"
         : MZmineCore.getConfiguration().getScoreFormat().format(score);
@@ -80,8 +81,7 @@ public interface RowsRelationship {
    *
    * @return the type of this relationship
    */
-  @NotNull
-  Type getType();
+  @NotNull String getType();
 
   /**
    * The annotation of this row-2-row relationship
@@ -96,14 +96,14 @@ public interface RowsRelationship {
    *
    * @return the first row
    */
-  FeatureListRow getRowA();
+  @NotNull FeatureListRow getRowA();
 
   /**
    * Row b
    *
    * @return the second row
    */
-  FeatureListRow getRowB();
+  @NotNull FeatureListRow getRowB();
 
 
   /**
@@ -131,6 +131,21 @@ public interface RowsRelationship {
      * GNPS modified cosine similarity, see {@link GNPSResultsImportTask}
      */
     MS2_GNPS_COSINE_SIM;
+
+    @Nullable
+    public static Type parse(final String type) {
+      try {
+        return valueOf(type);
+      } catch (Exception e) {
+        // maybe just the toString
+        for (final Type value : values()) {
+          if (value.toString().equalsIgnoreCase(type)) {
+            return value;
+          }
+        }
+        return null;
+      }
+    }
 
     @Override
     public String toString() {

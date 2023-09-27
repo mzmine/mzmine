@@ -331,6 +331,8 @@
         userData="io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmitModule"/>
       <MenuItem text="SIRIUS / CSI-FingerID" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule"/>
+      <MenuItem text="Import feature networks from csv" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.import_feature_networks.ImportFeatureNetworksSimpleModule"/>
       <MenuItem text="Export feature networks to csv" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule"/>
       <MenuItem text="Export spectral networks to graphml (FBMN/IIMN)" onAction="#runModule"

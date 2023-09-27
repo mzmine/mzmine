@@ -23,37 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual.enums;
+package io.github.mzmine.modules.io.import_feature_networks;
 
-public enum EdgeAtt implements GraphElementAttr {
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.util.files.FileAndPathUtil;
 
-  NONE, ID1, ID2, LABEL, SCORE, MATCHED_SIGNALS, EXPLAINED_INTENSITY, TYPE, TYPE_STRING, DELTA_MZ, NEIGHBOR_DISTANCE;
+public class ImportFeatureNetworksSimpleParameters extends SimpleParameterSet {
 
-  @Override
-  public String toString() {
-    return super.toString().toLowerCase();
-  }
+  public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1);
 
-  public boolean isNumber() {
-    return switch (this) {
-      case TYPE, TYPE_STRING, LABEL, NONE -> false;
-      case ID1, ID2, SCORE, DELTA_MZ, NEIGHBOR_DISTANCE, MATCHED_SIGNALS, EXPLAINED_INTENSITY ->
-          true;
-    };
-  }
+  public static final FileNamesParameter input = new FileNamesParameter("Input files (tsv/csv)", """
+      Comma-separated files (csv) or Tab-separated files (tsv) with the following columns:
+      ID1,ID2,EdgeType,EdgeAnnotation,EdgeScore
+      ID1 and ID2 need to correspond to feature list row IDs in the selected feature lists.
+      EdgeType and EdgeAnnotation are strings to define the method used and annotations of the edge
+      EdgeScore is a floating point number
+      """, FileAndPathUtil.CSV_TSV_FILTER);
 
-  @Override
-  public boolean isReversed() {
-    return this == NEIGHBOR_DISTANCE;
-  }
-
-  @Override
-  public boolean isChangingDynamically() {
-    return NEIGHBOR_DISTANCE == this;
-  }
-
-  @Override
-  public GraphObject getGraphObject() {
-    return GraphObject.EDGE;
+  public ImportFeatureNetworksSimpleParameters() {
+    super(flist, input);
   }
 }

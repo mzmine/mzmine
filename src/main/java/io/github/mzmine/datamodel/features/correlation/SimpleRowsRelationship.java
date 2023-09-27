@@ -29,50 +29,34 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Modified cosine similarity between two rows imported from GNPS results
+ * Can use a random type string
  */
-public class R2RMS2CosineSimilarityGNPS extends InternalTypedRowsRelationship {
+public class SimpleRowsRelationship extends AbstractRowsRelationship {
 
-  private final double cosine;
+  private final double score;
+  private final String type;
   private final String annotation;
-  private final String edgeType;
 
-  /**
-   * Modified cosine similarity imported from GNPS
-   *
-   * @param a      the two rows
-   * @param b      the two rows
-   * @param cosine cosine similarity
-   */
-  public R2RMS2CosineSimilarityGNPS(FeatureListRow a, FeatureListRow b, double cosine,
-      String annotation, String edgeType) {
-    super(a, b, Type.MS2_GNPS_COSINE_SIM);
-    this.cosine = cosine;
+  public SimpleRowsRelationship(final FeatureListRow a, final FeatureListRow b, final double score,
+      final String type, final String annotation) {
+    super(a, b);
+    this.score = score;
+    this.type = type;
     this.annotation = annotation;
-    this.edgeType = edgeType;
-  }
-
-  /**
-   * The edge type string used by GNPS
-   */
-  public String getGNPSEdgeType() {
-    return edgeType;
-  }
-
-  public double getCosineSimilarity() {
-    return cosine;
   }
 
   @Override
   public double getScore() {
-    return getCosineSimilarity();
+    return score;
   }
 
-  @NotNull
   @Override
-  public String getAnnotation() {
-    return annotation == null || annotation.strip().isEmpty() ? "cos=" + getScoreFormatted()
-        : annotation;
+  public @NotNull String getType() {
+    return type;
   }
 
+  @Override
+  public @NotNull String getAnnotation() {
+    return annotation;
+  }
 }

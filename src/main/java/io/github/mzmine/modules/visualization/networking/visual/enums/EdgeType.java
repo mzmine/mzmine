@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,23 @@ import java.util.Optional;
  */
 public enum EdgeType implements ElementType {
 
-  FEATURE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MODIFIED_COSINE, MODIFIED_COSINE_NEUTRAL_M, MODIFIED_COSINE_NEUTRAL_M_TO_FEATURE, GNPS_MODIFIED_COSINE;
+  FEATURE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MODIFIED_COSINE, MODIFIED_COSINE_NEUTRAL_M, MODIFIED_COSINE_NEUTRAL_M_TO_FEATURE, GNPS_MODIFIED_COSINE, OTHER;
+
+
+  public static EdgeType of(String type) {
+    if (type == null || type.isBlank()) {
+      return OTHER;
+    }
+
+    return switch (Type.parse(type)) {
+      case MS1_FEATURE_CORR -> FEATURE_CORRELATION;
+      case ION_IDENTITY_NET -> ION_IDENTITY;
+      case MS2_COSINE_SIM -> MODIFIED_COSINE;
+      case MS2_NEUTRAL_LOSS_SIM -> NETWORK_RELATIONS;
+      case MS2_GNPS_COSINE_SIM -> GNPS_MODIFIED_COSINE;
+      case null -> OTHER;
+    };
+  }
 
   public static EdgeType of(Type type) {
     return switch (type) {
@@ -42,6 +58,7 @@ public enum EdgeType implements ElementType {
       case MS2_COSINE_SIM -> MODIFIED_COSINE;
       case MS2_NEUTRAL_LOSS_SIM -> NETWORK_RELATIONS;
       case MS2_GNPS_COSINE_SIM -> GNPS_MODIFIED_COSINE;
+      case null -> OTHER;
     };
   }
 
@@ -59,6 +76,7 @@ public enum EdgeType implements ElementType {
           "COSINE";
       case GNPS_MODIFIED_COSINE -> "GNPS";
       case ION_IDENTITY -> "IIN";
+      case OTHER -> "OTHER";
     });
   }
 }
