@@ -28,10 +28,13 @@ package io.github.mzmine.util;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
@@ -46,15 +49,26 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerTask;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.maths.CenterFunction;
+import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import uk.ac.ebi.jmzml.model.mzml.ScanList;
 
 public class IonMobilityUtils {
 
@@ -202,6 +216,36 @@ public class IonMobilityUtils {
       }
     }
     return bestMobilityScan;
+  }
+
+  public static MobilityScan getSummedMobilityScan(@NotNull final Feature f, MZTolerance mzTolerance) {
+    Scan bestScan = f.getRepresentativeScan();
+    if (!(bestScan instanceof Frame bestFrame)) {
+      return null;
+    }
+
+    final IonTimeSeries<? extends Scan> featureData = f.getFeatureData();
+    if (!(featureData instanceof IonMobilogramTimeSeries trace)) {
+      return null;
+    }
+
+    final IonMobilitySeries bestMobilogram = trace.getMobilogram(bestFrame);
+    if (bestMobilogram == null) {
+      return null;
+    }
+    CenterFunction cf = new CenterFunction(CenterMeasure.AVG);
+    double[][] merged = SpectraMerging.calculatedMergedMzsAndIntensities(
+        bestFrame.getMobilityScans().stream().map(MobilityScan::getMassList).toList(), mzTolerance,
+        IntensityMergingType.SUMMED, cf, null, 0.0, null);
+    SimpleFrame simpleFrame = (SimpleFrame) bestFrame;
+    simpleFrame.setDataPoints(merged[0], merged[1]);
+    simpleFrame.addMassList(new ScanPointerMassList(bestFrame));
+    List<Frame> frame = new ArrayList<>();
+    frame.add(simpleFrame);
+
+    MobilityScanDataAccess access = new MobilityScanDataAccess((IMSRawDataFile) simpleFrame.getDataFile(),MobilityScanDataType.CENTROID,
+        frame);
+    return  access.getCurrentMobilityScan();
   }
 
   /**
