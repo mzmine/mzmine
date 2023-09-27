@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.features.correlation;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -67,5 +68,11 @@ public class R2RNetworkingMaps {
 
   public boolean isEmpty() {
     return r2rMaps.isEmpty();
+  }
+
+  public void addAll(final R2RNetworkingMaps maps) {
+    for (final Entry<String, R2RMap<RowsRelationship>> map : maps.getRowsMaps().entrySet()) {
+      addAllRowsRelationships(map.getValue(), map.getKey());
+    }
   }
 }

@@ -155,6 +155,12 @@ public class ImportFeatureNetworksSimpleTask extends AbstractSimpleTask {
       try (CSVReader csvReader = new CSVReaderBuilder(reader).withCSVParser(
           new RFC4180ParserBuilder().withSeparator(separator).build()).build()) {
         loadEdges(csvReader);
+
+        if (isCanceled()) {
+          return;
+        }
+        featureList.addRowMaps(maps);
+
       }
     } catch (MissingColumnException e) {
       setErrorMessage("CSV missing columns error: " + e.getMessage());

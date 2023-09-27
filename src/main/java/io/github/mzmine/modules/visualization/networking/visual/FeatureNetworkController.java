@@ -168,11 +168,10 @@ public class FeatureNetworkController {
         .addListener((observable, oldValue, newValue) -> networkPane.collapseIonNodes(newValue));
 
     cbComboVisibleEdgeTypes.getItems().addAll(networkPane.getUniqueEdgeTypes());
+    cbComboVisibleEdgeTypes.getCheckModel().checkAll();
     ObservableList<String> checkedItems = cbComboVisibleEdgeTypes.getCheckModel().getCheckedItems();
     checkedItems.addListener((ListChangeListener<? super String>) c -> networkPane.getGraph()
         .getEdgeTypeFilter(new EdgeTypeFilter(checkedItems)));
-
-    // TODO check all and bind visibility
 
     // #######################################################
     // add buttons

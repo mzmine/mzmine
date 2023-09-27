@@ -33,7 +33,7 @@ import java.util.Optional;
  */
 public enum EdgeType implements ElementType {
 
-  FEATURE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MODIFIED_COSINE, MODIFIED_COSINE_NEUTRAL_M, MODIFIED_COSINE_NEUTRAL_M_TO_FEATURE, GNPS_MODIFIED_COSINE, OTHER;
+  FEATURE_SHAPE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE, OTHER;
 
 
   public static EdgeType of(String type) {
@@ -42,9 +42,9 @@ public enum EdgeType implements ElementType {
     }
 
     return switch (Type.parse(type)) {
-      case MS1_FEATURE_CORR -> FEATURE_CORRELATION;
+      case MS1_FEATURE_CORR -> FEATURE_SHAPE_CORRELATION;
       case ION_IDENTITY_NET -> ION_IDENTITY;
-      case MS2_COSINE_SIM -> MODIFIED_COSINE;
+      case MS2_COSINE_SIM -> MS2_MODIFIED_COSINE;
       case MS2_NEUTRAL_LOSS_SIM -> NETWORK_RELATIONS;
       case MS2_GNPS_COSINE_SIM -> GNPS_MODIFIED_COSINE;
       case null -> OTHER;
@@ -53,9 +53,9 @@ public enum EdgeType implements ElementType {
 
   public static EdgeType of(Type type) {
     return switch (type) {
-      case MS1_FEATURE_CORR -> FEATURE_CORRELATION;
+      case MS1_FEATURE_CORR -> FEATURE_SHAPE_CORRELATION;
       case ION_IDENTITY_NET -> ION_IDENTITY;
-      case MS2_COSINE_SIM -> MODIFIED_COSINE;
+      case MS2_COSINE_SIM -> MS2_MODIFIED_COSINE;
       case MS2_NEUTRAL_LOSS_SIM -> NETWORK_RELATIONS;
       case MS2_GNPS_COSINE_SIM -> GNPS_MODIFIED_COSINE;
       case null -> OTHER;
@@ -70,10 +70,9 @@ public enum EdgeType implements ElementType {
   @Override
   public Optional<String> getUiClass() {
     return Optional.of(switch (this) {
-      case FEATURE_CORRELATION -> "FEATURECORR";
+      case FEATURE_SHAPE_CORRELATION -> "FEATURECORR";
       case NETWORK_RELATIONS -> "IINREL";
-      case MODIFIED_COSINE_NEUTRAL_M, MODIFIED_COSINE, MODIFIED_COSINE_NEUTRAL_M_TO_FEATURE ->
-          "COSINE";
+      case MS2_MODIFIED_COSINE -> "COSINE";
       case GNPS_MODIFIED_COSINE -> "GNPS";
       case ION_IDENTITY -> "IIN";
       case OTHER -> "OTHER";

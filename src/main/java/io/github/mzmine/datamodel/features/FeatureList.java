@@ -471,10 +471,14 @@ public interface FeatureList {
       if (isImagingFile && newFeature instanceof ModularFeature f) {
         // activate image for this feature
         DataTypeUtils.DEFAULT_IMAGING_COLUMNS_FEATURE.stream()
-            .filter(type -> type instanceof LinkedGraphicalType)
-            .forEach(type -> f.set(type, true));
+            .filter(type -> type instanceof LinkedGraphicalType).forEach(type -> f.set(type, true));
       }
     }
+  }
+
+  default void addRowMaps(R2RNetworkingMaps maps) {
+    var master = getRowMaps();
+    master.addAll(maps);
   }
 
   /**

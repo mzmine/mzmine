@@ -203,6 +203,7 @@ public class FeatureNetworkGenerator {
         for (ConsensusEdge e : consensusEdges) {
           Edge edge = addNewEdge(e.getA(), e.getB(), e.getType(), e.getAnnotation(), false);
           edge.setAttribute(EdgeAtt.SCORE.toString(), scoreForm.format(e.getScore()));
+          edge.setAttribute(EdgeAtt.TYPE_STRING.toString(), e.getTypeString());
         }
         // set network as finalized
         finalizedNetworks.add(net);
@@ -334,9 +335,9 @@ public class FeatureNetworkGenerator {
     setEdgeWeightQuadraticScore(edge, score);
 
     switch (type) {
-      case MODIFIED_COSINE, GNPS_MODIFIED_COSINE ->
+      case MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE ->
           edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
-      case FEATURE_CORRELATION ->
+      case FEATURE_SHAPE_CORRELATION ->
           edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
     }
   }

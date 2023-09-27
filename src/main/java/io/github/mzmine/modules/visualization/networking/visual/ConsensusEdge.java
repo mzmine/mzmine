@@ -112,7 +112,7 @@ public class ConsensusEdge {
   }
 
   public boolean matches(Node mnode, Node secondNode, Edge edge) {
-    return a.equals(mnode) && b.equals(secondNode) && type.equals(edge.getAttribute(EdgeAtt.TYPE
-        .toString()));
+    return a.equals(mnode) && b.equals(secondNode) && typeString.equals(
+        edge.getAttribute(EdgeAtt.TYPE_STRING.toString()));
   }
 }
