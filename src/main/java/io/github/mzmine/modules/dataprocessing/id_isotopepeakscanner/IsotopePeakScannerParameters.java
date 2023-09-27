@@ -107,7 +107,7 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
       new AutoCarbonParameters());
 
   public IsotopePeakScannerParameters() {
-    super(new Parameter[]{PEAK_LISTS, mzTolerance, bestScores,onlyMonoisotopic,resolvedByMobility, rtTolerance,mobTolerance, element, autoCarbonOpt,
+    super(new Parameter[]{PEAK_LISTS, mzTolerance, onlyMonoisotopic,bestScores,resolvedByMobility,rtTolerance,mobTolerance, element, autoCarbonOpt,
         charge, minPatternIntensity,minIsotopePatternScore, mergeWidth, minHeight,suffix},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_isotope_peak_scanner/isotope_peak_scanner.html");
   }

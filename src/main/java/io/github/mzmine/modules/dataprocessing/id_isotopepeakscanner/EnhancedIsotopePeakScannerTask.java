@@ -9,6 +9,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -20,6 +21,7 @@ import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
@@ -28,6 +30,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -44,15 +47,18 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.SpectraMerging;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
@@ -63,7 +69,6 @@ import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-
 
 
 public class EnhancedIsotopePeakScannerTask extends AbstractTask {
@@ -85,6 +90,8 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
   private boolean resolvedByMobility;
   private double minHeight;
 
+  private final Map<RawDataFile, ScanDataAccess> dataAccessMap = new HashMap<>();
+
 
   private static final Logger logger = Logger.getLogger(
       EnhancedIsotopePeakScannerTask.class.getName());
@@ -97,8 +104,9 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
 //   * @param minIntensity    minimum isotope intensity for prediction
 //   */
 
-  EnhancedIsotopePeakScannerTask(MZmineProject project, FeatureList peakList, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+  EnhancedIsotopePeakScannerTask(MZmineProject project, FeatureList peakList,
+      ParameterSet parameters, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.parameters = parameters;
     this.project = project;
@@ -107,16 +115,20 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
     mzTolerance = parameters.getParameter(IsotopePeakScannerParameters.mzTolerance).getValue();
     rtTolerance = parameters.getParameter(IsotopePeakScannerParameters.rtTolerance).getValue();
     mobTolerance = parameters.getParameter(IsotopePeakScannerParameters.mobTolerance).getValue();
-    minPatternIntensity = parameters.getParameter(IsotopePeakScannerParameters.minPatternIntensity).getValue();
+    minPatternIntensity = parameters.getParameter(IsotopePeakScannerParameters.minPatternIntensity)
+        .getValue();
     element = parameters.getParameter(IsotopePeakScannerParameters.element).getValue();
     suffix = parameters.getParameter(IsotopePeakScannerParameters.suffix).getValue();
     charge = parameters.getParameter(IsotopePeakScannerParameters.charge).getValue();
     resultPeakList = new ModularFeatureList(peakList.getName() + " " + suffix,
         getMemoryMapStorage(), peakList.getRawDataFiles());
-    minIsotopePatternScore = parameters.getParameter(IsotopePeakScannerParameters.minIsotopePatternScore).getValue();
+    minIsotopePatternScore = parameters.getParameter(
+        IsotopePeakScannerParameters.minIsotopePatternScore).getValue();
     bestScores = parameters.getParameter(IsotopePeakScannerParameters.bestScores).getValue();
-    onlyMonoisotopic = parameters.getParameter(IsotopePeakScannerParameters.onlyMonoisotopic).getValue();
-    resolvedByMobility = parameters.getParameter(IsotopePeakScannerParameters.resolvedByMobility).getValue();
+    onlyMonoisotopic = parameters.getParameter(IsotopePeakScannerParameters.onlyMonoisotopic)
+        .getValue();
+    resolvedByMobility = parameters.getParameter(IsotopePeakScannerParameters.resolvedByMobility)
+        .getValue();
     minHeight = parameters.getParameter(IsotopePeakScannerParameters.minHeight).getValue();
 
     polarityType = (charge > 0) ? PolarityType.POSITIVE : PolarityType.NEGATIVE;
@@ -131,7 +143,8 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
     }
 
     if (getPeakListPolarity(peakList) != polarityType) {
-      logger.warning("PeakList.polarityType does not match selected polarity. " + getPeakListPolarity(
+      logger.warning(
+          "PeakList.polarityType does not match selected polarity. " + getPeakListPolarity(
               peakList).toString() + "!=" + polarityType.toString());
     }
 
@@ -181,9 +194,9 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
               new SimpleIsotopePattern(calculatedPatternDPs, charge, IsotopePatternStatus.DETECTED,
                   ""));
 
-         DataPoint[] detectedPatternDPs = searchForIsotopePatternDataPoints(peakList, row,
+          DataPoint[] detectedPatternDPs = searchForIsotopePatternDataPoints(peakList, row,
               calculatedPatternDPs, mzTolerance, minHeight,
-             calculatedIsotopePattern.get(row.getID()).getDataPointMZRange(), resolvedByMobility );
+              calculatedIsotopePattern.get(row.getID()).getDataPointMZRange(), resolvedByMobility);
           IsotopePattern detectedPattern = new SimpleIsotopePattern(detectedPatternDPs, charge,
               IsotopePatternStatus.DETECTED, "");
           IsotopePatternScoring scoring = new IsotopePatternScoring();
@@ -204,40 +217,40 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
       // assumed to be the one with the highest SimilarityScore within the MZ range of the IsotopePattern.
       //A tolerance range of 0.01 was applied to avoid excluding isotopic patterns with very similar score values.
 
-
-if (onlyMonoisotopic ) {
-  for (Integer candidat : detectedIsotopePattern.keySet()) {
-    double candidatScore = allScores.get(candidat);
-    Boolean bestScore = true;
-    for (Integer rowID : detectedIsotopePattern.keySet()) {
-      FeatureListRow actualRow = featureMap.getRowByID(rowID);
-      if (rtTolerance.checkWithinTolerance(actualRow.getAverageRT(),
-              featureMap.getRowByID(candidat).getAverageRT())&&
-          checkMobility(mobTolerance,featureMap.getRowByID(candidat),actualRow)) {
-        if (Objects.requireNonNull(detectedIsotopePattern.get(candidat).getDataPointMZRange()).contains(actualRow.getAverageMZ())) {
-          if (allScores.get(rowID) > (candidatScore + 0.01)) {
-            bestScore = false;
-            break;
+      if (onlyMonoisotopic) {
+        for (Integer candidat : detectedIsotopePattern.keySet()) {
+          double candidatScore = allScores.get(candidat);
+          Boolean bestScore = true;
+          for (Integer rowID : detectedIsotopePattern.keySet()) {
+            FeatureListRow actualRow = featureMap.getRowByID(rowID);
+            if (rtTolerance.checkWithinTolerance(actualRow.getAverageRT(),
+                featureMap.getRowByID(candidat).getAverageRT()) && checkMobility(mobTolerance,
+                featureMap.getRowByID(candidat), actualRow)) {
+              if (Objects.requireNonNull(detectedIsotopePattern.get(candidat).getDataPointMZRange())
+                  .contains(actualRow.getAverageMZ())) {
+                if (allScores.get(rowID) > (candidatScore + 0.01)) {
+                  bestScore = false;
+                  break;
+                }
+              }
+            }
+          }
+          if (bestScore) {
+            if (resultMap.containsID(candidat) && scores.get(candidat) > candidatScore) {
+              continue;
+            }
+            resultMap.addRow(featureMap.getRowByID(candidat));
+            scores.put(candidat, allScores.get(candidat));
+            foundDetectedIsotopePattern.put(candidat, detectedIsotopePattern.get(candidat));
           }
         }
+      } else {
+        for (Integer candidat : detectedIsotopePattern.keySet()) {
+          resultMap.addRow(featureMap.getRowByID(candidat));
+          scores.put(candidat, allScores.get(candidat));
+          foundDetectedIsotopePattern.put(candidat, detectedIsotopePattern.get(candidat));
+        }
       }
-    }
-    if (bestScore) {
-      if (resultMap.containsID(candidat) && scores.get(candidat) > candidatScore) {
-        continue;
-      }
-      resultMap.addRow(featureMap.getRowByID(candidat));
-      scores.put(candidat, allScores.get(candidat));
-      foundDetectedIsotopePattern.put(candidat, detectedIsotopePattern.get(candidat));
-    }
-  }
-}
-else{
-  for (Integer candidat : detectedIsotopePattern.keySet()) {
-    resultMap.addRow(featureMap.getRowByID(candidat));
-    scores.put(candidat, allScores.get(candidat));
-    foundDetectedIsotopePattern.put(candidat, detectedIsotopePattern.get(candidat));}
-  }
 
       detectedIsotopePattern.clear();
     }
@@ -252,26 +265,28 @@ else{
           if (rtTolerance.checkWithinTolerance(actualRow.getAverageRT(),
               resultMap.getRowByID(candidat).getAverageRT())) {
             if (Objects.requireNonNull(
-                foundDetectedIsotopePattern.get(candidat).getDataPointMZRange()).contains(actualRow.getAverageMZ())) {
-                if (scores.get(rowID) > (candidatScore + 0.01)) {
-                  bestScore = false;
-                  break;
-                }
+                    foundDetectedIsotopePattern.get(candidat).getDataPointMZRange())
+                .contains(actualRow.getAverageMZ())) {
+              if (scores.get(rowID) > (candidatScore + 0.01)) {
+                bestScore = false;
+                break;
               }
             }
           }
-          if (bestScore) {
-            resultMap.getRowByID(candidat).getBestFeature().setIsotopePattern(foundDetectedIsotopePattern.get(candidat));
-            finalMap.addRow(resultMap.getRowByID(candidat));
-          }
+        }
+        if (bestScore) {
+          resultMap.getRowByID(candidat).getBestFeature()
+              .setIsotopePattern(foundDetectedIsotopePattern.get(candidat));
+          finalMap.addRow(resultMap.getRowByID(candidat));
         }
       }
-    else {
+    } else {
       finalMap = resultMap;
     }
     ArrayList<Integer> keys = finalMap.getAllKeys();
     for (Integer key : keys) {
-      ModularFeatureListRow bestRow = new ModularFeatureListRow(resultPeakList, key, (ModularFeatureListRow) finalMap.getRowByID(key), true);
+      ModularFeatureListRow bestRow = new ModularFeatureListRow(resultPeakList, key,
+          (ModularFeatureListRow) finalMap.getRowByID(key), true);
       bestRow.getBestFeature().setIsotopePattern(foundDetectedIsotopePattern.get(key));
 
       float scoreFloat = scores.get(key).floatValue();
@@ -304,72 +319,77 @@ else{
   HashMap<String, org.openscience.cdk.formula.IsotopePattern> calculatedPatterns = new HashMap<>();
   HashMap<String, Double> majorIsotopeOfPattern = new HashMap<>();
   double majorIntensity;
+
   public DataPoint[] calculateIsotopePatternDataPoints(FeatureListRow row, String e,
       double minPatternIntensity, MZTolerance mzTolerance, int charge) throws IOException {
-   if (!calculatedPatterns.containsKey(e)) {
-     builder = SilentChemObjectBuilder.getInstance();
-     IMolecularFormula elementFormula = MolecularFormulaManipulator.getMolecularFormula(e, builder);
-     org.openscience.cdk.formula.IsotopePatternGenerator generator = new IsotopePatternGenerator(
-         minPatternIntensity);
-     generator.setMinResolution(mzTolerance.getMzTolerance());
-     calculatedPatterns.put(e, generator.getIsotopes(elementFormula));
-     builder2 = SilentChemObjectBuilder.getInstance();
-     IMolecularFormula majorElementFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-         e, builder2);
-     majorIsotopeOfPattern.put(e,MolecularFormulaManipulator.getMass(majorElementFormula));
-   }
+    if (!calculatedPatterns.containsKey(e)) {
+      builder = SilentChemObjectBuilder.getInstance();
+      IMolecularFormula elementFormula = MolecularFormulaManipulator.getMolecularFormula(e,
+          builder);
+      org.openscience.cdk.formula.IsotopePatternGenerator generator = new IsotopePatternGenerator(
+          minPatternIntensity);
+      generator.setMinResolution(mzTolerance.getMzTolerance());
+      calculatedPatterns.put(e, generator.getIsotopes(elementFormula));
+      builder2 = SilentChemObjectBuilder.getInstance();
+      IMolecularFormula majorElementFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
+          e, builder2);
+      majorIsotopeOfPattern.put(e, MolecularFormulaManipulator.getMass(majorElementFormula));
+    }
     org.openscience.cdk.formula.IsotopePattern pattern = calculatedPatterns.get(e);
     double[] massDiff = new double[pattern.getNumberOfIsotopes()];
-      pattern.setCharge(charge);
-      for (int i = 0; i < pattern.getNumberOfIsotopes(); i++) {
-        massDiff[i] = (pattern.getIsotope(i).getMass() - majorIsotopeOfPattern.get(e)) / charge;
-      }
+    pattern.setCharge(charge);
+    for (int i = 0; i < pattern.getNumberOfIsotopes(); i++) {
+      massDiff[i] = (pattern.getIsotope(i).getMass() - majorIsotopeOfPattern.get(e)) / charge;
+    }
 
-      for (int i = 0; i < pattern.getNumberOfIsotopes(); i++) {
-        if (mzTolerance.checkWithinTolerance(pattern.getIsotope(i).getMass(), majorIsotopeOfPattern.get(e))) {
-          majorIntensity = pattern.getIsotope(i).getIntensity();
-        }
+    for (int i = 0; i < pattern.getNumberOfIsotopes(); i++) {
+      if (mzTolerance.checkWithinTolerance(pattern.getIsotope(i).getMass(),
+          majorIsotopeOfPattern.get(e))) {
+        majorIntensity = pattern.getIsotope(i).getIntensity();
       }
-      DataPoint monoIsotope = new SimpleDataPoint(row.getAverageMZ(), row.getSumIntensity());
+    }
+    DataPoint monoIsotope = new SimpleDataPoint(row.getAverageMZ(), row.getSumIntensity());
 
     DataPoint[] dp = new DataPoint[pattern.getNumberOfIsotopes()];
     for (int j = 0; j < pattern.getNumberOfIsotopes(); j++) {
       double calculatedMass = monoIsotope.getMZ() + massDiff[j];
       double calculatedIntensity =
-          (pattern.getIsotope(j).getIntensity() / majorIntensity) * row.getBestFeature().getHeight();
+          (pattern.getIsotope(j).getIntensity() / majorIntensity) * row.getBestFeature()
+              .getHeight();
       dp[j] = new SimpleDataPoint(calculatedMass, calculatedIntensity);
     }
     return dp;
   }
 
-// Scanning for isotope signals in MS1Scan or MobilityScan. Takes the signal with the highest intensity within the mass range.
-  public static DataPoint[] searchForIsotopePatternDataPoints(FeatureList peakList, FeatureListRow row,
-      DataPoint[] calculatedDataPoints, MZTolerance mzTolerance, double minHeight, Range <Double> mzRangeOfPattern, boolean resolvedMobility) {
+  // Scanning for isotope signals in MS1Scan or MobilityScan. Takes the signal with the highest intensity within the mass range.
+  public DataPoint[] searchForIsotopePatternDataPoints(FeatureList featureList, FeatureListRow row,
+      DataPoint[] calculatedDataPoints, MZTolerance mzTolerance, double minHeight,
+      Range<Double> mzRangeOfPattern, boolean resolvedMobility) {
     var ms1Scan = row.getBestFeature().getRepresentativeScan();
 
     final DataPoint[] ms1ScanPattern = new DataPoint[calculatedDataPoints.length];
     DataPoint[] detectedDps;
-    RawDataFile raw = peakList.getRawDataFile(0);
-    final ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.CENTROID, peakList.getSeletedScans(raw));
+    RawDataFile raw = featureList.getRawDataFile(0);
 
-    final MobilityScanDataAccess mobScans = initMobilityScanDataAccess(peakList, raw, row);
+    ScanDataAccess scans = dataAccessMap.computeIfAbsent(raw,
+        r -> EfficientDataAccess.of(raw, ScanDataType.MASS_LIST, featureList.getSeletedScans(raw)));
 
     if (ms1Scan != null) {
       if (resolvedMobility) {
-        ms1Scan = findBestScanOrMobilityScan(scans, mobScans, Objects.requireNonNull(row.getFeature(raw)), mzTolerance);
+        ms1Scan = findBestScanOrMobilityScan(scans, Objects.requireNonNull(row.getFeature(raw)),
+            mzTolerance);
       }
-      MassList ms1DefaultScan = ms1Scan.getMassList();
-      if (ms1DefaultScan == null) {
+      MassList massList = ms1Scan.getMassList();
+      if (massList == null) {
         throw new MissingMassListException(ms1Scan);
       }
-      DataPoint [] allData = new DataPoint [ms1Scan.getNumberOfDataPoints()];
-      for (int i = 0; i < ms1Scan.getNumberOfDataPoints() ; i++) {
-        allData [i] = new SimpleDataPoint(ms1Scan.getMzValue(i), ms1Scan.getIntensityValue(i));
-      }
+
+      DataPoint[] allData = ScanUtils.extractDataPoints(ms1Scan, true);
       detectedDps = ScanUtils.getDataPointsByMass(allData, mzRangeOfPattern);
     } else {
       return null;
     }
+
     for (int i = 0; i < calculatedDataPoints.length; i++) {
       DataPoint dp = calculatedDataPoints[i];
       for (DataPoint detectedDp : detectedDps) {
@@ -392,8 +412,6 @@ else{
     }
     return ms1ScanPattern;
   }
-
-
 
 
   private PolarityType getPeakListPolarity(FeatureList peakList) {
@@ -450,23 +468,23 @@ else{
 //      return false;
 //    }
 
-      RawDataFile[] raws = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
-      boolean foundMassList = false;
-      for (RawDataFile raw : raws) {
-        ObservableList<Scan> scanNumbers = raw.getScans();
-        for (Scan scan : scanNumbers) {
-          MassList massList = scan.getMassList();
-          if (massList != null) {
-            foundMassList = true;
-            break;
-          }
+    RawDataFile[] raws = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
+    boolean foundMassList = false;
+    for (RawDataFile raw : raws) {
+      ObservableList<Scan> scanNumbers = raw.getScans();
+      for (Scan scan : scanNumbers) {
+        MassList massList = scan.getMassList();
+        if (massList != null) {
+          foundMassList = true;
+          break;
         }
       }
-      if (foundMassList == false) {
-        setErrorMessage("Feature list \"" + peakList.getName() + "\" does not contain a mass list");
-        setStatus(TaskStatus.ERROR);
-        return false;
-      }
+    }
+    if (foundMassList == false) {
+      setErrorMessage("Feature list \"" + peakList.getName() + "\" does not contain a mass list");
+      setStatus(TaskStatus.ERROR);
+      return false;
+    }
 
     return true;
   }
@@ -474,7 +492,7 @@ else{
 
   public static Boolean checkMobility(MobilityTolerance mobTolerance, FeatureListRow candidate,
       FeatureListRow row) {
-    if (candidate.getAverageMobility()!= null &&row.getAverageMobility()!=null) {
+    if (candidate.getAverageMobility() != null && row.getAverageMobility() != null) {
       return mobTolerance.checkWithinTolerance(candidate.getAverageMobility(),
           row.getAverageMobility());
     } else {
@@ -482,30 +500,26 @@ else{
     }
   }
 
-  private static Scan findBestScanOrMobilityScan(ScanDataAccess scans,
-      MobilityScanDataAccess mobScans, Feature feature, MZTolerance mzTolerance) {
+  private static Scan findBestScanOrMobilityScan(ScanDataAccess scans, Feature feature,
+      MZTolerance mzTolerance) {
 
     final Scan maxScan = feature.getRepresentativeScan();
     final int scanIndex = scans.indexOf(maxScan);
     scans.jumpToIndex(scanIndex);
 
     final boolean mobility = feature.getMobility() != null;
-    MobilityScan mobilityScan = null;
-    if (mobility && mobScans != null) {
-      final MobilityScan bestMobilityScan = IonMobilityUtils.getSummedMobilityScan(feature, mzTolerance);
-      if (bestMobilityScan != null) {
-        mobilityScan = mobScans.jumpToMobilityScan(bestMobilityScan);
+    final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
+    if (mobility && featureData instanceof IonMobilogramTimeSeries imsData) {
+      final Range<Float> mobilityFWHM = IonMobilityUtils.getMobilityFWHM(
+          imsData.getSummedMobilogram());
+      final MergedMassSpectrum mergedMobilityScan = SpectraMerging.extractSummedMobilityScan(
+          (ModularFeature) feature, mzTolerance, mobilityFWHM, null);
+      if (mergedMobilityScan != null) {
+        return mergedMobilityScan;
       }
     }
-    return mobilityScan != null ? mobScans : scans;
+    return scans;
   }
 
-
-  private static MobilityScanDataAccess initMobilityScanDataAccess(FeatureList peakList, RawDataFile raw,
-      FeatureListRow row) {
-    return raw instanceof IMSRawDataFile imsFile && row.getFeatureList().getFeatureTypes()
-        .containsKey(MobilityUnitType.class) ? new MobilityScanDataAccess(imsFile,
-        MobilityScanDataType.CENTROID, (List<Frame>) peakList.getSeletedScans(imsFile)) : null;
-  }
 }
 

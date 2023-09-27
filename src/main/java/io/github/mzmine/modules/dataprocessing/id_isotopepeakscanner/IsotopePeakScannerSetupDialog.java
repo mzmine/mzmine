@@ -208,11 +208,10 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithPrevi
 
   }
 
-
-  @Override
-  protected void parametersChanged() {
-    updatePreview();
-  }
+//   @Override
+//  protected void parametersChanged() {
+//    updatePreview();
+//  }
 
   // -----------------------------------------------------
   // methods
