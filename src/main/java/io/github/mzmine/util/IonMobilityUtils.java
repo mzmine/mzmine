@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,13 +28,10 @@ package io.github.mzmine.util;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
-import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
@@ -49,28 +46,23 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
-import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
-import io.github.mzmine.datamodel.impl.SimpleFrame;
-import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerTask;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.maths.CenterFunction;
-import io.github.mzmine.util.maths.CenterMeasure;
+import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.scans.ScanUtils;
-import io.github.mzmine.util.scans.SpectraMerging;
-import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import uk.ac.ebi.jmzml.model.mzml.ScanList;
 
 public class IonMobilityUtils {
+
+  private static final double isotopeDistance = 1.0033;
+  private static final MZTolerance isotopeTol = new MZTolerance(0.003, 10);
 
   public static double getSmallestMobilityDelta(Frame frame) {
     double minDelta = Double.MAX_VALUE;
@@ -149,15 +141,32 @@ public class IonMobilityUtils {
       @NotNull final Range<Double> mzRange, @NotNull final MobilogramType type,
       @Nullable final MemoryMapStorage storage) {
 
-    final int numScans = frame.getNumberOfMobilityScans();
+    return buildMobilogramForMzRange(frame.getMobilityScans(), mzRange, type, storage);
+  }
+
+  /**
+   * Builds a mobilogram for the given mz range in the frame. Should only be used for previews and
+   * visualisations, less perfomant than a ims feature detector.
+   *
+   * @param mobilityScans The mobility scans. must belong to a single frame and sorted by ascending
+   *                      mobility scan number.
+   * @param mzRange       The mz/Range of the mobilogram
+   * @param type          basepeak or tic (summed)
+   * @param storage       The storage to use
+   * @return The built mobilogram.
+   */
+  public static IonMobilitySeries buildMobilogramForMzRange(
+      @NotNull final List<MobilityScan> mobilityScans, @NotNull final Range<Double> mzRange,
+      @NotNull final MobilogramType type, @Nullable final MemoryMapStorage storage) {
+
+    final int numScans = mobilityScans.size();
     final double rangeCenter = RangeUtils.rangeCenter(mzRange);
 
-    final double[] intensities = new double[frame.getNumberOfMobilityScans()];
-    final double[] mzs = new double[frame.getNumberOfMobilityScans()];
+    final double[] intensities = new double[numScans];
+    final double[] mzs = new double[numScans];
 
-    final List<MobilityScan> mobilityScans = frame.getMobilityScans();
-
-    final int maxNumDataPoints = frame.getMaxMobilityScanRawDataPoints();
+    final int maxNumDataPoints =
+        numScans != 0 ? mobilityScans.get(0).getFrame().getMaxMobilityScanRawDataPoints() : 0;
 
     final double[] intensitiesBuffer = new double[maxNumDataPoints];
     final double[] mzsBuffer = new double[maxNumDataPoints];
@@ -167,17 +176,20 @@ public class IonMobilityUtils {
       scan.getMzValues(mzsBuffer);
       scan.getIntensityValues(intensitiesBuffer);
 
-      if (type == MobilogramType.BASE_PEAK) {
-        DataPoint bp = ScanUtils.findBasePeak(mzsBuffer, intensitiesBuffer, mzRange,
-            scan.getNumberOfDataPoints());
-        if (bp != null) {
-          mzs[i] = bp.getMZ();
-          intensities[i] = bp.getIntensity();
+      switch (type) {
+        case BASE_PEAK -> {
+          DataPoint bp = ScanUtils.findBasePeak(mzsBuffer, intensitiesBuffer, mzRange,
+              scan.getNumberOfDataPoints());
+          if (bp != null) {
+            mzs[i] = bp.getMZ();
+            intensities[i] = bp.getIntensity();
+          }
         }
-      } else if (type == MobilogramType.TIC) {
-        mzs[i] = rangeCenter;
-        intensities[i] = ScanUtils.calculateTIC(mzsBuffer, intensitiesBuffer, mzRange,
-            scan.getNumberOfDataPoints());
+        case TIC -> {
+          mzs[i] = rangeCenter;
+          intensities[i] = ScanUtils.calculateTIC(mzsBuffer, intensitiesBuffer, mzRange,
+              scan.getNumberOfDataPoints());
+        }
       }
     }
 
@@ -216,36 +228,6 @@ public class IonMobilityUtils {
       }
     }
     return bestMobilityScan;
-  }
-
-  public static MobilityScan getSummedMobilityScan(@NotNull final Feature f, MZTolerance mzTolerance) {
-    Scan bestScan = f.getRepresentativeScan();
-    if (!(bestScan instanceof Frame bestFrame)) {
-      return null;
-    }
-
-    final IonTimeSeries<? extends Scan> featureData = f.getFeatureData();
-    if (!(featureData instanceof IonMobilogramTimeSeries trace)) {
-      return null;
-    }
-
-    final IonMobilitySeries bestMobilogram = trace.getMobilogram(bestFrame);
-    if (bestMobilogram == null) {
-      return null;
-    }
-    CenterFunction cf = new CenterFunction(CenterMeasure.AVG);
-    double[][] merged = SpectraMerging.calculatedMergedMzsAndIntensities(
-        bestFrame.getMobilityScans().stream().map(MobilityScan::getMassList).toList(), mzTolerance,
-        IntensityMergingType.SUMMED, cf, null, 0.0, null);
-    SimpleFrame simpleFrame = (SimpleFrame) bestFrame;
-    simpleFrame.setDataPoints(merged[0], merged[1]);
-    simpleFrame.addMassList(new ScanPointerMassList(bestFrame));
-    List<Frame> frame = new ArrayList<>();
-    frame.add(simpleFrame);
-
-    MobilityScanDataAccess access = new MobilityScanDataAccess((IMSRawDataFile) simpleFrame.getDataFile(),MobilityScanDataType.CENTROID,
-        frame);
-    return  access.getCurrentMobilityScan();
   }
 
   /**
@@ -378,22 +360,23 @@ public class IonMobilityUtils {
   }
 
   /**
-   * Calculates a spectral chimerity around a specific m/z. The chimerity is calculated as the
-   * quotient of intensities in the isolation window with regard to mobility and m/z. The
+   * Calculates a spectral purity around a specific m/z. The purity is calculated as the quotient of
+   * intensities in the isolation window with regard to mobility and m/z. The
    * {@link MobilityScanDataAccess} must have selected the frame to evaluate. The mobility scan will
    * be set to the first using {@link MobilityScanDataAccess#resetMobilityScan()}. If no data points
    * are found in the isolation window a score of 0 will be returned.
    *
-   * @param precursorMz   The precursor to isolate.
-   * @param access        A data access.
-   * @param mzRange       The mzRange to isolate.
-   * @param mobilityRange The mobility range to isolate.
+   * @param precursorMz          The precursor to isolate.
+   * @param access               A data access.
+   * @param mzRange              The mzRange to isolate.
+   * @param mobilityRange        The mobility range to isolate.
+   * @param sumPrecursorIsotopes If true, isotope intensities are summed to the precursor
    * @return Accumulated precursor intensity divided by intensity of all ions in the isolation
    * window. 0 if no intensities are found.
    */
-  public static double getIsolationChimerityScore(final double precursorMz,
+  public static double getPurityInMzAndMobilityRange(final double precursorMz,
       @NotNull final MobilityScanDataAccess access, @NotNull final Range<Double> mzRange,
-      @NotNull final Range<Float> mobilityRange) {
+      @NotNull final Range<Float> mobilityRange, boolean sumPrecursorIsotopes) {
 
     double precursorIntensity = 0d;
     double isolationWindowTIC = 0d;
@@ -408,7 +391,8 @@ public class IonMobilityUtils {
       }
 
       final int closestIndex = access.binarySearch(precursorMz, true);
-      if (mzRange.contains(access.getMzValue(closestIndex))) {
+      final double precursorMzInScan = access.getMzValue(closestIndex);
+      if (mzRange.contains(precursorMzInScan)) {
         precursorIntensity += access.getIntensityValue(closestIndex);
         isolationWindowTIC += access.getIntensityValue(closestIndex);
       }
@@ -416,6 +400,10 @@ public class IonMobilityUtils {
       for (int i = closestIndex - 1; i > 0; i--) {
         if (mzRange.contains(access.getMzValue(i))) {
           isolationWindowTIC += access.getIntensityValue(i);
+          if (sumPrecursorIsotopes && isPotentialIsotope(precursorMzInScan, access.getMzValue(i),
+              isotopeTol)) {
+            precursorIntensity += access.getIntensityValue(i);
+          }
         } else {
           break;
         }
@@ -424,6 +412,10 @@ public class IonMobilityUtils {
       for (int i = closestIndex + 1; i < access.getNumberOfDataPoints(); i++) {
         if (mzRange.contains(access.getMzValue(i))) {
           isolationWindowTIC += access.getIntensityValue(i);
+          if (sumPrecursorIsotopes && isPotentialIsotope(precursorMzInScan, access.getMzValue(i),
+              isotopeTol)) {
+            precursorIntensity += access.getIntensityValue(i);
+          }
         } else {
           break;
         }
@@ -434,8 +426,103 @@ public class IonMobilityUtils {
         : 0d;
   }
 
-  public enum MobilogramType {
-    BASE_PEAK, TIC
+  public static double getPurityInMzRange(final double precursorMz,
+      @NotNull final MobilityScanDataAccess access, @NotNull final Range<Double> mzRange,
+      @NotNull final MobilityScan scan, boolean sumPrecursorIsotopes) {
+
+    double precursorIntensity = 0d;
+    double isolationWindowTIC = 0d;
+
+    access.resetMobilityScan();
+
+    if (access.jumpToMobilityScan(scan) == null || access.getNumberOfDataPoints() == 0) {
+      return 0d;
+    }
+
+    final int closestIndex = access.binarySearch(precursorMz, true);
+    final double precursorMzInScan = access.getMzValue(closestIndex);
+    if (mzRange.contains(precursorMzInScan)) {
+      precursorIntensity += access.getIntensityValue(closestIndex);
+      isolationWindowTIC += access.getIntensityValue(closestIndex);
+    }
+
+    for (int i = closestIndex - 1; i > 0; i--) {
+      if (mzRange.contains(access.getMzValue(i))) {
+        isolationWindowTIC += access.getIntensityValue(i);
+        if (sumPrecursorIsotopes && isPotentialIsotope(precursorMzInScan, access.getMzValue(i),
+            isotopeTol)) {
+          precursorIntensity += access.getIntensityValue(i);
+        }
+      } else {
+        break;
+      }
+    }
+
+    for (int i = closestIndex + 1; i < access.getNumberOfDataPoints(); i++) {
+      if (mzRange.contains(access.getMzValue(i))) {
+        isolationWindowTIC += access.getIntensityValue(i);
+        if (sumPrecursorIsotopes && isPotentialIsotope(precursorMzInScan, access.getMzValue(i),
+            isotopeTol)) {
+          precursorIntensity += access.getIntensityValue(i);
+        }
+      } else {
+        break;
+      }
+    }
+
+    return isolationWindowTIC > 0d ? precursorIntensity / isolationWindowTIC : 0d;
   }
 
+  /**
+   * @param mobilogram          The mobilogram.
+   * @param normalizationFactor The factor to divide intensities by. null = resulting max intensity
+   *                            will be normalized to 1.
+   * @return The normalized mobilogram.
+   */
+  public static SummedIntensityMobilitySeries normalizeMobilogram(
+      final SummedIntensityMobilitySeries mobilogram, @Nullable Double normalizationFactor) {
+    double[] newIntensities = new double[mobilogram.getNumberOfValues()];
+    double[] newMobilities = new double[mobilogram.getNumberOfValues()];
+    mobilogram.getMobilityValues(newMobilities);
+    mobilogram.getIntensityValues(newIntensities);
+
+    final double max = normalizationFactor != null ? normalizationFactor
+        : Arrays.stream(newIntensities).max().orElse(1d);
+    for (int i = 0; i < newIntensities.length; i++) {
+      newIntensities[i] /= max;
+    }
+    return new SummedIntensityMobilitySeries(null, newMobilities, newIntensities);
+  }
+
+  public static boolean isPotentialIsotope(final double monoisotopicMz, final double mzToCheck,
+      final MZTolerance tolerance) {
+    final int num13c = (int) Math.round(mzToCheck - monoisotopicMz);
+    return tolerance.checkWithinTolerance(monoisotopicMz + num13c * isotopeDistance, mzToCheck);
+  }
+
+  public static MobilityScan getMobilityScanForMobility(final Frame frame, final double mobility) {
+    final int index = switch (frame.getMobilityType()) {
+      case TIMS -> { // reverse order for tims, invert the binary search.
+        final int numScans = frame.getNumberOfMobilityScans();
+        int i = BinarySearch.binarySearch(mobility, true, 0, numScans,
+            j -> frame.getMobilities().getDouble(numScans - j));
+        yield numScans - i;
+      }
+      default -> BinarySearch.binarySearch(mobility, true, 0, frame.getNumberOfMobilityScans(),
+          i -> frame.getMobilities().getDouble(i));
+    };
+
+    return frame.getMobilityScan(index);
+  }
+
+  public enum MobilogramType {
+    BASE_PEAK, TIC;
+
+    public String shortString() {
+      return switch (this) {
+        case BASE_PEAK -> "BPM";
+        case TIC -> "TIM";
+      };
+    }
+  }
 }

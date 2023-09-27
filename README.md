@@ -48,15 +48,9 @@ or
 
 The final MZmine distribution will be placed in build/jpackage
 
-If you encounter any problems, please contact the developers:
+If you encounter any problems, please contact the developers by posting an issue:
 https://github.com/mzmine/mzmine3/issues
 
-### Code style
-
-Since this is a collaborative project, please adhere to the following code formatting conventions:
-
-* We use the Google Java Style Guide (https://github.com/google/styleguide)
-* Please write JavaDoc comments as full sentences, starting with a capital letter and ending with a
-  period. Brevity is preferred (e.g., "Calculates standard deviation" is preferred over "This method
-  calculates and returns a standard deviation of given set of numbers").
-
+### Contribute code (or documentation)
+Guides and more information is in the MZmine documentation:
+https://mzmine.github.io/mzmine_documentation/contribute_intellij.html

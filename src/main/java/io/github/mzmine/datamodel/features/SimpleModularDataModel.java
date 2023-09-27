@@ -56,4 +56,5 @@ public class SimpleModularDataModel implements ModularDataModel {
   public <T> boolean set(final Class<? extends DataType<T>> tclass, final T value) {
     return ModularDataModel.super.set(tclass, value);
   }
+
 }

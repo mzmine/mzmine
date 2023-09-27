@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,6 +53,8 @@ public final class WorkflowDiaWizardParameters extends WorkflowWizardParameters 
       "Export for molecular networking (e.g., GNPS, FBMN, IIMN, MetGem)",
       "Export to Feature-based Molecular Networking (FBMN) and Ion Identity Molecular Networking (IIMN) on GNPS and other tools",
       true);
+  public static final BooleanParameter exportAnnotationGraphics = new BooleanParameter(
+      "Export annotation graphics", "Exports annotations to png and pdf images.", false);
 
   public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
       new FileNameParameter("Export path",
@@ -63,13 +65,13 @@ public final class WorkflowDiaWizardParameters extends WorkflowWizardParameters 
   public WorkflowDiaWizardParameters() {
     super(WorkflowWizardParameterFactory.DIA,
         // actual parameters
-        minPearson, minCorrelatedPoints, exportPath, exportGnps, exportSirius);
+        minPearson, minCorrelatedPoints, exportPath, exportGnps, exportSirius, exportAnnotationGraphics);
   }
 
 
   public WorkflowDiaWizardParameters(final double minPearsonCorrelation, final int minPoints,
       final boolean exportActive, final File exportBasePath, final boolean exportGnpsActive,
-      boolean exportSiriusActive) {
+      boolean exportSiriusActive, boolean exportAnnotationGraphicsActive) {
     this();
     setParameter(minPearson, minPearsonCorrelation);
     setParameter(minCorrelatedPoints, minPoints);
@@ -77,6 +79,7 @@ public final class WorkflowDiaWizardParameters extends WorkflowWizardParameters 
     getParameter(exportPath).getEmbeddedParameter().setValue(exportBasePath);
     setParameter(exportGnps, exportGnpsActive);
     setParameter(exportSirius, exportSiriusActive);
+    setParameter(exportAnnotationGraphics, exportAnnotationGraphicsActive);
   }
 
 }

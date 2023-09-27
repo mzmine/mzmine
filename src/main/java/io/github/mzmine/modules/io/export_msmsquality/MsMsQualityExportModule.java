@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,7 +40,7 @@ public class MsMsQualityExportModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getName() {
-    return "MS/MS quality export";
+    return "MS2 quality export";
   }
 
   @Override
@@ -50,7 +50,7 @@ public class MsMsQualityExportModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getDescription() {
-    return "Exports metrics for MS/MS spectra";
+    return "Exports metrics for MS2 spectra";
   }
 
   @Override
@@ -59,12 +59,11 @@ public class MsMsQualityExportModule implements MZmineProcessingModule {
       @NotNull Instant moduleCallDate) {
 
     tasks.add(new MsMsQualityExportTask(moduleCallDate, parameters));
-
     return ExitCode.OK;
   }
 
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
-    return null;
+    return MZmineModuleCategory.TOOLS;
   }
 }

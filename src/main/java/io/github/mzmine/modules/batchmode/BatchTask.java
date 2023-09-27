@@ -147,7 +147,7 @@ public class BatchTask extends AbstractTask {
 
         if (allFiles.length != 0) {
           // set files to import
-          if (!queue.setImportFiles(allFiles)) {
+          if (!queue.setImportFiles(allFiles, null)) {
             if (skipOnError) {
               processedSteps += stepsPerDataset;
               continue;

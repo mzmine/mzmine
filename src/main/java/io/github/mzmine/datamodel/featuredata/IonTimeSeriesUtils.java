@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,7 +40,9 @@ import io.github.mzmine.util.RangeUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -163,7 +165,7 @@ public class IonTimeSeriesUtils {
   public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull RawDataFile file,
       @NotNull ScanSelection selection, @NotNull Range<Double> mzRange,
       @Nullable MemoryMapStorage storage) {
-    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.CENTROID, selection);
+    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.MASS_LIST, selection);
     return extractIonTimeSeries(access, mzRange, null, storage);
   }
 
@@ -173,7 +175,7 @@ public class IonTimeSeriesUtils {
   public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull RawDataFile file,
       @NotNull List<Scan> scans, @NotNull Range<Double> mzRange, @Nullable Range<Float> rtRange,
       @Nullable MemoryMapStorage storage) {
-    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.CENTROID, scans);
+    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.MASS_LIST, scans);
     return extractIonTimeSeries(access, mzRange, rtRange, storage);
   }
 
@@ -227,5 +229,27 @@ public class IonTimeSeriesUtils {
         scans);
   }
 
+  /**
+   * Sorts a {@link IonTimeSeries} by intensity and returns an array of the indices in the original
+   * series.
+   *
+   * @param series The series to sort.
+   * @return An int array, holding indices of the original series. The first index corresponds to
+   * the highest intensity, the last index corresponds to the lowest intensity.
+   */
+  public static <T extends IonTimeSeries<?>> int[] getIntensitySortedIndices(T series) {
+    final double[] intensities;
+    intensities = new double[series.getNumberOfValues()];
+    series.getIntensityValues(intensities);
 
+    // sort by descending intensity
+    return IntStream.range(0, series.getNumberOfValues())
+        .mapToObj(i -> new IndexedValue(i, intensities[i]))
+        .sorted(Comparator.comparingDouble(IndexedValue::intensity).reversed())
+        .mapToInt(IndexedValue::index).toArray();
+  }
+
+  private record IndexedValue(int index, double intensity) {
+
+  }
 }

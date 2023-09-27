@@ -88,7 +88,7 @@ public class MZmineJsonLibraryEntry {
   public Double exactMass;
   public Double rt, ccs;
   public String cas, splash;
-  public String formula, smiles, inchi, inchikey;
+  public String formula, smiles, inchi, inchikey, peptideSequence;
   public Double fragmentationEnergy;
   public String mergedSpectrumType;
   public String fragmentationMethod;
@@ -97,7 +97,7 @@ public class MZmineJsonLibraryEntry {
   public String datasetId, usi;
   public Integer scanNumber;
   public String comment;
-  public String compoundSource, dataCollector, investigator;
+  public String compoundSource, dataCollector, investigator, imsType;
   public MSnDefinition multiStageFragmentation;
   public SpectralQuality quality;
   public Double purity;
@@ -141,11 +141,13 @@ public class MZmineJsonLibraryEntry {
       case INCHI -> inchi;
       case INCHIKEY -> inchikey;
       case SMILES -> smiles;
+      case PEPTIDE_SEQ -> peptideSequence;
       case CAS -> cas;
       case MS_LEVEL -> msLevel;
       case RT -> rt;
       case CCS -> ccs;
       case ION_TYPE -> adduct;
+      case IMS_TYPE -> imsType;
       case PRECURSOR_MZ -> precursorMz;
       case CHARGE -> charge;
       case MERGED_SPEC_TYPE -> mergedSpectrumType;

@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gestures.SimpleDataDragGestureHandler;
@@ -65,6 +66,7 @@ import io.github.mzmine.util.javafx.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Stroke;
+import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
 import java.util.Date;
 import java.util.HashSet;
@@ -84,6 +86,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.shape.Rectangle;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.annotations.XYShapeAnnotation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.ui.Layer;
@@ -117,7 +120,6 @@ public class IMSRawDataOverviewPane extends BorderPane {
   private final ObjectProperty<MobilityScan> selectedMobilityScan;
   private final ObjectProperty<Range<Double>> selectedMz;
   private final Stroke markerStroke = new BasicStroke(1.0f);
-
   private final Color markerColor;
   private final Set<Integer> mzRangeTicDatasetIndices;
   private final GridPane massDetectionPane;
@@ -280,6 +282,21 @@ public class IMSRawDataOverviewPane extends BorderPane {
     }
     updateValueMarkers();
 
+    final Color boxClr = MZmineCore.getConfiguration().getDefaultColorPalette()
+        .getNegativeColorAWT();
+    final Color transparent = new Color(0.5f, 0f, 0f, 0.5f);
+    for (PasefMsMsInfo info : selectedFrame.get().getImsMsMsInfos()) {
+      final double mobLow = selectedFrame.get()
+          .getMobilityForMobilityScanNumber(info.getSpectrumNumberRange().lowerEndpoint());
+      final double mobHigh = selectedFrame.get()
+          .getMobilityForMobilityScanNumber(info.getSpectrumNumberRange().upperEndpoint());
+      var rect = new Rectangle2D.Double(info.getIsolationWindow().lowerEndpoint(),
+          Math.min(mobLow, mobHigh), RangeUtils.rangeLength(info.getIsolationWindow()),
+          Math.abs(mobHigh - mobLow));
+      final XYShapeAnnotation precursorIso = new XYShapeAnnotation(rect, new BasicStroke(1f),
+          Color.red, null);
+      heatmapChart.getXYPlot().addAnnotation(precursorIso);
+    }
   }
 
   private void updateAxisLabels() {

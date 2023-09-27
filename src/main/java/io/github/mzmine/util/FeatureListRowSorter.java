@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Comparator;
@@ -91,9 +93,9 @@ public class FeatureListRowSorter implements Comparator<FeatureListRow> {
         double medianHeight = MathUtils.calcQuantile(peakHeights, 0.5);
         return medianHeight;
       case MZ:
-        return row.getAverageMZ() + row.getAverageRT() / 10000000.0;
+        return row.getAverageMZ() + requireNonNullElse(row.getAverageRT(), 0f) / 10000000.0;
       case RT:
-        return row.getAverageRT() + row.getAverageMZ() / 10000000.0;
+        return requireNonNullElse(row.getAverageRT(), 0f) + row.getAverageMZ() / 10000000.0;
       case ID:
         return row.getID();
     }

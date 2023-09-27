@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,6 +52,7 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
   private final File exportPath;
   private final Boolean rtSmoothing;
   private final LibraryBatchMetadataParameters libGenMetadata;
+  private final Boolean applySpectralNetworking;
 
   public WizardBatchBuilderLcLibraryGen(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -73,6 +74,8 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
 
     // library generation workflow parameters
     params = steps.get(WizardPart.WORKFLOW);
+    applySpectralNetworking = getValue(params,
+        WorkflowLibraryGenerationWizardParameters.applySpectralNetworking);
     exportPath = getValue(params, WorkflowLibraryGenerationWizardParameters.exportPath);
     exportGnps = getValue(params, WorkflowLibraryGenerationWizardParameters.exportGnps);
     exportSirius = getValue(params, WorkflowLibraryGenerationWizardParameters.exportSirius);
@@ -85,8 +88,8 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
-    makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, noiseLevelMs1, minRtDataPoints,
-        cropRtRange);
+    makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
+        minRtDataPoints, cropRtRange);
     makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
 
     var groupMs2Params = createMs2GrouperParameters();
@@ -119,10 +122,16 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
     makeAndAddLibrarySearchStep(q, true);
 
     // export
-    makeAndAddDdaExportSteps(q, true, exportPath, exportGnps, exportSirius);
+    makeAndAddDdaExportSteps(q, true, exportPath, exportGnps, exportSirius, false);
 
     // convert library to feature list
     makeAndAddLibraryToFeatureListStep(q);
+
+    // networking
+    if (applySpectralNetworking) {
+      makeAndAddSpectralNetworkingSteps(q, true, exportPath);
+    }
+
     return q;
   }
 

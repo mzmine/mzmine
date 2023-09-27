@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -85,46 +85,36 @@ import org.openscience.cdk.smiles.SmilesParser;
 
 public class SpectralMatchPanel extends JPanel {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private static final int ICON_WIDTH = 50;
+  public static final Font FONT = new Font("Verdana", Font.PLAIN, 24);
+  public static final int META_WIDTH = 500;
+  public static final int ENTRY_HEIGHT = 500;
+  // colors
+  public static final double MIN_COS_COLOR_VALUE = 0.5;
+  public static final double MAX_COS_COLOR_VALUE = 1.0;
   static final Image iconAll = FxIconUtil.loadImageFromResources("icons/exp_graph_all.png");
   static final Image iconPdf = FxIconUtil.loadImageFromResources("icons/exp_graph_pdf.png");
   static final Image iconEps = FxIconUtil.loadImageFromResources("icons/exp_graph_eps.png");
   static final Image iconEmf = FxIconUtil.loadImageFromResources("icons/exp_graph_emf.png");
   static final Image iconSvg = FxIconUtil.loadImageFromResources("icons/exp_graph_svg.png");
-
-  public static final Font FONT = new Font("Verdana", Font.PLAIN, 24);
-
+  private static final int ICON_WIDTH = 50;
   private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
   private static final long serialVersionUID = 1L;
-  public static final int META_WIDTH = 500;
-  public static final int ENTRY_HEIGHT = 500;
-
-  // colors
-  public static final double MIN_COS_COLOR_VALUE = 0.5;
-  public static final double MAX_COS_COLOR_VALUE = 1.0;
   // min color is a darker red
   // max color is a darker green
   public static Color MAX_COS_COLOR = new Color(0x388E3C);
   public static Color MIN_COS_COLOR = new Color(0xE30B0B);
-
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final Font headerFont = new Font("Dialog", Font.BOLD, 16);
   private final Font titleFont = new Font("Dialog", Font.BOLD, 18);
   private final Font scoreFont = new Font("Dialog", Font.BOLD, 30);
-
-  private EChartPanel mirrorChart;
-
-  private boolean setCoupleZoomY;
-
-  private XYPlot queryPlot;
-
-  private XYPlot libraryPlot;
-  private Font chartFont;
   private final JPanel pnExport;
-
   private final JPanel metaDataPanel;
   private final JPanel boxTitlePanel;
+  private EChartPanel mirrorChart;
+  private boolean setCoupleZoomY;
+  private XYPlot queryPlot;
+  private XYPlot libraryPlot;
+  private Font chartFont;
 
   public SpectralMatchPanel(SpectralDBAnnotation hit) {
     JPanel panel = this;
@@ -400,7 +390,7 @@ public class SpectralMatchPanel extends JPanel {
     int w = META_WIDTH * 3;
     int titleLineMultiplier = (int) ((boxTitlePanel.getPreferredSize().getWidth() / w) + 2);
     boxTitlePanel.setSize(w, boxTitlePanel.getHeight() * titleLineMultiplier);
-    int h = (boxTitlePanel.getHeight() + (int) metaDataPanel.getPreferredSize().getHeight());
+    int h = (boxTitlePanel.getHeight() + (int) metaDataPanel.getPreferredSize().getHeight() + 40);
 
     JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
     frame.setSize(w, h);

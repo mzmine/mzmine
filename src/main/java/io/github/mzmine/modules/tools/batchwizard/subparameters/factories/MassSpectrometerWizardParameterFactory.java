@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
+import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -44,8 +45,9 @@ public enum MassSpectrometerWizardParameterFactory implements WizardParameterFac
     return switch (ims) {
       case NO_IMS, IMS, DTIMS, TWIMS -> null;
       case TIMS ->
-          new MassSpectrometerWizardParameters(QTOF, 1.5E2, 1E2, 1.0E3, new MZTolerance(0.005, 20),
-              new MZTolerance(0.0015, 3), new MZTolerance(0.004, 8));
+          new MassSpectrometerWizardParameters(QTOF, MassDetectorWizardOptions.ABSOLUTE_NOISE_LEVEL,
+              500, 1E2, 1.0E3, new MZTolerance(0.005, 20), new MZTolerance(0.0015, 3),
+              new MZTolerance(0.004, 8));
     };
   }
 
@@ -68,18 +70,20 @@ public enum MassSpectrometerWizardParameterFactory implements WizardParameterFac
   @Override
   public WizardStepParameters create() {
     return switch (this) {
-      case Orbitrap ->
-          new MassSpectrometerWizardParameters(this, 1E4, 3E3, 5E4, new MZTolerance(0.002, 10),
-              new MZTolerance(0.0015, 3), new MZTolerance(0.0015, 5));
       case QTOF ->
-          new MassSpectrometerWizardParameters(this, 5E2, 1E2, 1E3, new MZTolerance(0.005, 20),
-              new MZTolerance(0.0015, 3), new MZTolerance(0.004, 8));
+          new MassSpectrometerWizardParameters(this, MassDetectorWizardOptions.ABSOLUTE_NOISE_LEVEL,
+              5E2, 1E2, 1E3, new MZTolerance(0.005, 20), new MZTolerance(0.0015, 3),
+              new MZTolerance(0.004, 8));
+      case Orbitrap -> new MassSpectrometerWizardParameters(this,
+          MassDetectorWizardOptions.FACTOR_OF_LOWEST_SIGNAL, 5, 2.5, 5E4,
+          new MZTolerance(0.002, 10), new MZTolerance(0.0015, 3), new MZTolerance(0.0015, 5));
       // TODO optimize some defaults
-      case FTICR ->
-          new MassSpectrometerWizardParameters(this, 5E2, 1E2, 1E3, new MZTolerance(0.0005, 5),
-              new MZTolerance(0.0005, 2), new MZTolerance(0.0005, 3.5));
-      case LOW_RES -> new MassSpectrometerWizardParameters(this, 0, 0, 0, new MZTolerance(0.5, 0),
-          new MZTolerance(0.5, 0), new MZTolerance(0.5, 0));
+      case FTICR -> new MassSpectrometerWizardParameters(this,
+          MassDetectorWizardOptions.FACTOR_OF_LOWEST_SIGNAL, 5, 2.5, 1E3,
+          new MZTolerance(0.0005, 5), new MZTolerance(0.0005, 2), new MZTolerance(0.0005, 3.5));
+      case LOW_RES ->
+          new MassSpectrometerWizardParameters(this, MassDetectorWizardOptions.ABSOLUTE_NOISE_LEVEL,
+              0, 0, 0, new MZTolerance(0.5, 0), new MZTolerance(0.5, 0), new MZTolerance(0.5, 0));
     };
   }
 }

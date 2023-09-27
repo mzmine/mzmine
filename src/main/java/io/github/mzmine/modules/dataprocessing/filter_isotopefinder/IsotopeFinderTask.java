@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -152,7 +152,7 @@ class IsotopeFinderTask extends AbstractTask {
     RawDataFile raw = featureList.getRawDataFile(0);
 
     // Loop through all rows
-    final ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.CENTROID,
+    final ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.MASS_LIST,
         featureList.getSeletedScans(raw));
 
     final MobilityScanDataAccess mobScans = initMobilityScanDataAccess(raw);
@@ -350,7 +350,7 @@ class IsotopeFinderTask extends AbstractTask {
   private MobilityScanDataAccess initMobilityScanDataAccess(RawDataFile raw) {
     return raw instanceof IMSRawDataFile imsFile && featureList.getFeatureTypes()
         .containsKey(MobilityUnitType.class) ? new MobilityScanDataAccess(imsFile,
-        MobilityScanDataType.CENTROID, (List<Frame>) featureList.getSeletedScans(imsFile)) : null;
+        MobilityScanDataType.MASS_LIST, (List<Frame>) featureList.getSeletedScans(imsFile)) : null;
   }
 
   private void checkCandidatesInScan(ScanDataAccess scans, List<MergedDataPoint> candidates,
@@ -379,5 +379,4 @@ class IsotopeFinderTask extends AbstractTask {
   private boolean checkRetentionTime(Scan scan, float maxRT, Float fwhmDiff) {
     return scan != null && Math.abs(scan.getRetentionTime() - maxRT) <= fwhmDiff;
   }
-
 }

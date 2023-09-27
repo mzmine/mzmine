@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -145,20 +145,20 @@ public class EfficientDataAccess {
   }
 
   /**
-   * Different types to handle Scan data: {@link #RAW}: Use raw data as imported; {@link #CENTROID}:
+   * Different types to handle Scan data: {@link #RAW}: Use raw data as imported; {@link #MASS_LIST}:
    * Use processed centroid data ({@link MassList}
    */
   public enum ScanDataType {
-    RAW, CENTROID
+    RAW, MASS_LIST
   }
 
   /**
    * Different types to handle mobility scan data: {@link #RAW}: Use raw data as imported; {@link
-   * #CENTROID}: Use processed centroid data ({@link MassList}
+   * #MASS_LIST}: Use processed centroid data ({@link MassList}
    */
   public enum MobilityScanDataType {
     // basically just a copy of ScanDataType, but useful to distinguish the factory methods
-    RAW, CENTROID
+    RAW, MASS_LIST
   }
 
   /**
