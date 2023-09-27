@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
+import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -55,17 +56,27 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import io.github.mzmine.util.scans.similarity.Weights;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.formula.IsotopeContainer;
+import org.openscience.cdk.formula.IsotopePatternGenerator;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IIsotope;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * This will scan a feature list for calculated isotope patterns. This class loops through every
@@ -101,7 +112,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
   private ModularFeatureList resultPeakList;
   private MZmineProject project;
   private FeatureList peakList;
-  private boolean checkRT;
+  private boolean checkRT = true;
   private SimpleIsotopePattern[] pattern;
   private PolarityType polarityType;
   private int charge;
@@ -127,20 +138,15 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
     mzTolerance = parameters.getParameter(IsotopePeakScannerParameters.mzTolerance).getValue();
     rtTolerance = parameters.getParameter(IsotopePeakScannerParameters.rtTolerance).getValue();
-    checkIntensity =
-        parameters.getParameter(IsotopePeakScannerParameters.checkIntensity).getValue();
     mergeWidth = parameters.getParameter(IsotopePeakScannerParameters.mergeWidth).getValue();
     minPatternIntensity =
         parameters.getParameter(IsotopePeakScannerParameters.minPatternIntensity).getValue();
     element = parameters.getParameter(IsotopePeakScannerParameters.element).getValue();
-    minRating = parameters.getParameter(IsotopePeakScannerParameters.minRating).getValue();
     suffix = parameters.getParameter(IsotopePeakScannerParameters.suffix).getValue();
-    checkRT = parameters.getParameter(IsotopePeakScannerParameters.checkRT).getValue();
+//    checkRT = parameters.getParameter(IsotopePeakScannerParameters.checkRT).getValue();
     minHeight = parameters.getParameter(IsotopePeakScannerParameters.minHeight).getValue();
     charge = parameters.getParameter(IsotopePeakScannerParameters.charge).getValue();
-    accurateAvgIntensity =
-        parameters.getParameter(IsotopePeakScannerParameters.calculate_accurate_average).getValue();
-    ratingChoice = parameters.getParameter(IsotopePeakScannerParameters.ratingChoices).getValue();
+
 
     autoCarbon = parameters.getParameter(IsotopePeakScannerParameters.autoCarbonOpt).getValue();
     ParameterSet autoCarbonParameters =
@@ -288,6 +294,10 @@ public class IsotopePeakScannerTask extends AbstractTask {
         new ModularFeatureList(peakList.getName() + " " + suffix, getMemoryMapStorage(),
             peakList.getRawDataFiles());
     PeakListHandler resultMap = new PeakListHandler();
+    HashMap<Integer,IsotopePattern> calculatedPatterns = new HashMap <>();
+    HashMap<Integer,DataPoint []> calculatedPatternsDPs = new HashMap <>();
+    HashMap<Integer,IsotopePattern> detectedPatterns = new HashMap <>();
+    HashMap<Integer,DataPoint []> detectedPatternsDPs = new HashMap <>();
 
     for (int i = 0; i < totalRows; i++) {
       // i will represent the index of the row in peakList
@@ -588,13 +598,14 @@ public class IsotopePeakScannerTask extends AbstractTask {
       if (!allPeaksAddable) {
         continue;
       }
-
       IsotopePattern resultPattern = new SimpleIsotopePattern(dp, charge,
           IsotopePatternStatus.DETECTED, element + " monoisotopic mass: " + parent.getAverageMZ());
       parent.getBestFeature().setIsotopePattern(resultPattern);
 
       for (FeatureListRow row : rowBuffer) {
         row.getBestFeature().setIsotopePattern(resultPattern);
+        detectedPatterns.put(row.getID(),resultPattern);
+        detectedPatternsDPs.put(row.getID(),dp);
         resultMap.addRow(row);
       }
 
@@ -604,10 +615,113 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
       finishedRows++;
     }
+    PeakListHandler finalMap = new PeakListHandler();
+    HashMap<Integer,Double> scores = new HashMap <>();
+    List <Integer> keysOfResultMap = resultMap.getAllKeys();
+    for (Integer integer : keysOfResultMap) {
+      IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+      IMolecularFormula elementFormula = MolecularFormulaManipulator.getMolecularFormula(element,
+          builder);
+      FeatureListRow actualRow = resultMap.getRowByID(integer);
+      IsotopePatternGenerator generator = new IsotopePatternGenerator(minPatternIntensity);
+      generator.setMinResolution(mzTolerance.getMzTolerance());
+      IsotopeContainer monoIsotope = new IsotopeContainer(actualRow.getAverageMZ(),
+          actualRow.getSumIntensity());
+      org.openscience.cdk.formula.IsotopePattern pattern = generator.getIsotopes(elementFormula);
+      pattern.setMonoIsotope(monoIsotope);
+      pattern.getMonoIsotope().setIntensity(actualRow.getBestFeature().getHeight());
+      DataPoint[] dp2 = new DataPoint[pattern.getNumberOfIsotopes()];
+      for (int j = 0; j < pattern.getNumberOfIsotopes(); j++) {
+        dp2[j] = new SimpleDataPoint(pattern.getIsotope(j).getMass(),
+            pattern.getIsotope(j).getIntensity());
+      }
+      IsotopePattern calculatedPattern = new SimpleIsotopePattern(dp2, charge,
+          IsotopePatternStatus.DETECTED, "");
 
-    ArrayList<Integer> keys = resultMap.getAllKeys();
+
+      var similarityLibrary = SpectralSimilarityFunction.compositeCosine.getSimilarity(
+          Weights.SQRT, 0, HandleUnmatchedSignalOptions.KEEP_LIBRARY_SIGNALS, mzTolerance, 0,
+          dp2, detectedPatternsDPs.get(integer));
+      double score = similarityLibrary.getScore();
+
+//      double score = IsotopePatternScoreCalculator.getSimilarityScore(
+//          detectedPatterns.get(actualRow.getID()), calculatedPattern, mzTolerance, minPatternIntensity);
+      scores.put(actualRow.getID(), score);
+      calculatedPatterns.put(actualRow.getID(), calculatedPattern);
+      calculatedPatternsDPs.put(actualRow.getID(), dp2);
+    }
+    for (int j = 0; j < keysOfResultMap.size(); j++) {
+      FeatureListRow actualRow = resultMap.getRowByID(keysOfResultMap.get(j));
+      if (scores != null) {
+        List<Integer> foundIsotopesIDs = new ArrayList<>();
+        for (int k = 0; k < keysOfResultMap.size(); k++) {
+          Range<Double> mzRange = detectedPatterns.get(actualRow.getID()).getDataPointMZRange();
+          if (rtTolerance.checkWithinTolerance(actualRow.getAverageRT(),
+              resultMap.getRowByID(keysOfResultMap.get(k)).getAverageRT())) {
+            assert mzRange != null;
+            if (mzRange.contains(resultMap.getRowByID(keysOfResultMap.get(k)).getAverageMZ())) {
+              if (scores.get(resultMap.getRowByID(keysOfResultMap.get(k)).getID()) > scores.get(
+                  actualRow.getID())) {
+                foundIsotopesIDs.add(resultMap.getRowByID(keysOfResultMap.get(k)).getID());
+              }
+            }
+          }
+        }
+          double maximumScore = 0;
+          int maximumScoreID = 0;
+          for (Integer foundIsotopesID : foundIsotopesIDs) {
+            if (scores.get(foundIsotopesID) > maximumScore) {
+              maximumScore = scores.get(foundIsotopesID);
+              maximumScoreID = foundIsotopesID;
+            }
+          }
+          if (maximumScoreID!=0) {
+            finalMap.addRow(resultMap.getRowByID(maximumScoreID));
+          }
+
+
+      }
+    }
+
+    ArrayList<Integer> features = finalMap.getAllKeys();
+    ArrayList<Integer> patterns = resultMap.getAllKeys();
+    for (Integer feature : features) {
+      IsotopePattern calculatedPattern = calculatedPatterns.get(feature);
+
+      double bestScore = 0;
+      IsotopePattern bestPattern = detectedPatterns.get(finalMap.getRowByID(feature).getID());
+      if (calculatedPattern != null) {
+        for (Integer pattern : patterns) {
+          IsotopePattern actualPattern = detectedPatterns.get(resultMap.getRowByID(pattern).getID());
+          Range<Double> mzRange = calculatedPattern.getDataPointMZRange();
+          //Range<Double> mzRange = finalMap.getRowByID(feature).getBestFeature().getIsotopePattern().getDataPointMZRange();
+          if (rtTolerance.checkWithinTolerance(resultMap.getRowByID(pattern).getAverageRT(),
+              finalMap.getRowByID(feature).getAverageRT())) {
+            assert mzRange != null;
+            if (mzRange.contains(resultMap.getRowByID(pattern).getAverageMZ())) {
+            var similarityLibrary = SpectralSimilarityFunction.compositeCosine.getSimilarity(
+                Weights.SQRT, 0, HandleUnmatchedSignalOptions.KEEP_LIBRARY_SIGNALS, mzTolerance, 0,
+                calculatedPatternsDPs.get(feature), detectedPatternsDPs.get(pattern));
+            double score = 0;
+            if (similarityLibrary != null) {
+              score = similarityLibrary.getScore();
+//              double score = IsotopePatternScoreCalculator.getSimilarityScore(actualPattern,
+//                  calculatedPattern, mzTolerance, minPatternIntensity);
+            }
+              if (score > bestScore) {
+                bestPattern = actualPattern;
+
+              }
+            }
+          }
+        }
+        finalMap.getRowByID(feature).getBestFeature().setIsotopePattern(bestPattern);
+      }
+    }
+
+    ArrayList<Integer> keys = finalMap.getAllKeys();
     for (Integer key : keys) {
-      resultPeakList.addRow(resultMap.getRowByID(key));
+      resultPeakList.addRow(finalMap.getRowByID(key));
     }
 
     if (resultPeakList.getNumberOfRows() > 1) {
@@ -678,7 +792,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
   /**
    * This calculates the isotope pattern using SimpleIsotopePattern and creates an ArrayList<Double>
    * that will contain the mass shift for every expected isotope peak relative to the one with the
-   * lowest mass.
+   * monoisotopic mass.
    *
    * @return
    */
