@@ -100,19 +100,19 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "Matches predicted and detected isotope pattern. Make sure to run isotope finder before on the feature list.",
       (IsotopePatternMatcherParameters) new IsotopePatternMatcherParameters().cloneParameterSet());
   private static final List<ImportType> importTypes = List.of(
-      new ImportType(true, "neutral mass", new NeutralMassType()),
+      new ImportType(true, "neutral_mass", new NeutralMassType()),
       new ImportType(true, "mz", new PrecursorMZType()), //
       new ImportType(true, "rt", new RTType()), new ImportType(true, "formula", new FormulaType()),
       new ImportType(true, "smiles", new SmilesStructureType()),
       new ImportType(false, "inchi", new InChIStructureType()),
-      new ImportType(false, "inchi key", new InChIKeyStructureType()),
+      new ImportType(false, "inchi_key", new InChIKeyStructureType()),
       new ImportType(false, "name", new CompoundNameType()),
       new ImportType(false, "CCS", new CCSType()),
       new ImportType(false, "mobility", new MobilityType()),
       new ImportType(true, "comment", new CommentType()),
       new ImportType(false, "adduct", new IonAdductType()),
       new ImportType(false, "PubChemCID", new PubChemIdType()),
-      new ImportType(false, "molecular class", new MolecularClassType()));
+      new ImportType(false, "molecular_class", new MolecularClassType()));
 
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.", importTypes);
