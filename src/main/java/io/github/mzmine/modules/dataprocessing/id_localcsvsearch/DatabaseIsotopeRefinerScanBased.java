@@ -353,7 +353,6 @@ public class DatabaseIsotopeRefinerScanBased extends AbstractTask {
           var score = (float) (similarityLibrary.getScore());
           if (score >= finalScore) {
             finalScore = score;
-            bestResolution = resolution;
           }
         }
 
@@ -415,23 +414,18 @@ public class DatabaseIsotopeRefinerScanBased extends AbstractTask {
     if(row.getBestFeature().getIsotopePattern() ==null || row.getCompoundAnnotations().isEmpty()){
       return rows;
     }
-    double lowerMass = row.getBestFeature().getIsotopePattern().getMzValue(0);
-    double higherMass = row.getBestFeature().getIsotopePattern().getMzValue(row.getBestFeature().getIsotopePattern().getNumberOfDataPoints()-1);
-//    double lowerMass = row.getAverageMZ()-10;
-//    double higherMass = row.getAverageMZ()+10;
 
     for (int actualRow: rows.keySet()){
-    if (rows.get(actualRow).getAverageMZ()>lowerMass  && rows.get(actualRow).getAverageMZ()<higherMass&&
+    if (row.getBestFeature().getIsotopePattern().getDataPointMZRange().contains(rows.get(actualRow).getAverageMZ())&&
       RTTolerance.checkWithinTolerance(rows.get(actualRow).getAverageRT(), row.getAverageRT())&& rows.get(actualRow).getCompoundAnnotations().isEmpty()
     ) {
       continue;
     }
     newList.put(actualRow, rows.get(actualRow));
-
-
     }
   return newList;
   }
+
   public void addResultToProject(ModularFeatureList resultPeakList, MZmineProject project,
       ParameterSet parameters) {
     // Add new peakList to the project

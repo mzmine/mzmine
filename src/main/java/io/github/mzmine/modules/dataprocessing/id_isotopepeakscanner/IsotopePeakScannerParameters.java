@@ -57,7 +57,7 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
   public static final BooleanParameter bestScores =
       new BooleanParameter("Only the best Scores", "Shows only the matches with the best score for the searched patterns.", true);
   public static final BooleanParameter onlyMonoisotopic =
-      new BooleanParameter("Only the monoisotopic signals", "Show only the match with the best score (monoisotopic signals).", true);
+      new BooleanParameter("Only the monoisotopic signals", "Show only the match with the best result for an isotopic pattern (monoisotopic signals).", true);
 
   public static final BooleanParameter resolvedByMobility =
       new BooleanParameter("Use time and mobility resolved mass spectra", "Use time- and mobility-resolved mass spectra instead of only time-resolved ones", true);
@@ -96,7 +96,7 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
       "auto");
 
   public static final IntegerParameter charge =
-      new IntegerParameter("Charge", "Amount and polarity (e.g.: [M]+=+1 / [M]-=-1", 1, true);
+      new IntegerParameter("Maximum charge", "Amount and polarity of the maximum charge (e.g.: [M]+=+1 / [M]-=-1", 1, true);
 
 
   public static final OptionalModuleParameter autoCarbonOpt = new OptionalModuleParameter(

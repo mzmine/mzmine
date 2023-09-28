@@ -34,37 +34,12 @@ public class IsotopePatternScoring {
       nCalculatedDataPoints[i]=dp;
     }
 
-
     var similarityLibrary = SpectralSimilarityFunction.compositeCosine.getSimilarity(Weights.SQRT, 0, HandleUnmatchedSignalOptions.KEEP_LIBRARY_SIGNALS, mzTolerance, 0,
         nCalculatedDataPoints, detectedDataPoints);
     double score = 0.0;
     if (similarityLibrary != null){
       score = similarityLibrary.getScore();
     }
-
-
-
-
-//    double sumRatios = 0;
-//    double score = 0;
-//    int counter=0;
-//    for (DataPoint dp : nCalculatedDataPoints){
-//      if (dp.getIntensity()>minIntensity) {
-//        for (DataPoint detectedDp : detectedDataPoints) {
-//          if (mzTolerance.checkWithinTolerance(dp.getMZ(), detectedDp.getMZ())) {
-//            double ratio = Math.min(dp.getIntensity(), detectedDp.getIntensity())/Math.max(dp.getIntensity(), detectedDp.getIntensity());
-//            sumRatios += ratio;
-//            counter += 1;
-//            if (detectedDp.getIntensity() == 0){
-//              sumRatios = 0;
-//              break;
-//            }
-//          }
-//        }
-//      }
-//    }
-//
-//      score = sumRatios / counter;
 
     return score;
   }
