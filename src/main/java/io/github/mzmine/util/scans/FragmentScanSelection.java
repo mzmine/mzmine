@@ -114,7 +114,7 @@ public record FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSep
             || merged.getMergingType() == MergingType.PASEF_SINGLE).toList();
 
     if (noMergedScans.isEmpty()) {
-      return List.of();
+      return scans;
     }
 
     Map<Float, List<Scan>> byFragmentationEnergy = ScanUtils.splitByFragmentationEnergy(
