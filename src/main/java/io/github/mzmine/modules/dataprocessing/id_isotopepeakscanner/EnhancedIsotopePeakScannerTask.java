@@ -1,31 +1,20 @@
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
-import com.alanmrace.jimzmlparser.mzml.ScanList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
-import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
-import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
-import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
-import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
-import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
-import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
-import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -34,20 +23,15 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.MobilityUnitType;
-import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerTask;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningTask;
-import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerTask.RatingType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
@@ -57,7 +41,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -150,7 +133,7 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
 
     ObservableList<FeatureListRow> rows = peakList.getRows();
     PeakListHandler featureMap = new PeakListHandler();
-    HashMap<Integer, IsotopePattern> foundDetectedIsotopePattern = new HashMap<>();
+    HashMap<Integer, IsotopePattern> resultingIsotopePattern = new HashMap<>();
 
     for (FeatureListRow row : rows) {
       featureMap.addRow(row);
@@ -163,8 +146,10 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
 
     HashMap<Integer, IsotopePattern> calculatedIsotopePattern = new HashMap<>();
     HashMap<Integer, IsotopePattern> detectedIsotopePattern = new HashMap<>();
-    HashMap<Integer, Double> allScores = new HashMap<>();
+    ArrayList <FeatureListRow> rowsWithIPs = new ArrayList <>();
+    ArrayList <FeatureListRow> rowsWithBestIPs = new ArrayList <>();
     HashMap<Integer, Double> scores = new HashMap<>();
+    HashMap<Integer, Double> resultingScores = new HashMap<>();
     PeakListHandler resultMap = new PeakListHandler();
     PeakListHandler finalMap = new PeakListHandler();
     String[] elements;
@@ -205,91 +190,68 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
 
           if (score >= minIsotopePatternScore) {
             if (detectedIsotopePattern.containsKey(row.getID())
-                && allScores.get(row.getID()) > score) {
+                && scores.get(row.getID()) > score) {
               continue;
             }
             detectedIsotopePattern.put(row.getID(), detectedPattern);
-            allScores.put(row.getID(), score);
+            rowsWithIPs.add(row);
+            scores.put(row.getID(), score);
           }
         }
       }
       //Reduction of the signals to the monoisotopic signals, where the monoisotopic signal is
       // assumed to be the one with the highest SimilarityScore within the MZ range of the IsotopePattern.
       //A tolerance range of 0.01 was applied to avoid excluding isotopic patterns with very similar score values.
-
       if (onlyMonoisotopic) {
-        for (Integer candidat : detectedIsotopePattern.keySet()) {
-          double candidatScore = allScores.get(candidat);
-          Boolean bestScore = true;
-          for (Integer rowID : detectedIsotopePattern.keySet()) {
-            FeatureListRow actualRow = featureMap.getRowByID(rowID);
-            if (rtTolerance.checkWithinTolerance(actualRow.getAverageRT(),
-                featureMap.getRowByID(candidat).getAverageRT()) && checkMobility(mobTolerance,
-                featureMap.getRowByID(candidat), actualRow)) {
-              if (Objects.requireNonNull(detectedIsotopePattern.get(candidat).getDataPointMZRange())
-                  .contains(actualRow.getAverageMZ())) {
-                if (allScores.get(rowID) > (candidatScore + 0.01)) {
-                  bestScore = false;
-                  break;
-                }
-              }
-            }
+        for (FeatureListRow candidate : rowsWithIPs) {
+        boolean bestScore = checkIfRowHasTheHighestIPSimilarityScore(rowsWithIPs,candidate,scores,
+            detectedIsotopePattern.get(candidate.getID()).getDataPointMZRange(),rtTolerance,mobTolerance);
+        double candidateScore = scores.get(candidate.getID());
+
+        if (bestScore) {
+          if (resultMap.containsID(candidate.getID()) && scores.get(candidate.getID()) > candidateScore) {
+            continue;
           }
-          if (bestScore) {
-            if (resultMap.containsID(candidat) && scores.get(candidat) > candidatScore) {
-              continue;
-            }
-            resultMap.addRow(featureMap.getRowByID(candidat));
-            scores.put(candidat, allScores.get(candidat));
-            foundDetectedIsotopePattern.put(candidat, detectedIsotopePattern.get(candidat));
+          resultMap.addRow(candidate);
+          rowsWithBestIPs.add(candidate);
+          resultingIsotopePattern.put(candidate.getID(), detectedIsotopePattern.get(candidate.getID()));
+          resultingScores.put(candidate.getID(),scores.get(candidate.getID()));
           }
         }
       } else {
-        for (Integer candidat : detectedIsotopePattern.keySet()) {
-          resultMap.addRow(featureMap.getRowByID(candidat));
-          scores.put(candidat, allScores.get(candidat));
-          foundDetectedIsotopePattern.put(candidat, detectedIsotopePattern.get(candidat));
+        for (FeatureListRow candidate : rowsWithIPs) {
+          resultMap.addRow(candidate);
+          rowsWithBestIPs.add(candidate);
+          resultingIsotopePattern.put(candidate.getID(), detectedIsotopePattern.get(candidate.getID()));
+          resultingScores.put(candidate.getID(),scores.get(candidate.getID()));
         }
       }
-
+      rowsWithIPs.clear();
       detectedIsotopePattern.clear();
+      scores.clear();
     }
 
     // Reduction of signals to those with the best similarity values of all considered element combinations.
     if (bestScores) {
-      for (Integer candidat : foundDetectedIsotopePattern.keySet()) {
-        double candidatScore = scores.get(candidat);
-        Boolean bestScore = true;
-        for (Integer rowID : foundDetectedIsotopePattern.keySet()) {
-          FeatureListRow actualRow = resultMap.getRowByID(rowID);
-          if (rtTolerance.checkWithinTolerance(actualRow.getAverageRT(),
-              resultMap.getRowByID(candidat).getAverageRT())) {
-            if (Objects.requireNonNull(
-                    foundDetectedIsotopePattern.get(candidat).getDataPointMZRange())
-                .contains(actualRow.getAverageMZ())) {
-              if (scores.get(rowID) > (candidatScore + 0.01)) {
-                bestScore = false;
-                break;
-              }
-            }
-          }
-        }
-        if (bestScore) {
-          resultMap.getRowByID(candidat).getBestFeature()
-              .setIsotopePattern(foundDetectedIsotopePattern.get(candidat));
-          finalMap.addRow(resultMap.getRowByID(candidat));
+      for (FeatureListRow candidate : rowsWithBestIPs) {
+        boolean bestScoreOfAllIPs = checkIfRowHasTheHighestIPSimilarityScore(rowsWithBestIPs,
+            candidate,resultingScores,resultingIsotopePattern.get(candidate.getID()).getDataPointMZRange(),rtTolerance,mobTolerance);
+        if (bestScoreOfAllIPs) {
+          candidate.getBestFeature().setIsotopePattern(resultingIsotopePattern.get(candidate.getID()));
+          finalMap.addRow(candidate);
         }
       }
     } else {
       finalMap = resultMap;
     }
+
     ArrayList<Integer> keys = finalMap.getAllKeys();
     for (Integer key : keys) {
       ModularFeatureListRow bestRow = new ModularFeatureListRow(resultPeakList, key,
           (ModularFeatureListRow) finalMap.getRowByID(key), true);
-      bestRow.getBestFeature().setIsotopePattern(foundDetectedIsotopePattern.get(key));
+      bestRow.getBestFeature().setIsotopePattern(resultingIsotopePattern.get(key));
 
-      float scoreFloat = scores.get(key).floatValue();
+      float scoreFloat = resultingScores.get(key).floatValue();
       bestRow.getBestFeature().set(IsotopePatternScoreType.class, scoreFloat);
       resultPeakList.addRow(bestRow);
     }
@@ -411,6 +373,24 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
       }
     }
     return ms1ScanPattern;
+  }
+
+// Comparing the scores of all features within the RT range and MZ range of the candidate feature's IsotopePattern
+// with the candidate's isotope pattern score, if the candidate has the highest score the value becomes true
+  public Boolean checkIfRowHasTheHighestIPSimilarityScore(ArrayList <FeatureListRow> rows, 
+      FeatureListRow candidate, HashMap <Integer, Double> scores, Range <Double> DataPointMZRange,
+      RTTolerance rtTolerance, MobilityTolerance mobTolerance) {
+    for (FeatureListRow row : rows) {
+      if (rtTolerance.checkWithinTolerance(row.getAverageRT(),
+          candidate.getAverageRT())&& 
+          checkMobility(mobTolerance,candidate,row)
+          && Objects.requireNonNull(DataPointMZRange).contains(row.getAverageMZ())) {
+        if (scores.get(row.getID()) > (scores.get(candidate.getID())+ 0.01)) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
 

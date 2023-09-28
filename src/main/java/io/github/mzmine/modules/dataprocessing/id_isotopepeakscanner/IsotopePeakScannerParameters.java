@@ -55,18 +55,22 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
 //  public static final BooleanParameter checkRT =
 //      new BooleanParameter("Check RT", "Compare RT of peaks to parent.");
   public static final BooleanParameter bestScores =
-      new BooleanParameter("Only the best Scores", "Shows only the matches with the best score for the searched patterns.", true);
+      new BooleanParameter("Only the best Scores",
+          "Shows only the matches with the best score for the searched patterns.", true);
   public static final BooleanParameter onlyMonoisotopic =
-      new BooleanParameter("Only the monoisotopic signals", "Show only the match with the best result for an isotopic pattern (monoisotopic signals).", true);
+      new BooleanParameter("Only the monoisotopic signals",
+          "Show only the match with the best result for an isotopic pattern (monoisotopic signals).", true);
 
   public static final BooleanParameter resolvedByMobility =
-      new BooleanParameter("Use time and mobility resolved mass spectra", "Use time- and mobility-resolved mass spectra instead of only time-resolved ones", true);
+      new BooleanParameter("Use time and mobility resolved mass spectra",
+          "Use of time- and mobility-resolved mass spectra instead of only time-resolved spectra.", true);
 
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
   public static final MobilityToleranceParameter mobTolerance = new MobilityToleranceParameter();
 
   public static final StringParameter element = new StringParameter("Chemical formula",
-      "Elements (combinations) whose isotope pattern to be searched for. Separate individual Elements (combinations) by \",\". Please enter the two letter Symbol."
+      "Elements (combinations) whose isotope pattern to be searched for. "
+          + "Separate individual Elements (combinations) by \",\". Please enter the two letter Symbol."
           + " (e.g. \"Gd\", \"Cl2BrS\")",
       "", false);
 
