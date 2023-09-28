@@ -36,7 +36,7 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CCSBaseExportModule implements MZmineProcessingModule {
+public class CcsBaseExportModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getName() {

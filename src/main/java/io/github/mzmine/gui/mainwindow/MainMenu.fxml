@@ -342,7 +342,7 @@
       <MenuItem text="FeatureML" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_featureML.FeatureMLExportModularModule"/>
         <MenuItem text="CCSBase export" onAction="#runModule"
-                userData="io.github.mzmine.modules.io.export_ccsbase.CCSBaseExportModule"/>
+                userData="io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule"/>
     </Menu>
 
     <Menu text="Processing">

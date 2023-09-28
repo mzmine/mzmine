@@ -25,34 +25,3 @@
 
 package io.github.mzmine.modules.io.export_ccsbase;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-/**
- * Wrapper to store CCSBase entries for exports. Only uses the highest signal per adduct and
- * smiles.
- */
-public class CCSBaseEntryMap {
-
-  private final Map<CCSBaseEntry, Double> map = new HashMap<>();
-
-  public void addEntry(CCSBaseEntry entry) {
-    if (entry == null) {
-      return;
-    }
-    final Double value = map.get(entry);
-    if (value != null) {
-      if (value > entry.maxIntensity()) {
-        map.put(entry, entry.maxIntensity());
-      }
-    } else {
-      map.put(entry, entry.maxIntensity());
-    }
-  }
-
-  public Set<Entry<CCSBaseEntry, Double>> entrySet() {
-    return map.entrySet();
-  }
-}

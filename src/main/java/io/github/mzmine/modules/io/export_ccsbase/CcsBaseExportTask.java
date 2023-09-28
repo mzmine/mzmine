@@ -30,14 +30,16 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.MolecularClassType;
+import io.github.mzmine.modules.io.export_ccsbase.CcsBaseEntryMap.CcsBaseEntry;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map.Entry;
@@ -67,12 +69,11 @@ public class CcsBaseExportTask extends AbstractTask {
     flists = parameters.getValue(CcsBaseExportParameters.flists).getMatchingFeatureLists();
     calibrationString = parameters.getValue(CcsBaseExportParameters.calibrationMethod);
     fallbackClassLabel = parameters.getValue(CcsBaseExportParameters.fallbackMoleculeInfo);
-
     totalRows = Arrays.stream(flists).mapToInt(FeatureList::getNumberOfRows).sum();
   }
 
   @Nullable
-  public static CCSBaseEntry annotationToCcsBaseCsvEntry(FeatureListRow row,
+  public static CcsBaseEntryMap.CcsBaseEntry annotationToCcsBaseCsvEntry(FeatureListRow row,
       FeatureAnnotation annotation, @NotNull String fallbackClassLabel,
       @NotNull String calibrationString) {
 
@@ -82,7 +83,7 @@ public class CcsBaseExportTask extends AbstractTask {
           annotation instanceof ModularDataModel m && m.get(MolecularClassType.class) != null
               ? m.get(MolecularClassType.class) : fallbackClassLabel;
 
-      final var entry = new CCSBaseEntry(annotation.getCompoundName(),
+      final var entry = new CcsBaseEntry(annotation.getCompoundName(),
           annotation.getAdductType().getName(),
           annotation.getPrecursorMZ() * annotation.getAdductType().getCharge(),
           annotation.getAdductType().getCharge(), annotation.getPrecursorMZ(),
@@ -104,14 +105,14 @@ public class CcsBaseExportTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return finishedRows / (double) totalRows;
+    return totalRows != 0 ? finishedRows / (double) totalRows : 0d;
   }
 
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    final CCSBaseEntryMap map = new CCSBaseEntryMap();
+    final CcsBaseEntryMap map = new CcsBaseEntryMap();
 
     for (final FeatureList flist : flists) {
       for (FeatureListRow row : flist.getRows()) {
@@ -128,10 +129,10 @@ public class CcsBaseExportTask extends AbstractTask {
       }
     }
 
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+    try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardOpenOption.WRITE)) {
       writer.write(CCS_BASE_HEADER);
       writer.newLine();
-      for (Entry<CCSBaseEntry, Double> entry : map.entrySet()) {
+      for (Entry<CcsBaseEntry, Double> entry : map.entrySet()) {
         final String csvLine = entry.getKey().toCsvLine();
         if (csvLine != null) {
           writer.write(csvLine);
@@ -141,7 +142,7 @@ public class CcsBaseExportTask extends AbstractTask {
 
     } catch (IOException e) {
       logger.log(Level.SEVERE, e.getMessage(), e);
-      setErrorMessage("Error while exporting CCSbase file.");
+      setErrorMessage("Error while exporting CCSBase file.");
       setStatus(TaskStatus.ERROR);
       return;
     }
