@@ -407,7 +407,8 @@ public class DatabaseIsotopeRefinerScanBased extends AbstractTask {
     return new MZTolerance(doubleResolution, tolerancePPM);
   }
 
-
+  // Removes the features of the isotopic signals from database matches, so that only the
+  // monoisotopic signals of the found components are listed
   public static TreeMap <Integer, FeatureListRow> removeIsotopes  (TreeMap <Integer, FeatureListRow> rows, FeatureListRow row, RTTolerance RTTolerance) {
     TreeMap <Integer, FeatureListRow > newList = new TreeMap <>();
 
