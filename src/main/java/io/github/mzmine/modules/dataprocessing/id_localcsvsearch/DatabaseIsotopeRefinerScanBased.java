@@ -207,7 +207,7 @@ public class DatabaseIsotopeRefinerScanBased {
             // no isotope pattern and no default MS1 scan. e.g., if just a feature list loaded
             return false;
           }
-          var score = calculateIsotopeScoreDifferentResolutions(annotation, measuredIsotopes, mzTolerance, minIntensity,
+          var score = calculateIsotopeScoreDifferentResolutions(annotation, measuredIsotopes, minIntensity,
               ionIsotopePatternMap);
           return score >= minIsotopeScore;
         }).sorted(Comparator.comparing(CompoundDBAnnotation::getIsotopePatternScore,
@@ -236,10 +236,11 @@ public class DatabaseIsotopeRefinerScanBased {
     assert ionFormula != null;
     // cache the ionformula to IsotopePattern to reuse isotope patterns for the same formula
     try {
-      // TODO multiple isotope patterns for resolutions
       final IsotopePattern predictedIsotopePattern = ionIsotopePatternMap.computeIfAbsent(
           ionFormula,
-          key -> getCalculateIsotopePattern(mzTolerance, minIntensity, adductType, ionFormula));
+          key -> IsotopePatternCalculator.calculateIsotopePattern(ionFormula, minIntensity,
+              mzTolerance.getMzToleranceForMass(FormulaUtils.calculateMzRatio(ionFormula)),
+              adductType.getCharge(), adductType.getPolarity(), false));
       var predictedIsotopes = ScanUtils.extractDataPoints(predictedIsotopePattern);
 
       // also match with library as ground truth to give more weight to predicted signals
@@ -260,7 +261,7 @@ public class DatabaseIsotopeRefinerScanBased {
   }
 
   private static double calculateIsotopeScoreDifferentResolutions(final CompoundDBAnnotation annotation,
-      final DataPoint[] measuredIsotopes, final MZTolerance mzTolerance, final double minIntensity,
+      final DataPoint[] measuredIsotopes, final double minIntensity,
       final Map<IMolecularFormula, Map <Double,IsotopePattern>> ionIsotopePatternMap) {
     var adductType = annotation.getAdductType();
     if (annotation.getFormula() == null || adductType == null) {
@@ -271,16 +272,11 @@ public class DatabaseIsotopeRefinerScanBased {
     assert ionFormula != null;
     // cache the ionformula to IsotopePattern to reuse isotope patterns for the same formula
     float finalScore = 0;
-    double bestResolution = 0;
     for (double resolution : getDoubleResolutions()) {
       try {
-        // TODO multiple isotope patterns for resolutions
-        ionIsotopePatternMap.computeIfAbsent(ionFormula, key -> getCalculateIsotopePatternDifferentResolutions(
-            minIntensity, adductType, ionFormula));
+        ionIsotopePatternMap.computeIfAbsent(ionFormula, key -> IsotopePatternCalculator.calculateIsotopePatternForResolutions(ionFormula, minIntensity,
+            getDoubleResolutions(), adductType.getCharge(), adductType.getPolarity(), false));
         IsotopePattern predictedIsotopePattern = ionIsotopePatternMap.get(ionFormula).get(resolution);
-//        predictedIsotopePattern = IsotopePatternCalculator.removeDataPointsBelowIntensity(predictedIsotopePattern,
-//            minIntensity);
-        //IsotopePattern predictedIsotopePattern = isotopePatternOfDifferentResolutions.get(resolution);
         var predictedIsotopes = ScanUtils.extractDataPoints(predictedIsotopePattern);
         MZTolerance tolerance = getMzToleranceFromDoubleResolution(resolution,predictedIsotopePattern.getBasePeakMz());
         var similarity = SpectralSimilarityFunction.compositeCosine.getSimilarity(Weights.SQRT, 0,
@@ -295,7 +291,6 @@ public class DatabaseIsotopeRefinerScanBased {
           var score = (float) (similarity.getScore() + similarityLibrary.getScore() * 2) / 3f;
           if (score >= finalScore) {
             finalScore = score;
-            bestResolution = resolution;
           }
         }
 
@@ -307,39 +302,6 @@ public class DatabaseIsotopeRefinerScanBased {
     annotation.put(IsotopePatternScoreType.class, finalScore);
     return finalScore;
   }
-  @NotNull
-  private static IsotopePattern getCalculateIsotopePattern(final MZTolerance mzTolerance,
-      final double minIntensity, final IonType adductType, final IMolecularFormula ionFormula) {
-    // TODO Predict pattern - Do this in the IsotopePatternCalculator.calculateIsotopePatternForResolutions
-    // return Map<Integer, IsotopePattern> (use HashMap<>)
-    var pattern = IsotopePatternCalculator.calculateIsotopePattern(ionFormula, minIntensity,
-        mzTolerance.getMzToleranceForMass(FormulaUtils.calculateMzRatio(ionFormula)),
-        adductType.getCharge(), adductType.getPolarity(), false);
-    // TODO calculate different resolutions
-    // 100, 20k, 100k, 1M
-    return pattern;
-  }
-
-  private static Map<Double, IsotopePattern> getCalculateIsotopePatternDifferentResolutions(
-      final double minIntensity, final IonType adductType, final IMolecularFormula ionFormula) {
-    // TODO Predict pattern - Do this in the IsotopePatternCalculator.calculateIsotopePatternForResolutions
-    // return Map<Integer, IsotopePattern> (use HashMap<>)
-    var patterns = IsotopePatternCalculator.calculateIsotopePatternForResolutions(ionFormula, minIntensity,
-        getDoubleResolutions(), adductType.getCharge(), adductType.getPolarity(), false);
-    // TODO calculate different resolutions
-    // 100, 20k, 100k, 1M
-    return patterns;
-  }
-
-  private static int[] getResolutions(){
-    return new int[]{100000,33000,10000,1000};
-  }
-  private static MZTolerance getMzToleranceFromResolution(int resolution, double mass){
-    double tolerancePPM =
-        ((mass + mass / resolution) / mass - 1) * 1000000;
-    return new MZTolerance(mass/ resolution, tolerancePPM);
-  }
-
   private static double[] getDoubleResolutions(){
     return new double[]{0.0001,0.001,0.01,0.1};
   }

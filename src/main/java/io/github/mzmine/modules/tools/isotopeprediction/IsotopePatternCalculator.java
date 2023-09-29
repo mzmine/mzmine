@@ -159,55 +159,12 @@ public class IsotopePatternCalculator implements MZmineModule {
     // to the relative intensity
     // in the isotope pattern, should change it here, too
     HashMap <Double, IsotopePattern> calculatedIsotopePatternForResolutions = new HashMap<>();
-    IsotopePatternGenerator generator = new IsotopePatternGenerator(minAbundance);
     for (double resolution : resolutions) {
-      generator.setMinResolution(resolution);
-      generator.setStoreFormulas(storeFormula);
-      org.openscience.cdk.formula.IsotopePattern pattern = generator.getIsotopes(cdkFormula);
-      int numOfIsotopes = pattern.getNumberOfIsotopes();
-
-      DataPoint dataPoints[] = new DataPoint[numOfIsotopes];
-      String isotopeComposition[] = new String[numOfIsotopes];
-      // For each unit of charge, we have to add or remove a mass of a
-      // single electron. If the charge is positive, we remove electron
-      // mass. If the charge is negative, we add it.
-      charge = Math.abs(charge);
-      var electronMass = polarity.getSign() * -1 * charge * ELECTRON_MASS;
-
-      for (int j = 0; j < numOfIsotopes; j++) {
-        IsotopeContainer isotope = pattern.getIsotope(j);
-
-        double mass = isotope.getMass() + electronMass;
-
-        if (charge != 0) {
-          mass /= charge;
-        }
-
-        double intensity = isotope.getIntensity();
-
-        dataPoints[j] = new SimpleDataPoint(mass, intensity);
-
-        if (storeFormula) {
-          isotopeComposition[j] = formatCDKString(isotope.toString());
-        }
-      }
-
-      String formulaString = MolecularFormulaManipulator.getString(cdkFormula);
-
-      if (storeFormula) {
-        calculatedIsotopePatternForResolutions.put(resolution,
-            new SimpleIsotopePattern(dataPoints, charge, IsotopePatternStatus.PREDICTED,
-                formulaString, isotopeComposition));
-      } else {
-        calculatedIsotopePatternForResolutions.put(resolution,
-            new SimpleIsotopePattern(dataPoints, charge, IsotopePatternStatus.PREDICTED,
-                formulaString));
-      }
+      calculatedIsotopePatternForResolutions.put(resolution,calculateIsotopePattern(
+          cdkFormula,minAbundance,resolution,charge,polarity,storeFormula));
     }
   return calculatedIsotopePatternForResolutions;
   }
-
-
 
 
   public static IsotopePattern removeDataPointsBelowIntensity(IsotopePattern pattern,
