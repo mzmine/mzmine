@@ -108,8 +108,6 @@ repositories {
     maven { url = "https://repo.maven.apache.org/maven2" }
     // local libraries
     maven { url = "file://" + projectDir + "/src/main/lib" }
-    // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab)
-    maven { url = "https://m.lifs-tools.org/artifactory/libs-release" }
     // For jmzml, etc.
     maven { url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/" }
     // For SIRIUS ID modules
@@ -125,7 +123,6 @@ repositories {
 ext {
     msdkVersion = "0.0.27"
     cdkVersion = "2.5"
-    jmztabVersion = "3.0.9"
     swaggerVersion = "1.5.22"
     okhttpVersion = "2.7.5"
     guavaVersion = "30.1-jre"
@@ -187,8 +184,6 @@ dependencies {
     implementation 'com.github.jbytecode:RCaller:4.0.2'
     implementation "mzmine:jmprojection:1.0"
     implementation "mzmine:gslibml:0.0.1"
-    implementation "uk.ac.ebi.pride:jmztab-modular-model:$jmztabVersion"
-    implementation "uk.ac.ebi.pride:jmztab-modular-util:$jmztabVersion"
     implementation 'org.apache.xmlgraphics:fop:2.6'
     implementation "org.freehep:freehep-graphicsio-emf:2.4"
     implementation "io.github.msdk:msdk-io-mzml:$msdkVersion"

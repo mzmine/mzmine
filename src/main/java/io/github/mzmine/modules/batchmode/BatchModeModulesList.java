@@ -129,7 +129,6 @@ import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmit
 import io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
-import io.github.mzmine.modules.io.export_features_mztab.MzTabExportModule;
 import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule;
@@ -140,7 +139,6 @@ import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportMo
 import io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule;
 import io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFExportModule;
 import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
-import io.github.mzmine.modules.io.import_features_mztab.MzTabImportModule;
 import io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule;
@@ -378,12 +376,10 @@ public class BatchModeModulesList {
       AdapMgfExportModule.class, //
       GNPSResultsImportModule.class, //
       AdapMspExportModule.class, //
-      MzTabExportModule.class, //
       MZTabmExportModule.class, //
       NetCDFExportModule.class, //
       SiriusExportModule.class, //
       MZTabmImportModule.class, //
-      MzTabImportModule.class, //
       CSVExportModularModule.class, //
       LegacyCSVExportModule.class, //
       CompoundAnnotationsCSVExportModule.class, //

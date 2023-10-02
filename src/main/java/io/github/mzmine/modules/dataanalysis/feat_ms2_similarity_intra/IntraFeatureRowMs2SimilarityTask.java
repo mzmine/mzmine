@@ -93,7 +93,11 @@ public class IntraFeatureRowMs2SimilarityTask extends AbstractTask {
     exportToFile = parameters.getValue(IntraFeatureRowMs2SimilarityParameters.filename);
     File file = parameters.getEmbeddedParameterValueIfSelectedOrElse(
         IntraFeatureRowMs2SimilarityParameters.filename, null);
-    fileName = FileAndPathUtil.getRealFilePath(file, "csv");
+    if (file != null) {
+      fileName = FileAndPathUtil.getRealFilePath(file, "csv");
+    } else {
+      fileName = null;
+    }
     mzTol = parameters.getValue(IntraFeatureRowMs2SimilarityParameters.mzTol);
     minMatchedSignals = parameters.getValue(
         IntraFeatureRowMs2SimilarityParameters.minMatchedSignals);
