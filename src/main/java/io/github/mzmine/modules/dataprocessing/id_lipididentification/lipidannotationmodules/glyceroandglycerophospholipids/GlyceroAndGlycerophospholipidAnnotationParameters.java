@@ -33,6 +33,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -75,9 +76,12 @@ public class GlyceroAndGlycerophospholipidAnnotationParameters extends SimplePar
           "If checked the algorithm searches for custom, by the user defined lipid classes",
           new CustomLipidClass[0]));
 
+  public static final AdvancedParametersParameter<AdvancedGlyceroAndGlycerophospholipidAnnotationParameters> advanced = new AdvancedParametersParameter<>(
+      new AdvancedGlyceroAndGlycerophospholipidAnnotationParameters());
+
   public GlyceroAndGlycerophospholipidAnnotationParameters() {
     super(new Parameter[]{featureLists, lipidClasses, lipidChainParameters, mzTolerance,
-            searchForMSMSFragments, customLipidClasses},
+            searchForMSMSFragments, customLipidClasses, advanced},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_lipid_annotation/lipid-annotation.html");
   }
 

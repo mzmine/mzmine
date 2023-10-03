@@ -97,6 +97,7 @@ public class SphingolipidAnnotationTask extends AbstractTask {
   private final Boolean searchForMSMSFragments;
   private final Boolean keepUnconfirmedAnnotations;
   private double minMsMsScore;
+  private final IonizationType[] ionizationTypesToIgnore;
 
   private final ParameterSet parameters;
 
@@ -152,6 +153,16 @@ public class SphingolipidAnnotationTask extends AbstractTask {
     // Convert Objects to LipidClasses
     this.selectedLipids = Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
         .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
+    final ParameterSet advancedParam = parameters.getParameter(
+        SphingolipidAnnotationParameters.advanced).getEmbeddedParameters();
+
+    if (parameters.getParameter(SphingolipidAnnotationParameters.advanced).getValue()) {
+      this.ionizationTypesToIgnore = parameters.getParameter(
+          SphingolipidAnnotationParameters.advanced.getEmbeddedParameters()
+              .getParameter(AdvancedSphingolipidAnnotationParameters.IONS_TO_IGNORE)).getValue();
+    } else {
+      ionizationTypesToIgnore = null;
+    }
   }
 
   /**
@@ -269,7 +280,14 @@ public class SphingolipidAnnotationTask extends AbstractTask {
     Set<IonizationType> ionizationTypeList = new HashSet<>();
     LipidFragmentationRule[] fragmentationRules = lipid.getLipidClass().getFragmentationRules();
     for (LipidFragmentationRule fragmentationRule : fragmentationRules) {
-      ionizationTypeList.add(fragmentationRule.getIonizationType());
+      if (ionizationTypesToIgnore != null) {
+        if (!Arrays.stream(ionizationTypesToIgnore).toList()
+            .contains(fragmentationRule.getIonizationType())) {
+          ionizationTypeList.add(fragmentationRule.getIonizationType());
+        }
+      } else {
+        ionizationTypeList.add(fragmentationRule.getIonizationType());
+      }
     }
     for (IonizationType ionization : ionizationTypeList) {
       if (!Objects.requireNonNull(row.getBestFeature().getRepresentativeScan()).getPolarity()
