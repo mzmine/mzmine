@@ -334,11 +334,11 @@ public class FeatureTableContextMenu extends ContextMenu {
   private void initShowMenu() {
 
     final MenuItem showNetworkVisualizerItem = new ConditionalMenuItem(
-        "Feature overview (IIMN network)", () -> hasMs2(selectedRows));
+        "Feature overview (IIMN network)", () -> !selectedRows.isEmpty());
     showNetworkVisualizerItem.setOnAction(e -> showNetworkVisualizer(NetworkOverviewFlavor.IIMN));
 
     final MenuItem showNetworkVisualizerItemFull = new ConditionalMenuItem(
-        "Feature overview (full network)", () -> hasMs2(selectedRows));
+        "Feature overview (full network)", () -> !selectedRows.isEmpty());
     showNetworkVisualizerItemFull.setOnAction(
         e -> showNetworkVisualizer(NetworkOverviewFlavor.FULL_NETWORKS));
 

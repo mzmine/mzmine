@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -47,7 +48,6 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.TxtWriter;
 import java.io.File;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -83,7 +83,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
   private boolean exportIinRelationships = false;
   private boolean mergeLists = false;
 
-  private List<File> exportedFiles = new ArrayList<>();
+  private final List<File> exportedFiles = new ArrayList<>();
 
   /**
    * Create the task.
@@ -129,8 +129,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
   public boolean exportIonIdentityEdges(FeatureList featureList, File filename, Double progress,
       AbstractTask task) {
     LOG.info("Export ion identity networking edges file");
-    NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-    NumberFormat corrForm = new DecimalFormat("0.000");
+    NumberFormats formats = MZmineCore.getConfiguration().getExportFormats();
+    NumberFormat mzForm = formats.mzFormat();
+    NumberFormat corrForm = formats.scoreFormat();
     try {
       List<FeatureListRow> rows = featureList.getRows();
       Collections.sort(rows,
@@ -202,8 +203,6 @@ public class ExportCorrAnnotationTask extends AbstractTask {
   public boolean exportIINRelationships(FeatureList pkl, File filename, Double progress,
       AbstractTask task) {
     LOG.fine("Export IIN relationships edge file");
-    NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-    NumberFormat corrForm = new DecimalFormat("0.000");
 
     try {
       StringBuilder ann = createHeader();
@@ -240,7 +239,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
           }
         }
       }
-      LOG.info("IIN relationship edges exported " + added.get() + "");
+      LOG.info("IIN relationship edges exported " + added.get());
 
       // export ann edges
       // Filename
@@ -469,7 +468,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     for (RowsRelationship rel : relationships) {
       // only export if both rows match
       if (filter.accept(rel.getRowA()) && filter.accept(rel.getRowB())) {
-        exportEdge(ann, rel.getType().toString(), rel.getRowA().getID(), rel.getRowB().getID(),
+        exportEdge(ann, rel.getType(), rel.getRowA().getID(), rel.getRowB().getID(),
             rel.getScoreFormatted(), rel.getAnnotation());
       }
     }
@@ -523,8 +522,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       }
     }
 
-    NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-    NumberFormat corrForm = new DecimalFormat("0.000");
+    NumberFormats formats = MZmineCore.getConfiguration().getExportFormats();
+    NumberFormat mzForm = formats.mzFormat();
+    NumberFormat corrForm = formats.scoreFormat();
     try {
       StringBuilder ann = createHeader();
 
@@ -575,7 +575,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
           }
         }
 
-        LOG.info("Annotation edges exported " + added.get() + "");
+        LOG.info("Annotation edges exported " + added.get());
       }
 
       // export ann edges
