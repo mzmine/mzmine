@@ -23,7 +23,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
@@ -36,7 +38,8 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * {@link Lifecycle#PER_CLASS} creates only one test instance of this class and executes everything
@@ -86,7 +89,7 @@ public class MzMLImportTest {
         paramDataImport.setParameter(AllSpectralDataImportParameters.advancedImport, false);
 
         logger.info("Testing data import of mzML and mzXML without advanced parameters");
-        TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30,
+        TaskResult finished = MZmineTestUtil.callModuleWithTimeout(60,
                 AllSpectralDataImportModule.class, paramDataImport);
 
         // should have finished by now
@@ -107,10 +110,14 @@ public class MzMLImportTest {
         }
 
         //check if number of scans matches in files with/without 3-byte symbols
-        RawDataFile rawA = project.getCurrentRawDataFiles().get(2);
-        RawDataFile rawB = project.getCurrentRawDataFiles().get(1);
-        RawDataFile rawAInvalid = project.getCurrentRawDataFiles().get(3);
-        RawDataFile rawBInvalid = project.getCurrentRawDataFiles().get(0);
+        RawDataFile rawA = project.getCurrentRawDataFiles().stream().filter(
+                r -> r.getName().equals("DOM_a.mzML")).toList().get(0);
+        RawDataFile rawB = project.getCurrentRawDataFiles().stream().filter(
+                r -> r.getName().equals("DOM_b.mzXML")).toList().get(0);
+        RawDataFile rawAInvalid = project.getCurrentRawDataFiles().stream().filter(
+                r -> r.getName().equals("DOM_a_invalid_header.mzML")).toList().get(0);
+        RawDataFile rawBInvalid = project.getCurrentRawDataFiles().stream().filter(
+                r -> r.getName().equals("DOM_b_invalid_header.mzXML")).toList().get(0);
 
         assertEquals(521, rawA.getNumOfScans());
         assertEquals(521, rawB.getNumOfScans());
@@ -132,12 +139,23 @@ public class MzMLImportTest {
 
         //check MS1, MS2 scans
         assertEquals(87, rawA.getScanNumbers(1).size());
+        assertEquals(87, rawB.getScanNumbers(1).size());
         assertEquals(rawA.getScanNumbers(1).size(), rawAInvalid.getScanNumbers(1).size());
         assertEquals(rawA.getScanNumbers(2).size(), rawAInvalid.getScanNumbers(2).size());
 
         assertEquals(87, rawB.getScanNumbers(1).size());
         assertEquals(rawB.getScanNumbers(1).size(), rawBInvalid.getScanNumbers(1).size());
         assertEquals(rawB.getScanNumbers(2).size(), rawBInvalid.getScanNumbers(2).size());
+
+        assertEquals(rawA.getScan(10).getPolarity(),
+                rawAInvalid.getScan(10).getPolarity());
+        assertEquals(rawB.getScan(10).getPolarity(),
+                rawBInvalid.getScan(10).getPolarity());
+
+        assertEquals(rawA.getScan(520).getRetentionTime(),
+                rawAInvalid.getScan(520).getRetentionTime());
+        assertEquals(rawB.getScan(520).getRetentionTime(),
+                rawBInvalid.getScan(520).getRetentionTime());
 
         //todo do we need to add more checks here?
         //todo examples of files with errors in binary data

@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SimpleSpectralArrays;
-import io.github.mzmine.util.collections.BinarySearch; #todo check if this import is needed
+import io.github.mzmine.util.collections.BinarySearch; //todo check if this import is needed
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -268,7 +268,7 @@ public class DataPointUtils {
     return new SimpleSpectralArrays(values[0], values[1]);
   }
 
-  #todo - check if those methods are needed
+  //todo - check if those methods are needed
   /**
    * Apply intensityPercentage filter so that the returned array contains all data points that make
    * X % of the total intensity. The result is further cropped to a maxNumSignals.
@@ -364,5 +364,5 @@ public class DataPointUtils {
   }
 
 
-  #finish check here
+  //finish check here
 }
