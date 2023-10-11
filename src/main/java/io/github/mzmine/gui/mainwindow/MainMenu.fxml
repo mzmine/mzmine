@@ -290,8 +290,6 @@
   <!-- FEATURE LIST METHODS -->
   <Menu text="Feature list methods">
 <!--    <Menu text="Import feature list">-->
-<!--      <MenuItem text="mzTab" onAction="#runModule"-->
-<!--        userData="io.github.mzmine.modules.io.import_features_mztab.MzTabImportModule"/>-->
 <!--      <MenuItem text="mzTab-m" onAction="#runModule"-->
 <!--        userData="io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule"/>-->
 <!--      <MenuItem text="csv" onAction="#runModule"-->
@@ -314,8 +312,6 @@
         userData="io.github.mzmine.modules.io.export_features_venn.VennExportModule"/>
       <MenuItem text="Statistics export (MetaboAnalyst)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule"/>
-      <MenuItem text="mzTab" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_features_mztab.MzTabExportModule"/>
       <MenuItem text="mzTab-m" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule"/>
       <MenuItem text="SQL Database" onAction="#runModule"
@@ -343,6 +339,8 @@
         userData="io.github.mzmine.modules.io.export_features_featureML.FeatureMLExportModularModule"/>
       <MenuItem text="RepoRT entries" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_repo_rt.RepoRtAnnotationsExportModule"/>
+        <MenuItem text="CCSBase export" onAction="#runModule"
+                userData="io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule"/>
     </Menu>
 
     <Menu text="Processing">

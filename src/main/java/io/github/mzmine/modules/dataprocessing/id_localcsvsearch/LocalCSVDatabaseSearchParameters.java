@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -108,13 +108,14 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType(true, "smiles", new SmilesStructureType()),
       new ImportType(true, "isomeric_smiles", new IsomericSmilesStructureType()),
       new ImportType(false, "inchi", new InChIStructureType()),
-      new ImportType(false, "inchikey", new InChIKeyStructureType()),
+      new ImportType(false, "inchi_key", new InChIKeyStructureType()),
       new ImportType(false, "name", new CompoundNameType()),
       new ImportType(false, "CCS", new CCSType()),
       new ImportType(false, "mobility", new MobilityType()),
       new ImportType(true, "comment", new CommentType()),
       new ImportType(false, "adduct", new IonAdductType()),
-      new ImportType(false, "pubchem_cid", new PubChemIdType()) //
+      new ImportType(false, "pubchem_cid", new PubChemIdType()), //
+      new ImportType(false, "molecular_class", new MolecularClassType()));
   );
 
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",

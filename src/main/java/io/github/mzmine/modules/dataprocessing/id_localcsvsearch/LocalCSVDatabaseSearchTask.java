@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -110,6 +110,9 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final IonTypeType ionTypeType = (IonTypeType) DataTypes.get(IonTypeType.class);
   private final PubChemIdType pubchemIdType = (PubChemIdType) DataTypes.get(PubChemIdType.class);
 
+  private final MolecularClassType molecularClassType = (MolecularClassType) DataTypes.get(
+      MolecularClassType.class);
+
   // vars
   private final FeatureList[] featureLists;
   private final MobilityTolerance mobTolerance;
@@ -181,6 +184,13 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       minRelativeIsotopeIntensity = 0d;
       minIsotopeScore = 0d;
     }
+  }
+
+  @Nullable
+  private static Float replaceWildcardLowerEq0WithNull(final DataType<Float> type,
+      final Map<DataType<?>, String> map) {
+    float value = Float.parseFloat(map.getOrDefault(type, "-1"));
+    return value > 0 ? value : null;
   }
 
   @Override
@@ -420,13 +430,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     }
   }
 
-  @Nullable
-  private static Float replaceWildcardLowerEq0WithNull(final DataType<Float> type,
-      final Map<DataType<?>, String> map) {
-    float value = Float.parseFloat(map.getOrDefault(type, "-1"));
-    return value > 0 ? value : null;
-  }
-
   @NotNull
   private CompoundDBAnnotation getCompoundFromLine(@NotNull String[] values,
       @NotNull List<ImportType> linesWithIndices, @NotNull final List<ImportType> commentFields) {
@@ -456,6 +459,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     final String inchi = entry.get(inchiType);
     final String inchiKey = entry.get(inchiKeyType);
     final String pubchemId = entry.get(pubchemIdType);
+    final String molecularClass = entry.get(molecularClassType);
 
     final String lineComment;
     if (!commentFields.isEmpty()) {
@@ -482,6 +486,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     a.putIfNotNull(ionTypeType, IonTypeParser.parse(lineAdduct));
     doIfNotNull(pubchemId,
         () -> a.addDatabaseMatchInfo(new DatabaseMatchInfo(Database.PUBCHEM, pubchemId)));
+    doIfNotNull(molecularClass, () -> a.put(molecularClassType, molecularClass));
     return a;
   }
 
