@@ -101,7 +101,7 @@ public class DatabaseIsotopeRefinerScanBased {
    */
   public static void refineAnnotationsByIsotopes(FeatureListRow row, MZTolerance mzTolerance,
       double minIntensity, double minIsotopeScore) {
-    refineAnnotationsByIsotopesDifferentResolutions(row, mzTolerance, minIntensity, minIsotopeScore, new HashMap<>());
+    refineAnnotationsByIsotopes(row, mzTolerance, minIntensity, minIsotopeScore, new HashMap<>());
   }
 
   /**
@@ -272,19 +272,18 @@ public class DatabaseIsotopeRefinerScanBased {
     assert ionFormula != null;
     // cache the ionformula to IsotopePattern to reuse isotope patterns for the same formula
     float finalScore = 0;
-    for (double resolution : getDoubleResolutions()) {
+    ionIsotopePatternMap.computeIfAbsent(ionFormula, key -> IsotopePatternCalculator.calculateIsotopePatternForResolutions(ionFormula, minIntensity,
+        MZTolerance.getDefaultResolutions(), adductType.getCharge(), adductType.getPolarity(), false));
+    for (MZTolerance mzTol : MZTolerance.getDefaultResolutions()) {
       try {
-        ionIsotopePatternMap.computeIfAbsent(ionFormula, key -> IsotopePatternCalculator.calculateIsotopePatternForResolutions(ionFormula, minIntensity,
-            getDoubleResolutions(), adductType.getCharge(), adductType.getPolarity(), false));
-        IsotopePattern predictedIsotopePattern = ionIsotopePatternMap.get(ionFormula).get(resolution);
+        IsotopePattern predictedIsotopePattern = ionIsotopePatternMap.get(ionFormula).get(mzTol.getMzTolerance());
         var predictedIsotopes = ScanUtils.extractDataPoints(predictedIsotopePattern);
-        MZTolerance tolerance = getMzToleranceFromDoubleResolution(resolution,predictedIsotopePattern.getBasePeakMz());
         var similarity = SpectralSimilarityFunction.compositeCosine.getSimilarity(Weights.SQRT, 0,
-            HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO,tolerance, 0,
+            HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO,mzTol, 0,
             predictedIsotopes, measuredIsotopes);
         // also match with library as ground truth to give more weight to predicted signals
         var similarityLibrary = SpectralSimilarityFunction.compositeCosine.getSimilarity(
-            Weights.SQRT, 0, HandleUnmatchedSignalOptions.KEEP_LIBRARY_SIGNALS, tolerance, 0,
+            Weights.SQRT, 0, HandleUnmatchedSignalOptions.KEEP_LIBRARY_SIGNALS, mzTol, 0,
             predictedIsotopes, measuredIsotopes);
 
         if (similarity != null && similarityLibrary != null) {
@@ -301,15 +300,6 @@ public class DatabaseIsotopeRefinerScanBased {
     }
     annotation.put(IsotopePatternScoreType.class, finalScore);
     return finalScore;
-  }
-  private static double[] getDoubleResolutions(){
-    return new double[]{0.0001,0.001,0.01,0.1};
-  }
-
-  private static MZTolerance getMzToleranceFromDoubleResolution(double doubleResolution, double mass){
-    double tolerancePPM =
-        (doubleResolution / mass ) * 1000000;
-    return new MZTolerance(doubleResolution, tolerancePPM);
   }
 }
 

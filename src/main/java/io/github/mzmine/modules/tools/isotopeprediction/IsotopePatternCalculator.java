@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Window;
@@ -149,7 +150,7 @@ public class IsotopePatternCalculator implements MZmineModule {
   }
 
   public static HashMap <Double, IsotopePattern> calculateIsotopePatternForResolutions(IMolecularFormula cdkFormula,
-      double minAbundance, double[] resolutions, int charge, PolarityType polarity,
+      double minAbundance, MZTolerance[] tolerances, int charge, PolarityType polarity,
       boolean storeFormula) {
     // TODO: check if the formula is not too big (>100 of a single atom?).
     // if so, just cancel the prediction
@@ -159,9 +160,9 @@ public class IsotopePatternCalculator implements MZmineModule {
     // to the relative intensity
     // in the isotope pattern, should change it here, too
     HashMap <Double, IsotopePattern> calculatedIsotopePatternForResolutions = new HashMap<>();
-    for (double resolution : resolutions) {
-      calculatedIsotopePatternForResolutions.put(resolution,calculateIsotopePattern(
-          cdkFormula,minAbundance,resolution,charge,polarity,storeFormula));
+    for (MZTolerance mzTolerance : tolerances) {
+      calculatedIsotopePatternForResolutions.put(mzTolerance.getMzTolerance(),calculateIsotopePattern(
+          cdkFormula,minAbundance,mzTolerance.getMzTolerance(),charge,polarity,storeFormula));
     }
   return calculatedIsotopePatternForResolutions;
   }
