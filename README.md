@@ -1,4 +1,10 @@
 ![MZmine 3](logo/MZmine_logo_RGB.png)
+![GitHub all releases](https://img.shields.io/github/downloads/mzmine/mzmine3/total)
+![GitHub all releases](https://img.shields.io/github/downloads/mzmine/mzmine3/latest/total)
+![GitHub contributors](https://img.shields.io/github/contributors/mzmine/mzmine3)
+
+
+
 
 [![Development Build Release](https://github.com/mzmine/mzmine3/actions/workflows/dev_build_release.yml/badge.svg)](https://github.com/mzmine/mzmine3/actions/workflows/dev_build_release.yml)
 
