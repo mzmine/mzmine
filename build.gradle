@@ -246,6 +246,7 @@ dependencies {
     //implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
     implementation "net.csibio.aird:aird-sdk:1.1.6.1"
     implementation "com.github.yannrichet:JMathPlot:1.0.1"
+    implementation "de.jensd:fontawesomefx-fontawesome:4.7.0-9.1.2"
 
     // jackson for json parsing
     implementation "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"

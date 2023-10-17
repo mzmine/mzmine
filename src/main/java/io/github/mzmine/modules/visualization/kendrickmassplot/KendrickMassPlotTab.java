@@ -38,19 +38,23 @@ import java.util.Collections;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import org.jetbrains.annotations.NotNull;
 
 public class KendrickMassPlotTab extends MZmineTab {
+
   private final KendrickMassPlotAnchorPaneController controller;
 
-  public KendrickMassPlotTab(ParameterSet parameters, EChartViewer chartViewer) {
+  public KendrickMassPlotTab(ParameterSet parameters, EChartViewer chartViewer,
+      Pane kendrickMassPlotBubbleLegend) {
     super("Kendrick Mass Plot", true, false);
 
     AnchorPane root = null;
     FXMLLoader loader = new FXMLLoader((getClass().getResource("KendrickMassPlotAnchorPane.fxml")));
     try {
       root = loader.load();
-      logger.finest("Root element of Kendrick Mass Plot tab has been successfully loaded from the FXML loader.");
+      logger.finest(
+          "Root element of Kendrick Mass Plot tab has been successfully loaded from the FXML loader.");
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -60,6 +64,8 @@ public class KendrickMassPlotTab extends MZmineTab {
     controller.initialize(parameters);
     BorderPane plotPane = controller.getPlotPane();
     plotPane.setCenter(chartViewer);
+    BorderPane bubbleLegendPane = controller.getBubbleLegendPane();
+    bubbleLegendPane.setCenter(kendrickMassPlotBubbleLegend);
 
     setContent(root);
   }
