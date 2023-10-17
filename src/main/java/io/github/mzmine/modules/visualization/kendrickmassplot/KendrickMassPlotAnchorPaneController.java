@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FormulaUtils;
-import java.util.logging.Logger;
+import java.util.Objects;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -44,8 +44,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 
 public class KendrickMassPlotAnchorPaneController {
-
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private FeatureList featureList;
   private String customYAxisKMBase;
@@ -217,7 +215,7 @@ public class KendrickMassPlotAnchorPaneController {
           yAxisCharge = newCharge;
         }
 
-        XYPlot plot = getChart().getXYPlot();
+        XYPlot plot = Objects.requireNonNull(getChart()).getXYPlot();
         KendrickMassPlotXYZDataset newDataset = new KendrickMassPlotXYZDataset(parameters,
             xAxisDivisor, xAxisCharge, yAxisDivisor, yAxisCharge);
         plot.setDataset(newDataset);
@@ -273,7 +271,7 @@ public class KendrickMassPlotAnchorPaneController {
           yAxisDivisor = newDivisor;
         }
 
-        XYPlot plot = getChart().getXYPlot();
+        XYPlot plot = Objects.requireNonNull(getChart()).getXYPlot();
         KendrickMassPlotXYZDataset newDataset = new KendrickMassPlotXYZDataset(parameters,
             xAxisDivisor, xAxisCharge, yAxisDivisor, yAxisCharge);
         plot.setDataset(newDataset);

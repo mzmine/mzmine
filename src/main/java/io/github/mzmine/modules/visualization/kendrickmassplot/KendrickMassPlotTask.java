@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -49,7 +48,6 @@ public class KendrickMassPlotTask extends AbstractTask {
   private final String xAxisLabel;
   private final String yAxisLabel;
   private final String zAxisLabel;
-  private final FeatureListRow[] rows;
 
   public KendrickMassPlotTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
@@ -108,7 +106,6 @@ public class KendrickMassPlotTask extends AbstractTask {
       zAxisLabel = parameters.getParameter(KendrickMassPlotParameters.colorScaleValues).getValue()
           .getName();
     }
-    rows = featureList.getRows().toArray(new FeatureListRow[0]);
   }
 
   @Override

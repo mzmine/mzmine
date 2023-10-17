@@ -39,7 +39,7 @@ import org.jfree.data.xy.AbstractXYZDataset;
  */
 public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
 
-  private FeatureListRow[] selectedRows;
+  private final FeatureListRow[] selectedRows;
   private double[] xValues;
   private double[] yValues;
   private double[] colorScaleValues;
