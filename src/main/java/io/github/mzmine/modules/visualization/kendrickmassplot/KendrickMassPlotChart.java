@@ -77,14 +77,14 @@ public class KendrickMassPlotChart extends EChartViewer {
     this.getChart().getXYPlot().setRenderer(renderer);
   }
 
-  private PaintScaleLegend generateLegend(@NotNull org.jfree.chart.renderer.PaintScale scale) {
+  private PaintScaleLegend generateLegend(@NotNull PaintScale scale) {
     Paint axisPaint = this.getChart().getXYPlot().getDomainAxis().getAxisLinePaint();
     Font axisLabelFont = this.getChart().getXYPlot().getDomainAxis().getLabelFont();
     Font axisTickLabelFont = this.getChart().getXYPlot().getDomainAxis().getTickLabelFont();
 
     NumberAxis scaleAxis = new NumberAxis(null);
     scaleAxis.setRange(scale.getLowerBound(),
-        Math.max(scale.getUpperBound(), scale.getUpperBound() * 1E-10));
+        Math.max(scale.getUpperBound(), scale.getUpperBound()));
     scaleAxis.setAxisLinePaint(axisPaint);
     scaleAxis.setTickMarkPaint(axisPaint);
     scaleAxis.setNumberFormatOverride(new DecimalFormat("0.#"));
