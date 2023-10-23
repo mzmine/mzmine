@@ -25,61 +25,40 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sphingolipids;
 
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
-import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Module to search and annotate peaks as potential lipids
- *
- * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
- */
-public class SphingolipidAnnotationModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Sphingolipid annotation";
-  private static final String MODULE_DESCRIPTION = "This module searches for selected Sphingolipids.";
+public class SphingolipidAnnotationModule extends LipidAnnotationModule {
 
   @Override
   public @NotNull String getName() {
-    return MODULE_NAME;
+    return "Sphingolipid annotation";
   }
 
   @Override
   public @NotNull String getDescription() {
-    return MODULE_DESCRIPTION;
+    return "This module searches for selected Sphingolipids.";
   }
 
   @Override
-  @NotNull
-  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-
-    FeatureList[] featureLists = parameters.getParameter(
-        SphingolipidAnnotationParameters.featureLists).getValue().getMatchingFeatureLists();
-
-    for (FeatureList featureList : featureLists) {
-      Task newTask = new SphingolipidAnnotationTask(parameters, featureList, moduleCallDate);
-      tasks.add(newTask);
-    }
-
-    return ExitCode.OK;
+  public FeatureListsParameter getFeatureListsParameter() {
+    return SphingolipidAnnotationParameters.featureLists;
   }
 
   @Override
-  public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.ANNOTATION;
+  public Task createAnnotationTask(ParameterSet parameters, FeatureList featureList,
+      Instant moduleCallDate) {
+    return new SphingolipidAnnotationTask(parameters, featureList, moduleCallDate);
   }
 
   @Override
-  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
+  public Class<? extends ParameterSet> getParameterSetClass() {
     return SphingolipidAnnotationParameters.class;
   }
-
 }

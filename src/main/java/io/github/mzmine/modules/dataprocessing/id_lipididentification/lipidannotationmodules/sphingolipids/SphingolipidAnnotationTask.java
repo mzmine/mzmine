@@ -212,12 +212,13 @@ public class SphingolipidAnnotationTask extends AbstractTask {
 
     // Add task description to featureList
     (featureList).addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Lipid annotation", SphingolipidAnnotationModule.class,
+        new SimpleFeatureListAppliedMethod("Sphingolipid annotation",
+            SphingolipidAnnotationModule.class,
             parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 
-    logger.info("Finished lipid annotation task in " + featureList);
+    logger.info("Finished Sphingolipid annotation task for " + featureList);
   }
 
   private Set<ILipidAnnotation> buildLipidDatabase() {
@@ -269,9 +270,6 @@ public class SphingolipidAnnotationTask extends AbstractTask {
     }
   }
 
-  /**
-   * Check if candidate peak may be a possible adduct of a given main peak
-   */
   private void findPossibleLipid(ILipidAnnotation lipid, FeatureListRow row) {
     if (isCanceled()) {
       return;

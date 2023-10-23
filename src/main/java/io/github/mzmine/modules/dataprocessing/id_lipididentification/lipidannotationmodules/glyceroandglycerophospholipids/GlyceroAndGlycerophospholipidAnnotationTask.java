@@ -288,9 +288,6 @@ public class GlyceroAndGlycerophospholipidAnnotationTask extends AbstractTask {
     }
   }
 
-  /**
-   * Check if candidate peak may be a possible adduct of a given main peak
-   */
   private void findPossibleLipid(ILipidAnnotation lipid, FeatureListRow row) {
     if (isCanceled()) {
       return;
@@ -364,7 +361,6 @@ public class GlyceroAndGlycerophospholipidAnnotationTask extends AbstractTask {
 
     Set<MatchedLipid> matchedLipids = new HashSet<>();
     // Check if selected feature has MSMS spectra and LipidIdentity
-
     if (!row.getAllFragmentScans().isEmpty()) {
       List<Scan> msmsScans = row.getAllFragmentScans();
       for (Scan msmsScan : msmsScans) {

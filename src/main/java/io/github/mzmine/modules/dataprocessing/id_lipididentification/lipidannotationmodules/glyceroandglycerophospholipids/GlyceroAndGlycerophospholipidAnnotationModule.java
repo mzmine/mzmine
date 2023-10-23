@@ -25,63 +25,39 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids;
 
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
-import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Module to search and annotate peaks as potential lipids
- *
- * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
- */
-public class GlyceroAndGlycerophospholipidAnnotationModule implements MZmineProcessingModule {
-
-  private static final String MODULE_NAME = "Glycero- and Glycerophospholipid annotation";
-  private static final String MODULE_DESCRIPTION = "This method searches for Glycero- and Glycerophospholipids.";
+public class GlyceroAndGlycerophospholipidAnnotationModule extends LipidAnnotationModule {
 
   @Override
   public @NotNull String getName() {
-    return MODULE_NAME;
+    return "Glycero- and Glycerophospholipid annotation";
   }
 
   @Override
   public @NotNull String getDescription() {
-    return MODULE_DESCRIPTION;
+    return "This method searches for Glycero- and Glycerophospholipids.";
   }
 
   @Override
-  @NotNull
-  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-
-    FeatureList[] featureLists = parameters.getParameter(
-            GlyceroAndGlycerophospholipidAnnotationParameters.featureLists).getValue()
-        .getMatchingFeatureLists();
-
-    for (FeatureList featureList : featureLists) {
-      Task newTask = new GlyceroAndGlycerophospholipidAnnotationTask(parameters, featureList,
-          moduleCallDate);
-      tasks.add(newTask);
-    }
-
-    return ExitCode.OK;
+  public FeatureListsParameter getFeatureListsParameter() {
+    return GlyceroAndGlycerophospholipidAnnotationParameters.featureLists;
   }
 
   @Override
-  public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.ANNOTATION;
+  public Task createAnnotationTask(ParameterSet parameters, FeatureList featureList,
+      Instant moduleCallDate) {
+    return new GlyceroAndGlycerophospholipidAnnotationTask(parameters, featureList, moduleCallDate);
   }
 
   @Override
-  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
+  public Class<? extends ParameterSet> getParameterSetClass() {
     return GlyceroAndGlycerophospholipidAnnotationParameters.class;
   }
-
 }

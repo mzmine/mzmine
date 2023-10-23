@@ -278,8 +278,8 @@ public class GlyceroAndGlycerophospholipidDatabaseTableController {
     Map<String, Double> ionSpecificMzValues = new HashMap<>();
     String allPairs = lipidClassDescription.getExactMass();
     String[] pairs = allPairs.split("\n");
-    for (int i = 0; i < pairs.length; i++) {
-      String[] pair = pairs[i].split(" ");
+    for (String s : pairs) {
+      String[] pair = s.split(" ");
       if (pair != null && pair.length > 1) {
         ionSpecificMzValues.put(pair[0], Double.parseDouble(pair[1]));
       }

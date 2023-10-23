@@ -35,7 +35,6 @@ public class LipidAnnotationResolver {
   private final boolean addMissingSpeciesLevelAnnotation;
   private final MZTolerance mzToleranceMS2;
   private final double minMsMsScore;
-  //-1 for infinity
   private int maximumIdNumber;
   private final boolean searchForMSMSFragments;
   private final boolean keepUnconfirmedAnnotations;
@@ -77,8 +76,7 @@ public class LipidAnnotationResolver {
 
   /*
    * If a Data Point was used for multiple lipid annotations it should be removed from all annotations, except the best one
-   *
-   *  */
+   */
   private void removeMultiplyMatchedDataPoints1(List<MatchedLipid> matchedLipidsList,
       FeatureListRow row) {
     Map<DataPoint, Set<MatchedLipid>> dataPointMap = new HashMap<>();
