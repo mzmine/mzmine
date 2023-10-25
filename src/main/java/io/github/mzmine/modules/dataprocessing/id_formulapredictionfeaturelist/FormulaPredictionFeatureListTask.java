@@ -241,11 +241,11 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
         return;
       }
 
-      FormulaUtils.sortFormulaList(resultingFormulas, sortPPMFactor, sortIsotopeFactor,
-          sortMSMSFactor);
 
       // Add the new formula entry top results
       if (!resultingFormulas.isEmpty()) {
+        FormulaUtils.sortFormulaList(resultingFormulas, sortPPMFactor, sortIsotopeFactor,
+            sortMSMSFactor);
         row.setFormulas(resultingFormulas.subList(0,
             Math.min(resultingFormulas.size() - 1, maxBestFormulasPerFeature)));
       }
