@@ -247,7 +247,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
         FormulaUtils.sortFormulaList(resultingFormulas, sortPPMFactor, sortIsotopeFactor,
             sortMSMSFactor);
         row.setFormulas(resultingFormulas.subList(0,
-            Math.min(resultingFormulas.size() - 1, maxBestFormulasPerFeature)));
+            Math.min(resultingFormulas.size(), maxBestFormulasPerFeature)));
       }
 
       if (isCanceled()) {
