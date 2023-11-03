@@ -23,11 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+package io.github.mzmine.datamodel.structures;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import io.github.mzmine.datamodel.structures.StructureInputType;
-import io.github.mzmine.datamodel.structures.StructureParser;
 import org.junit.jupiter.api.Test;
 import org.openscience.cdk.exception.CDKException;
 
