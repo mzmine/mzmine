@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,8 +26,8 @@
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import io.github.mzmine.util.structure.StructureInputType;
-import io.github.mzmine.util.structure.StructureParser;
+import io.github.mzmine.datamodel.structures.StructureInputType;
+import io.github.mzmine.datamodel.structures.StructureParser;
 import org.junit.jupiter.api.Test;
 import org.openscience.cdk.exception.CDKException;
 
@@ -37,32 +37,32 @@ public class StructureParserTest {
   public void testConvertSmilesToInChIKey() throws CDKException {
     // Define a SMILES representation
     String smiles = "OC(=O)CC(O)(C(=O)O)CC(=O)O";
-    var parser = new StructureParser();
-    var inchiKey = parser.getInChIKey(smiles, StructureInputType.SMILES);
+    var parser = new StructureParser(true);
+    var inchiKey = parser.parseStructure(smiles, StructureInputType.SMILES).getInChIKey(parser);
 
     // Define the expected InChI Key
     String expectedInchiKey = "KRKNYBCHXYNGOX-UHFFFAOYSA-N"; // Replace with the actual expected InChI Key
 
     // Assert that the generated InChI Key matches the expected value
     assertEquals(expectedInchiKey, inchiKey);
-    assertNull(parser.getInChIKey(null, StructureInputType.SMILES));
-    assertNull(parser.getInChIKey("Hello", StructureInputType.SMILES));
+    assertNull(parser.parseStructure(null, StructureInputType.SMILES));
+    assertNull(parser.parseStructure("Hello", StructureInputType.SMILES));
   }
 
   @Test
   public void testConvertInChIKeyToSmiles() throws CDKException {
     // Define the expected InChI Key
-    String InchiKey = "KRKNYBCHXYNGOX-UHFFFAOYSA-N";
-    var parser = new StructureParser();
-    var smiles = parser.getInChIKey(InchiKey, StructureInputType.INCHI);
+    String inchi = "InChI=1S/C24H40O5/c1-13(4-7-21(28)29)16-5-6-17-22-18(12-20(27)24(16,17)3)23(2)9-8-15(25)10-14(23)11-19(22)26/h13-20,22,25-27H,4-12H2,1-3H3,(H,28,29)/t13-,14+,15-,16-,17+,18+,19-,20+,22+,23+,24-/m1/s1";
+    var parser = new StructureParser(true);
+    var inchikey = parser.parseStructure(inchi, StructureInputType.INCHI).getInChIKey(parser);
 
     // Define a SMILES representation
-    String expectedSmiles = "OC(=O)CC(O)(C(=O)O)CC(=O)O";
+    String expectedInchikey = "BHQCQFFYRZLCQQ-OELDTZBJSA-N";
 
     // Assert that the generated smile matches the expected value
-    assertEquals(expectedSmiles, smiles);
-    assertNull(parser.getInChIKey(null, StructureInputType.INCHI));
-    assertNull(parser.getInChIKey("Hello", StructureInputType.INCHI));
+    assertEquals(expectedInchikey, inchikey);
+    assertNull(parser.parseStructure(null, StructureInputType.INCHI));
+    assertNull(parser.parseStructure("Hello", StructureInputType.INCHI));
   }
 }
 
