@@ -429,7 +429,7 @@ public interface FeatureListRow extends ModularDataModel {
    */
   default int getGroupID() {
     RowGroup g = getGroup();
-    return g == null ? -1 : g.groupID;
+    return g == null ? -1 : g.getGroupID();
   }
 
   List<ResultFormula> getFormulas();

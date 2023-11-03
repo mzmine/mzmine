@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,11 +27,11 @@ package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.RowGroup;
+import io.github.mzmine.datamodel.features.RowGroupFull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CorrelationRowGroup extends RowGroup {
+public class CorrelationRowGroup extends RowGroupFull {
 
   // correlation data of all rows to this group
   private R2GroupCorrelationData[] corr;
