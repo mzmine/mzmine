@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,8 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.structure;
+package io.github.mzmine.datamodel.structures;
 
-public enum StructureInputType {
-  SMILES, INCHI
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+
+public interface MolecularStructure {
+
+  Logger logger = Logger.getLogger(MolecularStructure.class.getName());
+
+  @NotNull IAtomContainer structure();
+
+  @Nullable IMolecularFormula getMolecularFormula();
+
+  double getMonoIsotopicMass();
+
+  double getMostAbundantMass();
+
+  int getTotalFormalCharge();
+
+  @Nullable String getInChIKey(@NotNull StructureParser parser);
 }
+
