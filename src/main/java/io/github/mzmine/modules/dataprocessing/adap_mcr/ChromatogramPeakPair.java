@@ -34,23 +34,17 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
+ * Might not have chromatograms
  * @author Du-Lab Team dulab.binf@gmail.com
  */
-public class ChromatogramPeakPair {
-
-  public final FeatureList chromatograms;
-  public final FeatureList peaks;
-
-  private ChromatogramPeakPair(@NotNull FeatureList chromatograms, @NotNull FeatureList peaks) {
-    this.chromatograms = chromatograms;
-    this.peaks = peaks;
-  }
+public record ChromatogramPeakPair(@NotNull FeatureList peaks, @Nullable FeatureList chromatograms) {
 
   @Override
   public String toString() {
-    return chromatograms.getName() + " / " + peaks.getName();
+    return chromatograms==null? peaks.getName() : chromatograms.getName() + " / " + peaks.getName();
   }
 
   public static Map<RawDataFile, ChromatogramPeakPair> fromParameterSet(
@@ -66,6 +60,9 @@ public class ChromatogramPeakPair {
     FeatureList[] peaks = parameterSet.getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists();
     if (chromatograms == null || chromatograms.length == 0 || peaks == null || peaks.length == 0) {
+      for (final FeatureList flist : peaks) {
+        pairs.put(flist.getRawDataFile(0), new ChromatogramPeakPair(flist, null));
+      }
       return pairs;
     }
 
@@ -83,7 +80,7 @@ public class ChromatogramPeakPair {
       FeatureList peak = Arrays.stream(peaks).filter(c -> c.getRawDataFile(0) == dataFile)
           .findFirst().orElse(null);
       if (chromatogram != null && peak != null) {
-        pairs.put(dataFile, new ChromatogramPeakPair(chromatogram, peak));
+        pairs.put(dataFile, new ChromatogramPeakPair(peak, chromatogram));
       }
     }
 

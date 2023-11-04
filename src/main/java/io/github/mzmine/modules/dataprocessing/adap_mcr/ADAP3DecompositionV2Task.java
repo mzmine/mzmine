@@ -37,7 +37,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -113,8 +112,9 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
       logger.info("Started ADAP Peak Decomposition on " + originalLists);
 
       // Check raw data files.
-      if (originalLists.chromatograms.getNumberOfRawDataFiles() > 1
-          && originalLists.peaks.getNumberOfRawDataFiles() > 1) {
+      @Nullable var chromatograms = originalLists.chromatograms();
+      @NotNull var peaks = originalLists.peaks();
+      if ((chromatograms!=null && chromatograms.getNumberOfRawDataFiles() > 1) || peaks.getNumberOfRawDataFiles() > 1) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
             "Peak Decomposition can only be performed on feature lists with a single raw data file");
@@ -130,8 +130,10 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
             project.addFeatureList(newPeakList);
             // Remove the original peaklist if requested.
             if (parameters.getParameter(ADAP3DecompositionV2Parameters.HANDLE_ORIGINAL).getValue() == OriginalFeatureListOption.REMOVE) {
-              project.removeFeatureList(originalLists.chromatograms);
-              project.removeFeatureList(originalLists.peaks);
+              project.removeFeatureList(peaks);
+              if (chromatograms != null) {
+                project.removeFeatureList(chromatograms);
+              }
             }
 
             setStatus(TaskStatus.FINISHED);
@@ -165,17 +167,17 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
   }
 
   private ModularFeatureList decomposePeaks(@NotNull ChromatogramPeakPair lists) {
-    RawDataFile dataFile = lists.chromatograms.getRawDataFile(0);
+    RawDataFile dataFile = lists.peaks().getRawDataFile(0);
 
     // Create new feature list.
     ModularFeatureList resolvedPeakList = new ModularFeatureList(dataFile + " " + suffix,
         getMemoryMapStorage(), dataFile);
     DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedPeakList);
 
-    resolvedPeakList.setSelectedScans(dataFile, lists.chromatograms.getSeletedScans(dataFile));
+    resolvedPeakList.setSelectedScans(dataFile, lists.peaks().getSeletedScans(dataFile));
 
     // Load previous applied methods.
-    for (final FeatureList.FeatureListAppliedMethod method : lists.peaks.getAppliedMethods()) {
+    for (var method : lists.peaks().getAppliedMethods()) {
       resolvedPeakList.addDescriptionOfAppliedTask(method);
     }
 
@@ -185,13 +187,14 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
             ADAPMultivariateCurveResolutionModule.class, parameters, getModuleCallDate()));
 
     // Collect peak information
-    List<BetterPeak> chromatograms = utils.getPeaks(lists.chromatograms);
-    List<BetterPeak> peaks = utils.getPeaks(lists.peaks);
+    var chromLists = lists.chromatograms();
+    List<BetterPeak> chromatograms = chromLists!=null? utils.getPeaks(chromLists) : List.of();
+    List<BetterPeak> peaks = utils.getPeaks(lists.peaks());
 
     // Find components (a.k.a. clusters of peaks with fragmentation spectra)
     List<BetterComponent> components = getComponents(chromatograms, peaks);
 
-    // Create PeakListRow for each components
+    // Create PeakListRow for each component
     List<FeatureListRow> newPeakListRows = new ArrayList<>();
 
     int rowID = 0;
@@ -220,7 +223,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
       // todo: replace this with it's own data type?
       refPeak.setIsotopePattern(
-          new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[dataPoints.size()]), -1,
+          new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[0]), -1,
               IsotopePattern.IsotopePatternStatus.PREDICTED, "Spectrum"));
 
       final ModularFeatureListRow row = new ModularFeatureListRow(resolvedPeakList, ++rowID);
