@@ -32,6 +32,8 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.PseudoSpectrum;
+import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
@@ -45,6 +47,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -56,6 +59,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -225,6 +229,18 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
       refPeak.setIsotopePattern(
           new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[0]), -1,
               IsotopePattern.IsotopePatternStatus.PREDICTED, "Spectrum"));
+      dataPoints.sort(Comparator.comparingDouble(DataPoint::getMZ));
+
+      PseudoSpectrum pseudoMs1 = new SimplePseudoSpectrum(dataFile, 1,
+          refPeak.getRT(), null,
+          dataPoints.stream()
+              .mapToDouble(DataPoint::getMZ)
+              .toArray(), dataPoints.stream()
+          .mapToDouble(DataPoint::getIntensity)
+          .toArray(),
+          Objects.requireNonNull(refPeak.getRepresentativeScan()).getPolarity(),
+          "Pseudo Spectrum", PseudoSpectrumType.GC_EI);
+      refPeak.setAllMS2FragmentScans(new ArrayList<>(List.of(pseudoMs1)));
 
       final ModularFeatureListRow row = new ModularFeatureListRow(resolvedPeakList, ++rowID);
 
