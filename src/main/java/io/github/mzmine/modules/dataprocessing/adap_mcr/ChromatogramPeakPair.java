@@ -51,15 +51,12 @@ public record ChromatogramPeakPair(@NotNull FeatureList peaks, @Nullable Feature
       @NotNull ParameterSet parameterSet) {
     Map<RawDataFile, ChromatogramPeakPair> pairs = new HashMap<>();
 
-    var optionalChromatograms = parameterSet.getParameter(
-        ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS);
-    var useChromatograms = optionalChromatograms.getValue();
-    FeatureList[] chromatograms =
-        useChromatograms ? optionalChromatograms.getEmbeddedParameter().getValue()
-            .getMatchingFeatureLists() : null;
+    FeatureList[] chromatograms = parameterSet.getParameter(
+        ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS).getValue().getMatchingFeatureLists();
     FeatureList[] peaks = parameterSet.getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists();
     if (chromatograms == null || chromatograms.length == 0 || peaks == null || peaks.length == 0) {
+      assert peaks != null;
       for (final FeatureList flist : peaks) {
         pairs.put(flist.getRawDataFile(0), new ChromatogramPeakPair(flist, null));
       }
