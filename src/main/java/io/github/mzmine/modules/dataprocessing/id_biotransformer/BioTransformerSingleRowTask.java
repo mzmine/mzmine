@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
@@ -52,6 +53,8 @@ public class BioTransformerSingleRowTask extends AbstractTask {
   private final ParameterSet parameters;
   private final File bioPath;
   private final MZTolerance mzTolerance;
+  private final boolean rowGroupFilter;
+  private final RTTolerance rtTolerance;
   private String description;
 
   public BioTransformerSingleRowTask(ModularFeatureListRow row, String smiles, String prefix,
@@ -63,6 +66,14 @@ public class BioTransformerSingleRowTask extends AbstractTask {
     this.parameters = parameters;
     bioPath = parameters.getValue(BioTransformerParameters.bioPath);
     mzTolerance = parameters.getValue(BioTransformerParameters.mzTol);
+
+    final boolean enableAdvancedFilters = parameters.getValue(BioTransformerParameters.advanced);
+    final ParameterSet filterParams = parameters.getEmbeddedParameterValue(
+        BioTransformerParameters.advanced);
+    rowGroupFilter =
+        enableAdvancedFilters && filterParams.getValue(RtClusterFilterParameters.rowGroupFilter);
+    rtTolerance = enableAdvancedFilters ? filterParams.getEmbeddedParameterValueIfSelectedOrElse(
+        RtClusterFilterParameters.rtTolerance, null) : null;
 
     description = "Biotransformer task - SMILES: " + smiles;
   }
@@ -114,8 +125,13 @@ public class BioTransformerSingleRowTask extends AbstractTask {
     for (CompoundDBAnnotation annotation : bioTransformerAnnotations) {
       flist.stream().forEach(r -> {
         final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(r,
-            mzTolerance, null, null, null);
+            mzTolerance, rtTolerance, null, null);
         if (clone != null) {
+          if (rowGroupFilter && !(row.getGroupID() == r.getGroupID())) {
+            // -1 is default, if both groups have no id it's fine
+            return;
+          }
+
           r.addCompoundAnnotation(clone);
           row.getCompoundAnnotations()
               .sort(Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));

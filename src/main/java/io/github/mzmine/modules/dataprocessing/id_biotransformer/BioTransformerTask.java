@@ -36,6 +36,7 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidn
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -73,6 +74,13 @@ public class BioTransformerTask extends AbstractTask {
   private final boolean checkProductIntensity;
   private final double minEductIntensity;
   private final double minProductIntensity;
+  private final boolean rowGroupFilter;
+
+  /**
+   * Null if no filter is applied
+   */
+  @Nullable
+  private final RTTolerance rtTolerance;
   private String description;
   private int numEducts = 0;
   private int predictions = 1;
@@ -96,6 +104,14 @@ public class BioTransformerTask extends AbstractTask {
     minProductIntensity = filterParam.getParameter(BioTransformerFilterParameters.minProductHeight)
         .getEmbeddedParameter().getValue();
     smilesSource = parameters.getValue(BioTransformerParameters.smilesSource);
+
+    final boolean enableAdvancedFilters = parameters.getValue(BioTransformerParameters.advanced);
+    final ParameterSet filterParams = parameters.getEmbeddedParameterValue(
+        BioTransformerParameters.advanced);
+    rowGroupFilter =
+        enableAdvancedFilters && filterParams.getValue(RtClusterFilterParameters.rowGroupFilter);
+    rtTolerance = enableAdvancedFilters ? filterParams.getEmbeddedParameterValueIfSelectedOrElse(
+        RtClusterFilterParameters.rtTolerance, null) : null;
 
     var ionLibraryParam = parameters.getParameter(BioTransformerParameters.ionLibrary).getValue();
     ionLibrary = new IonNetworkLibrary((IonLibraryParameterSet) ionLibraryParam);
@@ -223,8 +239,14 @@ public class BioTransformerTask extends AbstractTask {
         for (CompoundDBAnnotation annotation : bioTransformerAnnotations) {
           flist.stream().filter(this::filterProductRow).forEach(r -> {
             final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(r,
-                mzTolerance, null, null, null);
+                mzTolerance, rtTolerance, null, null);
             if (clone != null) {
+
+              if (rowGroupFilter && !(row.getGroupID() == r.getGroupID())) {
+                // -1 is default, if both groups have no id it's fine
+                return;
+              }
+
               r.addCompoundAnnotation(clone);
               row.getCompoundAnnotations().sort(
                   Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
