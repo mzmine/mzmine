@@ -24,22 +24,23 @@
  */
 package io.github.mzmine.util.adap;
 
-import com.google.common.collect.Range;
 import dulab.adap.datamodel.BetterPeak;
 import dulab.adap.datamodel.Chromatogram;
 import dulab.adap.datamodel.Component;
 import dulab.adap.datamodel.Peak;
 import dulab.adap.datamodel.PeakInfo;
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
-import io.github.mzmine.datamodel.features.*;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -88,8 +89,9 @@ public class ADAPInterface {
   }
 
   @NotNull
-  public static ModularFeature peakToFeature(@NotNull ModularFeatureList alignedFeatureList, FeatureList originalFeatureList,
-                                             @NotNull RawDataFile file, @NotNull BetterPeak peak) {
+  public static ModularFeature peakToFeature(@NotNull ModularFeatureList alignedFeatureList,
+      FeatureList originalFeatureList,
+      @NotNull RawDataFile file, @NotNull BetterPeak peak, FeatureListRow row) {
 
     Chromatogram chromatogram = peak.chromatogram;
 
@@ -127,15 +129,19 @@ public class ADAPInterface {
       newIntensities[i] = chromatogram.ys[i];
     }
 
-    SimpleIonTimeSeries simpleIonTimeSeries = new SimpleIonTimeSeries(null, newMzs, newIntensities, scanNumbers);
-
-    return new ModularFeature(alignedFeatureList, file, simpleIonTimeSeries, FeatureStatus.ESTIMATED);
+    SimpleIonTimeSeries simpleIonTimeSeries = new SimpleIonTimeSeries(null, newMzs, newIntensities,
+        scanNumbers);
+    ModularFeature feature = new ModularFeature(alignedFeatureList, row.getFeature(file));
+    feature.set(FeatureDataType.class, simpleIonTimeSeries);
+    FeatureDataUtils.recalculateIonSeriesDependingTypes(feature);
+    return feature;
 
   }
 
   @NotNull
-  public static Feature peakToFeature(@NotNull ModularFeatureList featureList,FeatureList originalFeatureList,
-                                      @NotNull RawDataFile file, @NotNull Peak peak) {
+  public static Feature peakToFeature(@NotNull ModularFeatureList featureList,
+      FeatureList originalFeatureList,
+      @NotNull RawDataFile file, @NotNull Peak peak, FeatureListRow row) {
 
     NavigableMap<Double, Double> chromatogram = peak.getChromatogram();
 
@@ -151,6 +157,6 @@ public class ADAPInterface {
     BetterPeak betterPeak = new BetterPeak(peak.getInfo().peakID,
             new Chromatogram(retTimes, intensities), peak.getInfo());
 
-    return peakToFeature(featureList, originalFeatureList,file, betterPeak);
+    return peakToFeature(featureList, originalFeatureList, file, betterPeak, row);
   }
 }

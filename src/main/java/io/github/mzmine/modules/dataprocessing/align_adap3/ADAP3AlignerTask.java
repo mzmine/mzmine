@@ -32,7 +32,10 @@ import dulab.adap.datamodel.Project;
 import dulab.adap.datamodel.ReferenceComponent;
 import dulab.adap.datamodel.Sample;
 import dulab.adap.workflow.AlignmentParameters;
-import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -45,10 +48,12 @@ import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.adap.ADAPInterface;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.NavigableMap;
@@ -170,8 +175,9 @@ public class ADAP3AlignerTask extends AbstractTask {
 
       for (final FeatureListRow row : peakList.getRows()) {
         Component component = getComponent(row);
-        if (component != null)
+        if (component != null) {
           sample.addComponent(component);
+        }
       }
 
       alignment.addSample(sample);
@@ -181,7 +187,11 @@ public class ADAP3AlignerTask extends AbstractTask {
 
     // Create new feature list
     final ModularFeatureList alignedPeakList =
-        new ModularFeatureList(peakListName, getMemoryMapStorage(), allDataFiles.toArray(new RawDataFile[0]));
+        new ModularFeatureList(peakListName, getMemoryMapStorage(),
+            allDataFiles.toArray(new RawDataFile[0]));
+
+    FeatureListUtils.transferRowTypes(alignedPeakList, Arrays.asList(peakLists));
+    FeatureListUtils.transferSelectedScans(alignedPeakList, Arrays.asList(peakLists));
 
     int rowID = 0;
 
@@ -213,7 +223,8 @@ public class ADAP3AlignerTask extends AbstractTask {
         RawDataFile file = row.getRawDataFiles().get(0);
 //        List<Scan> scanNumbers = row.getBestFeature().getScanNumbers();
         // Create a new MZmine feature
-        Feature feature = ADAPInterface.peakToFeature(alignedPeakList, featureList, file, peak);
+        Feature feature = ADAPInterface.peakToFeature(alignedPeakList, featureList, file, peak,
+            row);
 
         // Add spectrum as an isotopic pattern
         DataPoint[] spectrum = component.getSpectrum().entrySet().stream()
