@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -245,6 +245,10 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     }
 
     for (final IonModification aa : a) {
+      // do not check the ? unknown adduct as this does not count as an adduct overlap
+      if (aa.getType() == IonModificationType.UNDEFINED_ADDUCT) {
+        continue;
+      }
       if (Arrays.stream(b).anyMatch(ab -> aa.equals(ab))) {
         return true;
       }
@@ -536,7 +540,7 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
   }
 
 
-    @Override
+  @Override
   public boolean equals(final Object obj) {
     if (obj == null || !obj.getClass().equals(this.getClass())
         || !(obj instanceof final IonType a)) {
