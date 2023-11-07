@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,16 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
+import io.github.mzmine.datamodel.structures.FragmentedStructure;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
+import io.github.mzmine.gui.chartbasics.gui.javafx.ChartGestureMouseAdapterFX;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
@@ -33,6 +42,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.color.ColorScaleUtil;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -47,6 +57,8 @@ import java.awt.Dimension;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -68,6 +80,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -80,6 +93,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.Range;
 import org.openscience.cdk.DefaultChemObjectBuilder;
@@ -119,6 +133,9 @@ public class SpectralMatchPanelFX extends GridPane {
   private final SpectralDBAnnotation hit;
   private final BorderPane mirrorChartWrapper;
   private final EStandardChartTheme theme;
+  private final StackPane fragmentStrucPane;
+  @Nullable
+  private Map<Integer, MolecularStructure> fragmentMap;
   private boolean setCoupleZoomY;
   private XYPlot queryPlot;
   private XYPlot libraryPlot;
@@ -127,6 +144,8 @@ public class SpectralMatchPanelFX extends GridPane {
   private GridPane pnExport;
   private Label lblScore;
   private Label lblHit;
+  private FragmentedStructure fragmentedStructure;
+  private MZTolerance mzTol;
 
   public SpectralMatchPanelFX(SpectralDBAnnotation hit) {
     super();
@@ -157,17 +176,128 @@ public class SpectralMatchPanelFX extends GridPane {
         Priority.ALWAYS, HPos.CENTER, true);
     ColumnConstraints ccMetadata = new ColumnConstraints(META_WIDTH + 30, META_WIDTH + 30,
         Region.USE_COMPUTED_SIZE, Priority.NEVER, HPos.LEFT, false);
+    ColumnConstraints ccSubStruc = new ColumnConstraints(400, -1, Region.USE_COMPUTED_SIZE,
+        Priority.NEVER, HPos.CENTER, false);
 
     add(pnTitle, 0, 0, 2, 1);
     add(mirrorChartWrapper, 0, 1);
     add(metaDataScroll, 1, 1);
 
-    getColumnConstraints().add(0, ccSpectrum);
-    getColumnConstraints().add(1, ccMetadata);
+    fragmentStrucPane = new StackPane();
+    add(fragmentStrucPane, 2, 1);
 
+    getColumnConstraints().add(ccSpectrum);
+    getColumnConstraints().add(ccMetadata);
+    getColumnConstraints().add(ccSubStruc);
+
+    annotateFragments(hit);
+
+    ChartGestureMouseAdapterFX adapter = mirrorChart.getGestureAdapter();
+
+    adapter.addGestureHandler(
+        new ChartGestureHandler(new ChartGesture(Entity.PLOT, Event.CLICK, GestureButton.BUTTON1),
+            e -> {
+              handleClick();
+            }));
+    adapter.addGestureHandler(new ChartGestureHandler(
+        new ChartGesture(Entity.XY_ITEM, Event.CLICK, GestureButton.BUTTON1), e -> {
+      handleClick();
+    }));
 //    setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
 //        BorderWidths.DEFAULT)));
   }
+
+  private void annotateFragments(final SpectralDBAnnotation hit) {
+    try {
+      String smiles = hit.getSmiles();
+      String inchi = hit.getInChI();
+      StructureParser parser = new StructureParser(false);
+      MolecularStructure strc = parser.parseStructure(smiles, inchi);
+      if (strc == null) {
+        return;
+      }
+
+      String inchikey = strc.getInChIKey(parser);
+
+      mzTol = new MZTolerance(0.008, 20);
+      fragmentedStructure = MZmineCore.getFragmentedStructureMap().get(inchikey);
+
+//      double[] mzs = Arrays.stream(hit.getQueryDataPoints()).mapToDouble(DataPoint::getMZ)
+//          .toArray();
+//
+//      FragmentedStructureAnnotationTask task = new FragmentedStructureAnnotationTask(mzTol, mzs,
+//          inchikey);
+//      task.addTaskStatusListener((task1, newStatus, oldStatus) -> {
+//        if (newStatus == TaskStatus.FINISHED) {
+//          fragmentMap = task.getResults();
+//
+//          MolecularStructure frag = fragmentMap.values().stream().findFirst().orElse(null);
+//          setFragment(frag);
+//        }
+//      });
+//      MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH);
+
+    } catch (CDKException e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+    }
+  }
+
+  private void handleClick() {
+    Plot plot = mirrorChart.getChart().getPlot();
+    if (!(plot instanceof CombinedDomainXYPlot combinedDomainXYPlot)) {
+      return;
+    }
+
+    XYPlot queryPlot = (XYPlot) combinedDomainXYPlot.getSubplots().get(0);
+    double selectedMZ = queryPlot.getDomainCrosshairValue();
+
+    if (fragmentedStructure == null) {
+      return;
+    }
+
+    List<MolecularStructure> struc = fragmentedStructure.findAllFragmentAtMz(selectedMZ, mzTol);
+    setFragment(struc);
+  }
+
+  public void setFragment(final List<MolecularStructure> frags) {
+    MZmineCore.runLater(() -> {
+      fragmentStrucPane.getChildren().clear();
+      if (frags.isEmpty()) {
+        return;
+      }
+
+      int strucsToShow = Math.min(16, frags.size());
+      int cols = (int) Math.ceil(Math.sqrt(strucsToShow));
+      int rows = (int) Math.ceil((double) strucsToShow / cols);
+      GridPane grid = new GridPane();
+
+      double width = 800.0 / cols;
+      double height = mirrorChart.getHeight() / rows;
+
+      int col = 0;
+      int row = 0;
+      try {
+        for (int i = 0; i < strucsToShow; i++) {
+          var frag = frags.get(i);
+          Structure2DComponent viewer = new Structure2DComponent(frag.structure(),
+              theme.getRegularFont());
+          viewer.setWidth(width);
+          viewer.setHeight(height);
+          grid.add(viewer, col, row);
+          col++;
+          if (col == cols) {
+            col = 0;
+            row++;
+          }
+        }
+        fragmentStrucPane.getChildren().setAll(grid);
+      } catch (CDKException e) {
+        logger.log(Level.WARNING, e.getMessage(), e);
+      }
+    });
+
+  }
+
 
   private Pane createTitlePane() {
     String explIntTooltip = "Explained library intensity for matched library signals divided by all library signal intensities";

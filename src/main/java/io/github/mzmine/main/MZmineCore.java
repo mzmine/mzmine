@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.structures.FragmentedStructure;
+import io.github.mzmine.datamodel.structures.FragmentedStructureParser;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.gui.MZmineGUI;
@@ -102,6 +104,14 @@ public final class MZmineCore {
   // batch exit code is only set if run in headless mode with batch file
   private ExitCode batchExitCode = null;
 
+
+  // TODO remove from here just showcase for now
+  private static Map<String, FragmentedStructure> fragmentedStructureMap;
+
+  public static Map<String, FragmentedStructure> getFragmentedStructureMap() {
+    return fragmentedStructureMap;
+  }
+
   private MZmineCore() {
     init();
   }
@@ -111,6 +121,13 @@ public final class MZmineCore {
    */
   public static void main(final String[] args) {
     try {
+      // TODO remove from here just showcase for now
+      final File file = new File(
+          "D:\\git\\annotation_validation\\metadata_validator\\metadata\\fragments_nih.tsv");
+
+      FragmentedStructureParser parser = new FragmentedStructureParser();
+      fragmentedStructureMap = parser.parseFile(file).createInchiKeyMap();
+
       Semver version = getMZmineVersion();
       logger.info("Starting MZmine " + version);
       /*
@@ -286,7 +303,7 @@ public final class MZmineCore {
    * Exit MZmine (usually used in headless mode)
    */
   public static void exit() {
-    if(isHeadLessMode() && isFxInitialized) {
+    if (isHeadLessMode() && isFxInitialized) {
       // fx might be initialized for graphics export in headless mode - shut it down
       // in GUI mode it is shut down automatically
       Platform.exit();

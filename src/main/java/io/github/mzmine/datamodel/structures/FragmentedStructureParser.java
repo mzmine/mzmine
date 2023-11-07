@@ -30,11 +30,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.exception.CDKException;
@@ -47,31 +44,31 @@ public class FragmentedStructureParser {
     return struc != null ? struc.precomputeValues(parser) : null;
   }
 
-  public Map<String, FragmentedStructure> parseFile(File file) throws CDKException, IOException {
+  public FragmentedStructureLibrary parseFile(File file) throws CDKException, IOException {
     final StructureParser parser = new StructureParser(true);
 
-    Map<String, FragmentedStructure> map = new HashMap<>();
-
+    // format has three columns and a header
     // "smiles", "inchikey", "fragments"
     try (Stream<String> lines = Files.lines(file.toPath())) {
-      return lines.skip(1).map(line -> {
-            String[] split = line.split("\t");
-            if (split.length < 3) {
-              return null;
-            }
+      FragmentedStructure[] structures = lines.skip(1).map(line -> {
+        String[] split = line.split("\t");
+        if (split.length < 3) {
+          return null;
+        }
 
-            String smiles = split[0];
-            String inchikey = split[1];
-            String fragments = split[2];
+        String smiles = split[0];
+//            String inchikey = split[1];
+        String fragments = split[2];
 
-            return parseStructure(parser, smiles, inchikey, fragments);
-          }).filter(Objects::nonNull)
-          .collect(Collectors.toMap(fs -> fs.structure().getInChIKey(parser), fs -> fs));
+        return parseStructure(parser, smiles, fragments);
+      }).filter(Objects::nonNull).toArray(FragmentedStructure[]::new);
+
+      return new FragmentedStructureLibrary(structures);
     }
   }
 
   private FragmentedStructure parseStructure(final StructureParser parser, final String smiles,
-      final String inchikey, final String fragmentsListString) {
+      final String fragmentsListString) {
     // try parse smiles
     var structure = parseSmiles(parser, smiles);
     if (structure == null) {

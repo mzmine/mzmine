@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ public class PseudoSpectrumDataSet extends XYSeriesCollection {
   private static final long serialVersionUID = 1L;
 
   private Map<XYDataItem, String> annotation;
+  private final double EPSILON = 0.0000001;
 
   public PseudoSpectrumDataSet(boolean autoSort, Comparable... keys) {
     super();
@@ -61,6 +62,19 @@ public class PseudoSpectrumDataSet extends XYSeriesCollection {
     if (ann != null) {
       addAnnotation(dp, ann);
     }
+  }
+
+
+  public int getIndex(final double mz, final double intensity) {
+    XYSeries series = getSeries(0);
+    for (int i = 0; i < series.getItemCount(); i++) {
+      XYDataItem dp = series.getDataItem(i);
+      if (Math.abs(mz - dp.getXValue()) < EPSILON
+          && Math.abs(intensity - dp.getYValue()) < EPSILON) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   /**

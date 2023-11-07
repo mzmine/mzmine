@@ -85,4 +85,17 @@ public class StructureParser {
   public boolean isVerbose() {
     return verbose;
   }
+
+  @Nullable
+  public MolecularStructure parseStructure(@Nullable String smiles, @Nullable String inchi) {
+    MolecularStructure struc = null;
+
+    struc = parseStructure(smiles, StructureInputType.SMILES);
+
+    if (struc == null) {
+      struc = parseStructure(inchi, StructureInputType.INCHI);
+    }
+
+    return struc;
+  }
 }

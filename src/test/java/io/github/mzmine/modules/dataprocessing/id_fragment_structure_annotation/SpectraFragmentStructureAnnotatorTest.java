@@ -23,46 +23,48 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.structures;
+package io.github.mzmine.modules.dataprocessing.id_fragment_structure_annotation;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import io.github.mzmine.datamodel.structures.FragmentedStructure;
+import io.github.mzmine.datamodel.structures.FragmentedStructureParser;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.openscience.cdk.exception.CDKException;
 
-class FragmentedStructureParserTest {
+class SpectraFragmentStructureAnnotatorTest {
 
-  private static final Logger logger = Logger.getLogger(
-      FragmentedStructureParserTest.class.getName());
   File file = new File(
       "D:\\git\\annotation_validation\\metadata_validator\\metadata\\fragments_nih.tsv");
 
 
   @Test
-  public void testParseList() {
-    String list = "['COC(=O)C1C(O)CCC2CN3CCc4c([nH]c5ccccc45)C3CC21.[CH3+]', 'C=CCCC(O)C(/C=C/C1NCCc2c1[nH]c1ccccc21)C(=[O+])OC', 'C=CCCC(O)C([CH][CH+]C1NCCc2c1[nH]c1ccccc21)C(=O)OC']";
-
-    var empty = list.replaceAll("\\['", "") //
-        .replaceAll("']", "") //
-        .replaceAll("', '", ",") //
-        .split(",");
-    logger.info(String.join("\n", empty));
-    assertEquals(3, empty.length);
-  }
-
-  @Test
-  void parseFile() throws CDKException, IOException {
+  void annotateSpectralSignals() throws CDKException, IOException {
     FragmentedStructureParser parser = new FragmentedStructureParser();
     Map<String, FragmentedStructure> map = parser.parseFile(file).createInchiKeyMap();
 
-    logger.info("Elements: " + map.size());
-    assertEquals(5, map.size());
-    assertTrue(map.containsKey("XGPBRZDOJDLKOT-NXIDYTHLSA-N"));
-    assertEquals(7860, map.get("XGPBRZDOJDLKOT-NXIDYTHLSA-N").fragments().size());
+    FragmentedStructure structure = map.get("XGPBRZDOJDLKOT-NXIDYTHLSA-N");
+
+    List<MolecularStructure> frags = structure.fragments();
+    double[] mzs = Stream.of(frags.get(10), frags.get(55), frags.get(120), frags.get(150),
+            frags.get(350), frags.get(900), frags.get(1560), frags.get(2000), frags.get(2500),
+            frags.get(5000), frags.get(7400)).mapToDouble(MolecularStructure::getMonoIsotopicMass)
+        .toArray();
+
+    SpectraFragmentStructureAnnotator annotator = new SpectraFragmentStructureAnnotator(
+        new MZTolerance(0.008, 20));
+    Map<Integer, MolecularStructure> annotations = annotator.annotateSpectralSignals(map, mzs,
+        "XGPBRZDOJDLKOT-NXIDYTHLSA-N");
+
+    Assertions.assertEquals(mzs.length, annotations.size());
+
+    List<Double> added = new ArrayList<>();
   }
 }
