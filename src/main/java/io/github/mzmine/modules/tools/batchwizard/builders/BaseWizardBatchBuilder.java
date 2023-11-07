@@ -909,8 +909,13 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(MassDetectionParameters.dataFiles,
         new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     // if MS level 0 then apply to all scans
-    param.getParameter(MassDetectionParameters.scanSelection)
-        .setValue(true, new ScanSelection(MsLevelFilter.of(msLevel, true)));
+    if (msLevel != 0) {
+      param.getParameter(MassDetectionParameters.scanSelection)
+          .setValue(true, new ScanSelection(MsLevelFilter.of(msLevel, true)));
+    } else {
+      param.getParameter(MassDetectionParameters.scanSelection)
+          .setValue(true, new ScanSelection(MsLevelFilter.ALL_LEVELS));
+    }
     param.setParameter(MassDetectionParameters.scanTypes, scanTypes);
     param.setParameter(MassDetectionParameters.massDetector,
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(massDetectorClass),
