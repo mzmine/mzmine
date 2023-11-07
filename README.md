@@ -5,6 +5,9 @@
 ![GitHub contributors](https://img.shields.io/github/contributors/mzmine/mzmine3)
 [![Development Build Release](https://github.com/mzmine/mzmine3/actions/workflows/dev_build_release.yml/badge.svg)](https://github.com/mzmine/mzmine3/actions/workflows/dev_build_release.yml)
 
+![Static Badge](https://img.shields.io/badge/JDK%20version-20-blue)
+![Static Badge](https://img.shields.io/badge/JavaFX%20version-19-%2391219c)
+
 
 MZmine is an open-source software for mass-spectrometry data processing. The goals of the project is
 to provide a user-friendly, flexible and easily extendable software with a complete set of modules
