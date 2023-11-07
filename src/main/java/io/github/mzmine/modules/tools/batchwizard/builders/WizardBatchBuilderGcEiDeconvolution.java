@@ -145,15 +145,15 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
         minRtDataPoints, cropRtRange);
     makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
-    // makeAndAddRtAdapResolver(q);
     makeAndAddRtLocalMinResolver(q, null, minRtDataPoints, cropRtRange, rtFwhm,
         100);
     // TODO, use hierarchical clustering, because we cannot facilitate chromatograms
     // and features are present to use MultiCurveResolution
     // makeMultiCurveResolutionStep(q);
     makeHierarchicalClustering(q);
-    makeAndAddLibrarySearchMS1Step(q, false);
     makeAndAddAlignmentStep(q);
+    makeAndAddGapFillStep(q, interSampleRtTol);
+    makeAndAddLibrarySearchMS1Step(q, false);
 
     if (isExportActive) {
       if (exportGnps) {
@@ -227,8 +227,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         minFeatureHeight);
     param.setParameter(ADAP3DecompositionV1_5Parameters.EDGE_TO_HEIGHT_RATIO,
         0.3);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.DELTA_TO_HEIGHT_RATIO,
-        0.2);
+    param.setParameter(ADAP3DecompositionV1_5Parameters.DELTA_TO_HEIGHT_RATIO, 0.2);
     param.setParameter(ADAP3DecompositionV1_5Parameters.USE_ISSHARED,
         false);
     param.setParameter(ADAP3DecompositionV1_5Parameters.MIN_MODEL_SHARPNESS,
@@ -237,8 +236,6 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         18.0);
     param.setParameter(ADAP3DecompositionV1_5Parameters.MODEL_PEAK_CHOICE,
         TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_INTENSITY);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.MZ_VALUES,
-        null);
     param.setParameter(ADAP3DecompositionV1_5Parameters.SUFFIX,
         "spec-decon");
     param.setParameter(ADAP3DecompositionV1_5Parameters.MZ_VALUES,
