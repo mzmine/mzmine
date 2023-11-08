@@ -215,10 +215,11 @@ public class ADAP3AlignerTask extends AbstractTask {
         FeatureListRow row =
             findPeakListRow(referenceComponent.getSampleID(i), peak.getInfo().peakID);
 
-        if (row == null)
+        if (row == null) {
           throw new IllegalStateException(
               String.format("Cannot find a feature list row for fileId = %d and peakId = %d",
                   referenceComponent.getSampleID(), peak.getInfo().peakID));
+        }
 
         RawDataFile file = row.getRawDataFiles().get(0);
 //        List<Scan> scanNumbers = row.getBestFeature().getScanNumbers();
@@ -226,7 +227,7 @@ public class ADAP3AlignerTask extends AbstractTask {
         Feature feature = ADAPInterface.peakToFeature(alignedPeakList, featureList, file, peak,
             row);
 
-        // Add spectrum as an isotopic pattern
+        // Add spectrum as an isotopic pattern TODO legacy, modules shout now use the pseudo spectrum
         DataPoint[] spectrum = component.getSpectrum().entrySet().stream()
             .map(e -> new SimpleDataPoint(e.getKey(), e.getValue())).toArray(DataPoint[]::new);
 
