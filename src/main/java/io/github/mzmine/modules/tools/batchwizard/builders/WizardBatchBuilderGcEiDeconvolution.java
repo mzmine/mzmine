@@ -75,6 +75,7 @@ import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpectralSimilarityParameters;
 import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarity;
 import java.io.File;
+import java.util.List;
 import java.util.Optional;
 
 public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder {
@@ -239,7 +240,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     param.setParameter(ADAP3DecompositionV1_5Parameters.SUFFIX,
         "spec-decon");
     param.setParameter(ADAP3DecompositionV1_5Parameters.MZ_VALUES,
-        null);
+        List.of());
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(ADAPHierarchicalClusteringModule.class), param));
