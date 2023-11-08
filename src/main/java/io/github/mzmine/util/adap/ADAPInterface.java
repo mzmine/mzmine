@@ -113,14 +113,6 @@ public class ADAPInterface {
         break;
     }
 
-    // Calculate peak area
-    double area = 0.0;
-    for (int i = 1; i < chromatogram.length; ++i) {
-      double base = (chromatogram.xs[i] - chromatogram.xs[i - 1]) * 60d;
-      double height = 0.5 * (chromatogram.ys[i] + chromatogram.ys[i - 1]);
-      area += base * height;
-    }
-
     //Get mzs values from peak and intensities from chromatogram
     final double[] newMzs = new double[scanNumbers.size()];
     final double[] newIntensities = new double[scanNumbers.size()];
