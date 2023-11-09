@@ -84,6 +84,7 @@ import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverv
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerModule;
@@ -113,10 +114,12 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Orientation;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.SplitPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -126,7 +129,6 @@ import org.jetbrains.annotations.Nullable;
  * otherwise.
  */
 public class FeatureTableContextMenu extends ContextMenu {
-
   private static final Logger logger = Logger.getLogger(FeatureTableContextMenu.class.getName());
   final Menu showMenu;
   final Menu searchMenu;
@@ -457,16 +459,16 @@ public class FeatureTableContextMenu extends ContextMenu {
       }
     });
 
-    final MenuItem showDiaIons = new ConditionalMenuItem("Show DIA ion shapes",
+    final MenuItem showPseudoSpectrumItem = new ConditionalMenuItem("Show Pseudo Spectrum",
         () -> selectedFeature != null
-              && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
-    showDiaIons.setOnAction(e -> showDiaMsMsIons());
+            && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
+    showPseudoSpectrumItem.setOnAction(e -> showPseudoSpectrum());
 
     final MenuItem showDiaMirror = new ConditionalMenuItem(
         "DIA spectral mirror: Correlated-to-all signals",
         () -> selectedFeature != null && selectedFeature.getRawDataFile() instanceof IMSRawDataFile
-              && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries
-              && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
+            && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries
+            && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
     showDiaMirror.setOnAction(e -> showDiaMirror());
 
     final MenuItem showMSMSMirrorItem = new ConditionalMenuItem("Mirror MS/MS (2 rows)",
@@ -521,7 +523,7 @@ public class FeatureTableContextMenu extends ContextMenu {
             showIntensityPlotItem, showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem,
             new SeparatorMenuItem(), showSpectrumItem, showFeatureFWHMMs1Item,
             showBestMobilityScanItem, extractSumSpectrumFromMobScans, showMSMSItem,
-            showMSMSMirrorItem, showAllMSMSItem, showDiaIons, showDiaMirror,
+            showMSMSMirrorItem, showAllMSMSItem, showPseudoSpectrumItem, showDiaMirror,
             new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
             showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
             showPeakRowSummaryItem);
@@ -672,29 +674,35 @@ public class FeatureTableContextMenu extends ContextMenu {
     return features.stream().filter(f -> f.getRawDataFile() == file).collect(Collectors.toList());
   }
 
-  private void showDiaMsMsIons() {
-    final Scan msms = selectedFeature.getMostIntenseFragmentScan();
+  private void showPseudoSpectrum() {
+    final Scan pseudoMS = selectedFeature.getMostIntenseFragmentScan();
     final RawDataFile file = selectedFeature.getRawDataFile();
     ScanSelection selection = new ScanSelection(
-        Range.closed(selectedFeature.getRawDataPointsRTRange().lowerEndpoint() - 1d,
-            selectedFeature.getRawDataPointsRTRange().upperEndpoint() + 1d), 2);
+        Range.closed(selectedFeature.getRawDataPointsRTRange().lowerEndpoint() - 0.1d,
+            selectedFeature.getRawDataPointsRTRange().upperEndpoint() + 0.1d),
+        pseudoMS.getMSLevel());
     final List<Scan> matchingScans = selection.getMatchingScans(file.getScans());
     MZTolerance tol = new MZTolerance(0.005, 15);
-
-    TICVisualizerTab window = new TICVisualizerTab(new RawDataFile[]{file}, TICPlotType.BASEPEAK,
+    SpectraVisualizerTab spectraVisualizerTab = new SpectraVisualizerTab(file, pseudoMS, false);
+    TICVisualizerTab ticVisualizerTab = new TICVisualizerTab(new RawDataFile[]{file},
+        TICPlotType.BASEPEAK,
         new ScanSelection(1), tol.getToleranceRange(selectedFeature.getMZ()), null, null);
-
     final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    for (int i = 0; i < msms.getNumberOfDataPoints(); i++) {
+    for (int i = 0; i < pseudoMS.getNumberOfDataPoints(); i++) {
       TICDataSet dataSet = new TICDataSet(file, matchingScans,
-          tol.getToleranceRange(msms.getMzValue(i)), null, TICPlotType.BASEPEAK);
-      dataSet.setCustomSeriesKey(String.format("m/z %s", mzFormat.format(msms.getMzValue(i))));
-      window.getTICPlot().addTICDataSet(dataSet,
+          tol.getToleranceRange(pseudoMS.getMzValue(i)), null, TICPlotType.BASEPEAK);
+      dataSet.setCustomSeriesKey(String.format("m/z %s", mzFormat.format(pseudoMS.getMzValue(i))));
+      ticVisualizerTab.getTICPlot().addTICDataSet(dataSet,
           ColorUtils.getContrastPaletteColorAWT(file.getColor(),
               MZmineCore.getConfiguration().getDefaultColorPalette()));
     }
-
-    MZmineCore.getDesktop().addTab(window);
+    spectraVisualizerTab.loadRawData(pseudoMS);
+    SplitPane splitPane = new SplitPane();
+    splitPane.setOrientation(Orientation.VERTICAL);
+    splitPane.getItems().add(spectraVisualizerTab.getMainPane());
+    splitPane.getItems().add(ticVisualizerTab.getTICPlot());
+    spectraVisualizerTab.setContent(splitPane);
+    MZmineCore.getDesktop().addTab(spectraVisualizerTab);
   }
 
   private void showDiaMirror() {
