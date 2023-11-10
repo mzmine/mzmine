@@ -172,5 +172,8 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
     return IonMobilitySupport.SUPPORTED;
   }
 
-
+  @Override
+  public int getVersion() {
+    return 2;
+  }
 }
