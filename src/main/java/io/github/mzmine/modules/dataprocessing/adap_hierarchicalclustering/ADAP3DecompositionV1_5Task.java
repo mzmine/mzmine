@@ -129,16 +129,14 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
 
           if (!isCanceled()) {
 
-            // Add new peaklist to the project.
-            project.addFeatureList(newPeakList);
-
             //// Add quality parameters to peaks
             //QualityParameters.calculateQualityParameters(newPeakList);
 
             // Remove the original peaklist if requested.
-            if (parameters.getParameter(ADAP3DecompositionV1_5Parameters.AUTO_REMOVE).getValue()) {
-              project.removeFeatureList(originalPeakList);
-            }
+            parameters.getParameter(ADAP3DecompositionV1_5Parameters.handleOriginal).getValue()
+                .reflectNewFeatureListToProject(
+                    parameters.getParameter(ADAP3DecompositionV1_5Parameters.SUFFIX).getValue(),
+                    project, newPeakList, originalPeakList);
 
             setStatus(TaskStatus.FINISHED);
             logger.info("Finished peak decomposition on " + originalPeakList);
