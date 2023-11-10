@@ -42,6 +42,7 @@ import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
@@ -76,6 +77,7 @@ import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpec
 import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarity;
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder {
@@ -89,10 +91,11 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
   private final Boolean exportGnps;
   private final Boolean exportMsp;
   private final Integer minRtDataPoints; //min number of data points
-  private final Double snThreshold;
   private final Range<Double> rtForCWT;
   private final double sampleCountRatio;
   private final boolean rtSmoothing;
+  private final boolean recalibrateRetentionTime;
+  private final int minNumberOfSignalsInDeconSpectra;
   private final Boolean exportAnnotationGraphics;
 
   public WizardBatchBuilderGcEiDeconvolution(final WizardSequence steps) {
@@ -104,6 +107,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
 
     // special workflow parameter are extracted here
     // chromatography
+    recalibrateRetentionTime = getValue(params,
+        IonInterfaceGcElectronImpactWizardParameters.RECALIBRATE_RETENTION_TIMES);
     rtSmoothing = getValue(params, IonInterfaceGcElectronImpactWizardParameters.smoothing);
     cropRtRange = getValue(params, IonInterfaceGcElectronImpactWizardParameters.cropRtRange);
     intraSampleRtTol = getValue(params,
@@ -114,7 +119,6 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         IonInterfaceGcElectronImpactWizardParameters.minNumberOfDataPoints);
     rtFwhm = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.approximateChromatographicFWHM);
-    snThreshold = getValue(params, IonInterfaceGcElectronImpactWizardParameters.SN_THRESHOLD);
     rtForCWT = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.RT_FOR_CWT_SCALES_DURATION);
 
@@ -123,9 +127,12 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     // MinimumSamplesParameter
     AbsoluteAndRelativeInt minSamples = getValue(filterParams,
         FilterWizardParameters.minNumberOfSamples);
-    double numOfSamples = dataFiles.length;
-    sampleCountRatio = Math.max(minSamples.abs() / numOfSamples, minSamples.rel());
-
+    if (Objects.requireNonNull(minSamples).getAbsolute() == 1) {
+      sampleCountRatio = 0;
+    } else {
+      double numOfSamples = dataFiles.length;
+      sampleCountRatio = Math.max(minSamples.abs() / numOfSamples, minSamples.rel());
+    }
     // GC-EI specific workflow parameters can go into a workflow parameters class similar to WizardWorkflowDdaParameters
     params = steps.get(WizardPart.WORKFLOW);
     OptionalValue<File> exportPath = getOptional(params,
@@ -136,6 +143,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     exportMsp = getValue(params, WorkflowGcElectronImpactWizardParameters.exportMsp);
     exportAnnotationGraphics = getValue(params,
         WorkflowGcElectronImpactWizardParameters.exportAnnotationGraphics);
+    minNumberOfSignalsInDeconSpectra = getValue(params,
+        WorkflowGcElectronImpactWizardParameters.MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA);
   }
 
   @Override
@@ -145,15 +154,18 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     makeAndAddMassDetectionStepForAllScans(q);
     makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
         minRtDataPoints, cropRtRange);
-    makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
+    if (rtSmoothing) {
+      makeAndAddSmoothingStep(q, true, minRtDataPoints, false);
+    }
     makeAndAddRtLocalMinResolver(q, null, minRtDataPoints, cropRtRange, rtFwhm,
-        100);
-    // TODO, use hierarchical clustering, because we cannot facilitate chromatograms
-    // and features are present to use MultiCurveResolution
-    // makeMultiCurveResolutionStep(q);
-    makeHierarchicalClustering(q);
+        10);
+    if (recalibrateRetentionTime) {
+      makeAndAddRetentionTimeCalibration(q, mzTolInterSample, interSampleRtTol,
+          handleOriginalFeatureLists);
+    }
+    makeMultiCurveResolutionStep(q);
+    //makeHierarchicalClustering(q);
     makeAndAddAlignmentStep(q);
-    makeAndAddGapFillStep(q, interSampleRtTol);
     makeAndAddLibrarySearchMS1Step(q, false);
 
     if (isExportActive) {
@@ -171,16 +183,32 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     return q;
   }
 
+  @Override
+  protected void makeAndAddRtLocalMinResolver(final BatchQueue q, final ParameterSet groupMs2Params,
+      final Integer minRtDataPoints, final Range<Double> cropRtRange, final RTTolerance rtFwhm,
+      final Integer maxIsomersInRt) {
+    super.makeAndAddRtLocalMinResolver(q, groupMs2Params, minRtDataPoints, cropRtRange, rtFwhm,
+        maxIsomersInRt);
+    keepFeatureListForClustering(q);
+  }
 
+  private void keepFeatureListForClustering(BatchQueue q) {
+    final var step = q.get(q.size() - 1);
+    final ParameterSet param = step.getParameterSet();
+    if (!(param instanceof GeneralResolverParameters minParam)) {
+      throw new IllegalStateException("Could not find resolver step to adapt for GC-MS data.");
+    }
+    minParam.setParameter(GeneralResolverParameters.handleOriginal, OriginalFeatureListOption.KEEP);
+  }
 
   protected void makeAndAddRtAdapResolver(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(AdapResolverModule.class).cloneParameterSet();
     param.setParameter(ADAPResolverParameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(ADAPResolverParameters.handleOriginal, OriginalFeatureListOption.REMOVE);
+    //param.setParameter(ADAPResolverParameters.handleOriginal, OriginalFeatureListOption.REMOVE);
 
-    param.setParameter(ADAPResolverParameters.SN_THRESHOLD, snThreshold);
+    //param.setParameter(ADAPResolverParameters.SN_THRESHOLD, snThreshold);
     param.setParameter(ADAPResolverParameters.MIN_FEAT_HEIGHT, minFeatureHeight);
     param.setParameter(ADAPResolverParameters.RT_FOR_CWT_SCALES_DURATION, rtForCWT);
     param.setParameter(ADAPResolverParameters.COEF_AREA_THRESHOLD, 110.0);
@@ -197,15 +225,15 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         retentionTimeFWHM);
     param.setParameter(ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE,
         (double) intraSampleRtTol.getToleranceInMinutes());
-    param.setParameter(ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE, 1);
-
+    param.setParameter(ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE,
+        minNumberOfSignalsInDeconSpectra);
     param.setParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    // TODO chromatograms need to be picked by name pattern
-    // chromatograms are optional parameter
+    FeatureListsSelection featureListsSelection = new FeatureListsSelection(
+        FeatureListsSelectionType.NAME_PATTERN);
+    featureListsSelection.setNamePattern("*eics");
     param.setParameter(ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-
+        featureListsSelection);
     param.setParameter(ADAP3DecompositionV2Parameters.ADJUST_APEX_RET_TIME, false);
     param.setParameter(ADAP3DecompositionV2Parameters.HANDLE_ORIGINAL, handleOriginalFeatureLists);
     param.setParameter(ADAP3DecompositionV2Parameters.SUFFIX, "spec_decon");
@@ -217,13 +245,13 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
   private void makeHierarchicalClustering(BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(ADAPHierarchicalClusteringModule.class).cloneParameterSet();
-
+    double rtWidth = rtFwhm.getToleranceInMinutes();
     param.setParameter(ADAP3DecompositionV1_5Parameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(ADAP3DecompositionV1_5Parameters.MIN_CLUSTER_DISTANCE,
-        0.01);
+        rtWidth);
     param.setParameter(ADAP3DecompositionV1_5Parameters.MIN_CLUSTER_SIZE,
-        3);
+        minNumberOfSignalsInDeconSpectra);
     param.setParameter(ADAP3DecompositionV1_5Parameters.MIN_CLUSTER_INTENSITY,
         minFeatureHeight);
     param.setParameter(ADAP3DecompositionV1_5Parameters.EDGE_TO_HEIGHT_RATIO,
@@ -241,6 +269,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         "spec-decon");
     param.setParameter(ADAP3DecompositionV1_5Parameters.MZ_VALUES,
         List.of());
+    param.setParameter(ADAP3DecompositionV1_5Parameters.handleOriginal,
+        handleOriginalFeatureLists);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(ADAPHierarchicalClusteringModule.class), param));
@@ -256,7 +286,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     param.setParameter(ADAP3AlignerParameters.SAMPLE_COUNT_RATIO, sampleCountRatio);
     param.setParameter(ADAP3AlignerParameters.RET_TIME_RANGE, interSampleRtTol);
     param.setParameter(ADAP3AlignerParameters.MZ_RANGE, mzTolInterSample);
-    param.setParameter(ADAP3AlignerParameters.SCORE_TOLERANCE, 0.5);
+    param.setParameter(ADAP3AlignerParameters.SCORE_TOLERANCE, 0.75);
     param.setParameter(ADAP3AlignerParameters.SCORE_WEIGHT, 0.1);
     param.setParameter(ADAP3AlignerParameters.EIC_SCORE, AlignmentParameters.RT_DIFFERENCE);
 
@@ -279,8 +309,9 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     param.setParameter(SpectralLibrarySearchParameters.scanMatchingSelection,
         ScanMatchingSelection.MS1);
     param.setParameter(SpectralLibrarySearchParameters.mzTolerancePrecursor,
-        new MZTolerance(0.01, 20));
-    param.setParameter(SpectralLibrarySearchParameters.mzTolerance, new MZTolerance(0.01, 20));
+        new MZTolerance(mzTolScans.getMzTolerance(), mzTolScans.getPpmTolerance()));
+    param.setParameter(SpectralLibrarySearchParameters.mzTolerance,
+        new MZTolerance(mzTolScans.getMzTolerance(), mzTolScans.getPpmTolerance()));
     param.setParameter(SpectralLibrarySearchParameters.removePrecursor, false);
     param.setParameter(SpectralLibrarySearchParameters.minMatch, 8);
     // similarity
@@ -291,7 +322,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         .getModuleParameters(WeightedCosineSpectralSimilarity.class).cloneParameterSet();
     weightedCosineParam.setParameter(CompositeCosineSpectralSimilarityParameters.weight,
         Weights.NIST_GC);
-    weightedCosineParam.setParameter(CompositeCosineSpectralSimilarityParameters.minCosine, 0.8);
+    weightedCosineParam.setParameter(CompositeCosineSpectralSimilarityParameters.minCosine, 0.85);
     weightedCosineParam.setParameter(CompositeCosineSpectralSimilarityParameters.handleUnmatched,
         HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO);
 
