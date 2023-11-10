@@ -991,7 +991,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.getParameter(SmoothingParameters.smoothingAlgorithm).setValue(
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SavitzkyGolaySmoothing.class),
             sgParam));
-    param.setParameter(SmoothingParameters.handleOriginal, OriginalFeatureListOption.KEEP);
+    param.setParameter(SmoothingParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(SmoothingParameters.suffix, "sm");
 
     MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
