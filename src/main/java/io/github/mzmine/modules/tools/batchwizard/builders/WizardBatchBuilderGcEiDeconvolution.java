@@ -248,29 +248,20 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     double rtWidth = rtFwhm.getToleranceInMinutes();
     param.setParameter(ADAP3DecompositionV1_5Parameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(ADAP3DecompositionV1_5Parameters.MIN_CLUSTER_DISTANCE,
-        rtWidth);
+    param.setParameter(ADAP3DecompositionV1_5Parameters.MIN_CLUSTER_DISTANCE, rtWidth);
     param.setParameter(ADAP3DecompositionV1_5Parameters.MIN_CLUSTER_SIZE,
         minNumberOfSignalsInDeconSpectra);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.MIN_CLUSTER_INTENSITY,
-        minFeatureHeight);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.EDGE_TO_HEIGHT_RATIO,
-        0.3);
+    param.setParameter(ADAP3DecompositionV1_5Parameters.MIN_CLUSTER_INTENSITY, minFeatureHeight);
+    param.setParameter(ADAP3DecompositionV1_5Parameters.EDGE_TO_HEIGHT_RATIO, 0.3);
     param.setParameter(ADAP3DecompositionV1_5Parameters.DELTA_TO_HEIGHT_RATIO, 0.2);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.USE_ISSHARED,
-        false);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.MIN_MODEL_SHARPNESS,
-        10.0);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.SHAPE_SIM_THRESHOLD,
-        18.0);
+    param.setParameter(ADAP3DecompositionV1_5Parameters.USE_ISSHARED, false);
+    param.setParameter(ADAP3DecompositionV1_5Parameters.MIN_MODEL_SHARPNESS, 10.0);
+    param.setParameter(ADAP3DecompositionV1_5Parameters.SHAPE_SIM_THRESHOLD, 18.0);
     param.setParameter(ADAP3DecompositionV1_5Parameters.MODEL_PEAK_CHOICE,
         TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_INTENSITY);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.SUFFIX,
-        "spec-decon");
-    param.setParameter(ADAP3DecompositionV1_5Parameters.MZ_VALUES,
-        List.of());
-    param.setParameter(ADAP3DecompositionV1_5Parameters.handleOriginal,
-        handleOriginalFeatureLists);
+    param.setParameter(ADAP3DecompositionV1_5Parameters.SUFFIX, "spec-decon");
+    param.setParameter(ADAP3DecompositionV1_5Parameters.MZ_VALUES, List.of());
+    param.setParameter(ADAP3DecompositionV1_5Parameters.handleOriginal, handleOriginalFeatureLists);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(ADAPHierarchicalClusteringModule.class), param));
