@@ -101,7 +101,7 @@ public class KendrickMassPlotChart extends EChartViewer {
     newLegend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
     newLegend.setAxisOffset(5.0);
     newLegend.setSubdivisionCount(500);
-    newLegend.setPosition(RectangleEdge.LEFT);
+    newLegend.setPosition(RectangleEdge.RIGHT);
     newLegend.setBackgroundPaint(legendBg);
     return newLegend;
   }
