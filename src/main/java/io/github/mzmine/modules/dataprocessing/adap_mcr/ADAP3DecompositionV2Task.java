@@ -225,7 +225,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         continue;
       }
 
-      // todo: replace this with it's own data type?
+      // todo: keep for legacy, should be removed if no other modules rely on this
       refPeak.setIsotopePattern(
           new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[0]), -1,
               IsotopePattern.IsotopePatternStatus.PREDICTED, "Spectrum"));
@@ -314,7 +314,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         mzs, chromatogram.ys, scans);
 
     // calculations done in the constructor by FeatureDataUtils
-    return new ModularFeature(resolvedFeatureList, dataFile, series, FeatureStatus.MANUAL);
+    return new ModularFeature(resolvedFeatureList, dataFile, series, FeatureStatus.DETECTED);
   }
 
   @Override
