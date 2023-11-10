@@ -27,12 +27,17 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import java.io.File;
 
 public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWizardParameters {
+
+  public static final IntegerParameter MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA =
+      new IntegerParameter("Min number of signals in deconvoluted spectrum",
+          "Min number of signals in deconvoluted spectrum", 8, true);
 
   public static final BooleanParameter exportGnps = new BooleanParameter(
       "Export for GNPS GC-EI FBMN", "Export to Feature-based Molecular Networking (FBMN) on GNPS",
@@ -54,7 +59,8 @@ public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWiza
   public WorkflowGcElectronImpactWizardParameters() {
     super(WorkflowWizardParameterFactory.DECONVOLUTION,
         // actual parameters
-        exportPath, exportGnps, exportMsp, exportAnnotationGraphics);
+        MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA, exportPath, exportGnps, exportMsp,
+        exportAnnotationGraphics);
   }
 
 
