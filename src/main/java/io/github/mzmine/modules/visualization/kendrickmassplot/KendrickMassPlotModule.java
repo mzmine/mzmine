@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -60,8 +61,11 @@ public class KendrickMassPlotModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    Task newTask = new KendrickMassPlotTask(parameters, moduleCallDate);
-    tasks.add(newTask);
+    // Create Kendrick mass plot Tab
+    MZmineCore.runLater(() -> {
+      KendrickMassPlotTab newTab = new KendrickMassPlotTab(parameters);
+      MZmineCore.getDesktop().addTab(newTab);
+    });
 
     return ExitCode.OK;
   }
