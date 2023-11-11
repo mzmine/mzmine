@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -81,13 +81,13 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
   private final ParameterSet parameters;
   private final MZTolerance mzTolerance;
   private final int maxBestFormulasPerFeature;
-  private Double sortPPMFactor;
-  private Double sortMSMSFactor;
-  private Double sortIsotopeFactor;
+  private final Boolean isSorting;
+  private float sortPPMFactor;
+  private float sortMSMSFactor;
+  private float sortIsotopeFactor;
   private MolecularFormulaGenerator generator;
   private String message;
   private int totalRows, finishedRows;
-  private final Boolean isSorting;
   private List<ResultFormula> resultingFormulas;
   private Range<Double> rdbeRange;
   private Boolean rdbeIsInteger;
@@ -170,10 +170,10 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
     if (isSorting) {
       FormulaSortParameters sortParam = parameters.getParameter(
           FormulaPredictionFeatureListParameters.sorting).getEmbeddedParameters();
-      sortPPMFactor = sortParam.getParameter(FormulaSortParameters.MAX_PPM_WEIGHT).getValue();
-      sortMSMSFactor = sortParam.getParameter(FormulaSortParameters.MSMS_SCORE_WEIGHT).getValue();
-      sortIsotopeFactor = sortParam.getParameter(FormulaSortParameters.ISOTOPE_SCORE_WEIGHT)
-          .getValue();
+      sortPPMFactor = sortParam.getValue(FormulaSortParameters.MAX_PPM_WEIGHT).floatValue();
+      sortMSMSFactor = sortParam.getValue(FormulaSortParameters.MSMS_SCORE_WEIGHT).floatValue();
+      sortIsotopeFactor = sortParam.getValue(FormulaSortParameters.ISOTOPE_SCORE_WEIGHT)
+          .floatValue();
     }
     message = "Formula Prediction";
     this.parameters = parameters;
@@ -241,10 +241,13 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
         return;
       }
 
+
       // Add the new formula entry top results
       if (!resultingFormulas.isEmpty()) {
+        FormulaUtils.sortFormulaList(resultingFormulas, sortPPMFactor, sortIsotopeFactor,
+            sortMSMSFactor);
         row.setFormulas(resultingFormulas.subList(0,
-            Math.min(resultingFormulas.size() - 1, maxBestFormulasPerFeature)));
+            Math.min(resultingFormulas.size(), maxBestFormulasPerFeature)));
       }
 
       if (isCanceled()) {
