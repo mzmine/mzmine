@@ -28,7 +28,6 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FormulaUtils;
@@ -117,7 +116,6 @@ public class KendrickMassPlotAnchorPaneController {
     this.featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
         .getMatchingFeatureLists()[0];
 
-    FeatureListRow[] selectedRows = featureList.getRows().toArray(new FeatureListRow[0]);
     this.useRKM_X = parameters.getParameter(
             KendrickMassPlotParameters.xAxisValues).getValue()
         .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS);
@@ -156,8 +154,7 @@ public class KendrickMassPlotAnchorPaneController {
     this.useRKM_X = parameters.getParameter(
             KendrickMassPlotParameters.xAxisValues).getValue()
         .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS);
-    this.useRKM_Y = parameters.getParameter(
-            KendrickMassPlotParameters.yAxisValues).getValue()
+    this.useRKM_Y = parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue()
         .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS);
     setArrowIcon(chargeDownXAxis, FontAwesomeIcon.ARROW_DOWN);
     setArrowIcon(divisorDownXAxis, FontAwesomeIcon.ARROW_DOWN);
@@ -167,7 +164,70 @@ public class KendrickMassPlotAnchorPaneController {
     setArrowIcon(divisorUpXAxis, FontAwesomeIcon.ARROW_UP);
     setArrowIcon(chargeUpYAxis, FontAwesomeIcon.ARROW_UP);
     setArrowIcon(divisorUpYAxis, FontAwesomeIcon.ARROW_UP);
+
+    String title = "Kendrick mass plot of" + featureList;
+
+    String xAxisLabel;
+    if (parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue()
+        .isKendrickType()) {
+      String kmdRkm;
+      if (parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue()
+          .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS)) {
+        kmdRkm = "RKM";
+      } else {
+        kmdRkm = "KMD";
+      }
+      xAxisLabel = kmdRkm + " (" + parameters.getParameter(
+          KendrickMassPlotParameters.xAxisCustomKendrickMassBase).getValue() + ")";
+    } else {
+      xAxisLabel = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue()
+          .getName();
+    }
+
+    String yAxisLabel;
+    if (parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue()
+        .isKendrickType()) {
+      String kmdRkm;
+      if (parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue()
+          .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS)) {
+        kmdRkm = "RKM";
+      } else {
+        kmdRkm = "KMD";
+      }
+      yAxisLabel = kmdRkm + " (" + parameters.getParameter(
+          KendrickMassPlotParameters.yAxisCustomKendrickMassBase).getValue() + ")";
+    } else {
+      yAxisLabel = parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue()
+          .getName();
+    }
+
+    String zAxisLabel;
+    if (parameters.getParameter(KendrickMassPlotParameters.colorScaleValues).getValue()
+        .isKendrickType()) {
+      String kmdRkm;
+      if (parameters.getParameter(KendrickMassPlotParameters.colorScaleValues).getValue()
+          .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS)) {
+        kmdRkm = "RKM";
+      } else {
+        kmdRkm = "KMD";
+      }
+      zAxisLabel = kmdRkm + " (" + parameters.getParameter(
+          KendrickMassPlotParameters.colorScaleCustomKendrickMassBase).getValue() + ")";
+    } else {
+      zAxisLabel = parameters.getParameter(KendrickMassPlotParameters.colorScaleValues).getValue()
+          .getName();
+    }
+
+    KendrickMassPlotXYZDataset kendrickMassPlotXYZDataset = new KendrickMassPlotXYZDataset(
+        parameters, 1, 1);
+    KendrickMassPlotChart kendrickMassPlotChart = new KendrickMassPlotChart(title, xAxisLabel,
+        yAxisLabel, zAxisLabel, kendrickMassPlotXYZDataset);
+    KendrickMassPlotBubbleLegend kendrickMassPlotBubbleLegend = new KendrickMassPlotBubbleLegend(
+        kendrickMassPlotXYZDataset);
+    plotPane.setCenter(kendrickMassPlotChart);
+    bubbleLegendPane.setCenter(kendrickMassPlotBubbleLegend);
     updateToolBar();
+    setTooltips();
   }
 
   private void setArrowIcon(Button button, FontAwesomeIcon icon) {

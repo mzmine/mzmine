@@ -28,7 +28,6 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.parameters.ParameterSet;
 import java.io.IOException;
@@ -37,16 +36,13 @@ import java.util.Collection;
 import java.util.Collections;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
 import org.jetbrains.annotations.NotNull;
 
 public class KendrickMassPlotTab extends MZmineTab {
 
   private final KendrickMassPlotAnchorPaneController controller;
 
-  public KendrickMassPlotTab(ParameterSet parameters, EChartViewer chartViewer,
-      Pane kendrickMassPlotBubbleLegend) {
+  public KendrickMassPlotTab(ParameterSet parameters) {
     super("Kendrick Mass Plot", true, false);
 
     AnchorPane root = null;
@@ -62,11 +58,6 @@ public class KendrickMassPlotTab extends MZmineTab {
     // Get controller
     controller = loader.getController();
     controller.initialize(parameters);
-    BorderPane plotPane = controller.getPlotPane();
-    plotPane.setCenter(chartViewer);
-    BorderPane bubbleLegendPane = controller.getBubbleLegendPane();
-    bubbleLegendPane.setCenter(kendrickMassPlotBubbleLegend);
-
     setContent(root);
   }
 
