@@ -50,9 +50,8 @@ import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceImagingWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowImagingWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -61,16 +60,18 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
-import java.io.File;
 import java.util.Optional;
 
 public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
 
   private final Integer minNumberOfPixels;
   private final Boolean enableDeisotoping;
-  private final File exportPath;
-  private final boolean isExportActive;
-  private final Boolean applySpectralNetworking;
+
+  private final Boolean applyImageCorrelataion;
+  private final Boolean applyIIMNetworking;
+  // private final File exportPath;
+//  private final boolean isExportActive;
+//  private final Boolean applySpectralNetworking;
 
   public WizardBatchBuilderImagingDda(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -81,15 +82,10 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     minNumberOfPixels = getValue(params, IonInterfaceImagingWizardParameters.minNumberOfDataPoints);
     enableDeisotoping = getValue(params, IonInterfaceImagingWizardParameters.enableDeisotoping);
 
-//    // DDA workflow parameters
+//    // Imaging workflow parameters
     params = steps.get(WizardPart.WORKFLOW);
-    applySpectralNetworking = getValue(params, WorkflowDdaWizardParameters.applySpectralNetworking);
-    OptionalValue<File> optional = getOptional(params, WorkflowDdaWizardParameters.exportPath);
-    isExportActive = optional.active();
-    exportPath = optional.value();
-
-//    exportGnps = getValue(params, WorkflowDdaWizardParameters.exportGnps);
-//    exportSirius = getValue(params, WorkflowDdaWizardParameters.exportSirius);
+    applyImageCorrelataion = getValue(params, WorkflowImagingWizardParameters.correlateImages);
+    applyIIMNetworking = getValue(params, WorkflowImagingWizardParameters.applyIIMNetworking);
   }
 
   @Override
@@ -97,8 +93,6 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
-
-    // TODO make image builder
     makeAndImageBuilderStep(q);
 
     if (isImsActive) {
@@ -113,12 +107,16 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     }
 
     makeAndAddIsotopeFinderStep(q);
+
     makeAndAddAlignmentStep(q);
     makeAndAddRowFilterStep(q);
+    if (applyImageCorrelataion) {
+      makeAndAddMetaCorrStep(q, minNumberOfPixels, new RTTolerance(100000, Unit.MINUTES), false);
+    }
 
     // networking
-    if (applySpectralNetworking) {
-      makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath);
+    if (applyIIMNetworking) {
+      makeAndAddIinStep(q);
     }
 
     // annotation
@@ -227,6 +225,8 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     if (isImsActive && imsInstrumentType == MobilityType.TIMS) {
       makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.FRAMES);
       makeAndAddMassDetectionStep(q, 2, SelectedScanTypes.MOBLITY_SCANS);
+    } else {
+      makeAndAddMassDetectionStep(q, 1, SelectedScanTypes.SCANS);
     }
   }
 

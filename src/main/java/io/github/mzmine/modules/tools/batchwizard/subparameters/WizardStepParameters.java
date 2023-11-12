@@ -46,9 +46,9 @@ import org.jetbrains.annotations.NotNull;
  * define the actual processing workflow that is built in {@link WizardBatchBuilder}
  */
 public abstract sealed class WizardStepParameters extends ComposedParameterSet implements
-    Comparable<WizardStepParameters> permits IonInterfaceWizardParameters,
-    AnnotationWizardParameters, DataImportWizardParameters, FilterWizardParameters,
-    IonMobilityWizardParameters, MassSpectrometerWizardParameters, WorkflowWizardParameters {
+    Comparable<WizardStepParameters> permits AnnotationWizardParameters, DataImportWizardParameters,
+    FilterWizardParameters, IonInterfaceWizardParameters, IonMobilityWizardParameters,
+    MassSpectrometerWizardParameters, WorkflowWizardParameters {
 
   private final WizardPart part;
   private final WizardParameterFactory factory;

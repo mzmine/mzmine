@@ -29,6 +29,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParame
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowImagingWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowLibraryGenerationWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
 
@@ -79,8 +80,9 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
   public WizardStepParameters create() {
     return switch (this) {
       // EMPTY parameter set
-      case MS1_ONLY, IMAGING -> new WorkflowWizardParameters(this);
+      case MS1_ONLY -> new WorkflowWizardParameters(this);
       // specialized parameters
+      case IMAGING -> new WorkflowImagingWizardParameters(true, false);
       case LIBRARY_GENERATION ->
           new WorkflowLibraryGenerationWizardParameters(null, true, true, false);
       case DDA -> new WorkflowDdaWizardParameters(true, true, null, true, true, false);
