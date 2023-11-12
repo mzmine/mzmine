@@ -392,6 +392,35 @@ public class FeatureListUtils {
   }
 
   /**
+   * Sort feature list by mz and reset IDs starting with 1
+   *
+   * @param featureList target list
+   * @param renumberIDs renumber rows
+   */
+  public static void sortByDefaultMZ(FeatureList featureList, boolean renumberIDs) {
+    sortByDefaultMZ(featureList);
+    if (!renumberIDs) {
+      return;
+    }
+    // reset IDs
+    int newRowID = 1;
+    for (var row : featureList.getRows()) {
+      row.set(IDType.class, newRowID);
+      newRowID++;
+    }
+  }
+
+  /**
+   * Sort feature list by mz (default)
+   *
+   * @param featureList target list
+   */
+  public static void sortByDefaultMZ(FeatureList featureList) {
+    // sort rows by mz
+    featureList.getRows().sort(MZ_ASCENDING);
+  }
+
+  /**
    * Sort feature list by retention time and reset IDs starting with 1
    *
    * @param featureList target list

@@ -345,14 +345,19 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
             modular);
         newFeatureList.addRow(newRow);
         // activate shape for this row
-        newRow.set(FeatureShapeType.class, !isImaging);
+        if (!isImaging) {
+          newRow.set(FeatureShapeType.class, true);
+        }
         newFeatureID++;
       }
     }
 
     // sort and reset IDs here to ahve the same sorting for every feature list
-    FeatureListUtils.sortByDefaultRT(newFeatureList, true);
-
+    if (!isImaging) {
+      FeatureListUtils.sortByDefaultRT(newFeatureList, true);
+    } else {
+      FeatureListUtils.sortByDefaultMZ(newFeatureList, true);
+    }
     newFeatureList.setSelectedScans(dataFile, Arrays.asList(scans));
 
     dataFile.getAppliedMethods().forEach(m -> newFeatureList.getAppliedMethods().add(m));
