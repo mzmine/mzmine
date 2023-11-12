@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
@@ -35,6 +36,7 @@ import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PseudoSpectrum;
+import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -43,6 +45,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -53,6 +56,9 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityList
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
@@ -84,6 +90,8 @@ import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverv
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerModule;
@@ -99,6 +107,7 @@ import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.components.ConditionalMenuItem;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
+import java.awt.Color;
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -109,14 +118,24 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.SplitPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -355,13 +374,22 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem showImageFeatureItem = new ConditionalMenuItem("Image",
         () -> !selectedRows.isEmpty() && selectedFeature != null
-              && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
+            && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
     showImageFeatureItem.setOnAction(e -> {
       ParameterSet params = MZmineCore.getConfiguration()
           .getModuleParameters(ImageVisualizerModule.class).cloneParameterSet();
       params.setParameter(ImageVisualizerParameters.imageNormalization,
           MZmineCore.getConfiguration().getImageNormalization()); // same as in feature table.
       MZmineCore.getDesktop().addTab(new ImageVisualizerTab(selectedFeature, params));
+    });
+
+    final MenuItem showCorrelatedImageFeaturesItem = new ConditionalMenuItem("Correlated Images",
+        () -> !selectedRows.isEmpty() && selectedFeature != null
+            && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile
+            && Objects.requireNonNull(Objects.requireNonNull(selectedFeature).getRow()).getGroup()
+            != null);
+    showCorrelatedImageFeaturesItem.setOnAction(e -> {
+      showCorrelatedImageFeatures();
     });
 
     final MenuItem show2DItem = new ConditionalMenuItem("Feature in 2D",
@@ -517,15 +545,16 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,
-            new SeparatorMenuItem(), showNetworkVisualizerItem, show2DItem, show3DItem,
-            showIntensityPlotItem, showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem,
-            new SeparatorMenuItem(), showSpectrumItem, showFeatureFWHMMs1Item,
-            showBestMobilityScanItem, extractSumSpectrumFromMobScans, showMSMSItem,
-            showMSMSMirrorItem, showAllMSMSItem, showDiaIons, showDiaMirror,
+            showCorrelatedImageFeaturesItem, new SeparatorMenuItem(), showNetworkVisualizerItem,
+            show2DItem, show3DItem, showIntensityPlotItem, showInIMSRawDataOverviewItem,
+            showInMobilityMzVisualizerItem, new SeparatorMenuItem(), showSpectrumItem,
+            showFeatureFWHMMs1Item, showBestMobilityScanItem, extractSumSpectrumFromMobScans,
+            showMSMSItem, showMSMSMirrorItem, showAllMSMSItem, showDiaIons, showDiaMirror,
             new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
             showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
             showPeakRowSummaryItem);
   }
+
 
   private boolean hasMs2(final List<ModularFeatureListRow> selectedRows) {
     return selectedRows.stream().anyMatch(FeatureListRow::hasMs2Fragmentation);
@@ -670,6 +699,92 @@ public class FeatureTableContextMenu extends ContextMenu {
     }
     final RawDataFile file = selectedFeature.getRawDataFile();
     return features.stream().filter(f -> f.getRawDataFile() == file).collect(Collectors.toList());
+  }
+
+  private void showCorrelatedImageFeatures() {
+    final RowGroup rowGroup = selectedFeature.getRow().getGroup();
+    List<FeatureListRow> rows = new ArrayList<>(rowGroup.getRows().stream().filter(
+        featureListRow -> !Objects.equals(featureListRow.getAverageMZ(),
+            selectedFeature.getRow().getAverageMZ())).toList());
+    List<DataPoint> dataPoints = new ArrayList<>();
+    SplitPane splitPaneH = new SplitPane();
+    splitPaneH.setOrientation(Orientation.HORIZONTAL);
+    splitPaneH.getItems().add(createImagePlotForRow(selectedFeature.getRow()));
+    GridPane gridPane = new GridPane();
+    gridPane.setHgap(10);
+    gridPane.setVgap(10);
+    rows.sort(Comparator.comparing(FeatureListRow::getAverageMZ));
+    List<CompletableFuture<Void>> futures = new ArrayList<>();
+    for (int i = 0; i < rows.size(); i++) {
+      FeatureListRow row = rows.get(i);
+      dataPoints.add(new SimpleDataPoint(row.getAverageMZ(), row.getAverageHeight()));
+      int finalI = i;
+      CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+        Node imagePlot = createImagePlotForRow(row);
+        int rowPosition = finalI / 4;
+        int colPosition = finalI % 4;
+        Platform.runLater(() -> gridPane.add(imagePlot, colPosition, rowPosition));
+      });
+      futures.add(future);
+    }
+    CompletableFuture<Void> allOf = CompletableFuture.allOf(
+        futures.toArray(new CompletableFuture[0]));
+    allOf.thenRun(() -> {
+      ScrollPane scrollPane = new ScrollPane(gridPane);
+      scrollPane.setFitToWidth(true);
+      scrollPane.setFitToHeight(true);
+      dataPoints.sort(Comparator.comparingDouble(DataPoint::getMZ));
+      PseudoSpectrum pseudoMS = new SimplePseudoSpectrum(selectedFeature.getRawDataFile(), 1,
+          selectedFeature.getRT(), null,
+          dataPoints.stream().mapToDouble(DataPoint::getMZ).toArray(),
+          dataPoints.stream().mapToDouble(DataPoint::getIntensity).toArray(),
+          Objects.requireNonNull(selectedFeature.getRepresentativeScan()).getPolarity(),
+          "Pseudo Spectrum of correlated Features", PseudoSpectrumType.MALDI_IMAGING);
+      SpectraVisualizerTab spectraVisualizerTab = new SpectraVisualizerTab(
+          selectedFeature.getRawDataFile(), pseudoMS, false);
+      spectraVisualizerTab.setText("Correlated images");
+      spectraVisualizerTab.loadRawData(pseudoMS);
+      PseudoSpectrum pseudoMSSelectedFeature = new SimplePseudoSpectrum(
+          selectedFeature.getRawDataFile(), 1, selectedFeature.getRT(), null,
+          new double[]{selectedFeature.getRow().getAverageMZ()},
+          new double[]{selectedFeature.getRow().getAverageHeight()},
+          Objects.requireNonNull(selectedFeature.getRepresentativeScan()).getPolarity(),
+          "Selected Feature", PseudoSpectrumType.MALDI_IMAGING);
+      spectraVisualizerTab.addDataSet(new ScanDataSet(pseudoMSSelectedFeature),
+          MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), false);
+      SplitPane splitPane = new SplitPane();
+      splitPane.setOrientation(Orientation.VERTICAL);
+      splitPaneH.getItems().add(spectraVisualizerTab.getMainPane());
+      splitPane.getItems().add(splitPaneH);
+      splitPane.getItems().add(scrollPane);
+      spectraVisualizerTab.setContent(splitPane);
+      MZmineCore.getDesktop().addTab(spectraVisualizerTab);
+    });
+  }
+
+  private Node createImagePlotForRow(FeatureListRow row) {
+    BorderPane borderPane = new BorderPane();
+    ParameterSet params = MZmineCore.getConfiguration()
+        .getModuleParameters(ImageVisualizerModule.class).cloneParameterSet();
+    params.setParameter(ImageVisualizerParameters.imageNormalization,
+        MZmineCore.getConfiguration().getImageNormalization()); // same as in the feature table.
+
+    ImageVisualizerTab imageVisualizerTab = new ImageVisualizerTab(
+        (ModularFeature) row.getBestFeature(), params);
+    EChartViewer chart = imageVisualizerTab.getImagingPlot().getChart();
+    chart.setMinSize(200, 200);
+    chart.getChart().getXYPlot().setBackgroundPaint(Color.BLACK);
+    GridPane.setHgrow(chart, Priority.ALWAYS);
+    GridPane.setVgrow(chart, Priority.ALWAYS);
+    borderPane.setCenter(chart);
+    Text title = new Text(
+        "ID: " + row.getID() + " m/z: " + MZmineCore.getConfiguration().getGuiFormats()
+            .mz(row.getAverageMZ()));
+    borderPane.setTop(title);
+    GridPane.setHgrow(borderPane, Priority.ALWAYS);
+    GridPane.setVgrow(borderPane, Priority.ALWAYS);
+
+    return borderPane;
   }
 
   private void showDiaMsMsIons() {
