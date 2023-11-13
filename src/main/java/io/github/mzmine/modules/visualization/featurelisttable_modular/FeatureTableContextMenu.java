@@ -119,6 +119,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
@@ -379,7 +380,9 @@ public class FeatureTableContextMenu extends ContextMenu {
       ParameterSet params = MZmineCore.getConfiguration()
           .getModuleParameters(ImageVisualizerModule.class).cloneParameterSet();
       params.setParameter(ImageVisualizerParameters.imageNormalization,
-          MZmineCore.getConfiguration().getImageNormalization()); // same as in feature table.
+          MZmineCore.getConfiguration().getImageNormalization());
+      params.setParameter(ImageVisualizerParameters.imageTransformation,
+          MZmineCore.getConfiguration().getImageTransformation());// same as in feature table.
       MZmineCore.getDesktop().addTab(new ImageVisualizerTab(selectedFeature, params));
     });
 
@@ -701,7 +704,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     return features.stream().filter(f -> f.getRawDataFile() == file).collect(Collectors.toList());
   }
 
-  private void showCorrelatedImageFeatures() {
+
+  private void showCorrelatedImageFeatures1() {
     final RowGroup rowGroup = selectedFeature.getRow().getGroup();
     List<FeatureListRow> rows = new ArrayList<>(rowGroup.getRows().stream().filter(
         featureListRow -> !Objects.equals(featureListRow.getAverageMZ(),
@@ -762,13 +766,77 @@ public class FeatureTableContextMenu extends ContextMenu {
     });
   }
 
+
+  private void showCorrelatedImageFeatures() {
+    final RowGroup rowGroup = selectedFeature.getRow().getGroup();
+    List<FeatureListRow> rows = new ArrayList<>(rowGroup.getRows().stream().filter(
+        featureListRow -> !Objects.equals(featureListRow.getAverageMZ(),
+            selectedFeature.getRow().getAverageMZ())).toList());
+    List<DataPoint> dataPoints = new ArrayList<>();
+    SplitPane splitPaneH = new SplitPane();
+    splitPaneH.setOrientation(Orientation.HORIZONTAL);
+    splitPaneH.getItems().add(createImagePlotForRow(selectedFeature.getRow()));
+    GridPane gridPane = new GridPane();
+    gridPane.setHgap(10);
+    gridPane.setVgap(10);
+    rows.sort(Comparator.comparing(FeatureListRow::getAverageMZ));
+    for (FeatureListRow row : rows) {
+      dataPoints.add(new SimpleDataPoint(row.getAverageMZ(), row.getAverageHeight()));
+    }
+    Platform.runLater(() -> {
+      for (int i = 0; i < rows.size(); i++) {
+        FeatureListRow row = rows.get(i);
+        dataPoints.add(new SimpleDataPoint(row.getAverageMZ(), row.getAverageHeight()));
+        Node imagePlot = createImagePlotForRow(row);
+        int rowPosition = i / 4;
+        int colPosition = i % 4;
+        gridPane.add(imagePlot, colPosition, rowPosition);
+        if (i > 100) {
+          logger.log(Level.WARNING, "Only show first 100 correlations");
+          break;
+        }
+      }
+    });
+
+    ScrollPane scrollPane = new ScrollPane(gridPane);
+    scrollPane.setFitToWidth(true);
+    scrollPane.setFitToHeight(true);
+    dataPoints.sort(Comparator.comparingDouble(DataPoint::getMZ));
+    PseudoSpectrum pseudoMS = new SimplePseudoSpectrum(selectedFeature.getRawDataFile(), 1,
+        selectedFeature.getRT(), null, dataPoints.stream().mapToDouble(DataPoint::getMZ).toArray(),
+        dataPoints.stream().mapToDouble(DataPoint::getIntensity).toArray(),
+        Objects.requireNonNull(selectedFeature.getRepresentativeScan()).getPolarity(),
+        "Pseudo Spectrum of correlated Features", PseudoSpectrumType.MALDI_IMAGING);
+    SpectraVisualizerTab spectraVisualizerTab = new SpectraVisualizerTab(
+        selectedFeature.getRawDataFile(), pseudoMS, false, true);
+    spectraVisualizerTab.setText("Correlated images");
+    spectraVisualizerTab.loadRawData(pseudoMS);
+    PseudoSpectrum pseudoMSSelectedFeature = new SimplePseudoSpectrum(
+        selectedFeature.getRawDataFile(), 1, selectedFeature.getRT(), null,
+        new double[]{selectedFeature.getRow().getAverageMZ()},
+        new double[]{selectedFeature.getRow().getAverageHeight()},
+        Objects.requireNonNull(selectedFeature.getRepresentativeScan()).getPolarity(),
+        "Selected Feature", PseudoSpectrumType.MALDI_IMAGING);
+    spectraVisualizerTab.addDataSet(new ScanDataSet(pseudoMSSelectedFeature),
+        MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), false);
+    SplitPane splitPane = new SplitPane();
+    splitPane.setOrientation(Orientation.VERTICAL);
+    splitPaneH.getItems().add(spectraVisualizerTab.getMainPane());
+    splitPane.getItems().add(splitPaneH);
+    splitPane.getItems().add(scrollPane);
+    spectraVisualizerTab.setContent(splitPane);
+    MZmineCore.getDesktop().addTab(spectraVisualizerTab);
+  }
+
+
   private Node createImagePlotForRow(FeatureListRow row) {
     BorderPane borderPane = new BorderPane();
     ParameterSet params = MZmineCore.getConfiguration()
         .getModuleParameters(ImageVisualizerModule.class).cloneParameterSet();
     params.setParameter(ImageVisualizerParameters.imageNormalization,
         MZmineCore.getConfiguration().getImageNormalization()); // same as in the feature table.
-
+    params.setParameter(ImageVisualizerParameters.imageTransformation,
+        MZmineCore.getConfiguration().getImageTransformation());
     ImageVisualizerTab imageVisualizerTab = new ImageVisualizerTab(
         (ModularFeature) row.getBestFeature(), params);
     EChartViewer chart = imageVisualizerTab.getImagingPlot().getChart();
