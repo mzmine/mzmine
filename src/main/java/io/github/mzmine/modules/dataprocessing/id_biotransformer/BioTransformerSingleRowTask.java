@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -119,6 +120,12 @@ public class BioTransformerSingleRowTask extends AbstractTask {
     if (bioTransformerAnnotations.isEmpty()) {
       setStatus(TaskStatus.FINISHED);
       return;
+    }
+
+    // rtTolerance filtering enabled -> we need to set the rt of the main compound to the
+    // annotation for the filtering to work. Otherwise we don't set an rt to avoid confusion
+    if (rtTolerance != null) {
+      bioTransformerAnnotations.forEach(a -> a.put(RTType.class, row.getAverageRT()));
     }
 
     final ModularFeatureList flist = row.getFeatureList();

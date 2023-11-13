@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
@@ -39,6 +40,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.io.File;
@@ -56,10 +58,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class BioTransformerTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(BioTransformerTask.class.getName());
+  // biotransformer does not allow molecular weights > 1000
+  private static final double molecularMassCutoff = 1000;
 
   private final ParameterSet parameters;
   private final File bioPath;
@@ -154,6 +159,11 @@ public class BioTransformerTask extends AbstractTask {
       @NotNull String bestSmiles, @Nullable String prefix, @NotNull File bioTransformerPath,
       @NotNull ParameterSet parameters, @NotNull IonNetworkLibrary ionLibrary) throws IOException {
 
+    final IMolecularFormula fomulaFromSmiles = FormulaUtils.getFomulaFromSmiles(bestSmiles);
+    if (FormulaUtils.getMonoisotopicMass(fomulaFromSmiles) > molecularMassCutoff) {
+      return List.of();
+    }
+
     String filename = id + "_transformation";
     final File file;
     // will be cleaned by temp file cleanup (windows)
@@ -170,6 +180,7 @@ public class BioTransformerTask extends AbstractTask {
 
     bioTransformerAnnotations.forEach(a -> a.put(CompoundNameType.class,
         Objects.requireNonNullElse(prefix, "") + "_" + a.get(CompoundNameType.class)));
+
     return bioTransformerAnnotations;
   }
 
@@ -229,6 +240,12 @@ public class BioTransformerTask extends AbstractTask {
         final List<CompoundDBAnnotation> bioTransformerAnnotations = singleRowPrediction(
             row.getID(), bestSmiles, bestAnnotation.getCompoundName(), bioPath, parameters,
             ionLibrary);
+
+        // rtTolerance filtering enabled -> we need to set the rt of the main compound to the
+        // annotation for the filtering to work. Otherwise we don't set an rt to avoid confusion
+        if (rtTolerance != null) {
+          bioTransformerAnnotations.forEach(a -> a.put(RTType.class, row.getAverageRT()));
+        }
 
         if (bioTransformerAnnotations.isEmpty()) {
           predictions++;
