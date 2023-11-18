@@ -52,8 +52,8 @@ public class ImageCorrelateGroupingParameters extends SimpleParameterSet {
       MZmineCore.getConfiguration().getIntensityFormat(), 0d);
 
   public static final IntegerParameter MIN_NUMBER_OF_PIXELS = new IntegerParameter(
-      "Minimum number of locations that must correlate",
-      "Minimum number of locations that must correlate", 0);
+      "Minimum number of correlating pixels",
+      "Minimum number of locations/pixels that must correlate", 0);
 
   public static final OptionalParameter<IntegerParameter> MEDIAN_FILTER_WINDOW = new OptionalParameter<>(
       new IntegerParameter("Median filter window",
@@ -62,12 +62,12 @@ public class ImageCorrelateGroupingParameters extends SimpleParameterSet {
   public static final OptionalParameter<DoubleParameter> QUANTILE_THRESHOLD = new OptionalParameter<>(
       new DoubleParameter("Ignore intensities not in quantile",
           "Only consider intensities above the selected percentile",
-          MZmineCore.getConfiguration().getScoreFormat(), 0.5, 0.0, 1.0), true);
+          MZmineCore.getConfiguration().getRTFormat(), 0.5, 0.0, 1.0), true);
 
   public static final OptionalParameter<DoubleParameter> HOTSPOT_REMOVAL = new OptionalParameter<>(
       new DoubleParameter("Ignore very high intensity outliers",
           "Only consider values below the selected percentile, 0.99 is recommended",
-          MZmineCore.getConfiguration().getScoreFormat(), 0.99, 0.0, 1.0), true);
+          MZmineCore.getConfiguration().getRTFormat(), 0.99, 0.0, 1.0), true);
 
   public static final ComboParameter<SimilarityMeasure> MEASURE = new ComboParameter<>("Measure",
       "Similarity measure", SimilarityMeasure.values(), SimilarityMeasure.PEARSON);

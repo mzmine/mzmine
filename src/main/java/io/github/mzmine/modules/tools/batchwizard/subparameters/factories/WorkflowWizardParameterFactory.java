@@ -82,7 +82,7 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
       // EMPTY parameter set
       case MS1_ONLY -> new WorkflowWizardParameters(this);
       // specialized parameters
-      case IMAGING -> new WorkflowImagingWizardParameters(true, false);
+      case IMAGING -> new WorkflowImagingWizardParameters(true, true, true, true);
       case LIBRARY_GENERATION ->
           new WorkflowLibraryGenerationWizardParameters(null, true, true, false);
       case DDA -> new WorkflowDdaWizardParameters(true, true, null, true, true, false);
