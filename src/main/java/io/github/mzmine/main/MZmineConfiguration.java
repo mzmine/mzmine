@@ -27,6 +27,7 @@ package io.github.mzmine.main;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
@@ -137,4 +138,6 @@ public interface MZmineConfiguration {
   boolean isDarkMode();
 
   ImageNormalization getImageNormalization();
+
+  PaintScaleTransform getImageTransformation();
 }
