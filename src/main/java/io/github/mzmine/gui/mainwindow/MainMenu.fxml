@@ -377,6 +377,8 @@
     </Menu>
 
     <Menu text="Feature grouping">
+      <MenuItem text="Image co-localization" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule"/>
       <MenuItem text="Correlation grouping (metaCorrelate)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule"/>
       <MenuItem text="MS/MS spectral networking" onAction="#runModule"
