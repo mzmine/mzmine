@@ -2,7 +2,9 @@ package io.github.mzmine.modules.dataprocessing.group_imagecorrelate;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
@@ -35,11 +37,13 @@ public class ColocatedImagePane extends GridPane {
   public static Color MIN_COS_COLOR = Color.web("0xE30B0B");
   public static final double MIN_COS_COLOR_VALUE = 0.7;
   public static final double MAX_COS_COLOR_VALUE = 1.0;
+  private final ChartGroup chartGroup;
 
   public ColocatedImagePane(Map<FeatureListRow, Double> sortedCorrelatedRows) {
     super();
     this.setHgap(10);
     this.setVgap(10);
+    chartGroup = new ChartGroup(false, false, true, true);
     Platform.runLater(() -> {
       int i = 0;
       for (Entry<FeatureListRow, Double> entry : sortedCorrelatedRows.entrySet()) {
@@ -58,7 +62,6 @@ public class ColocatedImagePane extends GridPane {
 
   }
 
-  //TODO Add results pane here
   public Node createImagePlotForRow(FeatureListRow row, Double score) {
     BorderPane borderPane = new BorderPane();
     ParameterSet params = MZmineCore.getConfiguration()
@@ -72,6 +75,7 @@ public class ColocatedImagePane extends GridPane {
     EChartViewer chart = imageVisualizerTab.getImagingPlot().getChart();
     chart.setMinSize(200, 200);
     chart.getChart().getXYPlot().setBackgroundPaint(java.awt.Color.BLACK);
+    chartGroup.add(new ChartViewWrapper(chart));
     GridPane.setHgrow(chart, Priority.ALWAYS);
     GridPane.setVgrow(chart, Priority.ALWAYS);
     borderPane.setCenter(chart);
