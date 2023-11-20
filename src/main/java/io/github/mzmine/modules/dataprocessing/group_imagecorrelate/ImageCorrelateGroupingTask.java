@@ -25,7 +25,10 @@
 
 package io.github.mzmine.modules.dataprocessing.group_imagecorrelate;
 
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.FeatureDataType;
+import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
+import io.github.mzmine.datamodel.data_access.FeatureFullDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -53,7 +56,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -135,7 +137,6 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
       setStatus(TaskStatus.CANCELED);
     }
     final R2RMap<RowsRelationship> mapImageSim = new R2RMap<>();
-
     checkAllFeatures(mapImageSim, rows);
     logger.info("Image similarity check on rows done.");
 
@@ -165,10 +166,14 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
     // prefilter rows: check feature height and sort data
     Map<Feature, FilteredRowData> mapFeatureData = new HashMap<>();
     List<FeatureListRow> filteredRows = new ArrayList<>();
+    FeatureDataAccess featureDataAccess = EfficientDataAccess.of(featureList,
+        FeatureDataType.INCLUDE_ZEROS);
+
     for (FeatureListRow row : rows) {
-      if (prepareRows(mapFeatureData, row)) {
+      if (prepareRows(mapFeatureData, row, featureDataAccess)) {
         filteredRows.add(row);
       }
+
     }
     int numRows = filteredRows.size();
     totalMaxPairs = Combinatorics.uniquePairs(filteredRows);
@@ -199,48 +204,37 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
         "Image correlation: Performed %d pairwise comparisons of rows.".formatted(comparedPairs));
   }
 
-  /**
-   * Checks the minimum requirements for the best MS2 for each feature in a row to be matched by MS2
-   * similarity (minimum number of data points and MS2 data availability). Results are sorted by
-   * intensity and stored in the mapRowData
-   *
-   * @param mapFeatureData the target map to store filtered and sorted data point arrays
-   * @param row            the test row
-   * @return true if the row matches all criteria, false otherwise
-   */
   private boolean prepareRows(
       @NotNull Map<Feature, ImageCorrelateGroupingTask.FilteredRowData> mapFeatureData,
-      @NotNull FeatureListRow row) throws MissingMassListException {
+      @NotNull FeatureListRow row, FeatureDataAccess featureDataAccess)
+      throws MissingMassListException {
     boolean result = false;
-    for (Feature feature : row.getFeatures()) {
-      ImageCorrelateGroupingTask.FilteredRowData data = getDataAndFilter(row, feature);
-      mapFeatureData.put(feature, data);
-      result = true;
-    }
+    ImageCorrelateGroupingTask.FilteredRowData data = getDataAndFilter(row, featureDataAccess);
+    mapFeatureData.put(featureDataAccess.getFeature(), data);
+    result = true;
     return result;
   }
 
-  //TODO improve performance here
   @Nullable
   private ImageCorrelateGroupingTask.FilteredRowData getDataAndFilter(@NotNull FeatureListRow row,
-      Feature feature) {
-    ObservableList<Scan> scans = feature.getRawDataFile().getScans();
-    List<Double> intensitiesList = new ArrayList<>();
-    for (Scan scan : scans) {
-      double intensity = feature.getFeatureData().getIntensityForSpectrum(scan);
+      FeatureDataAccess featureDataAccess) {
 
-      //fill empty scan
-      if (intensity < 0 || intensity < noiseLevel) {
-        intensitiesList.add(0.0);
-      } else {
-        intensitiesList.add(intensity);
+    if (featureDataAccess instanceof FeatureFullDataAccess) {
+      while (featureDataAccess.hasNextFeature()) {
+        featureDataAccess.nextFeature();
+        if (featureDataAccess.getFeature().getRow().equals(row)) {
+          double[] intensities = ((FeatureFullDataAccess) featureDataAccess).getIntensityValues()
+              .clone();
+          return intensities.length > 0 ? new ImageCorrelateGroupingTask.FilteredRowData(row,
+              intensities) : null;
+        }
       }
+    } else {
+      return null;
     }
-
-    double[] intensities = intensitiesList.stream().mapToDouble(Double::doubleValue).toArray();
-    return intensities.length > 0 ? new ImageCorrelateGroupingTask.FilteredRowData(row, intensities)
-        : null;
+    return null;
   }
+
 
   //Intensities have to be sorted by scan number
   private record FilteredRowData(FeatureListRow row, double[] intensities) {
