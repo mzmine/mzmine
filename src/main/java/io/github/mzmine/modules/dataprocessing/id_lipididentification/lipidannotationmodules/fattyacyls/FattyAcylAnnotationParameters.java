@@ -30,9 +30,12 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassesProvider;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClassChoiceParameter;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationChainParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationParameterSetupDialog;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -56,9 +59,9 @@ public class FattyAcylAnnotationParameters extends SimpleParameterSet {
       LipidClassesProvider.getListOfLipidClassesByLipidCategories(
           List.of(LipidCategories.FATTYACYLS)).toArray());
 
-  public static final ParameterSetParameter<FattyAcylAnnotationChainParameters> lipidChainParameters = new ParameterSetParameter<FattyAcylAnnotationChainParameters>(
+  public static final ParameterSetParameter<LipidAnnotationChainParameters> lipidChainParameters = new ParameterSetParameter<LipidAnnotationChainParameters>(
       "Side chain parameters", "Optionally modify lipid chain parameters",
-      new FattyAcylAnnotationChainParameters());
+      new LipidAnnotationChainParameters());
 
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
@@ -75,16 +78,19 @@ public class FattyAcylAnnotationParameters extends SimpleParameterSet {
           "If checked the algorithm searches for custom, by the user defined lipid classes",
           new CustomLipidClass[0]));
 
+  public static final AdvancedParametersParameter<AdvancedFattyAcylAnnotationParameters> advanced = new AdvancedParametersParameter<>(
+      new AdvancedFattyAcylAnnotationParameters());
+
   public FattyAcylAnnotationParameters() {
     super(new Parameter[]{featureLists, lipidClasses, lipidChainParameters, mzTolerance,
-            searchForMSMSFragments, customLipidClasses},
+            searchForMSMSFragments, customLipidClasses, advanced},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_lipid_annotation/lipid-annotation.html");
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    FattyAcylAnnotationParameterSetupDialog dialog = new FattyAcylAnnotationParameterSetupDialog(
-        valueCheckRequired, this);
+    LipidAnnotationParameterSetupDialog dialog = new LipidAnnotationParameterSetupDialog(
+        valueCheckRequired, this, LipidCategories.FATTYACYLS);
     dialog.showAndWait();
     return dialog.getExitCode();
   }

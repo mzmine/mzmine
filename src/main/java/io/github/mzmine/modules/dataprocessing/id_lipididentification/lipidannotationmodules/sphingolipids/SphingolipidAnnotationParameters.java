@@ -28,6 +28,8 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidanno
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassParameter;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassesProvider;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationChainParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationParameterSetupDialog;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -54,9 +56,9 @@ public class SphingolipidAnnotationParameters extends SimpleParameterSet {
       LipidClassesProvider.getListOfLipidClassesByLipidCategories(
           List.of(LipidCategories.SPHINGOLIPIDS)).toArray());
 
-  public static final ParameterSetParameter<SphingolipidAnnotationChainParameters> lipidChainParameters = new ParameterSetParameter<SphingolipidAnnotationChainParameters>(
+  public static final ParameterSetParameter<LipidAnnotationChainParameters> lipidChainParameters = new ParameterSetParameter<LipidAnnotationChainParameters>(
       "Side chain parameters", "Optionally modify lipid chain parameters",
-      new SphingolipidAnnotationChainParameters());
+      new LipidAnnotationChainParameters());
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
       "m/z tolerance MS1 level:",
@@ -85,8 +87,8 @@ public class SphingolipidAnnotationParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    SphingolipidAnnotationParameterSetupDialog dialog = new SphingolipidAnnotationParameterSetupDialog(
-        valueCheckRequired, this);
+    LipidAnnotationParameterSetupDialog dialog = new LipidAnnotationParameterSetupDialog(
+        valueCheckRequired, this, LipidCategories.SPHINGOLIPIDS);
     dialog.showAndWait();
     return dialog.getExitCode();
   }

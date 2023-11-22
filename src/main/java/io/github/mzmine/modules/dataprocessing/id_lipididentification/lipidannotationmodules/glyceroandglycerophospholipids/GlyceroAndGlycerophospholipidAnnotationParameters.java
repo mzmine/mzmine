@@ -30,6 +30,8 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassesProvider;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClassChoiceParameter;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationChainParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationParameterSetupDialog;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -57,9 +59,9 @@ public class GlyceroAndGlycerophospholipidAnnotationParameters extends SimplePar
       LipidClassesProvider.getListOfLipidClassesByLipidCategories(
           List.of(LipidCategories.GLYCEROLIPIDS, LipidCategories.GLYCEROPHOSPHOLIPIDS)).toArray());
 
-  public static final ParameterSetParameter<GlyceroAndGlycerophospholipidAnnotationChainParameters> lipidChainParameters = new ParameterSetParameter<GlyceroAndGlycerophospholipidAnnotationChainParameters>(
+  public static final ParameterSetParameter<LipidAnnotationChainParameters> lipidChainParameters = new ParameterSetParameter<LipidAnnotationChainParameters>(
       "Side chain parameters", "Optionally modify lipid chain parameters",
-      new GlyceroAndGlycerophospholipidAnnotationChainParameters());
+      new LipidAnnotationChainParameters());
 
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
@@ -87,8 +89,8 @@ public class GlyceroAndGlycerophospholipidAnnotationParameters extends SimplePar
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog dialog = new GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog(
-        valueCheckRequired, this);
+    LipidAnnotationParameterSetupDialog dialog = new LipidAnnotationParameterSetupDialog(
+        valueCheckRequired, this, LipidCategories.GLYCEROPHOSPHOLIPIDS);
     dialog.showAndWait();
     return dialog.getExitCode();
   }

@@ -1,10 +1,10 @@
-package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sphingolipids;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
-public class SphingolipidAnnotationChainParameters extends SimpleParameterSet {
+public class LipidAnnotationChainParameters extends SimpleParameterSet {
 
   public static final IntegerParameter minChainLength = new IntegerParameter("Minimum chain length",
       "Enter the shortest possible chain length.", 12, true, 1, 60);
@@ -21,7 +21,7 @@ public class SphingolipidAnnotationChainParameters extends SimpleParameterSet {
   public static final BooleanParameter onlySearchForEvenChainLength = new BooleanParameter(
       "Only search for even chain length", "Only search for even chain length.");
 
-  public SphingolipidAnnotationChainParameters() {
+  public LipidAnnotationChainParameters() {
     super(minChainLength, maxChainLength, minDBEs, maxDBEs, onlySearchForEvenChainLength);
   }
 
