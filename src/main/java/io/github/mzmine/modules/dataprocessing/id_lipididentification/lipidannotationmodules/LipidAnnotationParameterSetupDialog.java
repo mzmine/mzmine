@@ -23,12 +23,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassDescription;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidDatabaseCalculator;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.fattyacyls.FattyAcylAnnotationParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sphingolipids.SphingolipidAnnotationParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -53,17 +57,16 @@ import javafx.stage.Stage;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog extends
-    ParameterSetupDialog {
+public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
 
   private Object[] selectedObjects;
   private ObservableList<LipidClassDescription> tableData = null;
 
   private static final Logger logger = Logger.getLogger(
-      GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog.class.getName());
+      LipidAnnotationParameterSetupDialog.class.getName());
 
-  public GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog(boolean valueCheckRequired,
-      ParameterSet parameters) {
+  public LipidAnnotationParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
+      LipidCategories lipidCategory) {
     super(valueCheckRequired, parameters);
 
     // Add buttons
@@ -74,8 +77,28 @@ public class GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog extends
       try {
         updateParameterSetFromComponents();
 
-        // commit the changes to the parameter set
-        selectedObjects = GlyceroAndGlycerophospholipidAnnotationParameters.lipidClasses.getValue();
+        switch (lipidCategory) {
+          case FATTYACYLS -> {
+            selectedObjects = FattyAcylAnnotationParameters.lipidClasses.getValue();
+          }
+          case GLYCEROLIPIDS -> {
+            selectedObjects = GlyceroAndGlycerophospholipidAnnotationParameters.lipidClasses.getValue();
+          }
+          case GLYCEROPHOSPHOLIPIDS -> {
+            selectedObjects = GlyceroAndGlycerophospholipidAnnotationParameters.lipidClasses.getValue();
+          }
+          case SPHINGOLIPIDS -> {
+            selectedObjects = SphingolipidAnnotationParameters.lipidClasses.getValue();
+          }
+          case STEROLLIPIDS -> {
+          }
+          case PRENOLLIPIDS -> {
+          }
+          case SACCHAROLIPIDS -> {
+          }
+          case POLYKETIDES -> {
+          }
+        }
 
         // Convert Objects to LipidClasses
         LipidClasses[] selectedLipids = Arrays.stream(selectedObjects)
@@ -93,9 +116,6 @@ public class GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog extends
 
           @Override
           public double getFinishedPercentage() {
-            if (totalSteps == 0) {
-              return 0;
-            }
             return (finishedSteps) / totalSteps;
           }
 
@@ -103,7 +123,7 @@ public class GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog extends
           public void run() {
             setStatus(TaskStatus.PROCESSING);
             LipidDatabaseCalculator lipidDatabaseCalculator = new LipidDatabaseCalculator(
-                parameters, selectedLipids);
+                parameters, selectedLipids, lipidCategory);
             lipidDatabaseCalculator.createTableData();
             taskDescription = "Check interfering lipids";
             finishedSteps = 50;
@@ -113,14 +133,14 @@ public class GlyceroAndGlycerophospholipidAnnotationParameterSetupDialog extends
             setStatus(TaskStatus.FINISHED);
             MZmineCore.runLater(() -> {
               FXMLLoader loader = new FXMLLoader(
-                  (getClass().getResource("GlyceroAndGlycerophospholipidDatabaseTable.fxml")));
+                  (getClass().getResource("../lipidannotationmodules/LipidDatabaseTable.fxml")));
               Stage stage = new Stage();
               try {
                 BorderPane root = loader.load();
                 Scene scene = new Scene(root, 1200, 800);
 
                 // get controller
-                GlyceroAndGlycerophospholipidDatabaseTableController controller = loader.getController();
+                LipidDatabaseTableController controller = loader.getController();
                 controller.initialize(tableData, lipidDatabaseCalculator.getMzTolerance());
 
                 // Use main CSS
