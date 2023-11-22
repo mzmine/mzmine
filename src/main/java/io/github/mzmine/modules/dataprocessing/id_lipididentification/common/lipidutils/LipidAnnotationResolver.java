@@ -5,14 +5,18 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.FattyAcylMolecularSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.IMolecularSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.SphingoMolecularSpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.SterolMolecularSpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.FattyAcylSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.GlyceroAndGlycerophosphoSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.ISpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SphingolipidSpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SterolSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -67,6 +71,12 @@ public class LipidAnnotationResolver {
     sortByMsMsScore(resolvedMatchedLipidsList);
     removeMultiplyMatchedDataPoints(resolvedMatchedLipidsList, featureListRow);
 
+    //TODO: Add missing speciesl Level annotations
+
+    //TODO: Add Keep isobars functionality
+
+    //TODO: Add keep isomers functionality
+
     //add to resolved list
     if (maximumIdNumber != -1 && resolvedMatchedLipidsList.size() > maximumIdNumber) {
       filterMaximumNumberOfId(resolvedMatchedLipidsList);
@@ -75,57 +85,9 @@ public class LipidAnnotationResolver {
   }
 
   /*
-   * If a Data Point was used for multiple lipid annotations it should be removed from all annotations, except the best one
+   * If a Data Point was used for multiple lipid annotations it should be removed from all
+   * annotations, except the best one
    */
-  private void removeMultiplyMatchedDataPoints1(List<MatchedLipid> matchedLipidsList,
-      FeatureListRow row) {
-    Map<DataPoint, Set<MatchedLipid>> dataPointMap = new HashMap<>();
-    for (MatchedLipid matchedLipid : matchedLipidsList) {
-      Set<LipidFragment> matchedFragments = matchedLipid.getMatchedFragments();
-      for (LipidFragment matchedFragment : matchedFragments) {
-        DataPoint dataPoint = matchedFragment.getDataPoint();
-        dataPointMap.computeIfAbsent(dataPoint, k -> new HashSet<>()).add(matchedLipid);
-      }
-    }
-
-    List<MatchedLipid> lipidsToRemove = new ArrayList<>();
-    for (Map.Entry<DataPoint, Set<MatchedLipid>> entry : dataPointMap.entrySet()) {
-      Set<MatchedLipid> matchedLipids = entry.getValue();
-
-      // Find the MatchedLipid with the highest MsMsScore in the set
-      MatchedLipid highestScoreLipid = null;
-      double highestScore = Double.NEGATIVE_INFINITY;
-      for (MatchedLipid lipid : matchedLipids) {
-        if (lipid.getMsMsScore() > highestScore) {
-          highestScore = lipid.getMsMsScore();
-          highestScoreLipid = lipid;
-        }
-      }
-
-      // Remove LipidFragment for all entries except the one with the highest MsMsScore
-      for (MatchedLipid lipid : matchedLipids) {
-        if (lipid != highestScoreLipid) {
-          Set<LipidFragment> fragmentsToRemove = new HashSet<>();
-          for (LipidFragment matchedFragment : lipid.getMatchedFragments()) {
-            if (matchedFragment.getDataPoint().equals(entry.getKey())) {
-              fragmentsToRemove.add(matchedFragment);
-            }
-          }
-          lipid.getMatchedFragments().removeAll(fragmentsToRemove);
-          reanalyzeMsMsScore(lipid, row);
-        }
-      }
-    }
-    for (MatchedLipid lipid : matchedLipidsList) {
-      if (keepUnconfirmedAnnotations || !searchForMSMSFragments) {
-        lipid.setComment("Warning, this annotation is based on MS1 mass accuracy only!");
-      } else {
-        lipidsToRemove.add(lipid);
-      }
-    }
-    lipidsToRemove.forEach(matchedLipidsList::remove);
-  }
-
   private void removeMultiplyMatchedDataPoints(List<MatchedLipid> matchedLipidsList,
       FeatureListRow row) {
     Map<DataPoint, Set<MatchedLipid>> dataPointMap = new HashMap<>();
@@ -220,6 +182,22 @@ public class LipidAnnotationResolver {
     LipidCategories lipidCategory = lipid.getLipidAnnotation().getLipidClass().getMainClass()
         .getLipidCategory();
     switch (lipidCategory) {
+      case FATTYACYLS -> {
+        if (lipid.getLipidAnnotation() instanceof MolecularSpeciesLevelAnnotation) {
+          IMolecularSpeciesLevelMatchedLipidFactory matchedMolecularSpeciesLipidFactory = new FattyAcylMolecularSpeciesLevelMatchedLipidFactory();
+          recalculatedMatches = matchedMolecularSpeciesLipidFactory.predictMolecularSpeciesLevelMatches(
+              matchedFragments, lipid.getLipidAnnotation(), row.getAverageMZ(), dataPoints,
+              minMsMsScore, mzToleranceMS2, lipid.getIonizationType());
+        } else if (lipid.getLipidAnnotation() instanceof SpeciesLevelAnnotation) {
+          ISpeciesLevelMatchedLipidFactory matchedSpeciesLipidFactory = new FattyAcylSpeciesLevelMatchedLipidFactory();
+          MatchedLipid reMatchedLipid = matchedSpeciesLipidFactory.validateSpeciesLevelAnnotation(
+              row.getAverageMZ(), lipid.getLipidAnnotation(), matchedFragments, dataPoints,
+              minMsMsScore, mzToleranceMS2, lipid.getIonizationType());
+          if (reMatchedLipid != null) {
+            recalculatedMatches.add(reMatchedLipid);
+          }
+        }
+      }
       case GLYCEROLIPIDS -> {
         if (lipid.getLipidAnnotation() instanceof MolecularSpeciesLevelAnnotation) {
           IMolecularSpeciesLevelMatchedLipidFactory matchedMolecularSpeciesLipidFactory = new GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory();
@@ -252,14 +230,28 @@ public class LipidAnnotationResolver {
           }
         }
       }
+      case STEROLLIPIDS -> {
+        if (lipid.getLipidAnnotation() instanceof MolecularSpeciesLevelAnnotation) {
+          IMolecularSpeciesLevelMatchedLipidFactory matchedMolecularSpeciesLipidFactory = new SterolMolecularSpeciesLevelMatchedLipidFactory();
+          recalculatedMatches = matchedMolecularSpeciesLipidFactory.predictMolecularSpeciesLevelMatches(
+              matchedFragments, lipid.getLipidAnnotation(), row.getAverageMZ(), dataPoints,
+              minMsMsScore, mzToleranceMS2, lipid.getIonizationType());
+        } else if (lipid.getLipidAnnotation() instanceof SpeciesLevelAnnotation) {
+          ISpeciesLevelMatchedLipidFactory matchedSpeciesLipidFactory = new SterolSpeciesLevelMatchedLipidFactory();
+          MatchedLipid reMatchedLipid = matchedSpeciesLipidFactory.validateSpeciesLevelAnnotation(
+              row.getAverageMZ(), lipid.getLipidAnnotation(), matchedFragments, dataPoints,
+              minMsMsScore, mzToleranceMS2, lipid.getIonizationType());
+          if (reMatchedLipid != null) {
+            recalculatedMatches.add(reMatchedLipid);
+          }
+        }
+      }
     }
     return recalculatedMatches;
   }
 
   private void sortByMsMsScore(List<MatchedLipid> matchedLipids) {
     matchedLipids.sort(Comparator.comparingDouble(MatchedLipid::getMsMsScore).reversed());
-
-    //if same MSMS score let mass accuracy decide order
   }
 
   private void filterMaximumNumberOfId(List<MatchedLipid> resolvedMatchedLipids) {

@@ -84,7 +84,8 @@ public class LipidFactory {
               numberOfOxygens);
         }
         case STEROLLIPIDS -> {
-          return "TODO Lipid Annotation formate";
+          return buildGlyceroAndGlycerophospholipidSpeciesAnnotation(lipidClass, numberOfCarbons,
+              numberOfDBEs, numberOfOxygens);
         }
         case PRENOLLIPIDS -> {
           return "TODO Lipid Annotation formate";

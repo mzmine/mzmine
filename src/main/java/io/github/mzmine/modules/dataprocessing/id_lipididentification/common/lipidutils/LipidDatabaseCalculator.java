@@ -5,10 +5,13 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassDescription;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationChainParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationChainParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.fattyacyls.FattyAcylAnnotationParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sphingolipids.SphingolipidAnnotationParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.Arrays;
@@ -27,43 +30,107 @@ public class LipidDatabaseCalculator {
 
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
 
-  private final int minChainLength;
-  private final int maxChainLength;
-  private final int minDoubleBonds;
-  private final int maxDoubleBonds;
-  private final Boolean onlySearchForEvenChains;
-  private final MZTolerance mzTolerance;
-  private final LipidClasses[] selectedLipids;
+  private int minChainLength;
+  private int maxChainLength;
+  private int minDoubleBonds;
+  private int maxDoubleBonds;
+  private Boolean onlySearchForEvenChains;
+  private MZTolerance mzTolerance;
+  private LipidClasses[] selectedLipids;
 
   private final ObservableList<LipidClassDescription> tableData = FXCollections.observableArrayList();
 
-  public LipidDatabaseCalculator(ParameterSet parameters, LipidClasses[] selectedLipids) {
-    this.minChainLength = parameters.getParameter(
-            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
-        .getEmbeddedParameters()
-        .getParameter(GlyceroAndGlycerophospholipidAnnotationChainParameters.minChainLength)
-        .getValue();
-    this.maxChainLength = parameters.getParameter(
-            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
-        .getEmbeddedParameters()
-        .getParameter(GlyceroAndGlycerophospholipidAnnotationChainParameters.maxChainLength)
-        .getValue();
-    this.minDoubleBonds = parameters.getParameter(
-            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
-        .getEmbeddedParameters()
-        .getParameter(GlyceroAndGlycerophospholipidAnnotationChainParameters.minDBEs).getValue();
-    this.maxDoubleBonds = parameters.getParameter(
-            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
-        .getEmbeddedParameters()
-        .getParameter(GlyceroAndGlycerophospholipidAnnotationChainParameters.maxDBEs).getValue();
-    this.onlySearchForEvenChains = parameters.getParameter(
-            GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
-        .getEmbeddedParameters().getParameter(
-            GlyceroAndGlycerophospholipidAnnotationChainParameters.onlySearchForEvenChainLength)
-        .getValue();
+  public LipidDatabaseCalculator(ParameterSet parameters, LipidClasses[] selectedLipids,
+      LipidCategories lipidCategory) {
+    switch (lipidCategory) {
+      case FATTYACYLS -> {
+        this.minChainLength = parameters.getParameter(
+                FattyAcylAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
+            .getParameter(LipidAnnotationChainParameters.minChainLength).getValue();
+        this.maxChainLength = parameters.getParameter(
+                FattyAcylAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
+            .getParameter(LipidAnnotationChainParameters.maxChainLength).getValue();
+        this.minDoubleBonds = parameters.getParameter(
+                FattyAcylAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
+            .getParameter(LipidAnnotationChainParameters.minDBEs).getValue();
+        this.maxDoubleBonds = parameters.getParameter(
+                FattyAcylAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
+            .getParameter(LipidAnnotationChainParameters.maxDBEs).getValue();
+        this.onlySearchForEvenChains = parameters.getParameter(
+                FattyAcylAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
+            .getParameter(LipidAnnotationChainParameters.onlySearchForEvenChainLength).getValue();
+        this.mzTolerance = parameters.getParameter(FattyAcylAnnotationParameters.mzTolerance)
+            .getValue();
+      }
+      case GLYCEROLIPIDS -> {
+        this.minChainLength = parameters.getParameter(
+                GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+            .getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.minChainLength)
+            .getValue();
+        this.maxChainLength = parameters.getParameter(
+                GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+            .getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.maxChainLength)
+            .getValue();
+        this.minDoubleBonds = parameters.getParameter(
+                GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+            .getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.minDBEs)
+            .getValue();
+        this.maxDoubleBonds = parameters.getParameter(
+                GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+            .getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.maxDBEs)
+            .getValue();
+        this.onlySearchForEvenChains = parameters.getParameter(
+                GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+            .getEmbeddedParameters()
+            .getParameter(LipidAnnotationChainParameters.onlySearchForEvenChainLength).getValue();
+        this.mzTolerance = parameters.getParameter(
+            GlyceroAndGlycerophospholipidAnnotationParameters.mzTolerance).getValue();
+      }
+      case GLYCEROPHOSPHOLIPIDS -> {
+        this.minChainLength = parameters.getParameter(
+                GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+            .getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.minChainLength)
+            .getValue();
+        this.maxChainLength = parameters.getParameter(
+                GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+            .getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.maxChainLength)
+            .getValue();
+        this.minDoubleBonds = parameters.getParameter(
+                GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+            .getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.minDBEs)
+            .getValue();
+        this.maxDoubleBonds = parameters.getParameter(
+                GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+            .getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.maxDBEs)
+            .getValue();
+        this.onlySearchForEvenChains = parameters.getParameter(
+                GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+            .getEmbeddedParameters()
+            .getParameter(LipidAnnotationChainParameters.onlySearchForEvenChainLength).getValue();
+        this.mzTolerance = parameters.getParameter(
+            GlyceroAndGlycerophospholipidAnnotationParameters.mzTolerance).getValue();
+      }
+      case SPHINGOLIPIDS -> {
+        this.minChainLength = parameters.getParameter(
+                SphingolipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
+            .getParameter(LipidAnnotationChainParameters.minChainLength).getValue();
+        this.maxChainLength = parameters.getParameter(
+                SphingolipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
+            .getParameter(LipidAnnotationChainParameters.maxChainLength).getValue();
+        this.minDoubleBonds = parameters.getParameter(
+                SphingolipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
+            .getParameter(LipidAnnotationChainParameters.minDBEs).getValue();
+        this.maxDoubleBonds = parameters.getParameter(
+                SphingolipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
+            .getParameter(LipidAnnotationChainParameters.maxDBEs).getValue();
+        this.onlySearchForEvenChains = parameters.getParameter(
+                SphingolipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
+            .getParameter(LipidAnnotationChainParameters.onlySearchForEvenChainLength).getValue();
+        this.mzTolerance = parameters.getParameter(SphingolipidAnnotationParameters.mzTolerance)
+            .getValue();
+      }
+    }
 
-    this.mzTolerance = parameters.getParameter(
-        GlyceroAndGlycerophospholipidAnnotationParameters.mzTolerance).getValue();
     this.selectedLipids = selectedLipids;
   }
 
@@ -220,9 +287,9 @@ public class LipidDatabaseCalculator {
     Map<String, Double> ionSpecificMzValues = new HashMap<>();
     String allPairs = lipidClassDescription.getExactMass();
     String[] pairs = allPairs.split("\n");
-    for (int i = 0; i < pairs.length; i++) {
-      String[] pair = pairs[i].split(" ");
-      if (pair != null && pair.length > 1) {
+    for (String s : pairs) {
+      String[] pair = s.split(" ");
+      if (pair.length > 1) {
         ionSpecificMzValues.put(pair[0], Double.parseDouble(pair[1]));
       }
     }
