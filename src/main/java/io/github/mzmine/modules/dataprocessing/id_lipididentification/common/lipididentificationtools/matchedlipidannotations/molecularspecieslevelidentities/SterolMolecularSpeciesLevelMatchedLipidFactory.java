@@ -1,0 +1,7 @@
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities;
+
+public class SterolMolecularSpeciesLevelMatchedLipidFactory extends
+    GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implements
+    IMolecularSpeciesLevelMatchedLipidFactory {
+
+}
