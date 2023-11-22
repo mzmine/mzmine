@@ -22,8 +22,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationChainParameters;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sphingolipids.SphingolipidAnnotationChainParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationChainParameters;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.RawDataFileImpl;
@@ -51,12 +50,12 @@ public class LipidFragmentFactoryTest {
           Range.closed(299d, 301d)), new double[]{700, 800, 900, 1000, 1100},
       new double[]{1700, 1800, 1900, 11000, 11100}, MassSpectrumType.CENTROIDED,
       PolarityType.POSITIVE, "", Range.closed(0d, 1d));
-  public static final ParameterSetParameter<GlyceroAndGlycerophospholipidAnnotationChainParameters> lipidChainParameters = new ParameterSetParameter<GlyceroAndGlycerophospholipidAnnotationChainParameters>(
+  public static final ParameterSetParameter<LipidAnnotationChainParameters> lipidChainParameters = new ParameterSetParameter<LipidAnnotationChainParameters>(
       "Side chain parameters", "Optionally modify lipid chain parameters",
-      new GlyceroAndGlycerophospholipidAnnotationChainParameters());
-  public static final ParameterSetParameter<SphingolipidAnnotationChainParameters> lipidChainParametersSphingolipids = new ParameterSetParameter<SphingolipidAnnotationChainParameters>(
+      new LipidAnnotationChainParameters());
+  public static final ParameterSetParameter<LipidAnnotationChainParameters> lipidChainParametersSphingolipids = new ParameterSetParameter<LipidAnnotationChainParameters>(
       "Side chain parameters", "Optionally modify lipid chain parameters",
-      new SphingolipidAnnotationChainParameters());
+      new LipidAnnotationChainParameters());
 
   @Test
   void findCommonLipidFragments() {

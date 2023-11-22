@@ -52,6 +52,34 @@ public class LipidAnnotationMsMsTestSpectra {
     return FA_18_1_OMMinusH;
   }
 
+  private final LipidAnnotationMsMsTestResource FA_12_0_OMMinusH = new LipidAnnotationMsMsTestResource(
+      new double[]{215.1643, 169.1585}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.OXIDIZEDFREEFATTYACIDS, 12, 0, 0));
+
+  public LipidAnnotationMsMsTestResource getFA_12_0_OMMinusH() {
+    return FA_12_0_OMMinusH;
+  }
+
+  private final LipidAnnotationMsMsTestResource FAHFA_16_0_18_1MMinusH = new LipidAnnotationMsMsTestResource(
+      new double[]{535.473, 297.244, 255.233}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(LipidClasses.FATTYACIDESTOLIDES,
+          new int[]{16, 18}, new int[]{0, 1}, new int[]{0, 0}));
+
+  public LipidAnnotationMsMsTestResource getFAHFA_16_0_18_1MMinusH() {
+    return FAHFA_16_0_18_1MMinusH;
+  }
+
+  private final LipidAnnotationMsMsTestResource CAR_18_1MPlus = new LipidAnnotationMsMsTestResource(
+      new double[]{426.358, 85.028}, //
+      IonizationType.POSITIVE, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.FATTYACYLCARNITINES, 18, 1, 0));
+
+  public LipidAnnotationMsMsTestResource getCAR_18_1MPlus() {
+    return CAR_18_1MPlus;
+  }
+
   // Glycerolipids////////////////////////////////////////////////////////////////////
   private final LipidAnnotationMsMsTestResource MG_18_OMPlusNH4 = new LipidAnnotationMsMsTestResource(
       new double[]{376.342, 359.318, 341.302}, //
@@ -269,6 +297,16 @@ public class LipidAnnotationMsMsTestSpectra {
 
   public LipidAnnotationMsMsTestResource getLPE_18_1MMinusH() {
     return LPE_18_1MMinusH;
+  }
+
+  private final LipidAnnotationMsMsTestResource LNAPE_16_0_18_2MMinusH = new LipidAnnotationMsMsTestResource(
+      new double[]{714.508, 476.278, 458.267, 255.232, 152.996}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.NACYLLYSOPHOSPHATIDYLETHANOLAMINE, 34, 2,
+          0));
+
+  public LipidAnnotationMsMsTestResource getLNAPE_16_0_18_2MMinusH() {
+    return LNAPE_16_0_18_2MMinusH;
   }
 
   private final LipidAnnotationMsMsTestResource PS_18_0_20_4MPlusH = new LipidAnnotationMsMsTestResource(
@@ -775,5 +813,15 @@ public class LipidAnnotationMsMsTestSpectra {
 
   public LipidAnnotationMsMsTestResource getHexCer_18_0_3O_16_0_OAcetate() {
     return HexCer_18_0_3O_16_0_OAcetate;
+  }
+
+  //Sterol Lipids
+  private final LipidAnnotationMsMsTestResource CE_18_1NH4 = new LipidAnnotationMsMsTestResource(
+      new double[]{668.634, 369.352}, //
+      IonizationType.AMMONIUM, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.CHOLESTEROLESTERS, 18, 1, 0));
+
+  public LipidAnnotationMsMsTestResource getCE_18_1NH4() {
+    return CE_18_1NH4;
   }
 }

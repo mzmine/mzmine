@@ -61,6 +61,24 @@ class LipidMsOneLevelTest {
         MolecularFormulaManipulator.getMass(testSpeciesMG, AtomContainerManipulator.MonoIsotopic)));
   }
 
+  @Test
+  void molecularFormulaLevelTestFAHFA() {
+    Double mzExact = FormulaUtils.calculateExactMass("C34H60O4");
+    IMolecularFormula testSpeciesMG = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.FATTYACIDESTOLIDES, 34, 3, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(mzExact), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesMG, AtomContainerManipulator.MonoIsotopic)));
+  }
+
+  @Test
+  void molecularFormulaLevelTestCAR() {
+    Double mzExact = FormulaUtils.calculateExactMass("C17H29NO4");
+    IMolecularFormula testSpeciesMG = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.FATTYACYLCARNITINES, 10, 2, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(mzExact), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesMG, AtomContainerManipulator.MonoIsotopic)));
+  }
+
   //Glycerolipids
   @Test
   void molecularFormulaLevelTestMG() {
@@ -283,6 +301,16 @@ class LipidMsOneLevelTest {
     Double EXACT_MASS_LPE_O_16_0 = FormulaUtils.calculateExactMass("C21H46NO6P");
     IMolecularFormula testSpeciesLPE_O = LIPID_FACTORY.buildSpeciesLevelLipid(
         LipidClasses.MONOALKYLGLYCEROPHOSPHOETHANOLAMINES, 16, 0, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(EXACT_MASS_LPE_O_16_0), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesLPE_O,
+            AtomContainerManipulator.MonoIsotopic)));
+  }
+
+  @Test
+  void molecularFormulaLevelTestLNAPE() {
+    Double EXACT_MASS_LPE_O_16_0 = FormulaUtils.calculateExactMass("C39H74NO8P");
+    IMolecularFormula testSpeciesLPE_O = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.NACYLLYSOPHOSPHATIDYLETHANOLAMINE, 34, 2, 0).getMolecularFormula();
     assertEquals(NUMBER_FORMAT.format(EXACT_MASS_LPE_O_16_0), NUMBER_FORMAT.format(
         MolecularFormulaManipulator.getMass(testSpeciesLPE_O,
             AtomContainerManipulator.MonoIsotopic)));
@@ -620,4 +648,15 @@ class LipidMsOneLevelTest {
     assertEquals(NUMBER_FORMAT.format(EXACT_MASS_CER_34_0_O3), NUMBER_FORMAT.format(
         MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
   }
+
+  //Sterol lipids
+  @Test
+  void molecularFormulaLevelTestCE_16_2() {
+    Double CE_16_2 = FormulaUtils.calculateExactMass("C43H72O2");
+    IMolecularFormula testSpeciesSM = LIPID_FACTORY.buildSpeciesLevelLipid(
+        LipidClasses.CHOLESTEROLESTERS, 16, 2, 0).getMolecularFormula();
+    assertEquals(NUMBER_FORMAT.format(CE_16_2), NUMBER_FORMAT.format(
+        MolecularFormulaManipulator.getMass(testSpeciesSM, AtomContainerManipulator.MonoIsotopic)));
+  }
+
 }
