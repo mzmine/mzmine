@@ -505,6 +505,8 @@
           userData="io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationModule"/>
         <MenuItem text="Sphingolipid annotation" onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sphingolipids.SphingolipidAnnotationModule"/>
+        <MenuItem text="Sterol lipid annotation" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sterollipids.SterollipidAnnotationModule"/>
       </Menu>
 
       <Menu text="EC-MS workflow">
