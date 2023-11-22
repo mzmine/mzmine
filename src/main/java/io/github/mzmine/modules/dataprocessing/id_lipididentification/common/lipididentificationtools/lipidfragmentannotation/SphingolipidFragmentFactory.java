@@ -12,8 +12,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidChainFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationChainParameters;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sphingolipids.SphingolipidAnnotationChainParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationChainParameters;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,19 +31,18 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
 
   public SphingolipidFragmentFactory(Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation,
       IonizationType ionizationType, LipidFragmentationRule[] rules, DataPoint dataPoint,
-      Scan msMsScan, SphingolipidAnnotationChainParameters chainParameters) {
+      Scan msMsScan, LipidAnnotationChainParameters chainParameters) {
     super(mzTolRangeMSMS, lipidAnnotation, ionizationType, rules, dataPoint, msMsScan);
     this.minChainLength = chainParameters.getParameter(
-        GlyceroAndGlycerophospholipidAnnotationChainParameters.minChainLength).getValue();
+        LipidAnnotationChainParameters.minChainLength).getValue();
     this.maxChainLength = chainParameters.getParameter(
-        GlyceroAndGlycerophospholipidAnnotationChainParameters.maxChainLength).getValue();
-    this.minDoubleBonds = chainParameters.getParameter(
-        GlyceroAndGlycerophospholipidAnnotationChainParameters.minDBEs).getValue();
-    this.maxDoubleBonds = chainParameters.getParameter(
-        GlyceroAndGlycerophospholipidAnnotationChainParameters.maxDBEs).getValue();
-    this.onlySearchForEvenChains = chainParameters.getParameter(
-            GlyceroAndGlycerophospholipidAnnotationChainParameters.onlySearchForEvenChainLength)
+        LipidAnnotationChainParameters.maxChainLength).getValue();
+    this.minDoubleBonds = chainParameters.getParameter(LipidAnnotationChainParameters.minDBEs)
         .getValue();
+    this.maxDoubleBonds = chainParameters.getParameter(LipidAnnotationChainParameters.maxDBEs)
+        .getValue();
+    this.onlySearchForEvenChains = chainParameters.getParameter(
+        LipidAnnotationChainParameters.onlySearchForEvenChainLength).getValue();
   }
 
   @Override

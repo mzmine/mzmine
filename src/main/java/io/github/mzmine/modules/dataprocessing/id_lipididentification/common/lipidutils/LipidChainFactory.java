@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils;
 
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AcylLipidChain;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AcylMonoHydroxyChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AlkylLipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AmidLipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AmidMonoHydroxyLipidChain;
@@ -59,7 +60,7 @@ public class LipidChainFactory {
       case ACYL_CHAIN:
         yield new AcylLipidChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
       case ACYL_MONO_HYDROXY_CHAIN:
-        yield null;
+        yield new AcylMonoHydroxyChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
       case TWO_ACYL_CHAINS_COMBINED:
         yield new TwoAcylLipidChains(chainAnnotation, chainFormula, chainLength, numberOfDBE);
       case ALKYL_CHAIN:

@@ -31,7 +31,6 @@ public class GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory implement
 
   private static final MSMSLipidTools MSMS_LIPID_TOOLS = new MSMSLipidTools();
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
-
   private static final LipidChainFactory LIPID_CHAIN_FACTORY = new LipidChainFactory();
 
   @Override
