@@ -65,6 +65,26 @@ public enum LipidClasses implements ILipidClass {
               "H2CO2")//
       }), //
 
+  FATTYACIDESTOLIDES("Fatty acid estolides", "FAHFA", LipidCategories.FATTYACYLS,
+      LipidMainClasses.FATTYESTERS, "H2O",
+      new LipidChainType[]{LipidChainType.ACYL_CHAIN, LipidChainType.ACYL_MONO_HYDROXY_CHAIN},//
+      new LipidFragmentationRule[]{ //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL),//
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.ACYLCHAIN_MINUS_FORMULA_FRAGMENT_NL,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "H2O"),//
+      }), //
+
+  FATTYACYLCARNITINES("Fatty acyl carnitines", "CAR", LipidCategories.FATTYACYLS,
+      LipidMainClasses.FATTYESTERS, "C7H15NO3", new LipidChainType[]{LipidChainType.ACYL_CHAIN},//
+      new LipidFragmentationRule[]{ //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+              "C4H5O2")//
+      }), //
+
   // Glycerolipids
   MONOACYLGLYCEROLS("Monoacylglycerols", "MG", LipidCategories.GLYCEROLIPIDS,
       LipidMainClasses.MONORADYLGLYCEROLS, "C3H8O3",
@@ -360,28 +380,48 @@ public enum LipidClasses implements ILipidClass {
       }), //
   MONOACYLGLYCEROPHOSPHOETHANOLAMINES("Monoacylglycerophosphoethanolamines", "LPE",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOETHANOLAMINES,
-      "C5H14O6PN", new LipidChainType[] {LipidChainType.ACYL_CHAIN}, new LipidFragmentationRule[] { //
-          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN,
-              LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
-              "C2H8NO4P"), //
+      "C5H14O6PN", new LipidChainType[]{LipidChainType.ACYL_CHAIN}, new LipidFragmentationRule[]{ //
+      new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN,
+          LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
+          "C2H8NO4P"), //
 
-          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
-              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
-              "C5H11NO5P-"), //
-          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
-              LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT,
-              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)}), //
+      new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+          LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+          "C5H11NO5P-"), //
+      new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+          LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT,
+          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)}), //
   MONOALKYLGLYCEROPHOSPHOETHANOLAMINES("Monoalkylglycerophosphoethanolamines", "LPE",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOETHANOLAMINES,
-      "C5H14O6PN", new LipidChainType[] {LipidChainType.ALKYL_CHAIN}, new LipidFragmentationRule[] { //
+      "C5H14O6PN", new LipidChainType[]{LipidChainType.ALKYL_CHAIN},
+      new LipidFragmentationRule[]{ //
           new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN), //
           new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.SODIUM), //
           new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN), //
       }), //
+
+  NACYLLYSOPHOSPHATIDYLETHANOLAMINE("N-acyl-lysophosphatidylethanolamine", "LNAPE",
+      LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOETHANOLAMINES,
+      "C5H13O6P", new LipidChainType[]{LipidChainType.ACYL_CHAIN, LipidChainType.AMID_CHAIN},
+      new LipidFragmentationRule[]{ //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+              "C3H6O5P-"), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT_NL,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL),//
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.ACYLCHAIN_MINUS_FORMULA_FRAGMENT_NL,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "H2O"),//
+      }),//
+
   DIACYLGLYCEROPHOSPHOSERINES("Diacylglycerophosphoserines", "PS",
       LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOSERINES, "C6H14O8NP",
-      new LipidChainType[] {LipidChainType.ACYL_CHAIN, LipidChainType.ACYL_CHAIN},
-      new LipidFragmentationRule[] { //
+      new LipidChainType[]{LipidChainType.ACYL_CHAIN, LipidChainType.ACYL_CHAIN},
+      new LipidFragmentationRule[]{ //
           new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN,
               LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
               "C3H8NO6P"), //
@@ -1306,7 +1346,15 @@ public enum LipidClasses implements ILipidClass {
       new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.ACETATE,
           LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
           "C3H6O2"), //
-  });
+  }), //Sterols
+  CHOLESTEROLESTERS("Cholesterol esters", "CE", LipidCategories.STEROLLIPIDS,
+      LipidMainClasses.STEROLS, "C27H46O", new LipidChainType[]{LipidChainType.ACYL_CHAIN},
+      new LipidFragmentationRule[]{ //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+              "C27H45+") //
+
+      });
 
 
   private static final String XML_ELEMENT = "lipidclass";

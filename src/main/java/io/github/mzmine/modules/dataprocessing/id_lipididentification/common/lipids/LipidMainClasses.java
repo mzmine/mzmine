@@ -37,7 +37,7 @@ public enum LipidMainClasses {
 
   FATTYACIDSANDCONJUGATES("Fatty acids and Conjugates", LipidCategories.FATTYACYLS),//
   FATTYAMIDES("Fatty amides", LipidCategories.FATTYACYLS),//
-  FATTYAESTERS("Fatty esters", LipidCategories.FATTYACYLS),//
+  FATTYESTERS("Fatty esters", LipidCategories.FATTYACYLS),//
 
   RHAMNOLIPIDS("Rhamnolipids", LipidCategories.FATTYACYLS), //
 
@@ -67,10 +67,11 @@ public enum LipidMainClasses {
   // Sphingolipids
   SPHINGOIDBASES("Sphingoid bases", LipidCategories.SPHINGOLIPIDS),//
   CERAMIDES("Ceramides", LipidCategories.SPHINGOLIPIDS),//
-
   NEUTRALGLYCOSPHINGOLIPIDS("Neutral glycosphingolipids", LipidCategories.SPHINGOLIPIDS),//
+  PHOSPHOSPHINGOLIPIDS("Phosphosphingolipids", LipidCategories.SPHINGOLIPIDS),//
 
-  PHOSPHOSPHINGOLIPIDS("Phosphosphingolipids", LipidCategories.SPHINGOLIPIDS);
+  //Sterols
+  STEROLS("Sterols", LipidCategories.STEROLLIPIDS);
 
   private final String name;
   private final LipidCategories lipidCategory;
