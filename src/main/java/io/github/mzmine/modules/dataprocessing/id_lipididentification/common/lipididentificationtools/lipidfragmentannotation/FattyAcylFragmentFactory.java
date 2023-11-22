@@ -8,12 +8,12 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidChainFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.fattyacyls.FattyAcylAnnotationChainParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationChainParameters;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FattyAcylFragmentFactory extends AbstractLipidFragmentFactory implements
-    ILipidFragmentFactory {
+public class FattyAcylFragmentFactory extends
+    GlyceroAndGlyceroPhospholipidFragmentFactory implements ILipidFragmentFactory {
 
   private static final LipidChainFactory LIPID_CHAIN_FACTORY = new LipidChainFactory();
   private final int minChainLength;
@@ -24,20 +24,22 @@ public class FattyAcylFragmentFactory extends AbstractLipidFragmentFactory imple
 
   public FattyAcylFragmentFactory(Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation,
       IonizationType ionizationType, LipidFragmentationRule[] rules, DataPoint dataPoint,
-      Scan msMsScan, FattyAcylAnnotationChainParameters chainParameters) {
-    super(mzTolRangeMSMS, lipidAnnotation, ionizationType, rules, dataPoint, msMsScan);
+      Scan msMsScan, LipidAnnotationChainParameters chainParameters) {
+    super(mzTolRangeMSMS, lipidAnnotation, ionizationType, rules, dataPoint, msMsScan,
+        chainParameters);
     this.minChainLength = chainParameters.getParameter(
-        FattyAcylAnnotationChainParameters.minChainLength).getValue();
+        LipidAnnotationChainParameters.minChainLength).getValue();
     this.maxChainLength = chainParameters.getParameter(
-        FattyAcylAnnotationChainParameters.maxChainLength).getValue();
-    this.minDoubleBonds = chainParameters.getParameter(FattyAcylAnnotationChainParameters.minDBEs)
+        LipidAnnotationChainParameters.maxChainLength).getValue();
+    this.minDoubleBonds = chainParameters.getParameter(LipidAnnotationChainParameters.minDBEs)
         .getValue();
-    this.maxDoubleBonds = chainParameters.getParameter(FattyAcylAnnotationChainParameters.maxDBEs)
+    this.maxDoubleBonds = chainParameters.getParameter(LipidAnnotationChainParameters.maxDBEs)
         .getValue();
     this.onlySearchForEvenChains = chainParameters.getParameter(
-        FattyAcylAnnotationChainParameters.onlySearchForEvenChainLength).getValue();
+        LipidAnnotationChainParameters.onlySearchForEvenChainLength).getValue();
   }
 
+  @Override
   public List<LipidFragment> findLipidFragments() {
     List<LipidFragment> commonLipidFragments = findCommonLipidFragment();
     if (commonLipidFragments != null && !commonLipidFragments.isEmpty()) {
@@ -52,6 +54,12 @@ public class FattyAcylFragmentFactory extends AbstractLipidFragmentFactory imple
       LipidFragment detectedFragment = checkForFattyAcylSpecificRuleTypes(rule);
       if (detectedFragment != null) {
         lipidFragments.add(detectedFragment);
+      }
+      if (detectedFragment == null) {
+        detectedFragment = checkForGlyceroAndGlyceroPhospholipidSpecificRuleTypes(rule);
+        if (detectedFragment != null) {
+          lipidFragments.add(detectedFragment);
+        }
       }
     }
     return lipidFragments;
