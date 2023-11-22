@@ -109,6 +109,7 @@ import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeak
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.fattyacyls.FattyAcylAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sphingolipids.SphingolipidAnnotationModule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sterollipids.SterollipidAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
@@ -360,6 +361,7 @@ public class BatchModeModulesList {
       FattyAcylAnnotationModule.class,//
       GlyceroAndGlycerophospholipidAnnotationModule.class, //
       SphingolipidAnnotationModule.class, //
+      SterollipidAnnotationModule.class, //
       LocalCSVDatabaseSearchModule.class, //
       Ms2SearchModule.class, //
       NistMsSearchModule.class, //
