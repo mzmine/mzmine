@@ -29,6 +29,7 @@ import static io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetec
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters;
@@ -89,6 +90,12 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.Spectra
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassesProvider;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.AdvancedLipidAnnotationParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationChainParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationMSMSParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationModule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationParameters;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
@@ -212,6 +219,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   private MassOptions csvMassOptions;
   private List<ImportType> csvColumns;
   private File csvLibraryFile;
+  // lipid annotation
+  private final boolean annotateLipids;
 
   protected BaseWizardBatchBuilder(final WizardSequence steps) {
     super(steps);
@@ -234,6 +243,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
       csvFilterSamplesColumn = csvParams.getEmbeddedParameterValueIfSelectedOrElse(
           AnnotationLocalCSVDatabaseSearchParameters.filterSamplesColumn, "");
     }
+
+    annotateLipids = getValue(params, AnnotationWizardParameters.lipidAnnotation);
 
     // filter
     params = steps.get(WizardPart.FILTER);
@@ -1219,5 +1230,36 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     q.add(step);
   }
 
+  protected void makeAndAddLipidAnnotationStep(final BatchQueue q, boolean checkMS2) {
+    if (!annotateLipids) {
+      return;
+    }
 
+    var param = MZmineCore.getConfiguration().getModuleParameters(LipidAnnotationModule.class)
+        .cloneParameterSet();
+
+    param.setParameter(LipidAnnotationParameters.featureLists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(LipidAnnotationParameters.lipidClasses,
+        LipidClassesProvider.getListOfAllLipidClasses().toArray());
+    param.setParameter(LipidAnnotationParameters.lipidChainParameters,
+        new LipidAnnotationChainParameters());
+    param.setParameter(LipidAnnotationParameters.mzTolerance, mzTolInterSample);
+    param.setParameter(LipidAnnotationParameters.searchForMSMSFragments, checkMS2);
+    if (checkMS2) {
+      param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
+          .setParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations, false);
+      param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
+          .setParameter(LipidAnnotationMSMSParameters.minimumMsMsScore, 60.0);
+      param.getParameter(LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
+          .setParameter(LipidAnnotationMSMSParameters.mzToleranceMS2, mzTolScans);
+    }
+    param.setParameter(LipidAnnotationParameters.advanced, false);
+    var advanced = param.getEmbeddedParameterValue(LipidAnnotationParameters.advanced);
+    advanced.setParameter(AdvancedLipidAnnotationParameters.IONS_TO_IGNORE,
+        IonizationType.values());
+    MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(LipidAnnotationModule.class), param);
+    q.add(step);
+  }
 }

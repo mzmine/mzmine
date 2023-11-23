@@ -106,10 +106,7 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidn
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relations.IonNetRelationsModule;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.fattyacyls.FattyAcylAnnotationModule;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationModule;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sphingolipids.SphingolipidAnnotationModule;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sterollipids.SterollipidAnnotationModule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
@@ -358,10 +355,7 @@ public class BatchModeModulesList {
       MaldiGroupMS2Module.class, //
       FormulaPredictionFeatureListModule.class, //
       IsotopePeakScannerModule.class, //
-      FattyAcylAnnotationModule.class,//
-      GlyceroAndGlycerophospholipidAnnotationModule.class, //
-      SphingolipidAnnotationModule.class, //
-      SterollipidAnnotationModule.class, //
+      LipidAnnotationModule.class, //
       LocalCSVDatabaseSearchModule.class, //
       Ms2SearchModule.class, //
       NistMsSearchModule.class, //
