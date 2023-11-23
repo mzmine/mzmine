@@ -79,7 +79,6 @@ import io.github.mzmine.modules.visualization.image_allmsms.ImageAllMsMsTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
-import io.github.mzmine.modules.visualization.lipidannotationoverview.LipidAnnotationOverviewModule;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
@@ -337,10 +336,10 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> hasMs2(selectedRows));
     showNetworkVisualizerItem.setOnAction(e -> showNetworkVisualizer());
 
-    final MenuItem showLipidAnnotationSummary = new ConditionalMenuItem("Lipid annotation summary",
-        () -> !selectedRows.isEmpty() && rowHasMatchedLipidSignals(selectedRows.get(0)));
-    showLipidAnnotationSummary.setOnAction(
-        e -> LipidAnnotationOverviewModule.showNewTab(selectedRows, selectedFeatures, table));
+    //final MenuItem showLipidAnnotationSummary = new ConditionalMenuItem("Lipid Annotation summary",
+    //    () -> !selectedRows.isEmpty() && rowHasMatchedLipidSignals(selectedRows.get(0)));
+    //showLipidAnnotationSummary.setOnAction(
+    //    e -> LipidAnnotationOverviewModule.showNewTab(selectedRows, selectedFeatures, table));
 
     final MenuItem showXICItem = new ConditionalMenuItem("XIC (quick)",
         () -> !selectedRows.isEmpty());
@@ -523,11 +522,11 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,
-            new SeparatorMenuItem(), showNetworkVisualizerItem, showLipidAnnotationSummary,
-            show2DItem, show3DItem, showIntensityPlotItem, showInIMSRawDataOverviewItem,
-            showInMobilityMzVisualizerItem, new SeparatorMenuItem(), showSpectrumItem,
-            showFeatureFWHMMs1Item, showBestMobilityScanItem, extractSumSpectrumFromMobScans,
-            showMSMSItem, showMSMSMirrorItem, showAllMSMSItem, showDiaIons, showDiaMirror,
+            new SeparatorMenuItem(), showNetworkVisualizerItem, show2DItem, show3DItem,
+            showIntensityPlotItem, showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem,
+            new SeparatorMenuItem(), showSpectrumItem, showFeatureFWHMMs1Item,
+            showBestMobilityScanItem, extractSumSpectrumFromMobScans, showMSMSItem,
+            showMSMSMirrorItem, showAllMSMSItem, showDiaIons, showDiaMirror,
             new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
             showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
             showPeakRowSummaryItem);
