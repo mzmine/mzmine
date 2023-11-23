@@ -40,7 +40,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.SpectraDatabaseSearchLabelGenerator;
@@ -313,8 +313,7 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
         ILipidFragmentFactory glyceroAndGlyceroPhospholipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
             mzTolRangeMSMS, lipid, ionization, rules,
             new SimpleDataPoint(massList[i].getMZ(), massList[i].getIntensity()), currentScan,
-            parameters.getParameter(
-                    GlyceroAndGlycerophospholipidAnnotationParameters.lipidChainParameters)
+            parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
                 .getEmbeddedParameters());
         List<LipidFragment> annotatedFragments = glyceroAndGlyceroPhospholipidFragmentFactory.findLipidFragments();
         for (LipidFragment annotatedFragment : annotatedFragments) {
