@@ -168,6 +168,7 @@ import io.github.mzmine.modules.visualization.histogram.HistogramVisualizerModul
 import io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
+import io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSummaryModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
@@ -434,7 +435,8 @@ public class BatchModeModulesList {
       HistogramVisualizerModule.class, //
       IntensityPlotModule.class, //
       KendrickMassPlotModule.class, //
-      VanKrevelenDiagramModule.class //
+      VanKrevelenDiagramModule.class, //
+      LipidAnnotationSummaryModule.class //
 
   );
 

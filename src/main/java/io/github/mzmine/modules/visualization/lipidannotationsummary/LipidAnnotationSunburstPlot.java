@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.visualization.lipidannotationoverview.lipidannotationoverviewplots;
+package io.github.mzmine.modules.visualization.lipidannotationsummary;
 
 import eu.hansolo.fx.charts.SunburstChart;
 import eu.hansolo.fx.charts.SunburstChartBuilder;
@@ -52,7 +52,8 @@ public class LipidAnnotationSunburstPlot extends SunburstChart {
     TreeNode<ChartItem> tree = buildTreeDataset();
     sunburstChart = SunburstChartBuilder.create().prefSize(400, 400).tree(tree)
         .textOrientation(TextOrientation.TANGENT).autoTextColor(true).visibleData(VisibleData.NAME)
-        .backgroundColor(Color.WHITE).textColor(Color.WHITE).decimals(1).interactive(true).build();
+        .backgroundColor(Color.TRANSPARENT).textColor(Color.WHITE).decimals(0).interactive(true)
+        .build();
   }
 
   private TreeNode<ChartItem> buildTreeDataset() {

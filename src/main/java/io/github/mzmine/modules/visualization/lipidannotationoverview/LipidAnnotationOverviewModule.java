@@ -7,10 +7,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
-import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotChart;
-import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotParameters;
-import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYZDataset;
-import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickPlotDataTypes;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -64,31 +60,5 @@ public class LipidAnnotationOverviewModule implements MZmineRunnableModule {
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return LipidAnnotationOverviewParameters.class;
   }
-
-  private static KendrickMassPlotChart buildKendrickMassPlot() {
-    //init a dataset
-    KendrickMassPlotParameters kendrickMassPlotParameters = new KendrickMassPlotParameters();
-    kendrickMassPlotParameters.setParameter(KendrickMassPlotParameters.xAxisValues,
-        KendrickPlotDataTypes.M_OVER_Z);
-    kendrickMassPlotParameters.setParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase,
-        "CH2");
-    kendrickMassPlotParameters.setParameter(KendrickMassPlotParameters.yAxisValues,
-        KendrickPlotDataTypes.KENDRICK_MASS_DEFECT);
-    kendrickMassPlotParameters.setParameter(KendrickMassPlotParameters.yAxisCustomKendrickMassBase,
-        "H");
-    kendrickMassPlotParameters.setParameter(KendrickMassPlotParameters.colorScaleValues,
-        KendrickPlotDataTypes.RETENTION_TIME);
-    kendrickMassPlotParameters.setParameter(
-        KendrickMassPlotParameters.colorScaleCustomKendrickMassBase, "H");
-    kendrickMassPlotParameters.setParameter(KendrickMassPlotParameters.bubbleSizeValues,
-        KendrickPlotDataTypes.INTENSITY);
-    kendrickMassPlotParameters.setParameter(
-        KendrickMassPlotParameters.bubbleSizeCustomKendrickMassBase, "H");
-    KendrickMassPlotXYZDataset kendrickMassPlotXYZDataset = new KendrickMassPlotXYZDataset(
-        kendrickMassPlotParameters);
-    return new KendrickMassPlotChart("Kendrick Mass Plot", "m/z", "KMD (H)", "Retention time",
-        kendrickMassPlotXYZDataset);
-  }
-
 
 }

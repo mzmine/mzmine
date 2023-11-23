@@ -36,7 +36,7 @@ import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotX
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickPlotDataTypes;
 import io.github.mzmine.modules.visualization.lipidannotationoverview.lipidannotationoverviewplots.EquivalentCarbonNumberChart;
 import io.github.mzmine.modules.visualization.lipidannotationoverview.lipidannotationoverviewplots.EquivalentCarbonNumberDataset;
-import io.github.mzmine.modules.visualization.lipidannotationoverview.lipidannotationoverviewplots.LipidAnnotationSunburstPlot;
+import io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSunburstPlot;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
