@@ -23,15 +23,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules;
 
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassParameter;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassesProvider;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClassChoiceParameter;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationChainParameters;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationParameterSetupDialog;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -42,7 +39,6 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParam
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -50,14 +46,13 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class GlyceroAndGlycerophospholipidAnnotationParameters extends SimpleParameterSet {
+public class LipidAnnotationParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final LipidClassParameter<Object> lipidClasses = new LipidClassParameter<>(
       "Lipid classes", "Selection of lipid backbones",
-      LipidClassesProvider.getListOfLipidClassesByLipidCategories(
-          List.of(LipidCategories.GLYCEROLIPIDS, LipidCategories.GLYCEROPHOSPHOLIPIDS)).toArray());
+      LipidClassesProvider.getListOfAllLipidClasses().toArray());
 
   public static final ParameterSetParameter<LipidAnnotationChainParameters> lipidChainParameters = new ParameterSetParameter<LipidAnnotationChainParameters>(
       "Side chain parameters", "Optionally modify lipid chain parameters",
@@ -68,29 +63,29 @@ public class GlyceroAndGlycerophospholipidAnnotationParameters extends SimplePar
       "m/z tolerance MS1 level:",
       "Enter m/z tolerance for exact mass database matching on MS1 level");
 
-  public static final OptionalModuleParameter<GlyceroAndGlycerophospholipidAnnotationMSMSParameters> searchForMSMSFragments = new OptionalModuleParameter<>(
+  public static final OptionalModuleParameter<LipidAnnotationMSMSParameters> searchForMSMSFragments = new OptionalModuleParameter<>(
       "Search for lipid class specific fragments in MS/MS spectra",
       "Search for lipid class specific fragments in MS/MS spectra",
-      new GlyceroAndGlycerophospholipidAnnotationMSMSParameters());
+      new LipidAnnotationMSMSParameters());
 
   public static final OptionalParameter<CustomLipidClassChoiceParameter> customLipidClasses = new OptionalParameter<>(
       new CustomLipidClassChoiceParameter("Search for custom lipid class",
           "If checked the algorithm searches for custom, by the user defined lipid classes",
           new CustomLipidClass[0]));
 
-  public static final AdvancedParametersParameter<AdvancedGlyceroAndGlycerophospholipidAnnotationParameters> advanced = new AdvancedParametersParameter<>(
-      new AdvancedGlyceroAndGlycerophospholipidAnnotationParameters());
+  public static final AdvancedParametersParameter<AdvancedLipidAnnotationParameters> advanced = new AdvancedParametersParameter<>(
+      new AdvancedLipidAnnotationParameters());
 
-  public GlyceroAndGlycerophospholipidAnnotationParameters() {
+  public LipidAnnotationParameters() {
     super(new Parameter[]{featureLists, lipidClasses, lipidChainParameters, mzTolerance,
-            searchForMSMSFragments, customLipidClasses, advanced},
+            searchForMSMSFragments, advanced},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_lipid_annotation/lipid-annotation.html");
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     LipidAnnotationParameterSetupDialog dialog = new LipidAnnotationParameterSetupDialog(
-        valueCheckRequired, this, LipidCategories.GLYCEROPHOSPHOLIPIDS);
+        valueCheckRequired, this);
     dialog.showAndWait();
     return dialog.getExitCode();
   }

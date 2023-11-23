@@ -43,7 +43,6 @@ import org.jetbrains.annotations.Nullable;
 public class LipidHierarchyComponent extends BorderPane {
 
   private final CheckBoxTreeItem<Object> rootItem = new CheckBoxTreeItem<>("Root");
-
   private final CheckTreeView<Object> lipidChoices = new CheckTreeView<>(rootItem);
   private final Map<LipidClasses, CheckBoxTreeItem<Object>> classToItemMap = new HashMap<>();
 
@@ -115,7 +114,8 @@ public class LipidHierarchyComponent extends BorderPane {
   public Object[] getValue() {
 
     var checkedItems = lipidChoices.getCheckModel().getCheckedItems();
-    return checkedItems.stream().filter(item -> item.getValue() instanceof LipidClasses)
+    return checkedItems.stream()
+        .filter(item -> item != null && item.getValue() instanceof LipidClasses)
         .map(TreeItem::getValue).toList().toArray();
 
   }

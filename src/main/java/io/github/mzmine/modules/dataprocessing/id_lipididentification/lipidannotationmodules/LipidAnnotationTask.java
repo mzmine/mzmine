@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sterollipids;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -32,11 +32,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationChainParameters;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -53,14 +49,13 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class SterollipidAnnotationTask extends AbstractTask {
+public class LipidAnnotationTask extends AbstractTask {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private double finishedSteps;
   private double totalSteps;
   private final FeatureList featureList;
   private final LipidClasses[] selectedLipids;
-  private CustomLipidClass[] customLipidClasses;
   private final int minChainLength;
   private final int maxChainLength;
   private final int maxDoubleBonds;
@@ -72,46 +67,45 @@ public class SterollipidAnnotationTask extends AbstractTask {
   private final Boolean keepUnconfirmedAnnotations;
   private double minMsMsScore;
   private final IonizationType[] ionizationTypesToIgnore;
-
   private final ParameterSet parameters;
 
-  public SterollipidAnnotationTask(ParameterSet parameters, FeatureList featureList,
+  public LipidAnnotationTask(ParameterSet parameters, FeatureList featureList,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.featureList = featureList;
     this.parameters = parameters;
 
-    this.minChainLength = parameters.getParameter(
-            SterollipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
-        .getParameter(LipidAnnotationChainParameters.minChainLength).getValue();
-    this.maxChainLength = parameters.getParameter(
-            SterollipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
-        .getParameter(LipidAnnotationChainParameters.maxChainLength).getValue();
-    this.minDoubleBonds = parameters.getParameter(
-            SterollipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
-        .getParameter(LipidAnnotationChainParameters.minDBEs).getValue();
-    this.maxDoubleBonds = parameters.getParameter(
-            SterollipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
-        .getParameter(LipidAnnotationChainParameters.maxDBEs).getValue();
-    this.onlySearchForEvenChains = parameters.getParameter(
-            SterollipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
-        .getParameter(LipidAnnotationChainParameters.onlySearchForEvenChainLength).getValue();
-    Object[] selectedObjects = parameters.getParameter(SterollipidAnnotationParameters.lipidClasses)
+    this.minChainLength = parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.minChainLength)
         .getValue();
-    this.mzTolerance = parameters.getParameter(SterollipidAnnotationParameters.mzTolerance)
+    this.maxChainLength = parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.maxChainLength)
+        .getValue();
+    this.minDoubleBonds = parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.minDBEs).getValue();
+    this.maxDoubleBonds = parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.maxDBEs).getValue();
+    this.onlySearchForEvenChains = parameters.getParameter(
+            LipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters()
+        .getParameter(LipidAnnotationChainParameters.onlySearchForEvenChainLength).getValue();
+    this.mzToleranceMS2 = parameters.getParameter(LipidAnnotationParameters.searchForMSMSFragments)
+        .getEmbeddedParameters().getParameter(LipidAnnotationMSMSParameters.mzToleranceMS2)
+        .getValue();
+    this.mzTolerance = parameters.getParameter(LipidAnnotationParameters.mzTolerance).getValue();
+    Object[] selectedObjects = parameters.getParameter(LipidAnnotationParameters.lipidClasses)
         .getValue();
     this.searchForMSMSFragments = parameters.getParameter(
-        SterollipidAnnotationParameters.searchForMSMSFragments).getValue();
+        LipidAnnotationParameters.searchForMSMSFragments).getValue();
     if (searchForMSMSFragments.booleanValue()) {
       this.mzToleranceMS2 = parameters.getParameter(
-              SterollipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-          .getParameter(SterollipidAnnotationMSMSParameters.mzToleranceMS2).getValue();
+              LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
+          .getParameter(LipidAnnotationMSMSParameters.mzToleranceMS2).getValue();
       this.keepUnconfirmedAnnotations = parameters.getParameter(
-              SterollipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-          .getParameter(SterollipidAnnotationMSMSParameters.keepUnconfirmedAnnotations).getValue();
-      this.minMsMsScore = parameters.getParameter(
-              SterollipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
-          .getParameter(SterollipidAnnotationMSMSParameters.minimumMsMsScore).getValue();
+              LipidAnnotationParameters.searchForMSMSFragments).getEmbeddedParameters()
+          .getParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations).getValue();
+      this.minMsMsScore = parameters.getParameter(LipidAnnotationParameters.searchForMSMSFragments)
+          .getEmbeddedParameters().getParameter(LipidAnnotationMSMSParameters.minimumMsMsScore)
+          .getValue();
     } else {
       this.keepUnconfirmedAnnotations = true;
     }
@@ -119,13 +113,11 @@ public class SterollipidAnnotationTask extends AbstractTask {
     // Convert Objects to LipidClasses
     this.selectedLipids = Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
         .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
-    final ParameterSet advancedParam = parameters.getParameter(
-        SterollipidAnnotationParameters.advanced).getEmbeddedParameters();
 
-    if (parameters.getParameter(SterollipidAnnotationParameters.advanced).getValue()) {
+    if (parameters.getParameter(LipidAnnotationParameters.advanced).getValue()) {
       this.ionizationTypesToIgnore = parameters.getParameter(
-          SterollipidAnnotationParameters.advanced.getEmbeddedParameters()
-              .getParameter(AdvancedSterollipidAnnotationParameters.IONS_TO_IGNORE)).getValue();
+          LipidAnnotationParameters.advanced.getEmbeddedParameters()
+              .getParameter(AdvancedLipidAnnotationParameters.IONS_TO_IGNORE)).getValue();
     } else {
       ionizationTypesToIgnore = null;
     }
@@ -147,7 +139,7 @@ public class SterollipidAnnotationTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    return "Find Sterol lipids in " + featureList;
+    return "Annotate lipids in " + featureList;
   }
 
   /**
@@ -157,7 +149,7 @@ public class SterollipidAnnotationTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    logger.info("Starting Sterol annotation in " + featureList);
+    logger.info("Starting lipid annotation in " + featureList);
 
     List<FeatureListRow> rows = featureList.getRows();
     if (featureList instanceof ModularFeatureList) {
@@ -177,18 +169,20 @@ public class SterollipidAnnotationTask extends AbstractTask {
         }
         LipidAnnotationUtils.findPossibleLipid(lipidAnnotation, row, parameters,
             ionizationTypesToIgnore, mzTolerance, mzToleranceMS2, searchForMSMSFragments,
-            minMsMsScore, keepUnconfirmedAnnotations, LipidCategories.SPHINGOLIPIDS);
+            minMsMsScore, keepUnconfirmedAnnotations,
+            lipidAnnotation.getLipidClass().getCoreClass());
       }
       finishedSteps++;
     });
+
     // Add task description to featureList
     (featureList).addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Sterol lipid annotation",
-            SterollipidAnnotationModule.class, parameters, getModuleCallDate()));
+        new SimpleFeatureListAppliedMethod("Lipid annotation", LipidAnnotationModule.class,
+            parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 
-    logger.info("Finished Sterol lipid annotation task for " + featureList);
+    logger.info("Finished lipid annotation task for " + featureList);
   }
 
 }

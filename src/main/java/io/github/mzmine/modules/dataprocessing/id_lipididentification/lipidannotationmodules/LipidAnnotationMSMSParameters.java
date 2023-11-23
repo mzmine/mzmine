@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sterollipids;
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -31,7 +31,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import java.text.DecimalFormat;
 
-public class SterollipidAnnotationMSMSParameters extends SimpleParameterSet {
+public class LipidAnnotationMSMSParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzToleranceMS2 = new MZToleranceParameter(
       "m/z tolerance MS2 level:",
@@ -45,7 +45,7 @@ public class SterollipidAnnotationMSMSParameters extends SimpleParameterSet {
       "Keep unconfirmed annotations",
       "WARNING!: If checked, annotations based on accurate mass without headgroup fragment annotations are kept.");
 
-  public SterollipidAnnotationMSMSParameters() {
+  public LipidAnnotationMSMSParameters() {
     super(mzToleranceMS2, minimumMsMsScore, keepUnconfirmedAnnotations);
   }
 

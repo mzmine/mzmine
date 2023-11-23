@@ -163,6 +163,9 @@ public class LipidClassParameter<ValueType> implements
     if (values == null) {
       errorMessages.add(name + " is not set properly");
       return false;
+    } else if (values.length < minNumber) {
+      errorMessages.add("Select at least one lipid class");
+      return false;
     }
     return true;
   }

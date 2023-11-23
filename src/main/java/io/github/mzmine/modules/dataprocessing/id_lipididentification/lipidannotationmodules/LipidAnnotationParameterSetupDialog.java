@@ -26,13 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassDescription;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidDatabaseCalculator;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.fattyacyls.FattyAcylAnnotationParameters;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.glyceroandglycerophospholipids.GlyceroAndGlycerophospholipidAnnotationParameters;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.sphingolipids.SphingolipidAnnotationParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -65,8 +61,7 @@ public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
   private static final Logger logger = Logger.getLogger(
       LipidAnnotationParameterSetupDialog.class.getName());
 
-  public LipidAnnotationParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
-      LipidCategories lipidCategory) {
+  public LipidAnnotationParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
 
     // Add buttons
@@ -77,28 +72,7 @@ public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
       try {
         updateParameterSetFromComponents();
 
-        switch (lipidCategory) {
-          case FATTYACYLS -> {
-            selectedObjects = FattyAcylAnnotationParameters.lipidClasses.getValue();
-          }
-          case GLYCEROLIPIDS -> {
-            selectedObjects = GlyceroAndGlycerophospholipidAnnotationParameters.lipidClasses.getValue();
-          }
-          case GLYCEROPHOSPHOLIPIDS -> {
-            selectedObjects = GlyceroAndGlycerophospholipidAnnotationParameters.lipidClasses.getValue();
-          }
-          case SPHINGOLIPIDS -> {
-            selectedObjects = SphingolipidAnnotationParameters.lipidClasses.getValue();
-          }
-          case STEROLLIPIDS -> {
-          }
-          case PRENOLLIPIDS -> {
-          }
-          case SACCHAROLIPIDS -> {
-          }
-          case POLYKETIDES -> {
-          }
-        }
+        selectedObjects = LipidAnnotationParameters.lipidClasses.getValue();
 
         // Convert Objects to LipidClasses
         LipidClasses[] selectedLipids = Arrays.stream(selectedObjects)
@@ -123,7 +97,7 @@ public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
           public void run() {
             setStatus(TaskStatus.PROCESSING);
             LipidDatabaseCalculator lipidDatabaseCalculator = new LipidDatabaseCalculator(
-                parameters, selectedLipids, lipidCategory);
+                parameters, selectedLipids);
             lipidDatabaseCalculator.createTableData();
             taskDescription = "Check interfering lipids";
             finishedSteps = 50;
