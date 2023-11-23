@@ -1346,7 +1346,9 @@ public enum LipidClasses implements ILipidClass {
       new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.ACETATE,
           LipidFragmentationRuleType.HEADGROUP_FRAGMENT_NL, LipidAnnotationLevel.SPECIES_LEVEL,
           "C3H6O2"), //
-  }), //Sterols
+  }), //
+
+  // Sterols
   CHOLESTEROLESTERS("Cholesterol esters", "CE", LipidCategories.STEROLLIPIDS,
       LipidMainClasses.STEROLS, "C27H46O", new LipidChainType[]{LipidChainType.ACYL_CHAIN},
       new LipidFragmentationRule[]{ //
