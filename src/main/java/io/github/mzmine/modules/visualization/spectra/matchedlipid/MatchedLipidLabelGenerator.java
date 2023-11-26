@@ -75,7 +75,7 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
           .append(lipidFragment.getNumberOfDBEs());
 
       //add info about oxygens
-      if (lipidFragment.getNumberOfOxygens() != null) {
+      if (lipidFragment.getNumberOfOxygens() != null && lipidFragment.getNumberOfOxygens() > 0) {
         sb.append(";").append(lipidFragment.getNumberOfOxygens()).append("O");
       }
       sb.append("\n");
