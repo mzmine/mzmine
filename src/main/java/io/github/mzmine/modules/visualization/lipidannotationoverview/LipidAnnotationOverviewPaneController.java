@@ -28,14 +28,14 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
+import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberChart;
+import io.github.mzmine.modules.visualization.equivalentcarbonnumberplot.EquivalentCarbonNumberDataset;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotChart;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotParameters;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYZDataset;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickPlotDataTypes;
-import io.github.mzmine.modules.visualization.lipidannotationoverview.lipidannotationoverviewplots.EquivalentCarbonNumberChart;
-import io.github.mzmine.modules.visualization.lipidannotationoverview.lipidannotationoverviewplots.EquivalentCarbonNumberDataset;
 import io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSunburstPlot;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -145,12 +145,13 @@ public class LipidAnnotationOverviewPaneController {
       numberOfDBEs = ((SpeciesLevelAnnotation) focussedRows.get(0).getLipidMatches().get(0)
           .getLipidAnnotation()).getNumberOfDBEs();
     }
-    ecnDataset = new EquivalentCarbonNumberDataset(focussedRows,
-        rowsWithLipidID.toArray(new FeatureListRow[0]),
-        focussedRows.get(0).getLipidMatches().get(0).getLipidAnnotation().getLipidClass(),
-        numberOfDBEs);
-    equivalentCarbonNumberChart = new EquivalentCarbonNumberChart("ECN Model", "Retention time",
-        "Number of Carbons", ecnDataset);
+    //TODO change to MoudlarFeatureList row
+    //  ecnDataset = new EquivalentCarbonNumberDataset(focussedRows,
+    //      rowsWithLipidID.toArray(new FeatureListRow[0]),
+    //      focussedRows.get(0).getLipidMatches().get(0).getLipidAnnotation().getLipidClass(),
+    //      numberOfDBEs);
+    //  equivalentCarbonNumberChart = new EquivalentCarbonNumberChart("ECN Model", "Retention time",
+    //      "Number of Carbons", ecnDataset);
     ecnPane.setCenter(equivalentCarbonNumberChart);
     addEcnChartListener();
   }

@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.visualization.lipidannotationoverview.lipidannotationoverviewplots;
+package io.github.mzmine.modules.visualization.equivalentcarbonnumberplot;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -24,7 +24,7 @@ public class EquivalentCarbonNumberDataset extends AbstractXYZDataset implements
   private double[] bubbleSizeValues;
 
   private final FeatureListRow[] lipidRows;
-  private final List<ModularFeatureListRow> selectedRows;
+  private final List<FeatureListRow> selectedRows;
   private final List<MatchedLipid> matchedLipids = new ArrayList<>();
   private final ILipidClass selectedLipidClass;
   private final int selectedDBENumber;
@@ -33,7 +33,7 @@ public class EquivalentCarbonNumberDataset extends AbstractXYZDataset implements
   private static final MSMSLipidTools MSMS_LIPID_TOOLS = new MSMSLipidTools();
 
 
-  public EquivalentCarbonNumberDataset(List<ModularFeatureListRow> selectedRows,
+  public EquivalentCarbonNumberDataset(List<FeatureListRow> selectedRows,
       FeatureListRow[] lipidRows, ILipidClass selectedLipidClass, int selectedDBENumber) {
     this.selectedRows = selectedRows;
     this.lipidRows = lipidRows;
