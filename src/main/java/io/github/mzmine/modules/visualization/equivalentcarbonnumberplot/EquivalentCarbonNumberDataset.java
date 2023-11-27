@@ -13,16 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.jfree.data.xy.AbstractXYZDataset;
+import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
 
-public class EquivalentCarbonNumberDataset extends AbstractXYZDataset implements XYDataset {
+public class EquivalentCarbonNumberDataset extends AbstractXYDataset implements XYDataset {
 
   private double[] xValues;
   private double[] yValues;
-  private double[] colorScaleValues;
-  private double[] bubbleSizeValues;
-
   private final FeatureListRow[] lipidRows;
   private final List<FeatureListRow> selectedRows;
   private final List<MatchedLipid> matchedLipids = new ArrayList<>();
@@ -72,8 +69,7 @@ public class EquivalentCarbonNumberDataset extends AbstractXYZDataset implements
       if (lipidsForDBE != null) {
         xValues = new double[lipidsForDBE.size()];
         yValues = new double[lipidsForDBE.size()];
-        colorScaleValues = new double[lipidsForDBE.size()];
-        bubbleSizeValues = new double[lipidsForDBE.size()];
+
         for (int i = 0; i < lipidsForDBE.size(); i++) {
           // get number of Carbons
           ILipidAnnotation lipidAnnotation = lipidsForDBE.get(i).getLipidAnnotation();
@@ -96,8 +92,7 @@ public class EquivalentCarbonNumberDataset extends AbstractXYZDataset implements
               }
             }
           }
-          colorScaleValues[i] = 1;
-          bubbleSizeValues[i] = 1;
+
         }
       }
     }
@@ -118,25 +113,9 @@ public class EquivalentCarbonNumberDataset extends AbstractXYZDataset implements
     return getRowKey(series);
   }
 
-  @Override
-  public Number getZ(int series, int item) {
-    return colorScaleValues[item];
-  }
-
-  public double[] getColorScaleValues() {
-    return colorScaleValues;
-  }
 
   public double[] getXValues() {
     return xValues;
-  }
-
-  public double getBubbleSize(int series, int item) {
-    return bubbleSizeValues[item];
-  }
-
-  public void setBubbleSize(int item, double newValue) {
-    bubbleSizeValues[item] = newValue;
   }
 
   @Override
@@ -156,19 +135,6 @@ public class EquivalentCarbonNumberDataset extends AbstractXYZDataset implements
 
   public MatchedLipid getMatchedLipid(int item) {
     return lipidsForDBE.get(item);
-  }
-
-  public List<FeatureListRow> getLipidsForDBERows() {
-    List<FeatureListRow> filteredRows = new ArrayList<>();
-    for (FeatureListRow featureListRow : lipidRows) {
-      if (featureListRow instanceof ModularFeatureListRow modularRow) {
-        MatchedLipid matchedLipid = modularRow.get(LipidMatchListType.class).get(0);
-        if (matchedLipid != null && lipidsForDBE.contains(matchedLipid)) {
-          filteredRows.add(featureListRow);
-        }
-      }
-    }
-    return filteredRows;
   }
 
 }

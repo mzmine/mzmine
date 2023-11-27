@@ -27,6 +27,7 @@ public class EquivalentCarbonNumberChart extends EChartViewer implements XYItemL
 
     // Calculate linear regression parameters
     double[] regressionParams = calculateLinearRegression(dataset, 0);
+
     // Add linear regression line to the plot
     getChart().getXYPlot().setDataset(1, createRegressionDataset(regressionParams,
         Arrays.stream(dataset.getXValues()).min().getAsDouble(),
@@ -62,6 +63,23 @@ public class EquivalentCarbonNumberChart extends EChartViewer implements XYItemL
   @Override
   public String generateLabel(XYDataset dataset, int series, int item) {
     MatchedLipid matchedLipid = ((EquivalentCarbonNumberDataset) dataset).getMatchedLipid(item);
+
+    if (matchedLipid == null) {
+      return null;
+    }
+    double originalY = dataset.getYValue(0, item);
+    
+    //show only annotation with best MS/MS score if available
+    for (int i = 0; i < dataset.getItemCount(0); i++) {
+      if (dataset.getYValue(0, i) == originalY && i != item) {
+        if (((EquivalentCarbonNumberDataset) dataset).getMatchedLipid(item).getMsMsScore() != null
+            && ((EquivalentCarbonNumberDataset) dataset).getMatchedLipid(item).getMsMsScore()
+            < ((EquivalentCarbonNumberDataset) dataset).getMatchedLipid(i).getMsMsScore()) {
+          return null;
+        }
+      }
+    }
+
     return matchedLipid.getLipidAnnotation().getAnnotation();
   }
 
