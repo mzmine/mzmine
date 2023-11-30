@@ -40,6 +40,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidLabelGenerator;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -94,6 +95,9 @@ public class LipidSpectrumChart extends BufferedChartNode {
 
       spectraPlot.addPrecursorMarkers(matchedMsMsScan);
     }
+
+    spectraPlot.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
+    spectraPlot.getXYPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
     if (asBufferedImage) {
       setChartCreateImage(spectraPlot, GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH,
