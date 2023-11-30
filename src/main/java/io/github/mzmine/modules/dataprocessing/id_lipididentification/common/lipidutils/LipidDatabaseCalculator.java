@@ -57,7 +57,7 @@ public class LipidDatabaseCalculator {
 
   }
 
-  public void createTableData() {
+  public ObservableList<LipidClassDescription> createTableData() {
     int id = 1;
     for (ILipidClass selectedLipid : selectedLipids) {
       // TODO starting point to extend for better oxidized lipid support
@@ -113,46 +113,7 @@ public class LipidDatabaseCalculator {
         }
       }
     }
-  }
-
-  public void checkInterferencesOld() {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < tableData.size(); i++) {
-      Map<String, Double> ionSpecificMzValues = extractIonNotationMzValuesFromTable(
-          tableData.get(i));
-      for (Entry<String, Double> entry : ionSpecificMzValues.entrySet()) {
-        for (int j = 0; j < tableData.size(); j++) {
-          sb.setLength(0);
-          Map<String, Double> ionSpecificMzValuesCompare = extractIonNotationMzValuesFromTable(
-              tableData.get(j));
-          for (Entry<String, Double> entryCompare : ionSpecificMzValuesCompare.entrySet()) {
-            double valueOne = entry.getValue();
-            double valueTwo = entryCompare.getValue();
-            if (valueOne == valueTwo && j != i && isSamePolarity(entry.getKey(),
-                entryCompare.getKey())) {
-              if (!sb.isEmpty()) {
-                sb.append("\n");
-              }
-              sb.append(entryCompare.getKey()).append(" interference with ")
-                  .append(tableData.get(i).getAbbreviation()).append(" ").append(entry.getKey());
-            } else if (mzTolerance.checkWithinTolerance(valueOne, valueTwo) && j != i
-                && isSamePolarity(entry.getKey(), entryCompare.getKey())) {
-              double delta = valueOne - valueTwo;
-              if (!sb.isEmpty()) {
-                sb.append("\n");
-              }
-              sb.append(entryCompare.getKey()).append(" possible interference with ")
-                  .append(tableData.get(i).getAbbreviation()).append(" ").append(entry.getKey())
-                  .append(" \u0394 ")
-                  .append(MZmineCore.getConfiguration().getMZFormat().format(delta));
-            }
-          }
-          if (!sb.isEmpty()) {
-            tableData.get(j).setInfo(tableData.get(j).getInfo() + "\n" + sb);
-          }
-        }
-      }
-    }
+    return tableData;
   }
 
   public void checkInterferences() {

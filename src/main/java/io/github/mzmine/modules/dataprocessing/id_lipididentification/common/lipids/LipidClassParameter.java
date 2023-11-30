@@ -51,12 +51,12 @@ public class LipidClassParameter<ValueType> implements
    * the class of the ValueType.
    */
   public LipidClassParameter(String name, String description, ValueType[] choices) {
-    this(name, description, choices, null, 1);
+    this(name, description, choices, null, 0);
   }
 
   public LipidClassParameter(String name, String description, ValueType[] choices,
       ValueType[] values) {
-    this(name, description, choices, values, 1);
+    this(name, description, choices, values, 0);
   }
 
   public LipidClassParameter(String name, String description, ValueType[] choices,

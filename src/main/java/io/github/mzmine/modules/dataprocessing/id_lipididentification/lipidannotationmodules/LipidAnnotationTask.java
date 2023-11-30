@@ -32,7 +32,10 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClassParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -55,7 +58,8 @@ public class LipidAnnotationTask extends AbstractTask {
   private double finishedSteps;
   private double totalSteps;
   private final FeatureList featureList;
-  private final LipidClasses[] selectedLipids;
+  private ILipidClass[] selectedLipids;
+  private CustomLipidClass[] selectedCustomLipidClasses;
   private final int minChainLength;
   private final int maxChainLength;
   private final int maxDoubleBonds;
@@ -109,11 +113,22 @@ public class LipidAnnotationTask extends AbstractTask {
     } else {
       this.keepUnconfirmedAnnotations = true;
     }
+    this.selectedCustomLipidClasses = null;
+    if (parameters.getParameter(LipidAnnotationParameters.customLipidClasses).getValue()) {
+      this.selectedCustomLipidClasses = LipidAnnotationParameters.customLipidClasses.getEmbeddedParameters()
+          .getParameter(CustomLipidClassParameters.customLipidClassChoices).getChoices();
+    }
 
     // Convert Objects to LipidClasses
-    this.selectedLipids = Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
-        .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
+    List<ILipidClass> selectedLipidClassesList = new java.util.ArrayList<>(
+        Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
+            .map(o -> (ILipidClass) o).toList());
 
+    // add custom lipid classes if available
+    if (selectedCustomLipidClasses != null) {
+      selectedLipidClassesList.addAll(Arrays.asList(selectedCustomLipidClasses));
+    }
+    this.selectedLipids = selectedLipidClassesList.toArray(new ILipidClass[0]);
     if (parameters.getParameter(LipidAnnotationParameters.advanced).getValue()) {
       this.ionizationTypesToIgnore = parameters.getParameter(
           LipidAnnotationParameters.advanced.getEmbeddedParameters()

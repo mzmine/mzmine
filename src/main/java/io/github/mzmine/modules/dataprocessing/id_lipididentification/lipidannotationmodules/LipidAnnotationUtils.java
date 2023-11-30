@@ -27,7 +27,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidAnnotationResolver;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
@@ -51,7 +50,7 @@ public class LipidAnnotationUtils {
 
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
 
-  public static Set<ILipidAnnotation> buildLipidDatabase(LipidClasses[] selectedLipids,
+  public static Set<ILipidAnnotation> buildLipidDatabase(ILipidClass[] selectedLipids,
       int minChainLength, int maxChainLength, int minDoubleBonds, int maxDoubleBonds,
       boolean onlySearchForEvenChains) {
 
@@ -293,7 +292,7 @@ public class LipidAnnotationUtils {
   }
 
   @NotNull
-  private static ILipidFragmentFactory getLipidFragmentFactory(IonizationType ionization,
+  public static ILipidFragmentFactory getLipidFragmentFactory(IonizationType ionization,
       ILipidAnnotation lipid, ParameterSet parameters, Scan msmsScan,
       LipidFragmentationRule[] rules, DataPoint dataPoint, Range<Double> mzTolRangeMSMS,
       LipidCategories lipidCategory) {
@@ -325,7 +324,9 @@ public class LipidAnnotationUtils {
       }
       case STEROLLIPIDS -> {
         return new SterollipidFragmentFactory(mzTolRangeMSMS, lipid, ionization, rules,
-            new SimpleDataPoint(dataPoint.getMZ(), dataPoint.getIntensity()), msmsScan);
+            new SimpleDataPoint(dataPoint.getMZ(), dataPoint.getIntensity()), msmsScan,
+            parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
+                .getEmbeddedParameters());
       }
       case PRENOLLIPIDS -> {
       }

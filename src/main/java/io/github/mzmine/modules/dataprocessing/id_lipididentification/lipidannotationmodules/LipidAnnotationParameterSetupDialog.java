@@ -40,13 +40,14 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 
 /**
  * Parameter setup dialog for lipid annotation module
@@ -56,7 +57,7 @@ import javafx.stage.Stage;
 public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
 
   private Object[] selectedObjects;
-  private ObservableList<LipidClassDescription> tableData = null;
+  private ObservableList<LipidClassDescription> tableData = FXCollections.observableArrayList();
 
   private static final Logger logger = Logger.getLogger(
       LipidAnnotationParameterSetupDialog.class.getName());
@@ -69,15 +70,37 @@ public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
     showDatabaseTable.setTooltip(
         new Tooltip("Show a database table for the selected classes and parameters"));
     showDatabaseTable.setOnAction(event -> {
+      showDatabaseTable.setDisable(true);
       try {
         updateParameterSetFromComponents();
-
+        LipidDatabaseTableController controller = null;
+        tableData.clear();
         selectedObjects = LipidAnnotationParameters.lipidClasses.getValue();
 
         // Convert Objects to LipidClasses
         LipidClasses[] selectedLipids = Arrays.stream(selectedObjects)
             .filter(o -> o instanceof LipidClasses).map(o -> (LipidClasses) o)
             .toArray(LipidClasses[]::new);
+
+        LipidDatabaseCalculator lipidDatabaseCalculator = new LipidDatabaseCalculator(parameters,
+            selectedLipids);
+        FXMLLoader loader = new FXMLLoader(
+            (getClass().getResource("../lipidannotationmodules/LipidDatabaseTable.fxml")));
+        try {
+          BorderPane root = loader.load();
+          LipidDatabaseTab tab = new LipidDatabaseTab("Lipid database");
+          // get controller
+          controller = loader.getController();
+          controller.initialize(tableData, lipidDatabaseCalculator.getMzTolerance());
+          controller.getLipidDatabaseTableView()
+              .setPlaceholder(new Label("Calculating lipid database, please wait."));
+          tab.setContent(root);
+          MZmineCore.getDesktop().addTab(tab);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+
+        LipidDatabaseTableController finalController = controller;
         Task task = new AbstractTask(null, Instant.now()) {
           final double totalSteps = 100;
           double finishedSteps = 0;
@@ -96,41 +119,18 @@ public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
           @Override
           public void run() {
             setStatus(TaskStatus.PROCESSING);
-            LipidDatabaseCalculator lipidDatabaseCalculator = new LipidDatabaseCalculator(
-                parameters, selectedLipids);
-            lipidDatabaseCalculator.createTableData();
+            tableData = lipidDatabaseCalculator.createTableData();
             taskDescription = "Check interfering lipids";
             finishedSteps = 50;
             lipidDatabaseCalculator.checkInterferences();
             finishedSteps = 100;
-            tableData = lipidDatabaseCalculator.getTableData();
             setStatus(TaskStatus.FINISHED);
-            MZmineCore.runLater(() -> {
-              FXMLLoader loader = new FXMLLoader(
-                  (getClass().getResource("../lipidannotationmodules/LipidDatabaseTable.fxml")));
-              Stage stage = new Stage();
-              try {
-                BorderPane root = loader.load();
-                Scene scene = new Scene(root, 1200, 800);
-
-                // get controller
-                LipidDatabaseTableController controller = loader.getController();
-                controller.initialize(tableData, lipidDatabaseCalculator.getMzTolerance());
-
-                // Use main CSS
-                scene.getStylesheets()
-                    .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-                stage.setScene(scene);
-                logger.finest("Stage has been successfully loaded from the FXML loader.");
-              } catch (IOException e) {
-                e.printStackTrace();
-                return;
-              }
-              stage.setTitle("Lipid database");
-              stage.show();
-              stage.setMinWidth(stage.getWidth());
-              stage.setMinHeight(stage.getHeight());
+            Platform.runLater(() -> {
+              assert finalController != null;
+              finalController.initialize(tableData, lipidDatabaseCalculator.getMzTolerance());
+              showDatabaseTable.setDisable(false);
             });
+
           }
         };
         MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);

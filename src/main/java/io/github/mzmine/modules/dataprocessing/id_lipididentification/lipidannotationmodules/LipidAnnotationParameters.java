@@ -27,13 +27,11 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidanno
 
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassParameter;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassesProvider;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClassChoiceParameter;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClassParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
@@ -54,7 +52,7 @@ public class LipidAnnotationParameters extends SimpleParameterSet {
       "Lipid classes", "Selection of lipid backbones",
       LipidClassesProvider.getListOfAllLipidClasses().toArray());
 
-  public static final ParameterSetParameter<LipidAnnotationChainParameters> lipidChainParameters = new ParameterSetParameter<LipidAnnotationChainParameters>(
+  public static final ParameterSetParameter<LipidAnnotationChainParameters> lipidChainParameters = new ParameterSetParameter<>(
       "Side chain parameters", "Optionally modify lipid chain parameters",
       new LipidAnnotationChainParameters());
 
@@ -68,17 +66,17 @@ public class LipidAnnotationParameters extends SimpleParameterSet {
       "Search for lipid class specific fragments in MS/MS spectra",
       new LipidAnnotationMSMSParameters());
 
-  public static final OptionalParameter<CustomLipidClassChoiceParameter> customLipidClasses = new OptionalParameter<>(
-      new CustomLipidClassChoiceParameter("Search for custom lipid class",
-          "If checked the algorithm searches for custom, by the user defined lipid classes",
-          new CustomLipidClass[0]));
+  public static final OptionalModuleParameter<CustomLipidClassParameters> customLipidClasses = new OptionalModuleParameter<>(
+      "Search for custom lipid class",
+      "If checked the algorithm searches for custom, by the user defined lipid classes",
+      new CustomLipidClassParameters(), false);
 
   public static final AdvancedParametersParameter<AdvancedLipidAnnotationParameters> advanced = new AdvancedParametersParameter<>(
       new AdvancedLipidAnnotationParameters());
 
   public LipidAnnotationParameters() {
     super(new Parameter[]{featureLists, lipidClasses, lipidChainParameters, mzTolerance,
-            searchForMSMSFragments, advanced},
+            searchForMSMSFragments, customLipidClasses, advanced},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_lipid_annotation/lipid-annotation.html");
   }
 
@@ -93,5 +91,10 @@ public class LipidAnnotationParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
   }
 }
