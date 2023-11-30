@@ -93,9 +93,11 @@ public class LipidAnnotationResolver {
     Map<DataPoint, Set<MatchedLipid>> dataPointMap = new HashMap<>();
     for (MatchedLipid matchedLipid : matchedLipidsList) {
       Set<LipidFragment> matchedFragments = matchedLipid.getMatchedFragments();
-      for (LipidFragment matchedFragment : matchedFragments) {
-        DataPoint dataPoint = matchedFragment.getDataPoint();
-        dataPointMap.computeIfAbsent(dataPoint, k -> new HashSet<>()).add(matchedLipid);
+      if (matchedFragments != null) {
+        for (LipidFragment matchedFragment : matchedFragments) {
+          DataPoint dataPoint = matchedFragment.getDataPoint();
+          dataPointMap.computeIfAbsent(dataPoint, k -> new HashSet<>()).add(matchedLipid);
+        }
       }
     }
 
@@ -116,7 +118,7 @@ public class LipidAnnotationResolver {
 
       // Remove LipidFragment for all entries except the one with the highest MsMsScore
       for (MatchedLipid lipid : matchedLipids) {
-        if (lipid != highestScoreLipid) {
+        if (lipid != highestScoreLipid && lipid.getMsMsScore() != highestScore) {
           Set<LipidFragment> fragmentsToRemove = new HashSet<>();
           for (LipidFragment matchedFragment : lipid.getMatchedFragments()) {
             if (matchedFragment.getDataPoint().equals(entry.getKey())
