@@ -61,6 +61,7 @@ import org.jfree.chart.plot.XYPlot;
 
 public class LipidDatabaseTableController {
 
+
   @FXML
   private TableView<LipidClassDescription> lipidDatabaseTableView;
 
@@ -152,7 +153,7 @@ public class LipidDatabaseTableController {
       @Override
       public void updateItem(String item, boolean empty) {
         super.updateItem(item, empty);
-        if (getIndex() >= 0 && item != null) {
+        if (getIndex() >= 0 && item != null && !tableData.isEmpty()) {
           if (tableData.get(getIndex()).getInfo().contains("interference")) {
             this.setStyle("-fx-background-color:" + ColorsFX.toHexString(interFX));
           } else if (tableData.get(getIndex()).getInfo().contains("possible interference")) {
@@ -343,4 +344,9 @@ public class LipidDatabaseTableController {
       }
     }
   }
+
+  public TableView<LipidClassDescription> getLipidDatabaseTableView() {
+    return lipidDatabaseTableView;
+  }
+
 }
