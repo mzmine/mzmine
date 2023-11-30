@@ -35,11 +35,6 @@ import org.jfree.data.xy.XYDataset;
 
 public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
 
-  /*
-   * Number of screen pixels to reserve for each label, so that the labels do not overlap
-   */
- private static final int POINTS_RESERVE_X = 100;
-
   private final ChartViewer plot;
   private final List<LipidFragment> fragments;
 
@@ -59,14 +54,18 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
     if (plot.getCanvas().getWidth() >= 400 && plot.getCanvas().getHeight() >= 200) {
       if (dataset.getSeriesKey(1).equals("Matched Signals")) {
         if (fragments != null) {
-          label = buildFragmentAnnotation(fragments.get(item));
+          label = buildFragmentAnnotation(fragments.get(item), true);
+        }
+      } else if (dataset.getSeriesKey(1).equals("In-silico fragments")) {
+        if (fragments != null) {
+          label = buildFragmentAnnotation(fragments.get(item), false);
         }
       }
     }
     return label;
   }
 
-  private String buildFragmentAnnotation(LipidFragment lipidFragment) {
+  private String buildFragmentAnnotation(LipidFragment lipidFragment, boolean showAccuracy) {
     StringBuilder sb = new StringBuilder();
     if (lipidFragment.getLipidFragmentInformationLevelType()
         .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
@@ -85,10 +84,12 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
           .append("\n");
 
       // accuracy
-      float ppm = (float) ((lipidFragment.getMzExact() - lipidFragment.getDataPoint().getMZ())
-          / lipidFragment.getMzExact()) * 1000000;
-      sb.append("Δ ").append(MZmineCore.getConfiguration().getPPMFormat().format(ppm))
-          .append("ppm\n");
+      if (showAccuracy) {
+        float ppm = (float) ((lipidFragment.getMzExact() - lipidFragment.getDataPoint().getMZ())
+            / lipidFragment.getMzExact()) * 1000000;
+        sb.append("Δ ").append(MZmineCore.getConfiguration().getPPMFormat().format(ppm))
+            .append("ppm\n");
+      }
     } else {
       sb.append(lipidFragment.getRuleType().toString()).append("\n")
           .append(lipidFragment.getIonFormula()).append("\n")
