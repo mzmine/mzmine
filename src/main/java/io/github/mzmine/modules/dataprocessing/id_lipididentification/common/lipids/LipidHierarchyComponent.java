@@ -55,7 +55,7 @@ public class LipidHierarchyComponent extends BorderPane {
 
     // Don't show the root item
     lipidChoices.setShowRoot(false);
-    lipidChoices.setMinWidth(600);
+    lipidChoices.setMinWidth(500);
     lipidChoices.setMinHeight(200);
 
     // Load all lipid classes
@@ -78,6 +78,7 @@ public class LipidHierarchyComponent extends BorderPane {
           mainClassItem.setExpanded(true);
           mainClass = ((LipidClasses) lipidClass).getMainClass();
           coreClassItem.getChildren().add(mainClassItem);
+          mainClassItem.setExpanded(false);
         }
         classItem = new CheckBoxTreeItem<>(lipidClass);
         classToItemMap.put((LipidClasses) lipidClass, classItem);
@@ -87,14 +88,14 @@ public class LipidHierarchyComponent extends BorderPane {
       }
     }
 
-    setLeft(lipidChoices);
+    setCenter(lipidChoices);
 
     // Add buttons.
     Button selectAllButton = new Button("All");
     Button selectNoneButton = new Button("Clear");
-    FlowPane buttonsPanel = new FlowPane(Orientation.VERTICAL);
+    FlowPane buttonsPanel = new FlowPane(Orientation.HORIZONTAL);
     buttonsPanel.getChildren().addAll(selectAllButton, selectNoneButton);
-    setCenter(buttonsPanel);
+    setTop(buttonsPanel);
     selectAllButton.setTooltip(new Tooltip("Select all choices"));
     selectAllButton.setOnAction(e -> {
       lipidChoices.getCheckModel().checkAll();
