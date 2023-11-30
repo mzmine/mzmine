@@ -589,7 +589,8 @@ class LipidAnnotationTest {
                   speciesLevelAnnotation, testSpectrum.getIonizationType(), rules, massList[j],
                   null, LIPID_CHAIN_PARAMETERS_SPHINGOLIPIDS.getEmbeddedParameters());
           case STEROLLIPIDS -> lipidFragmentFactory = new SterollipidFragmentFactory(mzTolRangeMSMS,
-              speciesLevelAnnotation, testSpectrum.getIonizationType(), rules, massList[j], null);
+              speciesLevelAnnotation, testSpectrum.getIonizationType(), rules, massList[j], null,
+              LIPID_CHAIN_PARAMETERS_SPHINGOLIPIDS.getEmbeddedParameters());
         }
 
         List<LipidFragment> annotatedFragmentsForDataPoint = lipidFragmentFactory.findLipidFragments();

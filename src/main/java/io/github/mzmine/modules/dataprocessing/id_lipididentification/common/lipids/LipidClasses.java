@@ -82,7 +82,38 @@ public enum LipidClasses implements ILipidClass {
       new LipidFragmentationRule[]{ //
           new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE,
               LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
-              "C4H5O2")//
+              "C4H5O2+")//
+      }), //
+
+  //TODO needs test
+  NACYLGLYCINE("N-Acyl glycine", "NA", LipidCategories.FATTYACYLS, LipidMainClasses.FATTYAMIDES,
+      "C2H6NO2", new LipidChainType[]{LipidChainType.AMID_CHAIN, LipidChainType.ACYL_CHAIN},//
+      new LipidFragmentationRule[]{ //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+              "C2H6NO2+"),//
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
+              LipidFragmentationRuleType.AMID_CHAIN_PLUS_FORMULA_FRAGMENT_NL,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "NH4"),//
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
+              LipidFragmentationRuleType.AMID_CHAIN_PLUS_FORMULA_FRAGMENT_NL,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C2H9N2O2"),//
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
+              LipidFragmentationRuleType.AMID_CHAIN_PLUS_FORMULA_FRAGMENT_NL,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C2H11N2O3"),//
+
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+              "C2H4NO2-"),//
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.AMID_CHAIN_PLUS_FORMULA_FRAGMENT_NL,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "H"),//
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.AMID_CHAIN_PLUS_FORMULA_FRAGMENT_NL,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "CHO2"),//
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.AMID_CHAIN_PLUS_FORMULA_FRAGMENT_NL,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C3H2O2"),//
       }), //
 
   // Glycerolipids
@@ -888,6 +919,12 @@ public enum LipidClasses implements ILipidClass {
       new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
           LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
           "PO3-"), //
+      new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+          LipidFragmentationRuleType.AMID_CHAIN_MINUS_FORMULA_FRAGMENT_NL,
+          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "NH3"), //
+      new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+          LipidFragmentationRuleType.AMID_CHAIN_PLUS_FORMULA_FRAGMENT_NL,
+          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "H"), //
   }),
 
   //TODO find formate rules
@@ -911,6 +948,8 @@ public enum LipidClasses implements ILipidClass {
       new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.ACETATE,
           LipidFragmentationRuleType.AMID_CHAIN_PLUS_FORMULA_FRAGMENT,
           LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "CHO"), //
+
+      //TODO double check
       new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.ACETATE,
           LipidFragmentationRuleType.AMID_CHAIN_FRAGMENT,
           LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL), //
@@ -1361,12 +1400,6 @@ public enum LipidClasses implements ILipidClass {
 
   private static final String XML_ELEMENT = "lipidclass";
   private static final String XML_LIPID_CLASS_NAME = "lipidclassname";
-  private static final String XML_LIPID_CLASS_ABBR = "lipidclassabbr";
-  private static final String XML_LIPID_CATEGORY = "lipidcategory";
-  private static final String XML_LIPID_MAIN_CLASS = "lipidmainclass";
-  private static final String XML_LIPID_CLASS_BACKBONE_FORMULA = "lipidclassbackboneformula";
-  private static final String XML_LIPID_CLASS_CHAIN_TYPE = "lipidclasschaintypes";
-  private static final String XML_LIPID_CLASS_FRAGMENTATION_RULES = "lipidclassfragmentationrules";
 
   private final String name;
   private final String abbr;
