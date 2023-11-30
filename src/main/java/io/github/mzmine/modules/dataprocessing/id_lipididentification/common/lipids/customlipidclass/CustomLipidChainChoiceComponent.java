@@ -25,25 +25,13 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass;
 
-import com.google.gson.Gson;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.util.ExitCode;
-import jakarta.json.Json;
-import jakarta.json.JsonArray;
-import jakarta.json.JsonReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
@@ -52,25 +40,13 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 public class CustomLipidChainChoiceComponent extends BorderPane {
 
-  // Logger.
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-
   private final ListView<LipidChainType> checkList = new ListView<>();
-  private final FlowPane buttonsPane = new FlowPane(Orientation.VERTICAL);
+  private final FlowPane buttonsPane = new FlowPane(Orientation.HORIZONTAL);
   private final Button addButton = new Button("Add...");
-  private final Button importButton = new Button("Import...");
-  private final Button exportButton = new Button("Export...");
-  private final Button removeButton = new Button("Remove");
-
-  // Filename extension.
-  private static final String FILENAME_EXTENSION = "*.json";
+  private final Button removeButton = new Button("Clear");
 
   public CustomLipidChainChoiceComponent(LipidChainType[] choices) {
 
@@ -78,15 +54,14 @@ public class CustomLipidChainChoiceComponent extends BorderPane {
         Arrays.asList(choices));
     checkList.setItems(choicesList);
     setCenter(checkList);
-    setMaxHeight(100);
-    checkList.setMinWidth(300);
+    setMaxHeight(200);
+    checkList.setMinWidth(200);
     addButton.setOnAction(e -> {
       final ParameterSet parameters = new AddLipidChainTypeParameters();
       if (parameters.showSetupDialog(true) != ExitCode.OK) {
         return;
       }
 
-      // Create new custom lipid class
       LipidChainType lipidChainType = parameters.getParameter(
           AddLipidChainTypeParameters.lipidChainType).getValue();
 
@@ -94,80 +69,20 @@ public class CustomLipidChainChoiceComponent extends BorderPane {
       checkList.getItems().add(lipidChainType);
     });
 
-    importButton.setTooltip(new Tooltip("Import Chains for Custom Lipid Class from a CSV file"));
-    importButton.setOnAction(e -> {
-
-      // Create the chooser if necessary.
-      FileChooser chooser = new FileChooser();
-      chooser.setTitle("Select Lipid Chain JSON File");
-      chooser.getExtensionFilters().add(new ExtensionFilter("JSON", FILENAME_EXTENSION));
-
-      // Select a file.
-      final File file = chooser.showOpenDialog(this.getScene().getWindow());
-      if (file == null) {
-        return;
-      }
-
-      try {
-        FileInputStream fileInputStream = new FileInputStream(file);
-        JsonReader reader = Json.createReader(fileInputStream);
-        JsonArray jsonArray = reader.readArray();
-        reader.close();
-        Gson gson = new Gson();
-        for (int i = 0; i < jsonArray.size(); i++) {
-          LipidChainType lipidChainType = gson.fromJson(
-              jsonArray.get(i).asJsonObject().getString("Lipid Chain Type"), LipidChainType.class);
-          checkList.getItems().add(lipidChainType);
-        }
-      } catch (FileNotFoundException ex) {
-        logger.log(Level.WARNING, "Could not open Lipid Chain .json file");
-        ex.printStackTrace();
-      }
-
-    });
-
-    exportButton.setTooltip(new Tooltip("Export Lipid Chains to a JSON file"));
-    exportButton.setOnAction(e -> {
-      FileChooser chooser = new FileChooser();
-      chooser.setTitle("Select Lipid Chain file");
-      chooser.getExtensionFilters().add(new ExtensionFilter("JSON", FILENAME_EXTENSION));
-
-      final File file = chooser.showSaveDialog(this.getScene().getWindow());
-      if (file == null) {
-        return;
-      }
-
-      try {
-        FileWriter fileWriter = new FileWriter(file);
-        JSONArray chainTypeList = new JSONArray();
-        for (final LipidChainType chainType : checkList.getItems()) {
-          JSONObject chainTypeJson = new JSONObject();
-          chainTypeJson.put("Lipid Chain Type", chainType);
-          chainTypeList.put(chainTypeJson);
-        }
-        fileWriter.write(chainTypeList.toString());
-        fileWriter.close();
-      } catch (IOException ex) {
-        final String msg = "There was a problem writing the Custom Lipid Class file.";
-        MZmineCore.getDesktop().displayErrorMessage(msg + "\n(" + ex.getMessage() + ')');
-        logger.log(Level.SEVERE, msg, ex);
-      }
-    });
-
     removeButton.setTooltip(new Tooltip("Remove all Lipid Chains"));
     removeButton.setOnAction(e -> {
       checkList.getItems().clear();
     });
 
-    buttonsPane.getChildren().addAll(addButton, importButton, exportButton, removeButton);
-    setRight(buttonsPane);
+    buttonsPane.getChildren().addAll(addButton, removeButton);
+    setTop(buttonsPane);
 
   }
 
   void setValue(List<LipidChainType> checkedItems) {
-    checkList.getSelectionModel().clearSelection();
+    checkList.getItems().clear();
     for (LipidChainType chain : checkedItems) {
-      checkList.getSelectionModel().select(chain);
+      checkList.getItems().add(chain);
     }
   }
 
@@ -176,7 +91,7 @@ public class CustomLipidChainChoiceComponent extends BorderPane {
   }
 
   public List<LipidChainType> getValue() {
-    return checkList.getSelectionModel().getSelectedItems();
+    return checkList.getItems();
   }
 
   /**
@@ -186,7 +101,12 @@ public class CustomLipidChainChoiceComponent extends BorderPane {
 
     private static final ComboParameter<LipidChainType> lipidChainType = new ComboParameter<>(
         "Select lipid chain type", "Select lipid chain type",
-        new LipidChainType[]{LipidChainType.ACYL_CHAIN, LipidChainType.ALKYL_CHAIN});
+        new LipidChainType[]{LipidChainType.ACYL_CHAIN, LipidChainType.ACYL_MONO_HYDROXY_CHAIN,
+            LipidChainType.ALKYL_CHAIN, LipidChainType.AMID_CHAIN,
+            LipidChainType.AMID_MONO_HYDROXY_CHAIN,
+            LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN,
+            LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN,
+            LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN});
 
     private AddLipidChainTypeParameters() {
       super(lipidChainType);

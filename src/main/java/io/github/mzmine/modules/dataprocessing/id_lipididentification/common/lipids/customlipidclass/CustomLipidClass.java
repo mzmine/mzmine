@@ -43,6 +43,8 @@ public class CustomLipidClass implements ILipidClass {
   private static final String XML_ELEMENT = "lipidclass";
   private static final String XML_LIPID_CLASS_NAME = "lipidclassname";
   private static final String XML_LIPID_CLASS_ABBR = "lipidclassabbr";
+  private static final String XML_LIPID_CATEGORY = "lipidcategory";
+  private static final String XML_LIPID_MAIN_CLASS = "lipidmainclass";
   private static final String XML_LIPID_CLASS_BACKBONE_FORMULA = "lipidclassbackboneformula";
   private static final String XML_LIPID_CLASS_CHAIN_TYPE = "lipidclasschaintypes";
   private static final String XML_LIPID_CLASS_FRAGMENTATION_RULES = "lipidclassfragmentationrules";
@@ -50,14 +52,19 @@ public class CustomLipidClass implements ILipidClass {
 
   private final String name;
   private final String abbr;
+  private final LipidCategories coreClass;
+  private final LipidMainClasses mainClass;
   private final String backBoneFormula;
   private final LipidChainType[] chainTypes;
   private final LipidFragmentationRule[] fragmentationRules;
 
-  public CustomLipidClass(String name, String abbr, String backBoneFormula,
-      LipidChainType[] chainTypes, LipidFragmentationRule[] fragmentationRules) {
+  public CustomLipidClass(String name, String abbr, LipidCategories coreClass,
+      LipidMainClasses mainClass, String backBoneFormula, LipidChainType[] chainTypes,
+      LipidFragmentationRule[] fragmentationRules) {
     this.name = name;
     this.abbr = abbr;
+    this.coreClass = coreClass;
+    this.mainClass = mainClass;
     this.backBoneFormula = backBoneFormula;
     this.chainTypes = chainTypes;
     this.fragmentationRules = fragmentationRules;
@@ -69,6 +76,16 @@ public class CustomLipidClass implements ILipidClass {
 
   public String getAbbr() {
     return abbr;
+  }
+
+  @Override
+  public LipidCategories getCoreClass() {
+    return coreClass;
+  }
+
+  @Override
+  public LipidMainClasses getMainClass() {
+    return mainClass;
   }
 
   public String getBackBoneFormula() {
@@ -83,17 +100,6 @@ public class CustomLipidClass implements ILipidClass {
     return fragmentationRules;
   }
 
-  //TODO add to Task parameter set
-  @Override
-  public LipidCategories getCoreClass() {
-    return null;
-  }
-
-  //TODO add to Task parameter set
-  @Override
-  public LipidMainClasses getMainClass() {
-    return null;
-  }
 
   @Override
   public String toString() {
@@ -108,6 +114,12 @@ public class CustomLipidClass implements ILipidClass {
     writer.writeEndElement();
     writer.writeStartElement(XML_LIPID_CLASS_ABBR);
     writer.writeCharacters(abbr);
+    writer.writeEndElement();
+    writer.writeStartElement(XML_LIPID_CATEGORY);
+    writer.writeCharacters(coreClass.getName());
+    writer.writeEndElement();
+    writer.writeStartElement(XML_LIPID_CATEGORY);
+    writer.writeCharacters(mainClass.getName());
     writer.writeEndElement();
     writer.writeStartElement(XML_LIPID_CLASS_BACKBONE_FORMULA);
     writer.writeCharacters(backBoneFormula);
@@ -144,10 +156,12 @@ public class CustomLipidClass implements ILipidClass {
     String name = null;
     String abbr = null;
     String backBoneFormula = null;
+    LipidCategories lipidCategory = null;
+    LipidMainClasses lipidMainClass = null;
     LipidChainType[] chainTypes = null;
     LipidFragmentationRule[] fragmentationRules = null;
-    while (reader.hasNext()
-        && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(XML_ELEMENT))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
@@ -164,6 +178,14 @@ public class CustomLipidClass implements ILipidClass {
         case XML_LIPID_CLASS_ABBR:
           abbr = reader.getElementText();
           break;
+        case XML_LIPID_CATEGORY:
+          lipidCategory = LipidParsingUtils.lipidCategoryNameToLipidLipidCategory(
+              reader.getElementText());
+          break;
+        case XML_LIPID_MAIN_CLASS:
+          lipidMainClass = LipidParsingUtils.lipidMainClassNameToLipidLipidMainClass(
+              reader.getElementText());
+          break;
         case XML_LIPID_CLASS_BACKBONE_FORMULA:
           backBoneFormula = reader.getElementText();
           break;
@@ -177,7 +199,8 @@ public class CustomLipidClass implements ILipidClass {
           break;
       }
     }
-    return new CustomLipidClass(name, abbr, backBoneFormula, chainTypes, fragmentationRules);
+    return new CustomLipidClass(name, abbr, lipidCategory, lipidMainClass, backBoneFormula,
+        chainTypes, fragmentationRules);
   }
 
   private static LipidChainType[] loadLipidChainTypesFromXML(XMLStreamReader reader)

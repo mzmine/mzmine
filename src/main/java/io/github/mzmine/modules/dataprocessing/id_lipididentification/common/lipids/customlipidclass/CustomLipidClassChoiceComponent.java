@@ -26,20 +26,23 @@
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidMainClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
-import jakarta.json.Json;
-import jakarta.json.JsonArray;
-import jakarta.json.JsonReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
@@ -50,14 +53,16 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 public class CustomLipidClassChoiceComponent extends BorderPane {
 
@@ -65,11 +70,11 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final ListView<CustomLipidClass> checkList = new ListView<>();
-  private final FlowPane buttonsPane = new FlowPane(Orientation.VERTICAL);
+  private final FlowPane buttonsPane = new FlowPane(Orientation.HORIZONTAL);
   private final Button addButton = new Button("Add...");
   private final Button importButton = new Button("Import...");
   private final Button exportButton = new Button("Export...");
-  private final Button removeButton = new Button("Remove");
+  private final Button removeButton = new Button("Clear");
 
   // Filename extension.
   private static final String FILENAME_EXTENSION = "*.json";
@@ -80,8 +85,31 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
         Arrays.asList(choices));
 
     checkList.setItems(choicesList);
+    ContextMenu contextMenu = new ContextMenu();
+    MenuItem removeItem = new MenuItem("Remove");
+    removeItem.setOnAction(event -> {
+      CustomLipidClass selectedItem = checkList.getSelectionModel().getSelectedItem();
+      if (selectedItem != null) {
+        choicesList.remove(selectedItem);
+      }
+    });
+    contextMenu.getItems().add(removeItem);
+    checkList.setCellFactory(param -> {
+      ListCell<CustomLipidClass> cell = new ListCell<>();
+      cell.textProperty().bind(cell.itemProperty().asString());
+      cell.emptyProperty().addListener((obs, wasEmpty, isNowEmpty) -> {
+        if (isNowEmpty) {
+          cell.setContextMenu(null);
+        } else {
+          cell.setContextMenu(contextMenu);
+        }
+      });
+      return cell;
+    });
+
     setCenter(checkList);
-    setMaxHeight(100);
+    setMaxHeight(200);
+    setMinWidth(200);
     addButton.setOnAction(e -> {
       final ParameterSet parameters = new AddCustomLipidClassParameters();
       if (parameters.showSetupDialog(true) != ExitCode.OK) {
@@ -92,10 +120,12 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
       CustomLipidClass customLipidClass = new CustomLipidClass(
           parameters.getParameter(AddCustomLipidClassParameters.name).getValue(),
           parameters.getParameter(AddCustomLipidClassParameters.abbr).getValue(),
+          parameters.getParameter(AddCustomLipidClassParameters.lipidCategory).getValue(),
+          parameters.getParameter(AddCustomLipidClassParameters.lipidMainClass).getValue(),
           parameters.getParameter(AddCustomLipidClassParameters.backBoneFormula).getValue(),
           parameters.getParameter(AddCustomLipidClassParameters.lipidChainTypes).getChoices(),
           parameters.getParameter(AddCustomLipidClassParameters.customLipidClassFragmentationRules)
-              .getEmbeddedParameter().getChoices());
+              .getChoices());
 
       // Add to list of choices (if not already present).
       if (!checkList.getItems().contains(customLipidClass)) {
@@ -103,42 +133,35 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
       }
     });
 
-    importButton.setTooltip(new Tooltip("Import custom lipid class from a JSON file"));
+    importButton.setTooltip(new Tooltip("Import custom lipid class from JSON files"));
     importButton.setOnAction(e -> {
 
       // Create the chooser if necessary.
       FileChooser chooser = new FileChooser();
-      chooser.setTitle("Select custom lipid class file");
+      chooser.setTitle("Select custom lipid class files");
       chooser.getExtensionFilters().add(new ExtensionFilter("JSON", FILENAME_EXTENSION));
 
-      // Select a file.
-      final File file = chooser.showOpenDialog(this.getScene().getWindow());
-      if (file == null) {
+      // Select multiple files.
+      List<File> files = chooser.showOpenMultipleDialog(this.getScene().getWindow());
+      if (files == null || files.isEmpty()) {
         return;
       }
 
       try {
-        FileInputStream fileInputStream = new FileInputStream(file);
-        JsonReader reader = Json.createReader(fileInputStream);
-        JsonArray jsonArray = reader.readArray();
-        reader.close();
         Gson gson = new Gson();
-        for (int i = 0; i < jsonArray.size(); i++) {
-          CustomLipidClass customLipidClass = new CustomLipidClass(//
-              jsonArray.get(i).asJsonObject().get("Custom lipid class").asJsonObject()
-                  .getString("Name"), //
-              jsonArray.get(i).asJsonObject().get("Custom lipid class").asJsonObject()
-                  .getString("Abbr"), //
-              jsonArray.get(i).asJsonObject().get("Custom lipid class").asJsonObject()
-                  .getString("Backbone"), //
-              gson.fromJson(jsonArray.get(i).asJsonObject().get("Custom lipid class").asJsonObject()
-                  .getJsonArray("Chain types").toString(), LipidChainType[].class), //
-              gson.fromJson(jsonArray.get(i).asJsonObject().get("Custom lipid class").asJsonObject()
-                  .getJsonArray("Fragmentation rules").toString(), LipidFragmentationRule[].class)
-              //
-          );
-          checkList.getItems().add(customLipidClass);
+
+        for (File file : files) {
+          FileReader fileReader = new FileReader(file);
+          List<CustomLipidClass> customLipidClasses = gson.fromJson(fileReader,
+              new TypeToken<List<CustomLipidClass>>() {
+              }.getType());
+          for (CustomLipidClass customLipidClass : customLipidClasses) {
+            if (customLipidClass != null) {
+              checkList.getItems().add(customLipidClass);
+            }
+          }
         }
+
       } catch (FileNotFoundException ex) {
         logger.log(Level.WARNING, "Could not open Custom Lipid Class .json file");
         ex.printStackTrace();
@@ -158,19 +181,8 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
 
       try {
         FileWriter fileWriter = new FileWriter(file);
-        JSONArray customLipidClassesList = new JSONArray();
-        for (final CustomLipidClass lipidClass : checkList.getItems()) {
-          JSONObject customLipidClassDetails = new JSONObject();
-          customLipidClassDetails.put("Name", lipidClass.getName());
-          customLipidClassDetails.put("Abbr", lipidClass.getAbbr());
-          customLipidClassDetails.put("Backbone", lipidClass.getBackBoneFormula());
-          customLipidClassDetails.put("Chain types", lipidClass.getChainTypes());
-          customLipidClassDetails.put("Fragmentation rules", lipidClass.getFragmentationRules());
-          JSONObject customLipidClass = new JSONObject();
-          customLipidClass.put("Custom lipid class", customLipidClassDetails);
-          customLipidClassesList.put(customLipidClass);
-        }
-        fileWriter.write(customLipidClassesList.toString());
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        gson.toJson(checkList.getItems(), fileWriter);
         fileWriter.close();
       } catch (IOException ex) {
         final String msg = "There was a problem writing the Custom Lipid Class file.";
@@ -186,7 +198,58 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
     });
 
     buttonsPane.getChildren().addAll(addButton, importButton, exportButton, removeButton);
-    setRight(buttonsPane);
+    setTop(buttonsPane);
+
+    checkList.setOnMouseClicked(event -> {
+      if (event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2) {
+        CustomLipidClass selectedCustomLipidClass = checkList.getSelectionModel().getSelectedItem();
+
+        final ParameterSet parameters = new AddCustomLipidClassParameters();
+        parameters.setParameter(AddCustomLipidClassParameters.name,
+            selectedCustomLipidClass.getName());
+        parameters.setParameter(AddCustomLipidClassParameters.abbr,
+            selectedCustomLipidClass.getAbbr());
+        parameters.setParameter(AddCustomLipidClassParameters.lipidCategory,
+            selectedCustomLipidClass.getCoreClass());
+        parameters.setParameter(AddCustomLipidClassParameters.lipidMainClass,
+            selectedCustomLipidClass.getMainClass());
+        parameters.setParameter(AddCustomLipidClassParameters.backBoneFormula,
+            selectedCustomLipidClass.getBackBoneFormula());
+        parameters.setParameter(AddCustomLipidClassParameters.lipidChainTypes,
+            selectedCustomLipidClass.getChainTypes());
+        parameters.setParameter(AddCustomLipidClassParameters.customLipidClassFragmentationRules,
+            selectedCustomLipidClass.getFragmentationRules());
+        if (parameters.showSetupDialog(true) != ExitCode.OK) {
+          return;
+        }
+
+        //remove old custom lipid class
+        checkList.getItems().remove(selectedCustomLipidClass);
+
+        // Create new custom fragmentation rule
+        CustomLipidClass customLipidClass = new CustomLipidClass(
+            parameters.getParameter(AddCustomLipidClassParameters.name).getValue(),
+            parameters.getParameter(AddCustomLipidClassParameters.abbr).getValue(),
+            parameters.getParameter(AddCustomLipidClassParameters.lipidCategory).getValue(),
+            parameters.getParameter(AddCustomLipidClassParameters.lipidMainClass).getValue(),
+            parameters.getParameter(AddCustomLipidClassParameters.backBoneFormula).getValue(),
+            parameters.getParameter(AddCustomLipidClassParameters.lipidChainTypes).getChoices(),
+            parameters.getParameter(
+                AddCustomLipidClassParameters.customLipidClassFragmentationRules).getChoices());
+        int selectedIndex = checkList.getSelectionModel().getSelectedIndex();
+        if (selectedIndex >= 0) {
+          checkList.getItems()
+              .add(checkList.getSelectionModel().getSelectedIndex(), customLipidClass);
+        } else {
+          checkList.getItems().add(customLipidClass);
+        }
+
+        // Add to list of choices (if not already present).
+        if (!checkList.getItems().contains(customLipidClass)) {
+          checkList.getItems().add(customLipidClass);
+        }
+      }
+    });
 
   }
 
@@ -210,26 +273,46 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
    */
   public static class AddCustomLipidClassParameters extends SimpleParameterSet {
 
-    public static final OptionalParameter<CustomLipidClassFragmentationRulesChoiceParameters> customLipidClassFragmentationRules = new OptionalParameter<>(
-        new CustomLipidClassFragmentationRulesChoiceParameters("Add fragmentation rules",
-            "Add custom lipid class fragmentation rules", new LipidFragmentationRule[0]));
 
-    private static final StringParameter abbr = new StringParameter(
-        "Custom lipid class abbreviation", "Enter a abbreviation for the custom lipid class");
-
-    private static final StringParameter backBoneFormula = new StringParameter(
+    public static final StringParameter name = new StringParameter("Custom lipid class name",
+        "Enter the name of the custom lipid class", "My lipid class", true);
+    public static final StringParameter abbr = new StringParameter(
+        "Custom lipid class abbreviation", "Enter a abbreviation for the custom lipid class",
+        "MyClass", true);
+    public static final StringParameter backBoneFormula = new StringParameter(
         "Lipid Backbone Molecular Formula",
-        "Enter the backbone molecular formula of the custom lipid class. Include all elements of the original molecular, e.g. in case of glycerol based  lipid classes add C3H8O3");
-    // lipid modification
-    private static final StringParameter name = new StringParameter("Custom lipid class name",
-        "Enter the name of the custom lipid class");
-    private static final CustomLipidChainChoiceParameter lipidChainTypes = new CustomLipidChainChoiceParameter(
-        "Add Lipid Chains", "Add Lipid Chains", new LipidChainType[0]);
+        "Enter the backbone molecular formula of the custom lipid class. Include all elements of the original molecular, e.g. in case of glycerol based lipid classes add C3H8O3. "
+            + "For fatty acids start with H2O, for ceramides start with C3H8", "C3H8O3", true);
+    public static final ComboParameter<LipidMainClasses> lipidMainClass = new ComboParameter<>(
+        "Lipid main class", "Enter the name of the custom lipid class", LipidMainClasses.values(),
+        LipidMainClasses.PHOSPHATIDYLCHOLINE);
+    public static final ComboParameter<LipidCategories> lipidCategory = new ComboParameter<>(
+        "Lipid category",
+        "The selected lipid category influences the calculation of the lipid class and the available fragmentation rules",
+        new LipidCategories[]{LipidCategories.FATTYACYLS, LipidCategories.GLYCEROLIPIDS,
+            LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidCategories.SPHINGOLIPIDS,
+            LipidCategories.STEROLLIPIDS}, LipidCategories.GLYCEROPHOSPHOLIPIDS);
+    public static final CustomLipidChainChoiceParameter lipidChainTypes = new CustomLipidChainChoiceParameter(
+        "Add Lipid Chains", "Add Lipid Chains",
+        new LipidChainType[]{LipidChainType.ACYL_CHAIN, LipidChainType.ACYL_CHAIN});
+    public static final CustomLipidClassFragmentationRulesChoiceParameters customLipidClassFragmentationRules = new CustomLipidClassFragmentationRulesChoiceParameters(
+        "Add fragmentation rules", "Add custom lipid class fragmentation rules",
+        new LipidFragmentationRule[]{
+            new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN)});
 
     public AddCustomLipidClassParameters() {
-      super(name, abbr, backBoneFormula, lipidChainTypes,
+      super(lipidCategory, lipidMainClass, name, abbr, backBoneFormula, lipidChainTypes,
           customLipidClassFragmentationRules);
     }
+
+    @Override
+    public ExitCode showSetupDialog(boolean valueCheckRequired) {
+      CustomLipidClassSetupDialog dialog = new CustomLipidClassSetupDialog(valueCheckRequired,
+          this);
+      dialog.showAndWait();
+      return dialog.getExitCode();
+    }
+
   }
 
 }

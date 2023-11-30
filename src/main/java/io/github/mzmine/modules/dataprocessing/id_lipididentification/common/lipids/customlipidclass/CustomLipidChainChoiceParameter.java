@@ -36,18 +36,20 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-public class CustomLipidChainChoiceParameter
-    implements UserParameter<LipidChainType[], CustomLipidChainChoiceComponent> {
+public class CustomLipidChainChoiceParameter implements
+    UserParameter<LipidChainType[], CustomLipidChainChoiceComponent> {
 
   private final String name;
   private final String description;
   private LipidChainType[] choices;
   private LipidChainType[] values;
 
+  private CustomLipidChainChoiceComponent component;
+
   /**
    * Create the parameter.
    *
-   * @param name name of the parameter.
+   * @param name        name of the parameter.
    * @param description description of the parameter.
    */
   public CustomLipidChainChoiceParameter(String name, String description,
@@ -60,18 +62,22 @@ public class CustomLipidChainChoiceParameter
 
   @Override
   public CustomLipidChainChoiceComponent createEditingComponent() {
-    return new CustomLipidChainChoiceComponent(choices);
+    component = new CustomLipidChainChoiceComponent(choices);
+    return component;
   }
 
   @Override
-  public void setValueFromComponent(final CustomLipidChainChoiceComponent component) {
+  public void setValueFromComponent(
+      CustomLipidChainChoiceComponent customLipidChainChoiceComponent) {
+    assert customLipidChainChoiceComponent == component;
     values = component.getValue().toArray(new LipidChainType[0]);
     choices = component.getChoices().toArray(new LipidChainType[0]);
   }
 
   @Override
-  public void setValueToComponent(CustomLipidChainChoiceComponent component,
+  public void setValueToComponent(CustomLipidChainChoiceComponent customLipidChainChoiceComponent,
       @Nullable LipidChainType[] newValue) {
+    assert customLipidChainChoiceComponent == component;
     if (newValue == null) {
       component.setValue(List.of());
       return;
