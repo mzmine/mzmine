@@ -54,8 +54,9 @@ public class CustomLipidChainChoiceComponent extends BorderPane {
         Arrays.asList(choices));
     checkList.setItems(choicesList);
     setCenter(checkList);
+    setPrefSize(300, 200);
+    setMinWidth(200);
     setMaxHeight(200);
-    checkList.setMinWidth(200);
     addButton.setOnAction(e -> {
       final ParameterSet parameters = new AddLipidChainTypeParameters();
       if (parameters.showSetupDialog(true) != ExitCode.OK) {

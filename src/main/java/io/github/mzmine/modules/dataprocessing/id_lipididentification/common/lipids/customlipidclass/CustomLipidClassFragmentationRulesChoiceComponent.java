@@ -70,7 +70,8 @@ public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPan
   private final Button addButton = new Button("Add...");
   private final Button importButton = new Button("Import...");
   private final Button exportButton = new Button("Export...");
-  private final Button removeButton = new Button("Clear");
+  private final Button removeButton = new Button("Remove selected");
+  private final Button clearButton = new Button("Clear");
 
   // Filename extension.
   private static final String FILENAME_EXTENSION = "*.json";
@@ -82,6 +83,8 @@ public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPan
 
     checkList.setItems(choicesList);
     setCenter(checkList);
+    setPrefSize(300, 200);
+    setMinWidth(300);
     setMaxHeight(200);
     checkList.setMinWidth(300);
     addButton.setOnAction(e -> {
@@ -131,7 +134,9 @@ public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPan
             new TypeToken<List<LipidFragmentationRule>>() {
             }.getType());
         for (LipidFragmentationRule rule : lipidFragmentationRules) {
-          checkList.getItems().add(rule);
+          if (rule != null) {
+            checkList.getItems().add(rule);
+          }
         }
       } catch (FileNotFoundException ex) {
         logger.log(Level.WARNING, "Could not open Custom Lipid Fragmentation Rule .json file");
@@ -164,12 +169,20 @@ public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPan
 
     });
 
-    removeButton.setTooltip(new Tooltip("Remove all Lipid Fragmentation Rules"));
+    removeButton.setTooltip(new Tooltip("Remove selected Custom Lipid Classes"));
     removeButton.setOnAction(e -> {
+      ObservableList<LipidFragmentationRule> selectedItems = checkList.getSelectionModel()
+          .getSelectedItems();
+      checkList.getItems().removeAll(selectedItems);
+    });
+
+    clearButton.setTooltip(new Tooltip("Remove all Lipid Fragmentation Rules"));
+    clearButton.setOnAction(e -> {
       checkList.getItems().clear();
     });
 
-    buttonsPane.getChildren().addAll(addButton, importButton, exportButton, removeButton);
+    buttonsPane.getChildren()
+        .addAll(addButton, importButton, exportButton, removeButton, clearButton);
     setTop(buttonsPane);
 
     // Select rule with double-click

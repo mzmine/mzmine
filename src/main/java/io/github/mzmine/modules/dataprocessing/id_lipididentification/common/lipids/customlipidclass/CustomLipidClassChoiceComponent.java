@@ -53,10 +53,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
@@ -74,7 +71,9 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
   private final Button addButton = new Button("Add...");
   private final Button importButton = new Button("Import...");
   private final Button exportButton = new Button("Export...");
-  private final Button removeButton = new Button("Clear");
+  private final Button removeButton = new Button("Remove selected");
+
+  private final Button clearButton = new Button("Clear");
 
   // Filename extension.
   private static final String FILENAME_EXTENSION = "*.json";
@@ -85,31 +84,10 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
         Arrays.asList(choices));
 
     checkList.setItems(choicesList);
-    ContextMenu contextMenu = new ContextMenu();
-    MenuItem removeItem = new MenuItem("Remove");
-    removeItem.setOnAction(event -> {
-      CustomLipidClass selectedItem = checkList.getSelectionModel().getSelectedItem();
-      if (selectedItem != null) {
-        choicesList.remove(selectedItem);
-      }
-    });
-    contextMenu.getItems().add(removeItem);
-    checkList.setCellFactory(param -> {
-      ListCell<CustomLipidClass> cell = new ListCell<>();
-      cell.textProperty().bind(cell.itemProperty().asString());
-      cell.emptyProperty().addListener((obs, wasEmpty, isNowEmpty) -> {
-        if (isNowEmpty) {
-          cell.setContextMenu(null);
-        } else {
-          cell.setContextMenu(contextMenu);
-        }
-      });
-      return cell;
-    });
-
     setCenter(checkList);
-    setMaxHeight(200);
+    setPrefSize(300, 200);
     setMinWidth(200);
+    setMaxHeight(200);
     addButton.setOnAction(e -> {
       final ParameterSet parameters = new AddCustomLipidClassParameters();
       if (parameters.showSetupDialog(true) != ExitCode.OK) {
@@ -146,10 +124,8 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
       if (files == null || files.isEmpty()) {
         return;
       }
-
       try {
         Gson gson = new Gson();
-
         for (File file : files) {
           FileReader fileReader = new FileReader(file);
           List<CustomLipidClass> customLipidClasses = gson.fromJson(fileReader,
@@ -192,12 +168,20 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
 
     });
 
-    removeButton.setTooltip(new Tooltip("Remove all Custom Lipid Classes"));
+    removeButton.setTooltip(new Tooltip("Remove selected custom Lipid Classes"));
     removeButton.setOnAction(e -> {
+      ObservableList<CustomLipidClass> selectedItems = checkList.getSelectionModel()
+          .getSelectedItems();
+      checkList.getItems().removeAll(selectedItems);
+    });
+
+    clearButton.setTooltip(new Tooltip("Remove all custom Lipid Classes"));
+    clearButton.setOnAction(e -> {
       checkList.getItems().clear();
     });
 
-    buttonsPane.getChildren().addAll(addButton, importButton, exportButton, removeButton);
+    buttonsPane.getChildren()
+        .addAll(addButton, importButton, exportButton, removeButton, clearButton);
     setTop(buttonsPane);
 
     checkList.setOnMouseClicked(event -> {
@@ -265,7 +249,7 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
   }
 
   public List<CustomLipidClass> getValue() {
-    return checkList.getSelectionModel().getSelectedItems();
+    return checkList.getItems();
   }
 
   /**
