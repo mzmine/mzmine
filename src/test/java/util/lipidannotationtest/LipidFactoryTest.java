@@ -2,9 +2,11 @@ package util.lipidannotationtest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidChainFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
 import io.github.mzmine.util.FormulaUtils;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -15,7 +17,6 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LipidFactoryTest {
 
-  private static final LipidFactory LIPID_FACTORY = new LipidFactory();
   private static final LipidChainFactory LIPID_CHAIN_FACTORY = new LipidChainFactory();
   private static final NumberFormat NUMBER_FORMAT = new DecimalFormat("#.#####");
 
@@ -54,6 +55,23 @@ public class LipidFactoryTest {
     //Sphinganine
     testLipidChainFormula(LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN, 18, 0,
         "C18H39NO2");
+  }
+
+  @Test
+  void testLipidPolarityAndIonNotation() {
+    LipidClasses[] lipidClasses = LipidClasses.values();
+    for (LipidClasses lipidClass : lipidClasses) {
+      LipidFragmentationRule[] lipidClassFragmentationRules = lipidClass.getFragmentationRules();
+      for (LipidFragmentationRule lipidFragmentationRule : lipidClassFragmentationRules) {
+        PolarityType polarityType = lipidFragmentationRule.getPolarityType();
+        PolarityType polarityTypeFromIonNotation = lipidFragmentationRule.getIonizationType()
+            .getPolarity();
+        assertEquals(polarityTypeFromIonNotation, polarityType,
+            lipidClass.getAbbr() + " " + lipidClass.getName() + " "
+                + lipidFragmentationRule.toString() + " detected polarity is " + polarityType
+                + " but should be " + polarityTypeFromIonNotation);
+      }
+    }
   }
 
   private void testLipidChainFormula(LipidChainType chainType, int carbonAtoms, int doubleBonds,
