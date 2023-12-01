@@ -3,6 +3,7 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidanno
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
@@ -28,15 +29,16 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidIon;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidAnnotationResolver;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -50,22 +52,24 @@ public class LipidAnnotationUtils {
 
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
 
-  public static Set<ILipidAnnotation> buildLipidDatabase(ILipidClass[] selectedLipids,
-      int minChainLength, int maxChainLength, int minDoubleBonds, int maxDoubleBonds,
-      boolean onlySearchForEvenChains) {
+  public static List<LipidIon> buildLipidDatabase(ILipidClass[] selectedLipids, int minChainLength,
+      int maxChainLength, int minDoubleBonds, int maxDoubleBonds, boolean onlySearchForEvenChains,
+      IonizationType[] ionizationTypesToIgnore, Set<PolarityType> polarityTypes) {
 
-    Set<ILipidAnnotation> lipidDatabase = new LinkedHashSet<>();
+    List<LipidIon> lipidDatabase = new ArrayList<>();
 
     // add selected lipids
     buildLipidCombinations(lipidDatabase, selectedLipids, minChainLength, maxChainLength,
-        minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
+        minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains, ionizationTypesToIgnore,
+        polarityTypes);
 
     return lipidDatabase;
   }
 
-  private static void buildLipidCombinations(Set<ILipidAnnotation> lipidDatabase,
+  private static void buildLipidCombinations(List<LipidIon> lipidDatabase,
       ILipidClass[] lipidClasses, int minChainLength, int maxChainLength, int minDoubleBonds,
-      int maxDoubleBonds, boolean onlySearchForEvenChains) {
+      int maxDoubleBonds, boolean onlySearchForEvenChains, IonizationType[] ionizationTypesToIgnore,
+      Set<PolarityType> polarityTypes) {
     // Try all combinations of fatty acid lengths and double bonds
     for (ILipidClass lipidClass : lipidClasses) {
 
@@ -91,7 +95,27 @@ public class LipidAnnotationUtils {
           ILipidAnnotation lipid = LIPID_FACTORY.buildSpeciesLevelLipid(lipidClass, chainLength,
               chainDoubleBonds, numberOfAdditionalOxygens);
           if (lipid != null) {
-            lipidDatabase.add(lipid);
+            Set<IonizationType> ionizationTypeList = new HashSet<>();
+            LipidFragmentationRule[] fragmentationRules = lipid.getLipidClass()
+                .getFragmentationRules();
+            for (LipidFragmentationRule fragmentationRule : fragmentationRules) {
+              if (ionizationTypesToIgnore != null) {
+                if (!Arrays.stream(ionizationTypesToIgnore).toList()
+                    .contains(fragmentationRule.getIonizationType())) {
+                  ionizationTypeList.add(fragmentationRule.getIonizationType());
+                }
+              } else {
+                ionizationTypeList.add(fragmentationRule.getIonizationType());
+              }
+            }
+            for (IonizationType ionization : ionizationTypeList) {
+              if (polarityTypes.contains(ionization.getPolarity())) {
+                double lipidIonMass =
+                    MolecularFormulaManipulator.getMass(lipid.getMolecularFormula(),
+                        AtomContainerManipulator.MonoIsotopic) + ionization.getAddedMass();
+                lipidDatabase.add(new LipidIon(lipid, ionization, lipidIonMass));
+              }
+            }
           }
         }
       }
@@ -99,52 +123,38 @@ public class LipidAnnotationUtils {
   }
 
 
-  public static void findPossibleLipid(ILipidAnnotation lipid, FeatureListRow row,
-      ParameterSet parameters, IonizationType[] ionizationTypesToIgnore, MZTolerance mzTolerance,
-      MZTolerance mzToleranceMS2, boolean searchForMSMSFragments, double minMsMsScore,
-      boolean keepUnconfirmedAnnotations, LipidCategories lipidCategory) {
+  public static void findPossibleLipid(LipidIon lipidIon, FeatureListRow row,
+      ParameterSet parameters, MZTolerance mzTolerance, MZTolerance mzToleranceMS2,
+      boolean searchForMSMSFragments, double minMsMsScore, boolean keepUnconfirmedAnnotations,
+      LipidCategories lipidCategory) {
     Set<MatchedLipid> possibleRowAnnotations = new HashSet<>();
-    Set<IonizationType> ionizationTypeList = new HashSet<>();
-    LipidFragmentationRule[] fragmentationRules = lipid.getLipidClass().getFragmentationRules();
-    for (LipidFragmentationRule fragmentationRule : fragmentationRules) {
-      if (ionizationTypesToIgnore != null) {
-        if (!Arrays.stream(ionizationTypesToIgnore).toList()
-            .contains(fragmentationRule.getIonizationType())) {
-          ionizationTypeList.add(fragmentationRule.getIonizationType());
-        }
-      } else {
-        ionizationTypeList.add(fragmentationRule.getIonizationType());
-      }
-    }
-    for (IonizationType ionization : ionizationTypeList) {
-      if (!Objects.requireNonNull(row.getBestFeature().getRepresentativeScan()).getPolarity()
-          .equals(ionization.getPolarity())) {
-        continue;
-      }
-      double lipidIonMass = MolecularFormulaManipulator.getMass(lipid.getMolecularFormula(),
-          AtomContainerManipulator.MonoIsotopic) + ionization.getAddedMass();
+
+    if (Objects.requireNonNull(row.getBestFeature().getRepresentativeScan()).getPolarity()
+        .equals(lipidIon.ionizationType().getPolarity())) {
       Range<Double> mzTolRange12C = mzTolerance.getToleranceRange(row.getAverageMZ());
 
       // MS1 check
-      if (mzTolRange12C.contains(lipidIonMass)) {
+      if (mzTolRange12C.contains(lipidIon.mz())) {
 
         // If search for MSMS fragments is selected search for fragments
         if (searchForMSMSFragments) {
           possibleRowAnnotations.addAll(
-              searchMsmsFragments(row, ionization, lipid, parameters, mzToleranceMS2, minMsMsScore,
-                  keepUnconfirmedAnnotations, lipidCategory));
+              searchMsmsFragments(row, lipidIon.ionizationType(), lipidIon.lipidAnnotation(),
+                  parameters, mzToleranceMS2, minMsMsScore, keepUnconfirmedAnnotations,
+                  lipidCategory));
         } else {
 
           // make MS1 annotation
           possibleRowAnnotations.add(
-              new MatchedLipid(lipid, row.getAverageMZ(), ionization, null, 0.0));
+              new MatchedLipid(lipidIon.lipidAnnotation(), row.getAverageMZ(),
+                  lipidIon.ionizationType(), null, 0.0));
         }
       }
 
-    }
-    if (!possibleRowAnnotations.isEmpty()) {
-      addAnnotationsToFeatureList(row, possibleRowAnnotations, mzToleranceMS2, minMsMsScore,
-          searchForMSMSFragments, keepUnconfirmedAnnotations);
+      if (!possibleRowAnnotations.isEmpty()) {
+        addAnnotationsToFeatureList(row, possibleRowAnnotations, mzToleranceMS2, minMsMsScore,
+            searchForMSMSFragments, keepUnconfirmedAnnotations);
+      }
     }
   }
 
@@ -156,6 +166,7 @@ public class LipidAnnotationUtils {
       MZTolerance mzToleranceMS2, double minMsMsScore, boolean keepUnconfirmedAnnotations,
       LipidCategories lipidCategory) {
     Set<MatchedLipid> matchedLipids = new HashSet<>();
+    LipidFragmentationRule[] rules = lipid.getLipidClass().getFragmentationRules();
     // Check if selected feature has MSMS spectra and LipidIdentity
     if (!row.getAllFragmentScans().isEmpty()) {
       List<Scan> msmsScans = row.getAllFragmentScans();
@@ -167,7 +178,6 @@ public class LipidAnnotationUtils {
         DataPoint[] massList = null;
         massList = msmsScan.getMassList().getDataPoints();
         massList = MSMSLipidTools.deisotopeMassList(massList, mzToleranceMS2);
-        LipidFragmentationRule[] rules = lipid.getLipidClass().getFragmentationRules();
         Set<LipidFragment> annotatedFragments = new HashSet<>();
         if (rules != null && rules.length > 0) {
           for (DataPoint dataPoint : massList) {

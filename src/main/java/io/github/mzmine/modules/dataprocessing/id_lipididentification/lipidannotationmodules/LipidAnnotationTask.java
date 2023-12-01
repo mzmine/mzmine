@@ -25,26 +25,34 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidIon;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClassParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.collections.BinarySearch;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -130,9 +138,10 @@ public class LipidAnnotationTask extends AbstractTask {
     }
     this.selectedLipids = selectedLipidClassesList.toArray(new ILipidClass[0]);
     if (parameters.getParameter(LipidAnnotationParameters.advanced).getValue()) {
-      this.ionizationTypesToIgnore = parameters.getParameter(
-          LipidAnnotationParameters.advanced.getEmbeddedParameters()
-              .getParameter(AdvancedLipidAnnotationParameters.IONS_TO_IGNORE)).getValue();
+      AdvancedParametersParameter<AdvancedLipidAnnotationParameters> advancedParam = parameters.getParameter(
+          LipidAnnotationParameters.advanced);
+      this.ionizationTypesToIgnore = advancedParam.getValueOrDefault(
+          AdvancedLipidAnnotationParameters.IONS_TO_IGNORE, new IonizationType[]{});
     } else {
       ionizationTypesToIgnore = null;
     }
@@ -171,21 +180,34 @@ public class LipidAnnotationTask extends AbstractTask {
       featureList.addRowType(new LipidMatchListType());
     }
     totalSteps = rows.size();
+    Set<PolarityType> polarityTypes = getPolarityTypes();
 
     // build lipid species database
-    Set<ILipidAnnotation> lipidDatabase = LipidAnnotationUtils.buildLipidDatabase(selectedLipids,
-        minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
+    List<LipidIon> lipidDatabase = LipidAnnotationUtils.buildLipidDatabase(selectedLipids,
+        minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains,
+        ionizationTypesToIgnore, polarityTypes);
+    List<LipidIon> sortedLipidDatabase = lipidDatabase.stream()
+        .sorted(Comparator.comparingDouble(LipidIon::mz)).toList();
 
-    // start lipid annotation
     rows.parallelStream().forEach(row -> {
-      for (ILipidAnnotation lipidAnnotation : lipidDatabase) {
+      Range<Double> mzTolRange = mzTolerance.getToleranceRange(row.getAverageMZ());
+      double lowerEdge = mzTolRange.lowerEndpoint();
+      double upperEdge = mzTolRange.upperEndpoint();
+      int index = BinarySearch.binarySearch(lowerEdge, true, sortedLipidDatabase.size(),
+          i -> sortedLipidDatabase.get(i).mz());
+      for (int i = index; i < sortedLipidDatabase.size(); i++) {
         if (isCanceled()) {
           return;
         }
-        LipidAnnotationUtils.findPossibleLipid(lipidAnnotation, row, parameters,
-            ionizationTypesToIgnore, mzTolerance, mzToleranceMS2, searchForMSMSFragments,
-            minMsMsScore, keepUnconfirmedAnnotations,
-            lipidAnnotation.getLipidClass().getCoreClass());
+
+        LipidAnnotationUtils.findPossibleLipid(sortedLipidDatabase.get(i), row, parameters,
+            mzTolerance, mzToleranceMS2, searchForMSMSFragments, minMsMsScore,
+            keepUnconfirmedAnnotations,
+            sortedLipidDatabase.get(i).lipidAnnotation().getLipidClass().getCoreClass());
+
+        if (upperEdge < sortedLipidDatabase.get(i).mz()) {
+          break;
+        }
       }
       finishedSteps++;
     });
@@ -198,6 +220,17 @@ public class LipidAnnotationTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
 
     logger.info("Finished lipid annotation task for " + featureList);
+  }
+
+  @NotNull
+  private Set<PolarityType> getPolarityTypes() {
+    Set<PolarityType> polarityTypes = new HashSet<>();
+    ObservableList<RawDataFile> rawDataFiles = featureList.getRawDataFiles();
+    for (RawDataFile raw : rawDataFiles) {
+      List<PolarityType> dataPolarity = raw.getDataPolarity();
+      polarityTypes.addAll(dataPolarity);
+    }
+    return polarityTypes;
   }
 
 }
