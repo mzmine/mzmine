@@ -87,6 +87,9 @@ public abstract class AbstractLipidFragmentFactory {
           checkForAcylChainFragment(rule, mzTolRangeMSMS, lipidAnnotation, dataPoint, msMsScan);
       case ACYLCHAIN_FRAGMENT_NL ->
           checkForAcylChainFragmentNL(rule, mzTolRangeMSMS, lipidAnnotation, dataPoint, msMsScan);
+      case ACYLCHAIN_MINUS_FORMULA_FRAGMENT ->
+          checkForAcylChainMinusFormulaFragment(rule, mzTolRangeMSMS, lipidAnnotation, dataPoint,
+              msMsScan);
       case ACYLCHAIN_MINUS_FORMULA_FRAGMENT_NL ->
           checkForAcylChainMinusFormulaFragmentNL(rule, mzTolRangeMSMS, lipidAnnotation, dataPoint,
               msMsScan);
@@ -237,6 +240,34 @@ public abstract class AbstractLipidFragmentFactory {
         return new LipidFragment(rule.getLipidFragmentationRuleType(),
             rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
             mzExact, MolecularFormulaManipulator.getString(fragmentFormula), dataPoint,
+            lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
+            lipidChain.getNumberOfOxygens(), LipidChainType.ACYL_CHAIN, msMsScan);
+      }
+    }
+    return null;
+  }
+
+  private LipidFragment checkForAcylChainMinusFormulaFragment(LipidFragmentationRule rule,
+      Range<Double> mzTolRangeMSMS, ILipidAnnotation lipidAnnotation, DataPoint dataPoint,
+      Scan msMsScan) {
+    IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormula(
+        rule.getMolecularFormula());
+    List<ILipidChain> fattyAcylChains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(
+        LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
+        onlySearchForEvenChains);
+    for (ILipidChain lipidChain : fattyAcylChains) {
+      IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
+      IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidChainFormula,
+          modificationFormula);
+      IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
+          rule.getPolarityType());
+      Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
+      if (mzTolRangeMSMS.contains(mzExact)) {
+        int chainLength = lipidChain.getNumberOfCarbons();
+        int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
+        return new LipidFragment(rule.getLipidFragmentationRuleType(),
+            rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+            mzExact, MolecularFormulaManipulator.getString(ionizedFragmentFormula), dataPoint,
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(), LipidChainType.ACYL_CHAIN, msMsScan);
       }
