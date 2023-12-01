@@ -32,6 +32,7 @@ import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkController;
+import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidAnnotationMatchTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerPane;
@@ -66,6 +67,7 @@ public class NetworkOverviewController {
   public ToggleSwitch cbBindToExternalTable;
   public BorderPane pnNetwork;
   public Tab tabAnnotations;
+  public Tab tabLipidAnnotations;
   public Tab tabSimilarity;
   public Tab tabAllMs2;
   public Tab tabNodes;
@@ -111,6 +113,7 @@ public class NetworkOverviewController {
     // create annotations tab
     spectralMatchesController = new SpectraIdentificationResultsWindowFX(internalTable);
     CompoundDatabaseMatchTab compoundMatchController = new CompoundDatabaseMatchTab(internalTable);
+    LipidAnnotationMatchTab lipidAnnotationMatchTab = new LipidAnnotationMatchTab(internalTable);
 
     // create mirror scan tab
     var mirrorScanTab = new MirrorScanWindowFXML();
@@ -121,13 +124,15 @@ public class NetworkOverviewController {
 
     tabSimilarity.setContent(mirrorScanController.getMainPane());
     tabAnnotations.setContent(gridAnnotations);
+    tabLipidAnnotations.setContent(lipidAnnotationMatchTab.getContent());
     tabAllMs2.setContent(allMs2Pane);
 
     // all content that listens to selected feature changes
-    featureRowInterfaces = List.of(spectralMatchesController, compoundMatchController, allMs2Pane,
-        mirrorScanController);
+    featureRowInterfaces = List.of(spectralMatchesController, compoundMatchController,
+        lipidAnnotationMatchTab, allMs2Pane, mirrorScanController);
     // only annotation interfaces to control visibility
-    annotationInterfaces = List.of(spectralMatchesController, compoundMatchController);
+    annotationInterfaces = List.of(spectralMatchesController, compoundMatchController,
+        lipidAnnotationMatchTab);
     layoutAnnotations();
 
     // add callbacks
