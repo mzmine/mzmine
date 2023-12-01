@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -117,8 +118,11 @@ public class LipidAnnotationResolver {
       }
 
       // Remove LipidFragment for all entries except the one with the highest MsMsScore
+      // Keep if two different lipids have the same score
       for (MatchedLipid lipid : matchedLipids) {
-        if (lipid != highestScoreLipid && lipid.getMsMsScore() != highestScore) {
+        if ((lipid != highestScoreLipid && lipid.getMsMsScore() != highestScore) || (
+            lipid != highestScoreLipid && lipid.getLipidAnnotation().getAnnotation().equals(
+                Objects.requireNonNull(highestScoreLipid).getLipidAnnotation().getAnnotation()))) {
           Set<LipidFragment> fragmentsToRemove = new HashSet<>();
           for (LipidFragment matchedFragment : lipid.getMatchedFragments()) {
             if (matchedFragment.getDataPoint().equals(entry.getKey())
