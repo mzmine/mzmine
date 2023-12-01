@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -120,15 +123,16 @@ public class CustomLipidClassChoiceParameter
   public void loadValueFromXML(Element xmlElement) {
     NodeList items = xmlElement.getElementsByTagName("item");
     ArrayList<CustomLipidClass> newValues = new ArrayList<>();
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
     for (int i = 0; i < items.getLength(); i++) {
       String itemString = items.item(i).getTextContent();
-      for (int j = 0; j < choices.length; j++) {
-        if (choices[j].toString().equals(itemString)) {
-          newValues.add(choices[j]);
-        }
-      }
+      CustomLipidClass customLipidClass = gson.fromJson(itemString,
+          new TypeToken<CustomLipidClass>() {
+          }.getType());
+      newValues.add(customLipidClass);
     }
     this.values = newValues.toArray(new CustomLipidClass[0]);
+    this.choices = newValues.toArray(new CustomLipidClass[0]);
   }
 
   @Override
@@ -136,9 +140,10 @@ public class CustomLipidClassChoiceParameter
     if (values == null)
       return;
     Document parentDocument = xmlElement.getOwnerDocument();
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
     for (CustomLipidClass item : values) {
       Element newElement = parentDocument.createElement("item");
-      newElement.setTextContent(item.toString());
+      newElement.setTextContent(gson.toJson(item));
       xmlElement.appendChild(newElement);
     }
   }
