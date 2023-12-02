@@ -264,7 +264,7 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
         "Custom lipid class abbreviation", "Enter a abbreviation for the custom lipid class",
         "MyClass", true);
     public static final StringParameter backBoneFormula = new StringParameter(
-        "Lipid Backbone Molecular Formula",
+        "Lipid backbone molecular formula",
         "Enter the backbone molecular formula of the custom lipid class. Include all elements of the original molecular, e.g. in case of glycerol based lipid classes add C3H8O3. "
             + "For fatty acids start with H2O, for ceramides start with C3H8", "C3H8O3", true);
     public static final ComboParameter<LipidMainClasses> lipidMainClass = new ComboParameter<>(
@@ -277,7 +277,7 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
             LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidCategories.SPHINGOLIPIDS,
             LipidCategories.STEROLLIPIDS}, LipidCategories.GLYCEROPHOSPHOLIPIDS);
     public static final CustomLipidChainChoiceParameter lipidChainTypes = new CustomLipidChainChoiceParameter(
-        "Add Lipid Chains", "Add Lipid Chains",
+        "Add lipid chains", "Add Lipid Chains",
         new LipidChainType[]{LipidChainType.ACYL_CHAIN, LipidChainType.ACYL_CHAIN});
     public static final CustomLipidClassFragmentationRulesChoiceParameters customLipidClassFragmentationRules = new CustomLipidClassFragmentationRulesChoiceParameters(
         "Add fragmentation rules", "Add custom lipid class fragmentation rules",

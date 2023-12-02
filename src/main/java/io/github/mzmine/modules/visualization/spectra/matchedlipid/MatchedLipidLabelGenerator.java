@@ -28,19 +28,25 @@ package io.github.mzmine.modules.visualization.spectra.matchedlipid;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import java.util.List;
+import java.util.Map;
+import javafx.util.Pair;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
 
 public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
 
+  public static final int POINTS_RESERVE_X = 100;
+  private final Map<XYDataset, List<Pair<Double, Double>>> datasetToLabelsCoords;
   private final ChartViewer plot;
   private final List<LipidFragment> fragments;
 
-  public MatchedLipidLabelGenerator(ChartViewer plot,List<LipidFragment> fragments) {
+  public MatchedLipidLabelGenerator(SpectraPlot plot, List<LipidFragment> fragments) {
     this.plot = plot;
     this.fragments = fragments;
+    this.datasetToLabelsCoords = plot.getDatasetToLabelsCoords();
   }
 
 
@@ -51,6 +57,8 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
   @Override
   public String generateLabel(XYDataset dataset, int series, int item) {
     String label = null;
+    
+    //create label
     if (plot.getCanvas().getWidth() >= 400 && plot.getCanvas().getHeight() >= 200) {
       if (dataset.getSeriesKey(1).equals("Matched Signals")) {
         if (fragments != null) {
