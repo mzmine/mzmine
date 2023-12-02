@@ -90,6 +90,7 @@ public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
   private boolean isUpdateFromPreset = false;
 
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
+  private static final Random random = new Random();
   private final SplitPane paramPreviewSplit;
   private final BorderPane previewWrapperPane;
   private BorderPane lipidPane;
@@ -145,8 +146,8 @@ public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
     numberOfCAtomsList.clear();
     numberOfDbesList.clear();
     for (LipidChainType lipidChain : lipidChainTypes) {
-      numberOfCAtomsList.add(16);
-      numberOfDbesList.add(0);
+      numberOfCAtomsList.add(random.nextInt(9) + 14);
+      numberOfDbesList.add(random.nextInt(4));
     }
   }
 
@@ -209,8 +210,8 @@ public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
     numberOfCAtomsList.clear();
     numberOfDbesList.clear();
     for (int i = 0; i < lipidChainTypes.length; i++) {
-      numberOfCAtomsList.add(16);
-      numberOfDbesList.add(0);
+      numberOfCAtomsList.add(random.nextInt(9) + 14);
+      numberOfDbesList.add(random.nextInt(4));
     }
   }
 
@@ -391,7 +392,7 @@ public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
     gridPane.add(inSilicoFragments, 0, 0);
 
     Set<IonizationType> ionizationTypeList = new HashSet<>();
-    Random random = new Random();
+
     for (LipidFragmentationRule fragmentationRule : lipidFragmentationRules) {
       ionizationTypeList.add(fragmentationRule.getIonizationType());
     }
