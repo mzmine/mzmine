@@ -40,8 +40,6 @@ import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAP3DecompositionV2Para
 import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule;
 import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.ADAPResolverParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
@@ -201,28 +199,17 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     minParam.setParameter(GeneralResolverParameters.handleOriginal, OriginalFeatureListOption.KEEP);
   }
 
-  protected void makeAndAddRtAdapResolver(final BatchQueue q) {
-    final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(AdapResolverModule.class).cloneParameterSet();
-    param.setParameter(ADAPResolverParameters.PEAK_LISTS,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    //param.setParameter(ADAPResolverParameters.handleOriginal, OriginalFeatureListOption.REMOVE);
-
-    //param.setParameter(ADAPResolverParameters.SN_THRESHOLD, snThreshold);
-    param.setParameter(ADAPResolverParameters.MIN_FEAT_HEIGHT, minFeatureHeight);
-    param.setParameter(ADAPResolverParameters.RT_FOR_CWT_SCALES_DURATION, rtForCWT);
-    param.setParameter(ADAPResolverParameters.COEF_AREA_THRESHOLD, 110.0);
-    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AdapResolverModule.class),
-        param));
-  }
-
   private void makeMultiCurveResolutionStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(ADAPMultivariateCurveResolutionModule.class).cloneParameterSet();
-
+    String patternToFindEICs;
+    if (rtSmoothing) {
+      patternToFindEICs = "*eics sm";
+    } else {
+      patternToFindEICs = "*eics";
+    }
     double retentionTimeFWHM = rtFwhm.getToleranceInMinutes() * 4;
-    param.setParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH,
-        retentionTimeFWHM);
+    param.setParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH, retentionTimeFWHM);
     param.setParameter(ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE,
         (double) intraSampleRtTol.getToleranceInMinutes());
     param.setParameter(ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE,
@@ -231,9 +218,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     FeatureListsSelection featureListsSelection = new FeatureListsSelection(
         FeatureListsSelectionType.NAME_PATTERN);
-    featureListsSelection.setNamePattern("*eics");
-    param.setParameter(ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS,
-        featureListsSelection);
+    featureListsSelection.setNamePattern(patternToFindEICs);
+    param.setParameter(ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS, featureListsSelection);
     param.setParameter(ADAP3DecompositionV2Parameters.ADJUST_APEX_RET_TIME, false);
     param.setParameter(ADAP3DecompositionV2Parameters.HANDLE_ORIGINAL, handleOriginalFeatureLists);
     param.setParameter(ADAP3DecompositionV2Parameters.SUFFIX, "spec_decon");
