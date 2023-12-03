@@ -49,7 +49,6 @@ import org.jetbrains.annotations.Nullable;
 public class LipidSpectrumChart extends BufferedChartNode {
 
   private SpectraPlot spectraPlot;
-  private boolean asBufferedImage;
 
   public LipidSpectrumChart(@Nullable MatchedLipid match, AtomicDouble progress,
       RunOption runOption, boolean asBufferedImage) {
@@ -58,7 +57,6 @@ public class LipidSpectrumChart extends BufferedChartNode {
         .isEmpty()) {
       return;
     }
-
     this.spectraPlot = new SpectraPlot();
     spectraPlot.setPrefHeight(GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT);
 
@@ -99,7 +97,7 @@ public class LipidSpectrumChart extends BufferedChartNode {
     spectraPlot.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
     spectraPlot.getXYPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
-    if (asBufferedImage) {
+    if (asBufferedImage && spectraPlot != null) {
       setChartCreateImage(spectraPlot, GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH,
           GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT);
     } else {

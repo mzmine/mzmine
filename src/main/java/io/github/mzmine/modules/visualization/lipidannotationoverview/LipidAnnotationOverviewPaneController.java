@@ -13,7 +13,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
@@ -37,7 +36,7 @@ import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotP
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYZDataset;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickPlotDataTypes;
 import io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSunburstPlot;
-import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
+import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidAnnotationMatchTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -471,10 +470,9 @@ public class LipidAnnotationOverviewPaneController {
   private void buildMatchedLipidSpectrum(List<ModularFeatureListRow> rows) {
     List<MatchedLipid> matchedLipids = rows.get(0).get(LipidMatchListType.class);
     if (!matchedLipids.isEmpty()) {
-      MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(
-          matchedLipids.get(0).getLipidAnnotation().getAnnotation() + " Matched Signals",
-          new LipidSpectrumChart(rows.get(0), null, false));
-      matchedMSMS.setCenter(matchedLipidSpectrumTab.getContent());
+      LipidAnnotationMatchTab lipidAnnotationMatchTab = new LipidAnnotationMatchTab(
+          internalFeatureTable);
+      matchedMSMS.setCenter(lipidAnnotationMatchTab.getContent());
     } else {
       matchedMSMS.setCenter(null);
     }
