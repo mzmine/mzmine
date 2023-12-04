@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -61,13 +61,28 @@ public interface FeatureIdentity extends Cloneable {
   String PROPERTY_URL = "URL";
   String PROPERTY_SPECTRUM = "SPECTRUM";
   String PROPERTY_COMMENT = "Comment";
-  String PROPERTY_ADDUCT ="Adduct";
+  String PROPERTY_ADDUCT = "Adduct";
   String PROPERTY_SMILES = "Smiles";
   String PROPERTY_INCHI_KEY = "InChIKey";
   String PROPERTY_RT = "RT (lib)";
   String PROPERTY_CCS = "CCS (lib)";
   String PROPERTY_MOBILITY = "Mobility (lib)";
   String PROPERTY_PRECURSORMZ = "Precursor mz";
+
+  public static FeatureIdentity loadFromXML(XMLStreamReader reader, MZmineProject project,
+      Collection<RawDataFile> possibleFiles) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_GENERAL_IDENTITY_ELEMENT))) {
+      throw new IllegalStateException("Current element is not a feature identity element");
+    }
+
+    return switch (reader.getAttributeValue(null, XML_IDENTITY_TYPE_ATTR)) {
+      case SimpleFeatureIdentity.XML_IDENTITY_TYPE -> SimpleFeatureIdentity.loadFromXML(reader);
+      case SpectralDBFeatureIdentity.XML_IDENTITY_TYPE ->
+          SpectralDBFeatureIdentity.loadFromXML(reader, project, possibleFiles);
+      case CompoundDBIdentity.XML_IDENTITY_TYPE -> CompoundDBIdentity.loadFromXML(reader);
+      default -> null;
+    };
+  }
 
   /**
    * Returns the value of the PROPERTY_NAME property. This value must always be set. Same value is
@@ -106,19 +121,4 @@ public interface FeatureIdentity extends Cloneable {
    * Appends a feature identity to the current element.
    */
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
-
-  public static FeatureIdentity loadFromXML(XMLStreamReader reader,
-      Collection<RawDataFile> possibleFiles) throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_GENERAL_IDENTITY_ELEMENT))) {
-      throw new IllegalStateException("Current element is not a feature identity element");
-    }
-
-    return switch (reader.getAttributeValue(null, XML_IDENTITY_TYPE_ATTR)) {
-      case SimpleFeatureIdentity.XML_IDENTITY_TYPE -> SimpleFeatureIdentity.loadFromXML(reader);
-      case SpectralDBFeatureIdentity.XML_IDENTITY_TYPE -> SpectralDBFeatureIdentity
-          .loadFromXML(reader, possibleFiles);
-      case CompoundDBIdentity.XML_IDENTITY_TYPE -> CompoundDBIdentity.loadFromXML(reader);
-      default -> null;
-    };
-  }
 }

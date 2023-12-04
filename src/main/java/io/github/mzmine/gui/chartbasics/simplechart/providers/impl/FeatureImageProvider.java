@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,12 +55,12 @@ public class FeatureImageProvider<T extends ImagingScan> implements PlotXYZDataP
   private static final Logger logger = Logger.getLogger(FeatureImageProvider.class.getName());
 
   private final Feature feature;
-  private IonTimeSeries<T> series;
-  private double width;
-  private double height;
   private final List<T> selectedScans;
   private final ImageNormalization normalize;
   protected PaintScale paintScale = null;
+  private IonTimeSeries<T> series;
+  private double width;
+  private double height;
 
   public FeatureImageProvider(Feature feature) {
     this(feature, (List<T>) feature.getFeatureList().getSeletedScans(feature.getRawDataFile()),
@@ -116,8 +116,13 @@ public class FeatureImageProvider<T extends ImagingScan> implements PlotXYZDataP
   @Override
   public void computeValues(Property<TaskStatus> status) {
     ImagingParameters imagingParam = ((ImagingRawDataFile) feature.getRawDataFile()).getImagingParam();
-    height = imagingParam.getLateralHeight() / imagingParam.getMaxNumberOfPixelY();
-    width = imagingParam.getLateralWidth() / imagingParam.getMaxNumberOfPixelX();
+    if (imagingParam == null) {
+      height = 0;
+      width = 0;
+    } else {
+      height = imagingParam.getLateralHeight() / imagingParam.getMaxNumberOfPixelY();
+      width = imagingParam.getLateralWidth() / imagingParam.getMaxNumberOfPixelX();
+    }
 
     try {
       final IonTimeSeries<T> featureData = (IonTimeSeries<T>) feature.getFeatureData();

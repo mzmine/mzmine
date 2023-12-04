@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,6 +43,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.StreamCopy;
 import io.github.mzmine.util.XMLUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -125,7 +126,7 @@ public class FeatureListSaveTask extends AbstractTask {
     logger.finest(() -> "Creating temporary file for feature list " + flist.getName() + ".");
     File tempFile;
     try {
-      tempFile = File.createTempFile("mzmine_featurelist_applied_methods", ".tmp");
+      tempFile = FileAndPathUtil.createTempFile("mzmine_featurelist_applied_methods", ".tmp");
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Cannot create temporary file.", e);
       setStatus(TaskStatus.ERROR);
@@ -211,7 +212,7 @@ public class FeatureListSaveTask extends AbstractTask {
     logger.finest(() -> "Creating temporary file for feature list " + flist.getName() + ".");
     File tempFile;
     try {
-      tempFile = File.createTempFile("mzmine_featurelist_data", ".tmp");
+      tempFile = FileAndPathUtil.createTempFile("mzmine_featurelist_data", ".tmp");
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Cannot create temporary file.", e);
       setStatus(TaskStatus.ERROR);

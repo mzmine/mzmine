@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -81,10 +81,12 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
       // EMPTY parameter set
       case MS1_ONLY, IMAGING -> new WorkflowWizardParameters(this);
       // specialized parameters
-      case LIBRARY_GENERATION -> new WorkflowLibraryGenerationWizardParameters(null, true, true);
-      case DDA -> new WorkflowDdaWizardParameters(true, null, true, true);
-      case DECONVOLUTION -> new WorkflowGcElectronImpactWizardParameters(true, null, true, true);
-      case DIA -> new WorkflowDiaWizardParameters(0.8, 5, true, null, true, true);
+      case LIBRARY_GENERATION ->
+          new WorkflowLibraryGenerationWizardParameters(null, true, true, false);
+      case DDA -> new WorkflowDdaWizardParameters(true, true, null, true, true, false);
+      case DECONVOLUTION ->
+          new WorkflowGcElectronImpactWizardParameters(true, null, true, true, false);
+      case DIA -> new WorkflowDiaWizardParameters(0.8, 5, true, null, true, true, false);
     };
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,16 +42,13 @@ import org.jfree.data.xy.XYDataset;
 
 public class PeakRenderer extends XYBarRenderer {
 
+  public static final float TRANSPARENCY = 0.8f;
+  public static final AlphaComposite alphaComp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+      TRANSPARENCY);
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
-
-  public static final float TRANSPARENCY = 0.8f;
-
-  public static final AlphaComposite alphaComp =
-      AlphaComposite.getInstance(AlphaComposite.SRC_OVER, TRANSPARENCY);
-
   private boolean isTransparent;
 
   public PeakRenderer(Color color, boolean isTransparent) {
@@ -94,4 +91,8 @@ public class PeakRenderer extends XYBarRenderer {
     return null;
   }
 
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+    return new PeakRenderer((Color) getDefaultPaint(), isTransparent);
+  }
 }

@@ -187,7 +187,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler  {
       // Adds the scan file and the name to the new raw data file
       String name = getTextOfElement();
       logger.info("Loading raw data file: " + name);
-      newRawDataFile.setName(name);
+//      newRawDataFile.setName(name);
     }
 
     if (qName.equals(RawDataElementName_2_5.QUANTITY_SCAN.getElementName())) {

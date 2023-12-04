@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -145,7 +145,7 @@ public class ScanHistogramTab extends MZmineTab {
     for (RawDataFile dataFile : dataFiles) {
       if (dataFile instanceof IMSRawDataFile ims && useMobilityScans) {
         MobilityScanDataAccess scanAccess = EfficientDataAccess.of(ims,
-            MobilityScanDataType.CENTROID, scanSelection);
+            MobilityScanDataType.MASS_LIST, scanSelection);
         totalScans = scanAccess.getNumberOfScans();
         while (scanAccess.nextFrame() != null) {
           while (scanAccess.nextMobilityScan() != null) {

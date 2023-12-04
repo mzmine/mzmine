@@ -791,6 +791,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       Object userData = tableColumn.getUserData();
       final ObservableValue<?> observableValue = tableColumn.getCellObservableValue(
           focusedCell.getTreeItem());
+      if (observableValue == null) {
+        return;
+      }
       final Object cellValue = observableValue.getValue();
 
       if (userData instanceof DataType<?> dataType) {
@@ -1118,4 +1121,5 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     }
     return columns;
   }
+
 }

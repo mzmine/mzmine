@@ -121,9 +121,6 @@
                               <SeparatorMenuItem/>
                               <MenuItem onAction="#handleRawDataSort"
                                 text="Sort alphabetically"/>
-                              <MenuItem onAction="#handleRemoveFileExtension"
-                                text="Remove file extension"
-                                fx:id="rawDataRemoveExtensionMenuItem"/>
                               <MenuItem onAction="#handleShowFileSummary"
                                 text="Show file summary"/>
 
@@ -136,8 +133,6 @@
                                   text="Export scans mgf, txt, msp and mzML"
                                   userData="io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule"/>
                               </Menu>
-                              <MenuItem onAction="#handleRenameRawData"
-                                text="Rename" fx:id="rawDataRenameMenuItem"/>
                               <MenuItem onAction="#handleRemoveRawData"
                                 text="Remove file" fx:id="rawDataRemoveMenuItem"/>
                               <MenuItem onAction="#handleGroupRawDataFiles"

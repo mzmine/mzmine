@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,6 +45,8 @@ import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePalettePa
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Map;
 import javafx.application.Platform;
@@ -98,7 +100,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final FileNameParameter rExecPath = new FileNameParameter("R executable path",
       "Full R executable file path (If left blank, MZmine will try to find out automatically). On Windows, this should point to your R.exe file.",
-      FileSelectionType.OPEN);
+      FileSelectionType.OPEN, true);
 
   public static final BooleanParameter sendStatistics = new BooleanParameter(
       "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
@@ -163,7 +165,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final BooleanParameter showPrecursorWindow = new BooleanParameter(
       "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
-      false);
+      true);
 
   public static final BooleanParameter showTempFolderAlert = new BooleanParameter("Show temp alert",
       "Show temp folder alert", true);
@@ -174,9 +176,9 @@ public class MZminePreferences extends SimpleParameterSet {
           + "only applies to newly generated plots.", ImageNormalization.values(),
       ImageNormalization.NO_NORMALIZATION);
   private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
-      new DecimalFormat("0.###"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
+      new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
       new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.##"),
-      new DecimalFormat("0.##"), UnitFormat.DIVIDE);
+      new DecimalFormat("0.###"), UnitFormat.DIVIDE);
   private final boolean isDarkMode = false;
   private NumberFormats guiFormat = exportFormat; // default value
 
@@ -250,6 +252,14 @@ public class MZminePreferences extends SimpleParameterSet {
     }
 
     updateGuiFormat();
+
+    final File tempDir = getValue(MZminePreferences.tempDirectory);
+    if (tempDir != null && tempDir.isDirectory()) {
+      if (!tempDir.exists()) {
+        tempDir.mkdirs();
+      }
+      FileAndPathUtil.setTempDir(tempDir);
+    }
 
     return retVal;
   }

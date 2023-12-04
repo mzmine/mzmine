@@ -50,7 +50,7 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
   private final List<ExtensionFilter> filters;
   private File value;
   private List<File> lastFiles;
-  private boolean allowEmptyString = true;
+  private final boolean allowEmptyString;
 
   /**
    * @param name
@@ -59,7 +59,7 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
    *                    file.
    */
   public FileNameParameter(String name, String description, FileSelectionType type) {
-    this(name, description, List.of(), type);
+    this(name, description, List.of(), type, true);
   }
 
   /**
@@ -83,11 +83,7 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
    */
   public FileNameParameter(String name, String description, List<ExtensionFilter> filters,
       FileSelectionType type) {
-    this.name = name;
-    this.description = description;
-    this.filters = filters;
-    lastFiles = new ArrayList<>();
-    this.type = type;
+    this(name, description, filters, type, true);
   }
 
   /**
@@ -143,7 +139,7 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
 
   @Override
   public FileNameParameter cloneParameter() {
-    FileNameParameter copy = new FileNameParameter(name, description, type, allowEmptyString);
+    FileNameParameter copy = new FileNameParameter(name, description, filters, type, allowEmptyString);
     copy.setValue(this.getValue());
     copy.setLastFiles(new ArrayList<>(lastFiles));
     return copy;
@@ -213,7 +209,7 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if (value == null) {
+    if (value == null && !allowEmptyString) {
       errorMessages.add(name + " is not set properly");
       return false;
     }

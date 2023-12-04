@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,6 +42,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.StreamCopy;
 import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.ZipUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -82,18 +83,13 @@ public class RawDataFileSaveHandler extends AbstractTask {
   private final MZmineProject project;
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final ZipOutputStream zipStream;
-  private double progress = 0;
   private final List<RawDataFile> files;
   private final boolean saveFilesInProject;
   private final String prefix = "Saving raw data files: ";
-  private String description;
   private final int numSteps;
   private final double stepProgress;
-
-  @Override
-  public TaskPriority getTaskPriority() {
-    return TaskPriority.HIGH;
-  }
+  private double progress = 0;
+  private String description;
 
   public RawDataFileSaveHandler(MZmineProject project, ZipOutputStream zipOutputStream,
       boolean saveFilesInProject, @NotNull Instant moduleCallDate) {
@@ -122,6 +118,15 @@ public class RawDataFileSaveHandler extends AbstractTask {
     }
 
     return path.toString();
+  }
+
+  public static String getZipPath(RawDataFile file) {
+    return getZipPath(file, null, null);
+  }
+
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.HIGH;
   }
 
   public boolean saveRawDataFilesAsBatch() throws IOException, ParserConfigurationException {
@@ -154,7 +159,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
         batchRoot.appendChild(batchQueueEntry);
       }
 
-      final File tmpFile = File.createTempFile(TEMP_FILE_NAME, ".tmp");
+      final File tmpFile = FileAndPathUtil.createTempFile(TEMP_FILE_NAME, ".tmp");
       XMLUtils.saveToFile(tmpFile, batchQueueFile);
 
       final StreamCopy copyMachine = new StreamCopy();
@@ -227,10 +232,6 @@ public class RawDataFileSaveHandler extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
     return progress;
-  }
-
-  public static String getZipPath(RawDataFile file) {
-    return getZipPath(file, null, null);
   }
 
   /**

@@ -25,21 +25,23 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import java.time.Instant;
-import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Spectrum visualizer
@@ -63,15 +65,15 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    RawDataFile dataFile = parameters.getParameter(SpectraVisualizerParameters.dataFiles)
-        .getValue().getMatchingRawDataFiles()[0];
+    RawDataFile dataFile = parameters.getParameter(SpectraVisualizerParameters.dataFiles).getValue()
+        .getMatchingRawDataFiles()[0];
 
     int scanNumber = parameters.getParameter(SpectraVisualizerParameters.scanNumber).getValue();
     Scan scan = dataFile.getScanAtNumber(scanNumber);
     if (scan == null) {
       assert MZmineCore.getDesktop() != null;
-      MZmineCore.getDesktop().displayErrorMessage("Raw data file " + dataFile +
-          " does not contain scan #" + scanNumber + ".");
+      MZmineCore.getDesktop().displayErrorMessage(
+          "Raw data file " + dataFile + " does not contain scan #" + scanNumber + ".");
       return ExitCode.ERROR;
     }
 
@@ -122,19 +124,29 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
       newTab.loadSinglePeak(peak);
     }
 
+    Range<Double> zoomMzRange = null;
+
     if (detectedPattern != null) {
       newTab.loadIsotopes(detectedPattern);
+      zoomMzRange = detectedPattern.getDataPointMZRange();
     }
 
     if (predictedPattern != null) {
       newTab.loadIsotopes(predictedPattern);
+      var otherRange = predictedPattern.getDataPointMZRange();
+      zoomMzRange = zoomMzRange == null ? otherRange : zoomMzRange.span(otherRange);
     }
 
     if (spectrum != null) {
       newTab.loadSpectrum(spectrum);
     }
 
-    // newWindow.show();
+    if (zoomMzRange != null) {
+      // zoom to the isotope pattern
+      newTab.getSpectrumPlot().getXYPlot().getDomainAxis()
+          .setRange(zoomMzRange.lowerEndpoint() - 3, zoomMzRange.upperEndpoint() + 3);
+      ChartLogicsFX.autoRangeAxis(newTab.getSpectrumPlot());
+    }
     MZmineCore.getDesktop().addTab(newTab);
 
     return newTab;

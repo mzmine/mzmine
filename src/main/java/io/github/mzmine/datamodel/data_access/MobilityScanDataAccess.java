@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,10 +55,10 @@ public class MobilityScanDataAccess implements MobilityScan {
   protected final int totalFrames;
 
   protected final List<Frame> eligibleFrames;
-  private final ScanSelection selection;
   protected final double[] mzs;
   protected final double[] intensities;
   protected final Map<Frame, Integer> frameIndexMap = new HashMap<>();
+  private final ScanSelection selection;
   // current data
   protected Frame currentFrame;
   protected MobilityScan currentMobilityScan;
@@ -76,7 +76,7 @@ public class MobilityScanDataAccess implements MobilityScan {
    *
    * @param dataFile  target data file to loop over all scans or mass lists
    * @param type      processed or raw data
-   * @param selection processed or raw data
+   * @param selection Scan selection, can be used to filter specific mobility scans.
    */
   protected MobilityScanDataAccess(IMSRawDataFile dataFile, MobilityScanDataType type,
       ScanSelection selection) {
@@ -88,6 +88,13 @@ public class MobilityScanDataAccess implements MobilityScan {
     this(dataFile, type, frames, null);
   }
 
+  /**
+   * @param dataFile  target data file to loop over all scans or mass lists
+   * @param type      processed or raw data
+   * @param frames    the frames to use.
+   * @param selection Scan selection, can be used to filter specific mobility scans of the given
+   *                  frames.
+   */
   public MobilityScanDataAccess(@NotNull final IMSRawDataFile dataFile,
       @NotNull final MobilityScanDataType type, @NotNull final List<Frame> frames,
       ScanSelection selection) {
@@ -222,8 +229,8 @@ public class MobilityScanDataAccess implements MobilityScan {
   }
 
   /**
-   * Sets the next frame. The mobility scan index is reset to -1, therefore
-   * {@link #nextMobilityScan} has to be called before accessing new scan data.
+   * Sets the next frame. The mobility scan index is reset to -1, therefore {@link
+   * #nextMobilityScan} has to be called before accessing new scan data.
    *
    * @return the next Frame.
    */
@@ -356,10 +363,10 @@ public class MobilityScanDataAccess implements MobilityScan {
    */
   private int getMaxNumberOfDataPoints(List<Frame> frames) {
     return switch (type) {
-      case RAW ->
-          frames.stream().mapToInt(Frame::getTotalMobilityScanRawDataPoints).max().orElse(0);
-      case CENTROID ->
-          frames.stream().mapToInt(Frame::getTotalMobilityScanMassListDataPoints).max().orElse(0);
+      case RAW -> frames.stream().mapToInt(Frame::getTotalMobilityScanRawDataPoints).max()
+          .orElse(0);
+      case MASS_LIST -> frames.stream().mapToInt(Frame::getTotalMobilityScanMassListDataPoints).max()
+          .orElse(0);
     };
   }
 
@@ -370,7 +377,7 @@ public class MobilityScanDataAccess implements MobilityScan {
   public MassSpectrumType getSpectrumType() {
     return switch (type) {
       case RAW -> currentFrame.getSpectrumType();
-      case CENTROID -> MassSpectrumType.CENTROIDED;
+      case MASS_LIST -> MassSpectrumType.CENTROIDED;
     };
   }
 
@@ -394,7 +401,7 @@ public class MobilityScanDataAccess implements MobilityScan {
     switch (type) {
       case RAW:
         return getCurrentMobilityScan().getBasePeakIndex();
-      case CENTROID:
+      case MASS_LIST:
         MassList masses = getMassList();
         return masses == null ? null : masses.getBasePeakIndex();
       default:
@@ -408,7 +415,7 @@ public class MobilityScanDataAccess implements MobilityScan {
     switch (type) {
       case RAW:
         return getCurrentMobilityScan().getDataPointMZRange();
-      case CENTROID:
+      case MASS_LIST:
         MassList masses = getMassList();
         return masses == null ? null : masses.getDataPointMZRange();
       default:

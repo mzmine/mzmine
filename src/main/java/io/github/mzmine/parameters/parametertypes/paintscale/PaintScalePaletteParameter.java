@@ -58,6 +58,7 @@ public class PaintScalePaletteParameter implements
   public PaintScalePaletteParameter(String name, String descr) {
     this.name = name;
     this.descr = descr;
+    value = SimpleColorPalette.BLUE_RED_WHITE;
     palettes = new ArrayList<>();
     palettes.add(SimpleColorPalette.BLUE_YELLOW);
     palettes.add(SimpleColorPalette.BLUE_RED_WHITE);

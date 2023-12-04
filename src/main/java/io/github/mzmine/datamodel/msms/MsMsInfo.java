@@ -95,7 +95,7 @@ public interface MsMsInfo {
    */
   static MsMsInfo loadFromXML(XMLStreamReader reader, RawDataFile file,
       List<RawDataFile> allProjectFiles) {
-    if (!reader.isStartElement()) {
+    if (!reader.isStartElement() || !reader.getLocalName().equals(MsMsInfo.XML_ELEMENT)) {
       throw new IllegalStateException("Wrong element.");
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -75,6 +75,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
   private final Range<Double> rtForCWT;
   private final double sampleCountRatio;
   private final boolean rtSmoothing;
+  private final Boolean exportAnnotationGraphics;
 
   public WizardBatchBuilderGcEiDeconvolution(final WizardSequence steps) {
     // extract default parameters that are used for all workflows
@@ -115,6 +116,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     this.exportPath = exportPath.value();
     exportGnps = getValue(params, WorkflowGcElectronImpactWizardParameters.exportGnps);
     exportMsp = getValue(params, WorkflowGcElectronImpactWizardParameters.exportMsp);
+    exportAnnotationGraphics = getValue(params,
+        WorkflowGcElectronImpactWizardParameters.exportAnnotationGraphics);
   }
 
   @Override
@@ -122,8 +125,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     final BatchQueue q = new BatchQueue();
     makeAndAddImportTask(q);
     makeAndAddMassDetectionStepForAllScans(q);
-    makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, noiseLevelMs1, minRtDataPoints,
-        cropRtRange);
+    makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
+        minRtDataPoints, cropRtRange);
     makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
     makeAndAddRtAdapResolver(q);
     makeMultiCurveResolutionStep(q);
@@ -137,6 +140,10 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
       }
       if (exportMsp) {
         makeAndAddMSPExportStep(q);
+      }
+      // last as it might crash
+      if(exportAnnotationGraphics) {
+        makeAndAddAnnotationGraphicsExportStep(q, exportPath);
       }
     }
     return q;
