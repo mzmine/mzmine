@@ -113,6 +113,7 @@ jobs:
       - name: Pack macOS .app to .dmg
         if: runner.os == 'macOS'
         run: |
+          npm config set python python3.11
           npm install -g appdmg
           appdmg gradle/appdmg.json build/jpackage/MZmine_macOS_installer.dmg
 
