@@ -79,7 +79,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
-import javafx.scene.text.Font;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
@@ -231,14 +230,10 @@ public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
       lipidGridPane.setPadding(new Insets(10));
 
       Label lipidClassSummary = new Label("Lipid class summary");
-      lipidClassSummary.setFont(
-          new Font(MZmineCore.getConfiguration().getDefaultChartTheme().getMasterFont().getName(),
-              16));
+      lipidClassSummary.getStyleClass().add("bold-title-label");
       lipidGridPane.add(lipidClassSummary, 0, 0, 2, 1);
       Label simulateLipidFragments = new Label("Simulate lipid fragments");
-      simulateLipidFragments.setFont(
-          new Font(MZmineCore.getConfiguration().getDefaultChartTheme().getMasterFont().getName(),
-              16));
+      simulateLipidFragments.getStyleClass().add("bold-title-label");
       lipidGridPane.add(simulateLipidFragments, 3, 0, 3, 1);
 
       Label chains = new Label("Chains");
@@ -385,10 +380,8 @@ public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
     gridPane.setHgap(10);
     gridPane.setVgap(10);
     gridPane.setPadding(new Insets(10));
-    Label inSilicoFragments = new Label("In-silico fragments");
-    inSilicoFragments.setFont(
-        new Font(MZmineCore.getConfiguration().getDefaultChartTheme().getMasterFont().getName(),
-            16));
+    Label inSilicoFragments = new Label("In-silico fragments (random intensities)");
+    inSilicoFragments.getStyleClass().add("bold-title-label");
     gridPane.add(inSilicoFragments, 0, 0);
 
     Set<IonizationType> ionizationTypeList = new HashSet<>();
