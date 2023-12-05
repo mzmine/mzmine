@@ -3,6 +3,7 @@ package util.lipidannotationtest;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -10,6 +11,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRuleRating;
@@ -50,6 +52,11 @@ public class LipidFragmentFactoryTest {
           Range.closed(299d, 301d)), new double[]{700, 800, 900, 1000, 1100},
       new double[]{1700, 1800, 1900, 11000, 11100}, MassSpectrumType.CENTROIDED,
       PolarityType.POSITIVE, "", Range.closed(0d, 1d));
+
+  private static final MassList MASS_LIST = SimpleMassList.create(null,
+      new SimpleDataPoint[]{new SimpleDataPoint(700, 1700), new SimpleDataPoint(800, 1800),
+          new SimpleDataPoint(900, 1900), new SimpleDataPoint(1000, 1100),
+          new SimpleDataPoint(1100, 11100)});
   public static final ParameterSetParameter<LipidAnnotationChainParameters> lipidChainParameters = new ParameterSetParameter<LipidAnnotationChainParameters>(
       "Side chain parameters", "Optionally modify lipid chain parameters",
       new LipidAnnotationChainParameters());
@@ -59,16 +66,17 @@ public class LipidFragmentFactoryTest {
 
   @Test
   void findCommonLipidFragments() {
+    TEST_SCAN.addMassList(MASS_LIST);
     ILipidAnnotation testLipidAnnotationHeadgroupFragment = LIPID_FACTORY.buildSpeciesLevelLipid(
         LipidClasses.DIACYLGLYCEROPHOSPHOCHOLINES, 32, 0, 0);
     LipidFragmentationRule[] lipidFragmentationRulesHeadgroupFragment = LipidClasses.DIACYLGLYCEROPHOSPHOCHOLINES.getFragmentationRules();
+
     GlyceroAndGlyceroPhospholipidFragmentFactory lipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
-        MZ_TOLERANCE.getToleranceRange(TEST_DATA_POINT_HEADGROUP_FRAGMENT.getMZ()),
-        testLipidAnnotationHeadgroupFragment, IonizationType.POSITIVE_HYDROGEN,
-        lipidFragmentationRulesHeadgroupFragment, TEST_DATA_POINT_HEADGROUP_FRAGMENT, TEST_SCAN,
+        MZ_TOLERANCE, testLipidAnnotationHeadgroupFragment, IonizationType.POSITIVE_HYDROGEN,
+        lipidFragmentationRulesHeadgroupFragment, TEST_SCAN,
         lipidChainParameters.getEmbeddedParameters());
 
-    List<LipidFragment> lipidHeadgroupFragments = lipidFragmentFactory.findCommonLipidFragment();
+    List<LipidFragment> lipidHeadgroupFragments = lipidFragmentFactory.findCommonLipidFragments();
     LipidFragment testLipidHeadgroupFragment = new LipidFragment(
         LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
         LipidFragmentationRuleRating.MAJOR, 184.07332101009092, "C",
@@ -80,11 +88,10 @@ public class LipidFragmentFactoryTest {
         LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS, 32, 1, 0);
     LipidFragmentationRule[] lipidFragmentationRulesHeadgroupFragmentNL = LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS.getFragmentationRules();
     GlyceroAndGlyceroPhospholipidFragmentFactory lipidFragmentFactoryNL = new GlyceroAndGlyceroPhospholipidFragmentFactory(
-        MZ_TOLERANCE.getToleranceRange(TEST_DATA_POINT_HEADGROUP_FRAGMENT_NL.getMZ()),
-        testLipidAnnotationHeadgroupFragmentNL, IonizationType.POSITIVE_HYDROGEN,
-        lipidFragmentationRulesHeadgroupFragmentNL, TEST_DATA_POINT_HEADGROUP_FRAGMENT, TEST_SCAN,
+        MZ_TOLERANCE, testLipidAnnotationHeadgroupFragmentNL, IonizationType.POSITIVE_HYDROGEN,
+        lipidFragmentationRulesHeadgroupFragmentNL, TEST_SCAN,
         lipidChainParameters.getEmbeddedParameters());
-    List<LipidFragment> lipidHeadgroupNLFragments = lipidFragmentFactory.findCommonLipidFragment();
+    List<LipidFragment> lipidHeadgroupNLFragments = lipidFragmentFactory.findCommonLipidFragments();
     LipidFragment testLipidHeadgroupNLFragment = new LipidFragment(
         LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
         LipidFragmentationRuleRating.MAJOR, 184.0733210100, "C", TEST_DATA_POINT_HEADGROUP_FRAGMENT,
@@ -94,15 +101,15 @@ public class LipidFragmentFactoryTest {
 
   @Test
   void findGlyceroAndGlyceroPhospholipidSpecificLipidFragments() {
+    TEST_SCAN.addMassList(MASS_LIST);
     ILipidAnnotation testLipidAnnotationPI_18_0_20_4 = LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
         LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS, new int[]{18, 20}, new int[]{0, 4},
         new int[]{0, 0});
     DataPoint testDataPointAcylChain = new SimpleDataPoint(283.2643, 1);
     LipidFragmentationRule[] lipidFragmentationRules = LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS.getFragmentationRules();
     GlyceroAndGlyceroPhospholipidFragmentFactory lipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
-        MZ_TOLERANCE.getToleranceRange(testDataPointAcylChain.getMZ()),
-        testLipidAnnotationPI_18_0_20_4, IonizationType.NEGATIVE_HYDROGEN, lipidFragmentationRules,
-        testDataPointAcylChain, TEST_SCAN, lipidChainParameters.getEmbeddedParameters());
+        MZ_TOLERANCE, testLipidAnnotationPI_18_0_20_4, IonizationType.NEGATIVE_HYDROGEN,
+        lipidFragmentationRules, TEST_SCAN, lipidChainParameters.getEmbeddedParameters());
     List<LipidFragment> lipidAcylChainFragments = lipidFragmentFactory.findLipidFragments();
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
         LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT, LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL,
@@ -113,15 +120,15 @@ public class LipidFragmentFactoryTest {
 
   @Test
   void findGlyceroAndGlyceroPhospholipidSpecificLipidAcylChainNL() {
+    TEST_SCAN.addMassList(MASS_LIST);
     ILipidAnnotation testLipidAnnotationPI_18_0_20_4 = LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
         LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS, new int[]{18, 20}, new int[]{0, 4},
         new int[]{0, 0});
     DataPoint testDataPointAcylChain = new SimpleDataPoint(601.2783, 1);
     LipidFragmentationRule[] lipidFragmentationRules = LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS.getFragmentationRules();
     GlyceroAndGlyceroPhospholipidFragmentFactory lipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
-        MZ_TOLERANCE.getToleranceRange(testDataPointAcylChain.getMZ()),
-        testLipidAnnotationPI_18_0_20_4, IonizationType.NEGATIVE_HYDROGEN, lipidFragmentationRules,
-        testDataPointAcylChain, TEST_SCAN, lipidChainParameters.getEmbeddedParameters());
+        MZ_TOLERANCE, testLipidAnnotationPI_18_0_20_4, IonizationType.NEGATIVE_HYDROGEN,
+        lipidFragmentationRules, TEST_SCAN, lipidChainParameters.getEmbeddedParameters());
     List<LipidFragment> lipidAcylChainFragments = lipidFragmentFactory.findLipidFragments();
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
         LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT_NL,
@@ -133,15 +140,15 @@ public class LipidFragmentFactoryTest {
 
   @Test
   void findGlyceroAndGlyceroPhospholipidSpecificLipidAcylChainMinuSFormulaFragmentNL() {
+    TEST_SCAN.addMassList(MASS_LIST);
     ILipidAnnotation testLipidAnnotationPI_18_0_20_4 = LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
         LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS, new int[]{18, 20}, new int[]{0, 4},
         new int[]{0, 0});
     DataPoint testDataPointAcylChain = new SimpleDataPoint(619.2889, 1);
     LipidFragmentationRule[] lipidFragmentationRules = LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS.getFragmentationRules();
     GlyceroAndGlyceroPhospholipidFragmentFactory lipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
-        MZ_TOLERANCE.getToleranceRange(testDataPointAcylChain.getMZ()),
-        testLipidAnnotationPI_18_0_20_4, IonizationType.NEGATIVE_HYDROGEN, lipidFragmentationRules,
-        testDataPointAcylChain, TEST_SCAN, lipidChainParameters.getEmbeddedParameters());
+        MZ_TOLERANCE, testLipidAnnotationPI_18_0_20_4, IonizationType.NEGATIVE_HYDROGEN,
+        lipidFragmentationRules, TEST_SCAN, lipidChainParameters.getEmbeddedParameters());
     List<LipidFragment> lipidAcylChainFragments = lipidFragmentFactory.findLipidFragments();
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
         LipidFragmentationRuleType.ACYLCHAIN_MINUS_FORMULA_FRAGMENT_NL,
@@ -153,15 +160,15 @@ public class LipidFragmentFactoryTest {
 
   @Test
   void findGlyceroAndGlyceroPhospholipidSpecificLipidAcylChainPlusFormulaFragmentNL() {
+    TEST_SCAN.addMassList(MASS_LIST);
     ILipidAnnotation testLipidAnnotationPI_18_0_20_4 = LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
         LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS, new int[]{18, 20}, new int[]{0, 4},
         new int[]{0, 0});
     DataPoint testDataPointAcylChain = new SimpleDataPoint(419.2568, 1);
     LipidFragmentationRule[] lipidFragmentationRules = LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS.getFragmentationRules();
     GlyceroAndGlyceroPhospholipidFragmentFactory lipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
-        MZ_TOLERANCE.getToleranceRange(testDataPointAcylChain.getMZ()),
-        testLipidAnnotationPI_18_0_20_4, IonizationType.NEGATIVE_HYDROGEN, lipidFragmentationRules,
-        testDataPointAcylChain, TEST_SCAN, lipidChainParameters.getEmbeddedParameters());
+        MZ_TOLERANCE, testLipidAnnotationPI_18_0_20_4, IonizationType.NEGATIVE_HYDROGEN,
+        lipidFragmentationRules, TEST_SCAN, lipidChainParameters.getEmbeddedParameters());
     List<LipidFragment> lipidAcylChainFragments = lipidFragmentFactory.findLipidFragments();
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
         LipidFragmentationRuleType.ACYLCHAIN_PLUS_FORMULA_FRAGMENT_NL,
@@ -178,9 +185,8 @@ public class LipidFragmentFactoryTest {
     DataPoint testDataPointAcylChain = new SimpleDataPoint(601.519, 1);
     LipidFragmentationRule[] lipidFragmentationRules = LipidClasses.DIACYLGLYCEROPHOSPHOGLYCEROPHOSPHODIRADYLGLYCEROLS.getFragmentationRules();
     GlyceroAndGlyceroPhospholipidFragmentFactory lipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
-        MZ_TOLERANCE.getToleranceRange(testDataPointAcylChain.getMZ()), testLipidAnnotationCL_70_4,
-        IonizationType.AMMONIUM, lipidFragmentationRules, testDataPointAcylChain, TEST_SCAN,
-        lipidChainParameters.getEmbeddedParameters());
+        MZ_TOLERANCE, testLipidAnnotationCL_70_4, IonizationType.AMMONIUM, lipidFragmentationRules,
+        TEST_SCAN, lipidChainParameters.getEmbeddedParameters());
     List<LipidFragment> lipidAcylChainFragments = lipidFragmentFactory.findLipidFragments();
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
         LipidFragmentationRuleType.TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT,
@@ -198,9 +204,8 @@ public class LipidFragmentFactoryTest {
     DataPoint testDataPointAcylChain = new SimpleDataPoint(377.2462, 1);
     LipidFragmentationRule[] lipidFragmentationRules = LipidClasses.ALKYLACYLGLYCEROPHOSPHOINOSITOLS.getFragmentationRules();
     GlyceroAndGlyceroPhospholipidFragmentFactory lipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
-        MZ_TOLERANCE.getToleranceRange(testDataPointAcylChain.getMZ()),
-        testLipidAnnotationPI_18_0_20_4, IonizationType.NEGATIVE_HYDROGEN, lipidFragmentationRules,
-        testDataPointAcylChain, TEST_SCAN, lipidChainParameters.getEmbeddedParameters());
+        MZ_TOLERANCE, testLipidAnnotationPI_18_0_20_4, IonizationType.NEGATIVE_HYDROGEN,
+        lipidFragmentationRules, TEST_SCAN, lipidChainParameters.getEmbeddedParameters());
     List<LipidFragment> lipidAcylChainFragments = lipidFragmentFactory.findLipidFragments();
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
         LipidFragmentationRuleType.ALKYLCHAIN_PLUS_FORMULA_FRAGMENT,
@@ -216,10 +221,9 @@ public class LipidFragmentFactoryTest {
         LipidClasses.CERAMIDEPHOSPHOCHOLINES, new int[]{18, 16}, new int[]{1, 4}, new int[]{0, 0});
     DataPoint testDataPointAcylChain = new SimpleDataPoint(264.2685, 1);
     LipidFragmentationRule[] lipidFragmentationRules = LipidClasses.CERAMIDEPHOSPHOCHOLINES.getFragmentationRules();
-    SphingolipidFragmentFactory lipidFragmentFactory = new SphingolipidFragmentFactory(
-        MZ_TOLERANCE.getToleranceRange(testDataPointAcylChain.getMZ()),
+    SphingolipidFragmentFactory lipidFragmentFactory = new SphingolipidFragmentFactory(MZ_TOLERANCE,
         testLipidAnnotationCer_18_1_2O_16_0_4, IonizationType.POSITIVE_HYDROGEN,
-        lipidFragmentationRules, testDataPointAcylChain, TEST_SCAN,
+        lipidFragmentationRules, TEST_SCAN,
         lipidChainParametersSphingolipids.getEmbeddedParameters());
     List<LipidFragment> lipidAcylChainFragments = lipidFragmentFactory.findLipidFragments();
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
@@ -237,11 +241,9 @@ public class LipidFragmentFactoryTest {
         new int[]{0, 0});
     DataPoint testDataPointAcylChain = new SimpleDataPoint(225.2224, 1);
     LipidFragmentationRule[] lipidFragmentationRules = LipidClasses.CERAMIDEANDDIHYDROCERAMIDEHYDROXYFATTYACID.getFragmentationRules();
-    SphingolipidFragmentFactory lipidFragmentFactory = new SphingolipidFragmentFactory(
-        MZ_TOLERANCE.getToleranceRange(testDataPointAcylChain.getMZ()),
+    SphingolipidFragmentFactory lipidFragmentFactory = new SphingolipidFragmentFactory(MZ_TOLERANCE,
         testLipidAnnotationCer_18_0_2O_16_0_O, IonizationType.ACETATE, lipidFragmentationRules,
-        testDataPointAcylChain, TEST_SCAN,
-        lipidChainParametersSphingolipids.getEmbeddedParameters());
+        TEST_SCAN, lipidChainParametersSphingolipids.getEmbeddedParameters());
     List<LipidFragment> lipidAcylChainFragments = lipidFragmentFactory.findLipidFragments();
     LipidFragment testLipidAcylChainFragment = new LipidFragment(
         LipidFragmentationRuleType.AMID_MONO_HYDROXY_CHAIN_PLUS_FORMULA_FRAGMENT,

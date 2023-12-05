@@ -31,7 +31,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 public class LipidAnnotationMsMsTestResource {
 
   private double[] mzFragments;
-
   private double[] intensities;
   private IonizationType ionizationType;
   private ILipidAnnotation testLipid;
