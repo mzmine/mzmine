@@ -385,7 +385,6 @@ public class FeatureTableContextMenu extends ContextMenu {
     //TODO find better solution to check if single feature list row has co-located images
     final MenuItem showCorrelatedImageFeaturesItem = new ConditionalMenuItem("Co-located images",
         () -> {
-          assert selectedFeature != null;
           R2RMap<RowsRelationship> rowsRelationshipR2RMap = Objects.requireNonNull(
               selectedFeature.getFeatureList()).getRowMap(Type.MS1_FEATURE_CORR);
           List<FeatureListRow> allRows = selectedFeature.getFeatureList().getRows();
