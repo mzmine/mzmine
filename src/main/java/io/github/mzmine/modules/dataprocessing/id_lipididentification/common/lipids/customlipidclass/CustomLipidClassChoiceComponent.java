@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidMainClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
@@ -294,6 +295,36 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
       CustomLipidClassSetupDialog dialog = new CustomLipidClassSetupDialog(valueCheckRequired,
           this);
       dialog.showAndWait();
+
+      if (!lipidCategory.getValue().equals(LipidCategories.SPHINGOLIPIDS) && Arrays.stream(
+          lipidChainTypes.getChoices()).anyMatch(lipidChainType ->
+          lipidChainType.equals(LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN)
+              || lipidChainType.equals(LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN)
+              || lipidChainType.equals(LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN))) {
+        MZmineCore.getDesktop().displayConfirmation(
+            "You are using a sphingolipid specific chain for a lipid of the category "
+                + lipidCategory.getValue()
+                + ". This may result in unexpected behaviour and is not recommended. Please select Sphingolipids as lipid category.");
+      }
+      if (!lipidCategory.getValue().equals(LipidCategories.SPHINGOLIPIDS) && Arrays.stream(
+          customLipidClassFragmentationRules.getChoices()).anyMatch(rule ->
+          rule.getLipidFragmentationRuleType()
+              .equals(LipidFragmentationRuleType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_FRAGMENT)
+              || rule.getLipidFragmentationRuleType()
+              .equals(LipidFragmentationRuleType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_FRAGMENT)
+              || rule.getLipidFragmentationRuleType()
+              .equals(LipidFragmentationRuleType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_FRAGMENT)
+              || rule.getLipidFragmentationRuleType().equals(
+              LipidFragmentationRuleType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT)
+              || rule.getLipidFragmentationRuleType().equals(
+              LipidFragmentationRuleType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT)
+              || rule.getLipidFragmentationRuleType().equals(
+              LipidFragmentationRuleType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN_MINUS_FORMULA_FRAGMENT))) {
+        MZmineCore.getDesktop().displayMessage(
+            "You are using a sphingolipid specific fragmentation rule for a lipid of the category "
+                + lipidCategory.getValue()
+                + ". This may result in unexpected behaviour and is not recommended. Please select Sphingolipids as lipid category.");
+      }
       return dialog.getExitCode();
     }
 
