@@ -7,7 +7,6 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.FattyAcylFragmentFactory;
@@ -180,15 +179,11 @@ public class LipidAnnotationUtils {
         massList = MSMSLipidTools.deisotopeMassList(massList, mzToleranceMS2);
         Set<LipidFragment> annotatedFragments = new HashSet<>();
         if (rules != null && rules.length > 0) {
-          for (DataPoint dataPoint : massList) {
-            Range<Double> mzTolRangeMSMS = mzToleranceMS2.getToleranceRange(dataPoint.getMZ());
-            ILipidFragmentFactory lipidFragmentFactory = getLipidFragmentFactory(ionization, lipid,
-                parameters, msmsScan, rules, dataPoint, mzTolRangeMSMS, lipidCategory);
-            List<LipidFragment> annotatedFragmentsForDataPoint = lipidFragmentFactory.findLipidFragments();
-            if (annotatedFragmentsForDataPoint != null
-                && !annotatedFragmentsForDataPoint.isEmpty()) {
-              annotatedFragments.addAll(annotatedFragmentsForDataPoint);
-            }
+          ILipidFragmentFactory lipidFragmentFactory = getLipidFragmentFactory(ionization, lipid,
+              parameters, msmsScan, rules, mzToleranceMS2, lipidCategory);
+          List<LipidFragment> annotatedFragmentsForDataPoint = lipidFragmentFactory.findLipidFragments();
+          if (annotatedFragmentsForDataPoint != null && !annotatedFragmentsForDataPoint.isEmpty()) {
+            annotatedFragments.addAll(annotatedFragmentsForDataPoint);
           }
         }
         if (!annotatedFragments.isEmpty()) {
@@ -304,37 +299,31 @@ public class LipidAnnotationUtils {
   @NotNull
   public static ILipidFragmentFactory getLipidFragmentFactory(IonizationType ionization,
       ILipidAnnotation lipid, ParameterSet parameters, Scan msmsScan,
-      LipidFragmentationRule[] rules, DataPoint dataPoint, Range<Double> mzTolRangeMSMS,
-      LipidCategories lipidCategory) {
+      LipidFragmentationRule[] rules, MZTolerance mzTolRangeMSMS, LipidCategories lipidCategory) {
     switch (lipidCategory) {
 
       case FATTYACYLS -> {
-        return new FattyAcylFragmentFactory(mzTolRangeMSMS, lipid, ionization, rules,
-            new SimpleDataPoint(dataPoint.getMZ(), dataPoint.getIntensity()), msmsScan,
+        return new FattyAcylFragmentFactory(mzTolRangeMSMS, lipid, ionization, rules, msmsScan,
             parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
                 .getEmbeddedParameters());
       }
       case GLYCEROLIPIDS -> {
         return new GlyceroAndGlyceroPhospholipidFragmentFactory(mzTolRangeMSMS, lipid, ionization,
-            rules, new SimpleDataPoint(dataPoint.getMZ(), dataPoint.getIntensity()), msmsScan,
-            parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
-                .getEmbeddedParameters());
+            rules, msmsScan, parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
+            .getEmbeddedParameters());
       }
       case GLYCEROPHOSPHOLIPIDS -> {
         return new GlyceroAndGlyceroPhospholipidFragmentFactory(mzTolRangeMSMS, lipid, ionization,
-            rules, new SimpleDataPoint(dataPoint.getMZ(), dataPoint.getIntensity()), msmsScan,
-            parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
-                .getEmbeddedParameters());
+            rules, msmsScan, parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
+            .getEmbeddedParameters());
       }
       case SPHINGOLIPIDS -> {
-        return new SphingolipidFragmentFactory(mzTolRangeMSMS, lipid, ionization, rules,
-            new SimpleDataPoint(dataPoint.getMZ(), dataPoint.getIntensity()), msmsScan,
+        return new SphingolipidFragmentFactory(mzTolRangeMSMS, lipid, ionization, rules, msmsScan,
             parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
                 .getEmbeddedParameters());
       }
       case STEROLLIPIDS -> {
-        return new SterollipidFragmentFactory(mzTolRangeMSMS, lipid, ionization, rules,
-            new SimpleDataPoint(dataPoint.getMZ(), dataPoint.getIntensity()), msmsScan,
+        return new SterollipidFragmentFactory(mzTolRangeMSMS, lipid, ionization, rules, msmsScan,
             parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
                 .getEmbeddedParameters());
       }
@@ -346,9 +335,8 @@ public class LipidAnnotationUtils {
       }
     }
     return new GlyceroAndGlyceroPhospholipidFragmentFactory(mzTolRangeMSMS, lipid, ionization,
-        rules, new SimpleDataPoint(dataPoint.getMZ(), dataPoint.getIntensity()), msmsScan,
-        parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
-            .getEmbeddedParameters());
+        rules, msmsScan, parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
+        .getEmbeddedParameters());
   }
 
   private static void onlyKeepBestAnnotations(Set<MatchedLipid> matchedLipids) {

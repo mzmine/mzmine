@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.Arrays;
 import java.util.Set;
@@ -82,7 +83,7 @@ public class MSMSLipidTools {
   }
 
   public static DataPoint[] deisotopeMassList(DataPoint[] massList, MZTolerance mzToleranceMS2) {
-    MassListDeisotoperParameters massListDeisotoperParameters = new MassListDeisotoperParameters();
+    ParameterSet massListDeisotoperParameters = new MassListDeisotoperParameters().cloneParameterSet();
     massListDeisotoperParameters.setParameter(MassListDeisotoperParameters.maximumCharge, 1);
     massListDeisotoperParameters.setParameter(MassListDeisotoperParameters.monotonicShape, true);
     massListDeisotoperParameters.setParameter(MassListDeisotoperParameters.mzTolerance,

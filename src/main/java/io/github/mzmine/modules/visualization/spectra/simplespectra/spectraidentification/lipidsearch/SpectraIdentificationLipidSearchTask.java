@@ -29,7 +29,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.GlyceroAndGlyceroPhospholipidFragmentFactory;
@@ -307,27 +306,23 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
   private void searchMsmsFragments(IonizationType ionization, ILipidAnnotation lipid) {
     LipidFragmentationRule[] rules = lipid.getLipidClass().getFragmentationRules();
     if (rules.length > 0) {
-      for (int i = 0; i < massList.length; i++) {
-        //TODO this needs to be reworked to allow searching for all lipid categories
-        Range<Double> mzTolRangeMSMS = mzTolerance.getToleranceRange(massList[i].getMZ());
-        ILipidFragmentFactory glyceroAndGlyceroPhospholipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
-            mzTolRangeMSMS, lipid, ionization, rules,
-            new SimpleDataPoint(massList[i].getMZ(), massList[i].getIntensity()), currentScan,
-            parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
-                .getEmbeddedParameters());
-        List<LipidFragment> annotatedFragments = glyceroAndGlyceroPhospholipidFragmentFactory.findLipidFragments();
-        for (LipidFragment annotatedFragment : annotatedFragments) {
-
-          if (annotatedFragment != null) {
-            double relMassDev = ((annotatedFragment.getMzExact() - massList[i].getMZ())
-                / annotatedFragment.getMzExact()) * 1000000;
-            annotatedMassList.put(massList[i],
-                annotatedFragment.getLipidClass().getAbbr() + " " + annotatedFragment.getRuleType()
-                    + " " + ionization.getAdductName() + ", Δ " + NumberFormat.getInstance()
-                    .format(relMassDev) + " ppm");
-          }
-        }
-      }
+      //TODO this needs to be reworked to allow searching for all lipid categories
+      ILipidFragmentFactory glyceroAndGlyceroPhospholipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
+          mzTolerance, lipid, ionization, rules, currentScan,
+          parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
+              .getEmbeddedParameters());
+      List<LipidFragment> annotatedFragments = glyceroAndGlyceroPhospholipidFragmentFactory.findLipidFragments();
+//        for (LipidFragment annotatedFragment : annotatedFragments) {
+//
+//          if (annotatedFragment != null) {
+//            double relMassDev = ((annotatedFragment.getMzExact() - massList[i].getMZ())
+//                / annotatedFragment.getMzExact()) * 1000000;
+//            annotatedMassList.put(massList[i],
+//                annotatedFragment.getLipidClass().getAbbr() + " " + annotatedFragment.getRuleType()
+//                    + " " + ionization.getAdductName() + ", Δ " + NumberFormat.getInstance()
+//                    .format(relMassDev) + " ppm");
+//          }
+//        }
     }
   }
 
