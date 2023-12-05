@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.group_imagecorrelate;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -47,20 +48,20 @@ public class ImageCorrelateGroupingParameters extends SimpleParameterSet {
    * Filter data points by minimum height
    */
   public static final DoubleParameter NOISE_LEVEL = new DoubleParameter(
-      "Intensity threshold for correlation",
-      "This intensity threshold is used to filter data points before feature shape correlation",
+      "Intensity threshold for co-localization",
+      "This intensity threshold is used to filter data points before image co-localization",
       MZmineCore.getConfiguration().getIntensityFormat(), 0d);
 
   public static final IntegerParameter MIN_NUMBER_OF_PIXELS = new IntegerParameter(
-      "Minimum number of correlating pixels",
-      "Minimum number of locations/pixels that must correlate", 0);
+      "Minimum number of co-located pixels",
+      "Minimum number of locations (pixels) that must be co-located", 0);
 
   public static final OptionalParameter<IntegerParameter> MEDIAN_FILTER_WINDOW = new OptionalParameter<>(
       new IntegerParameter("Median filter window",
           "Smooth over pixels to reduce noise and remove outliers", 3, true), true);
 
   public static final OptionalParameter<DoubleParameter> QUANTILE_THRESHOLD = new OptionalParameter<>(
-      new DoubleParameter("Ignore intensities not in quantile",
+      new DoubleParameter("Ignore intensities below percentile",
           "Only consider intensities above the selected percentile",
           MZmineCore.getConfiguration().getRTFormat(), 0.5, 0.0, 1.0), true);
 
@@ -81,8 +82,9 @@ public class ImageCorrelateGroupingParameters extends SimpleParameterSet {
 
   // Constructor
   public ImageCorrelateGroupingParameters() {
-    super(FEATURE_LISTS, NOISE_LEVEL, MIN_NUMBER_OF_PIXELS, MEDIAN_FILTER_WINDOW,
-        QUANTILE_THRESHOLD, HOTSPOT_REMOVAL, MEASURE, MIN_R, SUFFIX);
+    super(new Parameter[]{FEATURE_LISTS, NOISE_LEVEL, MIN_NUMBER_OF_PIXELS, MEDIAN_FILTER_WINDOW,
+            QUANTILE_THRESHOLD, HOTSPOT_REMOVAL, MEASURE, MIN_R, SUFFIX},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/group_imagecorrelate/image-colocalization.html");
   }
 
   @Override
