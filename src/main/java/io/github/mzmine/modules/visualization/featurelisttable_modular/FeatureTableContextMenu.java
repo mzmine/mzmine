@@ -382,10 +382,28 @@ public class FeatureTableContextMenu extends ContextMenu {
       MZmineCore.getDesktop().addTab(new ImageVisualizerTab(selectedFeature, params));
     });
 
-    //TODO only show when feature has relationship
+    //TODO find better solution to check if single feature list row has co-located images
     final MenuItem showCorrelatedImageFeaturesItem = new ConditionalMenuItem("Co-located images",
-        () -> !selectedRows.isEmpty() && selectedFeature != null
-            && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
+        () -> {
+          assert selectedFeature != null;
+          R2RMap<RowsRelationship> rowsRelationshipR2RMap = Objects.requireNonNull(
+              selectedFeature.getFeatureList()).getRowMap(Type.MS1_FEATURE_CORR);
+          List<FeatureListRow> allRows = selectedFeature.getFeatureList().getRows();
+          Map<FeatureListRow, Double> correlatedRows = new HashMap<>();
+          for (FeatureListRow row : allRows) {
+            assert rowsRelationshipR2RMap != null;
+            if (row != selectedRow
+                && rowsRelationshipR2RMap.get(selectedFeature.getRow(), row) != null) {
+              if (rowsRelationshipR2RMap.get(selectedFeature.getRow(), row).getScore() > 0) {
+                correlatedRows.put(row,
+                    rowsRelationshipR2RMap.get(selectedFeature.getRow(), row).getScore());
+              }
+            }
+          }
+          return (!selectedRows.isEmpty() && selectedFeature != null
+              && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile
+              && !correlatedRows.isEmpty());
+        });
     showCorrelatedImageFeaturesItem.setOnAction(e -> {
       showCorrelatedImageFeatures();
     });
@@ -713,6 +731,11 @@ public class FeatureTableContextMenu extends ContextMenu {
               rowsRelationshipR2RMap.get(selectedFeature.getRow(), row).getScore());
         }
       }
+    }
+
+    if (correlatedRows.isEmpty()) {
+      MZmineCore.getDesktop().displayErrorMessage("No co-located images found for selected image");
+      return;
     }
 
     List<Map.Entry<FeatureListRow, Double>> entryList = new ArrayList<>(correlatedRows.entrySet());
