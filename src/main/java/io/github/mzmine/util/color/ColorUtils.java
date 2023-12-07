@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -99,7 +99,7 @@ public class ColorUtils {
         (2 + (255 - rmean) / 256) * +Math.pow(+255 * (clr1.getBlue() - clr2.getBlue()), 2);
 
     final double sqrt = Math.sqrt(rterm + gterm + bterm);
-    logger.info(() -> "Color difference between %s and %s is %.3f".formatted(clr1, clr2, sqrt));
+    logger.finest(() -> "Color difference between %s and %s is %.3f".formatted(clr1, clr2, sqrt));
     return sqrt;
   }
 
