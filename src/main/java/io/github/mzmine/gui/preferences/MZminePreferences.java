@@ -265,7 +265,7 @@ public class MZminePreferences extends SimpleParameterSet {
   }
 
   private void updateChartColorsToTheme(Themes previousTheme, Themes theme) {
-    if (previousTheme != theme) {
+    if (previousTheme.isDark() != theme.isDark()) {
       final ChartThemeParameters chartParams = getValue(MZminePreferences.chartParam);
       final Color bgColor = chartParams.getValue(ChartThemeParameters.color);
       final FontSpecs axisFont = chartParams.getValue(ChartThemeParameters.axisLabelFont);
