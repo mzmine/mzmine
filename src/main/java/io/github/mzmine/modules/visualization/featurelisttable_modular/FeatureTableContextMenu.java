@@ -385,23 +385,24 @@ public class FeatureTableContextMenu extends ContextMenu {
     //TODO find better solution to check if single feature list row has co-located images
     final MenuItem showCorrelatedImageFeaturesItem = new ConditionalMenuItem("Co-located images",
         () -> {
+          if (selectedFeature == null) {
+            return false;
+          }
           R2RMap<RowsRelationship> rowsRelationshipR2RMap = Objects.requireNonNull(
-              selectedFeature.getFeatureList()).getRowMap(Type.MS1_FEATURE_CORR);
-          List<FeatureListRow> allRows = selectedFeature.getFeatureList().getRows();
+              selectedRow.getFeatureList()).getRowMap(Type.MS1_FEATURE_CORR);
+          List<FeatureListRow> allRows = selectedRow.getFeatureList().getRows();
           Map<FeatureListRow, Double> correlatedRows = new HashMap<>();
           for (FeatureListRow row : allRows) {
-            assert rowsRelationshipR2RMap != null;
-            if (row != selectedRow
-                && rowsRelationshipR2RMap.get(selectedFeature.getRow(), row) != null) {
-              if (rowsRelationshipR2RMap.get(selectedFeature.getRow(), row).getScore() > 0) {
-                correlatedRows.put(row,
-                    rowsRelationshipR2RMap.get(selectedFeature.getRow(), row).getScore());
+            if (rowsRelationshipR2RMap != null && row != selectedRow
+                && rowsRelationshipR2RMap.get(selectedRow, row) != null) {
+              if (rowsRelationshipR2RMap.get(selectedRow, row).getScore() > 0) {
+                correlatedRows.put(row, rowsRelationshipR2RMap.get(selectedRow, row).getScore());
               }
             }
           }
-          return (!selectedRows.isEmpty() && selectedFeature != null
-              && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile
-              && !correlatedRows.isEmpty());
+
+          return (rowsRelationshipR2RMap != null && !correlatedRows.isEmpty()
+              && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
         });
     showCorrelatedImageFeaturesItem.setOnAction(e -> {
       showCorrelatedImageFeatures();
@@ -717,17 +718,15 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void showCorrelatedImageFeatures() {
-    assert selectedFeature != null;
     R2RMap<RowsRelationship> rowsRelationshipR2RMap = Objects.requireNonNull(
-        selectedFeature.getFeatureList()).getRowMap(Type.MS1_FEATURE_CORR);
-    List<FeatureListRow> allRows = selectedFeature.getFeatureList().getRows();
+        selectedRow.getFeatureList()).getRowMap(Type.MS1_FEATURE_CORR);
+    List<FeatureListRow> allRows = selectedRow.getFeatureList().getRows();
     Map<FeatureListRow, Double> correlatedRows = new HashMap<>();
     for (FeatureListRow row : allRows) {
-      assert rowsRelationshipR2RMap != null;
-      if (row != selectedRow && rowsRelationshipR2RMap.get(selectedFeature.getRow(), row) != null) {
-        if (rowsRelationshipR2RMap.get(selectedFeature.getRow(), row).getScore() > 0) {
-          correlatedRows.put(row,
-              rowsRelationshipR2RMap.get(selectedFeature.getRow(), row).getScore());
+      if (rowsRelationshipR2RMap != null && row != selectedRow
+          && rowsRelationshipR2RMap.get(selectedRow, row) != null) {
+        if (rowsRelationshipR2RMap.get(selectedRow, row).getScore() > 0) {
+          correlatedRows.put(row, rowsRelationshipR2RMap.get(selectedRow, row).getScore());
         }
       }
     }
@@ -753,38 +752,44 @@ public class FeatureTableContextMenu extends ContextMenu {
     }
     SplitPane splitPaneH = new SplitPane();
     splitPaneH.setOrientation(Orientation.HORIZONTAL);
-    assert selectedFeature.getRow() != null;
+    assert selectedRow != null;
     ColocatedImagePane colocatedImagePane = new ColocatedImagePane(sortedCorrelatedRows);
-    splitPaneH.getItems()
-        .add(colocatedImagePane.createImagePlotForRow(selectedFeature.getRow(), 1.0));
+    splitPaneH.getItems().add(colocatedImagePane.createImagePlotForRow(selectedRow, 1.0));
     ScrollPane scrollPane = new ScrollPane(colocatedImagePane);
     scrollPane.setFitToWidth(true);
     scrollPane.setFitToHeight(true);
     dataPoints.sort(Comparator.comparingDouble(DataPoint::getMZ));
-    PseudoSpectrum pseudoMS = new SimplePseudoSpectrum(selectedFeature.getRawDataFile(), 1,
-        selectedFeature.getRT(), null, dataPoints.stream().mapToDouble(DataPoint::getMZ).toArray(),
-        dataPoints.stream().mapToDouble(DataPoint::getIntensity).toArray(),
-        Objects.requireNonNull(selectedFeature.getRepresentativeScan()).getPolarity(),
-        "Pseudo Spectrum of correlated Features", PseudoSpectrumType.MALDI_IMAGING);
-    SpectraVisualizerTab spectraVisualizerTab = new SpectraVisualizerTab(
-        selectedFeature.getRawDataFile(), pseudoMS, false, true);
-    spectraVisualizerTab.setText("Correlated images");
-    spectraVisualizerTab.loadRawData(pseudoMS);
-    PseudoSpectrum pseudoMSSelectedFeature = new SimplePseudoSpectrum(
-        selectedFeature.getRawDataFile(), 1, selectedFeature.getRT(), null,
-        new double[]{selectedFeature.getRow().getAverageMZ()},
-        new double[]{selectedFeature.getRow().getAverageHeight()},
-        Objects.requireNonNull(selectedFeature.getRepresentativeScan()).getPolarity(),
-        "Selected Feature", PseudoSpectrumType.MALDI_IMAGING);
-    spectraVisualizerTab.addDataSet(new ScanDataSet(pseudoMSSelectedFeature),
-        MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), false);
-    SplitPane splitPane = new SplitPane();
-    splitPane.setOrientation(Orientation.VERTICAL);
-    splitPaneH.getItems().add(spectraVisualizerTab.getMainPane());
-    splitPane.getItems().add(splitPaneH);
-    splitPane.getItems().add(scrollPane);
-    spectraVisualizerTab.setContent(splitPane);
-    MZmineCore.getDesktop().addTab(spectraVisualizerTab);
+    Feature feature;
+    if (selectedFeature != null) {
+      feature = selectedFeature;
+    } else {
+      feature = selectedRow.getBestFeature();
+    }
+    if (feature != null) {
+      PseudoSpectrum pseudoMS = new SimplePseudoSpectrum(feature.getRawDataFile(), 1,
+          feature.getRT(), null, dataPoints.stream().mapToDouble(DataPoint::getMZ).toArray(),
+          dataPoints.stream().mapToDouble(DataPoint::getIntensity).toArray(),
+          Objects.requireNonNull(feature.getRepresentativeScan()).getPolarity(),
+          "Pseudo Spectrum of correlated Features", PseudoSpectrumType.MALDI_IMAGING);
+      SpectraVisualizerTab spectraVisualizerTab = new SpectraVisualizerTab(feature.getRawDataFile(),
+          pseudoMS, false, true);
+      spectraVisualizerTab.setText("Correlated images");
+      spectraVisualizerTab.loadRawData(pseudoMS);
+      PseudoSpectrum pseudoMSSelectedFeature = new SimplePseudoSpectrum(feature.getRawDataFile(), 1,
+          feature.getRT(), null, new double[]{feature.getRow().getAverageMZ()},
+          new double[]{feature.getRow().getAverageHeight()},
+          Objects.requireNonNull(feature.getRepresentativeScan()).getPolarity(), "Selected Feature",
+          PseudoSpectrumType.MALDI_IMAGING);
+      spectraVisualizerTab.addDataSet(new ScanDataSet(pseudoMSSelectedFeature),
+          MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), false);
+      SplitPane splitPane = new SplitPane();
+      splitPane.setOrientation(Orientation.VERTICAL);
+      splitPaneH.getItems().add(spectraVisualizerTab.getMainPane());
+      splitPane.getItems().add(splitPaneH);
+      splitPane.getItems().add(scrollPane);
+      spectraVisualizerTab.setContent(splitPane);
+      MZmineCore.getDesktop().addTab(spectraVisualizerTab);
+    }
   }
 
   private void showDiaMsMsIons() {
