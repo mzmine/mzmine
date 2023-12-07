@@ -89,6 +89,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       ColorsFX.getSevenColorPalette(Vision.TRITANOPIA, true), "Tritanopia",
       ColorsFX.getPositiveColor(Vision.TRITANOPIA), ColorsFX.getNeutralColor(),
       ColorsFX.getNegativeColor(Vision.TRITANOPIA));
+
   /**
    * Access via {@link Vision}
    */
