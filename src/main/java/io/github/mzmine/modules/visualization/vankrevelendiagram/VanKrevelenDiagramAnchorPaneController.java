@@ -25,15 +25,11 @@
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
-import java.awt.Color;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.parameters.ParameterSet;
 import java.util.logging.Logger;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.XYPlot;
-import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 
 public class VanKrevelenDiagramAnchorPaneController {
@@ -42,86 +38,41 @@ public class VanKrevelenDiagramAnchorPaneController {
 
   @FXML
   private BorderPane plotPane;
+  @FXML
+  private BorderPane bubbleLegendPane;
+
+  private ParameterSet parameters;
+
+
+  private FeatureList featureList;
 
   @FXML
-  private Button blockSizeButton;
+  public void initialize(ParameterSet parameters) {
+    this.parameters = parameters.cloneParameterSet();
+    this.featureList = parameters.getParameter(VanKrevelenDiagramParameters.featureList).getValue()
+        .getMatchingFeatureLists()[0];
 
-  @FXML
-  private Button backgroundButton;
-
-  @FXML
-  private Button gridButton;
-
-  @FXML
-  private Button annotationButton;
-
-  // Plot style actions
-  @FXML
-  void toggleAnnotation(ActionEvent event) {
-    logger.finest("Toggle annotations");
-    XYPlot plot = getChart().getXYPlot();
-    XYBlockPixelSizeRenderer renderer = (XYBlockPixelSizeRenderer) plot.getRenderer();
-    Boolean itemNameVisible = renderer.getDefaultItemLabelsVisible();
-    if (itemNameVisible == false) {
-      renderer.setDefaultItemLabelsVisible(true);
+    String title = "Van Krevelen Diagram of" + featureList;
+    String zAxisLabel = parameters.getParameter(VanKrevelenDiagramParameters.colorScaleValues)
+        .getValue().getName();
+    VanKrevelenDiagramXYZDataset vanKrevelenDiagramXYZDataset = new VanKrevelenDiagramXYZDataset(
+        parameters);
+    if (vanKrevelenDiagramXYZDataset.getItemCount(0) > 0) {
+      VanKrevelenDiagramChart vanKrevelenDiagramChart = new VanKrevelenDiagramChart(title, "O/C",
+          "H/C", zAxisLabel, vanKrevelenDiagramXYZDataset);
+      VanKrevelenDiagramBubbleLegend vanKrevelenDiagramBubbleLegend = new VanKrevelenDiagramBubbleLegend(
+          vanKrevelenDiagramXYZDataset);
+      plotPane.setCenter(vanKrevelenDiagramChart);
+      bubbleLegendPane.setCenter(vanKrevelenDiagramBubbleLegend);
     } else {
-      renderer.setDefaultItemLabelsVisible(false);
+      plotPane.setCenter(new Label(
+          "Nothing to plot. Check if the selected feature list has annotations. A Van Krevelen Diagram requires molecular formulas."));
     }
-    if (plot.getBackgroundPaint() == Color.BLACK) {
-      renderer.setDefaultItemLabelPaint(Color.WHITE);
-    } else {
-      renderer.setDefaultItemLabelPaint(Color.BLACK);
-    }
+
   }
 
-  @FXML
-  void toggleBackColor(ActionEvent event) {
-    logger.finest("Toggle background");
-    XYPlot plot = getChart().getXYPlot();
-    if (plot.getBackgroundPaint() == Color.WHITE) {
-      plot.setBackgroundPaint(Color.BLACK);
-    } else {
-      plot.setBackgroundPaint(Color.WHITE);
-    }
-  }
-
-  @FXML
-  void toggleBolckSize(ActionEvent event) {
-    logger.finest("Toggle block size");
-    XYPlot plot = getChart().getXYPlot();
-    XYBlockPixelSizeRenderer renderer = (XYBlockPixelSizeRenderer) plot.getRenderer();
-    int height = (int) renderer.getBlockHeightPixel();
-
-    if (height == 1) {
-      height++;
-    } else if (height == 5) {
-      height = 1;
-    } else if (height < 5 && height != 1) {
-      height++;
-    }
-    renderer.setBlockHeightPixel(height);
-    renderer.setBlockWidthPixel(height);
-  }
-
-  @FXML
-  void toggleGrid(ActionEvent event) {
-    logger.finest("Toggle grid");
-    XYPlot plot = getChart().getXYPlot();
-    if (plot.getDomainGridlinePaint() == Color.BLACK) {
-      plot.setDomainGridlinePaint(Color.WHITE);
-      plot.setRangeGridlinePaint(Color.WHITE);
-    } else {
-      plot.setDomainGridlinePaint(Color.BLACK);
-      plot.setRangeGridlinePaint(Color.BLACK);
-    }
-  }
-
-  private JFreeChart getChart() {
-    if (plotPane.getChildren().get(0) instanceof EChartViewer) {
-      EChartViewer viewer = (EChartViewer) plotPane.getChildren().get(0);
-      return viewer.getChart();
-    }
-    return null;
+  public FeatureList getFeatureList() {
+    return featureList;
   }
 
   public BorderPane getPlotPane() {

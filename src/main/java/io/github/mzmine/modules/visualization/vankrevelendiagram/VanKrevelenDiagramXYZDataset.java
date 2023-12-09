@@ -25,224 +25,209 @@
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.util.ArrayList;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
+import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.FormulaUtils;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import org.jfree.data.xy.AbstractXYZDataset;
+import org.openscience.cdk.config.Elements;
+import org.openscience.cdk.interfaces.IElement;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /*
  * XYZDataset for Van Krevelen diagram
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
-class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
+class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements XYZBubbleDataset {
 
-  private static final long serialVersionUID = 1L;
+  private final ParameterSet parameters;
+  private final List<FeatureListRow> filteredRows;
+  private final double[] xValues;
+  private final double[] yValues;
+  private final double[] colorScaleValues;
+  private final double[] bubbleSizeValues;
+  private VanKrevelenDiagramDataTypes bubbleVanKrevelenDataType;
 
-  private FeatureListRow filteredRows[];
-  private int numberOfDatapoints = 0;
-  private double[] xValues;
-  private double[] yValues;
-  private double[] zValues;
 
-  public VanKrevelenDiagramXYZDataset(String zAxisLabel, FeatureListRow[] filteredRows) {
+  public VanKrevelenDiagramXYZDataset(ParameterSet parameters) {
+    FeatureList featureList = parameters.getParameter(VanKrevelenDiagramParameters.featureList)
+        .getValue().getMatchingFeatureLists()[0];
+    this.parameters = parameters.cloneParameterSet();
+    FeatureListRow[] selectedRows = featureList.getRows().toArray(new FeatureListRow[0]);
+    filteredRows = Arrays.stream(selectedRows)
+        .filter(featureListRow -> featureListRow.getPreferredAnnotation() != null).toList();
+    xValues = new double[filteredRows.size()];
+    yValues = new double[filteredRows.size()];
+    colorScaleValues = new double[filteredRows.size()];
+    bubbleSizeValues = new double[filteredRows.size()];
+    init();
+  }
 
-    this.filteredRows = filteredRows;
+  private void init() {
+    initElementRatioValues(Elements.ofString("O").toIElement(), Elements.ofString("C").toIElement(),
+        xValues);
+    initElementRatioValues(Elements.ofString("H").toIElement(), Elements.ofString("C").toIElement(),
+        yValues);
+    initDimensionValues(colorScaleValues,
+        parameters.getParameter(VanKrevelenDiagramParameters.colorScaleValues).getValue());
+    initDimensionValues(bubbleSizeValues,
+        parameters.getParameter(VanKrevelenDiagramParameters.bubbleSizeValues).getValue());
+    bubbleVanKrevelenDataType = parameters.getParameter(
+        VanKrevelenDiagramParameters.bubbleSizeValues).getValue();
+  }
 
-    ArrayList<Integer> numberOfCAtoms = new ArrayList<Integer>();
-    ArrayList<Integer> numberOfOAtoms = new ArrayList<Integer>();
-    ArrayList<Integer> numberOfHAtoms = new ArrayList<Integer>();
-    ArrayList<Double> zValuesList = new ArrayList<Double>();
-    // get number of atoms
-    int atomsC = 0;
-    int atomsO = 0;
-    int atomsH = 0;
-    for (int i = 0; i < filteredRows.length; i++) {
-      atomsC = getNumberOfCAtoms(filteredRows[i]);
-      atomsO = getNumberOfOAtoms(filteredRows[i]);
-      atomsH = getNumberOfHAtoms(filteredRows[i]);
-      if (atomsC != 0 && atomsO != 0 && atomsH != 0) {
-        numberOfCAtoms.add(atomsC);
-        numberOfOAtoms.add(atomsO);
-        numberOfHAtoms.add(atomsH);
-        // plot selected feature characteristic as z Axis
-        if (zAxisLabel.equals("Retention time")) {
-          zValuesList.add((double) filteredRows[i].getAverageRT());
-        } else if (zAxisLabel.equals("Intensity")) {
-          zValuesList.add(filteredRows[i].getAverageHeight().doubleValue());
-        } else if (zAxisLabel.equals("Area")) {
-          zValuesList.add(filteredRows[i].getAverageArea().doubleValue());
-        } else if (zAxisLabel.equals("Tailing factor")) {
-          zValuesList.add((double) filteredRows[i].getBestFeature().getTailingFactor());
-        } else if (zAxisLabel.equals("Asymmetry factor")) {
-          zValuesList.add((double) filteredRows[i].getBestFeature().getAsymmetryFactor());
-        } else if (zAxisLabel.equals("FWHM")) {
-          zValuesList.add((double) filteredRows[i].getBestFeature().getFWHM());
-        } else if (zAxisLabel.equals("m/z")) {
-          zValuesList.add(filteredRows[i].getBestFeature().getMZ());
+  private void initElementRatioValues(IElement elementOne, IElement elementTwo, double[] values) {
+    List<Object> annotations = filteredRows.stream().map(FeatureListRow::getPreferredAnnotation)
+        .toList();
+    for (int i = 0; i < annotations.size(); i++) {
+      switch (annotations.get(i)) {
+        case MatchedLipid lipid -> {
+          int elementOneCount = MolecularFormulaManipulator.getElementCount(
+              lipid.getLipidAnnotation().getMolecularFormula(), elementOne);
+          int elementTwoCount = MolecularFormulaManipulator.getElementCount(
+              lipid.getLipidAnnotation().getMolecularFormula(), elementTwo);
+          if (elementOneCount > 0 && elementTwoCount > 0) {
+            values[i] = (double) elementOneCount / elementTwoCount;
+          } else {
+            values[i] = 0.0;
+          }
         }
-
+        case FeatureAnnotation ann -> {
+          int elementOneCount = MolecularFormulaManipulator.getElementCount(
+              Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormula(ann.getFormula())),
+              elementOne);
+          int elementTwoCount = MolecularFormulaManipulator.getElementCount(
+              Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormula(ann.getFormula())),
+              elementTwo);
+          if (elementOneCount > 0 && elementTwoCount > 0) {
+            values[i] = (double) elementOneCount / elementTwoCount;
+          } else {
+            values[i] = 0.0;
+          }
+        }
+        case ManualAnnotation ann -> {
+          int elementOneCount = MolecularFormulaManipulator.getElementCount(
+              Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormula(ann.getFormula())),
+              elementOne);
+          int elementTwoCount = MolecularFormulaManipulator.getElementCount(
+              Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormula(ann.getFormula())),
+              elementTwo);
+          if (elementOneCount > 0 && elementTwoCount > 0) {
+            values[i] = (double) elementOneCount / elementTwoCount;
+          } else {
+            values[i] = 0.0;
+          }
+        }
+        case MolecularFormulaIdentity ann -> {
+          int elementOneCount = MolecularFormulaManipulator.getElementCount(Objects.requireNonNull(
+              FormulaUtils.createMajorIsotopeMolFormula(ann.getFormulaAsString())), elementOne);
+          int elementTwoCount = MolecularFormulaManipulator.getElementCount(Objects.requireNonNull(
+              FormulaUtils.createMajorIsotopeMolFormula(ann.getFormulaAsString())), elementTwo);
+          if (elementOneCount > 0 && elementTwoCount > 0) {
+            values[i] = (double) elementOneCount / elementTwoCount;
+          } else {
+            values[i] = 0.0;
+          }
+        }
+        default -> throw new IllegalStateException("Unexpected value: " + annotations.get(i));
       }
-    }
-    numberOfDatapoints = numberOfCAtoms.size();
-    // Calc xValues
-    xValues = new double[numberOfCAtoms.size()];
-    for (int i = 0; i < numberOfCAtoms.size(); i++) {
-      // calc the ratio of O/C
-      xValues[i] = (double) numberOfOAtoms.get(i) / numberOfCAtoms.get(i);
-    } // Calc yValues
-    yValues = new double[numberOfCAtoms.size()];
-    for (int i = 0; i < numberOfCAtoms.size(); i++) {
-      // calc the ratio of H/C
-      yValues[i] = (double) numberOfHAtoms.get(i) / numberOfCAtoms.get(i);
-    }
-    zValues = new double[numberOfCAtoms.size()];
-    for (int i = 0; i < numberOfCAtoms.size(); i++) {
-      // get intensity
-      zValues[i] = zValuesList.get(i);
     }
   }
 
-  private int getNumberOfCAtoms(FeatureListRow row) {
-    int numberOfCAtoms = 0;
-    if (row.getPreferredFeatureIdentity() != null) {
-      String rowName = row.getPreferredFeatureIdentity().getPropertyValue("Molecular formula");
-      int indexC = 0;
-      int indexNextAtom = 0;
-      int nextAtomCounter = 0;
-      String numberOfC = null;
-      boolean hasC = false;
-      // Loop through every char and check for "C"
-      for (int i = 0; i < rowName.length(); i++) {
-        // get C index
-        if (rowName.charAt(i) == 'C') {
-          hasC = true;
-          indexC = i;
-          // get index of next Atom
-          for (int j = i + 1; j < rowName.length(); j++) {
-            if (Character.isAlphabetic(rowName.charAt(j)) && nextAtomCounter == 0) {
-              indexNextAtom = j;
-              nextAtomCounter++;
-            }
-          }
-          // check if searched atom number is last atom of formula
-          if (nextAtomCounter == 0) {
-            // check how many digits for last Atom index
-            indexNextAtom = rowName.length();
-          }
-        }
-
+  private void initDimensionValues(double[] values,
+      VanKrevelenDiagramDataTypes vanKrevelenDiagramDataType) {
+    switch (vanKrevelenDiagramDataType) {
+      case M_OVER_Z -> {
+        useMZ(values);
       }
-      if (hasC == true) {
-        numberOfC = rowName.substring(indexC + 1, indexNextAtom);
-        if (numberOfC.equals("") == true) {
-          numberOfCAtoms = 1;
-        } else {
-          numberOfCAtoms = Integer.parseInt(numberOfC);
-        }
-      } else {
-        numberOfCAtoms = 0;
+      case RETENTION_TIME -> {
+        useRT(values);
       }
-      return numberOfCAtoms;
+      case MOBILITY -> {
+        useMobility(values);
+      }
+      case INTENSITY -> {
+        useIntensity(values);
+      }
+      case AREA -> {
+        useArea(values);
+      }
+      case TAILING_FACTOR -> {
+        useTailingFactor(values);
+      }
+      case ASYMMETRY_FACTOR -> {
+        useAsymmetryFactor(values);
+      }
+      case FWHM -> {
+        useFwhm(values);
+      }
     }
-
-    return numberOfCAtoms;
   }
 
-  private int getNumberOfOAtoms(FeatureListRow row) {
-    int numberOfOAtoms = 0;
-    if (row.getPreferredFeatureIdentity() != null) {
-      String rowName = row.getPreferredFeatureIdentity().getPropertyValue("Molecular formula");
-      int indexO = 0;
-      int indexNextAtom = 0;
-      int nextAtomCounter = 0;
-      String numberOfO = null;
-      boolean hasO = false;
-      // Loop through every char and check for "C"
-      for (int i = 0; i < rowName.length(); i++) {
-        // get C index
-        if (rowName.charAt(i) == 'O') {
-          hasO = true;
-          indexO = i;
-          // get index of next Atom
-          for (int j = i + 1; j < rowName.length(); j++) {
-            if (Character.isAlphabetic(rowName.charAt(j)) && nextAtomCounter == 0) {
-              indexNextAtom = j;
-              nextAtomCounter++;
-            }
-          }
-          // check if searched atom number is last atom of formula
-          if (nextAtomCounter == 0) {
-            // check how many digits for last Atom index
-            indexNextAtom = rowName.length();
-          }
-        }
-
-      }
-      if (hasO == true) {
-        numberOfO = rowName.substring(indexO + 1, indexNextAtom);
-        if (numberOfO.equals("") == true) {
-          numberOfOAtoms = 1;
-        } else {
-          numberOfOAtoms = Integer.parseInt(numberOfO);
-        }
-      } else {
-        numberOfOAtoms = 0;
-      }
-      return numberOfOAtoms;
+  private void useFwhm(double[] values) {
+    for (int i = 0; i < filteredRows.size(); i++) {
+      values[i] = filteredRows.get(i).getBestFeature().getFWHM();
     }
-
-    return numberOfOAtoms;
   }
 
-  private int getNumberOfHAtoms(FeatureListRow row) {
-    int numberOfHAtoms = 0;
-    if (row.getPreferredFeatureIdentity() != null) {
-      String rowName = row.getPreferredFeatureIdentity().getPropertyValue("Molecular formula");
-      int indexH = 0;
-      int indexNextAtom = 0;
-      int nextAtomCounter = 0;
-      String numberOfH = null;
-      boolean hasC = false;
-      // Loop through every char and check for "C"
-      for (int i = 0; i < rowName.length(); i++) {
-        // get C index
-        if (rowName.charAt(i) == 'H') {
-          hasC = true;
-          indexH = i;
-          // get index of next Atom
-          for (int j = i + 1; j < rowName.length(); j++) {
-            if (Character.isAlphabetic(rowName.charAt(j)) && nextAtomCounter == 0) {
-              indexNextAtom = j;
-              nextAtomCounter++;
-            }
-          }
-          // check if searched atom number is last atom of formula
-          if (nextAtomCounter == 0) {
-            // check how many digits for last Atom index
-            indexNextAtom = rowName.length();
-          }
-        }
-
-      }
-      if (hasC == true) {
-        numberOfH = rowName.substring(indexH + 1, indexNextAtom);
-        if (numberOfH.equals("") == true) {
-          numberOfHAtoms = 1;
-        } else {
-          numberOfHAtoms = Integer.parseInt(numberOfH);
-        }
-      } else {
-        numberOfHAtoms = 0;
-      }
-      return numberOfHAtoms;
+  private void useAsymmetryFactor(double[] values) {
+    for (int i = 0; i < filteredRows.size(); i++) {
+      values[i] = filteredRows.get(i).getBestFeature().getAsymmetryFactor();
     }
+  }
 
-    return numberOfHAtoms;
+  private void useTailingFactor(double[] values) {
+    for (int i = 0; i < filteredRows.size(); i++) {
+      values[i] = filteredRows.get(i).getBestFeature().getTailingFactor();
+    }
+  }
+
+  private void useArea(double[] values) {
+    for (int i = 0; i < filteredRows.size(); i++) {
+      values[i] = filteredRows.get(i).getAverageArea();
+    }
+  }
+
+  private void useIntensity(double[] values) {
+    for (int i = 0; i < filteredRows.size(); i++) {
+      values[i] = filteredRows.get(i).getAverageHeight();
+    }
+  }
+
+  private void useMobility(double[] values) {
+    for (int i = 0; i < filteredRows.size(); i++) {
+      if (filteredRows.get(i).getAverageMobility() != null) {
+        values[i] = filteredRows.get(i).getAverageMobility();
+      } else {
+        values[i] = 0;
+      }
+    }
+  }
+
+  private void useRT(double[] values) {
+    for (int i = 0; i < filteredRows.size(); i++) {
+      values[i] = filteredRows.get(i).getAverageRT();
+    }
+  }
+
+  private void useMZ(double[] values) {
+    for (int i = 0; i < filteredRows.size(); i++) {
+      values[i] = filteredRows.get(i).getAverageMZ();
+    }
   }
 
   @Override
   public int getItemCount(int series) {
-    return numberOfDatapoints;
+    return xValues.length;
   }
 
   @Override
@@ -257,8 +242,19 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
 
   @Override
   public Number getZ(int series, int item) {
-    return zValues[item];
+    return colorScaleValues[item];
   }
+
+  @Override
+  public Number getBubbleSize(int series, int item) {
+    return bubbleSizeValues[item];
+  }
+
+  @Override
+  public double getBubbleSizeValue(int series, int item) {
+    return bubbleSizeValues[item];
+  }
+
 
   @Override
   public int getSeriesCount() {
@@ -266,7 +262,7 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
   }
 
   public Comparable<?> getRowKey(int row) {
-    return filteredRows[row].toString();
+    return filteredRows.get(row).toString();
   }
 
   @Override
@@ -282,8 +278,15 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
     return yValues;
   }
 
-  public double[] getzValues() {
-    return zValues;
+  public double[] getColorScaleValues() {
+    return colorScaleValues;
   }
 
+  public double[] getBubbleSizeValues() {
+    return bubbleSizeValues;
+  }
+
+  public VanKrevelenDiagramDataTypes getBubbleVanKrevelenDataType() {
+    return bubbleVanKrevelenDataType;
+  }
 }

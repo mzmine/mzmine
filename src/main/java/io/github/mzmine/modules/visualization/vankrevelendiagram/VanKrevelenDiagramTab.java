@@ -28,7 +28,6 @@ package io.github.mzmine.modules.visualization.vankrevelendiagram;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.parameters.ParameterSet;
 import java.io.IOException;
@@ -37,20 +36,17 @@ import java.util.Collection;
 import java.util.Collections;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
 import org.jetbrains.annotations.NotNull;
 
 public class VanKrevelenDiagramTab extends MZmineTab {
-  private FeatureList featureList;
 
-  public VanKrevelenDiagramTab(ParameterSet parameters, EChartViewer chartViewer) {
+  private final VanKrevelenDiagramAnchorPaneController controller;
+
+  public VanKrevelenDiagramTab(ParameterSet parameters) {
     super("Van Krevelen Diagram", true, false);
 
-    featureList = parameters.getParameter(VanKrevelenDiagramParameters.featureList).getValue()
-        .getMatchingFeatureLists()[0];
-
-    FXMLLoader loader =
-        new FXMLLoader((getClass().getResource("VanKrevelenDiagramAnchorPane.fxml")));
+    FXMLLoader loader = new FXMLLoader(
+        (getClass().getResource("VanKrevelenDiagramAnchorPane.fxml")));
 
     AnchorPane root = null;
     try {
@@ -61,24 +57,22 @@ public class VanKrevelenDiagramTab extends MZmineTab {
     }
 
     // Get controller
-    VanKrevelenDiagramAnchorPaneController controller = loader.getController();
-    BorderPane plotPane = controller.getPlotPane();
-    plotPane.setCenter(chartViewer);
-
+    controller = loader.getController();
+    controller.initialize(parameters);
     setContent(root);
   }
 
   @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
-    return featureList.getRawDataFiles();
+    return controller.getFeatureList().getRawDataFiles();
   }
 
   @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
-    return
-        new ArrayList<>(Collections.singletonList((ModularFeatureList)featureList));
+    return new ArrayList<>(
+        Collections.singletonList((ModularFeatureList) controller.getFeatureList()));
   }
 
   @NotNull
