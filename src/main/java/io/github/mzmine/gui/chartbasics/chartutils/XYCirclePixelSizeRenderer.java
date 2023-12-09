@@ -25,6 +25,8 @@
 
 package io.github.mzmine.gui.chartbasics.chartutils;
 
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
+import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYDataset;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -52,8 +54,6 @@ import org.jfree.data.Range;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
-import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYDataset;
-import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYZDataset;
 
 /**
  * A renderer that represents data from an {@link XYZDataset} by drawing a circle at each (x,
@@ -332,13 +332,13 @@ public class XYCirclePixelSizeRenderer extends AbstractXYItemRenderer
         specificDatasetColor = ((KendrickMassPlotXYDataset) dataset).getColor();
       }
     }
-    if (dataset instanceof KendrickMassPlotXYZDataset) {
-      z = ((KendrickMassPlotXYZDataset) dataset).getZValue(series, item);
-      double[] bubbleSizeValues = ((KendrickMassPlotXYZDataset) dataset).getBubbleSizeValues();
+    if (dataset instanceof XYZBubbleDataset) {
+      z = ((XYZBubbleDataset) dataset).getZValue(series, item);
+      double[] bubbleSizeValues = ((XYZBubbleDataset) dataset).getBubbleSizeValues();
       minBubbleSize = Arrays.stream(bubbleSizeValues).min().getAsDouble();
       maxBubbleSize = Arrays.stream(bubbleSizeValues).max().getAsDouble();
       bubbleSize = scaleBubbeSize(minBubbleSize, maxBubbleSize,
-          ((KendrickMassPlotXYZDataset) dataset).getBubbleSize(series, item));
+          ((XYZBubbleDataset) dataset).getBubbleSizeValue(series, item));
     }
 
     // create new color with alpha

@@ -25,18 +25,19 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
-import org.jfree.data.xy.AbstractXYZDataset;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FormulaUtils;
+import org.jfree.data.xy.AbstractXYZDataset;
 
 /**
  * XYZDataset for Kendrick mass plots
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
+public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements XYZBubbleDataset {
 
   private static final long serialVersionUID = 1L;
 
@@ -208,7 +209,12 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
     return zValues[item];
   }
 
-  public double getBubbleSize(int series, int item) {
+  public Number getBubbleSize(int series, int item) {
+    return bubbleSizeValues[item];
+  }
+
+  @Override
+  public double getBubbleSizeValue(int series, int item) {
     return bubbleSizeValues[item];
   }
 
