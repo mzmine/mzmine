@@ -84,11 +84,11 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN, minChainLength, maxChainLength,
         minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : sphingolipidBackboneChains) {
       IMolecularFormula sphingosineFormula = lipidChain.getChainMolecularFormula();
       rule.getIonizationType().ionizeFormula(sphingosineFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(sphingosineFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       double mzValue = 0.0;
@@ -114,11 +114,11 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN, minChainLength, maxChainLength,
         minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : sphingolipidBackboneChains) {
       IMolecularFormula sphingosineFormula = lipidChain.getChainMolecularFormula();
       rule.getIonizationType().ionizeFormula(sphingosineFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(sphingosineFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       double mzValue = 0.0;
@@ -144,11 +144,11 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN, minChainLength, maxChainLength,
         minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : sphingolipidBackboneChains) {
       IMolecularFormula sphingosineFormula = lipidChain.getChainMolecularFormula();
       rule.getIonizationType().ionizeFormula(sphingosineFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(sphingosineFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       double mzValue = 0.0;
@@ -165,7 +165,7 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
             msMsScan));
       }
     }
-    return null;
+    return matchedFragments;
   }
 
   private List<LipidFragment> checkForSphingolipidMonoHydroxyChainAndSubstructureNLFragment(
@@ -176,13 +176,13 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN, minChainLength, maxChainLength,
         minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : sphingolipidBackboneChains) {
       IMolecularFormula sphingosineFormula = lipidChain.getChainMolecularFormula();
       IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(sphingosineFormula,
           modificationFormula);
       rule.getIonizationType().ionizeFormula(fragmentFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(fragmentFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       double mzValue = 0.0;
@@ -199,7 +199,7 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
             LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN, msMsScan));
       }
     }
-    return null;
+    return matchedFragments;
   }
 
 
@@ -211,13 +211,13 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN, minChainLength, maxChainLength,
         minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : sphingolipidBackboneChains) {
       IMolecularFormula sphingosineFormula = lipidChain.getChainMolecularFormula();
       IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(sphingosineFormula,
           modificationFormula);
       ionizeFragmentBasedOnPolarity(fragmentFormula, rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(fragmentFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       double mzValue = 0.0;
@@ -234,7 +234,7 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
             msMsScan));
       }
     }
-    return null;
+    return matchedFragments;
   }
 
   private List<LipidFragment> checkForSphingolipidTriHydroxyChainAndSubstructureNLFragment(
@@ -245,14 +245,13 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN, minChainLength, maxChainLength,
         minDoubleBonds, maxDoubleBonds, onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : sphingolipidBackboneChains) {
       IMolecularFormula sphingosineFormula = lipidChain.getChainMolecularFormula();
       IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(sphingosineFormula,
           modificationFormula);
       ionizeFragmentBasedOnPolarity(fragmentFormula, rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(fragmentFormula);
-
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       double mzValue = 0.0;
@@ -269,7 +268,7 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
             msMsScan));
       }
     }
-    return null;
+    return matchedFragments;
   }
 
 }

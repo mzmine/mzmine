@@ -196,11 +196,11 @@ public abstract class AbstractLipidFragmentFactory {
           LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
           onlySearchForEvenChains);
       List<LipidFragment> matchedFragments = new ArrayList<>();
+      MassList massList = msMsScan.getMassList();
       for (ILipidChain lipidChain : fattyAcylChains) {
         IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
         IonizationType.NEGATIVE_HYDROGEN.ionizeFormula(lipidChainFormula);
         Double mzExact = FormulaUtils.calculateMzRatio(lipidChainFormula);
-        MassList massList = msMsScan.getMassList();
         int index = massList.binarySearch(mzExact, true);
         boolean fragmentMatched = false;
         BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -227,6 +227,7 @@ public abstract class AbstractLipidFragmentFactory {
         LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : fattyAcylChains) {
       IMolecularFormula lipidFormula = null;
       try {
@@ -239,7 +240,6 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
           lipidChainFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(fragmentFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -265,6 +265,7 @@ public abstract class AbstractLipidFragmentFactory {
         LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : fattyAcylChains) {
       IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
       IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidChainFormula,
@@ -272,7 +273,6 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
           rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -298,6 +298,7 @@ public abstract class AbstractLipidFragmentFactory {
         LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : fattyAcylChains) {
       IMolecularFormula lipidFormula = null;
       try {
@@ -312,7 +313,6 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula lipidMinusFragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
           fragmentFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(lipidMinusFragmentFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -339,6 +339,7 @@ public abstract class AbstractLipidFragmentFactory {
         LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : fattyAcylChains) {
       IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
       IMolecularFormula fragmentFormula = FormulaUtils.addFormula(lipidChainFormula,
@@ -346,7 +347,6 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
           rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -372,6 +372,7 @@ public abstract class AbstractLipidFragmentFactory {
     List<ILipidChain> fattyAcylChains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(
         LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : fattyAcylChains) {
       IMolecularFormula lipidFormula = null;
       try {
@@ -386,7 +387,6 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula lipidMinusFragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
           fragmentFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(lipidMinusFragmentFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -415,6 +415,7 @@ public abstract class AbstractLipidFragmentFactory {
         LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain1 : fattyAcylChainsOne) {
       IMolecularFormula lipidChainFormulaOne = lipidChain1.getChainMolecularFormula();
       for (ILipidChain lipidChain2 : fattyAcylChainsTwo) {
@@ -426,7 +427,6 @@ public abstract class AbstractLipidFragmentFactory {
         IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
             rule.getPolarityType());
         Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-        MassList massList = msMsScan.getMassList();
         int index = massList.binarySearch(mzExact, true);
         boolean fragmentMatched = false;
         BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -453,6 +453,7 @@ public abstract class AbstractLipidFragmentFactory {
         LipidChainType.ALKYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : alkylChains) {
       IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
       IMolecularFormula fragmentFormula = FormulaUtils.addFormula(lipidChainFormula,
@@ -460,7 +461,6 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
           rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -485,12 +485,12 @@ public abstract class AbstractLipidFragmentFactory {
           LipidChainType.AMID_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
           onlySearchForEvenChains);
       List<LipidFragment> matchedFragments = new ArrayList<>();
+      MassList massList = msMsScan.getMassList();
       for (ILipidChain lipidChain : fattyAcylChains) {
         IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
         IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(lipidChainFormula,
             rule.getPolarityType());
         Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-        MassList massList = msMsScan.getMassList();
         int index = massList.binarySearch(mzExact, true);
         boolean fragmentMatched = false;
         BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -518,6 +518,7 @@ public abstract class AbstractLipidFragmentFactory {
         LipidChainType.AMID_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : amidChains) {
       IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
       IMolecularFormula fragmentFormula = FormulaUtils.addFormula(lipidChainFormula,
@@ -525,7 +526,6 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
           rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -551,6 +551,7 @@ public abstract class AbstractLipidFragmentFactory {
         LipidChainType.AMID_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : amidChains) {
       IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
       IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidChainFormula,
@@ -558,7 +559,6 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
           rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -584,11 +584,11 @@ public abstract class AbstractLipidFragmentFactory {
           LipidChainType.AMID_MONO_HYDROXY_CHAIN, minChainLength, maxChainLength, minDoubleBonds,
           maxDoubleBonds, onlySearchForEvenChains);
       List<LipidFragment> matchedFragments = new ArrayList<>();
+      MassList massList = msMsScan.getMassList();
       for (ILipidChain lipidChain : fattyAcylChains) {
         IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
         ionizeFragmentBasedOnPolarity(lipidChainFormula, rule.getPolarityType());
         Double mzExact = FormulaUtils.calculateMzRatio(lipidChainFormula);
-        MassList massList = msMsScan.getMassList();
         int index = massList.binarySearch(mzExact, true);
         boolean fragmentMatched = false;
         BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -616,6 +616,7 @@ public abstract class AbstractLipidFragmentFactory {
         LipidChainType.AMID_MONO_HYDROXY_CHAIN, minChainLength, maxChainLength, minDoubleBonds,
         maxDoubleBonds, onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : amidChains) {
       IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
       IMolecularFormula fragmentFormula = FormulaUtils.addFormula(lipidChainFormula,
@@ -623,7 +624,6 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
           rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -649,6 +649,7 @@ public abstract class AbstractLipidFragmentFactory {
         LipidChainType.AMID_MONO_HYDROXY_CHAIN, minChainLength, maxChainLength, minDoubleBonds,
         maxDoubleBonds, onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : amidChains) {
       IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
       IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidChainFormula,
@@ -656,7 +657,6 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
           rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -680,6 +680,7 @@ public abstract class AbstractLipidFragmentFactory {
         LipidChainType.AMID_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : amidChains) {
       IMolecularFormula lipidFormula = null;
       try {
@@ -692,7 +693,6 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
           lipidChainFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(fragmentFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -718,6 +718,7 @@ public abstract class AbstractLipidFragmentFactory {
         LipidChainType.AMID_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : amidChains) {
       IMolecularFormula lipidFormula = null;
       try {
@@ -732,7 +733,6 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula lipidMinusFragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
           fragmentFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(lipidMinusFragmentFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -758,6 +758,7 @@ public abstract class AbstractLipidFragmentFactory {
         LipidChainType.AMID_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
         onlySearchForEvenChains);
     List<LipidFragment> matchedFragments = new ArrayList<>();
+    MassList massList = msMsScan.getMassList();
     for (ILipidChain lipidChain : amidChains) {
       IMolecularFormula lipidFormula = null;
       try {
@@ -772,7 +773,6 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula lipidMinusFragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
           fragmentFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(lipidMinusFragmentFormula);
-      MassList massList = msMsScan.getMassList();
       int index = massList.binarySearch(mzExact, true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
