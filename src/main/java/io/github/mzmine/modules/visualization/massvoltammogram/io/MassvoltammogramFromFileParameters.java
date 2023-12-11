@@ -67,7 +67,8 @@ public class MassvoltammogramFromFileParameters extends SimpleParameterSet {
 
   public MassvoltammogramFromFileParameters() {
     super(new Parameter[]{files, scanSelection, reactionMode, delayTime, potentialRampSpeed,
-        potentialRange, stepSize, mzRange});
+            potentialRange, stepSize, mzRange},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/massvoltammogram/massvoltammogram.html");
   }
 }
 
