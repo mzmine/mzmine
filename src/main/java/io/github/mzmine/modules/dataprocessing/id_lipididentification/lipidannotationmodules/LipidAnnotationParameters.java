@@ -59,7 +59,7 @@ public class LipidAnnotationParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
       "m/z tolerance MS1 level:",
-      "Enter m/z tolerance for exact mass database matching on MS1 level");
+      "Enter m/z tolerance for exact mass database matching on MS1 level", 0.005, 5);
 
   public static final OptionalModuleParameter<LipidAnnotationMSMSParameters> searchForMSMSFragments = new OptionalModuleParameter<>(
       "Search for lipid class specific fragments in MS/MS spectra",
