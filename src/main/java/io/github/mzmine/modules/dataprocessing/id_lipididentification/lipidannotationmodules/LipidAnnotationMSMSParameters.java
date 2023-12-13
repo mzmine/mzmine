@@ -35,7 +35,7 @@ public class LipidAnnotationMSMSParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzToleranceMS2 = new MZToleranceParameter(
       "m/z tolerance MS2 level:",
-      "Enter m/z tolerance for exact mass database matching on MS2 level");
+      "Enter m/z tolerance for exact mass database matching on MS2 level", 0.005, 10);
 
   public static final DoubleParameter minimumMsMsScore = new DoubleParameter("Minimum MS/MS score:",
       "Explained intensity [%] of all signals in MS/MS spectrum", new DecimalFormat("#.0"), 60.0,
@@ -43,7 +43,8 @@ public class LipidAnnotationMSMSParameters extends SimpleParameterSet {
 
   public static final BooleanParameter keepUnconfirmedAnnotations = new BooleanParameter(
       "Keep unconfirmed annotations",
-      "WARNING!: If checked, annotations based on accurate mass without headgroup fragment annotations are kept.");
+      "WARNING!: If checked, annotations based on accurate mass without headgroup fragment annotations are kept.",
+      false);
 
   public LipidAnnotationMSMSParameters() {
     super(mzToleranceMS2, minimumMsMsScore, keepUnconfirmedAnnotations);
