@@ -1,5 +1,6 @@
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
@@ -89,7 +90,8 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
       IMolecularFormula sphingosineFormula = lipidChain.getChainMolecularFormula();
       rule.getIonizationType().ionizeFormula(sphingosineFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(sphingosineFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       double mzValue = 0.0;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -119,7 +121,8 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
       IMolecularFormula sphingosineFormula = lipidChain.getChainMolecularFormula();
       rule.getIonizationType().ionizeFormula(sphingosineFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(sphingosineFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       double mzValue = 0.0;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -149,7 +152,8 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
       IMolecularFormula sphingosineFormula = lipidChain.getChainMolecularFormula();
       rule.getIonizationType().ionizeFormula(sphingosineFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(sphingosineFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       double mzValue = 0.0;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -183,7 +187,8 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
           modificationFormula);
       rule.getIonizationType().ionizeFormula(fragmentFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(fragmentFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       double mzValue = 0.0;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -218,7 +223,8 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
           modificationFormula);
       ionizeFragmentBasedOnPolarity(fragmentFormula, rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(fragmentFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       double mzValue = 0.0;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
@@ -252,7 +258,8 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
           modificationFormula);
       ionizeFragmentBasedOnPolarity(fragmentFormula, rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(fragmentFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       double mzValue = 0.0;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);

@@ -125,7 +125,8 @@ public abstract class AbstractLipidFragmentFactory {
     rule.getIonizationType().ionizeFormula(lipidFormula);
     Double mzFragmentExact = FormulaUtils.calculateMzRatio(lipidFormula);
     MassList massList = msMsScan.getMassList();
-    int index = massList.binarySearch(mzFragmentExact, true);
+    Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzFragmentExact);
+    int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
     boolean fragmentMatched = false;
     BestDataPoint bestDataPoint = getBestDataPoint(mzFragmentExact, massList, index,
         fragmentMatched);
@@ -145,7 +146,8 @@ public abstract class AbstractLipidFragmentFactory {
     String fragmentFormula = rule.getMolecularFormula();
     Double mzFragmentExact = FormulaUtils.calculateMzRatio(fragmentFormula);
     MassList massList = msMsScan.getMassList();
-    int index = massList.binarySearch(mzFragmentExact, true);
+    Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzFragmentExact);
+    int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
     boolean fragmentMatched = false;
     BestDataPoint bestDataPoint = getBestDataPoint(mzFragmentExact, massList, index,
         fragmentMatched);
@@ -174,7 +176,8 @@ public abstract class AbstractLipidFragmentFactory {
     IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidFormula, formulaNL);
     Double mzFragmentExact = FormulaUtils.calculateMzRatio(fragmentFormula);
     MassList massList = msMsScan.getMassList();
-    int index = massList.binarySearch(mzFragmentExact, true);
+    Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzFragmentExact);
+    int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
     boolean fragmentMatched = false;
     BestDataPoint bestDataPoint = getBestDataPoint(mzFragmentExact, massList, index,
         fragmentMatched);
@@ -201,7 +204,8 @@ public abstract class AbstractLipidFragmentFactory {
         IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
         IonizationType.NEGATIVE_HYDROGEN.ionizeFormula(lipidChainFormula);
         Double mzExact = FormulaUtils.calculateMzRatio(lipidChainFormula);
-        int index = massList.binarySearch(mzExact, true);
+        Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+        int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
         boolean fragmentMatched = false;
         BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
         if (bestDataPoint.fragmentMatched()) {
@@ -240,7 +244,8 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
           lipidChainFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(fragmentFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
@@ -273,7 +278,8 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
           rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
@@ -313,7 +319,8 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula lipidMinusFragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
           fragmentFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(lipidMinusFragmentFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
@@ -347,7 +354,8 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
           rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
@@ -387,7 +395,8 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula lipidMinusFragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
           fragmentFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(lipidMinusFragmentFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
@@ -427,7 +436,8 @@ public abstract class AbstractLipidFragmentFactory {
         IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
             rule.getPolarityType());
         Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-        int index = massList.binarySearch(mzExact, true);
+        Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+        int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
         boolean fragmentMatched = false;
         BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
         if (bestDataPoint.fragmentMatched()) {
@@ -461,7 +471,8 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
           rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
@@ -491,7 +502,8 @@ public abstract class AbstractLipidFragmentFactory {
         IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(lipidChainFormula,
             rule.getPolarityType());
         Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-        int index = massList.binarySearch(mzExact, true);
+        Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+        int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
         boolean fragmentMatched = false;
         BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
         if (bestDataPoint.fragmentMatched()) {
@@ -526,7 +538,8 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
           rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
@@ -559,7 +572,8 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
           rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
@@ -589,7 +603,8 @@ public abstract class AbstractLipidFragmentFactory {
         IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
         ionizeFragmentBasedOnPolarity(lipidChainFormula, rule.getPolarityType());
         Double mzExact = FormulaUtils.calculateMzRatio(lipidChainFormula);
-        int index = massList.binarySearch(mzExact, true);
+        Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+        int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
         boolean fragmentMatched = false;
         BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
         if (bestDataPoint.fragmentMatched()) {
@@ -624,7 +639,8 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
           rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
@@ -657,7 +673,8 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
           rule.getPolarityType());
       Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
@@ -693,7 +710,8 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula fragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
           lipidChainFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(fragmentFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
@@ -733,7 +751,8 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula lipidMinusFragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
           fragmentFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(lipidMinusFragmentFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
@@ -773,7 +792,8 @@ public abstract class AbstractLipidFragmentFactory {
       IMolecularFormula lipidMinusFragmentFormula = FormulaUtils.subtractFormula(lipidFormula,
           fragmentFormula);
       Double mzExact = FormulaUtils.calculateMzRatio(lipidMinusFragmentFormula);
-      int index = massList.binarySearch(mzExact, true);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
