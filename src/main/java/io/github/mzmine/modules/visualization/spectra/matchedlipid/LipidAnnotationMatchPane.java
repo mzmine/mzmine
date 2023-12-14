@@ -35,10 +35,8 @@ public class LipidAnnotationMatchPane extends GridPane {
   public static final double MAX_MSMS_SCORE_COLOR_VALUE = 100.0;
 
   private static final DecimalFormat MSMS_SCORE_FORM = new DecimalFormat("0.0");
-  public static Color MAX_MSMS_SCORE_COLOR = MZmineCore.getConfiguration().getDefaultColorPalette()
-      .getPositiveColor();
-  public static Color MIN_MSMS_SCORE_COLOR = MZmineCore.getConfiguration().getDefaultColorPalette()
-      .getNegativeColor();
+  public static Color MAX_MSMS_SCORE_COLOR = Color.web("0x388E3C");
+  public static Color MIN_MSMS_SCORE_COLOR = Color.web("0xE30B0B");
   private final MatchedLipid matchedLipid;
   private final LipidSpectrumChart lipidSpectrumChart;
   private VBox metaDataPanel;

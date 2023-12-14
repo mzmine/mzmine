@@ -27,7 +27,6 @@ public class EquivalentCarbonNumberDataset extends AbstractXYDataset implements 
   private final int selectedDBENumber;
   private List<MatchedLipid> lipidsForDBE;
 
-  private static final MSMSLipidTools MSMS_LIPID_TOOLS = new MSMSLipidTools();
 
 
   public EquivalentCarbonNumberDataset(List<FeatureListRow> selectedRows,
@@ -51,10 +50,10 @@ public class EquivalentCarbonNumberDataset extends AbstractXYDataset implements 
                 Collectors.groupingBy(matchedLipid -> {
                   ILipidAnnotation lipidAnnotation = matchedLipid.getLipidAnnotation();
                   if (lipidAnnotation instanceof MolecularSpeciesLevelAnnotation molecularAnnotation) {
-                    return MSMS_LIPID_TOOLS.getCarbonandDBEFromLipidAnnotaitonString(
+                    return MSMSLipidTools.getCarbonandDBEFromLipidAnnotaitonString(
                         molecularAnnotation.getAnnotation()).getValue();
                   } else if (lipidAnnotation instanceof SpeciesLevelAnnotation) {
-                    return MSMS_LIPID_TOOLS.getCarbonandDBEFromLipidAnnotaitonString(
+                    return MSMSLipidTools.getCarbonandDBEFromLipidAnnotaitonString(
                         lipidAnnotation.getAnnotation()).getValue();
                   } else {
                     return -1;
@@ -74,10 +73,10 @@ public class EquivalentCarbonNumberDataset extends AbstractXYDataset implements 
           // get number of Carbons
           ILipidAnnotation lipidAnnotation = lipidsForDBE.get(i).getLipidAnnotation();
           if (lipidAnnotation instanceof MolecularSpeciesLevelAnnotation molecularAnnotation) {
-            yValues[i] = MSMS_LIPID_TOOLS.getCarbonandDBEFromLipidAnnotaitonString(
+            yValues[i] = MSMSLipidTools.getCarbonandDBEFromLipidAnnotaitonString(
                 molecularAnnotation.getAnnotation()).getKey();
           } else if (lipidAnnotation instanceof SpeciesLevelAnnotation) {
-            yValues[i] = MSMS_LIPID_TOOLS.getCarbonandDBEFromLipidAnnotaitonString(
+            yValues[i] = MSMSLipidTools.getCarbonandDBEFromLipidAnnotaitonString(
                 lipidAnnotation.getAnnotation()).getKey();
           }
           for (FeatureListRow lipidRow : lipidRows) {

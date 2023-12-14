@@ -73,13 +73,15 @@ public class LipidAnnotationMatchTab extends SimpleTab implements FeatureRowInte
       if (matchedLipids != null && !matchedLipids.isEmpty()) {
         int i = 0;
         for (MatchedLipid matchedLipid : matchedLipids) {
-          LipidAnnotationMatchPane lipidAnnotationMatchPane = new LipidAnnotationMatchPane(
-              matchedLipid);
-          GridPane.setHgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
-          GridPane.setVgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
-          pane.add(lipidAnnotationMatchPane, 0, i);
-          i++;
-          matches++;
+          if (matchedLipid.getComment() == null || matchedLipid.getComment().isEmpty()) {
+            LipidAnnotationMatchPane lipidAnnotationMatchPane = new LipidAnnotationMatchPane(
+                matchedLipid);
+            GridPane.setHgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
+            GridPane.setVgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
+            pane.add(lipidAnnotationMatchPane, 0, i);
+            i++;
+            matches++;
+          }
         }
       }
     }
@@ -96,13 +98,15 @@ public class LipidAnnotationMatchTab extends SimpleTab implements FeatureRowInte
     List<MatchedLipid> matchedLipids = selectedRow.get(LipidMatchListType.class);
     int i = 0;
     for (MatchedLipid matchedLipid : matchedLipids) {
-      LipidAnnotationMatchPane lipidAnnotationMatchPane = new LipidAnnotationMatchPane(
-          matchedLipid);
-      GridPane.setHgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
-      GridPane.setVgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
-      pane.add(lipidAnnotationMatchPane, 0, i);
-      i++;
-      matches++;
+      if (matchedLipid.getComment() == null || matchedLipid.getComment().isEmpty()) {
+        LipidAnnotationMatchPane lipidAnnotationMatchPane = new LipidAnnotationMatchPane(
+            matchedLipid);
+        GridPane.setHgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
+        GridPane.setVgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
+        pane.add(lipidAnnotationMatchPane, 0, i);
+        i++;
+        matches++;
+      }
     }
     scrollPane.setContent(pane);
   }

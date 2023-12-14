@@ -144,9 +144,10 @@ public class LipidAnnotationUtils {
         } else {
 
           // make MS1 annotation
-          possibleRowAnnotations.add(
-              new MatchedLipid(lipidIon.lipidAnnotation(), row.getAverageMZ(),
-                  lipidIon.ionizationType(), null, 0.0));
+          MatchedLipid matchedLipid = new MatchedLipid(lipidIon.lipidAnnotation(),
+              row.getAverageMZ(), lipidIon.ionizationType(), null, 0.0);
+          matchedLipid.setComment("Warning, this annotation is based on MS1 mass accuracy only!");
+          possibleRowAnnotations.add(matchedLipid);
         }
       }
 
@@ -226,7 +227,7 @@ public class LipidAnnotationUtils {
         MatchedLipid unconfirmedMatchedLipid = new MatchedLipid(lipid, row.getAverageMZ(),
             ionization, null, 0.0);
         unconfirmedMatchedLipid.setComment(
-            "Warning, this annotation is based on MS1 mass accurracy only!");
+            "Warning, this annotation is based on MS1 mass accuracy only!");
         matchedLipids.add(unconfirmedMatchedLipid);
       }
       if (!matchedLipids.isEmpty() && matchedLipids.size() > 1) {

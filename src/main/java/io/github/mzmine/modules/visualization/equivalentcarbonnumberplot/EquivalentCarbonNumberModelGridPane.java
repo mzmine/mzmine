@@ -25,8 +25,6 @@ import javafx.scene.text.Font;
 
 public class EquivalentCarbonNumberModelGridPane extends GridPane {
 
-  private static final MSMSLipidTools MSMS_LIPID_TOOLS = new MSMSLipidTools();
-
   public EquivalentCarbonNumberModelGridPane(List<FeatureListRow> rowsWithLipidID,
       List<MatchedLipid> bestLipidMatches) {
     super();
@@ -54,10 +52,10 @@ public class EquivalentCarbonNumberModelGridPane extends GridPane {
                 Collectors.groupingBy(matchedLipid -> {
                   ILipidAnnotation lipidAnnotation = matchedLipid.getLipidAnnotation();
                   if (lipidAnnotation instanceof MolecularSpeciesLevelAnnotation molecularAnnotation) {
-                    return MSMS_LIPID_TOOLS.getCarbonandDBEFromLipidAnnotaitonString(
+                    return MSMSLipidTools.getCarbonandDBEFromLipidAnnotaitonString(
                         molecularAnnotation.getAnnotation()).getValue();
                   } else if (lipidAnnotation instanceof SpeciesLevelAnnotation) {
-                    return MSMS_LIPID_TOOLS.getCarbonandDBEFromLipidAnnotaitonString(
+                    return MSMSLipidTools.getCarbonandDBEFromLipidAnnotaitonString(
                         lipidAnnotation.getAnnotation()).getValue();
                   } else {
                     return -1;
