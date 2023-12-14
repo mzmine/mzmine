@@ -93,7 +93,6 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
       Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
       int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
-      double mzValue = 0.0;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
         int chainLength = lipidChain.getNumberOfCarbons();
@@ -101,7 +100,7 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         matchedFragments.add(new LipidFragment(rule.getLipidFragmentationRuleType(),
             rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
             mzExact, MolecularFormulaManipulator.getString(sphingosineFormula),
-            new SimpleDataPoint(mzValue, massList.getIntensityValue(index)),
+            new SimpleDataPoint(bestDataPoint.mzValue(), massList.getIntensityValue(index)),
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(),
             LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN, msMsScan));
@@ -124,7 +123,6 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
       Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
       int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
-      double mzValue = 0.0;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
         int chainLength = lipidChain.getNumberOfCarbons();
@@ -132,7 +130,7 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         matchedFragments.add(new LipidFragment(rule.getLipidFragmentationRuleType(),
             rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
             mzExact, MolecularFormulaManipulator.getString(sphingosineFormula),
-            new SimpleDataPoint(mzValue, massList.getIntensityValue(index)),
+            new SimpleDataPoint(bestDataPoint.mzValue(), massList.getIntensityValue(index)),
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(), LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN,
             msMsScan));
@@ -155,7 +153,6 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
       Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
       int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
-      double mzValue = 0.0;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
         int chainLength = lipidChain.getNumberOfCarbons();
@@ -163,7 +160,7 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         matchedFragments.add(new LipidFragment(rule.getLipidFragmentationRuleType(),
             rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
             mzExact, MolecularFormulaManipulator.getString(sphingosineFormula),
-            new SimpleDataPoint(mzValue, massList.getIntensityValue(index)),
+            new SimpleDataPoint(bestDataPoint.mzValue(), massList.getIntensityValue(index)),
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(), LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN,
             msMsScan));
@@ -190,7 +187,6 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
       Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
       int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
-      double mzValue = 0.0;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
         int chainLength = lipidChain.getNumberOfCarbons();
@@ -198,7 +194,7 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         matchedFragments.add(new LipidFragment(rule.getLipidFragmentationRuleType(),
             rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
             mzExact, MolecularFormulaManipulator.getString(fragmentFormula),
-            new SimpleDataPoint(mzValue, massList.getIntensityValue(index)),
+            new SimpleDataPoint(bestDataPoint.mzValue(), massList.getIntensityValue(index)),
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(),
             LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN, msMsScan));
@@ -226,7 +222,6 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
       Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
       int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
-      double mzValue = 0.0;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
         int chainLength = lipidChain.getNumberOfCarbons();
@@ -234,7 +229,7 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         matchedFragments.add(new LipidFragment(rule.getLipidFragmentationRuleType(),
             rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
             mzExact, MolecularFormulaManipulator.getString(fragmentFormula),
-            new SimpleDataPoint(mzValue, massList.getIntensityValue(index)),
+            new SimpleDataPoint(bestDataPoint.mzValue(), massList.getIntensityValue(index)),
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(), LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN,
             msMsScan));
@@ -261,7 +256,6 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
       Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
       int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
       boolean fragmentMatched = false;
-      double mzValue = 0.0;
       BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
       if (bestDataPoint.fragmentMatched()) {
         int chainLength = lipidChain.getNumberOfCarbons();
@@ -269,7 +263,7 @@ public class SphingolipidFragmentFactory extends AbstractLipidFragmentFactory im
         matchedFragments.add(new LipidFragment(rule.getLipidFragmentationRuleType(),
             rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
             mzExact, MolecularFormulaManipulator.getString(fragmentFormula),
-            new SimpleDataPoint(mzValue, massList.getIntensityValue(index)),
+            new SimpleDataPoint(bestDataPoint.mzValue(), massList.getIntensityValue(index)),
             lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
             lipidChain.getNumberOfOxygens(), LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN,
             msMsScan));
