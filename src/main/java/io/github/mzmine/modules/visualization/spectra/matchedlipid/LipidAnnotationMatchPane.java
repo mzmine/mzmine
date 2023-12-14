@@ -190,6 +190,25 @@ public class LipidAnnotationMatchPane extends GridPane {
     lipidCategory.setWrapText(true);
     panelOther.getChildren().addAll(lipidCategory);
 
+    Label space = new Label("");
+    panelOther.getChildren().addAll(space);
+
+    Label rawDataTitle = new Label("Raw data information");
+    rawDataTitle.getStyleClass().add("bold-title-label");
+    panelOther.getChildren().addAll(rawDataTitle);
+
+    Label rawFile = new Label(
+        "Raw data file: " + matchedLipid.getMatchedFragments().stream().findFirst().get()
+            .getMsMsScan().getDataFile().getName());
+    rawFile.setWrapText(true);
+    panelOther.getChildren().addAll(rawFile);
+
+    Label matchedScan = new Label(
+        "Matched Scan number: " + matchedLipid.getMatchedFragments().stream().findFirst().get()
+            .getMsMsScan().getScanNumber());
+    matchedScan.setWrapText(true);
+    panelOther.getChildren().addAll(matchedScan);
+
     Label otherInfo = new Label("Lipid information");
     otherInfo.getStyleClass().add("bold-title-label");
     BorderPane pn = new BorderPane(panelOther);
