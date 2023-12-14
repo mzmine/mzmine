@@ -17,6 +17,8 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SphingolipidSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SterolSpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -30,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javafx.util.Pair;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
@@ -44,6 +47,7 @@ public class LipidAnnotationResolver {
   private final boolean searchForMSMSFragments;
   private final boolean keepUnconfirmedAnnotations;
   private static final MSMSLipidTools MSMS_LIPID_TOOLS = new MSMSLipidTools();
+  private static final LipidFactory LIPID_FACTORY = new LipidFactory();
 
   public LipidAnnotationResolver(boolean keepIsobars, boolean keepIsomers,
       boolean addMissingSpeciesLevelAnnotation, MZTolerance mzToleranceMS2, double minMsMsScore,
@@ -71,8 +75,7 @@ public class LipidAnnotationResolver {
     List<MatchedLipid> resolvedMatchedLipidsList = new ArrayList<>(matchedLipids);
     sortByMsMsScore(resolvedMatchedLipidsList);
     removeMultiplyMatchedDataPoints(resolvedMatchedLipidsList, featureListRow);
-
-    //TODO: Add missing speciesl Level annotations
+    estimateMissingSpeciesLevelAnnotations(resolvedMatchedLipidsList);
 
     //TODO: Add Keep isobars functionality
 
@@ -83,6 +86,38 @@ public class LipidAnnotationResolver {
       filterMaximumNumberOfId(resolvedMatchedLipidsList);
     }
     return resolvedMatchedLipidsList;
+  }
+
+  private void estimateMissingSpeciesLevelAnnotations(
+      List<MatchedLipid> resolvedMatchedLipidsList) {
+    if (resolvedMatchedLipidsList.stream().anyMatch(
+        matchedLipid -> matchedLipid.getLipidAnnotation().getLipidAnnotationLevel()
+            .equals(LipidAnnotationLevel.SPECIES_LEVEL))) {
+      return;
+    } else {
+      MatchedLipid estimatedSpeciesLevelMatchedLipid = null;
+      for (MatchedLipid lipid : resolvedMatchedLipidsList) {
+        Pair<Integer, Integer> carbonandDBEFromLipidAnnotaitonString = MSMSLipidTools.getCarbonandDBEFromLipidAnnotaitonString(
+            lipid.getLipidAnnotation().getAnnotation());
+        ILipidAnnotation estimatedSpeciesLevelAnnotation = LIPID_FACTORY.buildSpeciesLevelLipid(
+            lipid.getLipidAnnotation().getLipidClass(),
+            carbonandDBEFromLipidAnnotaitonString.getKey(),
+            carbonandDBEFromLipidAnnotaitonString.getValue(), 0);
+        if ((estimatedSpeciesLevelAnnotation != null && estimatedSpeciesLevelMatchedLipid == null)
+            || (estimatedSpeciesLevelAnnotation != null
+            && estimatedSpeciesLevelMatchedLipid.getLipidAnnotation()
+            != estimatedSpeciesLevelAnnotation)) {
+          estimatedSpeciesLevelMatchedLipid = new MatchedLipid(estimatedSpeciesLevelAnnotation,
+              lipid.getAccurateMz(), lipid.getIonizationType(), lipid.getMatchedFragments(), 0.0);
+          estimatedSpeciesLevelMatchedLipid.setComment(
+              "Estimated annotation based on molecular species level fragments");
+        }
+      }
+      if (estimatedSpeciesLevelMatchedLipid != null) {
+        resolvedMatchedLipidsList.add(estimatedSpeciesLevelMatchedLipid);
+      }
+    }
+
   }
 
   /*
@@ -126,10 +161,9 @@ public class LipidAnnotationResolver {
           Set<LipidFragment> fragmentsToRemove = new HashSet<>();
           for (LipidFragment matchedFragment : lipid.getMatchedFragments()) {
             if (matchedFragment.getDataPoint().equals(entry.getKey())
-                && !processedFragments.contains(
-                matchedFragment)) { // Check if fragment is not processed
+                && !processedFragments.contains(matchedFragment)) {
               fragmentsToRemove.add(matchedFragment);
-              processedFragments.add(matchedFragment); // Mark fragment as processed
+              processedFragments.add(matchedFragment);
             }
           }
           lipid.getMatchedFragments().removeAll(fragmentsToRemove);
@@ -253,6 +287,7 @@ public class LipidAnnotationResolver {
         }
       }
     }
+
     return recalculatedMatches;
   }
 
