@@ -93,9 +93,12 @@ public class SphingoMolecularSpeciesLevelMatchedLipidFactory implements
         Set<LipidFragment> fittingFragments = extractFragmentsForFittingChains(
             molecularSpeciesLevelAnnotation.getLipidChains(),
             detectedFragmentsWithChainInformation);
-        matchedMolecularSpeciesLevelAnnotations.add(
-            buildNewMolecularSpeciesLevelMatch(fittingFragments, molecularSpeciesLevelAnnotation,
-                accurateMz, massList, minMsMsScore, mzTolRangeMSMS, ionizationType));
+        if (!fittingFragments.isEmpty()) {
+          MatchedLipid newMolecularSpeciesLevelMatch = buildNewMolecularSpeciesLevelMatch(
+              fittingFragments, molecularSpeciesLevelAnnotation, accurateMz, massList, minMsMsScore,
+              mzTolRangeMSMS, ionizationType);
+          matchedMolecularSpeciesLevelAnnotations.add(newMolecularSpeciesLevelMatch);
+        }
       }
     }
     return matchedMolecularSpeciesLevelAnnotations;
