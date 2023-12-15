@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -90,7 +90,6 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
       sb.append(lipidFragment.getIonFormula()).append("\n")
           .append(MZmineCore.getConfiguration().getMZFormat().format(lipidFragment.getMzExact()))
           .append("\n");
-
       // accuracy
       if (showAccuracy) {
         float ppm = (float) ((lipidFragment.getMzExact() - lipidFragment.getDataPoint().getMZ())
@@ -102,6 +101,13 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
       sb.append(lipidFragment.getRuleType().toString()).append("\n")
           .append(lipidFragment.getIonFormula()).append("\n")
           .append(MZmineCore.getConfiguration().getMZFormat().format(lipidFragment.getMzExact()));
+      // accuracy
+      if (showAccuracy) {
+        float ppm = (float) ((lipidFragment.getMzExact() - lipidFragment.getDataPoint().getMZ())
+            / lipidFragment.getMzExact()) * 1000000;
+        sb.append("Δ ").append(MZmineCore.getConfiguration().getPPMFormat().format(ppm))
+            .append("ppm\n");
+      }
     }
     return sb.toString();
   }
