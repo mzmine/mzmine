@@ -21,6 +21,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidCategories;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
@@ -32,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import javafx.util.Pair;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
@@ -75,8 +75,9 @@ public class LipidAnnotationResolver {
     List<MatchedLipid> resolvedMatchedLipidsList = new ArrayList<>(matchedLipids);
     sortByMsMsScore(resolvedMatchedLipidsList);
     removeMultiplyMatchedDataPoints(resolvedMatchedLipidsList, featureListRow);
-    estimateMissingSpeciesLevelAnnotations(resolvedMatchedLipidsList);
-
+    if (addMissingSpeciesLevelAnnotation) {
+      estimateMissingSpeciesLevelAnnotations(resolvedMatchedLipidsList);
+    }
     //TODO: Add Keep isobars functionality
 
     //TODO: Add keep isomers functionality
@@ -97,12 +98,8 @@ public class LipidAnnotationResolver {
     } else {
       MatchedLipid estimatedSpeciesLevelMatchedLipid = null;
       for (MatchedLipid lipid : resolvedMatchedLipidsList) {
-        Pair<Integer, Integer> carbonandDBEFromLipidAnnotaitonString = MSMSLipidTools.getCarbonandDBEFromLipidAnnotaitonString(
-            lipid.getLipidAnnotation().getAnnotation());
-        ILipidAnnotation estimatedSpeciesLevelAnnotation = LIPID_FACTORY.buildSpeciesLevelLipid(
-            lipid.getLipidAnnotation().getLipidClass(),
-            carbonandDBEFromLipidAnnotaitonString.getKey(),
-            carbonandDBEFromLipidAnnotaitonString.getValue(), 0);
+        ILipidAnnotation estimatedSpeciesLevelAnnotation = convertMolecularSpeciesLevelToSpeciesLevel(
+            (MolecularSpeciesLevelAnnotation) lipid.getLipidAnnotation());
         if ((estimatedSpeciesLevelAnnotation != null && estimatedSpeciesLevelMatchedLipid == null)
             || (estimatedSpeciesLevelAnnotation != null
             && estimatedSpeciesLevelMatchedLipid.getLipidAnnotation()
@@ -118,6 +115,16 @@ public class LipidAnnotationResolver {
       }
     }
 
+  }
+
+  private SpeciesLevelAnnotation convertMolecularSpeciesLevelToSpeciesLevel(
+      MolecularSpeciesLevelAnnotation lipidAnnotation) {
+    int numberOfCarbons = lipidAnnotation.getLipidChains().stream()
+        .mapToInt(ILipidChain::getNumberOfCarbons).sum();
+    int numberOfDBEs = lipidAnnotation.getLipidChains().stream()
+        .mapToInt(ILipidChain::getNumberOfDBEs).sum();
+    return LIPID_FACTORY.buildSpeciesLevelLipid(lipidAnnotation.getLipidClass(), numberOfCarbons,
+        numberOfDBEs, 0);
   }
 
   /*
