@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -254,7 +254,8 @@ public class ScanUtils {
     double baseMz = 0d;
     double baseIntensity = 0d;
 
-    for (int i = 0; i < scan.getNumberOfDataPoints(); i++) {
+    final int startIndex = scan.binarySearch(lower, true);
+    for (int i = startIndex; i < scan.getNumberOfDataPoints(); i++) {
       double mz = scan.getMzValue(i);
       if (mz < lower) {
         continue;
