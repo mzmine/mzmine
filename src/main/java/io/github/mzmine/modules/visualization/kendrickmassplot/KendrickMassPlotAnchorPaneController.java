@@ -220,6 +220,7 @@ public class KendrickMassPlotAnchorPaneController {
 
     KendrickMassPlotXYZDataset kendrickMassPlotXYZDataset = new KendrickMassPlotXYZDataset(
         parameters, 1, 1);
+    kendrickMassPlotXYZDataset.run();
     KendrickMassPlotChart kendrickMassPlotChart = new KendrickMassPlotChart(title, xAxisLabel,
         yAxisLabel, zAxisLabel, kendrickMassPlotXYZDataset);
     KendrickMassPlotBubbleLegend kendrickMassPlotBubbleLegend = new KendrickMassPlotBubbleLegend(
@@ -278,6 +279,7 @@ public class KendrickMassPlotAnchorPaneController {
         XYPlot plot = Objects.requireNonNull(getChart()).getXYPlot();
         KendrickMassPlotXYZDataset newDataset = new KendrickMassPlotXYZDataset(parameters,
             xAxisDivisor, xAxisCharge, yAxisDivisor, yAxisCharge);
+        newDataset.run();
         plot.setDataset(newDataset);
         updateToolBar();
         setTooltips();
@@ -334,6 +336,7 @@ public class KendrickMassPlotAnchorPaneController {
         XYPlot plot = Objects.requireNonNull(getChart()).getXYPlot();
         KendrickMassPlotXYZDataset newDataset = new KendrickMassPlotXYZDataset(parameters,
             xAxisDivisor, xAxisCharge, yAxisDivisor, yAxisCharge);
+        newDataset.run();
         plot.setDataset(newDataset);
         updateToolBar();
         setTooltips();

@@ -27,9 +27,18 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.FormulaUtils;
+import java.util.ArrayList;
 import java.util.List;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.data.xy.AbstractXYZDataset;
 
 /**
@@ -37,8 +46,13 @@ import org.jfree.data.xy.AbstractXYZDataset;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
+public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Task {
 
+  protected final @NotNull Property<TaskStatus> status = new SimpleObjectProperty<>(
+      TaskStatus.WAITING);
+  protected String errorMessage = null;
+  private List<TaskStatusListener> listener;
+  private double finishedSteps;
   private final FeatureListRow[] selectedRows;
   private double[] xValues;
   private double[] yValues;
@@ -66,7 +80,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
     yValues = new double[selectedRows.length];
     colorScaleValues = new double[selectedRows.length];
     bubbleSizeValues = new double[selectedRows.length];
-    init();
+    MZmineCore.getTaskController().addTask(this);
   }
 
   public KendrickMassPlotXYZDataset(ParameterSet parameters, int xDivisor, int xCharge,
@@ -83,7 +97,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
     yValues = new double[selectedRows.length];
     colorScaleValues = new double[selectedRows.length];
     bubbleSizeValues = new double[selectedRows.length];
-    init();
+    MZmineCore.getTaskController().addTask(this);
   }
 
   public KendrickMassPlotXYZDataset(ParameterSet parameters, List<FeatureListRow> rows) {
@@ -94,12 +108,18 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
     yValues = new double[selectedRows.length];
     colorScaleValues = new double[selectedRows.length];
     bubbleSizeValues = new double[selectedRows.length];
-    init();
+    MZmineCore.getTaskController().addTask(this);
   }
 
-  private void init() {
-    xKendrickDataType = parameters.getParameter(KendrickMassPlotParameters.xAxisValues)
-        .getValue();
+
+  @Override
+  public void run() {
+    finishedSteps = 0;
+    setStatus(TaskStatus.PROCESSING);
+    if (isCanceled()) {
+      setStatus(TaskStatus.CANCELED);
+    }
+    xKendrickDataType = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue();
     if (xDivisor == null && xKendrickDataType.isKendrickType()) {
       this.xDivisor = calculateDivisorKM(
           parameters.getParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase)
@@ -113,8 +133,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
     initDimensionValues(xValues,
         parameters.getParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase).getValue(),
         xKendrickDataType, xDivisor, xCharge);
-    yKendrickDataType = parameters.getParameter(
-        KendrickMassPlotParameters.yAxisValues).getValue();
+    yKendrickDataType = parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue();
     if (yDivisor == null && yKendrickDataType.isKendrickType()) {
       this.yDivisor = calculateDivisorKM(
           parameters.getParameter(KendrickMassPlotParameters.yAxisCustomKendrickMassBase)
@@ -128,18 +147,18 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
     initDimensionValues(yValues,
         parameters.getParameter(KendrickMassPlotParameters.yAxisCustomKendrickMassBase).getValue(),
         yKendrickDataType, yDivisor, yCharge);
-    colorKendrickDataType = parameters.getParameter(
-        KendrickMassPlotParameters.colorScaleValues).getValue();
+    colorKendrickDataType = parameters.getParameter(KendrickMassPlotParameters.colorScaleValues)
+        .getValue();
     initDimensionValues(colorScaleValues,
         parameters.getParameter(KendrickMassPlotParameters.colorScaleCustomKendrickMassBase)
-            .getValue(),
-        colorKendrickDataType, 1, 1);
-    bubbleKendrickDataType = parameters.getParameter(
-        KendrickMassPlotParameters.bubbleSizeValues).getValue();
+            .getValue(), colorKendrickDataType, 1, 1);
+    bubbleKendrickDataType = parameters.getParameter(KendrickMassPlotParameters.bubbleSizeValues)
+        .getValue();
     initDimensionValues(bubbleSizeValues,
         parameters.getParameter(KendrickMassPlotParameters.bubbleSizeCustomKendrickMassBase)
-            .getValue(),
-        bubbleKendrickDataType, 1, 1);
+            .getValue(), bubbleKendrickDataType, 1, 1);
+    finishedSteps = 1;
+    setStatus(TaskStatus.FINISHED);
   }
 
   private void initDimensionValues(double[] values, String kendrickMassBase,
@@ -403,5 +422,69 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
     double exactMass = FormulaUtils.calculateExactMass(formula);
     return (int) Math.round(exactMass);
   }
+
+  @Override
+  public String getTaskDescription() {
+    return "Computing values for Kendrick plot dataset";
+  }
+
+  @Override
+  public double getFinishedPercentage() {
+    return finishedSteps;
+  }
+
+  @Override
+  public TaskStatus getStatus() {
+    return status.getValue();
+  }
+
+  @Override
+  public String getErrorMessage() {
+    return errorMessage;
+  }
+
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.NORMAL;
+  }
+
+  @Override
+  public void cancel() {
+    setStatus(TaskStatus.CANCELED);
+  }
+
+  public final void setStatus(TaskStatus newStatus) {
+    TaskStatus old = getStatus();
+    status.setValue(newStatus);
+    if (listener != null && !newStatus.equals(old)) {
+      for (TaskStatusListener listener : listener) {
+        listener.taskStatusChanged(this, newStatus, old);
+      }
+    }
+  }
+
+  public void addTaskStatusListener(TaskStatusListener list) {
+    if (listener == null) {
+      listener = new ArrayList<>();
+    }
+    listener.add(list);
+  }
+
+  @Override
+  public boolean removeTaskStatusListener(TaskStatusListener list) {
+    if (listener != null) {
+      return listener.remove(list);
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public void clearTaskStatusListener() {
+    if (listener != null) {
+      listener.clear();
+    }
+  }
+
 
 }
