@@ -60,13 +60,8 @@ public class KendrickMassPlotModule implements MZmineRunnableModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-
-    // Create Kendrick mass plot Tab
-    MZmineCore.runLater(() -> {
-      KendrickMassPlotTab newTab = new KendrickMassPlotTab(parameters);
-      MZmineCore.getDesktop().addTab(newTab);
-    });
-
+    KendrickMassPlotTab newTab = new KendrickMassPlotTab(parameters);
+    MZmineCore.getDesktop().addTab(newTab);
     return ExitCode.OK;
   }
 
