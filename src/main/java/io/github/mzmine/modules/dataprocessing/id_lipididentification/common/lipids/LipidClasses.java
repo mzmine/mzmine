@@ -796,7 +796,8 @@ public enum LipidClasses implements ILipidClass {
           LipidChainType.ACYL_CHAIN, LipidChainType.ACYL_CHAIN}, new LipidFragmentationRule[]{ //
       new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
           LipidFragmentationRuleType.TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT,
-          LipidAnnotationLevel.SPECIES_LEVEL, "C3H5"), //
+          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C3H3O2"), //
+
       new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
           LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
           "C3H6O5P-"), //
@@ -808,17 +809,52 @@ public enum LipidClasses implements ILipidClass {
 //              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL), //
       new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
           LipidFragmentationRuleType.TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT,
-          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C6H11P2O8"), //
+          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C3H4PO6"), //
       new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
-          LipidFragmentationRuleType.TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT,
-          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C3H6PO4"), //
-      new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
-          LipidFragmentationRuleType.TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT,
-          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C6H10O5P"), //
-      new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
-          LipidFragmentationRuleType.TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT,
-          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C6H11P2O8"), //
+          LipidFragmentationRuleType.ACYLCHAIN_PLUS_FORMULA_FRAGMENT,
+          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C3H6PO5"), //
+//      new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+//          LipidFragmentationRuleType.TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT,
+//          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C6H10O5P"), //
+//      new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+//          LipidFragmentationRuleType.TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT,
+//          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C6H11P2O8"), //
   }),
+
+  DIACYLGLYCEROPHOSPHOGLYCEROPHOSPHOMONORADYGLYCEROLS(
+      "Diacylglycerophosphoglycerophosphomonoradylglycerols", "MLCL",
+      LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.CARDIOLIPIN, "C9H22O13P2",
+      new LipidChainType[]{LipidChainType.ACYL_CHAIN, LipidChainType.ACYL_CHAIN,
+          LipidChainType.ACYL_CHAIN}, new LipidFragmentationRule[]{ //
+      new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+          LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+          "C3H6O5P-"), //
+      new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+          LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT,
+          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL), //
+      new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+          LipidFragmentationRuleType.ACYLCHAIN_PLUS_FORMULA_FRAGMENT,
+          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C3H6PO5"), //
+      new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+          LipidFragmentationRuleType.TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT,
+          LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C3H4PO6"), //
+  }),
+
+  MONOACYLGLYCEROPHOSPHOGLYCEROPHOSPHOMONORADYGLYCEROLS(
+      "Monoacylglycerophosphoglycerophosphomonoradylglycerols", "DLCL",
+      LipidCategories.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.CARDIOLIPIN, "C9H22O13P2",
+      new LipidChainType[]{LipidChainType.ACYL_CHAIN, LipidChainType.ACYL_CHAIN},
+      new LipidFragmentationRule[]{ //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+              "C3H6O5P-"), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.ACYLCHAIN_PLUS_FORMULA_FRAGMENT,
+              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C3H6PO5"), //
+      }),
 
   // Sphingolipids
   SPHINGANINESANDSPHINGOSINES("Sphingosines and Sphinganines", "SPB", LipidCategories.SPHINGOLIPIDS,
