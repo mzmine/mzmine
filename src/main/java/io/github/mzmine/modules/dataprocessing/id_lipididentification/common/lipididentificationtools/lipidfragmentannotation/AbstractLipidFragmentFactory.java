@@ -417,39 +417,31 @@ public abstract class AbstractLipidFragmentFactory {
       ILipidAnnotation lipidAnnotation, Scan msMsScan) {
     IMolecularFormula modificationFormula = FormulaUtils.createMajorIsotopeMolFormula(
         rule.getMolecularFormula());
-    List<ILipidChain> fattyAcylChainsOne = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(
-        LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
-        onlySearchForEvenChains);
-    List<ILipidChain> fattyAcylChainsTwo = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(
-        LipidChainType.ACYL_CHAIN, minChainLength, maxChainLength, minDoubleBonds, maxDoubleBonds,
-        onlySearchForEvenChains);
+    List<ILipidChain> combinedFattyAcylChains = LIPID_CHAIN_FACTORY.buildLipidChainsInRange(
+        LipidChainType.ACYL_CHAIN, minChainLength * 2, maxChainLength * 2, minDoubleBonds * 2,
+        maxDoubleBonds * 2, onlySearchForEvenChains);
+
     List<LipidFragment> matchedFragments = new ArrayList<>();
     MassList massList = msMsScan.getMassList();
-    for (ILipidChain lipidChain1 : fattyAcylChainsOne) {
-      IMolecularFormula lipidChainFormulaOne = lipidChain1.getChainMolecularFormula();
-      for (ILipidChain lipidChain2 : fattyAcylChainsTwo) {
-        IMolecularFormula lipidChainFormulaTwo = lipidChain2.getChainMolecularFormula();
-        IMolecularFormula combinedChainsFormula = FormulaUtils.addFormula(lipidChainFormulaOne,
-            lipidChainFormulaTwo);
-        IMolecularFormula fragmentFormula = FormulaUtils.addFormula(combinedChainsFormula,
-            modificationFormula);
-        IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
-            rule.getPolarityType());
-        Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
-        Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
-        int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
-        boolean fragmentMatched = false;
-        BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
-        if (bestDataPoint.fragmentMatched()) {
-          matchedFragments.add(new LipidFragment(rule.getLipidFragmentationRuleType(),
-              rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
-              mzExact, MolecularFormulaManipulator.getString(ionizedFragmentFormula),
-              new SimpleDataPoint(bestDataPoint.mzValue(), massList.getIntensityValue(index)),
-              lipidAnnotation.getLipidClass(),
-              lipidChain1.getNumberOfCarbons() + lipidChain2.getNumberOfCarbons(),
-              lipidChain1.getNumberOfDBEs() + lipidChain2.getNumberOfDBEs(),
-              lipidChain2.getNumberOfOxygens(), LipidChainType.TWO_ACYL_CHAINS_COMBINED, msMsScan));
-        }
+    for (ILipidChain combinedFattyAcylChain : combinedFattyAcylChains) {
+      IMolecularFormula combinedChainsFormula = combinedFattyAcylChain.getChainMolecularFormula();
+      IMolecularFormula fragmentFormula = FormulaUtils.addFormula(combinedChainsFormula,
+          modificationFormula);
+      IMolecularFormula ionizedFragmentFormula = ionizeFragmentBasedOnPolarity(fragmentFormula,
+          rule.getPolarityType());
+      Double mzExact = FormulaUtils.calculateMzRatio(ionizedFragmentFormula);
+      Range<Double> toleranceRange = mzToleranceMS2.getToleranceRange(mzExact);
+      int index = massList.binarySearch(toleranceRange.lowerEndpoint(), true);
+      boolean fragmentMatched = false;
+      BestDataPoint bestDataPoint = getBestDataPoint(mzExact, massList, index, fragmentMatched);
+      if (bestDataPoint.fragmentMatched()) {
+        matchedFragments.add(new LipidFragment(rule.getLipidFragmentationRuleType(),
+            rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
+            mzExact, MolecularFormulaManipulator.getString(ionizedFragmentFormula),
+            new SimpleDataPoint(bestDataPoint.mzValue(), massList.getIntensityValue(index)),
+            lipidAnnotation.getLipidClass(), combinedFattyAcylChain.getNumberOfCarbons(),
+            combinedFattyAcylChain.getNumberOfDBEs(), combinedFattyAcylChain.getNumberOfOxygens(),
+            LipidChainType.TWO_ACYL_CHAINS_COMBINED, msMsScan));
       }
     }
     return matchedFragments;

@@ -370,7 +370,7 @@ class LipidAnnotationTest {
 
   @Test
   void msMsRuleTestCL_70_4_MPlusNH4() {
-    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCL_70_5_MPlusNH4();
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCL_70_4_MPlusNH4();
     checkLipidAnnotation(testSpectrum);
   }
 
