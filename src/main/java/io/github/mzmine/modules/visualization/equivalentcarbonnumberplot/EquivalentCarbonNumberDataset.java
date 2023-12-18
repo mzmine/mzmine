@@ -3,20 +3,33 @@ package io.github.mzmine.modules.visualization.equivalentcarbonnumberplot;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.TaskStatusListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.data.xy.AbstractXYDataset;
-import org.jfree.data.xy.XYDataset;
 
-public class EquivalentCarbonNumberDataset extends AbstractXYDataset implements XYDataset {
+public class EquivalentCarbonNumberDataset extends AbstractXYDataset implements Task {
+
+  protected final @NotNull Property<TaskStatus> status = new SimpleObjectProperty<>(
+      TaskStatus.WAITING);
+  protected String errorMessage = null;
+  private List<TaskStatusListener> listener;
+  private double finishedSteps;
 
   private double[] xValues;
   private double[] yValues;
@@ -26,7 +39,6 @@ public class EquivalentCarbonNumberDataset extends AbstractXYDataset implements 
   private final ILipidClass selectedLipidClass;
   private final int selectedDBENumber;
   private List<MatchedLipid> lipidsForDBE;
-
 
 
   public EquivalentCarbonNumberDataset(List<FeatureListRow> selectedRows,
@@ -40,10 +52,16 @@ public class EquivalentCarbonNumberDataset extends AbstractXYDataset implements 
         matchedLipids.add(featureListRow.get(LipidMatchListType.class).get(0));
       }
     }
-    initDataset();
+    MZmineCore.getTaskController().addTask(this);
   }
 
-  private void initDataset() {
+  @Override
+  public void run() {
+    finishedSteps = 0;
+    setStatus(TaskStatus.PROCESSING);
+    if (isCanceled()) {
+      setStatus(TaskStatus.CANCELED);
+    }
     Map<ILipidClass, Map<Integer, List<MatchedLipid>>> groupedLipids = matchedLipids.stream()
         .collect(
             Collectors.groupingBy(matchedLipid -> matchedLipid.getLipidAnnotation().getLipidClass(),
@@ -91,10 +109,11 @@ public class EquivalentCarbonNumberDataset extends AbstractXYDataset implements 
               }
             }
           }
-
         }
       }
     }
+    finishedSteps = 1;
+    setStatus(TaskStatus.FINISHED);
   }
 
 
@@ -134,6 +153,70 @@ public class EquivalentCarbonNumberDataset extends AbstractXYDataset implements 
 
   public MatchedLipid getMatchedLipid(int item) {
     return lipidsForDBE.get(item);
+  }
+
+  @Override
+  public String getTaskDescription() {
+    return "Computing ECN model for " + selectedLipidClass.getAbbr() + " with " + selectedDBENumber
+        + " DBEs";
+  }
+
+  @Override
+  public double getFinishedPercentage() {
+    return finishedSteps;
+  }
+
+  @Override
+  public TaskStatus getStatus() {
+    return status.getValue();
+  }
+
+  @Override
+  public String getErrorMessage() {
+    return errorMessage;
+  }
+
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.NORMAL;
+  }
+
+  @Override
+  public void cancel() {
+    setStatus(TaskStatus.CANCELED);
+  }
+
+  public final void setStatus(TaskStatus newStatus) {
+    TaskStatus old = getStatus();
+    status.setValue(newStatus);
+    if (listener != null && !newStatus.equals(old)) {
+      for (TaskStatusListener listener : listener) {
+        listener.taskStatusChanged(this, newStatus, old);
+      }
+    }
+  }
+
+  public void addTaskStatusListener(TaskStatusListener list) {
+    if (listener == null) {
+      listener = new ArrayList<>();
+    }
+    listener.add(list);
+  }
+
+  @Override
+  public boolean removeTaskStatusListener(TaskStatusListener list) {
+    if (listener != null) {
+      return listener.remove(list);
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public void clearTaskStatusListener() {
+    if (listener != null) {
+      listener.clear();
+    }
   }
 
 }

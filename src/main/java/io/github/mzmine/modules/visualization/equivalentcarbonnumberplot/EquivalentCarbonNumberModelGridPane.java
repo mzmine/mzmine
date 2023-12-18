@@ -99,6 +99,7 @@ public class EquivalentCarbonNumberModelGridPane extends GridPane {
           EquivalentCarbonNumberDataset ecnDataset = new EquivalentCarbonNumberDataset(
               rowsWithLipidID, rowsWithLipidID.toArray(new FeatureListRow[0]), entry.getKey(),
               integerListEntry.getKey());
+          ecnDataset.run();
           EquivalentCarbonNumberChart equivalentCarbonNumberChart = new EquivalentCarbonNumberChart(
               "ECN Model", "Retention time", "Number of Carbons", ecnDataset);
           equivalentCarbonNumberChart.setMinSize(300, 200);
