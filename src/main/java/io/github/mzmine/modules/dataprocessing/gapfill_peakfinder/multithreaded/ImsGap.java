@@ -166,6 +166,9 @@ public class ImsGap extends Gap {
       double bestDelta = Double.POSITIVE_INFINITY;
 
       final int startIndex = access.binarySearch(mzRange.lowerEndpoint(), true);
+      if (startIndex == -1) {
+        continue;
+      }
       for (int i = startIndex; i < access.getNumberOfDataPoints(); i++) {
         final double mz = access.getMzValue(i);
         if (mz < mzRange.lowerEndpoint()) {
