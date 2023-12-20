@@ -29,7 +29,9 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.Objects;
 import javafx.event.ActionEvent;
@@ -220,15 +222,21 @@ public class KendrickMassPlotAnchorPaneController {
 
     KendrickMassPlotXYZDataset kendrickMassPlotXYZDataset = new KendrickMassPlotXYZDataset(
         parameters, 1, 1);
-    kendrickMassPlotXYZDataset.run();
-    KendrickMassPlotChart kendrickMassPlotChart = new KendrickMassPlotChart(title, xAxisLabel,
-        yAxisLabel, zAxisLabel, kendrickMassPlotXYZDataset);
-    KendrickMassPlotBubbleLegend kendrickMassPlotBubbleLegend = new KendrickMassPlotBubbleLegend(
-        kendrickMassPlotXYZDataset);
-    plotPane.setCenter(kendrickMassPlotChart);
-    bubbleLegendPane.setCenter(kendrickMassPlotBubbleLegend);
-    updateToolBar();
-    setTooltips();
+
+    kendrickMassPlotXYZDataset.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      if (newStatus == TaskStatus.FINISHED) {
+        KendrickMassPlotChart kendrickMassPlotChart = new KendrickMassPlotChart(title, xAxisLabel,
+            yAxisLabel, zAxisLabel, kendrickMassPlotXYZDataset);
+        KendrickMassPlotBubbleLegend kendrickMassPlotBubbleLegend = new KendrickMassPlotBubbleLegend(
+            kendrickMassPlotXYZDataset);
+        MZmineCore.runLater(() -> {
+          plotPane.setCenter(kendrickMassPlotChart);
+          bubbleLegendPane.setCenter(kendrickMassPlotBubbleLegend);
+          updateToolBar();
+          setTooltips();
+        });
+      }
+    });
   }
 
   private void setArrowIcon(Button button, FontAwesomeIcon icon) {
@@ -275,14 +283,7 @@ public class KendrickMassPlotAnchorPaneController {
         } else {
           yAxisCharge = newCharge;
         }
-
-        XYPlot plot = Objects.requireNonNull(getChart()).getXYPlot();
-        KendrickMassPlotXYZDataset newDataset = new KendrickMassPlotXYZDataset(parameters,
-            xAxisDivisor, xAxisCharge, yAxisDivisor, yAxisCharge);
-        newDataset.run();
-        plot.setDataset(newDataset);
-        updateToolBar();
-        setTooltips();
+        updatePlot();
       }
     }
   }
@@ -332,16 +333,28 @@ public class KendrickMassPlotAnchorPaneController {
         } else {
           yAxisDivisor = newDivisor;
         }
-
-        XYPlot plot = Objects.requireNonNull(getChart()).getXYPlot();
-        KendrickMassPlotXYZDataset newDataset = new KendrickMassPlotXYZDataset(parameters,
-            xAxisDivisor, xAxisCharge, yAxisDivisor, yAxisCharge);
-        newDataset.run();
-        plot.setDataset(newDataset);
-        updateToolBar();
-        setTooltips();
+        updatePlot();
       }
     }
+  }
+
+  private void updatePlot() {
+    bubbleLegendPane.setDisable(true);
+    XYPlot plot = Objects.requireNonNull(getChart()).getXYPlot();
+    KendrickMassPlotXYZDataset newDataset = new KendrickMassPlotXYZDataset(parameters, xAxisDivisor,
+        xAxisCharge, yAxisDivisor, yAxisCharge);
+    newDataset.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      if (newStatus == TaskStatus.FINISHED) {
+        MZmineCore.runLater(() -> {
+          plot.setDataset(newDataset);
+          updateToolBar();
+          setTooltips();
+          bubbleLegendPane.setDisable(false);
+        });
+      }
+    });
+    updateToolBar();
+    setTooltips();
   }
 
   public BorderPane getPlotPane() {

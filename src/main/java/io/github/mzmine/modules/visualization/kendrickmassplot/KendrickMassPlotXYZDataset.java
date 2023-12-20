@@ -80,6 +80,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     yValues = new double[selectedRows.length];
     colorScaleValues = new double[selectedRows.length];
     bubbleSizeValues = new double[selectedRows.length];
+    setStatus(TaskStatus.WAITING);
     MZmineCore.getTaskController().addTask(this);
   }
 
@@ -97,6 +98,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     yValues = new double[selectedRows.length];
     colorScaleValues = new double[selectedRows.length];
     bubbleSizeValues = new double[selectedRows.length];
+    setStatus(TaskStatus.WAITING);
     MZmineCore.getTaskController().addTask(this);
   }
 
@@ -283,26 +285,46 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
 
   @Override
   public int getItemCount(int series) {
-    return xValues.length;
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return xValues.length;
+    } else {
+      return 0;
+    }
   }
 
   @Override
   public Number getX(int series, int item) {
-    return xValues[item];
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return xValues[item];
+    } else {
+      return 0;
+    }
   }
 
   @Override
   public Number getY(int series, int item) {
-    return yValues[item];
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return yValues[item];
+    } else {
+      return 0;
+    }
   }
 
   @Override
   public Number getZ(int series, int item) {
-    return colorScaleValues[item];
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return colorScaleValues[item];
+    } else {
+      return 0;
+    }
   }
 
   public double getBubbleSize(int series, int item) {
-    return bubbleSizeValues[item];
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return bubbleSizeValues[item];
+    } else {
+      return 0;
+    }
   }
 
   public void setBubbleSize(int item, double newValue) {
@@ -326,19 +348,35 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
   }
 
   public double[] getxValues() {
-    return xValues;
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return xValues;
+    } else {
+      return new double[]{0};
+    }
   }
 
   public double[] getyValues() {
-    return yValues;
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return yValues;
+    } else {
+      return new double[]{0};
+    }
   }
 
   public double[] getColorScaleValues() {
-    return colorScaleValues;
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return colorScaleValues;
+    } else {
+      return new double[]{0};
+    }
   }
 
   public double[] getBubbleSizeValues() {
-    return bubbleSizeValues;
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return bubbleSizeValues;
+    } else {
+      return new double[]{0};
+    }
   }
 
   public KendrickPlotDataTypes getxKendrickDataType() {
