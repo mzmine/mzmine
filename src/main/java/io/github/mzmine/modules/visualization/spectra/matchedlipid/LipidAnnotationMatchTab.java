@@ -33,7 +33,6 @@ public class LipidAnnotationMatchTab extends SimpleTab implements FeatureRowInte
     scrollPane.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
     scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
     setContent(scrollPane);
-
     weak.addListChangeListener(table.getSelectionModel().getSelectedItems(),
         c -> selectionChanged());
   }
@@ -51,7 +50,7 @@ public class LipidAnnotationMatchTab extends SimpleTab implements FeatureRowInte
       return;
     }
     final ModularFeatureListRow selectedRow = table.getSelectedRow();
-    if (selectedRow == null) {
+    if (selectedRow == null || selectedRow.get(LipidMatchListType.class) == null) {
       return;
     }
     setFeatureRow(selectedRow);
@@ -96,16 +95,18 @@ public class LipidAnnotationMatchTab extends SimpleTab implements FeatureRowInte
     pane.setHgap(10);
     pane.setVgap(10);
     List<MatchedLipid> matchedLipids = selectedRow.get(LipidMatchListType.class);
-    int i = 0;
-    for (MatchedLipid matchedLipid : matchedLipids) {
-      if (matchedLipid.getComment() == null || matchedLipid.getComment().isEmpty()) {
-        LipidAnnotationMatchPane lipidAnnotationMatchPane = new LipidAnnotationMatchPane(
-            matchedLipid);
-        GridPane.setHgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
-        GridPane.setVgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
-        pane.add(lipidAnnotationMatchPane, 0, i);
-        i++;
-        matches++;
+    if (matchedLipids != null && !matchedLipids.isEmpty()) {
+      int i = 0;
+      for (MatchedLipid matchedLipid : matchedLipids) {
+        if (matchedLipid.getComment() == null || matchedLipid.getComment().isEmpty()) {
+          LipidAnnotationMatchPane lipidAnnotationMatchPane = new LipidAnnotationMatchPane(
+              matchedLipid);
+          GridPane.setHgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
+          GridPane.setVgrow(lipidAnnotationMatchPane, Priority.ALWAYS);
+          pane.add(lipidAnnotationMatchPane, 0, i);
+          i++;
+          matches++;
+        }
       }
     }
     scrollPane.setContent(pane);

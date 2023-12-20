@@ -54,7 +54,7 @@ public class LipidAnnotationMatchPane extends GridPane {
 
     //Maybe wrap into Border Pane?
     lipidSpectrumChart = new LipidSpectrumChart(matchedLipid, new AtomicDouble(0d),
-        RunOption.THIS_THREAD, false);
+        RunOption.THIS_THREAD, false, true);
 
     // put into main
     ColumnConstraints ccSpectrum = new ColumnConstraints(400, -1, Region.USE_COMPUTED_SIZE,

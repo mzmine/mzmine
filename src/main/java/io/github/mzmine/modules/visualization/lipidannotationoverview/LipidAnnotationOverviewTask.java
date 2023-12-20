@@ -83,7 +83,7 @@ public class LipidAnnotationOverviewTask extends AbstractTask {
     kendrickMassPlotParameters.setParameter(KendrickMassPlotParameters.bubbleSizeValues,
         KendrickPlotDataTypes.INTENSITY);
     KendrickMassPlotXYZDataset kendrickMassPlotXYZDataset = new KendrickMassPlotXYZDataset(
-        kendrickMassPlotParameters);
+        kendrickMassPlotParameters, 1, 1);
     kendrickMassPlotParameters.setParameter(
         KendrickMassPlotParameters.bubbleSizeCustomKendrickMassBase, "H");
     return new KendrickMassPlotChart("Kendrick Mass Plot", "m/z", "KMD (H)", "Retention time",

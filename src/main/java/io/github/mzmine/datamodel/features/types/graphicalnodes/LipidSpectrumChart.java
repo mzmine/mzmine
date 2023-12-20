@@ -51,14 +51,15 @@ public class LipidSpectrumChart extends BufferedChartNode {
   private SpectraPlot spectraPlot;
 
   public LipidSpectrumChart(@Nullable MatchedLipid match, AtomicDouble progress,
-      RunOption runOption, boolean asBufferedImage) {
+      RunOption runOption, boolean asBufferedImage, boolean showLegend) {
     super(true);
     if (match == null || match.getMatchedFragments() == null || match.getMatchedFragments()
         .isEmpty()) {
       return;
     }
     this.spectraPlot = new SpectraPlot();
-    spectraPlot.setPrefHeight(GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT);
+    spectraPlot.setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
+    spectraPlot.setPrefWidth(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH);
 
     List<LipidFragment> matchedFragments = new ArrayList<>(match.getMatchedFragments());
     Scan matchedMsMsScan = matchedFragments.stream().map(LipidFragment::getMsMsScan).findFirst()
@@ -90,7 +91,7 @@ public class LipidSpectrumChart extends BufferedChartNode {
       spectraPlot.addDataSet(fragmentDataSet,
           MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), true,
           matchedLipidLabelGenerator, true);
-
+      spectraPlot.setLegendVisible(showLegend);
       spectraPlot.addPrecursorMarkers(matchedMsMsScan);
     }
 
@@ -99,21 +100,16 @@ public class LipidSpectrumChart extends BufferedChartNode {
 
     if (asBufferedImage && spectraPlot != null) {
       setChartCreateImage(spectraPlot, GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH,
-          GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT);
+          GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
     } else {
       MZmineCore.runLater(() -> setCenter(spectraPlot));
     }
   }
 
   public LipidSpectrumChart(@NotNull ModularFeatureListRow row, AtomicDouble progress,
-      boolean asBufferedImage) {
-    this(row.getLipidMatches().isEmpty() ? null : row.getLipidMatches().get(0), progress,
-        RunOption.NEW_THREAD, asBufferedImage);
-  }
-
-  public LipidSpectrumChart(@NotNull ModularFeatureListRow row, AtomicDouble progress) {
-    this(row.getLipidMatches().isEmpty() ? null : row.getLipidMatches().get(0), progress,
-        RunOption.NEW_THREAD, true);
+      RunOption runOption, boolean asBufferedImage, boolean showLegend) {
+    this(row.getLipidMatches().isEmpty() ? null : row.getLipidMatches().get(0), progress, runOption,
+        asBufferedImage, showLegend);
   }
 
   public SpectraPlot getSpectraPlot() {
