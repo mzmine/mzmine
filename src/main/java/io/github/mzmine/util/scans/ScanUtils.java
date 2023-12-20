@@ -255,6 +255,9 @@ public class ScanUtils {
     double baseIntensity = 0d;
 
     final int startIndex = scan.binarySearch(lower, true);
+    if (startIndex == -1) {
+      return null;
+    }
     for (int i = startIndex; i < scan.getNumberOfDataPoints(); i++) {
       double mz = scan.getMzValue(i);
       if (mz < lower) {
