@@ -5,6 +5,7 @@ import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumCha
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.color.ColorScaleUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
@@ -195,17 +196,21 @@ public class LipidAnnotationMatchPane extends GridPane {
     rawDataTitle.getStyleClass().add("bold-title-label");
     panelOther.getChildren().addAll(rawDataTitle);
 
-    Label rawFile = new Label(
-        "Raw data file: " + matchedLipid.getMatchedFragments().stream().findFirst().get()
-            .getMsMsScan().getDataFile().getName());
-    rawFile.setWrapText(true);
-    panelOther.getChildren().addAll(rawFile);
+    if (!matchedLipid.getMatchedFragments().isEmpty()) {
+      LipidFragment lipidFragment = matchedLipid.getMatchedFragments().stream().findFirst()
+          .orElse(null);
+      if (lipidFragment != null) {
+        Label rawFile = new Label(
+            "Raw data file: " + lipidFragment.getMsMsScan().getDataFile().getName());
+        rawFile.setWrapText(true);
+        panelOther.getChildren().addAll(rawFile);
 
-    Label matchedScan = new Label(
-        "Matched Scan number: " + matchedLipid.getMatchedFragments().stream().findFirst().get()
-            .getMsMsScan().getScanNumber());
-    matchedScan.setWrapText(true);
-    panelOther.getChildren().addAll(matchedScan);
+        Label matchedScan = new Label(
+            "Matched Scan number: " + lipidFragment.getMsMsScan().getScanNumber());
+        matchedScan.setWrapText(true);
+        panelOther.getChildren().addAll(matchedScan);
+      }
+    }
 
     Label otherInfo = new Label("Lipid information");
     otherInfo.getStyleClass().add("bold-title-label");

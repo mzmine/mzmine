@@ -8,6 +8,7 @@ import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipidStatus;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -105,7 +106,9 @@ public class LipidAnnotationSummaryTab extends MZmineTab {
     List<MatchedLipid> matchedLipids = new ArrayList<>();
     for (FeatureListRow featureListRow : rowsWithLipidID) {
       if (featureListRow instanceof ModularFeatureListRow) {
-        matchedLipids.addAll(featureListRow.get(LipidMatchListType.class));
+        matchedLipids.addAll(featureListRow.get(LipidMatchListType.class).stream()
+            .filter(matchedLipid -> matchedLipid.getStatus().equals(MatchedLipidStatus.MATCHED))
+            .toList());
       }
     }
 
