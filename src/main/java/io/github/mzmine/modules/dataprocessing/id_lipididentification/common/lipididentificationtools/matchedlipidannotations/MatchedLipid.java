@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,6 +51,7 @@ public class MatchedLipid {
   private static final String XML_MATCHED_FRAGMENTS = "matchedfragments";
   private static final String XML_MSMS_SCORE = "msmsscore";
   private static final String XML_COMMENT = "comment";
+  private static final String XML_STATUS = "status";
 
   private ILipidAnnotation lipidAnnotation;
   private Double accurateMz;
@@ -58,14 +59,23 @@ public class MatchedLipid {
   private Set<LipidFragment> matchedFragments;
   private Double msMsScore;
   private String comment;
+  private MatchedLipidStatus status;
 
   public MatchedLipid(ILipidAnnotation lipidAnnotation, Double accurateMz,
       IonizationType ionizationType, Set<LipidFragment> matchedFragments, Double msMsScore) {
+    this(lipidAnnotation, accurateMz, ionizationType, matchedFragments, msMsScore,
+        MatchedLipidStatus.MATCHED);
+  }
+
+  public MatchedLipid(ILipidAnnotation lipidAnnotation, Double accurateMz,
+      IonizationType ionizationType, Set<LipidFragment> matchedFragments, Double msMsScore,
+      MatchedLipidStatus status) {
     this.lipidAnnotation = lipidAnnotation;
     this.accurateMz = accurateMz;
     this.ionizationType = ionizationType;
     this.matchedFragments = matchedFragments;
     this.msMsScore = msMsScore;
+    this.status = status;
   }
 
   public ILipidAnnotation getLipidAnnotation() {
@@ -116,6 +126,14 @@ public class MatchedLipid {
     this.comment = comment;
   }
 
+  public MatchedLipidStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(MatchedLipidStatus status) {
+    this.status = status;
+  }
+
   @Override
   public String toString() {
     return lipidAnnotation.getAnnotation();
@@ -149,7 +167,9 @@ public class MatchedLipid {
       writer.writeCharacters(CONST.XML_NULL_VALUE);
     }
     writer.writeEndElement();
-
+    writer.writeStartElement(XML_STATUS);
+    writer.writeCharacters(status.name());
+    writer.writeEndElement();
     writer.writeEndElement();
 
   }
@@ -167,6 +187,7 @@ public class MatchedLipid {
     Set<LipidFragment> lipidFragments = null;
     Double msMsScore = null;
     String comment = "";
+    MatchedLipidStatus status = null;
     while (reader.hasNext()
         && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       reader.next();
@@ -203,13 +224,17 @@ public class MatchedLipid {
             comment = reader.getElementText();
           }
           break;
+        case XML_STATUS:
+          status = ParsingUtils.matchedLipidStatusNameToMatchedLipidStatusType(
+              reader.getElementText());
+          break;
         default:
           break;
       }
     }
 
-    MatchedLipid matchedLipid =
-        new MatchedLipid(lipidAnnotation, accurateMz, ionizationType, lipidFragments, msMsScore);
+    MatchedLipid matchedLipid = new MatchedLipid(lipidAnnotation, accurateMz, ionizationType,
+        lipidFragments, msMsScore, status);
     if (comment != null) {
       matchedLipid.setComment(comment);
     }
@@ -235,60 +260,5 @@ public class MatchedLipid {
     }
     return lipidFragments;
   }
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((accurateMz == null) ? 0 : accurateMz.hashCode());
-    result = prime * result + ((comment == null) ? 0 : comment.hashCode());
-    result = prime * result + ((ionizationType == null) ? 0 : ionizationType.hashCode());
-    result = prime * result + ((lipidAnnotation.getAnnotation() == null) ? 0
-        : lipidAnnotation.getAnnotation().hashCode());
-    result = prime * result + ((matchedFragments == null) ? 0 : matchedFragments.hashCode());
-    result = prime * result + ((msMsScore == null) ? 0 : msMsScore.hashCode());
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    MatchedLipid other = (MatchedLipid) obj;
-    if (accurateMz == null) {
-      if (other.accurateMz != null)
-        return false;
-    } else if (!accurateMz.equals(other.accurateMz))
-      return false;
-    if (comment == null) {
-      if (other.comment != null)
-        return false;
-    } else if (!comment.equals(other.comment))
-      return false;
-    if (ionizationType != other.ionizationType)
-      return false;
-    if (lipidAnnotation.getAnnotation() == null) {
-      if (other.lipidAnnotation.getAnnotation() != null)
-        return false;
-    } else if (!lipidAnnotation.getAnnotation().equals(other.lipidAnnotation.getAnnotation()))
-      return false;
-    if (matchedFragments == null) {
-      if (other.matchedFragments != null) {
-        return false;
-      }
-    } else if (!matchedFragments.equals(other.matchedFragments)) {
-      return false;
-    }
-    if (msMsScore == null) {
-      return other.msMsScore == null;
-    } else {
-      return msMsScore.equals(other.msMsScore);
-    }
-  }
-
 
 }

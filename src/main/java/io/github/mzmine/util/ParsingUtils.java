@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipidStatus;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
@@ -294,6 +295,17 @@ public class ParsingUtils {
     for (PolarityType polarityType : polarityTypes) {
       if (polarityType.name().equals(polarityName)) {
         return polarityType;
+      }
+    }
+    return null;
+  }
+
+  public static MatchedLipidStatus matchedLipidStatusNameToMatchedLipidStatusType(
+      String matchedLipidStatusName) {
+    MatchedLipidStatus[] matchedLipidStatuses = MatchedLipidStatus.class.getEnumConstants();
+    for (MatchedLipidStatus matchedLipidStatus : matchedLipidStatuses) {
+      if (matchedLipidStatus.name().equals(matchedLipidStatusName)) {
+        return matchedLipidStatus;
       }
     }
     return null;
