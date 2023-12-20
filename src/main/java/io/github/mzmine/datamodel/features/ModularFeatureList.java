@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -65,6 +65,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -903,19 +904,31 @@ public class ModularFeatureList implements FeatureList {
   private void ensureNodeThreadRunnning() {
 
     nodeThreadLock.writeLock().lock();
-    if (nodeThread == null || nodeThread.isFinished()) {
-      nodeThread = new NodeGenerationThread(null, Instant.now(), this);
-      logger.finest("Starting new node thread.");
-      MZmineCore.getTaskController().addTask(nodeThread);
+    try {
+      if (nodeThread == null || nodeThread.isFinished()) {
+        nodeThread = new NodeGenerationThread(null, Instant.now(), this);
+        logger.finest("Starting new node thread.");
+        MZmineCore.getTaskController().addTask(nodeThread);
+      }
+    } catch (Exception e) {
+      logger.log(Level.SEVERE,
+          "Error starting node thread for feature table %s".formatted(getName()), e);
     }
     nodeThreadLock.writeLock().unlock();
   }
 
   public void onFeatureTableFxClosed() {
-    if (nodeThread != null) {
-      nodeThread.cancel();
-      nodeThread = null;
+    nodeThreadLock.writeLock().lock();
+    try {
+      if (nodeThread != null) {
+        nodeThread.cancel();
+        nodeThread = null;
+      }
+    } catch (Exception e) {
+      logger.log(Level.SEVERE,
+          "Error cancelling node thread for feature table %s".formatted(getName()), e);
     }
+    nodeThreadLock.writeLock().unlock();
 
     // We used this before when charts were stored at the row/feature level.
     // leave it here for now for reference.
