@@ -61,6 +61,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceRangeMap
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.scans.sorting.ScanSorter;
@@ -289,7 +290,12 @@ public class ScanUtils {
 
     double baseMz = 0d;
     double baseIntensity = 0d;
-    for (int i = 0; i < numValues; i++) {
+    final int startIndex = BinarySearch.binarySearch(mzRange.lowerEndpoint(), true, numValues,
+        j -> mzs[j]);
+    if (startIndex == -1) {
+      return null;
+    }
+    for (int i = startIndex; i < numValues; i++) {
       final double mz = mzs[i];
       if (mz < mzRange.lowerEndpoint()) {
         continue;
