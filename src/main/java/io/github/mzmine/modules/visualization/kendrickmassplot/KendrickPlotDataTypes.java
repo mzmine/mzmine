@@ -23,19 +23,48 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.modules.visualization.kendrickmassplot;
 
-import io.github.mzmine.datamodel.features.types.abstr.BooleanType;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
-import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
-import javafx.scene.Node;
+public enum KendrickPlotDataTypes {
 
-/**
- * This graphical type is linked to another datatype and creates charts/graphics for it
- *
- * @author Robin Schmid (https://github.com/robinschmid)
- */
-public abstract class LinkedGraphicalType extends BooleanType implements NoTextColumn,
-    GraphicalColumType<Boolean> {
+  M_OVER_Z("m/z", "m/z"),//
+  KENDRICK_MASS("Kendrick Mass", "KM"),//
+  KENDRICK_MASS_DEFECT("Kendrick Mass Defect", "KMD"),//
+  REMAINDER_OF_KENDRICK_MASS("Remainder of Kendrick Mass", "RKM"),//
+  RETENTION_TIME("Retention Time", "rt"),//
+  MOBILITY("Mobility", "mobility"),//
+  INTENSITY("Intensity", "Int."),//
+  AREA("Area", "Area"),//
+  TAILING_FACTOR("Tailing Factor", "Tailing Factor"),//
+  ASYMMETRY_FACTOR("Asymmetry Factor", "Asymmetry Factor"),//
+  FWHM("FWHM", "FWHM");//
 
+  private final String name;
+
+  private final String abbr;
+
+  KendrickPlotDataTypes(String name, String abbr) {
+    this.name = name;
+    this.abbr = abbr;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public String getAbbr() {
+    return abbr;
+  }
+
+  @Override
+  public String toString() {
+    return this.getName();
+  }
+
+  public boolean isKendrickType() {
+    return switch (this) {
+      case KENDRICK_MASS, KENDRICK_MASS_DEFECT, REMAINDER_OF_KENDRICK_MASS -> true;
+      default -> false;
+    };
+  }
 }
