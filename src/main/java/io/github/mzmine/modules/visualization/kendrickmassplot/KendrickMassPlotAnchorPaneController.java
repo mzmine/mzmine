@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,21 +25,20 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.javafx.FxIconUtil;
-import java.text.DecimalFormat;
-import java.util.logging.Logger;
+import java.util.Objects;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import org.jfree.chart.JFreeChart;
@@ -47,29 +46,15 @@ import org.jfree.chart.plot.XYPlot;
 
 public class KendrickMassPlotAnchorPaneController {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private FeatureListRow[] selectedRows;
   private FeatureList featureList;
-  private String xAxisKMBase;
   private String customYAxisKMBase;
   private String customXAxisKMBase;
-  private boolean useCustomXAxisKMBase;
-  private boolean useCustomYAxisKMBase;
   private boolean useRKM_X;
   private boolean useRKM_Y;
-  private double xAxisShift;
-  private double yAxisShift;
   private int yAxisCharge;
   private int xAxisCharge;
   private int yAxisDivisor;
   private int xAxisDivisor;
-
-  private static final Image iconKMD = FxIconUtil.loadImageFromResources("icons/KMDIcon.png");
-
-  private static final Image iconRKM = FxIconUtil.loadImageFromResources("icons/RKMIcon.png");
-
-  private static final DecimalFormat shiftFormat = new DecimalFormat("0.##");
 
   @FXML
   private BorderPane plotPane;
@@ -78,19 +63,13 @@ public class KendrickMassPlotAnchorPaneController {
   private Tooltip tooltipYAxisLabel;
 
   @FXML
-  private Label shiftLabelYAxis;
-
-  @FXML
   private Label chargeLabelYAxis;
 
   @FXML
   private Label divisorLabelYAxis;
 
   @FXML
-  private Button toggleKMDRKMY;
-
-  @FXML
-  private ImageView imageViewKMDRKMY;
+  private BorderPane bubbleLegendPane;
 
   @FXML
   private GridPane gridPaneXAxis;
@@ -102,16 +81,10 @@ public class KendrickMassPlotAnchorPaneController {
   private Tooltip tooltipXAxisLabel;
 
   @FXML
-  private Button shiftUpXAxis;
-
-  @FXML
   private Button chargeUpXAxis;
 
   @FXML
   private Button divisorUpXAxis;
-
-  @FXML
-  private Button shiftDownXAxis;
 
   @FXML
   private Button chargeDownXAxis;
@@ -120,7 +93,16 @@ public class KendrickMassPlotAnchorPaneController {
   private Button divisorDownXAxis;
 
   @FXML
-  private Label shiftLabelXAxis;
+  private Button chargeUpYAxis;
+
+  @FXML
+  private Button divisorUpYAxis;
+
+  @FXML
+  private Button chargeDownYAxis;
+
+  @FXML
+  private Button divisorDownYAxis;
 
   @FXML
   private Label chargeLabelXAxis;
@@ -128,229 +110,259 @@ public class KendrickMassPlotAnchorPaneController {
   @FXML
   private Label divisorLabelXAxis;
 
-  @FXML
-  private Button toggleKMDRKMX;
+  private ParameterSet parameters;
 
   @FXML
-  private ImageView imageViewKMDRKMX;
-
-
-  @FXML
-
   public void initialize(ParameterSet parameters) {
-
+    this.parameters = parameters.cloneParameterSet();
     this.featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
         .getMatchingFeatureLists()[0];
 
-    this.selectedRows = featureList.getRows().toArray(new FeatureListRow[0]);
-
-    this.useCustomXAxisKMBase = parameters.getParameter(KendrickMassPlotParameters.xAxisValues)
+    this.useRKM_X = parameters.getParameter(
+            KendrickMassPlotParameters.xAxisValues).getValue()
+        .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS);
+    this.useRKM_Y = parameters.getParameter(
+            KendrickMassPlotParameters.yAxisValues).getValue()
+        .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS);
+    boolean useCustomXAxisKMBase = parameters.getParameter(KendrickMassPlotParameters.xAxisValues)
         .getValue().isKendrickType();
 
     if (useCustomXAxisKMBase) {
       this.customXAxisKMBase = parameters.getParameter(
           KendrickMassPlotParameters.xAxisCustomKendrickMassBase).getValue();
       gridPaneXAxis.setDisable(false);
-    } else {
-      this.xAxisKMBase = null;
+      this.xAxisDivisor = getDivisorKM(customXAxisKMBase);
+      if (useRKM_X) {
+        xAxisDivisor++;
+      }
     }
 
-    this.useCustomYAxisKMBase = parameters.getParameter(KendrickMassPlotParameters.yAxisValues)
+    boolean useCustomYAxisKMBase = parameters.getParameter(KendrickMassPlotParameters.yAxisValues)
         .getValue().isKendrickType();
 
     if (useCustomYAxisKMBase) {
       this.customYAxisKMBase = parameters.getParameter(
           KendrickMassPlotParameters.yAxisCustomKendrickMassBase).getValue();
       gridPaneYAxis.setDisable(false);
+      this.yAxisDivisor = getDivisorKM(customYAxisKMBase);
+      if (useRKM_Y) {
+        yAxisDivisor++;
+      }
     }
 
     this.yAxisCharge = 1;
     this.xAxisCharge = 1;
-    if (customYAxisKMBase != null) {
-      this.yAxisDivisor = getDivisorKM(customYAxisKMBase);
+
+    this.useRKM_X = parameters.getParameter(
+            KendrickMassPlotParameters.xAxisValues).getValue()
+        .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS);
+    this.useRKM_Y = parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue()
+        .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS);
+    setArrowIcon(chargeDownXAxis, FontAwesomeIcon.ARROW_DOWN);
+    setArrowIcon(divisorDownXAxis, FontAwesomeIcon.ARROW_DOWN);
+    setArrowIcon(chargeDownYAxis, FontAwesomeIcon.ARROW_DOWN);
+    setArrowIcon(divisorDownYAxis, FontAwesomeIcon.ARROW_DOWN);
+    setArrowIcon(chargeUpXAxis, FontAwesomeIcon.ARROW_UP);
+    setArrowIcon(divisorUpXAxis, FontAwesomeIcon.ARROW_UP);
+    setArrowIcon(chargeUpYAxis, FontAwesomeIcon.ARROW_UP);
+    setArrowIcon(divisorUpYAxis, FontAwesomeIcon.ARROW_UP);
+
+    String title = "Kendrick mass plot of" + featureList;
+
+    String xAxisLabel;
+    if (parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue()
+        .isKendrickType()) {
+      String kmdRkm;
+      if (parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue()
+          .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS)) {
+        kmdRkm = "RKM";
+      } else {
+        kmdRkm = "KMD";
+      }
+      xAxisLabel = kmdRkm + " (" + parameters.getParameter(
+          KendrickMassPlotParameters.xAxisCustomKendrickMassBase).getValue() + ")";
     } else {
-      this.yAxisDivisor = 1;
-    }
-    if (customXAxisKMBase != null) {
-      this.xAxisDivisor = getDivisorKM(customXAxisKMBase);
-    } else {
-      this.xAxisDivisor = 1;
+      xAxisLabel = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue()
+          .getName();
     }
 
-    this.xAxisShift = 0;
-    this.yAxisShift = 0;
-    this.useRKM_X = false;
-    this.useRKM_Y = false;
+    String yAxisLabel;
+    if (parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue()
+        .isKendrickType()) {
+      String kmdRkm;
+      if (parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue()
+          .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS)) {
+        kmdRkm = "RKM";
+      } else {
+        kmdRkm = "KMD";
+      }
+      yAxisLabel = kmdRkm + " (" + parameters.getParameter(
+          KendrickMassPlotParameters.yAxisCustomKendrickMassBase).getValue() + ")";
+    } else {
+      yAxisLabel = parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue()
+          .getName();
+    }
+
+    String zAxisLabel;
+    if (parameters.getParameter(KendrickMassPlotParameters.colorScaleValues).getValue()
+        .isKendrickType()) {
+      String kmdRkm;
+      if (parameters.getParameter(KendrickMassPlotParameters.colorScaleValues).getValue()
+          .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS)) {
+        kmdRkm = "RKM";
+      } else {
+        kmdRkm = "KMD";
+      }
+      zAxisLabel = kmdRkm + " (" + parameters.getParameter(
+          KendrickMassPlotParameters.colorScaleCustomKendrickMassBase).getValue() + ")";
+    } else {
+      zAxisLabel = parameters.getParameter(KendrickMassPlotParameters.colorScaleValues).getValue()
+          .getName();
+    }
+
+    KendrickMassPlotXYZDataset kendrickMassPlotXYZDataset = new KendrickMassPlotXYZDataset(
+        parameters, 1, 1);
+
+    kendrickMassPlotXYZDataset.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      if (newStatus == TaskStatus.FINISHED) {
+        KendrickMassPlotChart kendrickMassPlotChart = new KendrickMassPlotChart(title, xAxisLabel,
+            yAxisLabel, zAxisLabel, kendrickMassPlotXYZDataset);
+        KendrickMassPlotBubbleLegend kendrickMassPlotBubbleLegend = new KendrickMassPlotBubbleLegend(
+            kendrickMassPlotXYZDataset);
+        MZmineCore.runLater(() -> {
+          plotPane.setCenter(kendrickMassPlotChart);
+          bubbleLegendPane.setCenter(kendrickMassPlotBubbleLegend);
+          updateToolBar();
+          setTooltips();
+        });
+      }
+    });
+  }
+
+  private void setArrowIcon(Button button, FontAwesomeIcon icon) {
+    if (icon.equals(FontAwesomeIcon.ARROW_UP)) {
+      FontAwesomeIcon upArrowIcon = FontAwesomeIcon.ARROW_UP;
+      FontAwesomeIconView upArrowIconView = new FontAwesomeIconView(upArrowIcon);
+      button.setGraphic(upArrowIconView);
+    } else if (icon.equals(FontAwesomeIcon.ARROW_DOWN)) {
+      FontAwesomeIcon downArrowIcon = FontAwesomeIcon.ARROW_DOWN;
+      FontAwesomeIconView downArrowIconView = new FontAwesomeIconView(downArrowIcon);
+      button.setGraphic(downArrowIconView);
+    }
   }
 
   @FXML
   void chargeDownY(ActionEvent event) {
-    if (yAxisCharge > 1) {
-      yAxisCharge = yAxisCharge - 1;
-    } else
-      yAxisCharge = 1;
-    XYPlot plot = getChart().getXYPlot();
-    kendrickVariableChanged(plot);
+    updateCharge(yAxisCharge - 1, yAxisCharge, yAxisDivisor);
   }
 
   @FXML
   void chargeDownX(ActionEvent event) {
-    if (xAxisCharge > 1) {
-      xAxisCharge = xAxisCharge - 1;
-    } else
-      xAxisCharge = 1;
-    XYPlot plot = getChart().getXYPlot();
-    kendrickVariableChanged(plot);
+    updateCharge(xAxisCharge - 1, xAxisCharge, xAxisDivisor);
   }
 
   @FXML
   void chargeUpY(ActionEvent event) {
-    logger.finest("Charge Y-axis up");
-    yAxisCharge = yAxisCharge + 1;
-    XYPlot plot = getChart().getXYPlot();
-    kendrickVariableChanged(plot);
+    updateCharge(yAxisCharge + 1, yAxisCharge, yAxisDivisor);
   }
 
   @FXML
   void chargeUpX(ActionEvent event) {
-    logger.finest("Charge X-axis up");
-    xAxisCharge = xAxisCharge + 1;
-    XYPlot plot = getChart().getXYPlot();
-    kendrickVariableChanged(plot);
+    updateCharge(xAxisCharge + 1, xAxisCharge, xAxisDivisor);
+  }
+
+  private void updateCharge(int newCharge, int currentCharge, int divisor) {
+    if (newCharge < 1) {
+      newCharge = 1;
+    }
+
+    if (newCharge != currentCharge) {
+      if (divisor >= 1) {
+        if (divisor == xAxisDivisor) {
+          xAxisCharge = newCharge;
+        } else {
+          yAxisCharge = newCharge;
+        }
+        updatePlot();
+      }
+    }
   }
 
   @FXML
   void divisorDownY(ActionEvent event) {
-    logger.finest("Divisor Y-axis down");
-    int minDivisor = getMinimumRecommendedDivisor(customYAxisKMBase);
-    int maxDivisor = getMaximumRecommendedDivisor(customYAxisKMBase);
-    if (yAxisDivisor > minDivisor && yAxisDivisor <= maxDivisor) {
-      yAxisDivisor--;
-      yAxisDivisor = checkDivisor(yAxisDivisor, useRKM_Y, customYAxisKMBase, false);
-    }
-    XYPlot plot = getChart().getXYPlot();
-    kendrickVariableChanged(plot);
+    updateDivisor(yAxisDivisor - 1, yAxisDivisor, useRKM_Y, customYAxisKMBase);
   }
 
   @FXML
   void divisorDownX(ActionEvent event) {
-    logger.finest("Divisor X-axis down");
-    int minDivisor = getMinimumRecommendedDivisor(customXAxisKMBase);
-    int maxDivisor = getMaximumRecommendedDivisor(customXAxisKMBase);
-    if (xAxisDivisor > minDivisor && xAxisDivisor <= maxDivisor) {
-      xAxisDivisor--;
-      xAxisDivisor = checkDivisor(xAxisDivisor, useRKM_X, customXAxisKMBase, false);
-    }
-    XYPlot plot = getChart().getXYPlot();
-    kendrickVariableChanged(plot);
+    updateDivisor(xAxisDivisor - 1, xAxisDivisor, useRKM_X, customXAxisKMBase);
   }
 
   @FXML
   void divisorUpY(ActionEvent event) {
-    logger.finest("Divisor Y-axis up");
-    int minDivisor = getMinimumRecommendedDivisor(customYAxisKMBase);
-    int maxDivisor = getMaximumRecommendedDivisor(customYAxisKMBase);
-    if (yAxisDivisor >= minDivisor && yAxisDivisor < maxDivisor) {
-      yAxisDivisor++;
-      yAxisDivisor = checkDivisor(yAxisDivisor, useRKM_Y, customYAxisKMBase, true);
-    }
-    XYPlot plot = getChart().getXYPlot();
-    kendrickVariableChanged(plot);
+    updateDivisor(yAxisDivisor + 1, yAxisDivisor, useRKM_Y, customYAxisKMBase);
   }
 
   @FXML
   void divisorUpX(ActionEvent event) {
-    logger.finest("Divisor X-axis up");
-    int minDivisor = getMinimumRecommendedDivisor(customXAxisKMBase);
-    int maxDivisor = getMaximumRecommendedDivisor(customXAxisKMBase);
-    if (xAxisDivisor >= minDivisor && xAxisDivisor < maxDivisor) {
-      xAxisDivisor++;
-      xAxisDivisor = checkDivisor(xAxisDivisor, useRKM_X, customXAxisKMBase, true);
+    updateDivisor(xAxisDivisor + 1, xAxisDivisor, useRKM_X, customXAxisKMBase);
+  }
+
+  private void updateDivisor(int newDivisor, int currentDivisor, boolean useRKM, String kmdBase) {
+    int minDivisor = getMinimumRecommendedDivisor(kmdBase);
+    int maxDivisor = getMaximumRecommendedDivisor(kmdBase);
+
+    if (newDivisor < minDivisor) {
+      newDivisor = minDivisor;
+    } else if (newDivisor > maxDivisor) {
+      newDivisor = maxDivisor;
     }
-    XYPlot plot = getChart().getXYPlot();
-    kendrickVariableChanged(plot);
-  }
 
-  @FXML
-  void shiftDownY(ActionEvent event) {
-    logger.finest("Shift Y-axis down");
-    Double shiftValue = -0.01;
-    yAxisShift = yAxisShift + shiftValue;
-    XYPlot plot = getChart().getXYPlot();
-    kendrickVariableChanged(plot);
-  }
+    if (newDivisor != currentDivisor) {
+      newDivisor = checkDivisor(newDivisor, useRKM, kmdBase, newDivisor > currentDivisor);
 
-  @FXML
-  void shiftDownX(ActionEvent event) {
-    logger.finest("Shift X-axis down");
-    Double shiftValue = -0.01;
-    xAxisShift = xAxisShift + shiftValue;
-    XYPlot plot = getChart().getXYPlot();
-    kendrickVariableChanged(plot);
-  }
+      if (newDivisor != currentDivisor) {
+        if (useRKM) {
+          if (newDivisor == getDivisorKM(kmdBase)) {
+            newDivisor += (newDivisor > currentDivisor) ? 1 : -1;
+          }
+        }
 
-  @FXML
-  void shiftUpYAxis(ActionEvent event) {
-    logger.finest("Shift Y-axis up");
-    Double shiftValue = 0.01;
-    yAxisShift = yAxisShift + shiftValue;
-    XYPlot plot = getChart().getXYPlot();
-    kendrickVariableChanged(plot);
-  }
-
-  @FXML
-  void shiftUpXAxis(ActionEvent event) {
-    logger.finest("Shift X-axis up");
-    Double shiftValue = 0.01;
-    xAxisShift = xAxisShift + shiftValue;
-    XYPlot plot = getChart().getXYPlot();
-    kendrickVariableChanged(plot);
-  }
-
-  @FXML
-  void toggleKMDRKMY(ActionEvent event) {
-    logger.finest("Toggle KMD and RKM Y-Axis");
-    XYPlot plot = getChart().getXYPlot();
-    if (useCustomYAxisKMBase) {
-      if (useRKM_Y) {
-        useRKM_Y = false;
-        plot.getRangeAxis().setLabel("KMD(" + customYAxisKMBase + ")");
-        imageViewKMDRKMY.setImage(iconKMD);
-      } else {
-        useRKM_Y = true;
-
-        // if the divisor is round(R) switch to round(R)-1 for RKM plot
-        yAxisDivisor = checkDivisor(yAxisDivisor, useRKM_Y, customYAxisKMBase, false);
-        plot.getRangeAxis().setLabel("RKM(" + customYAxisKMBase + ")");
-        imageViewKMDRKMY.setImage(iconRKM);
+        if (useRKM_X) {
+          xAxisDivisor = newDivisor;
+        } else {
+          yAxisDivisor = newDivisor;
+        }
+        updatePlot();
       }
-      kendrickVariableChanged(plot);
     }
   }
 
-  @FXML
-  void toggleKMDRKMX(ActionEvent event) {
-    logger.finest("Toggle KMD and RKM X-Axis");
-    XYPlot plot = getChart().getXYPlot();
-    if (useCustomXAxisKMBase) {
-      if (useRKM_X) {
-        useRKM_X = false;
-        plot.getDomainAxis().setLabel("KMD(" + customXAxisKMBase + ")");
-        imageViewKMDRKMX.setImage(iconKMD);
-      } else {
-        useRKM_X = true;
-
-        // if the divisor is round(R) switch to round(R)-1 for RKM plot
-        xAxisDivisor = checkDivisor(xAxisDivisor, useRKM_X, customXAxisKMBase, false);
-        plot.getDomainAxis().setLabel("RKM(" + customXAxisKMBase + ")");
-        imageViewKMDRKMX.setImage(iconRKM);
+  private void updatePlot() {
+    bubbleLegendPane.setDisable(true);
+    XYPlot plot = Objects.requireNonNull(getChart()).getXYPlot();
+    KendrickMassPlotXYZDataset newDataset = new KendrickMassPlotXYZDataset(parameters, xAxisDivisor,
+        xAxisCharge, yAxisDivisor, yAxisCharge);
+    newDataset.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      if (newStatus == TaskStatus.FINISHED) {
+        MZmineCore.runLater(() -> {
+          plot.setDataset(newDataset);
+          updateToolBar();
+          setTooltips();
+          bubbleLegendPane.setDisable(false);
+        });
       }
-      kendrickVariableChanged(plot);
-    }
+    });
+    updateToolBar();
+    setTooltips();
   }
 
   public BorderPane getPlotPane() {
     return plotPane;
+  }
+
+  public BorderPane getBubbleLegendPane() {
+    return bubbleLegendPane;
   }
 
   private JFreeChart getChart() {
@@ -360,95 +372,16 @@ public class KendrickMassPlotAnchorPaneController {
     return null;
   }
 
-  /*
-   * Method to calculate the data sets for a Kendrick mass plot
-   */
-  private void kendrickVariableChanged(XYPlot plot) {
-
-    if (plot.getDataset() instanceof KendrickMassPlotXYZDataset dataset) {
-      double[] xValues = new double[dataset.getItemCount(0)];
-
-      // Calc xValues
-      xValues = new double[selectedRows.length];
-      if (useCustomXAxisKMBase) {
-        if (!useRKM_X) {
-          for (int i = 0; i < selectedRows.length; i++) {
-            double unshiftedValue = Math.ceil(
-                xAxisCharge * selectedRows[i].getAverageMZ() * getKendrickMassFactor(
-                    customXAxisKMBase, xAxisDivisor))
-                - xAxisCharge * selectedRows[i].getAverageMZ() * getKendrickMassFactor(
-                customXAxisKMBase, xAxisDivisor);
-            xValues[i] = unshiftedValue + xAxisShift - Math.floor(unshiftedValue + xAxisShift);
-          }
-        } else {
-          for (int i = 0; i < selectedRows.length; i++) {
-            double unshiftedValue = (xAxisCharge * (xAxisDivisor - Math.round(
-                FormulaUtils.calculateExactMass(customXAxisKMBase)))
-                * selectedRows[i].getAverageMZ()) / FormulaUtils.calculateExactMass(
-                customXAxisKMBase)//
-                - Math.floor((xAxisCharge * (xAxisDivisor - Math.round(
-                FormulaUtils.calculateExactMass(customXAxisKMBase)))
-                * selectedRows[i].getAverageMZ()) / FormulaUtils.calculateExactMass(
-                customXAxisKMBase));
-            xValues[i] = unshiftedValue + xAxisShift - Math.floor(unshiftedValue + xAxisShift);
-          }
-        }
-      } else {
-        xValues = dataset.getxValues();
-      }
-
-      // Calc yValues
-      double[] yValues = new double[selectedRows.length];
-      if (!useRKM_Y) {
-        for (int i = 0; i < selectedRows.length; i++) {
-          double unshiftedValue = Math.ceil(
-              yAxisCharge * (selectedRows[i].getAverageMZ()) * getKendrickMassFactor(
-                  customYAxisKMBase, yAxisDivisor))
-              - yAxisCharge * (selectedRows[i].getAverageMZ()) * getKendrickMassFactor(
-              customYAxisKMBase, yAxisDivisor);
-          yValues[i] = unshiftedValue + yAxisShift - Math.floor(unshiftedValue + yAxisShift);
-        }
-      } else {
-        for (int i = 0; i < selectedRows.length; i++) {
-          double unshiftedValue = (yAxisCharge * (yAxisDivisor - Math.round(
-              FormulaUtils.calculateExactMass(customYAxisKMBase))) * selectedRows[i].getAverageMZ())
-              / FormulaUtils.calculateExactMass(customYAxisKMBase)//
-              - Math.floor((yAxisCharge * (yAxisDivisor - Math.round(
-              FormulaUtils.calculateExactMass(customYAxisKMBase))) * selectedRows[i].getAverageMZ())
-              / FormulaUtils.calculateExactMass(customYAxisKMBase));
-          yValues[i] = unshiftedValue + yAxisShift - Math.floor(unshiftedValue + yAxisShift);
-        }
-      }
-
-
-      dataset.setyValues(yValues);
-      dataset.setxValues(xValues);
-      getChart().fireChartChanged();
-    }
-
-    // update toolbar
-    updateToolBar();
-
-    // set tooltip
-    setTooltips();
-  }
-
   private void setTooltips() {
-    if (customYAxisKMBase != null)
+    if (customYAxisKMBase != null) {
       tooltipYAxisLabel.setText("The KM-Plot for divisor " + //
           getDivisorKM(customYAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
-    if (customXAxisKMBase != null)
+    }
+    if (customXAxisKMBase != null) {
       tooltipXAxisLabel.setText("The KM-Plot for divisor " + //
           getDivisorKM(customXAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
+    }
 
-  }
-
-  /*
-   * Method to calculate the Kendrick mass factor for a given sum formula
-   */
-  private double getKendrickMassFactor(String formula, int divisor) {
-    double exactMassFormula = FormulaUtils.calculateExactMass(formula);
-    return Math.round(exactMassFormula / divisor) / (exactMassFormula / divisor);
   }
 
   /*
@@ -490,20 +423,13 @@ public class KendrickMassPlotAnchorPaneController {
   }
 
   /*
-   * Method to update buttons in tool bar
+   * Method to update buttons in toolbar
    */
   private void updateToolBar() {
-
-    // Y-Axis
-    shiftLabelYAxis.setText(shiftFormat.format(yAxisShift));
     chargeLabelYAxis.setText(Integer.toString(yAxisCharge));
     divisorLabelYAxis.setText(Integer.toString(yAxisDivisor));
-
-    // X-Axis
-    shiftLabelXAxis.setText(shiftFormat.format(xAxisShift));
     chargeLabelXAxis.setText(Integer.toString(xAxisCharge));
     divisorLabelXAxis.setText(Integer.toString(xAxisDivisor));
-
   }
 
   public FeatureList getFeatureList() {

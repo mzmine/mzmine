@@ -30,8 +30,6 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tooltip?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -51,17 +49,27 @@
                <children>
                   <VBox prefHeight="398.0" prefWidth="177.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                      <children>
-                        <Label text="X-Axis">
+                        <Label text="Bubble size:">
                            <font>
-                              <Font name="System Bold" size="16.0" />
+                              <Font name="System Bold" size="16.0"/>
                            </font>
                            <VBox.margin>
-                              <Insets bottom="5.0" left="5.0" />
+                              <Insets bottom="5.0" left="5.0"/>
+                           </VBox.margin>
+                        </Label>
+                        <BorderPane fx:id="bubbleLegendPane" minHeight="0.0" minWidth="0.0"
+                          prefHeight="160.0" prefWidth="100.0">
+                        </BorderPane>
+                        <Label text="X-Axis">
+                           <font>
+                              <Font name="System Bold" size="16.0"/>
+                           </font>
+                           <VBox.margin>
+                              <Insets bottom="5.0" left="5.0"/>
                            </VBox.margin>
                         </Label>
                         <GridPane fx:id="gridPaneXAxis" disable="true">
                            <columnConstraints>
-                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                               <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                               <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                            </columnConstraints>
@@ -73,79 +81,35 @@
                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                            </rowConstraints>
                            <children>
-                              <Label text="Shift" GridPane.halignment="CENTER" />
-                              <Label text="Charge" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
-                              <Label text="Divisor" GridPane.columnIndex="2" GridPane.halignment="CENTER">
+                              <Label text="Charge" GridPane.columnIndex="0"
+                                GridPane.halignment="CENTER"/>
+                              <Label text="Divisor" GridPane.columnIndex="1"
+                                GridPane.halignment="CENTER">
                                  <tooltip>
-                                    <Tooltip fx:id="tooltipXAxisLabel" />
+                                    <Tooltip fx:id="tooltipXAxisLabel"/>
                                  </tooltip>
                               </Label>
-                              <Button fx:id="shiftUpXAxis" mnemonicParsing="false" onAction="#shiftUpXAxis" GridPane.halignment="CENTER" GridPane.rowIndex="1">
-                                 <graphic>
-                                    <ImageView pickOnBounds="true">
-                                       <image>
-                                          <Image url="icons/arrowupicon.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
+                              <Button fx:id="chargeUpXAxis" mnemonicParsing="false"
+                                onAction="#chargeUpX" GridPane.columnIndex="0"
+                                GridPane.halignment="CENTER" GridPane.rowIndex="1">
                               </Button>
-                              <Button fx:id="chargeUpXAxis" mnemonicParsing="false" onAction="#chargeUpX" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1">
-                                 <graphic>
-                                    <ImageView pickOnBounds="true">
-                                       <image>
-                                          <Image url="icons/arrowupicon.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
+                              <Button fx:id="divisorUpXAxis" mnemonicParsing="false"
+                                onAction="#divisorUpX" GridPane.columnIndex="1"
+                                GridPane.halignment="CENTER" GridPane.rowIndex="1">
                               </Button>
-                              <Button fx:id="divisorUpXAxis" mnemonicParsing="false" onAction="#divisorUpX" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1">
-                                 <graphic>
-                                    <ImageView pickOnBounds="true">
-                                       <image>
-                                          <Image url="icons/arrowupicon.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
+                              <Button fx:id="chargeDownXAxis" mnemonicParsing="false"
+                                onAction="#chargeDownX" GridPane.columnIndex="0"
+                                GridPane.halignment="CENTER" GridPane.rowIndex="2">
                               </Button>
-                              <Button fx:id="shiftDownXAxis" mnemonicParsing="false" onAction="#shiftDownX" GridPane.halignment="CENTER" GridPane.rowIndex="2">
-                                 <graphic>
-                                    <ImageView pickOnBounds="true">
-                                       <image>
-                                          <Image url="icons/arrowdownicon.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
+                              <Button fx:id="divisorDownXAxis" mnemonicParsing="false"
+                                onAction="#divisorDownX" GridPane.columnIndex="1"
+                                GridPane.halignment="CENTER" GridPane.rowIndex="2">
                               </Button>
-                              <Button fx:id="chargeDownXAxis" mnemonicParsing="false" onAction="#chargeDownX" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2">
-                                 <graphic>
-                                    <ImageView pickOnBounds="true">
-                                       <image>
-                                          <Image url="icons/arrowdownicon.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                              </Button>
-                              <Button fx:id="divisorDownXAxis" mnemonicParsing="false" onAction="#divisorDownX" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="2">
-                                 <graphic>
-                                    <ImageView pickOnBounds="true">
-                                       <image>
-                                          <Image url="icons/arrowdownicon.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                              </Button>
-                              <Label fx:id="shiftLabelXAxis" alignment="CENTER" contentDisplay="CENTER" text="0" textAlignment="CENTER" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
-                              <Label fx:id="chargeLabelXAxis" alignment="CENTER" text="0" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
-                              <Label fx:id="divisorLabelXAxis" text="0" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
-                              <Button fx:id="toggleKMDRKMX" mnemonicParsing="false" onAction="#toggleKMDRKMX" GridPane.halignment="CENTER" GridPane.rowIndex="4">
-                                 <graphic>
-                                    <ImageView fx:id="imageViewKMDRKMX" pickOnBounds="true">
-                                       <image>
-                                          <Image url="icons/KMDIcon.png"/>
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                              </Button>
+                              <Label fx:id="chargeLabelXAxis" alignment="CENTER" text="0"
+                                GridPane.columnIndex="0" GridPane.halignment="CENTER"
+                                GridPane.rowIndex="3"/>
+                              <Label fx:id="divisorLabelXAxis" text="0" GridPane.columnIndex="1"
+                                GridPane.halignment="CENTER" GridPane.rowIndex="3"/>
                            </children>
                            <padding>
                               <Insets bottom="10.0"/>
@@ -165,8 +129,6 @@
                                 prefWidth="100.0"/>
                               <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"
                                 prefWidth="100.0"/>
-                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"
-                                prefWidth="100.0"/>
                            </columnConstraints>
                            <rowConstraints>
                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
@@ -176,100 +138,35 @@
                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                            </rowConstraints>
                            <children>
-                              <Label text="Shift" GridPane.halignment="CENTER"/>
-                              <Label text="Charge" GridPane.columnIndex="1"
+                              <Label text="Charge" GridPane.columnIndex="0"
                                 GridPane.halignment="CENTER"/>
-                              <Label text="Divisor" GridPane.columnIndex="2"
+                              <Label text="Divisor" GridPane.columnIndex="1"
                                 GridPane.halignment="CENTER">
                                  <tooltip>
                                     <Tooltip fx:id="tooltipYAxisLabel"/>
                                  </tooltip>
                               </Label>
-                              <Button fx:id="shiftUpYAxis" mnemonicParsing="false"
-                                onAction="#shiftUpYAxis" GridPane.halignment="CENTER"
-                                GridPane.rowIndex="1">
-                                 <graphic>
-                                    <ImageView pickOnBounds="true">
-                                       <image>
-                                          <Image url="icons/arrowupicon.png"/>
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                              </Button>
                               <Button fx:id="chargeUpYAxis" mnemonicParsing="false"
-                                onAction="#chargeUpY" GridPane.columnIndex="1"
+                                onAction="#chargeUpY" GridPane.columnIndex="0"
                                 GridPane.halignment="CENTER" GridPane.rowIndex="1">
-                                 <graphic>
-                                    <ImageView pickOnBounds="true">
-                                       <image>
-                                          <Image url="icons/arrowupicon.png"/>
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
                               </Button>
                               <Button fx:id="divisorUpYAxis" mnemonicParsing="false"
-                                onAction="#divisorUpY" GridPane.columnIndex="2"
+                                onAction="#divisorUpY" GridPane.columnIndex="1"
                                 GridPane.halignment="CENTER" GridPane.rowIndex="1">
-                                 <graphic>
-                                    <ImageView pickOnBounds="true">
-                                       <image>
-                                          <Image url="icons/arrowupicon.png"/>
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                              </Button>
-                              <Button fx:id="shiftDownYAxis" mnemonicParsing="false"
-                                onAction="#shiftDownY" GridPane.halignment="CENTER"
-                                GridPane.rowIndex="2">
-                                 <graphic>
-                                    <ImageView pickOnBounds="true">
-                                       <image>
-                                          <Image url="icons/arrowdownicon.png"/>
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
                               </Button>
                               <Button fx:id="chargeDownYAxis" mnemonicParsing="false"
-                                onAction="#chargeDownY" GridPane.columnIndex="1"
+                                onAction="#chargeDownY" GridPane.columnIndex="0"
                                 GridPane.halignment="CENTER" GridPane.rowIndex="2">
-                                 <graphic>
-                                    <ImageView pickOnBounds="true">
-                                       <image>
-                                          <Image url="icons/arrowdownicon.png"/>
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
                               </Button>
                               <Button fx:id="divisorDownYAxis" mnemonicParsing="false"
-                                onAction="#divisorDownY" GridPane.columnIndex="2"
+                                onAction="#divisorDownY" GridPane.columnIndex="1"
                                 GridPane.halignment="CENTER" GridPane.rowIndex="2">
-                                 <graphic>
-                                    <ImageView pickOnBounds="true">
-                                       <image>
-                                          <Image url="icons/arrowdownicon.png"/>
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
                               </Button>
-                              <Label fx:id="shiftLabelYAxis" alignment="CENTER"
-                                contentDisplay="CENTER" text="0" textAlignment="CENTER"
-                                GridPane.halignment="CENTER" GridPane.rowIndex="3"/>
                               <Label fx:id="chargeLabelYAxis" alignment="CENTER" text="0"
-                                GridPane.columnIndex="1" GridPane.halignment="CENTER"
+                                GridPane.columnIndex="0" GridPane.halignment="CENTER"
                                 GridPane.rowIndex="3"/>
-                              <Label fx:id="divisorLabelYAxis" text="0" GridPane.columnIndex="2"
+                              <Label fx:id="divisorLabelYAxis" text="0" GridPane.columnIndex="1"
                                 GridPane.halignment="CENTER" GridPane.rowIndex="3"/>
-                              <Button fx:id="toggleKMDRKMY" mnemonicParsing="false"
-                                onAction="#toggleKMDRKMY" GridPane.halignment="CENTER"
-                                GridPane.rowIndex="4">
-                                 <graphic>
-                                    <ImageView fx:id="imageViewKMDRKMY" pickOnBounds="true">
-                                       <image>
-                                          <Image url="icons/KMDIcon.png"/>
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                              </Button>
                            </children>
                            <VBox.margin>
                               <Insets left="5.0"/>

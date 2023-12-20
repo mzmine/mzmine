@@ -23,19 +23,51 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.util;
 
-import io.github.mzmine.datamodel.features.types.abstr.BooleanType;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
-import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
-import javafx.scene.Node;
+import java.util.Date;
 
 /**
- * This graphical type is linked to another datatype and creates charts/graphics for it
- *
- * @author Robin Schmid (https://github.com/robinschmid)
+ * Simple timer class to be used in loops. {@link #tick()} must be called on each iteration to check
+ * if the timer has finished. if it has, the runnable will be executed.
  */
-public abstract class LinkedGraphicalType extends BooleanType implements NoTextColumn,
-    GraphicalColumType<Boolean> {
+public class Timer {
 
+  long startMilis;
+  final long durationMilis;
+
+  final protected Runnable onFinished;
+
+  public Timer(long durationMilis, Runnable onFinished) {
+    this.durationMilis = durationMilis;
+    this.onFinished = onFinished;
+  }
+
+  private STATUS status = STATUS.RUNNING;
+
+  private enum STATUS {
+    FINISHED, RUNNING;
+  }
+
+  public synchronized void restart() {
+    status = STATUS.RUNNING;
+    startMilis = new Date().getTime();
+  }
+
+  public synchronized void tick() {
+    if (checkFinished()) {
+      status = STATUS.FINISHED;
+      if (onFinished != null) {
+        onFinished.run();
+      }
+    }
+  }
+
+  boolean checkFinished() {
+    return new Date().getTime() - startMilis > durationMilis;
+  }
+
+  public STATUS getStatus() {
+    return status;
+  }
 }
