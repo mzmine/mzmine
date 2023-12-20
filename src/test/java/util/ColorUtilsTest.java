@@ -58,4 +58,19 @@ public class ColorUtilsTest {
         ColorUtils.getColorDifference(Color.BLACK, Color.WHITE));
   }
 
+  @Test
+  void testIsDark() {
+    Assertions.assertEquals(true, ColorUtils.isDark(Color.BLACK));
+    Assertions.assertEquals(true, ColorUtils.isDark(Color.MIDNIGHTBLUE));
+    Assertions.assertEquals(true, ColorUtils.isDark(Color.rgb(50, 50, 50)));
+    Assertions.assertEquals(false, ColorUtils.isDark(Color.rgb(100, 100, 100)));
+  }
+
+  @Test
+  void testIsLight() {
+    Assertions.assertEquals(true, ColorUtils.isLight(Color.WHITE));
+    Assertions.assertEquals(true, ColorUtils.isLight(Color.BEIGE));
+    Assertions.assertEquals(true, ColorUtils.isLight(Color.rgb(200, 200, 200)));
+    Assertions.assertEquals(false, ColorUtils.isLight(Color.rgb(150, 150, 150)));
+  }
 }
