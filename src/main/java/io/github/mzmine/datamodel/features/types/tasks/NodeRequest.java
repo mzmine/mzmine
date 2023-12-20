@@ -23,19 +23,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.datamodel.features.types.tasks;
 
-import io.github.mzmine.datamodel.features.types.abstr.BooleanType;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
-import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
-import javafx.scene.Node;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
+import javafx.scene.layout.Pane;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * This graphical type is linked to another datatype and creates charts/graphics for it
- *
- * @author Robin Schmid (https://github.com/robinschmid)
- */
-public abstract class LinkedGraphicalType extends BooleanType implements NoTextColumn,
-    GraphicalColumType<Boolean> {
+public record NodeRequest<T>(ModularFeatureListRow row, DataType<T> type, T value, @Nullable RawDataFile raw,
+                             Pane parentNode) {
 
 }
