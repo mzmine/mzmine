@@ -26,7 +26,9 @@
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -55,20 +57,28 @@ public class VanKrevelenDiagramAnchorPaneController {
     String title = "Van Krevelen Diagram of" + featureList;
     String zAxisLabel = parameters.getParameter(VanKrevelenDiagramParameters.colorScaleValues)
         .getValue().getName();
+    plotPane.setCenter(new Label("Preparing content"));
     VanKrevelenDiagramXYZDataset vanKrevelenDiagramXYZDataset = new VanKrevelenDiagramXYZDataset(
         parameters);
-    if (vanKrevelenDiagramXYZDataset.getItemCount(0) > 0) {
-      VanKrevelenDiagramChart vanKrevelenDiagramChart = new VanKrevelenDiagramChart(title, "O/C",
-          "H/C", zAxisLabel, vanKrevelenDiagramXYZDataset);
-      VanKrevelenDiagramBubbleLegend vanKrevelenDiagramBubbleLegend = new VanKrevelenDiagramBubbleLegend(
-          vanKrevelenDiagramXYZDataset);
-      plotPane.setCenter(vanKrevelenDiagramChart);
-      bubbleLegendPane.setCenter(vanKrevelenDiagramBubbleLegend);
-    } else {
-      plotPane.setCenter(new Label(
-          "Nothing to plot. Check if the selected feature list has annotations. A Van Krevelen Diagram requires molecular formulas."));
-    }
-
+    vanKrevelenDiagramXYZDataset.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      if (newStatus == TaskStatus.FINISHED) {
+        if (vanKrevelenDiagramXYZDataset.getItemCount(0) > 0) {
+          VanKrevelenDiagramChart vanKrevelenDiagramChart = new VanKrevelenDiagramChart(title,
+              "O/C", "H/C", zAxisLabel, vanKrevelenDiagramXYZDataset);
+          VanKrevelenDiagramBubbleLegend vanKrevelenDiagramBubbleLegend = new VanKrevelenDiagramBubbleLegend(
+              vanKrevelenDiagramXYZDataset);
+          MZmineCore.runLater(() -> {
+            plotPane.setCenter(vanKrevelenDiagramChart);
+            bubbleLegendPane.setCenter(vanKrevelenDiagramBubbleLegend);
+          });
+        } else {
+          MZmineCore.runLater(() -> {
+            plotPane.setCenter(new Label(
+                "Nothing to plot. Check if the selected feature list has annotations. A Van Krevelen Diagram requires molecular formulas."));
+          });
+        }
+      }
+    });
   }
 
   public FeatureList getFeatureList() {

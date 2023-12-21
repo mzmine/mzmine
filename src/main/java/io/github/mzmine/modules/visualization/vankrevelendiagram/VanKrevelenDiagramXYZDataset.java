@@ -31,12 +31,21 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.FormulaUtils;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.data.xy.AbstractXYZDataset;
 import org.openscience.cdk.config.Elements;
 import org.openscience.cdk.interfaces.IElement;
@@ -47,8 +56,13 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
-class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements XYZBubbleDataset {
+class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, XYZBubbleDataset {
 
+  protected final @NotNull Property<TaskStatus> status = new SimpleObjectProperty<>(
+      TaskStatus.WAITING);
+  protected String errorMessage = null;
+  private List<TaskStatusListener> listener;
+  private double finishedSteps;
   private final ParameterSet parameters;
   private final List<FeatureListRow> filteredRows;
   private final double[] xValues;
@@ -69,10 +83,17 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements XYZBubb
     yValues = new double[filteredRows.size()];
     colorScaleValues = new double[filteredRows.size()];
     bubbleSizeValues = new double[filteredRows.size()];
-    init();
+    setStatus(TaskStatus.WAITING);
+    MZmineCore.getTaskController().addTask(this);
   }
 
-  private void init() {
+  @Override
+  public void run() {
+    finishedSteps = 0;
+    setStatus(TaskStatus.PROCESSING);
+    if (isCanceled()) {
+      setStatus(TaskStatus.CANCELED);
+    }
     initElementRatioValues(Elements.ofString("O").toIElement(), Elements.ofString("C").toIElement(),
         xValues);
     initElementRatioValues(Elements.ofString("H").toIElement(), Elements.ofString("C").toIElement(),
@@ -83,6 +104,8 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements XYZBubb
         parameters.getParameter(VanKrevelenDiagramParameters.bubbleSizeValues).getValue());
     bubbleVanKrevelenDataType = parameters.getParameter(
         VanKrevelenDiagramParameters.bubbleSizeValues).getValue();
+    finishedSteps = 1;
+    setStatus(TaskStatus.FINISHED);
   }
 
   private void initElementRatioValues(IElement elementOne, IElement elementTwo, double[] values) {
@@ -175,19 +198,31 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements XYZBubb
 
   private void useFwhm(double[] values) {
     for (int i = 0; i < filteredRows.size(); i++) {
-      values[i] = filteredRows.get(i).getBestFeature().getFWHM();
+      if (filteredRows.get(i).getBestFeature().getFWHM() != null) {
+        values[i] = filteredRows.get(i).getBestFeature().getFWHM();
+      } else {
+        values[i] = 0.0;
+      }
     }
   }
 
   private void useAsymmetryFactor(double[] values) {
     for (int i = 0; i < filteredRows.size(); i++) {
-      values[i] = filteredRows.get(i).getBestFeature().getAsymmetryFactor();
+      if (filteredRows.get(i).getBestFeature().getAsymmetryFactor() != null) {
+        values[i] = filteredRows.get(i).getBestFeature().getAsymmetryFactor();
+      } else {
+        values[i] = 0.0;
+      }
     }
   }
 
   private void useTailingFactor(double[] values) {
     for (int i = 0; i < filteredRows.size(); i++) {
-      values[i] = filteredRows.get(i).getBestFeature().getTailingFactor();
+      if (filteredRows.get(i).getBestFeature().getTailingFactor() != null) {
+        values[i] = filteredRows.get(i).getBestFeature().getTailingFactor();
+      } else {
+        values[i] = 0.0;
+      }
     }
   }
 
@@ -225,36 +260,58 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements XYZBubb
     }
   }
 
-  @Override
   public int getItemCount(int series) {
-    return xValues.length;
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return xValues.length;
+    } else {
+      return 0;
+    }
   }
 
   @Override
   public Number getX(int series, int item) {
-    return xValues[item];
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return xValues[item];
+    } else {
+      return 0;
+    }
   }
 
   @Override
   public Number getY(int series, int item) {
-    return yValues[item];
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return yValues[item];
+    } else {
+      return 0;
+    }
   }
 
   @Override
   public Number getZ(int series, int item) {
-    return colorScaleValues[item];
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return colorScaleValues[item];
+    } else {
+      return 0;
+    }
   }
 
   @Override
   public Number getBubbleSize(int series, int item) {
-    return bubbleSizeValues[item];
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return bubbleSizeValues[item];
+    } else {
+      return 0;
+    }
   }
 
   @Override
   public double getBubbleSizeValue(int series, int item) {
-    return bubbleSizeValues[item];
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return bubbleSizeValues[item];
+    } else {
+      return 0;
+    }
   }
-
 
   @Override
   public int getSeriesCount() {
@@ -271,22 +328,101 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements XYZBubb
   }
 
   public double[] getxValues() {
-    return xValues;
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return xValues;
+    } else {
+      return new double[]{0};
+    }
   }
 
   public double[] getyValues() {
-    return yValues;
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return yValues;
+    } else {
+      return new double[]{0};
+    }
   }
 
   public double[] getColorScaleValues() {
-    return colorScaleValues;
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return colorScaleValues;
+    } else {
+      return new double[]{0};
+    }
   }
 
   public double[] getBubbleSizeValues() {
-    return bubbleSizeValues;
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return bubbleSizeValues;
+    } else {
+      return new double[]{0};
+    }
   }
 
   public VanKrevelenDiagramDataTypes getBubbleVanKrevelenDataType() {
     return bubbleVanKrevelenDataType;
+  }
+
+  @Override
+  public String getTaskDescription() {
+    return "Computing values for Van Krevelen diagram dataset";
+  }
+
+  @Override
+  public double getFinishedPercentage() {
+    return finishedSteps;
+  }
+
+  @Override
+  public TaskStatus getStatus() {
+    return status.getValue();
+  }
+
+  @Override
+  public String getErrorMessage() {
+    return errorMessage;
+  }
+
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.NORMAL;
+  }
+
+  @Override
+  public void cancel() {
+    setStatus(TaskStatus.CANCELED);
+  }
+
+  public final void setStatus(TaskStatus newStatus) {
+    TaskStatus old = getStatus();
+    status.setValue(newStatus);
+    if (listener != null && !newStatus.equals(old)) {
+      for (TaskStatusListener listener : listener) {
+        listener.taskStatusChanged(this, newStatus, old);
+      }
+    }
+  }
+
+  public void addTaskStatusListener(TaskStatusListener list) {
+    if (listener == null) {
+      listener = new ArrayList<>();
+    }
+    listener.add(list);
+  }
+
+  @Override
+  public boolean removeTaskStatusListener(TaskStatusListener list) {
+    if (listener != null) {
+      return listener.remove(list);
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public void clearTaskStatusListener() {
+    if (listener != null) {
+      listener.clear();
+    }
   }
 }

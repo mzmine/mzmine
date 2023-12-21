@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
@@ -46,7 +47,8 @@ import org.jfree.data.xy.AbstractXYZDataset;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Task {
+public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Task,
+    XYZBubbleDataset {
 
   protected final @NotNull Property<TaskStatus> status = new SimpleObjectProperty<>(
       TaskStatus.WAITING);
@@ -204,19 +206,31 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
 
   private void useFwhm(double[] values) {
     for (int i = 0; i < selectedRows.length; i++) {
-      values[i] = selectedRows[i].getBestFeature().getFWHM();
+      if (selectedRows[i].getBestFeature().getFWHM() != null) {
+        values[i] = selectedRows[i].getBestFeature().getFWHM();
+      } else {
+        values[i] = 0.0;
+      }
     }
   }
 
   private void useAsymmetryFactor(double[] values) {
     for (int i = 0; i < selectedRows.length; i++) {
-      values[i] = selectedRows[i].getBestFeature().getAsymmetryFactor();
+      if (selectedRows[i].getBestFeature().getAsymmetryFactor() != null) {
+        values[i] = selectedRows[i].getBestFeature().getAsymmetryFactor();
+      } else {
+        values[i] = 0.0;
+      }
     }
   }
 
   private void useTailingFactor(double[] values) {
     for (int i = 0; i < selectedRows.length; i++) {
-      values[i] = selectedRows[i].getBestFeature().getTailingFactor();
+      if (selectedRows[i].getBestFeature().getTailingFactor() != null) {
+        values[i] = selectedRows[i].getBestFeature().getTailingFactor();
+      } else {
+        values[i] = 0.0;
+      }
     }
   }
 
@@ -319,7 +333,17 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     }
   }
 
-  public double getBubbleSize(int series, int item) {
+  @Override
+  public Number getBubbleSize(int series, int item) {
+    if (status.getValue().equals(TaskStatus.FINISHED)) {
+      return bubbleSizeValues[item];
+    } else {
+      return 0;
+    }
+  }
+
+  @Override
+  public double getBubbleSizeValue(int series, int item) {
     if (status.getValue().equals(TaskStatus.FINISHED)) {
       return bubbleSizeValues[item];
     } else {
