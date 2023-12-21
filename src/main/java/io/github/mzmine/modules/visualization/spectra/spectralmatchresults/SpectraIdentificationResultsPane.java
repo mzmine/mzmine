@@ -26,14 +26,12 @@
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
-import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.gui.framework.fx.features.AbstractFeatureListRowsPane;
+import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.TableViewUtils;
-import io.github.mzmine.util.javafx.WeakAdapter;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -58,7 +56,6 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TreeItem;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -66,20 +63,16 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Window to show all spectral libraries matches from selected scan or feature list match
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de) & SteffenHeu (s_heuc03@uni-muenster.de)
  */
-public class SpectraIdentificationResultsWindowFX extends SimpleTab implements
-    FeatureRowInterfaceFx {
+public class SpectraIdentificationResultsPane extends AbstractFeatureListRowsPane {
 
   private static final Logger logger = Logger.getLogger(
-      SpectraIdentificationResultsWindowFX.class.getName());
-
-  private final WeakAdapter weak = new WeakAdapter();
+      SpectraIdentificationResultsPane.class.getName());
 
   // link row selection to results
   private final Font headerFont = new Font("Dialog Bold", 16);
@@ -97,15 +90,8 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab implements
   private Label shownMatchesLbl;
   private TableColumn<SpectralDBAnnotation, SpectralDBAnnotation> column;
 
-  public SpectraIdentificationResultsWindowFX() {
-    this(null);
-  }
-
-  public SpectraIdentificationResultsWindowFX(@Nullable final FeatureTableFX table) {
-    super("Spectral matches", false, false);
-    setOnCloseRequest(event -> weak.dipose());
-
-    addRowSelectionListener(table);
+  public SpectraIdentificationResultsPane(final ParentFeatureListPaneGroup parentGroup) {
+    super(parentGroup);
 
     totalMatches = FXCollections.observableList(Collections.synchronizedList(new ArrayList<>()));
     visibleMatches = FXCollections.observableArrayList();
@@ -123,24 +109,10 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab implements
     pnMain.setTop(mainBox);
     pnMain.setMinWidth(700);
     pnMain.setMinHeight(500);
-    setContent(pnMain);
+    setCenter(pnMain);
 
     matchPanels = new HashMap<>();
     setCoupleZoomY(true);
-  }
-
-  private void addRowSelectionListener(final FeatureTableFX table) {
-    if (table == null) {
-      return;
-    }
-    weak.addListChangeListener(table, table.getSelectedTableRows(), c -> {
-      if (weak.isDisposed()) {
-        return;
-      }
-
-      var rows = c.getList().stream().map(TreeItem::getValue).toList();
-      setFeatureRows(rows);
-    });
   }
 
   @Override
@@ -149,11 +121,21 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab implements
   }
 
   @Override
-  public void setFeatureRows(final @NotNull List<? extends FeatureListRow> rows) {
-    var allMatches = rows.stream().map(FeatureListRow::getSpectralLibraryMatches)
+  public void onRowsChanged(final ObservableList<? extends FeatureListRow> rows) {
+    super.onRowsChanged(rows);  // required for children
+    // this is all rows in the feature table
+    // this pane does currently not make use of all rows.
+    // TODO add search bar to search in all rows for annotations
+  }
+
+  @Override
+  public void onSelectedRowsChanged(final ObservableList<? extends FeatureListRow> selectedRows) {
+    super.onSelectedRowsChanged(selectedRows); // required for children
+
+    var allMatches = selectedRows.stream().map(FeatureListRow::getSpectralLibraryMatches)
         .flatMap(Collection::stream).toList();
     setMatches(allMatches);
-    setTitle(rows);
+    setTitle(selectedRows);
   }
 
   @NotNull

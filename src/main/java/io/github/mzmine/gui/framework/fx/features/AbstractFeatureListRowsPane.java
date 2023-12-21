@@ -23,42 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx;
+package io.github.mzmine.gui.framework.fx.features;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.framework.fx.features.FeatureListRowsPane;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
+import javafx.scene.layout.BorderPane;
 
 /**
- * a JavaFX interface that can handle changes in selected rows, update the content based on the
- * rows
- * @TODO remove as this has been moved to {@link FeatureListRowsPane}
+ * General pane that updates if the feature list rows change based on an ObservableList that is
+ * passed by the parent
  */
-@Deprecated
-public interface FeatureRowInterfaceFx {
+public abstract class AbstractFeatureListRowsPane extends BorderPane implements
+    FeatureListRowsPane {
 
-  /**
-   * Defines if this JavaFX node has row specific content like annotations, charts, etc
-   *
-   * @return true if content available
-   */
-  boolean hasContent();
+  private final ParentFeatureListPaneGroup parentGroup;
 
-  /**
-   * Defines if this JavaFX node has NO row specific content like annotations, charts, etc
-   *
-   * @return true if NO content available; opposite of {@link #hasContent()}
-   */
-  default boolean isEmptyContent() {
-    return !hasContent();
+  public AbstractFeatureListRowsPane(final ParentFeatureListPaneGroup parentGroup) {
+    this.parentGroup = parentGroup;
   }
 
-  /**
-   * Set the selected rows and update this interface
-   *
-   * @param selectedRows new list of rows - the old is replaced
-   */
-  void setFeatureRows(final @NotNull List<? extends FeatureListRow> selectedRows);
-
+  public ParentFeatureListPaneGroup getParentGroup() {
+    return parentGroup;
+  }
 }
