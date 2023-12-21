@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -50,7 +51,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.adap.ADAPInterface;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -209,33 +209,29 @@ public class ADAP3AlignerTask extends AbstractTask {
         Peak peak = component.getBestPeak();
         peak.getInfo().mzValue(component.getMZ());
 
-        FeatureList featureList = findPeakList(referenceComponent.getSampleID(i));
+        FeatureListRow oldRow = findPeakListRow(referenceComponent.getSampleID(i),
+            peak.getInfo().peakID);
 
-
-        FeatureListRow row =
-            findPeakListRow(referenceComponent.getSampleID(i), peak.getInfo().peakID);
-
-        if (row == null) {
+        if (oldRow == null) {
           throw new IllegalStateException(
-              String.format("Cannot find a feature list row for fileId = %d and peakId = %d",
+              String.format("Cannot find a feature list oldRow for fileId = %d and peakId = %d",
                   referenceComponent.getSampleID(), peak.getInfo().peakID));
         }
 
-        RawDataFile file = row.getRawDataFiles().get(0);
-//        List<Scan> scanNumbers = row.getBestFeature().getScanNumbers();
-        // Create a new MZmine feature
-        Feature feature = ADAPInterface.peakToFeature(alignedPeakList, featureList, file, peak,
-            row);
+        RawDataFile file = oldRow.getRawDataFiles().get(0);
 
-        // Add spectrum as an isotopic pattern TODO legacy, modules shout now use the pseudo spectrum
+        // Add spectrum as an isotopic pattern TODO legacy, modules should now use the pseudo spectrum
         DataPoint[] spectrum = component.getSpectrum().entrySet().stream()
             .map(e -> new SimpleDataPoint(e.getKey(), e.getValue())).toArray(DataPoint[]::new);
 
-        feature.setIsotopePattern(
+        ModularFeature newModularFeature = new ModularFeature(newRow.getFeatureList(),
+            oldRow.getFeature(file));
+
+        newModularFeature.setIsotopePattern(
             new SimpleIsotopePattern(spectrum, -1, IsotopePattern.IsotopePatternStatus.PREDICTED,
                 "Spectrum"));
 
-        newRow.addFeature(file, feature);
+        newRow.addFeature(file, newModularFeature);
       }
 
       // Save alignment score

@@ -127,7 +127,6 @@ public class ADAPInterface {
     feature.set(FeatureDataType.class, simpleIonTimeSeries);
     FeatureDataUtils.recalculateIonSeriesDependingTypes(feature);
     return feature;
-
   }
 
   @NotNull
