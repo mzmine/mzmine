@@ -33,9 +33,11 @@ import javafx.scene.paint.Color;
 public class ColocatedImagePane extends GridPane {
 
   private static final Logger logger = Logger.getLogger(ColocatedImagePane.class.getName());
-  public static Color MAX_COS_COLOR = Color.web("0x388E3C");
-  public static Color MIN_COS_COLOR = Color.web("0xE30B0B");
-  public static final double MIN_COS_COLOR_VALUE = 0.7;
+  public static final Color MAX_COS_COLOR = MZmineCore.getConfiguration().getDefaultColorPalette()
+      .getPositiveColor();
+  public static final Color MIN_COS_COLOR = MZmineCore.getConfiguration().getDefaultColorPalette()
+      .getNegativeColor();
+  public static final double MIN_COS_COLOR_VALUE = 0.5;
   public static final double MAX_COS_COLOR_VALUE = 1.0;
   private final ChartGroup chartGroup;
 
