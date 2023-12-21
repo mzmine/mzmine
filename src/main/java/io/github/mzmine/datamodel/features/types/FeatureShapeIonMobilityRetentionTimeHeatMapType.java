@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
@@ -33,23 +34,20 @@ import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeIonMobilityRetentionTimeHeatMapChart;
-import io.github.mzmine.datamodel.features.types.tasks.FeatureGraphicalNodeTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
 import java.util.List;
-import javafx.geometry.Pos;
+import java.util.logging.Logger;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
-import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedGraphicalType {
+
+  private static final Logger logger = Logger.getLogger(
+      FeatureShapeIonMobilityRetentionTimeHeatMapType.class.getName());
 
   @NotNull
   @Override
@@ -65,13 +63,13 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedGraph
   }
 
   @Override
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean value, RawDataFile raw) {
-    ModularFeatureListRow row = cell.getTreeTableRow().getItem();
-    if (row == null || !value || row.getFeature(raw) == null || !(raw instanceof IMSRawDataFile)
-        || raw instanceof ImagingRawDataFile) {
+  public @Nullable Node createCellContent(ModularFeatureListRow row, Boolean cellData,
+      RawDataFile raw, AtomicDouble progress) {
+    if (row == null || (cellData != null && !cellData) || !(raw instanceof IMSRawDataFile)
+        || row.getFeature(raw) == null || raw instanceof ImagingRawDataFile) {
       return null;
     }
+
     ModularFeature feature = row.getFeature(raw);
     if (feature == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
       return null;
@@ -79,27 +77,12 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedGraph
 
     if (!(feature.getFeatureData() instanceof IonMobilogramTimeSeries)) {
       Label label = new Label("Processed with\nLC-MS workflow");
-      StackPane pane = new StackPane(label);
       label.setTextAlignment(TextAlignment.CENTER);
-      pane.setAlignment(Pos.CENTER);
-      return pane;
+      return label;
     }
 
-    // get existing buffered node from row (for column name)
-    // TODO listen to changes in features data
-    Node node = feature.getBufferedColChart(coll.getText());
-    if (node != null) {
-      return node;
-    }
-
-    StackPane pane = new StackPane();
-
-    // TODO stop task if new task is started
-    Task task = new FeatureGraphicalNodeTask(FeatureShapeIonMobilityRetentionTimeHeatMapChart.class,
-        pane, feature, coll.getText());
-    MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
-
-    return pane;
+    var chart = new FeatureShapeIonMobilityRetentionTimeHeatMapChart(feature, progress);
+    return chart;
   }
 
   @Override
@@ -114,5 +97,4 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedGraph
     return () -> MZmineCore.runLater(() -> MZmineCore.getDesktop()
         .addTab(new IMSFeatureVisualizerTab(row.getFeature(file.get(0)))));
   }
-
 }

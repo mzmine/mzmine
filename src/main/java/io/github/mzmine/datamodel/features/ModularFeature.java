@@ -89,7 +89,6 @@ public class ModularFeature implements Feature, ModularDataModel {
   private static final Logger logger = Logger.getLogger(ModularFeature.class.getName());
   private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
   // buffert col charts and nodes
-  private final Map<String, Node> buffertColCharts = new HashMap<>();
   @NotNull
   private ModularFeatureList flist;
 
@@ -274,24 +273,6 @@ public class ModularFeature implements Feature, ModularDataModel {
         set(AsymmetryFactorType.class, af);
       }
     }
-  }
-
-  public Node getBufferedColChart(String colname) {
-    return buffertColCharts.get(colname);
-  }
-
-  public void addBufferedColChart(String colname, Node node) {
-    buffertColCharts.put(colname, node);
-  }
-
-  public void clearBufferedColCharts() {
-    buffertColCharts.forEach((k, v) -> {
-      if (v instanceof Pane p && p.getParent() instanceof Pane pane) {
-        // remove the node from the parent so there is no more reference and it can be GC'ed
-        pane.getChildren().remove(v);
-      }
-    });
-    buffertColCharts.clear();
   }
 
   /**

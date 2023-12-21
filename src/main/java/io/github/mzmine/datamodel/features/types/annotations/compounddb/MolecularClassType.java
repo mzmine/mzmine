@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,19 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.datamodel.features.types.annotations.compounddb;
 
-import io.github.mzmine.datamodel.features.types.abstr.BooleanType;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
-import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
-import javafx.scene.Node;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * This graphical type is linked to another datatype and creates charts/graphics for it
- *
- * @author Robin Schmid (https://github.com/robinschmid)
+ * Used to specify the molecular class of a molecule. For now used in the CCS base export.
  */
-public abstract class LinkedGraphicalType extends BooleanType implements NoTextColumn,
-    GraphicalColumType<Boolean> {
+public class MolecularClassType extends StringType {
 
+  @Override
+  public @NotNull String getUniqueID() {
+    return "molecular_class_type";
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Molecular class";
+  }
 }

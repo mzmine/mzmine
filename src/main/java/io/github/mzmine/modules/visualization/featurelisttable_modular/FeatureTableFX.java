@@ -116,6 +116,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
@@ -179,11 +180,22 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
     final KeyCodeCombination keyCodeCopy = new KeyCodeCombination(KeyCode.C,
         KeyCombination.CONTROL_ANY);
+
     setOnKeyPressed(event -> {
       if (keyCodeCopy.match(event)) {
         copySelectionToClipboard(this);
+        event.consume();
       }
     });
+
+    this.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+      if (event.isControlDown() && event.getCode() == KeyCode.A) {
+        // selecting everything causes feature table to freeze
+        event.consume();
+      }
+    });
+
+
   }
 
   /**
@@ -1033,8 +1045,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       return;
     }
     flist.getRows().removeListener(this);
-    flist.modularStream().forEach(ModularFeatureListRow::clearBufferedColCharts);
-    flist.streamFeatures().forEach(ModularFeature::clearBufferedColCharts);
+    flist.onFeatureTableFxClosed();
   }
 
   public DataTypeCheckListParameter getRowTypesParameter() {
