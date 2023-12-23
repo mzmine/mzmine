@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -49,6 +49,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -121,22 +122,20 @@ public class MaldiGroupMS2Task extends AbstractTask {
   }
 
   public static List<PasefMsMsInfo> getMsMsInfos(List<PasefMsMsInfo> infos, Range<Double> mzRange) {
-    int lowerSearchPoint = BinarySearch.binarySearch(mzRange.lowerEndpoint(), false, infos.size(),
+    int lowerSearchPoint = BinarySearch.binarySearch(mzRange.lowerEndpoint(),
+        DefaultTo.GREATER_EQUALS, infos.size(),
         i -> infos.get(i).getIsolationMz());
     if (lowerSearchPoint < 0) {
-      lowerSearchPoint = -(lowerSearchPoint + 1);
-    }
-
-    int upperSearchPoint = BinarySearch.binarySearch(mzRange.upperEndpoint(), false, infos.size(),
-        i -> infos.get(i).getIsolationMz());
-    if (upperSearchPoint < 0) {
-      upperSearchPoint = -(upperSearchPoint + 1);
-    }
-
-    if (upperSearchPoint <= lowerSearchPoint) {
       return List.of();
     }
-    return infos.subList(lowerSearchPoint, upperSearchPoint);
+
+    int upperSearchPoint = BinarySearch.binarySearch(mzRange.upperEndpoint(), DefaultTo.LESS_EQUALS,
+        infos.size(),
+        i -> infos.get(i).getIsolationMz());
+    if (upperSearchPoint < 0 || upperSearchPoint < lowerSearchPoint) {
+      return List.of();
+    }
+    return infos.subList(lowerSearchPoint, upperSearchPoint + 1);
   }
 
   @Override
