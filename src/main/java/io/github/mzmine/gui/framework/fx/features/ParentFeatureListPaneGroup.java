@@ -69,25 +69,6 @@ public class ParentFeatureListPaneGroup implements FeatureListRowsPane {
     listenToExternalDataSourceChanges();
   }
 
-  private void listenToExternalDataSourceChanges() {
-    featureList.addListener((obs, oldList, newList) -> {
-      weak.removeAllForParent(oldList);
-      // weakly bind
-      FeatureListUtils.bindRows(weak, newList, rows);
-    });
-
-    featureTableFX.addListener((obs, oldTable, newTable) -> {
-      // then change selected rows in table
-      weak.removeAllForParent(oldTable);
-
-      // first change active feature list
-      // feature list in table might change
-      weak.bind(newTable, newTable.featureListProperty(), featureList);
-
-      // weakly bind
-      FeatureListUtils.bindSelectedRows(weak, newTable, selectedRows);
-    });
-  }
 
   /**
    * Changes to the rows come from outside but those lists are internally
@@ -106,6 +87,27 @@ public class ParentFeatureListPaneGroup implements FeatureListRowsPane {
         return;
       }
       onSelectedRowsChanged(c.getList());
+    });
+  }
+
+
+  private void listenToExternalDataSourceChanges() {
+    featureList.addListener((obs, oldList, newList) -> {
+      weak.removeAllForParent(oldList);
+      // weakly bind
+      FeatureListUtils.bindRows(weak, newList, rows);
+    });
+
+    featureTableFX.addListener((obs, oldTable, newTable) -> {
+      // then change selected rows in table
+      weak.removeAllForParent(oldTable);
+
+      // first change active feature list
+      // feature list in table might change
+      weak.bind(newTable, newTable.featureListProperty(), featureList);
+
+      // weakly bind
+      FeatureListUtils.bindSelectedRows(weak, newTable, selectedRows);
     });
   }
 
