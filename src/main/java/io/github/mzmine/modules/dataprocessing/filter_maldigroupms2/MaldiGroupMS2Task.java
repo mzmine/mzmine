@@ -132,7 +132,7 @@ public class MaldiGroupMS2Task extends AbstractTask {
     int upperSearchPoint = BinarySearch.binarySearch(mzRange.upperEndpoint(), DefaultTo.LESS_EQUALS,
         infos.size(),
         i -> infos.get(i).getIsolationMz());
-    if (upperSearchPoint < 0 || upperSearchPoint < lowerSearchPoint) {
+    if (upperSearchPoint < lowerSearchPoint) {
       return List.of();
     }
     return infos.subList(lowerSearchPoint, upperSearchPoint + 1);
