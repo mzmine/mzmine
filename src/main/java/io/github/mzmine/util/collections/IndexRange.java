@@ -102,4 +102,18 @@ public sealed interface IndexRange permits EmptyIndexRange, SimpleIndexRange, Si
     return min() <= index && index <= maxInclusive();
   }
 
+  /**
+   * Create a sublist view that contains this IndexRange
+   */
+  default <T> List<T> sublist(List<T> data) {
+    return isEmpty() ? List.of() : data.subList(min(), maxExclusive());
+  }
+
+  /**
+   * Create a sublist view that contains this IndexRange
+   */
+  default <T> T[] subarray(T[] data) {
+    return isEmpty() ? CollectionUtils.createArray(data, 0)
+        : Arrays.copyOfRange(data, min(), maxExclusive());
+  }
 }

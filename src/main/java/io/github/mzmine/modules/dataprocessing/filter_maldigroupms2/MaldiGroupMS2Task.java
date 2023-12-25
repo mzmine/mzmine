@@ -49,7 +49,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.collections.BinarySearch;
-import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -122,20 +121,8 @@ public class MaldiGroupMS2Task extends AbstractTask {
   }
 
   public static List<PasefMsMsInfo> getMsMsInfos(List<PasefMsMsInfo> infos, Range<Double> mzRange) {
-    int lowerSearchPoint = BinarySearch.binarySearch(mzRange.lowerEndpoint(),
-        DefaultTo.GREATER_EQUALS, infos.size(),
-        i -> infos.get(i).getIsolationMz());
-    if (lowerSearchPoint < 0) {
-      return List.of();
-    }
-
-    int upperSearchPoint = BinarySearch.binarySearch(mzRange.upperEndpoint(), DefaultTo.LESS_EQUALS,
-        infos.size(),
-        i -> infos.get(i).getIsolationMz());
-    if (upperSearchPoint < lowerSearchPoint) {
-      return List.of();
-    }
-    return infos.subList(lowerSearchPoint, upperSearchPoint + 1);
+    var irange = BinarySearch.indexRange(mzRange, infos.size(), i -> infos.get(i).getIsolationMz());
+    return irange.sublist(infos);
   }
 
   @Override
@@ -163,7 +150,7 @@ public class MaldiGroupMS2Task extends AbstractTask {
       final List<PasefMsMsInfo> msmsInfos = files.stream()
           .flatMap(file -> file.getScanNumbers(2).stream()).filter(
               scan -> (scan instanceof ImagingFrame imgFrame)
-                  && imgFrame.getMaldiSpotInfo() != null)
+                      && imgFrame.getMaldiSpotInfo() != null)
           .flatMap(f -> ((ImagingFrame) f).getImsMsMsInfos().stream())
           .sorted(Comparator.comparingDouble(info -> info.getIsolationMz())).toList();
 
@@ -205,7 +192,7 @@ public class MaldiGroupMS2Task extends AbstractTask {
       if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN && (
           f.getMobilityUnit() == MobilityType.TIMS || (
               f.getRawDataFile() instanceof IMSRawDataFile imsfile
-                  && imsfile.getMobilityType() == MobilityType.TIMS))) {
+              && imsfile.getMobilityType() == MobilityType.TIMS))) {
         processTimsFeature(f, allInfos);
       }
     }
