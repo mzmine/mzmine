@@ -63,18 +63,17 @@ public sealed interface IndexRange permits EmptyIndexRange, SimpleIndexRange, Si
     }
     // all the last elements are within range
     if (maxExclusive() == data.length) {
-      return Arrays.copyOf(data, min()); // lower points to the first index within range
+      return Arrays.copyOfRange(data, 0, min()); // lower points to the first index within range
     } else if (min() == 0) {
-      return Arrays.copyOfRange(data, min(), maxExclusive());
+      return Arrays.copyOfRange(data, maxExclusive(), data.length);
     } else {
       // concat ranges
-      var upperLength = data.length - maxInclusive();
-
+      var upperLength = data.length - maxExclusive();
       int newLength = min() + upperLength;
       // copied from Arrays.copyOfRange
       T[] results = CollectionUtils.createArray(data, newLength);
       System.arraycopy(data, 0, results, 0, min());
-      System.arraycopy(data, maxInclusive(), results, min(), upperLength);
+      System.arraycopy(data, maxExclusive(), results, min(), upperLength);
       return results;
     }
   }
@@ -89,13 +88,16 @@ public sealed interface IndexRange permits EmptyIndexRange, SimpleIndexRange, Si
     if (isEmpty()) {
       return data;
     }
-    List<T> list = new ArrayList<>();
-    for (int i = 0; i < data.size(); i++) {
-      if (contains(i)) {
-        list.add(data.get(i));
-      }
+    // all the last elements are within range
+    if (maxExclusive() == data.size()) {
+      return data.subList(0, min()); // lower points to the first index within range
+    } else if (min() == 0) {
+      return data.subList(maxExclusive(), data.size());
+    } else {
+      List<T> list = new ArrayList<>(data.subList(0, min()));
+      list.addAll(data.subList(maxExclusive(), data.size()));
+      return list;
     }
-    return list;
   }
 
   default boolean contains(int index) {
