@@ -53,6 +53,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityList
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
@@ -65,9 +66,6 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
-import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
-import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
-import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
@@ -80,11 +78,11 @@ import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVi
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
+import io.github.mzmine.modules.visualization.pseudospectrumvisualizer.PseudoSpectrumVisualizerPane;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerModule;
@@ -92,15 +90,12 @@ import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.Spect
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.components.ConditionalMenuItem;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
-import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -114,12 +109,10 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Orientation;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.SplitPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -675,34 +668,13 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void showPseudoSpectrum() {
-    final Scan pseudoMS = selectedFeature.getMostIntenseFragmentScan();
-    final RawDataFile file = selectedFeature.getRawDataFile();
-    ScanSelection selection = new ScanSelection(
-        Range.closed(selectedFeature.getRawDataPointsRTRange().lowerEndpoint() - 0.1d,
-            selectedFeature.getRawDataPointsRTRange().upperEndpoint() + 0.1d),
-        pseudoMS.getMSLevel());
-    final List<Scan> matchingScans = selection.getMatchingScans(file.getScans());
-    MZTolerance tol = new MZTolerance(0.005, 15);
-    SpectraVisualizerTab spectraVisualizerTab = new SpectraVisualizerTab(file, pseudoMS, false);
-    TICVisualizerTab ticVisualizerTab = new TICVisualizerTab(new RawDataFile[]{file},
-        TICPlotType.BASEPEAK,
-        new ScanSelection(1), tol.getToleranceRange(selectedFeature.getMZ()), null, null);
-    final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    for (int i = 0; i < pseudoMS.getNumberOfDataPoints(); i++) {
-      TICDataSet dataSet = new TICDataSet(file, matchingScans,
-          tol.getToleranceRange(pseudoMS.getMzValue(i)), null, TICPlotType.BASEPEAK);
-      dataSet.setCustomSeriesKey(String.format("m/z %s", mzFormat.format(pseudoMS.getMzValue(i))));
-      ticVisualizerTab.getTICPlot().addTICDataSet(dataSet,
-          ColorUtils.getContrastPaletteColorAWT(file.getColor(),
-              MZmineCore.getConfiguration().getDefaultColorPalette()));
+    if (selectedFeature != null) {
+      PseudoSpectrumVisualizerPane pseudoSpectrumVisualizerPane = new PseudoSpectrumVisualizerPane(
+          selectedFeature);
+      SimpleTab simpleTab = new SimpleTab("Pseudo Spectrum of " + selectedFeature.toString(),
+          pseudoSpectrumVisualizerPane);
+      MZmineCore.getDesktop().addTab(simpleTab);
     }
-    spectraVisualizerTab.loadRawData(pseudoMS);
-    SplitPane splitPane = new SplitPane();
-    splitPane.setOrientation(Orientation.VERTICAL);
-    splitPane.getItems().add(spectraVisualizerTab.getMainPane());
-    splitPane.getItems().add(ticVisualizerTab.getTICPlot());
-    spectraVisualizerTab.setContent(splitPane);
-    MZmineCore.getDesktop().addTab(spectraVisualizerTab);
   }
 
   private void showDiaMirror() {
