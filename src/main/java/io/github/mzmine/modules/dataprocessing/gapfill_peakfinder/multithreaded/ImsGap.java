@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,6 +47,8 @@ import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -55,6 +57,8 @@ import org.jetbrains.annotations.NotNull;
  * @author https://github.com/SteffenHeu
  */
 public class ImsGap extends Gap {
+
+  private static final Logger logger = Logger.getLogger(ImsGap.class.getName());
 
   private final Range<Float> mobilityRange;
   private final BinningMobilogramDataAccess mobilogramBinning;
@@ -91,12 +95,10 @@ public class ImsGap extends Gap {
     if (!(scan instanceof MobilityScanDataAccess access)) {
       throw new IllegalArgumentException("Scan is not a MobilityScanDataAccess");
     }
-    double scanRT = scan.getRetentionTime();
+    final float scanRT = scan.getRetentionTime();
 
-    // If not yet inside the RT range
-    // If we have passed the RT range and finished processing last peak
-    if (scanRT < rtRange.lowerEndpoint() || (scanRT > rtRange.upperEndpoint()) && (
-        currentPeakDataPoints == null)) {
+    // If not yet inside the RT range / passed the range
+    if (!rtRange.contains(scanRT)) {
       return;
     }
 
@@ -145,7 +147,7 @@ public class ImsGap extends Gap {
       try {
         scan = access.nextMobilityScan();
       } catch (MissingMassListException e) {
-        e.printStackTrace();
+        logger.log(Level.SEVERE, e.getMessage(), e);
         return null;
       }
 
@@ -162,7 +164,12 @@ public class ImsGap extends Gap {
 
       int bestIndex = -1;
       double bestDelta = Double.POSITIVE_INFINITY;
-      for (int i = 0; i < access.getNumberOfDataPoints(); i++) {
+
+      final int startIndex = access.binarySearch(mzRange.lowerEndpoint(), true);
+      if (startIndex == -1) {
+        continue;
+      }
+      for (int i = startIndex; i < access.getNumberOfDataPoints(); i++) {
         final double mz = access.getMzValue(i);
         if (mz < mzRange.lowerEndpoint()) {
           continue;
