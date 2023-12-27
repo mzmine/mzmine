@@ -235,10 +235,10 @@ public class ADAP3AlignerTask extends AbstractTask {
       }
 
       // Save alignment score
-      SimpleFeatureInformation peakInformation =
-          (SimpleFeatureInformation) newRow.getFeatureInformation();
-      if (peakInformation == null)
+      SimpleFeatureInformation peakInformation = (SimpleFeatureInformation) newRow.getFeatureInformation();
+      if (peakInformation == null) {
         peakInformation = new SimpleFeatureInformation();
+      }
       peakInformation.addProperty("Alignment score",
           Double.toString(referenceComponent.getScore()));
       newRow.setFeatureInformation(peakInformation);
@@ -246,13 +246,15 @@ public class ADAP3AlignerTask extends AbstractTask {
       alignedPeakList.addRow(newRow);
     }
 
-    alignedPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        ADAP3AlignerModule.class, parameters, getModuleCallDate()));
+    // copy previously applied methods
+    alignedPeakList.getAppliedMethods().addAll(peakLists[0].getAppliedMethods());
+    alignedPeakList.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(ADAP3AlignerModule.class, parameters,
+            getModuleCallDate()));
 
-
-    for(int i = 0 ; i < peakLists.length ;i ++){
-       RawDataFile f = peakLists[i].getRawDataFile(0);
-       alignedPeakList.setSelectedScans(f, peakLists[i].getSeletedScans(f));
+    for (int i = 0; i < peakLists.length; i++) {
+      RawDataFile f = peakLists[i].getRawDataFile(0);
+      alignedPeakList.setSelectedScans(f, peakLists[i].getSeletedScans(f));
     }
     return alignedPeakList;
   }
