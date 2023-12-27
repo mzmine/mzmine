@@ -76,7 +76,7 @@ public class ImageType extends LinkedGraphicalType {
 
   @Override
   public double getColumnWidth() {
-    return 300;
+    return LARGE_GRAPHICAL_CELL_WIDTH;
   }
 
   @Override
