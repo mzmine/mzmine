@@ -29,6 +29,7 @@ import static io.github.mzmine.util.FeatureListRowSorter.MZ_ASCENDING;
 import static io.github.mzmine.util.RangeUtils.rangeLength;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -379,6 +380,23 @@ public class FeatureListUtils {
     }
 
     return score / scorers;
+  }
+
+  /**
+   * Sort feature list by default based on raw data type Sort feature list by mz if imaging data
+   * else sort feature list by retention time
+   *
+   * @param featureList target list
+   */
+  public static void sortByDefault(FeatureList featureList, boolean renumberIDs) {
+    RawDataFile rawDataFile = featureList.getRawDataFiles().get(0);
+    if (rawDataFile != null) {
+      if (!(rawDataFile instanceof ImagingRawDataFile)) {
+        FeatureListUtils.sortByDefaultMZ(featureList, renumberIDs);
+      } else {
+        FeatureListUtils.sortByDefaultRT(featureList, renumberIDs);
+      }
+    }
   }
 
   /**

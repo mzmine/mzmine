@@ -352,12 +352,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       }
     }
 
-    // sort and reset IDs here to ahve the same sorting for every feature list
-    if (!isImaging) {
-      FeatureListUtils.sortByDefaultRT(newFeatureList, true);
-    } else {
-      FeatureListUtils.sortByDefaultMZ(newFeatureList, true);
-    }
+    // sort and reset IDs here to have the same sorting for every feature list
+    FeatureListUtils.sortByDefault(newFeatureList, true);
+
     newFeatureList.setSelectedScans(dataFile, Arrays.asList(scans));
 
     dataFile.getAppliedMethods().forEach(m -> newFeatureList.getAppliedMethods().add(m));
