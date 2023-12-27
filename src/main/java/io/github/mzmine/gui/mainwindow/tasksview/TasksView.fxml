@@ -31,22 +31,48 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <TableView xmlns:fx="http://javafx.com/fxml"
-  minHeight="100" fx:id="table">
+           minHeight="100" fx:id="table">
   <columnResizePolicy>
     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
   </columnResizePolicy>
   <columns>
     <TableColumn minWidth="300" reorderable="false" sortable="false" text="Task"
-      fx:id="taskNameColumn"/>
+                 fx:id="taskNameColumn">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/tablecolumn/Task.png"/>
+        </ImageView>
+      </graphic>
+    </TableColumn>
     <TableColumn maxWidth="100" minWidth="100" reorderable="false"
-      sortable="false"
-      text="Priority" fx:id="taskPriorityColumn"/>
+                 sortable="false"
+                 text="Priority" fx:id="taskPriorityColumn">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/tablecolumn/Priority.png"/>
+        </ImageView>
+      </graphic>
+    </TableColumn>
     <TableColumn maxWidth="100" minWidth="100" reorderable="false" sortable="false"
-      text="Status" fx:id="taskStatusColumn"/>
+                 text="Status" fx:id="taskStatusColumn">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/tablecolumn/Status.png"/>
+        </ImageView>
+      </graphic>
+    </TableColumn>
     <TableColumn maxWidth="400" minWidth="100" reorderable="false"
-      sortable="false"
-      text="\% done" fx:id="taskProgressColumn"/>
+                 sortable="false"
+                 text="\% done" fx:id="taskProgressColumn">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/tablecolumn/done.png"/>
+        </ImageView>
+      </graphic>
+    </TableColumn>
   </columns>
   <contextMenu>
     <ContextMenu>

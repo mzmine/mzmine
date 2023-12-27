@@ -32,9 +32,11 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+
 import java.net.URL;
 import java.util.List;
 import java.util.function.Consumer;
+
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
@@ -150,7 +152,19 @@ public interface Desktop extends MZmineModule {
    * @param hideForeverAction hide forever button was pressed handle this option to not show again
    */
   void displayNotification(String msg, String buttonText, Runnable action,
-      Runnable hideForeverAction);
+                           Runnable hideForeverAction);
+
+  /**
+   * Use notification pane to display a notification on the top of the screen.
+   *
+   * @param msg               message to display
+   * @param buttonText        button text
+   * @param action            button action
+   * @param hideForeverAction hide forever button was pressed handle this option to not show again
+   * @param iconPath          path to icon
+   */
+  void displayNotification(String msg, String buttonText, Runnable action,
+                           Runnable hideForeverAction, String... iconPath);
 
   /**
    * Displays an opt-out yes/no dialog. Can be called from any thread.
@@ -164,7 +178,7 @@ public interface Desktop extends MZmineModule {
    * returned and the message is logged at warning level.
    */
   ButtonType createAlertWithOptOut(String title, String headerText, String message,
-      String optOutMessage, Consumer<Boolean> optOutAction);
+                                   String optOutMessage, Consumer<Boolean> optOutAction);
 
 
   /**

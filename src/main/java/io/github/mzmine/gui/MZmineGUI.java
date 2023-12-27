@@ -61,6 +61,7 @@ import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
+
 import java.io.File;
 import java.net.URL;
 import java.time.Instant;
@@ -74,6 +75,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
@@ -95,6 +97,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyEvent;
@@ -137,7 +140,7 @@ public class MZmineGUI extends Application implements Desktop {
       Alert alert = new Alert(AlertType.CONFIRMATION);
       Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
       stage.getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+              .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       alert.setTitle("Confirmation");
       alert.setHeaderText("Exit MZmine");
@@ -160,7 +163,7 @@ public class MZmineGUI extends Application implements Desktop {
       Alert alert = new Alert(AlertType.CONFIRMATION);
       Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
       stage.getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+              .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       alert.setTitle("Confirmation");
       alert.setHeaderText("Close project");
@@ -262,14 +265,14 @@ public class MZmineGUI extends Application implements Desktop {
   public static List<SpectralLibrary> getSelectedSpectralLibraryList() {
     final var spectralLibraryView = mainWindowController.getSpectralLibraryList();
     return FXCollections.unmodifiableObservableList(
-        spectralLibraryView.getSelectionModel().getSelectedItems());
+            spectralLibraryView.getSelectionModel().getSelectedItems());
   }
 
   public static void showAboutWindow() {
     // Show the about window
     MZmineCore.runLater(() -> {
       final URL aboutPage = MZmineGUI.class.getClassLoader()
-          .getResource("aboutpage/AboutMZmine.html");
+              .getResource("aboutpage/AboutMZmine.html");
       HelpWindow aboutWindow = new HelpWindow(aboutPage.toString());
       aboutWindow.show();
     });
@@ -305,7 +308,7 @@ public class MZmineGUI extends Application implements Desktop {
       hasFileDropped = true;
 
       final List<String> rawExtensions = List.of("mzml", "mzxml", "raw", "cdf", "netcdf", "nc",
-          "mzdata", "imzml", "tdf", "d", "tsf", "zip", "gz");
+              "mzdata", "imzml", "tdf", "d", "tsf", "zip", "gz");
       final List<String> libraryExtensions = List.of("json", "mgf", "msp", "jdx");
 
       final List<File> rawDataFiles = new ArrayList<>();
@@ -320,10 +323,10 @@ public class MZmineGUI extends Application implements Desktop {
         Class<? extends MZmineRunnableModule> moduleJavaClass = null;
         if (isMZmineProject) {
           logger.finest(
-              () -> "Importing project " + selectedFile.getAbsolutePath() + " via drag and drop.");
+                  () -> "Importing project " + selectedFile.getAbsolutePath() + " via drag and drop.");
           moduleJavaClass = ProjectLoadModule.class;
           ParameterSet moduleParameters = MZmineCore.getConfiguration()
-              .getModuleParameters(moduleJavaClass);
+                  .getModuleParameters(moduleJavaClass);
           moduleParameters.getParameter(projectFile).setValue(selectedFile);
           ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
           MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
@@ -341,31 +344,31 @@ public class MZmineGUI extends Application implements Desktop {
       if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
         if (!rawDataFiles.isEmpty()) {
           logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
-                              + rawDataFiles.stream().map(File::getAbsolutePath)
-                                  .collect(Collectors.joining(", ")));
+                  + rawDataFiles.stream().map(File::getAbsolutePath)
+                  .collect(Collectors.joining(", ")));
         }
         if (!libraryFiles.isEmpty()) {
           logger.finest(() -> "Importing " + libraryFiles.size() + " raw files via drag and drop: "
-                              + libraryFiles.stream().map(File::getAbsolutePath)
-                                  .collect(Collectors.joining(", ")));
+                  + libraryFiles.stream().map(File::getAbsolutePath)
+                  .collect(Collectors.joining(", ")));
         }
 
         // set raw and library files to parameter
         ParameterSet param = MZmineCore.getConfiguration()
-            .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
+                .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
         param.setParameter(AllSpectralDataImportParameters.advancedImport, false);
         param.setParameter(AllSpectralDataImportParameters.fileNames,
-            rawDataFiles.toArray(File[]::new));
+                rawDataFiles.toArray(File[]::new));
         param.setParameter(SpectralLibraryImportParameters.dataBaseFiles,
-            libraryFiles.toArray(File[]::new));
+                libraryFiles.toArray(File[]::new));
 
         // start import task for libraries and raw data files
         AllSpectralDataImportModule module = MZmineCore.getModuleInstance(
-            AllSpectralDataImportModule.class);
+                AllSpectralDataImportModule.class);
         if (module != null) {
           List<Task> tasks = new ArrayList<>();
           module.runModule(MZmineCore.getProjectManager().getCurrentProject(), param, tasks,
-              Instant.now());
+                  Instant.now());
           MZmineCore.getTaskController().addTasks(tasks.toArray(Task[]::new));
         }
       }
@@ -380,8 +383,8 @@ public class MZmineGUI extends Application implements Desktop {
     }
 
     if (loc == TAB && MZmineCore.getDesktop().getAllTabs().stream()
-        .anyMatch(t -> t.getText().equals("Tasks")) || (loc != TAB && Objects.equals(loc,
-        currentTaskManagerLocation))) {
+            .anyMatch(t -> t.getText().equals("Tasks")) || (loc != TAB && Objects.equals(loc,
+            currentTaskManagerLocation))) {
       // only return if we have that tab
       return;
     }
@@ -503,12 +506,12 @@ public class MZmineGUI extends Application implements Desktop {
       File tmpPath = preferences.getValue(MZminePreferences.tempDirectory);
       File userDir = FileUtils.getUserDirectory();
       if (tmpPath == null || !tmpPath.exists() || tmpPath.getAbsolutePath().toLowerCase()
-          .contains("users") || tmpPath.equals(userDir)) {
+              .contains("users") || tmpPath.equals(userDir)) {
         MZmineCore.runLater(() -> displayNotification("""
-                Set temp folder to a fast local drive (prefer a public folder over a user folder).
-                MZmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
-                """, "Change", MZmineCore::openTempPreferences,
-            () -> preferences.setParameter(MZminePreferences.showTempFolderAlert, false)));
+                                Set temp folder to a fast local drive (prefer a public folder over a user folder).
+                                MZmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
+                                """, "Change", MZmineCore::openTempPreferences,
+                () -> preferences.setParameter(MZminePreferences.showTempFolderAlert, false), "/icons/Hide.png", "/icons/Change.png"));
       }
     }
     // update the size and position of the main window
@@ -598,7 +601,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public void setStatusBarText(@Nullable String message, @Nullable Color textColor,
-      @Nullable String url) {
+                               @Nullable String url) {
     MZmineCore.runLater(() -> {
       if (mainWindowController == null) {
         return;
@@ -644,7 +647,7 @@ public class MZmineGUI extends Application implements Desktop {
       Dialog<ButtonType> dialog = new Dialog<>();
       Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
       stage.getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+              .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       dialog.setTitle(title);
       dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
@@ -691,7 +694,7 @@ public class MZmineGUI extends Application implements Desktop {
     FutureTask<ButtonType> alertTask = new FutureTask<>(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION, "", buttonTypes);
       alert.getDialogPane().getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+              .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       Text text = new Text(msg);
       text.setWrappingWidth(400);
       final FlowPane pane = new FlowPane(text);
@@ -718,7 +721,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public void displayNotification(String msg, String buttonText, Runnable action,
-      Runnable hideForeverAction) {
+                                  Runnable hideForeverAction) {
     logger.log(Level.INFO, msg);
     NotificationPane pane = mainWindowController.getNotificationPane();
     pane.getActions().clear();
@@ -733,6 +736,53 @@ public class MZmineGUI extends Application implements Desktop {
       action.run();
       pane.hide();
     });
+    FontIcon fontIcon = null;
+    try {
+      fontIcon = new FontIcon("bi-exclamation-triangle:30");
+      fontIcon.setOnMouseClicked(event -> buttonAction.handle(null));
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Cannot load icon from Ikonli" + ex.getMessage(), ex);
+    }
+    pane.show(msg, fontIcon, buttonAction);
+  }
+
+  @Override
+  public void displayNotification(String msg, String buttonText, Runnable action,
+                                  Runnable hideForeverAction, String... iconPath) {
+    logger.log(Level.INFO, msg);
+    NotificationPane pane = mainWindowController.getNotificationPane();
+    pane.getActions().clear();
+    if (hideForeverAction != null) {
+      ImageView hideIconView = null;
+      if (iconPath == null || iconPath.length == 0) {
+        return;
+      }
+      try {
+        Image hideIcon = new Image(getClass().getResourceAsStream(iconPath[0]));
+        hideIconView = new ImageView(hideIcon);
+      } catch (Exception e) {
+        logger.log(Level.WARNING, "Cannot load icon" + e.getMessage(), e);
+      }
+      Action hideAction = new Action("Hide ∞", ae -> {
+        hideForeverAction.run();
+        pane.hide();
+      });
+      if (hideIconView != null) {
+        hideAction.setGraphic(hideIconView);
+      }
+      pane.getActions().add(hideAction);
+    }
+
+    ImageView changeIconView = null;
+    Image hideIcon = new Image(getClass().getResourceAsStream(iconPath[1]));
+    changeIconView = new ImageView(hideIcon);
+    Action buttonAction = new Action(buttonText, ae -> {
+      action.run();
+      pane.hide();
+    });
+    if (changeIconView != null) {
+      buttonAction.setGraphic(changeIconView);
+    }
     FontIcon fontIcon = null;
     try {
       fontIcon = new FontIcon("bi-exclamation-triangle:30");
@@ -818,12 +868,12 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   public ButtonType createAlertWithOptOut(String title, String headerText, String message,
-      String optOutMessage, Consumer<Boolean> optOutAction) {
+                                          String optOutMessage, Consumer<Boolean> optOutAction) {
     // Credits: https://stackoverflow.com/questions/36949595/how-do-i-create-a-javafx-alert-with-a-check-box-for-do-not-ask-again
     FutureTask<ButtonType> task = new FutureTask<>(() -> {
       Alert alert = new Alert(AlertType.WARNING);
       alert.getDialogPane().getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+              .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       // Need to force the alert to layout in order to grab the graphic,
       // as we are replacing the dialog pane with a custom pane
       alert.getDialogPane().applyCss();

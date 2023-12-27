@@ -165,13 +165,18 @@ public class HeadLessDesktop implements Desktop {
 
   @Override
   public void displayNotification(String msg, String buttonText, Runnable action,
-      Runnable hideForeverAction) {
+                                  Runnable hideForeverAction) {
+    logger.log(Level.INFO, msg);
+  }
+
+  @Override
+  public void displayNotification(String msg, String buttonText, Runnable action, Runnable hideForeverAction, String... iconPath) {
     logger.log(Level.INFO, msg);
   }
 
   @Override
   public ButtonType createAlertWithOptOut(String title, String headerText, String message,
-      String optOutMessage, Consumer<Boolean> optOutAction) {
+                                          String optOutMessage, Consumer<Boolean> optOutAction) {
     logger.warning(title + "; " + headerText + "; " + message);
     return ButtonType.YES;
   }
