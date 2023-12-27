@@ -45,6 +45,11 @@
     <Menu text="Open recent project..." fx:id="recentProjectsMenu"/>
     <MenuItem fx:id="openProject" text="Open project" onAction="#runModule"
               userData="io.github.mzmine.modules.io.projectload.ProjectLoadModule">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/project/Open project.png"/>
+        </ImageView>
+      </graphic>
       <accelerator>
         <KeyCodeCombination alt="UP" code="O"
                             control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
@@ -53,6 +58,11 @@
     <MenuItem onAction="#runModule" text="Save project"
               userData="io.github.mzmine.modules.io.projectsave.ProjectSaveModule"
               fx:id="saveProject">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/project/Save project.png"/>
+        </ImageView>
+      </graphic>
       <accelerator>
         <KeyCodeCombination alt="UP" code="S"
                             control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
@@ -61,12 +71,22 @@
     <MenuItem onAction="#runModule" text="Save project as"
               userData="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule"
               fx:id="saveProjectAs">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/project/Save project as.png"/>
+        </ImageView>
+      </graphic>
       <accelerator>
         <KeyCodeCombination alt="UP" code="S"
                             control="UP" meta="UP" shift="DOWN" shortcut="DOWN"/>
       </accelerator>
     </MenuItem>
     <MenuItem onAction="#closeProject" text="Close project" fx:id="closeProject">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/project/Close project.png"/>
+        </ImageView>
+      </graphic>
       <accelerator>
         <KeyCodeCombination alt="UP" code="Q"
                             control="UP" meta="UP" shift="DOWN" shortcut="DOWN"/>
@@ -77,6 +97,11 @@
 
     <MenuItem text="Batch mode" onAction="#runModule"
               userData="io.github.mzmine.modules.batchmode.BatchModeModule">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/project/Batch mode.png"/>
+        </ImageView>
+      </graphic>
       <accelerator>
         <KeyCodeCombination alt="UP" code="B"
                             control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
@@ -86,6 +111,11 @@
     <SeparatorMenuItem/>
     <MenuItem text="Sample metadata"
               onAction="#setSampleMetadata">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/project/Sample metadata.png"/>
+        </ImageView>
+      </graphic>
       <accelerator>
         <KeyCodeCombination alt="UP" code="M"
                             control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
@@ -94,6 +124,11 @@
 
     <SeparatorMenuItem/>
     <MenuItem onAction="#setPreferences" text="Set preferences">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/project/Set preferences.png"/>
+        </ImageView>
+      </graphic>
       <accelerator>
         <KeyCodeCombination alt="UP" code="P"
                             control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
@@ -102,12 +137,30 @@
 
     <SeparatorMenuItem/>
     <MenuItem text="Save MZmine parameters" onAction="#runModule"
-              userData=""/>
+              userData="">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/project/Save MZmine parameters.png"/>
+        </ImageView>
+      </graphic>
+    </MenuItem>
     <MenuItem text="Load MZmine parameters" onAction="#runModule"
-              userData=""/>
+              userData="">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/project/Load MZmine parameters.png"/>
+        </ImageView>
+      </graphic>
+    </MenuItem>
 
     <SeparatorMenuItem/>
-    <MenuItem text="Exit" onAction="#exitApplication"/>
+    <MenuItem text="Exit" onAction="#exitApplication">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/project/Exit.png"/>
+        </ImageView>
+      </graphic>
+    </MenuItem>
   </Menu>
 
 
