@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,22 +44,34 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 
 @ExtendWith(MockitoExtension.class)
 class FeatureListUtilsTest {
 
-  @Mock
   RawDataFile raw;
 
   ModularFeatureList flist;
 
   List<FeatureListRow> rows;
 
+  private static AutoCloseable closeable;
+//
+//  @BeforeAll
+//  public static void openMocks() {
+//    closeable = MockitoAnnotations.openMocks(FeatureListUtilsTest.class);
+//  }
+//
+//  @AfterAll
+//  public static void releaseMocks() throws Exception {
+//    closeable.close();
+//  }
+
   @BeforeEach
   void setUp() {
+    raw = Mockito.mock(RawDataFile.class);
     flist = new ModularFeatureList("List", null, raw);
     rows = new ArrayList<>();
     rows.add(getRow(9f));

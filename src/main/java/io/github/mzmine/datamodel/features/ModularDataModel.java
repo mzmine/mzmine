@@ -74,8 +74,7 @@ public interface ModularDataModel {
    * @return
    */
   default <T> DataType<T> getTypeColumn(Class<? extends DataType<T>> tclass) {
-    DataType<T> type = DataTypes.get(tclass);
-    return getTypes().contains(type) ? type : null;
+    return DataTypes.get(tclass);
   }
 
   /**

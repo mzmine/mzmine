@@ -72,10 +72,9 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.collections.SetChangeListener;
-import javafx.scene.Node;
-import javafx.scene.layout.Pane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -97,6 +96,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   public ModularFeature(@NotNull ModularFeatureList flist) {
     this.flist = flist;
 
+    // TODO turn into weak bindings? with WeakAdapter in FeatureList
     // register listener to types map to automatically generate default properties for new DataTypes
     flist.getFeatureTypes().addListener((SetChangeListener<? super DataType>) change -> {
       if (change.wasAdded()) {
@@ -105,6 +105,12 @@ public class ModularFeature implements Feature, ModularDataModel {
         // remove type columns to maps
         DataType type = change.getElementRemoved();
         this.remove(type);
+      }
+    });
+    //
+    map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
+      if (change.wasAdded()) {
+        flist.addFeatureType(change.getKey());
       }
     });
   }
@@ -194,10 +200,11 @@ public class ModularFeature implements Feature, ModularDataModel {
   /**
    * Creates a new feature.
    *
-   * @param flist         The feature list.
-   * @param dataFile      The raw data file of this feature.
+   * @param flist    The feature list.
+   * @param dataFile The raw data file of this feature.
    */
-  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, FeatureStatus featureStatus) {
+  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile,
+      FeatureStatus featureStatus) {
     this(flist);
     assert dataFile != null;
 

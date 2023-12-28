@@ -81,11 +81,10 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.SetChangeListener;
-import javafx.scene.Node;
-import javafx.scene.layout.Pane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -128,6 +127,12 @@ public class ModularFeatureListRow implements FeatureListRow {
         // remove type columns to maps
         DataType type = change.getElementRemoved();
         this.remove(type);
+      }
+    });
+    //
+    map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
+      if (change.wasAdded()) {
+        flist.addRowType(change.getKey());
       }
     });
 
