@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.beans.property.Property;
@@ -48,7 +47,7 @@ public interface ModularDataModel {
   Logger logger = Logger.getLogger(ModularDataModel.class.getName());
 
   /**
-   * All types (columns) of this DataModel.
+   * A read only view of all types (columns) of this DataModel.
    *
    * @return types that are covered by the model
    */
@@ -234,8 +233,6 @@ public interface ModularDataModel {
    * @return true if the new value is different than the old
    */
   default <T> boolean set(DataType<T> type, T value) {
-    getTypes().add(type);
-
     Object old = getMap().put(type, value);
     // send changes to all listeners for this data type
     List<DataTypeValueChangeListener<?>> listeners = getValueChangeListeners().get(type);
@@ -289,11 +286,6 @@ public interface ModularDataModel {
             listener.valueChanged(this, type, old, null);
           }
         }
-      }
-      try {
-        getTypes().remove(type);
-      } catch (Exception e) {
-        logger.log(Level.WARNING, e.getMessage(), e);
       }
     }
   }
