@@ -392,9 +392,9 @@ public class FeatureListUtils {
     RawDataFile rawDataFile = featureList.getRawDataFiles().get(0);
     if (rawDataFile != null) {
       if (!(rawDataFile instanceof ImagingRawDataFile)) {
-        FeatureListUtils.sortByDefaultMZ(featureList, renumberIDs);
-      } else {
         FeatureListUtils.sortByDefaultRT(featureList, renumberIDs);
+      } else {
+        FeatureListUtils.sortByDefaultMZ(featureList, renumberIDs);
       }
     }
   }
