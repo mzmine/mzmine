@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -434,7 +435,7 @@ public class IsotopesUtils {
 
     List<DataPoint> candidates = new ArrayList<>();
     // add the actual data point in the scan, so we don't end up with duplicates.
-    final int targetIndex = spectrum.binarySearch(target.getMZ(), true);
+    final int targetIndex = spectrum.binarySearch(target.getMZ(), DefaultTo.CLOSEST_VALUE);
     candidates.add(new SimpleDataPoint(spectrum.getMzValue(targetIndex),
         spectrum.getIntensityValue(targetIndex)));
 

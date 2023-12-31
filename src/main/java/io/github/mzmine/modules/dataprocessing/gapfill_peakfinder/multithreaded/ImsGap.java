@@ -44,6 +44,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.GapDataPoint;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.util.ArrayList;
 import java.util.List;
@@ -165,15 +166,13 @@ public class ImsGap extends Gap {
       int bestIndex = -1;
       double bestDelta = Double.POSITIVE_INFINITY;
 
-      final int startIndex = access.binarySearch(mzRange.lowerEndpoint(), true);
+      final int startIndex = access.binarySearch(mzRange.lowerEndpoint(), DefaultTo.GREATER_EQUALS);
       if (startIndex == -1) {
         continue;
       }
       for (int i = startIndex; i < access.getNumberOfDataPoints(); i++) {
         final double mz = access.getMzValue(i);
-        if (mz < mzRange.lowerEndpoint()) {
-          continue;
-        } else if (mz > mzRange.upperEndpoint()) {
+        if (mz > mzRange.upperEndpoint()) {
           break;
         }
 
