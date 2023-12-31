@@ -37,6 +37,7 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -209,7 +210,7 @@ public class IonTimeSeriesUtils {
         continue;
       }
 
-      final int closestPeakIndex = access.binarySearch(centerMz, true);
+      final int closestPeakIndex = access.binarySearch(centerMz, DefaultTo.CLOSEST_VALUE);
       final double mz = access.getMzValue(closestPeakIndex);
 
       if (mzRange.contains(mz)) {

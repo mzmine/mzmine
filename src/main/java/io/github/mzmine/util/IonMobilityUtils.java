@@ -48,6 +48,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
@@ -390,7 +391,11 @@ public class IonMobilityUtils {
         continue;
       }
 
-      final int closestIndex = access.binarySearch(precursorMz, true);
+      final int closestIndex = access.binarySearch(precursorMz, DefaultTo.CLOSEST_VALUE);
+      if (closestIndex == -1) {
+        continue;
+      }
+
       final double precursorMzInScan = access.getMzValue(closestIndex);
       if (mzRange.contains(precursorMzInScan)) {
         precursorIntensity += access.getIntensityValue(closestIndex);
@@ -439,7 +444,11 @@ public class IonMobilityUtils {
       return 0d;
     }
 
-    final int closestIndex = access.binarySearch(precursorMz, true);
+    final int closestIndex = access.binarySearch(precursorMz, DefaultTo.CLOSEST_VALUE);
+    if (closestIndex == -1) {
+      return 0d;
+    }
+
     final double precursorMzInScan = access.getMzValue(closestIndex);
     if (mzRange.contains(precursorMzInScan)) {
       precursorIntensity += access.getIntensityValue(closestIndex);
@@ -504,11 +513,12 @@ public class IonMobilityUtils {
     final int index = switch (frame.getMobilityType()) {
       case TIMS -> { // reverse order for tims, invert the binary search.
         final int numScans = frame.getNumberOfMobilityScans();
-        int i = BinarySearch.binarySearch(mobility, true, 0, numScans,
+        int i = BinarySearch.binarySearch(mobility, DefaultTo.CLOSEST_VALUE, numScans,
             j -> frame.getMobilities().getDouble(numScans - j));
         yield numScans - i;
       }
-      default -> BinarySearch.binarySearch(mobility, true, 0, frame.getNumberOfMobilityScans(),
+      default -> BinarySearch.binarySearch(mobility, DefaultTo.CLOSEST_VALUE,
+          frame.getNumberOfMobilityScans(),
           i -> frame.getMobilities().getDouble(i));
     };
 

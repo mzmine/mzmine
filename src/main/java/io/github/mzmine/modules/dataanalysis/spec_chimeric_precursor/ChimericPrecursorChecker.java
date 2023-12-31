@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -160,38 +161,22 @@ public class ChimericPrecursorChecker {
   public static ChimericPrecursorResults checkMs1(final MassList ms1, final double precursorMz,
       MZTolerance mainSignalMzTol, MZTolerance isolationMzTol, final double minimumPurity) {
 
-    // find starting point in spectrum
-    int index = ms1.binarySearch(precursorMz, true);
-    if (index == -1) {
-      return ChimericPrecursorResults.MISSING_MAIN_SIGNAL;
-    }
-
     Range<Double> mainMzRange = mainSignalMzTol.getToleranceRange(precursorMz);
     //  isolation window should be larger than main mz range
     Range<Double> isolationMzRange = isolationMzTol.getToleranceRange(precursorMz)
         .span(mainMzRange);
 
+    // find starting point in spectrum
+    int index = ms1.binarySearch(isolationMzRange.lowerEndpoint(), DefaultTo.GREATER_EQUALS);
+    if (index == -1) {
+      return ChimericPrecursorResults.MISSING_MAIN_SIGNAL;
+    }
+
     double mainMz = -1;
     double mainIntensity = 0;
     double sumIntensity = 0;
-    // left side
-    for (int i = index; i >= 0; i--) {
-      double mz = ms1.getMzValue(i);
-      if (mz < isolationMzRange.lowerEndpoint()) {
-        break;
-      }
-
-      double intensity = ms1.getIntensityValue(i);
-      if (mainMzRange.contains(mz) && (mainMz < 0 || intensity > mainIntensity)) {
-        mainMz = ms1.getMzValue(i);
-        mainIntensity = intensity;
-      }
-      if (isolationMzRange.contains(mz)) {
-        sumIntensity += intensity;
-      }
-    }
     // right side
-    for (int i = index + 1; i < ms1.getNumberOfDataPoints(); i++) {
+    for (int i = index; i < ms1.getNumberOfDataPoints(); i++) {
       double mz = ms1.getMzValue(i);
       if (mz > isolationMzRange.upperEndpoint()) {
         break;
