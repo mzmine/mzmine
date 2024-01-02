@@ -136,7 +136,8 @@ public class NetworkOverviewController {
     layoutAnnotations();
 
     // add callbacks
-    weak.addListChangeListener(networkController.getNetworkPane().getSelectedNodes(),
+    weak.addListChangeListener(networkController,
+        networkController.getNetworkPane().getSelectedNodes(),
         c -> handleSelectedNodesChanged(c));
 
     // set focussed rows last
@@ -185,7 +186,8 @@ public class NetworkOverviewController {
     tabNodes.setContent(tempTab.getMainPane());
 
     var tabController = tempTab.getController();
-    weak.addListChangeListener(networkController.getNetworkPane().getVisibleRows(), c -> {
+    weak.addListChangeListener(networkController,
+        networkController.getNetworkPane().getVisibleRows(), c -> {
       if (weak.isDisposed()) {
         return;
       }
@@ -200,7 +202,7 @@ public class NetworkOverviewController {
   private void linkFeatureTableSelections(final @NotNull FeatureTableFX internal,
       final @Nullable FeatureTableFX external) {
     // just apply selections in network
-    weak.addListChangeListener(internal.getSelectedTableRows(), c -> {
+    weak.addListChangeListener(internal, internal.getSelectedTableRows(), c -> {
       if (weak.isDisposed()) {
         return;
       }
@@ -210,7 +212,7 @@ public class NetworkOverviewController {
     });
     // external directly sets new focussed rows - and then selected rows in the internal table
     if (external != null) {
-      weak.addListChangeListener(external.getSelectedTableRows(), c -> {
+      weak.addListChangeListener(external, external.getSelectedTableRows(), c -> {
         if (weak.isDisposed()) {
           return;
         }

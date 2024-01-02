@@ -86,7 +86,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerModule;
-import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
+import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralIdentificationResultsTab;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -502,7 +502,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showSpectralDBResults = new ConditionalMenuItem("Spectral DB search results",
         () -> !selectedRows.isEmpty() && rowHasSpectralLibraryMatches(selectedRows));
     showSpectralDBResults.setOnAction(
-        e -> SpectraIdentificationResultsModule.showNewTab(selectedRows, table));
+        e -> MZmineCore.getDesktop().addTab(new SpectralIdentificationResultsTab(table)));
 
     final MenuItem showMatchedLipidSignals = new ConditionalMenuItem("Matched lipid signals",
         () -> !selectedRows.isEmpty() && rowHasMatchedLipidSignals(selectedRows.get(0)));
