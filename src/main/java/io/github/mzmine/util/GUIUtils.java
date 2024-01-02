@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.main.MZmineCore;
 import java.awt.Container;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -32,6 +33,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javafx.application.Platform;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -48,8 +50,6 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
-import io.github.mzmine.main.MZmineCore;
-import javafx.application.Platform;
 
 /**
  * GUI related utilities
@@ -102,6 +102,10 @@ public class GUIUtils {
    * Close all open MZmine windows, except the main (project) window
    */
   public static void closeAllWindows() {
+    if(MZmineCore.isHeadLessMode()) {
+      // dont do anything in headless mode
+      return;
+    }
     // Close AWT windows
     SwingUtilities.invokeLater(() -> {
       for (java.awt.Window window : java.awt.Window.getWindows()) {

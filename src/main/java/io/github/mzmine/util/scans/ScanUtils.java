@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -61,6 +61,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceRangeMap
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.scans.sorting.ScanSorter;
@@ -254,11 +256,13 @@ public class ScanUtils {
     double baseMz = 0d;
     double baseIntensity = 0d;
 
-    for (int i = 0; i < scan.getNumberOfDataPoints(); i++) {
+    final int startIndex = scan.binarySearch(lower, DefaultTo.GREATER_EQUALS);
+    if (startIndex == -1) {
+      return null;
+    }
+    for (int i = startIndex; i < scan.getNumberOfDataPoints(); i++) {
       double mz = scan.getMzValue(i);
-      if (mz < lower) {
-        continue;
-      } else if (mz > upper) {
+      if (mz > upper) {
         break;
       }
 
@@ -285,11 +289,14 @@ public class ScanUtils {
 
     double baseMz = 0d;
     double baseIntensity = 0d;
-    for (int i = 0; i < numValues; i++) {
+    final int startIndex = BinarySearch.binarySearch(mzRange.lowerEndpoint(),
+        DefaultTo.GREATER_EQUALS, numValues, j -> mzs[j]);
+    if (startIndex == -1) {
+      return null;
+    }
+    for (int i = startIndex; i < numValues; i++) {
       final double mz = mzs[i];
-      if (mz < mzRange.lowerEndpoint()) {
-        continue;
-      } else if (mz > mzRange.upperEndpoint()) {
+      if (mz > mzRange.upperEndpoint()) {
         break;
       }
       final double intensity = intensities[i];
@@ -512,7 +519,7 @@ public class ScanUtils {
           }
 
           double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
-              - leftNeighbourBinIndex);
+                                                                       - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }

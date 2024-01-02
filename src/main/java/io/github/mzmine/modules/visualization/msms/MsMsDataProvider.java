@@ -42,6 +42,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParam
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -272,19 +273,15 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         MassSpectrum lastMS1ScanMassList = requireNonNullElse(lastMS1Scan.getMassList(),
             lastMS1Scan);
         Range<Double> toleranceRange = mzTolerance.getToleranceRange(precursorMz);
-        int ind = lastMS1ScanMassList.binarySearch(precursorMz, true);
-        for (int i = ind; i < lastMS1ScanMassList.getNumberOfDataPoints(); i++) {
-          if (toleranceRange.contains(lastMS1ScanMassList.getMzValue(i))) {
-            precursorIntensity += lastMS1ScanMassList.getIntensityValue(i);
-          } else {
-            break;
-          }
-        }
-        for (int i = ind - 1; i >= 0; i--) {
-          if (toleranceRange.contains(lastMS1ScanMassList.getMzValue(i))) {
-            precursorIntensity += lastMS1ScanMassList.getIntensityValue(i);
-          } else {
-            break;
+        int ind = lastMS1ScanMassList.binarySearch(toleranceRange.lowerEndpoint(),
+            DefaultTo.GREATER_EQUALS);
+        if (ind != -1) {
+          for (int i = ind; i < lastMS1ScanMassList.getNumberOfDataPoints(); i++) {
+            if (lastMS1ScanMassList.getMzValue(i) <= toleranceRange.upperEndpoint()) {
+              precursorIntensity += lastMS1ScanMassList.getIntensityValue(i);
+            } else {
+              break;
+            }
           }
         }
       }
