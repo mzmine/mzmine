@@ -25,21 +25,20 @@
 
 package io.github.mzmine.util.javafx;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.WeakInvalidationListener;
-import javafx.beans.binding.BooleanExpression;
-import javafx.beans.binding.StringExpression;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WeakChangeListener;
+import javafx.beans.value.WritableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.WeakListChangeListener;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * WeakChangeListeners etc need to keep a reference to the listener inside, otherwise its garbage
@@ -52,14 +51,18 @@ import javafx.collections.WeakListChangeListener;
  */
 public class WeakAdapter {
 
-  private final List<Object> listenerRefs = new ArrayList<>();
+  /**
+   * This maps the created listener to a parent or null A parent may be a FeatureList - if this
+   * feature list is exchanged - remove all listeners connected to this feature list
+   */
+  private final Map<Object, Object> listenerParentMap = new HashMap<>();
   private boolean isDisposed = false;
 
   public WeakAdapter() {
   }
 
   public void dipose() {
-    listenerRefs.clear();
+    listenerParentMap.clear();
     isDisposed = true;
   }
 
@@ -67,54 +70,56 @@ public class WeakAdapter {
     return isDisposed;
   }
 
-  public final <T> void remove(ChangeListener<T> listener) {
-    listenerRefs.remove(listener);
+  public boolean isActive() {
+    return !isDisposed;
   }
 
-  public final <T> void addChangeListener(final ObservableValue observable,
-      ChangeListener<T> listener) {
-    listenerRefs.add(listener);
+  public final <T> void remove(ChangeListener<T> listener) {
+    listenerParentMap.remove(listener);
+  }
+
+  /**
+   * Remove all listeners that were added with this parent
+   *
+   * @param parent is checked by equals
+   */
+  public final <T> void removeAllForParent(@Nullable Object parent) {
+    if (parent == null) {
+      return;
+    }
+    listenerParentMap.entrySet().removeIf(e -> Objects.equals(e.getValue(), parent));
+  }
+
+  public final <T> void addChangeListener(@Nullable Object parent,
+      final ObservableValue<T> observable, ChangeListener<T> listener) {
+    listenerParentMap.put(listener, parent);
     observable.addListener(new WeakChangeListener<>(listener));
   }
 
-  public final <T> void addListChangeListener(ObservableList<T> list,
+  public final <T> void addListChangeListener(@Nullable Object parent, ObservableList<T> list,
       ListChangeListener<T> listener) {
-    list.addListener(addListChangeListener(listener));
+    list.addListener(addListChangeListener(parent, listener));
   }
 
-  public final <T> WeakListChangeListener<T> addListChangeListener(ListChangeListener<T> listener) {
-    listenerRefs.add(listener);
+  public final <T> WeakListChangeListener<T> addListChangeListener(@Nullable Object parent,
+      ListChangeListener<T> listener) {
+    listenerParentMap.put(listener, parent);
     return new WeakListChangeListener<>(listener);
   }
 
-  public void addInvalidationListener(final Observable listened, InvalidationListener listener) {
-    listenerRefs.add(listener);
+  public void addInvalidationListener(@Nullable Object parent, final Observable listened,
+      InvalidationListener listener) {
+    listenerParentMap.put(listener, parent);
     listened.addListener(new WeakInvalidationListener(listener));
   }
 
-  public final void stringBind(final StringProperty propertyToUpdate,
-      final StringExpression expressionToListen) {
-    ChangeListener<String> listener = new ChangeListener<String>() {
-      @Override
-      public void changed(ObservableValue<? extends String> ov, String t, String name) {
-        propertyToUpdate.set(name);
-      }
-    };
-    listenerRefs.add(listener);
-    expressionToListen.addListener(new WeakChangeListener<>(listener));
-    listener.changed(null, null, expressionToListen.get());
+  /**
+   * Automatically update target with source changes
+   */
+  public <T> void bind(@Nullable final Object parent, final ObservableValue<? extends T> source,
+      final WritableValue<T> target) {
+    addChangeListener(parent, source, (obs, ov, nv) -> target.setValue(nv));
+    target.setValue(source.getValue());
   }
 
-  public final void booleanBind(final BooleanProperty propertyToUpdate,
-      final BooleanExpression expressionToListen) {
-    ChangeListener<Boolean> listener = new ChangeListener<Boolean>() {
-      @Override
-      public void changed(ObservableValue<? extends Boolean> ov, Boolean t, Boolean name) {
-        propertyToUpdate.set(name);
-      }
-    };
-    listenerRefs.add(listener);
-    expressionToListen.addListener(new WeakChangeListener<>(listener));
-    propertyToUpdate.set(expressionToListen.get());
-  }
 }

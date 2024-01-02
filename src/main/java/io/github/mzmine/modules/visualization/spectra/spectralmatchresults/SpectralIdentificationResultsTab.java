@@ -23,42 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx;
+package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.framework.fx.features.FeatureListRowsPane;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.gui.framework.fx.features.SimpleFeatureListTab;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 
-/**
- * a JavaFX interface that can handle changes in selected rows, update the content based on the
- * rows
- * @TODO remove as this has been moved to {@link FeatureListRowsPane}
- */
-@Deprecated
-public interface FeatureRowInterfaceFx {
 
-  /**
-   * Defines if this JavaFX node has row specific content like annotations, charts, etc
-   *
-   * @return true if content available
-   */
-  boolean hasContent();
+public class SpectralIdentificationResultsTab extends SimpleFeatureListTab {
 
-  /**
-   * Defines if this JavaFX node has NO row specific content like annotations, charts, etc
-   *
-   * @return true if NO content available; opposite of {@link #hasContent()}
-   */
-  default boolean isEmptyContent() {
-    return !hasContent();
+  private final SpectraIdentificationResultsPane matchPane;
+
+  public SpectralIdentificationResultsTab(final FeatureTableFX table) {
+    super("Spectral matches", false, false);
+
+    matchPane = new SpectraIdentificationResultsPane(getParentGroup());
+    setContent(matchPane);
+    matchPane.setFeatureTable(table);
   }
-
-  /**
-   * Set the selected rows and update this interface
-   *
-   * @param selectedRows new list of rows - the old is replaced
-   */
-  void setFeatureRows(final @NotNull List<? extends FeatureListRow> selectedRows);
 
 }
