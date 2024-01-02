@@ -38,7 +38,6 @@ import javafx.beans.value.WritableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.WeakListChangeListener;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -84,7 +83,10 @@ public class WeakAdapter {
    *
    * @param parent is checked by equals
    */
-  public final <T> void removeAllForParent(@NotNull Object parent) {
+  public final <T> void removeAllForParent(@Nullable Object parent) {
+    if (parent == null) {
+      return;
+    }
     listenerParentMap.entrySet().removeIf(e -> Objects.equals(e.getValue(), parent));
   }
 

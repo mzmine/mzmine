@@ -26,17 +26,19 @@
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
 import io.github.mzmine.gui.framework.fx.features.SimpleFeatureListTab;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 
 
 public class SpectralIdentificationResultsTab extends SimpleFeatureListTab {
 
   private final SpectraIdentificationResultsPane matchPane;
 
-  public SpectralIdentificationResultsTab() {
+  public SpectralIdentificationResultsTab(final FeatureTableFX table) {
     super("Spectral matches", false, false);
 
     matchPane = new SpectraIdentificationResultsPane(getParentGroup());
-
     setContent(matchPane);
+    matchPane.setFeatureTable(table);
   }
+
 }

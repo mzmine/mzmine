@@ -25,6 +25,9 @@
 
 package io.github.mzmine.gui.framework.fx.features;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import javafx.scene.layout.BorderPane;
 
 /**
@@ -38,9 +41,33 @@ public abstract class AbstractFeatureListRowsPane extends BorderPane implements
 
   public AbstractFeatureListRowsPane(final ParentFeatureListPaneGroup parentGroup) {
     this.parentGroup = parentGroup;
+    parentGroup.addChildren(this);
   }
 
   public ParentFeatureListPaneGroup getParentGroup() {
     return parentGroup;
+  }
+
+  public void setFeatureTable(final FeatureTableFX table) {
+    parentGroup.featureTableFXProperty().set(table);
+  }
+
+  /**
+   * If feature table is linked to this pane - the featurelist will be set there
+   *
+   * @param featureList
+   */
+  public void setFeatureList(final FeatureList featureList) {
+    FeatureTableFX table = parentGroup.featureTableFXProperty().get();
+    if (table != null) {
+      if (featureList instanceof ModularFeatureList mod) {
+        // listener will set the featurelist to this pane
+        table.setFeatureList(mod);
+        return;
+      } else {
+        table.setFeatureList(null);
+      }
+    }
+    parentGroup.featureListProperty().set(featureList);
   }
 }

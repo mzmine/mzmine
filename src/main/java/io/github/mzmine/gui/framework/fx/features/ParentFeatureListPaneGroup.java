@@ -137,6 +137,18 @@ public class ParentFeatureListPaneGroup implements FeatureListRowsPane {
     return selectedRows;
   }
 
+  public List<FeatureListRowsPane> getChildren() {
+    return children;
+  }
+
+  public boolean addChildren(Collection<? extends FeatureListRowsPane> panes) {
+    return children.addAll(panes);
+  }
+
+  public boolean addChildren(FeatureListRowsPane... panes) {
+    return children.addAll(List.of(panes));
+  }
+
   /**
    * Dispose listeners
    */

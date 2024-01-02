@@ -81,7 +81,7 @@ public interface FeatureListRowsPane {
    *                     {@link FeatureNetworkPane}.
    */
   default void onSelectedRowsChanged(ObservableList<? extends FeatureListRow> selectedRows) {
-    getChildFeaturePanes().forEach(child -> child.onRowsChanged(selectedRows));
+    getChildFeaturePanes().forEach(child -> child.onSelectedRowsChanged(selectedRows));
   }
 
 
