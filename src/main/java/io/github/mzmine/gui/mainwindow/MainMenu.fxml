@@ -172,11 +172,16 @@
       </ImageView>
     </graphic>
     <Menu text="Raw data import">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/rawdatamethods/rawdataimport/Raw data import.png"/>
+        </ImageView>
+      </graphic>
       <MenuItem onAction="#runModule" text="Import MS data"
                 userData="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule">
         <graphic>
           <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
-            <Image url="@/icons/rawdatamethods/rawdataimport/Raw data import.png"/>
+            <Image url="@/icons/rawdatamethods/rawdataimport/Import MS data.png"/>
           </ImageView>
         </graphic>
         <accelerator>
