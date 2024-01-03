@@ -78,12 +78,11 @@ public class SphingoMolecularSpeciesLevelMatchedLipidFactory implements
     Set<LipidFragment> detectedFragmentsWithChainInformation = detectedFragments.stream().filter(
         fragment -> fragment.getLipidFragmentInformationLevelType()
             .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)).collect(Collectors.toSet());
-    Set<MolecularSpeciesLevelAnnotation> predictedCompositions = new HashSet<>();
     List<ILipidChain> potentialChains = getChainsFromFragments(
         detectedFragmentsWithChainInformation);
     List<ILipidChain> backboneChains = getPotentialBackboneChainsFromPossibleChains(
         potentialChains);
-    predictedCompositions.addAll(
+    Set<MolecularSpeciesLevelAnnotation> predictedCompositions = new HashSet<>(
         predictCompositionsUsingBackbones(backboneChains, lipidAnnotation, totalNumberOfCAtoms,
             totalNumberOfDBEs, detectedFragmentsWithChainInformation));
 
