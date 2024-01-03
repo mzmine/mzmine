@@ -45,6 +45,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -193,20 +194,22 @@ public class LipidAnnotationTask extends AbstractTask {
       Range<Double> mzTolRange = mzTolerance.getToleranceRange(row.getAverageMZ());
       double lowerEdge = mzTolRange.lowerEndpoint();
       double upperEdge = mzTolRange.upperEndpoint();
-      int index = BinarySearch.binarySearch(lowerEdge, true, sortedLipidDatabase.size(),
-          i -> sortedLipidDatabase.get(i).mz());
-      for (int i = index; i < sortedLipidDatabase.size(); i++) {
-        if (isCanceled()) {
-          return;
-        }
+      int index = BinarySearch.binarySearch(lowerEdge, DefaultTo.GREATER_EQUALS,
+          sortedLipidDatabase.size(), i -> sortedLipidDatabase.get(i).mz());
+      if (index >= 0) {
+        for (int i = index; i < sortedLipidDatabase.size(); i++) {
+          if (isCanceled()) {
+            return;
+          }
 
-        LipidAnnotationUtils.findPossibleLipid(sortedLipidDatabase.get(i), row, parameters,
-            mzTolerance, mzToleranceMS2, searchForMSMSFragments, minMsMsScore,
-            keepUnconfirmedAnnotations,
-            sortedLipidDatabase.get(i).lipidAnnotation().getLipidClass().getCoreClass());
+          LipidAnnotationUtils.findPossibleLipid(sortedLipidDatabase.get(i), row, parameters,
+              mzTolerance, mzToleranceMS2, searchForMSMSFragments, minMsMsScore,
+              keepUnconfirmedAnnotations,
+              sortedLipidDatabase.get(i).lipidAnnotation().getLipidClass().getCoreClass());
 
-        if (upperEdge < sortedLipidDatabase.get(i).mz()) {
-          break;
+          if (upperEdge < sortedLipidDatabase.get(i).mz()) {
+            break;
+          }
         }
       }
       finishedSteps++;
