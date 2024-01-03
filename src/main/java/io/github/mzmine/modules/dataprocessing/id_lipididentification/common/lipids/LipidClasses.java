@@ -32,6 +32,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidParsingUtils;
+import java.util.Arrays;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -1507,11 +1508,11 @@ public enum LipidClasses implements ILipidClass {
   }
 
   public LipidChainType[] getChainTypes() {
-    return chainTypes;
+    return Arrays.copyOf(chainTypes, chainTypes.length);
   }
 
   public LipidFragmentationRule[] getFragmentationRules() {
-    return fragmentationRules;
+    return Arrays.copyOf(fragmentationRules, fragmentationRules.length);
   }
 
   @Override
