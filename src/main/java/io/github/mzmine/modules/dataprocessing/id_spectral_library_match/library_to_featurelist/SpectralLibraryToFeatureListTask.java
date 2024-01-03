@@ -39,6 +39,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarity;
@@ -154,6 +155,9 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
         feature.setCharge(charge);
       }
 
+      float tic = (float) ScanUtils.getTIC(bestScan);
+      feature.setHeight(tic);
+
       var row = new ModularFeatureListRow(flist, counter, feature);
 
       // add all scans as matches
@@ -209,6 +213,9 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
       if (charge != null) {
         feature.setCharge(charge);
       }
+
+      float tic = (float) ScanUtils.getTIC(scan);
+      feature.setHeight(tic);
 
       var row = new ModularFeatureListRow(flist, scan.getScanNumber(), feature);
       var similarity = WeightedCosineSpectralSimilarity.weightedCosine.getSimilarity(
