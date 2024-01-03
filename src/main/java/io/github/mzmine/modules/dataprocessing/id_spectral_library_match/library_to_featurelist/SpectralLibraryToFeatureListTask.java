@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
@@ -108,6 +110,31 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
+  @NotNull
+  private static ModularFeature createFeature(final ModularFeatureList flist,
+      final SpectralLibraryDataFile libRaw, final LibraryEntryWrappedScan scan) {
+    var feature = new ModularFeature(flist, libRaw, FeatureStatus.DETECTED);
+    feature.setAllMS2FragmentScans(List.of(scan));
+    feature.setRepresentativeScan(scan);
+    double mz = requireNonNullElse(scan.getPrecursorMz(),
+        requireNonNullElse(scan.getBasePeakMz(), -1d));
+    if (mz > 0) {
+      feature.setMZ(mz);
+    }
+    var rt = scan.getRetentionTime();
+    if (rt >= 0) {
+      feature.setRT(rt);
+    }
+    var charge = scan.getPrecursorCharge();
+    if (charge != null) {
+      feature.setCharge(charge);
+    }
+
+    float tic = (float) ScanUtils.getTIC(scan);
+    feature.setHeight(tic);
+    return feature;
+  }
+
   private void addFeatureListWithGroupedEntries(final FeatureList singleEntryFeatureList,
       final SpectralLibraryDataFile libRaw) {
 
@@ -139,24 +166,8 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
 
       var bestScan = compound.get(0);
 
-      var feature = new ModularFeature(flist, libRaw, FeatureStatus.DETECTED);
+      var feature = createFeature(flist, libRaw, bestScan);
       feature.setAllMS2FragmentScans(compound.stream().map(s -> (Scan) s).toList());
-      feature.setRepresentativeScan(bestScan);
-      var mz = bestScan.getPrecursorMz();
-      if (mz != null) {
-        feature.setMZ(mz);
-      }
-      var rt = bestScan.getRetentionTime();
-      if (rt >= 0) {
-        feature.setRT(rt);
-      }
-      var charge = bestScan.getPrecursorCharge();
-      if (charge != null) {
-        feature.setCharge(charge);
-      }
-
-      float tic = (float) ScanUtils.getTIC(bestScan);
-      feature.setHeight(tic);
 
       var row = new ModularFeatureListRow(flist, counter, feature);
 
@@ -198,24 +209,7 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
         return flist;
       }
 
-      var feature = new ModularFeature(flist, libRaw, FeatureStatus.DETECTED);
-      feature.setAllMS2FragmentScans(List.of(scan));
-      feature.setRepresentativeScan(scan);
-      var mz = scan.getPrecursorMz();
-      if (mz != null) {
-        feature.setMZ(mz);
-      }
-      var rt = scan.getRetentionTime();
-      if (rt >= 0) {
-        feature.setRT(rt);
-      }
-      var charge = scan.getPrecursorCharge();
-      if (charge != null) {
-        feature.setCharge(charge);
-      }
-
-      float tic = (float) ScanUtils.getTIC(scan);
-      feature.setHeight(tic);
+      var feature = createFeature(flist, libRaw, scan);
 
       var row = new ModularFeatureListRow(flist, scan.getScanNumber(), feature);
       var similarity = WeightedCosineSpectralSimilarity.weightedCosine.getSimilarity(
