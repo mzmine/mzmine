@@ -296,15 +296,6 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
   }
 
   @Override
-  public Number getBubbleSize(int series, int item) {
-    if (status.getValue().equals(TaskStatus.FINISHED)) {
-      return bubbleSizeValues[item];
-    } else {
-      return 0;
-    }
-  }
-
-  @Override
   public double getBubbleSizeValue(int series, int item) {
     if (status.getValue().equals(TaskStatus.FINISHED)) {
       return bubbleSizeValues[item];

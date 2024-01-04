@@ -29,7 +29,6 @@ import org.jfree.data.xy.XYZDataset;
 
 public interface XYZBubbleDataset extends XYZDataset {
 
-  Number getBubbleSize(int series, int item);
 
   double getBubbleSizeValue(int series, int item);
 
