@@ -146,7 +146,6 @@ public class LipidAnnotationUtils {
     }
   }
 
-
   public static void findPossibleLipid(LipidIon lipidIon, FeatureListRow row,
       ParameterSet parameters, MZTolerance mzTolerance, MZTolerance mzToleranceMS2,
       boolean searchForMSMSFragments, double minMsMsScore, boolean keepUnconfirmedAnnotations,
@@ -175,10 +174,8 @@ public class LipidAnnotationUtils {
           possibleRowAnnotations.add(matchedLipid);
         }
       }
-
       if (!possibleRowAnnotations.isEmpty()) {
-        addAnnotationsToFeatureList(row, possibleRowAnnotations, mzToleranceMS2, minMsMsScore,
-            searchForMSMSFragments, keepUnconfirmedAnnotations);
+        addAnnotationsToFeatureList(row, possibleRowAnnotations);
       }
     }
   }
@@ -270,6 +267,7 @@ public class LipidAnnotationUtils {
       LipidCategories lipidCategory) {
     switch (lipidCategory) {
       case FATTYACYLS -> {
+        return new GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory();
       }
       case GLYCEROLIPIDS -> {
         return new GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory();
@@ -395,16 +393,14 @@ public class LipidAnnotationUtils {
   }
 
   private static void addAnnotationsToFeatureList(FeatureListRow row,
-      Set<MatchedLipid> possibleRowAnnotations, MZTolerance mzToleranceMS2, double minMsMsScore,
-      boolean searchForMSMSFragments, boolean keepUnconfirmedAnnotations) {
+      Set<MatchedLipid> possibleRowAnnotations) {
     //consider previous annotations
     List<MatchedLipid> previousLipidMatches = row.getLipidMatches();
     if (!previousLipidMatches.isEmpty()) {
       row.set(LipidMatchListType.class, null);
       possibleRowAnnotations.addAll(previousLipidMatches);
     }
-    LipidAnnotationResolver lipidAnnotationResolver = new LipidAnnotationResolver(true, true, true,
-        mzToleranceMS2, minMsMsScore, searchForMSMSFragments, keepUnconfirmedAnnotations);
+    LipidAnnotationResolver lipidAnnotationResolver = new LipidAnnotationResolver(true, true, true);
     List<MatchedLipid> finalResults = lipidAnnotationResolver.resolveFeatureListRowMatchedLipids(
         row, possibleRowAnnotations);
     for (MatchedLipid matchedLipid : finalResults) {
