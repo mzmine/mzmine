@@ -28,7 +28,7 @@ package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.gui.chartbasics.chartutils.XYCirclePixelSizeRenderer;
+import io.github.mzmine.gui.chartbasics.chartutils.ColoredBubbleDatasetRenderer;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
@@ -65,7 +65,7 @@ public class VanKrevelenDiagramChart extends EChartViewer {
         Arrays.stream(dataset.getyValues()).max().orElse(0.0));
     getChart().getXYPlot().getDomainAxis().setRange(Arrays.stream(dataset.getxValues()).min().orElse(0.0),
         Arrays.stream(dataset.getxValues()).max().orElse(0.0));
-    XYCirclePixelSizeRenderer renderer = new XYCirclePixelSizeRenderer();
+    ColoredBubbleDatasetRenderer renderer = new ColoredBubbleDatasetRenderer();
     renderer.setPaintScale(paintScale);
     PaintScaleLegend legend = generateLegend(paintScale);
     getChart().addSubtitle(legend);

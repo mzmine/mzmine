@@ -58,10 +58,11 @@ import org.jfree.data.xy.XYZDataset;
 /**
  * A renderer that represents data from an {@link XYZDataset} by drawing a circle at each (x,
  */
-public class XYCirclePixelSizeRenderer extends AbstractXYItemRenderer
-    implements XYItemRenderer, Cloneable, PublicCloneable, Serializable {
+public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer implements XYItemRenderer,
+    Cloneable, PublicCloneable, Serializable {
+
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
@@ -94,7 +95,7 @@ public class XYCirclePixelSizeRenderer extends AbstractXYItemRenderer
   /**
    * Creates a new {@code XYCircleRenderer} instance with default attributes.
    */
-  public XYCirclePixelSizeRenderer() {
+  public ColoredBubbleDatasetRenderer() {
     updateOffsets();
     this.paintScale = new LookupPaintScale();
   }
@@ -399,10 +400,10 @@ public class XYCirclePixelSizeRenderer extends AbstractXYItemRenderer
     if (obj == this) {
       return true;
     }
-    if (!(obj instanceof XYCirclePixelSizeRenderer)) {
+    if (!(obj instanceof ColoredBubbleDatasetRenderer)) {
       return false;
     }
-    XYCirclePixelSizeRenderer that = (XYCirclePixelSizeRenderer) obj;
+    ColoredBubbleDatasetRenderer that = (ColoredBubbleDatasetRenderer) obj;
     if (this.circleHeight != that.circleHeight) {
       return false;
     }
@@ -427,7 +428,7 @@ public class XYCirclePixelSizeRenderer extends AbstractXYItemRenderer
    */
   @Override
   public Object clone() throws CloneNotSupportedException {
-    XYCirclePixelSizeRenderer clone = (XYCirclePixelSizeRenderer) super.clone();
+    ColoredBubbleDatasetRenderer clone = (ColoredBubbleDatasetRenderer) super.clone();
     if (this.paintScale instanceof PublicCloneable) {
       PublicCloneable pc = (PublicCloneable) this.paintScale;
       clone.paintScale = (PaintScale) pc.clone();
