@@ -35,7 +35,9 @@ import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
@@ -46,6 +48,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -58,6 +61,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -65,6 +70,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,6 +95,10 @@ public class ModularFeatureList implements FeatureList {
   // unmodifiable list
   private final ObservableList<RawDataFile> dataFiles;
   private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
+
+  private NodeGenerationThread nodeThread;
+  private final ReentrantReadWriteLock nodeThreadLock = new ReentrantReadWriteLock(false);
+
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
@@ -106,6 +118,16 @@ public class ModularFeatureList implements FeatureList {
   // grouping
   private List<RowGroup> groups;
 
+  /**
+   * Used to buffer charts of rows and features to display in the
+   * {@link io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX}. The key
+   * is of the following format: "<row id>-<DataType.getUniqueID()>-<raw file name or empty
+   * string>:
+   * <p>
+   * final String key = "%d-%s-%s".formatted(row.getID(), type.getUniqueID(), (file != null ?
+   * file.getName() : ""));
+   */
+  private final Map<String, Node> bufferedCharts = new HashMap<>();
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
       @NotNull RawDataFile... dataFiles) {
@@ -579,9 +601,6 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRow(FeatureListRow row) {
-    // remove buffered charts, otherwise the reference is kept alive. What references the row, though?
-    ((ModularFeatureListRow) row).clearBufferedColCharts();
-    //    logger.finest("REMOVE ROW");
     featureListRows.remove(row);
   }
 
@@ -600,7 +619,6 @@ public class ModularFeatureList implements FeatureList {
   public void removeRow(int rowNum, FeatureListRow row) {
     removeRow(featureListRows.get(rowNum));
     // remove buffered charts, otherwise the reference is kept alive. What references the row, though?
-    ((ModularFeatureListRow) row).clearBufferedColCharts();
     featureListRows.remove(rowNum);
   }
 
@@ -841,5 +859,71 @@ public class ModularFeatureList implements FeatureList {
         }
       }
     }
+  }
+
+  public <S, T extends DataType<S>> Node getChartForRow(FeatureListRow row, T type,
+      RawDataFile file) {
+
+    final String key = "%d-%s-%s".formatted(row.getID(), type.getUniqueID(),
+        (file != null ? file.getName() : ""));
+    final Node node = bufferedCharts.get(key);
+
+    if (node != null && node.getParent() == null) {
+      return node;
+    }
+
+    final StackPane parentPane = new StackPane(new Label("Preparing content..."));
+    parentPane.setPrefHeight(((GraphicalColumType) type).getCellHeight());
+    parentPane.setMinHeight(((GraphicalColumType) type).getCellHeight());
+    parentPane.setMaxHeight(((GraphicalColumType) type).getCellHeight());
+    bufferedCharts.putIfAbsent(key, parentPane);
+
+    ensureNodeThreadRunnning();
+    nodeThread.requestNode((ModularFeatureListRow) row, type,
+        file != null ? ((ModularFeature) row.getFeature(file)).get(type) : row.get(type), file,
+        parentPane);
+
+    return parentPane;
+  }
+
+  private void ensureNodeThreadRunnning() {
+
+    nodeThreadLock.writeLock().lock();
+    try {
+      if (nodeThread == null || nodeThread.isFinished()) {
+        nodeThread = new NodeGenerationThread(null, Instant.now(), this);
+        logger.finest("Starting new node thread.");
+        MZmineCore.getTaskController().addTask(nodeThread);
+      }
+    } catch (Exception e) {
+      logger.log(Level.SEVERE,
+          "Error starting node thread for feature table %s".formatted(getName()), e);
+    }
+    nodeThreadLock.writeLock().unlock();
+  }
+
+  public void onFeatureTableFxClosed() {
+    nodeThreadLock.writeLock().lock();
+    try {
+      if (nodeThread != null) {
+        nodeThread.cancel();
+        nodeThread = null;
+      }
+    } catch (Exception e) {
+      logger.log(Level.SEVERE,
+          "Error cancelling node thread for feature table %s".formatted(getName()), e);
+    }
+    nodeThreadLock.writeLock().unlock();
+
+    // We used this before when charts were stored at the row/feature level.
+    // leave it here for now for reference.
+    /*bufferedCharts.forEach((k, v) -> {
+      if (v instanceof Pane p && p.getParent() instanceof Pane pane) {
+        // remove the node from the parent so there is no more reference and it can be GC'ed
+        pane.getChildren().remove(v);
+      }
+    });*/
+
+    bufferedCharts.clear();
   }
 }

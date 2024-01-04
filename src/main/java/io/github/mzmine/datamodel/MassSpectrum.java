@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,7 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.util.ArrayUtils;
+import io.github.mzmine.util.collections.BinarySearch;
 import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -120,8 +120,8 @@ public interface MassSpectrum extends Iterable<DataPoint> {
    * Searches for the given mz value - or the closest available signal in this spectrum. Copied from
    * {@link Arrays#binarySearch(double[], double)}
    *
-   * @param mz                 search for this mz value
-   * @param defaultToClosestMz return the closest mz value
+   * @param mz             search for this mz value
+   * @param noMatchDefault no direct match then return specific values
    * @return this index of the given mz value or the closest available mz if checked. index of the
    * search key, if it is contained in the array; otherwise, (-(insertion point) - 1). The insertion
    * point is defined as the point at which the key would be inserted into the array: the index of
@@ -129,18 +129,18 @@ public interface MassSpectrum extends Iterable<DataPoint> {
    * the specified key. Note that this guarantees that the return value will be >= 0 if and only if
    * the key is found.
    */
-  default int binarySearch(double mz, boolean defaultToClosestMz) {
-    return binarySearch(mz, defaultToClosestMz, 0, getNumberOfDataPoints());
+  default int binarySearch(double mz, @NotNull BinarySearch.DefaultTo noMatchDefault) {
+    return binarySearch(mz, noMatchDefault, 0, getNumberOfDataPoints());
   }
 
   /**
    * Searches for the given mz value - or the closest available signal in this spectrum. Copied from
    * {@link Arrays#binarySearch(double[], double)}
    *
-   * @param mz                 search for this mz value
-   * @param defaultToClosestMz return the closest mz value
-   * @param fromIndex          inclusive lower end
-   * @param toIndex            exclusive upper end
+   * @param mz             search for this mz value
+   * @param noMatchDefault no direct match then return specific values
+   * @param fromIndex      inclusive lower end
+   * @param toIndex        exclusive upper end
    * @return this index of the given mz value or the closest available mz if checked. index of the
    * search key, if it is contained in the array; otherwise, (-(insertion point) - 1). The insertion
    * point is defined as the point at which the key would be inserted into the array: the index of
@@ -148,63 +148,17 @@ public interface MassSpectrum extends Iterable<DataPoint> {
    * the specified key. Note that this guarantees that the return value will be >= 0 if and only if
    * the key is found.
    */
-  default int binarySearch(double mz, boolean defaultToClosestMz, int fromIndex, int toIndex) {
-    if (toIndex == 0) {
-      return -1;
-    }
-    final int numberOfDataPoints = getNumberOfDataPoints();
-    ArrayUtils.rangeCheck(numberOfDataPoints, fromIndex, toIndex);
-
-    int low = fromIndex;
-    int high = toIndex - 1;
-
-    while (low <= high) {
-      int mid = (low + high) >>> 1; // bit shift by 1 for sum of positive integers = / 2
-      double midMz = getMzValue(mid);
-
-      if (midMz < mz) {
-        low = mid + 1;  // Neither mz is NaN, thisVal is smaller
-      } else if (midMz > mz) {
-        high = mid - 1; // Neither mz is NaN, thisVal is larger
-      } else {
-        long midBits = Double.doubleToLongBits(midMz);
-        long keyBits = Double.doubleToLongBits(mz);
-        if (midBits == keyBits) {
-          return mid;  // Key found
-        } else if (midBits < keyBits) {
-          low = mid + 1;  // (-0.0, 0.0) or (!NaN, NaN)
-        } else {
-          high = mid - 1;  // (0.0, -0.0) or (NaN, !NaN)
-        }
-      }
-    }
-    if (defaultToClosestMz) {
-      if (low >= numberOfDataPoints) {
-        return numberOfDataPoints - 1;
-      }
-      // might be higher or lower
-      final double adjacentMZ = getMzValue(low);
-      // check for closest distance to mz
-      if (adjacentMZ <= mz && low + 1 < numberOfDataPoints) {
-        final double higherMZ = getMzValue(low + 1);
-        return (Math.abs(mz - adjacentMZ) <= Math.abs(higherMZ - mz)) ? low : low + 1;
-      } else if (adjacentMZ > mz && low - 1 >= 0) {
-        final double lowerMZ = getMzValue(low - 1);
-        return (Math.abs(mz - adjacentMZ) <= Math.abs(lowerMZ - mz)) ? low : low - 1;
-      } else {
-        // there was only one data point
-        return low;
-      }
-    }
-    return -(low + 1);  // key not found.
+  default int binarySearch(double mz, @NotNull BinarySearch.DefaultTo noMatchDefault, int fromIndex,
+      int toIndex) {
+    return BinarySearch.binarySearch(mz, noMatchDefault, fromIndex, toIndex, this::getMzValue);
   }
 
   /**
    * Searches for the given mz value - or the closest available signal in this spectrum. Copied from
    * {@link Arrays#binarySearch(double[], double)}
    *
-   * @param mz                 search for this mz value
-   * @param defaultToClosestMz return the closest mz value
+   * @param mz             search for this mz value
+   * @param noMatchDefault no direct match then return specific values
    * @return this index of the given mz value or the closest available mz if checked. index of the
    * search key, if it is contained in the array; otherwise, (-(insertion point) - 1). The insertion
    * point is defined as the point at which the key would be inserted into the array: the index of
@@ -212,8 +166,8 @@ public interface MassSpectrum extends Iterable<DataPoint> {
    * the specified key. Note that this guarantees that the return value will be >= 0 if and only if
    * the key is found.
    */
-  default int indexOf(double mz, boolean defaultToClosestMz) {
-    return binarySearch(mz, defaultToClosestMz);
+  default int indexOf(double mz, @NotNull BinarySearch.DefaultTo noMatchDefault) {
+    return binarySearch(mz, noMatchDefault);
   }
 
 }
