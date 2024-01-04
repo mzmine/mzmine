@@ -332,13 +332,13 @@ public class XYCirclePixelSizeRenderer extends AbstractXYItemRenderer
         specificDatasetColor = ((KendrickMassPlotXYDataset) dataset).getColor();
       }
     }
-    if (dataset instanceof XYZBubbleDataset) {
-      z = ((XYZBubbleDataset) dataset).getZValue(series, item);
-      double[] bubbleSizeValues = ((XYZBubbleDataset) dataset).getBubbleSizeValues();
+    if (dataset instanceof XYZBubbleDataset bubbleDataset) {
+      z = bubbleDataset.getZValue(series, item);
+      double[] bubbleSizeValues = bubbleDataset.getBubbleSizeValues();
       minBubbleSize = Arrays.stream(bubbleSizeValues).min().getAsDouble();
       maxBubbleSize = Arrays.stream(bubbleSizeValues).max().getAsDouble();
       bubbleSize = scaleBubbeSize(minBubbleSize, maxBubbleSize,
-          ((XYZBubbleDataset) dataset).getBubbleSizeValue(series, item));
+          bubbleDataset.getBubbleSizeValue(series, item));
     }
 
     // create new color with alpha
