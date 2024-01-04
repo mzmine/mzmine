@@ -1274,7 +1274,7 @@ public enum LipidClasses implements ILipidClass {
   }),
 
   HEXOSYLCERAMIDEHYDROXYFATTYACID("Hexosylceramide hydroxy fatty acid", "HexCer",
-      LipidCategories.SPHINGOLIPIDS, LipidMainClasses.CERAMIDES, "C9H18O5",
+      LipidCategories.SPHINGOLIPIDS, LipidMainClasses.NEUTRALGLYCOSPHINGOLIPIDS, "C9H18O5",
       new LipidChainType[]{LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN,
           LipidChainType.AMID_MONO_HYDROXY_CHAIN}, new LipidFragmentationRule[]{ //
       new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN,
@@ -1325,7 +1325,7 @@ public enum LipidClasses implements ILipidClass {
 
   HEXOSYLCERAMIDEHYDROXYFATTYACIDPHYTOSPHINGOSINE(
       "Hexosylceramide hydroxy fatty acid phytosphingosine", "HexCer",
-      LipidCategories.SPHINGOLIPIDS, LipidMainClasses.CERAMIDES, "C9H18O5",
+      LipidCategories.SPHINGOLIPIDS, LipidMainClasses.NEUTRALGLYCOSPHINGOLIPIDS, "C9H18O5",
       new LipidChainType[]{LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN,
           LipidChainType.AMID_MONO_HYDROXY_CHAIN}, new LipidFragmentationRule[]{ //
       new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.POSITIVE_HYDROGEN,
