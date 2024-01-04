@@ -338,7 +338,6 @@ tasks.withType(JavaExec) {
 application {
     mainClass.set("io.github.mzmine.main.MZmineCore")
     applicationName = "MZmine"
-    applicationDefaultJvmArgs = ['-Dprism.order=es2,sw']
 }
 
 /*
