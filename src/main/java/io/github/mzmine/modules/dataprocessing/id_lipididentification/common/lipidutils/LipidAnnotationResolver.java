@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -67,23 +68,22 @@ public class LipidAnnotationResolver {
 
   private void estimateMissingSpeciesLevelAnnotations(
       List<MatchedLipid> resolvedMatchedLipidsList) {
-    if (resolvedMatchedLipidsList.stream().anyMatch(
+    if (resolvedMatchedLipidsList.stream().noneMatch(
         matchedLipid -> matchedLipid.getLipidAnnotation().getLipidAnnotationLevel()
             .equals(LipidAnnotationLevel.SPECIES_LEVEL))) {
-      return;
-    } else {
       Set<MatchedLipid> estimatedSpeciesLevelMatchedLipids = new HashSet<>();
       for (MatchedLipid lipid : resolvedMatchedLipidsList) {
         ILipidAnnotation estimatedSpeciesLevelAnnotation = convertMolecularSpeciesLevelToSpeciesLevel(
             (MolecularSpeciesLevelAnnotation) lipid.getLipidAnnotation());
         if (resolvedMatchedLipidsList.stream().noneMatch(
-            matchedLipid -> matchedLipid.getLipidAnnotation()
-                .equals(estimatedSpeciesLevelAnnotation))) {
+            matchedLipid -> matchedLipid.getLipidAnnotation().getAnnotation()
+                .equals(estimatedSpeciesLevelAnnotation.getAnnotation()))) {
           if ((estimatedSpeciesLevelAnnotation != null
               && estimatedSpeciesLevelMatchedLipids.isEmpty()) || (
               estimatedSpeciesLevelAnnotation != null && estimatedSpeciesLevelMatchedLipids.stream()
-                  .anyMatch(matchedLipid -> matchedLipid.getLipidAnnotation()
-                      != estimatedSpeciesLevelAnnotation))) {
+                  .anyMatch(matchedLipid -> !Objects.equals(
+                      matchedLipid.getLipidAnnotation().getAnnotation(),
+                      estimatedSpeciesLevelAnnotation.getAnnotation())))) {
             MatchedLipid matchedLipidSpeciesLevel = new MatchedLipid(
                 estimatedSpeciesLevelAnnotation, lipid.getAccurateMz(), lipid.getIonizationType(),
                 new HashSet<>(lipid.getMatchedFragments()), 0.0, MatchedLipidStatus.ESTIMATED);

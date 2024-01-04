@@ -36,7 +36,7 @@ import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotP
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYZDataset;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickPlotDataTypes;
 import io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSunburstPlot;
-import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidAnnotationMatchTab;
+import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidAnnotationMatchTabOld;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -470,7 +470,7 @@ public class LipidAnnotationOverviewPaneController {
   private void buildMatchedLipidSpectrum(List<ModularFeatureListRow> rows) {
     List<MatchedLipid> matchedLipids = rows.get(0).get(LipidMatchListType.class);
     if (!matchedLipids.isEmpty()) {
-      LipidAnnotationMatchTab lipidAnnotationMatchTab = new LipidAnnotationMatchTab(
+      LipidAnnotationMatchTabOld lipidAnnotationMatchTab = new LipidAnnotationMatchTabOld(
           internalFeatureTable);
       matchedMSMS.setCenter(lipidAnnotationMatchTab.getContent());
     } else {

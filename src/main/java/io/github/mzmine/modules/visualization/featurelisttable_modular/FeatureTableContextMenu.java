@@ -509,7 +509,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     showMatchedLipidSignals.setOnAction(e -> {
       List<MatchedLipid> matchedLipids = selectedRows.get(0).get(LipidMatchListType.class);
       if (matchedLipids != null && !matchedLipids.isEmpty()) {
-        LipidAnnotationMatchTab.addNewTab(this.table);
+        MZmineCore.getDesktop().addTab((new LipidAnnotationMatchTab(table)));
       }
     });
 
