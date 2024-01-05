@@ -242,15 +242,45 @@
       <SeparatorMenuItem/>
 
       <MenuItem onAction="#runModule" text="Thermo RAW"
-                userData="io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportModule"/>
+                userData="io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportModule">
+        <graphic>
+          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+            <Image url="@/icons/rawdatamethods/rawdataimport/Thermo RAW.png"/>
+          </ImageView>
+        </graphic>
+      </MenuItem>
       <MenuItem onAction="#runModule" text="Waters RAW"
-                userData="io.github.mzmine.modules.io.import_rawdata_waters_raw.WatersRawImportModule"/>
+                userData="io.github.mzmine.modules.io.import_rawdata_waters_raw.WatersRawImportModule">
+        <graphic>
+          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+            <Image url="@/icons/rawdatamethods/rawdataimport/Waters RAW.png"/>
+          </ImageView>
+        </graphic>
+      </MenuItem>
       <MenuItem onAction="#runModule" text="Bruker TDF"
-                userData="io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule"/>
+                userData="io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule">
+        <graphic>
+          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+            <Image url="@/icons/rawdatamethods/rawdataimport/Bruker TDF.png"/>
+          </ImageView>
+        </graphic>
+      </MenuItem>
       <MenuItem onAction="#runModule" text="Bruker TSF"
-                userData="io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFImportModule"/>
+                userData="io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFImportModule">
+        <graphic>
+          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+            <Image url="@/icons/rawdatamethods/rawdataimport/Bruker TSF.png"/>
+          </ImageView>
+        </graphic>
+      </MenuItem>
       <MenuItem onAction="#runModule" text="ZIP / gzip"
-                userData="io.github.mzmine.modules.io.import_rawdata_zip.ZipImportModule"/>
+                userData="io.github.mzmine.modules.io.import_rawdata_zip.ZipImportModule">
+        <graphic>
+          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+            <Image url="@/icons/rawdatamethods/rawdataimport/ZIP,gzip.png"/>
+          </ImageView>
+        </graphic>
+      </MenuItem>
       <MenuItem onAction="#runModule" text="Import spectral libraries"
                 userData="io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule"/>
       <MenuItem onAction="#runModule" text="Spectral library to feature list"
