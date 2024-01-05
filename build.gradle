@@ -58,12 +58,9 @@ description = "MZmine"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(20)
+        languageVersion = JavaLanguageVersion.of(21)
 //        vendor = JvmVendorSpec.ADOPTIUM  // force use ADOPTIUM TEMURIN JDK
     }
-    // not needed with toolchain command
-//    sourceCompatibility = "20"
-//    targetCompatibility = "20"
 }
 defaultTasks "test", "jpackage", "notarizeApp"
 
