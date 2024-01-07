@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,10 +27,15 @@ package datamodel;
 
 import com.google.common.reflect.ClassPath;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -112,4 +117,13 @@ public class DataTypesTest {
     }
   }
 
+
+  @Test
+  public void testGetAll() {
+    List<DataType> all = DataTypes.getAll(MZType.class, RTType.class, HeightType.class);
+    Assertions.assertEquals(3, all.size());
+    Assertions.assertEquals(new MZType(), all.get(0));
+    Assertions.assertEquals(new RTType(), all.get(1));
+    Assertions.assertEquals(new HeightType(), all.get(2));
+  }
 }
