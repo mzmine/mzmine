@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -140,6 +140,14 @@ public class DataTypes {
   }
 
   /**
+   * Get a list of the singleton datatypes, same order as input
+   */
+  @SafeVarargs
+  public static List<DataType> getAll(final Class<? extends DataType<?>>... classes) {
+    return Arrays.stream(classes).map(c -> TYPES.get(c)).toList();
+  }
+
+  /**
    * @return A collection of all data type instances.
    */
   public static Collection<DataType> getInstances() {
@@ -186,9 +194,5 @@ public class DataTypes {
       prioMap.put(DataTypes.get(aClass), i++);
     }
     return prioMap;
-  }
-
-  public static List<DataType> getList(final Class... classes) {
-    return Arrays.stream(classes).map(c -> TYPES.get(c)).toList();
   }
 }
