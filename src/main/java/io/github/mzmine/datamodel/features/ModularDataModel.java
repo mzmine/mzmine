@@ -66,16 +66,6 @@ public interface ModularDataModel {
   default boolean isEmpty() {
     return getMap().isEmpty();
   }
-  /**
-   * Get DataType column of this DataModel
-   *
-   * @param <T>
-   * @param tclass
-   * @return
-   */
-  default <T> DataType<T> getTypeColumn(Class<? extends DataType<T>> tclass) {
-    return DataTypes.get(tclass);
-  }
 
   /**
    * has DataType column of this DataModel
@@ -84,7 +74,7 @@ public interface ModularDataModel {
    * @param tclass
    * @return
    */
-  default <T extends Object> boolean hasTypeColumn(Class<? extends DataType<T>> tclass) {
+  default <T> boolean hasTypeColumn(Class<? extends DataType<T>> tclass) {
     return getTypes().contains(DataTypes.get(tclass));
   }
 
@@ -107,7 +97,7 @@ public interface ModularDataModel {
    * @return
    */
   default <T> Entry<DataType<T>, T> getEntry(Class<? extends DataType<T>> tclass) {
-    DataType<T> type = getTypeColumn(tclass);
+    DataType<T> type = DataTypes.get(tclass);
     return getEntry(type);
   }
 
@@ -119,7 +109,7 @@ public interface ModularDataModel {
    * @return
    */
   default <T> T get(Class<? extends DataType<T>> tclass) {
-    DataType<T> type = getTypeColumn(tclass);
+    DataType<T> type = DataTypes.get(tclass);
     return get(type);
   }
 
@@ -145,7 +135,7 @@ public interface ModularDataModel {
    */
   @Nullable
   default <T> T getOrDefault(Class<? extends DataType<T>> tclass, T defaultValue) {
-    DataType<T> type = getTypeColumn(tclass);
+    DataType<T> type = DataTypes.get(tclass);
     return getOrDefault(type, defaultValue);
   }
 
@@ -167,7 +157,7 @@ public interface ModularDataModel {
    */
   @NotNull
   default <T> T getNonNullElse(Class<? extends DataType<T>> tclass, @NotNull T defaultValue) {
-    DataType<T> type = getTypeColumn(tclass);
+    DataType<T> type = DataTypes.get(tclass);
     return getNonNullElse(type, defaultValue);
   }
 
@@ -219,7 +209,7 @@ public interface ModularDataModel {
    * @return
    */
   default <T extends Property<?>> String getFormattedString(Class<? extends DataType<T>> tclass) {
-    DataType<T> type = getTypeColumn(tclass);
+    DataType<T> type = DataTypes.get(tclass);
     return getFormattedString(type);
   }
 
@@ -266,7 +256,7 @@ public interface ModularDataModel {
    * @param tclass the data type class to be removed
    */
   default <T> void remove(Class<? extends DataType<T>> tclass) {
-    DataType type = getTypeColumn(tclass);
+    DataType type = DataTypes.get(tclass);
     remove(type);
   }
 

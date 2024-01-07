@@ -43,8 +43,6 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormul
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -62,7 +60,6 @@ public class FormulaListType extends ListWithSubsType<ResultFormula> implements 
       new FormulaMassType(), new RdbeType(), new MzPpmDifferenceType(),
       new MzAbsoluteDifferenceType(), new IsotopePatternScoreType(), new MsMsScoreType(),
       new CombinedScoreType());
-  private static final Map<DataType, Function<ResultFormula, Object>> mapper = Map.ofEntries();
 
   @Override
   public boolean getDefaultVisibility() {

@@ -72,11 +72,11 @@ import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
-import javafx.collections.ObservableSet;
-import javafx.collections.SetChangeListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -355,7 +355,6 @@ public class ModularFeatureList implements FeatureList {
   public void addFeatureType(Collection<DataType> types) {
     for (DataType<?> type : types) {
       if (!hasFeatureType(type)) {
-        // all {@link ModularFeature} will automatically add a default data map
         featureTypes.add(type);
       }
     }
@@ -370,8 +369,6 @@ public class ModularFeatureList implements FeatureList {
   public void addRowType(Collection<DataType> types) {
     for (DataType<?> type : types) {
       if (!hasRowType(type)) {
-        // add row type - all rows will automatically generate a default property for this type in
-        // their data map
         rowTypes.add(type);
       }
     }

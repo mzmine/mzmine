@@ -109,7 +109,7 @@ public interface FeatureList {
    * @param typeClass class of a DataType
    * @return true if feature type is available
    */
-  default boolean hasFeatureType(Class typeClass) {
+  default boolean hasFeatureType(Class<? extends DataType> typeClass) {
     return hasFeatureType(DataTypes.get(typeClass));
   }
 
@@ -129,7 +129,7 @@ public interface FeatureList {
    * @param typeClass class of a DataType
    * @return true if row type is available
    */
-  default boolean hasRowType(Class typeClass) {
+  default boolean hasRowType(Class<? extends DataType> typeClass) {
     return hasRowType(DataTypes.get(typeClass));
   }
 
