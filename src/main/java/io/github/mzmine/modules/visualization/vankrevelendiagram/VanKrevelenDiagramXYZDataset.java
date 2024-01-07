@@ -140,97 +140,29 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
 
   private void initDimensionValues(double[] values,
       VanKrevelenDiagramDataTypes vanKrevelenDiagramDataType) {
-    switch (vanKrevelenDiagramDataType) {
-      case MZ -> {
-        useMZ(values);
-      }
-      case RETENTION_TIME -> {
-        useRT(values);
-      }
-      case MOBILITY -> {
-        useMobility(values);
-      }
-      case INTENSITY -> {
-        useIntensity(values);
-      }
-      case AREA -> {
-        useArea(values);
-      }
-      case TAILING_FACTOR -> {
-        useTailingFactor(values);
-      }
-      case ASYMMETRY_FACTOR -> {
-        useAsymmetryFactor(values);
-      }
-      case FWHM -> {
-        useFwhm(values);
+    for (int i = 0; i < filteredRows.size(); i++) {
+      FeatureListRow row = filteredRows.get(i);
+      switch (vanKrevelenDiagramDataType) {
+        case MZ -> values[i] = row.getAverageMZ();
+        case RETENTION_TIME -> values[i] = row.getAverageRT();
+        case MOBILITY ->
+            values[i] = (row.getAverageMobility() != null) ? row.getAverageMobility() : 0.0;
+        case INTENSITY -> values[i] = row.getAverageHeight();
+        case AREA -> values[i] = row.getAverageArea();
+        case TAILING_FACTOR -> values[i] =
+            (row.getBestFeature().getTailingFactor() != null) ? row.getBestFeature()
+                .getTailingFactor() : 0.0;
+        case ASYMMETRY_FACTOR -> values[i] =
+            (row.getBestFeature().getAsymmetryFactor() != null) ? row.getBestFeature()
+                .getAsymmetryFactor() : 0.0;
+        case FWHM -> values[i] =
+            (row.getBestFeature().getFWHM() != null) ? row.getBestFeature().getFWHM() : 0.0;
+        default -> throw new IllegalStateException(
+            "Unexpected VanKrevelenDiagramDataType: " + vanKrevelenDiagramDataType);
       }
     }
   }
 
-  private void useFwhm(double[] values) {
-    for (int i = 0; i < filteredRows.size(); i++) {
-      if (filteredRows.get(i).getBestFeature().getFWHM() != null) {
-        values[i] = filteredRows.get(i).getBestFeature().getFWHM();
-      } else {
-        values[i] = 0.0;
-      }
-    }
-  }
-
-  private void useAsymmetryFactor(double[] values) {
-    for (int i = 0; i < filteredRows.size(); i++) {
-      if (filteredRows.get(i).getBestFeature().getAsymmetryFactor() != null) {
-        values[i] = filteredRows.get(i).getBestFeature().getAsymmetryFactor();
-      } else {
-        values[i] = 0.0;
-      }
-    }
-  }
-
-  private void useTailingFactor(double[] values) {
-    for (int i = 0; i < filteredRows.size(); i++) {
-      if (filteredRows.get(i).getBestFeature().getTailingFactor() != null) {
-        values[i] = filteredRows.get(i).getBestFeature().getTailingFactor();
-      } else {
-        values[i] = 0.0;
-      }
-    }
-  }
-
-  private void useArea(double[] values) {
-    for (int i = 0; i < filteredRows.size(); i++) {
-      values[i] = filteredRows.get(i).getAverageArea();
-    }
-  }
-
-  private void useIntensity(double[] values) {
-    for (int i = 0; i < filteredRows.size(); i++) {
-      values[i] = filteredRows.get(i).getAverageHeight();
-    }
-  }
-
-  private void useMobility(double[] values) {
-    for (int i = 0; i < filteredRows.size(); i++) {
-      if (filteredRows.get(i).getAverageMobility() != null) {
-        values[i] = filteredRows.get(i).getAverageMobility();
-      } else {
-        values[i] = 0;
-      }
-    }
-  }
-
-  private void useRT(double[] values) {
-    for (int i = 0; i < filteredRows.size(); i++) {
-      values[i] = filteredRows.get(i).getAverageRT();
-    }
-  }
-
-  private void useMZ(double[] values) {
-    for (int i = 0; i < filteredRows.size(); i++) {
-      values[i] = filteredRows.get(i).getAverageMZ();
-    }
-  }
 
   public int getItemCount(int series) {
     if (status.getValue().equals(TaskStatus.FINISHED)) {
