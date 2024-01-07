@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util.javafx.groupablelistview;
@@ -21,11 +28,13 @@ package io.github.mzmine.util.javafx.groupablelistview;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.sun.istack.Nullable;
+import io.github.mzmine.main.MZmineCore;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -63,21 +72,21 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
           if (change.getList() == null) {
             return;
           }
-          ImmutableList<GroupableListViewEntity> items = ImmutableList.copyOf(change.getList());
-          selectedValues.clear();
-          selectedGroups.clear();
-          for (GroupableListViewEntity item : items) {
-            if (item instanceof GroupEntity) {
-              selectedGroups.add((GroupEntity) item);
-              selectedValues.addAll(listGroups.get(item).stream()
-                  .map(ValueEntity::getValue)
-                  .collect(Collectors.toList()));
-            } else {
-              if (!selectedValues.contains(((ValueEntity<T>) item).getValue())) {
-                selectedValues.add(((ValueEntity<T>) item).getValue());
-              }
-            }
-          }
+          var items = change.getList();
+
+          // set all new selections at once to trigger only one event on ObservableList
+          selectedGroups.setAll(
+              items.stream().filter(Objects::nonNull).filter(item -> item instanceof GroupEntity)
+                  .map(item -> (GroupEntity) item).toList());
+          // if group is selected, select all internal data files
+          selectedValues.setAll(items.stream().filter(Objects::nonNull).<T>mapMulti((item, consumer) -> {
+                if (item instanceof GroupEntity ge) {
+                  listGroups.get(ge).stream().map(ValueEntity::getValue).filter(Objects::nonNull)
+                      .forEach(consumer::accept);
+                } else {
+                  consumer.accept(((ValueEntity<T>) item).getValue());
+                }
+              }).toList());
         }
       }
     });
@@ -88,58 +97,57 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
   }
 
   /**
-   * Binds the values of this {@link GroupableListView} to the given {@link ObservableList}.
-   *
-   * @param values list to be binded
+   * @param values initial values
    */
-  public final void setValues(@NotNull ObservableList<T> values) {
+  public final void setValues(@NotNull List<T> values) {
     listItems.clear();
     listGroups.clear();
 
-    values.addListener(new ListChangeListener<T>() {
-      @Override
-      public void onChanged(Change<? extends T> change) {
-        while (change.next()) {
-          if (change.wasAdded()) {
+    addItems(values);
+  }
 
-            for (T addedValue : change.getAddedSubList()) {
-              ValueEntity<T> newItem = new ValueEntity<T>(addedValue);
-
-              if (grouping == null) {
-                listItems.add(newItem);
-              } else {
-                String groupName = grouping.apply(addedValue);
-                GroupEntity group = getGroupByName(groupName);
-
-                if (group == null) {
-                  group = new GroupEntity(groupName);
-                  listGroups.put(group, FXCollections.observableArrayList());
-                  listItems.add(group);
-                }
-
-                addToGroup(group, 0, newItem);
+  public void removeItems(List<? extends T> items) {
+    MZmineCore.runLater(() -> {
+      for (T removedValue : items) {
+        for (GroupableListViewEntity item : listItems) {
+          if (item instanceof ValueEntity && ((ValueEntity<?>) item).getValue()
+              .equals(removedValue)) {
+            listItems.remove(item);
+            if (((ValueEntity<?>) item).isGrouped()) {
+              listGroups.get(((ValueEntity<?>) item).getGroup()).remove(item);
+              if (listGroups.get(((ValueEntity<?>) item).getGroup()).isEmpty()) {
+                ungroupItems(((ValueEntity<?>) item).getGroup());
               }
             }
+            break;
           }
-          if (change.wasRemoved()) {
-            for (T removedValue : change.getRemoved()) {
-              for (GroupableListViewEntity item : listItems) {
-                if (item instanceof ValueEntity && ((ValueEntity<?>) item).getValue().equals(removedValue)) {
-                  listItems.remove(item);
-                  if (((ValueEntity<?>) item).isGrouped()) {
-                    listGroups.get(((ValueEntity<?>) item).getGroup()).remove(item);
-                    if (listGroups.get(((ValueEntity<?>) item).getGroup()).isEmpty()) {
-                      ungroupItems(((ValueEntity<?>) item).getGroup());
-                    }
-                  }
-                  break;
-                }
-              }
-            }
-          }
-          setItems(listItems);
         }
       }
+      setItems(listItems);
+    });
+  }
+
+  public void addItems(final List<? extends T> items) {
+    MZmineCore.runLater(() -> {
+      for (T addedValue : items) {
+        ValueEntity<T> newItem = new ValueEntity<T>(addedValue);
+
+        if (grouping == null) {
+          listItems.add(newItem);
+        } else {
+          String groupName = grouping.apply(addedValue);
+          GroupEntity group = getGroupByName(groupName);
+
+          if (group == null) {
+            group = new GroupEntity(groupName);
+            listGroups.put(group, FXCollections.observableArrayList());
+            listItems.add(group);
+          }
+
+          addToGroup(group, 0, newItem);
+        }
+      }
+      setItems(listItems);
     });
   }
 
@@ -287,7 +295,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
    * Removes item from it's group and places it to the given index of the list view.
    *
    * @param index new index of the item
-   * @param item item to remove from it's group
+   * @param item  item to remove from it's group
    */
   public void removeFromGroup(int index, ValueEntity<T> item) {
     if (item == null || !item.isGrouped()) {
@@ -334,8 +342,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     }
 
     for (int index = 0; index < listItems.size(); index++) {
-      if (listItems.get(index) instanceof GroupEntity
-          && (listItems.get(index)).equals(group)) {
+      if (listItems.get(index) instanceof GroupEntity && (listItems.get(index)).equals(group)) {
         return index;
       }
     }
@@ -344,8 +351,8 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
 
   public List<Integer> getGroupItemsIndices(GroupEntity group) {
     Integer groupIndex = getGroupIndex(group);
-    return IntStream.rangeClosed(groupIndex + 1, groupIndex + getGroupSize(group))
-        .boxed().collect(Collectors.toList());
+    return IntStream.rangeClosed(groupIndex + 1, groupIndex + getGroupSize(group)).boxed()
+        .collect(Collectors.toList());
   }
 
   public Integer getGroupSize(GroupEntity group) {
@@ -371,13 +378,10 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
   }
 
   /**
-   * Sorts items of the list alphabetically. Cases:
-   *  - one item:
-   *    * item is group header: sort group items
-   *    * item is not group header: do nothing
-   *  - multiple items:
-   *    * sort group headers and not grouped elements together, sort grouped items within their groups
-   *
+   * Sorts items of the list alphabetically. Cases: - one item: * item is group header: sort group
+   * items * item is not group header: do nothing - multiple items: * sort group headers and not
+   * grouped elements together, sort grouped items within their groups
+   * <p>
    * Allows sorting of any possible list of list's indices.
    *
    * @param indices indices of items to sort
@@ -388,8 +392,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     }
 
     // Get items corresponding to indices
-    List<GroupableListViewEntity> itemsToSort = indices.stream()
-        .map(listItems::get)
+    List<GroupableListViewEntity> itemsToSort = indices.stream().map(listItems::get)
         .collect(Collectors.toList());
 
     // One item is to be sorted
@@ -427,8 +430,8 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
 
   /**
    * Method designed to sort each part of splitted(e.g. : not grouped, belonging to group1,
-   * belonging to group2...) in {@link GroupableListView#sortItems} items.
-   * Optimized to sort only given indices, not affecting whole list.
+   * belonging to group2...) in {@link GroupableListView#sortItems} items. Optimized to sort only
+   * given indices, not affecting whole list.
    *
    * @param indices indices of items to sort
    */
@@ -438,10 +441,8 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     }
 
     // Get sorted items corresponding to indices
-    List<GroupableListViewEntity> sortedItems = indices.stream()
-        .map(listItems::get)
-        .sorted(Ordering.usingToString())
-        .collect(Collectors.toList());
+    List<GroupableListViewEntity> sortedItems = indices.stream().map(listItems::get)
+        .sorted(Ordering.usingToString()).collect(Collectors.toList());
 
     // Place sorted items one by one to the initial indices
 
@@ -487,8 +488,8 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
    * Returns {@link ValueEntity} of the list view, containing given value.
    *
    * @param value value
-   * @return {@link ValueEntity} containing given value or null,
-   * if such {@link ValueEntity} doesn't exist
+   * @return {@link ValueEntity} containing given value or null, if such {@link ValueEntity} doesn't
+   * exist
    */
   @Nullable
   private ValueEntity<T> getValueEntity(T value) {
@@ -501,17 +502,14 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
   }
 
   /**
-   * Generates new unique group name. Examples:
-   * "Group" -> "Group", if "Group" doesn't exist
-   * "Group" -> "Group(1)", if "Group" exists
-   * "Group(1)" -> "Group(2)", if "Group(1)" exists
+   * Generates new unique group name. Examples: "Group" -> "Group", if "Group" doesn't exist "Group"
+   * -> "Group(1)", if "Group" exists "Group(1)" -> "Group(2)", if "Group(1)" exists
    *
    * @param groupName initial group name
    * @return new group name
    */
   private String generateNewGroupName(String groupName) {
-    Set<String> groupsNames = listGroups.keySet().stream()
-        .map(GroupEntity::getGroupName)
+    Set<String> groupsNames = listGroups.keySet().stream().map(GroupEntity::getGroupName)
         .collect(Collectors.toSet());
 
     return generateNewGroupName(groupName, groupsNames, 1);
@@ -521,10 +519,11 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     if (!groupsNames.contains(groupName)) {
       return groupName;
     } else {
-      return generateNewGroupName(n == 1
-          ? groupName + "(" + n + ")"
+      return generateNewGroupName(n == 1 ? groupName + "(" + n + ")"
           : groupName.substring(0, groupName.length() - 2) + n + ")", groupsNames, n + 1);
     }
   }
 
+  public void updateItems() {
+  }
 }

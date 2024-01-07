@@ -1,79 +1,87 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.taskcontrol.impl;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Vector;
-import java.util.logging.Logger;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumOfThreadsParameter;
+import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskControlListener;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Vector;
+import java.util.logging.Logger;
 
 /**
  * Task controller implementation
  */
 public class TaskControllerImpl implements TaskController, Runnable {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
-  ArrayList<TaskControlListener> listeners = new ArrayList<TaskControlListener>();
-
+  private static final Logger logger = Logger.getLogger(TaskControllerImpl.class.getName());
   /**
    * Update the task progress window every 300 ms
    */
   private final int TASKCONTROLLER_THREAD_SLEEP = 300;
 
-  private Thread taskControllerThread;
+  private static final TaskControllerImpl INSTANCE = new TaskControllerImpl();
+  private final ArrayList<TaskControlListener> listeners = new ArrayList<>();
+  private final Thread taskControllerThread;
 
-  private TaskQueue taskQueue;
+  private final TaskQueue taskQueue;
 
   /**
    * This vector contains references to all running threads of NORMAL priority. Maximum number of
    * concurrent threads is specified in the preferences dialog.
    */
-  private Vector<WorkerThread> runningThreads;
+  private final Vector<WorkerThread> runningThreads;
 
-  /**
-   * Initialize the task controller
-   */
-  public void initModule() {
 
+  private TaskControllerImpl() {
     logger.finest("Starting task controller thread");
     taskQueue = new TaskQueue();
 
-    runningThreads = new Vector<WorkerThread>();
+    runningThreads = new Vector<>();
 
     // Create a low-priority thread that will manage the queue and start
     // worker threads for tasks
     taskControllerThread = new Thread(this, "Task controller thread");
     taskControllerThread.setPriority(Thread.MIN_PRIORITY);
     taskControllerThread.start();
+  }
 
+  public static TaskControllerImpl getInstance() {
+    return INSTANCE;
   }
 
   @Override
@@ -91,25 +99,27 @@ public class TaskControllerImpl implements TaskController, Runnable {
    */
   @Override
   public void addTask(Task task, TaskPriority priority) {
-    addTasks(new Task[] {task}, new TaskPriority[] {priority});
+    addTasks(new Task[]{task}, new TaskPriority[]{priority});
   }
 
   @Override
-  public WrappedTask[] addTasks(Task tasks[]) {
-    if (tasks == null || tasks.length == 0)
+  public WrappedTask[] addTasks(Task[] tasks) {
+    if (tasks == null || tasks.length == 0) {
       return new WrappedTask[0];
+    }
 
-    TaskPriority[] prio =
-        Arrays.stream(tasks).map(Task::getTaskPriority).toArray(TaskPriority[]::new);
+    TaskPriority[] prio = Arrays.stream(tasks).map(Task::getTaskPriority)
+        .toArray(TaskPriority[]::new);
     return addTasks(tasks, prio);
   }
 
   @Override
-  public WrappedTask[] addTasks(Task tasks[], TaskPriority[] priorities) {
+  public WrappedTask[] addTasks(Task[] tasks, TaskPriority[] priorities) {
     // It can sometimes happen during a batch that no tasks are actually
     // executed --> tasks[] array may be empty
-    if ((tasks == null) || (tasks.length == 0))
+    if ((tasks == null) || (tasks.length == 0)) {
       return new WrappedTask[0];
+    }
 
     WrappedTask[] wrappedTasks = new WrappedTask[tasks.length];
     for (int i = 0; i < tasks.length; i++) {
@@ -131,8 +141,6 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
   /**
    * Task controller thread main method.
-   *
-   * @see java.lang.Runnable#run()
    */
   @Override
   public void run() {
@@ -147,8 +155,9 @@ public class TaskControllerImpl implements TaskController, Runnable {
       if ((waitingTasks != previousQueueSize) || (percentDone != previousPercentDone)) {
         previousQueueSize = waitingTasks;
         previousPercentDone = percentDone;
-        for (TaskControlListener listener : listeners)
+        for (TaskControlListener listener : listeners) {
           listener.numberOfWaitingTasksChanged(waitingTasks, percentDone);
+        }
       }
 
       // If the queue is empty, we can sleep. When new task is added into
@@ -173,8 +182,9 @@ public class TaskControllerImpl implements TaskController, Runnable {
       Iterator<WorkerThread> threadIterator = runningThreads.iterator();
       while (threadIterator.hasNext()) {
         WorkerThread thread = threadIterator.next();
-        if (thread.isFinished())
+        if (thread.isFinished()) {
           threadIterator.remove();
+        }
       }
 
       // Get a snapshot of the queue
@@ -184,23 +194,28 @@ public class TaskControllerImpl implements TaskController, Runnable {
       NumOfThreadsParameter parameter = MZmineCore.getConfiguration().getPreferences()
           .getParameter(MZminePreferences.numOfThreads);
       int maxRunningThreads;
-      if (parameter.isAutomatic() || (parameter.getValue() == null))
+      if (parameter.isAutomatic() || (parameter.getValue() == null)) {
         maxRunningThreads = Runtime.getRuntime().availableProcessors();
-      else
+      } else {
         maxRunningThreads = parameter.getValue();
+      }
 
       // Check all tasks in the queue
       for (WrappedTask task : queueSnapshot) {
 
         // Skip assigned and canceled tasks
-        if (task.isAssigned() || (task.getActualTask().getStatus() == TaskStatus.CANCELED))
+        if (task.isAssigned() || (task.getActualTask().getStatus() == TaskStatus.CANCELED)) {
           continue;
+        }
 
         // Create a new thread if the task is high-priority or if we
         // have less then maximum # of threads running
-        if ((task.getPriority() == TaskPriority.HIGH)
-            || (runningThreads.size() < maxRunningThreads)) {
+        if ((task.getPriority() == TaskPriority.HIGH) || (runningThreads.size()
+            < maxRunningThreads)) {
           WorkerThread newThread = new WorkerThread(task);
+
+          // track task use
+          GoogleAnalyticsTracker.trackTaskRun(task.getActualTask());
 
           if (task.getPriority() == TaskPriority.NORMAL) {
             runningThreads.add(newThread);
@@ -231,7 +246,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
   public void setTaskPriority(Task task, TaskPriority priority) {
 
     // Get a snapshot of current task queue
-    WrappedTask currentQueue[] = taskQueue.getQueueSnapshot();
+    WrappedTask[] currentQueue = taskQueue.getQueueSnapshot();
 
     // Find the requested task
     for (WrappedTask wrappedTask : currentQueue) {
@@ -248,12 +263,29 @@ public class TaskControllerImpl implements TaskController, Runnable {
     if ((desktop != null) && (!(desktop instanceof HeadLessDesktop))) {
       desktop.getTasksView().refresh();
     }
-
   }
 
   @Override
   public void addTaskControlListener(TaskControlListener listener) {
     listeners.add(listener);
+  }
+
+  public boolean isTaskInstanceRunningOrQueued(Class<? extends AbstractTask> clazz) {
+    final WrappedTask[] snapshot = taskQueue.getQueueSnapshot();
+    for (WrappedTask wrappedTask : snapshot) {
+      if (clazz.isInstance(wrappedTask.getActualTask())) {
+        return true;
+      }
+    }
+
+    var running = runningThreads.toArray(WorkerThread[]::new);
+    for (WorkerThread runningThread : running) {
+      if (clazz.isInstance(runningThread.getWrappedTask().getActualTask())) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
 }

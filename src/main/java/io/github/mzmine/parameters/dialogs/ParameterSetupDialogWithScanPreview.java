@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.dialogs;
@@ -62,8 +69,6 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
   protected SpectraPlot spectrumPlot;
 
   /**
-   * @param valueCheckRequired
-   * @param parameters
    */
   public ParameterSetupDialogWithScanPreview(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
@@ -74,14 +79,14 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     if (dataFiles.length == 0) {
       return;
     }
-//      this.hide();
-//      MZmineCore.getDesktop()
-//          .displayMessage("Please load a raw data file before selecting a " + "mass detector.");
-//      throw new UnsupportedOperationException(
-//          "Please load a raw data file before selecting a mass detector.");
-//    }
+    //      this.hide();
+    //      MZmineCore.getDesktop()
+    //          .displayMessage("Please load a raw data file before selecting a " + "mass detector.");
+    //      throw new UnsupportedOperationException(
+    //          "Please load a raw data file before selecting a mass detector.");
+    //    }
 
-    final RawDataFile selectedFiles[] = MZmineCore.getDesktop().getSelectedDataFiles();
+    final RawDataFile[] selectedFiles = MZmineCore.getDesktop().getSelectedDataFiles();
     final RawDataFile previewDataFile;
 
     if (selectedFiles.length > 0) {
@@ -119,13 +124,12 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
 
     ObservableList<Scan> scanNumbers = previewDataFile.getScans();
     comboScan = new ComboBox<>(scanNumbers);
-    comboScan.getSelectionModel().selectedItemProperty().addListener((obs, old, newIndex) -> {
-      selectedScan.set(newIndex);
-    });
+    comboScan.getSelectionModel().selectedItemProperty()
+        .addListener((obs, old, newIndex) -> selectedScan.set(newIndex));
     comboScan.getSelectionModel().select(0);
 
-    comboDataFileName = new ComboBox<>(
-        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
+    comboDataFileName = new ComboBox<>(FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
     comboDataFileName.getSelectionModel().select(previewDataFile);
     comboDataFileName.setOnAction(e -> {
       var newDataFile = comboDataFileName.getSelectionModel().getSelectedItem();
@@ -143,7 +147,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     pnlScanArrows = new HBox();
     pnlScanArrows.setPrefWidth(-1);
     pnlScanArrows.setAlignment(Pos.TOP_CENTER);
-    final String leftArrow = new String(new char[]{'\u2190'});
+    final String leftArrow = String.valueOf('\u2190');
     Button leftArrowButton = new Button(leftArrow);
     leftArrowButton.setOnAction(e -> {
       int ind = comboScan.getSelectionModel().getSelectedIndex() - 1;
@@ -152,7 +156,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
       }
     });
 
-    final String rightArrow = new String(new char[]{'\u2192'});
+    final String rightArrow = String.valueOf('\u2192');
     Button rightArrowButton = new Button(rightArrow);
     rightArrowButton.setOnAction(e -> {
       int ind = comboScan.getSelectionModel().getSelectedIndex() + 1;
@@ -181,12 +185,12 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     getPreviewWrapperPane().setCenter(spectrumPlot);
     getPreviewWrapperPane().setBottom(pnlControls);
     BorderPane.setAlignment(pnlControls, Pos.TOP_CENTER);
-    setOnPreviewShown(() -> parametersChanged());
+    setOnPreviewShown(this::parametersChanged);
 
-    selectedMobilityScan
-        .addListener(((observable, oldValue, newValue) -> lastChangedScan.setValue(newValue)));
-    selectedScan
-        .addListener(((observable, oldValue, newValue) -> lastChangedScan.setValue(newValue)));
+    selectedMobilityScan.addListener(
+        ((observable, oldValue, newValue) -> lastChangedScan.setValue(newValue)));
+    selectedScan.addListener(
+        ((observable, oldValue, newValue) -> lastChangedScan.setValue(newValue)));
     lastChangedScan.addListener((observable, oldValue, newValue) -> parametersChanged());
   }
 
@@ -199,20 +203,20 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
   private void updateTitle(Scan currentScan) {
 
     // Formats
-    NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
     // Set window and plot titles
-    String title = "[" + currentScan.getDataFile().getName() + "] scan #" + currentScan.getScanNumber();
+    String title =
+        "[" + currentScan.getDataFile().getName() + "] scan #" + currentScan.getScanNumber();
 
     String subTitle = ScanUtils.scanToString(lastChangedScan.get());
 
     Double basePeakMz = currentScan.getBasePeakMz();
     Double basePeakIntensity = currentScan.getBasePeakIntensity();
     if (basePeakMz != null) {
-      subTitle += ", base peak: " + mzFormat.format(basePeakMz) + " m/z (" + intensityFormat
-          .format(basePeakIntensity) + ")";
+      subTitle += ", base peak: " + mzFormat.format(basePeakMz) + " m/z (" + intensityFormat.format(
+          basePeakIntensity) + ")";
     }
     spectrumPlot.setTitle(title, subTitle);
   }
@@ -236,7 +240,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
   }
 
   private void initMobilityScanControlPanel() {
-    final String leftArrow = new String(new char[]{'\u2190'});
+    final String leftArrow = String.valueOf('\u2190');
     Button leftArrowButton = new Button(leftArrow);
     leftArrowButton.setOnAction(e -> {
       int ind = mobilityScanComboBox.getSelectionModel().getSelectedIndex() - 1;
@@ -244,7 +248,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
         mobilityScanComboBox.getSelectionModel().select(ind);
       }
     });
-    final String rightArrow = new String(new char[]{'\u2192'});
+    final String rightArrow = String.valueOf('\u2192');
     Button rightArrowButton = new Button(rightArrow);
     rightArrowButton.setOnAction(e -> {
       int ind = mobilityScanComboBox.getSelectionModel().getSelectedIndex() + 1;

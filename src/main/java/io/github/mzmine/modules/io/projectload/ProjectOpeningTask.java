@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.projectload;
@@ -33,16 +40,18 @@ import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.StreamCopy;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -71,12 +80,12 @@ public class ProjectOpeningTask extends AbstractTask {
 //  private final Hashtable<String, RawDataFile> dataFilesIDMap = new Hashtable<>();
 //  private final Hashtable<String, File> scanFilesIDMap = new Hashtable<>();
 
-  public ProjectOpeningTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public ProjectOpeningTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.openFile = parameters.getParameter(ProjectLoaderParameters.projectFile).getValue();
   }
 
-  public ProjectOpeningTask(File openFile, @NotNull Date moduleCallDate) {
+  public ProjectOpeningTask(File openFile, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.openFile = openFile;
   }
@@ -139,6 +148,7 @@ public class ProjectOpeningTask extends AbstractTask {
 
       newProject = new MZmineProjectImpl();
       newProject.setProjectFile(openFile);
+      newProject.setStandalone(false); // set to false by default, we check for existing files later
       GUIUtils.closeAllWindows();
       projectManager.setCurrentProject(newProject);
 
@@ -175,6 +185,8 @@ public class ProjectOpeningTask extends AbstractTask {
           loadUserParameters(cis);
         } else if (entryName.equals(RawDataFileSaveHandler.RAW_DATA_IMPORT_BATCH_FILENAME)) {
           loadRawDataFiles(cis, zipFile);
+        } else if (entryName.equals(ProjectSavingTask.STANDALONE_FILENAME)) {
+          newProject.setStandalone(true);
         }
 
         // Close the ZIP entry
@@ -263,14 +275,14 @@ public class ProjectOpeningTask extends AbstractTask {
 
     currentLoadedObjectName = "Version";
 
-    Pattern versionPattern = Pattern.compile("^(\\d+)\\.(\\d+)");
+    Pattern versionPattern = Pattern.compile("^(\\d+)\\.(\\d+)\\.?(\\d+)?");
 
     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
     String projectVersionString = reader.readLine();
     String mzmineVersionString = String.valueOf(MZmineCore.getMZmineVersion());
 
     // todo adjust for new version when project load/save is done
-    /*Matcher m = versionPattern.matcher(mzmineVersionString);
+    Matcher m = versionPattern.matcher(mzmineVersionString);
     if (!m.find()) {
       throw new IOException("Invalid MZmine version " + mzmineVersionString);
     }
@@ -281,14 +293,15 @@ public class ProjectOpeningTask extends AbstractTask {
     if (!m.find()) {
       throw new IOException("Invalid project version " + projectVersionString);
     }
+
     int projectMajorVersion = Integer.valueOf(m.group(1));
     int projectMinorVersion = Integer.valueOf(m.group(2));
 
     // Check if project was saved with an old version
     if (projectMajorVersion < 3) {
       String message = new StringBuilder(
-          "The requested project was processed with an old version of MZmine ")
-          .append(projectVersionString).append(".\n It cannot be opened with MZmine ")
+          "The requested project was processed with an old version of MZmine ").append(
+              projectVersionString).append(".\n It cannot be opened with MZmine ")
           .append(mzmineVersionString).toString();
       MZmineCore.getDesktop().displayErrorMessage(message);
       setStatus(TaskStatus.FINISHED);
@@ -304,13 +317,14 @@ public class ProjectOpeningTask extends AbstractTask {
             + " may result in errors or loss of information.";
         MZmineCore.getDesktop().displayMessage(warning);
       }
-    }*/
+    }
 
     // Default opening handler for MZmine 3 and higher
 //    peakListOpenHandler = new PeakListOpenHandler_3_0_old(dataFilesIDMap);
 //    userParameterOpenHandler = new UserParameterOpenHandler_3_0(newProject, dataFilesIDMap);
 
-    rawDataFileOpenHandler = RawDataFileOpenHandler.forVersion(projectVersionString,getModuleCallDate());
+    rawDataFileOpenHandler = RawDataFileOpenHandler.forVersion(projectVersionString,
+        getModuleCallDate());
   }
 
   /**
@@ -322,14 +336,14 @@ public class ProjectOpeningTask extends AbstractTask {
 
     currentLoadedObjectName = "Configuration";
 
-    File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
+    File tempConfigFile = FileAndPathUtil.createTempFile("mzmineconfig", ".tmp");
     FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
     copyMachine = new StreamCopy();
     copyMachine.copy(is, fileStream);
     fileStream.close();
 
     try {
-      MZmineCore.getConfiguration().loadConfiguration(tempConfigFile);
+      MZmineCore.getConfiguration().loadConfiguration(tempConfigFile, false);
     } catch (Exception e) {
       logger.warning(
           "Could not load configuration from the project: " + ExceptionUtils.exceptionToString(e));
@@ -340,10 +354,11 @@ public class ProjectOpeningTask extends AbstractTask {
 
   private void loadFeatureList(ZipFile zipFile) {
 
-    FeatureListLoadTask task = new FeatureListLoadTask(MemoryMapStorage.forFeatureList(), newProject, zipFile);
+    FeatureListLoadTask task = new FeatureListLoadTask(MemoryMapStorage.forFeatureList(),
+        newProject, zipFile);
     MZmineCore.getTaskController().addTask(task);
     currentLoadedObjectName = "Feature lists";
-    while(task.getStatus() != TaskStatus.FINISHED && !task.isCanceled() && ! isCanceled()) {
+    while (task.getStatus() != TaskStatus.FINISHED && !task.isCanceled() && !isCanceled()) {
       try {
         Thread.sleep(50);
       } catch (InterruptedException e) {

@@ -1,42 +1,85 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
+import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import io.github.mzmine.parameters.UserParameter;
-
 public class MZToleranceParameter implements UserParameter<MZTolerance, MZToleranceComponent> {
 
-  private String name;
-  private String description;
+  private static final String DEFAULT_DESCRIPTION = """
+      Maximum allowed difference between two m/z values to be considered same.
+      The value is specified both as absolute tolerance (in m/z) and relative tolerance (in ppm).
+      The tolerance range is calculated using maximum of the absolute and relative tolerances.""";
+  private final String name;
+  private final String description;
   private MZTolerance value;
   private boolean zeroAllowed;
 
   public MZToleranceParameter() {
-    this("m/z tolerance",
-        "Maximum allowed difference between two m/z values to be considered same.\n"
-            + "The value is specified both as absolute tolerance (in m/z) and relative tolerance (in ppm).\n"
-            + "The tolerance range is calculated using maximum of the absolute and relative tolerances.");
+    this("m/z tolerance", DEFAULT_DESCRIPTION);
+  }
+
+
+  public MZToleranceParameter(@NotNull ToleranceType tolType) {
+    this(tolType, DEFAULT_DESCRIPTION);
+  }
+
+  public MZToleranceParameter(@NotNull ToleranceType tolType, String description) {
+    this("m/z tolerance (%s)".formatted(tolType.getTitle()),
+        "%s\n%s".formatted(description, tolType.getDescription()));
+  }
+
+  public MZToleranceParameter(@NotNull ToleranceType tolType, double deltaMZ, double ppm) {
+    this(tolType);
+    value = new MZTolerance(deltaMZ, ppm);
+  }
+
+  public MZToleranceParameter(@NotNull ToleranceType tolType, String description, double deltaMZ,
+      double ppm) {
+    this(tolType, description, deltaMZ, ppm, false);
+  }
+
+  public MZToleranceParameter(@NotNull ToleranceType tolType, String description, double deltaMZ,
+      double ppm, boolean zeroAllowed) {
+    this(tolType, description);
+    this.zeroAllowed = zeroAllowed;
+    value = new MZTolerance(deltaMZ, ppm);
+  }
+
+  public MZToleranceParameter(@NotNull ToleranceType tolType, double deltaMZ, double ppm,
+      boolean zeroAllowed) {
+    this(tolType);
+    this.zeroAllowed = zeroAllowed;
+    value = new MZTolerance(deltaMZ, ppm);
   }
 
   public MZToleranceParameter(String name, String description) {
@@ -93,7 +136,7 @@ public class MZToleranceParameter implements UserParameter<MZTolerance, MZTolera
   }
 
   @Override
-  public void setValueToComponent(MZToleranceComponent component, MZTolerance newValue) {
+  public void setValueToComponent(MZToleranceComponent component, @Nullable MZTolerance newValue) {
     component.setValue(newValue);
   }
 
@@ -146,8 +189,8 @@ public class MZToleranceParameter implements UserParameter<MZTolerance, MZTolera
       return false;
     }
 
-    if (((value.getMzTolerance() <= 0.0) && (value.getPpmTolerance() <= 0.0) && !zeroAllowed) ||
-        (value.getMzTolerance() < 0.0 && value.getPpmTolerance() < 0.0 && zeroAllowed)) {
+    if (((value.getMzTolerance() <= 0.0) && (value.getPpmTolerance() <= 0.0) && !zeroAllowed) || (
+        value.getMzTolerance() < 0.0 && value.getPpmTolerance() < 0.0 && zeroAllowed)) {
       errorMessages.add(name + " must be greater than zero");
       return false;
     }

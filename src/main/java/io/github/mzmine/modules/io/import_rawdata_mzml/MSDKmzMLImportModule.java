@@ -1,26 +1,32 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
 import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -32,11 +38,9 @@ import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.RawDataFileUtils;
 import java.io.File;
-import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -74,7 +78,7 @@ public class MSDKmzMLImportModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     File fileNames[] = parameters.getParameter(MSDKmzMLImportParameters.fileNames).getValue();
 
@@ -106,28 +110,12 @@ public class MSDKmzMLImportModule implements MZmineProcessingModule {
         newName = fileNames[i].getName();
       }
 
-      try {
-        RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(fileNames[i]);
-        logger.finest("File " + fileNames[i] + " type detected as " + fileType);
+      RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(fileNames[i]);
+      logger.finest("File " + fileNames[i] + " type detected as " + fileType);
 
-        RawDataFile newMZmineFile;
-        if (fileType == RawDataFileType.MZML_IMS) {
-          newMZmineFile = MZmineCore
-              .createNewIMSFile(newName, fileNames[i].getAbsolutePath(), storage);
-        } else {
-          newMZmineFile = MZmineCore
-              .createNewFile(newName, fileNames[i].getAbsolutePath(), storage);
-        }
-        Task newTask = new MSDKmzMLImportTask(project, fileNames[i], newMZmineFile,
-            MSDKmzMLImportModule.class, parameters, moduleCallDate);
-        tasks.add(newTask);
-
-      } catch (IOException e) {
-        e.printStackTrace();
-        MZmineCore.getDesktop().displayErrorMessage("Could not create a new temporary file " + e);
-        logger.log(Level.SEVERE, "Could not create a new temporary file ", e);
-        return ExitCode.ERROR;
-      }
+      Task newTask = new MSDKmzMLImportTask(project, fileNames[i],
+          MSDKmzMLImportModule.class, parameters, moduleCallDate, storage);
+      tasks.add(newTask);
 
     }
 

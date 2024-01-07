@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.chromatogram;
@@ -22,14 +29,17 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.ChartLogics;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartthemes.LabelColorMatch;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
 import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Shape;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Ellipse2D;
 import java.util.Collection;
 import java.util.logging.Level;
@@ -40,17 +50,12 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
-import javafx.scene.control.MenuItem;
-import javafx.scene.input.MouseButton;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.event.ChartProgressEvent;
-import org.jfree.chart.fx.interaction.ChartMouseEventFX;
-import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
@@ -61,8 +66,6 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.data.RangeType;
-import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 
 /**
@@ -74,7 +77,6 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
   private static final Logger logger = Logger.getLogger(TICPlot.class.getName());
 
-  private static final double ZOOM_FACTOR = 1.2;
   private static final Shape DATA_POINT_SHAPE = new Ellipse2D.Double(-2.0, -2.0, 5.0, 5.0);
   private static final double AXIS_MARGINS = 0.001;
 
@@ -85,10 +87,9 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
   private final TICPlotRenderer defaultRenderer;
-  protected EStandardChartTheme theme;
   // properties
-  private ObjectProperty<TICPlotType> plotType;
-  private MenuItem RemoveFilePopupMenu;
+  private final ObjectProperty<TICPlotType> plotType;
+  protected EStandardChartTheme theme;
 
   private int nextDataSetNum;
 
@@ -120,13 +121,12 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     theme = MZmineCore.getConfiguration().getDefaultChartTheme();
 
     // Initialize.
-    // visualizer = listener;
     labelsVisible = 1;
     havePeakLabels = false;
     showSpectrumRequest = false;
 
     setMinWidth(300.0);
-    setMinHeight(300.0);
+    setMinHeight(100);
 
     setPrefWidth(600.0);
     setPrefHeight(400.0);
@@ -203,54 +203,6 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
     // Set focus state to receive key events.
     // setFocusable(true);
-
-    // Register key handlers.
-    /*
-     * TODO: GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("LEFT"), listener,
-     * "MOVE_CURSOR_LEFT");
-     *
-     * GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("RIGHT"), listener,
-     * "MOVE_CURSOR_RIGHT"); GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"),
-     * listener, "SHOW_SPECTRUM"); GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'),
-     * this, "ZOOM_IN"); GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'), this,
-     * "ZOOM_OUT"); GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('*'), this,
-     * "ZOOM_AUTO");
-     */
-    // Add items to popup menu.
-    // final ContextMenu popupMenu = getContextMenu();
-    // popupMenu.getItems().add(new MenuItem("gagaga"));
-    // popupMenu.getItems().add(new SeparatorMenuItem());
-
-    // if (listener instanceof TICVisualizerWindow) {
-
-    // popupMenu.add(new ExportPopUpMenu((TICVisualizerWindow) listener));
-    // popupMenu.addSeparator();
-    // popupMenu.add(new AddFilePopupMenu((TICVisualizerWindow) listener));
-    // RemoveFilePopupMenu = popupMenu.add(new RemoveFilePopupMenu((TICVisualizerWindow) listener));
-    // popupMenu.addSeparator();
-    // RemoveFilePopupMenu.setEnabled(false);
-
-    // GUIUtils.addMenuItem(popupMenu, "Toggle showing peak values", this, "SHOW_ANNOTATIONS");
-    // GUIUtils.addMenuItem(popupMenu, "Toggle showing data points", this, "SHOW_DATA_POINTS");
-
-    // if(listener instanceof TICVisualizerWindow)
-
-    {
-      // popupMenu.addSeparator();
-      // GUIUtils.addMenuItem(popupMenu, "Show spectrum of selected scan", listener,
-      // "SHOW_SPECTRUM");
-    }
-
-    // popupMenu.addSeparator();
-
-    // GUIUtils.addMenuItem(popupMenu,"Set axes range",this,"SETUP_AXES");
-
-    // if(listener instanceof TICVisualizerWindow)
-    {
-
-      // GUIUtils.addMenuItem(popupMenu, "Set same range to all windows", this, "SET_SAME_RANGE");
-    }
-
     // Register for mouse-wheel events
     // addMouseWheelListener(this);
 
@@ -262,16 +214,8 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
           return;
         }
 
-//        Window myWindow = myScene.getWindow();
-//        if (myWindow instanceof TICVisualizerWindow) {
-//          ((TICVisualizerWindow) myWindow).updateTitle();
-//        }
-
         if (showSpectrumRequest) {
-
           showSpectrumRequest = false;
-          // visualizer.actionPerformed(
-          // new ActionEvent(event.getSource(), ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM"));
         }
       }
     });
@@ -282,66 +226,16 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     }
   }
 
-  // @Override
 
-  public void mouseWheelMoved(MouseWheelEvent event) {
-    int notches = event.getWheelRotation();
-    if (notches < 0) {
-      getXYPlot().getDomainAxis().resizeRange(1.0 / ZOOM_FACTOR);
-    } else {
-      getXYPlot().getDomainAxis().resizeRange(ZOOM_FACTOR);
-    }
-  }
-  // @Override
-
-  public void restoreAutoBounds() {
-    getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
-    getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
-    // restoreAutoDomainBounds();
-    // restoreAutoRangeBounds();
-  }
-  // @Override
-
-  public void mouseClicked(final MouseEvent event) {
-
-    // Let the parent handle the event (selection etc.)
-    // super.mouseClicked(event);
-
-    // Request focus to receive key events.
-    requestFocus();
-
-    // Handle mouse click events
-    if (event.getButton() == MouseEvent.BUTTON1) {
-
-      System.out.println("mouse " + event);
-      if (event.getX() < 70) { // User clicked on Y-axis
-        if (event.getClickCount() == 2) { // Reset zoom on Y-axis
-          XYDataset data = ((XYPlot) getChart().getPlot()).getDataset();
-          Number maximum = DatasetUtils.findMaximumRangeValue(data);
-          getXYPlot().getRangeAxis().setRange(0, 1.05 * maximum.floatValue());
-        } else if (event.getClickCount() == 1) { // Auto range on Y-axis
-          getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
-          getXYPlot().getRangeAxis().setAutoRange(true);
-        }
-      } else if (event.getY() > this.getRenderingInfo().getPlotInfo().getPlotArea().getMaxY() - 41
-          && event.getClickCount() == 2) {
-        // Reset zoom on X-axis
-        getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
-        // restoreAutoDomainBounds();
-      } else if (event.getClickCount() == 2) { // If user double-clicked
-        // left button, place a
-        // request to open a
-        // spectrum.
-        showSpectrumRequest = true;
-      }
-    }
-
+  public void setLegendVisible(boolean state) {
+    final LegendTitle legend = getChart().getLegend();
+    legend.setVisible(state);
+    theme.setShowLegend(state);
+    //theme.apply paints first series in white/black which is wrong
   }
 
   public void switchLegendVisible() {
-    // Toggle legend visibility.
-    final LegendTitle legend = getChart().getLegend();
-    legend.setVisible(!legend.isVisible());
+    setLegendVisible(!theme.isShowLegend());
   }
 
   public void switchItemLabelsVisible() {
@@ -355,29 +249,34 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
       final XYDataset dataSet = plot.getDataset(i);
       final XYItemRenderer renderer = plot.getRenderer(i);
       if (dataSet instanceof TICDataSet) {
-        renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
+        renderer.setDefaultItemLabelsVisible(labelsVisible == 1, false);
       } else if (dataSet instanceof FeatureDataSet) {
-        renderer.setDefaultItemLabelsVisible(labelsVisible == 2);
+        renderer.setDefaultItemLabelsVisible(labelsVisible == 2, false);
       } else {
-        renderer.setDefaultItemLabelsVisible(false);
+        renderer.setDefaultItemLabelsVisible(false, false);
       }
+    }
+    if (isNotifyChange()) {
+      fireChangeEvent();
     }
   }
 
   public void switchDataPointsVisible() {
-    Boolean dataPointsVisible = null;
-    final int count = plot.getDatasetCount();
-    for (int i = 0; i < count; i++) {
+    applyWithNotifyChanges(false, () -> {
 
-      if (plot.getRenderer(i) instanceof XYLineAndShapeRenderer) {
+      Boolean dataPointsVisible = null;
+      final int count = plot.getDatasetCount();
+      for (int i = 0; i < count; i++) {
 
-        final XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer(i);
-        if (dataPointsVisible == null) {
-          dataPointsVisible = !renderer.getDefaultShapesVisible();
+        if (plot.getRenderer(i) instanceof final XYLineAndShapeRenderer renderer) {
+
+          if (dataPointsVisible == null) {
+            dataPointsVisible = !renderer.getDefaultShapesVisible();
+          }
+          renderer.setDefaultShapesVisible(dataPointsVisible);
         }
-        renderer.setDefaultShapesVisible(dataPointsVisible);
       }
-    }
+    });
   }
 
   public void switchBackground() {
@@ -391,9 +290,11 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
       bgColor = Color.lightGray;
       liColor = Color.white;
     }
-    getChart().getPlot().setBackgroundPaint(bgColor);
-    getChart().getXYPlot().setDomainGridlinePaint(liColor);
-    getChart().getXYPlot().setRangeGridlinePaint(liColor);
+    applyWithNotifyChanges(false, () -> {
+      getChart().getPlot().setBackgroundPaint(bgColor);
+      getChart().getXYPlot().setDomainGridlinePaint(liColor);
+      getChart().getXYPlot().setRangeGridlinePaint(liColor);
+    });
   }
 
   public XYPlot getXYPlot() {
@@ -449,8 +350,6 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    * Adds a data set with the color specified in the color associated with the raw data file. If a
    * specific color needs to be added, use {@link TICPlot#addTICDataSet(TICDataSet, Color)} or
    * {@link TICPlot#addTICDataSet(TICDataSet, Color, Color)}
-   *
-   * @param dataSet
    */
   public synchronized int addTICDataSet(final TICDataSet dataSet) {
     Color clr = null;
@@ -478,8 +377,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
   public synchronized int addTICDataSet(final TICDataSet dataSet, TICPlotRenderer renderer) {
     // Check if the dataSet to be added is compatible with the type of plot.
-    if (dataSet.getPlotType()
-        != getPlotType()) {
+    if (dataSet.getPlotType() != getPlotType()) {
       throw new IllegalArgumentException("Added dataset of class '" + dataSet.getClass()
           + "' does not have a compatible plotType. Expected '" + this.getPlotType().toString()
           + "'");
@@ -490,8 +388,6 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   /**
    * Adds multiple data sets at once. Only triggers {@link JFreeChart#fireChartChanged()} once to
    * save performance.
-   *
-   * @param dataSets
    */
   public synchronized void addTICDataSets(final Collection<TICDataSet> dataSets) {
     plot.setNotify(false);
@@ -503,8 +399,6 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   /**
    * Adds a {@link FeatureDataSet} with in the color linked to the feature's raw data file to the
    * plot.
-   *
-   * @param dataSet
    */
   public synchronized int addFeatureDataSet(final FeatureDataSet dataSet) {
     final FeatureTICRenderer renderer = new FeatureTICRenderer();
@@ -522,10 +416,13 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   }
 
   public synchronized void addFeatureDataSets(Collection<FeatureDataSet> dataSets) {
+    final boolean oldNotify = plot.isNotify();
     plot.setNotify(false);
-    dataSets.forEach(ds -> addFeatureDataSet(ds));
-    plot.setNotify(true);
-    chart.fireChartChanged();
+    dataSets.forEach(this::addFeatureDataSet);
+    plot.setNotify(oldNotify);
+    if (oldNotify) {
+      chart.fireChartChanged();
+    }
   }
 
 
@@ -547,12 +444,8 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
       renderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
       addDataSetAndRenderer(dataSet, renderer);
       renderer.setDrawSeriesLineAsPath(true);
-      renderer.setDefaultItemLabelGenerator(new XYItemLabelGenerator() {
-        @Override
-        public String generateLabel(final XYDataset xyDataSet, final int series, final int item) {
-          return ((FeatureDataSet) xyDataSet).isFeature(item) ? label : null;
-        }
-      });
+      renderer.setDefaultItemLabelGenerator(
+          (xyDataSet, series, item) -> ((FeatureDataSet) xyDataSet).isFeature(item) ? label : null);
 
       havePeakLabels = true;
     }
@@ -570,13 +463,11 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    * @param notify If false, the plot is not redrawn. This is useful, if multiple data sets are
    *               added right after and the plot shall not be updated until then.
    */
-  @Nullable
   public synchronized void removeFeatureDataSetsOfFile(final RawDataFile file, boolean notify) {
     plot.setNotify(false);
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset ds = plot.getDataset(i);
-      if (ds != null && ds instanceof FeatureDataSet) {
-        FeatureDataSet pds = (FeatureDataSet) ds;
+      if (ds instanceof FeatureDataSet pds) {
         if (pds.getFeature().getRawDataFile() == file) {
           plot.setDataset(getXYPlot().indexOf(pds), null);
           plot.setRenderer(getXYPlot().indexOf(pds), null);
@@ -592,7 +483,6 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   /**
    * @param file The raw data file and notifies the plot.
    */
-  @Nullable
   public synchronized void removeFeatureDataSetsOfFile(final RawDataFile file) {
     removeFeatureDataSetsOfFile(file, true);
   }
@@ -603,12 +493,11 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    * @param notify If false, the plot is not redrawn. This is useful, if multiple data sets are
    *               added right after and the plot shall not be updated until then.
    */
-  @Nullable
   public synchronized void removeAllFeatureDataSets(boolean notify) {
     plot.setNotify(false);
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset ds = plot.getDataset(i);
-      if (ds != null && ds instanceof FeatureDataSet) {
+      if (ds instanceof FeatureDataSet) {
         plot.setDataset(getXYPlot().indexOf(ds), null);
         plot.setRenderer(getXYPlot().indexOf(ds), null);
       }
@@ -622,7 +511,6 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   /**
    * Removes all feature data sets and notifies the plot.
    */
-  @Nullable
   public synchronized void removeAllFeatureDataSets() {
     removeAllFeatureDataSets(true);
   }
@@ -695,16 +583,19 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
   private synchronized int addDataSetAndRenderer(final XYDataset dataSet,
       final XYItemRenderer renderer) {
-    if (dataSet instanceof TICDataSet) {
-      renderer.setDefaultItemLabelPaint(((TICDataSet) dataSet).getDataFile().getColorAWT());
-    } else if (dataSet instanceof FeatureDataSet) {
-      renderer.setDefaultItemLabelPaint(
-          ((FeatureDataSet) dataSet).getFeature().getRawDataFile().getColorAWT());
-    }
+    applyWithNotifyChanges(false, () -> {
+      if (dataSet instanceof TICDataSet) {
+        renderer.setDefaultItemLabelPaint(((TICDataSet) dataSet).getDataFile().getColorAWT());
+      } else if (dataSet instanceof FeatureDataSet) {
+        renderer.setDefaultItemLabelPaint(
+            ((FeatureDataSet) dataSet).getFeature().getRawDataFile().getColorAWT());
+      }
 
-    plot.setRenderer(nextDataSetNum, renderer);
-    plot.setDataset(nextDataSetNum, dataSet);
-    nextDataSetNum++;
+      plot.setRenderer(nextDataSetNum, renderer);
+      plot.setDataset(nextDataSetNum, dataSet);
+      nextDataSetNum++;
+    });
+
     return nextDataSetNum - 1;
   }
 
@@ -714,33 +605,34 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   }
 
   private void addMatchLabelColorsListener() {
-    matchLabelColors.addListener(((observable, oldValue, newValue) -> {
-      if (newValue == true) {
-        for (int i = 0; i < getXYPlot().getDatasetCount(); i++) {
-          XYDataset dataset = getXYPlot().getDataset();
-          if (dataset == null) {
-            continue;
+    matchLabelColors.addListener(
+        ((observable, oldValue, newValue) -> applyWithNotifyChanges(false, () -> {
+          if (newValue) {
+            for (int i = 0; i < getXYPlot().getDatasetCount(); i++) {
+              XYDataset dataset = getXYPlot().getDataset();
+              if (dataset == null) {
+                continue;
+              }
+              XYItemRenderer renderer = getXYPlot().getRendererForDataset(dataset);
+              if (dataset instanceof TICDataSet) {
+                renderer.setDefaultItemLabelPaint(
+                    ((TICDataSet) dataset).getDataFile().getColorAWT());
+              } else if (dataset instanceof FeatureDataSet) {
+                renderer.setDefaultItemLabelPaint(
+                    ((FeatureDataSet) dataset).getFeature().getRawDataFile().getColorAWT());
+              }
+            }
+          } else {
+            for (int i = 0; i < getXYPlot().getDatasetCount(); i++) {
+              XYDataset dataset = getXYPlot().getDataset();
+              if (dataset == null) {
+                continue;
+              }
+              XYItemRenderer renderer = getXYPlot().getRendererForDataset(dataset);
+              renderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
+            }
           }
-          XYItemRenderer renderer = getXYPlot().getRendererForDataset(dataset);
-          if (dataset instanceof TICDataSet) {
-            renderer.setDefaultItemLabelPaint(
-                ((TICDataSet) dataset).getDataFile().getColorAWT());
-          } else if (dataset instanceof FeatureDataSet) {
-            renderer.setDefaultItemLabelPaint(
-                ((FeatureDataSet) dataset).getFeature().getRawDataFile().getColorAWT());
-          }
-        }
-      } else {
-        for (int i = 0; i < getXYPlot().getDatasetCount(); i++) {
-          XYDataset dataset = getXYPlot().getDataset();
-          if (dataset == null) {
-            continue;
-          }
-          XYItemRenderer renderer = getXYPlot().getRendererForDataset(dataset);
-          renderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
-        }
-      }
-    }));
+        })));
   }
 
   public ChromatogramCursorPosition getCursorPosition() {
@@ -759,22 +651,13 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    * Listens to clicks in the chromatogram plot and updates the selected raw data file accordingly.
    */
   private void initializeChromatogramMouseListener() {
-    getCanvas().addChartMouseListener(new ChartMouseListenerFX() {
-      @Override
-      public void chartMouseClicked(ChartMouseEventFX event) {
-        if (event.getTrigger().getButton() == MouseButton.PRIMARY) {
-          ChromatogramCursorPosition pos = getCurrentCursorPosition();
-          if (pos != null) {
-            setCursorPosition(pos);
-          }
-        }
+    getMouseAdapter().addGestureHandler(new ChartGestureHandler(
+        new ChartGesture(Entity.ALL_PLOT_AND_DATA, Event.CLICK, GestureButton.BUTTON1), e -> {
+      ChromatogramCursorPosition pos = getCurrentCursorPosition();
+      if (pos != null) {
+        setCursorPosition(pos);
       }
-
-      @Override
-      public void chartMouseMoved(ChartMouseEventFX event) {
-        // currently not in use
-      }
-    });
+    }));
   }
 
   /**
@@ -786,10 +669,9 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     double selectedIT = getXYPlot().getRangeCrosshairValue();
     for (int i = 0; i < nextDataSetNum; i++) {
       XYDataset ds = getXYPlot().getDataset(i);
-      if (ds == null || !(ds instanceof TICDataSet)) {
+      if (!(ds instanceof TICDataSet dataSet)) {
         continue;
       }
-      TICDataSet dataSet = (TICDataSet) ds;
       int index = dataSet.getIndex(selectedRT, selectedIT);
       if (index >= 0) {
         double mz = 0;

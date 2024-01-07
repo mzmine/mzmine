@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing;
@@ -22,9 +29,8 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
@@ -34,6 +40,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.javafx.SortableFeatureComboBox;
 import java.text.NumberFormat;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -54,13 +61,12 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
   private final ColoredXYShapeRenderer processedRenderer;
   private final NumberFormat intensityFormat;
   private final NumberFormat mobilityFormat;
-  protected ComboBox<ModularFeatureList> flistBox;
-  protected ComboBox<ModularFeature> fBox;
+  protected ComboBox<FeatureList> flistBox;
+  protected SortableFeatureComboBox fBox;
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
   protected BinningMobilogramDataAccess summedMobilogramAccess;
 
-  public MobilogramBinningSetupDialog(boolean valueCheckRequired,
-      ParameterSet parameters) {
+  public MobilogramBinningSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
 
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
@@ -70,32 +76,30 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
     previewChart.setRangeAxisLabel("Intensity");
     previewChart.setDomainAxisLabel("Mobility");
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
-    previewChart
-        .setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getMobilityFormat());
+    previewChart.setDomainAxisNumberFormatOverride(
+        MZmineCore.getConfiguration().getMobilityFormat());
     previewChart.setMinHeight(400);
     processedRenderer = new ColoredXYShapeRenderer();
 
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
-    ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>)
-        (ObservableList<? extends FeatureList>) MZmineCore.getProjectManager().getCurrentProject()
-            .getFeatureLists();
+    ObservableList<FeatureList> flists = FXCollections.observableArrayList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
-    fBox = new ComboBox<>();
+    fBox = new SortableFeatureComboBox();
     flistBox = new ComboBox<>(flists);
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
-            fBox.setItems(
-                FXCollections.observableArrayList(newValue
-                    .getFeatures(newValue.getRawDataFile(0))));
+            fBox.getFeatureBox().setItems(FXCollections.observableArrayList(
+                newValue.getFeatures(newValue.getRawDataFile(0))));
           } else {
-            fBox.setItems(FXCollections.emptyObservableList());
+            fBox.getFeatureBox().setItems(FXCollections.emptyObservableList());
           }
         }));
 
-    fBox.setConverter(new StringConverter<>() {
+    fBox.getFeatureBox().setConverter(new StringConverter<>() {
       @Override
-      public String toString(ModularFeature object) {
+      public String toString(Feature object) {
         if (object == null) {
           return null;
         }
@@ -103,12 +107,12 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
       }
 
       @Override
-      public ModularFeature fromString(String string) {
+      public Feature fromString(String string) {
         return null;
       }
     });
 
-    fBox.getSelectionModel().selectedItemProperty()
+    fBox.getFeatureBox().getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> onSelectedFeatureChanged(newValue)));
 
     GridPane pnControls = new GridPane();
@@ -127,30 +131,30 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
         MZmineCore.getConfiguration().getDefaultChartTheme().getItemLabelPaint());
   }
 
-  private void onSelectedFeatureChanged(final ModularFeature f) {
+  private void onSelectedFeatureChanged(final Feature f) {
     previewChart.removeAllDatasets();
 
-    if (f == null || !(f.getRawDataFile() instanceof IMSRawDataFile) || !(f
-        .getFeatureData() instanceof IonMobilogramTimeSeries series)) {
+    if (f == null || !(f.getRawDataFile() instanceof IMSRawDataFile)
+        || !(f.getFeatureData() instanceof IonMobilogramTimeSeries series)) {
       return;
     }
 
     previewChart.setDomainAxisLabel(f.getMobilityUnit().getAxisLabel());
-    previewChart.addDataset(
-        new ColoredXYDataset(new SummedMobilogramXYProvider(series.getSummedMobilogram(),
+    previewChart.addDataset(new ColoredXYDataset(
+        new SummedMobilogramXYProvider(series.getSummedMobilogram(),
             new SimpleObjectProperty<>(f.getRawDataFile().getColor()),
             FeatureUtils.featureToString(f))));
 
     final Integer binWidth = switch (((IMSRawDataFile) f.getRawDataFile()).getMobilityType()) {
-      case TIMS -> parameterSet
-          .getParameter(MobilogramBinningParameters.timsBinningWidth).getValue();
-      case TRAVELING_WAVE -> parameterSet
-          .getParameter(MobilogramBinningParameters.twimsBinningWidth).getValue();
-      case DRIFT_TUBE -> parameterSet
-          .getParameter(MobilogramBinningParameters.dtimsBinningWidth).getValue();
+      case TIMS -> parameterSet.getParameter(MobilogramBinningParameters.timsBinningWidth)
+          .getValue();
+      case TRAVELING_WAVE -> parameterSet.getParameter(
+          MobilogramBinningParameters.twimsBinningWidth).getValue();
+      case DRIFT_TUBE -> parameterSet.getParameter(MobilogramBinningParameters.dtimsBinningWidth)
+          .getValue();
       default -> throw new UnsupportedOperationException(
           "Summing of the mobility type in raw data file " + f.getRawDataFile().getName()
-              + " is unsupported.");
+          + " is unsupported.");
     };
     if (binWidth == null || binWidth == 0) {
       return;
@@ -164,32 +168,27 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
           binWidth);
       lbkApproxBinSize.setText(
           mobilityFormat.format(summedMobilogramAccess.getApproximateBinSize()) + " "
-              + summedMobilogramAccess.getDataFile().getMobilityType().getUnit());
+          + summedMobilogramAccess.getDataFile().getMobilityType().getUnit());
     }
 
     summedMobilogramAccess.setMobilogram(series.getSummedMobilogram());
-    SummedIntensityMobilitySeries fromSummed = summedMobilogramAccess
-        .toSummedMobilogram(null);
+    SummedIntensityMobilitySeries fromSummed = summedMobilogramAccess.toSummedMobilogram(null);
 
-    previewChart.addDataset(new ColoredXYDataset(
-        new SummedMobilogramXYProvider(fromSummed,
-            new SimpleObjectProperty<>(colorPalette.getPositiveColor()),
-            "From preprocessed")), processedRenderer);
+    previewChart.addDataset(new ColoredXYDataset(new SummedMobilogramXYProvider(fromSummed,
+            new SimpleObjectProperty<>(colorPalette.getPositiveColor()), "From preprocessed")),
+        processedRenderer);
 
     summedMobilogramAccess.setMobilogram(series.getMobilograms());
-    SummedIntensityMobilitySeries fromMobilograms = summedMobilogramAccess
-        .toSummedMobilogram(null);
+    SummedIntensityMobilitySeries fromMobilograms = summedMobilogramAccess.toSummedMobilogram(null);
 
-    previewChart.addDataset(new ColoredXYDataset(
-        new SummedMobilogramXYProvider(fromMobilograms,
-            new SimpleObjectProperty<>(colorPalette.getPositiveColor()),
-            "From raw")));
+    previewChart.addDataset(new ColoredXYDataset(new SummedMobilogramXYProvider(fromMobilograms,
+        new SimpleObjectProperty<>(colorPalette.getPositiveColor()), "From raw")));
   }
 
   @Override
   protected void parametersChanged() {
     super.parametersChanged();
     updateParameterSetFromComponents();
-    onSelectedFeatureChanged(fBox.getValue());
+    onSelectedFeatureChanged(fBox.getFeatureBox().getValue());
   }
 }

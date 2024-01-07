@@ -1,35 +1,30 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.tools.msmsspectramerge;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.apache.commons.math3.special.Erf;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
@@ -37,10 +32,24 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import org.apache.commons.math3.special.Erf;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Module for merging MS/MS spectra. Merging is performed by: 1. first selecting all consecutive
@@ -85,7 +94,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
     final MergeMode mode = parameters.getParameter(MsMsSpectraMergeParameters.MERGE_MODE)
         .getValue();
     final double npeaksFilter = parameters
-        .getParameter(MsMsSpectraMergeParameters.FEATURE_COUNT_PARAMETER).getValue();
+        .getParameter(MsMsSpectraMergeParameters.REL_SIGNAL_COUNT_PARAMETER).getValue();
     switch (mode) {
       case CONSECUTIVE_SCANS:
         // merge all consecutive MS/MS, remove peaks if they do not occur
@@ -402,9 +411,13 @@ public class MsMsSpectraMergeModule implements MZmineModule {
             lowestIntensityToConsider, cosineRange);
     for (int k = 1; k < scansToMerge.size(); ++k) {
       Scan scan = scansToMerge.get(k);
+      final int precursorCharge = scan.getMsMsInfo() instanceof DDAMsMsInfo info ?
+          Objects.requireNonNullElse(info.getPrecursorCharge(), -1) : -1;
+      final double precursorMz = scan.getMsMsInfo() instanceof DDAMsMsInfo info ? info.getIsolationMz() : 0d;
+
       if (!(scan.getPolarity().equals(initial.polarity)
-          && scan.getPrecursorCharge() == initial.precursorCharge && mzTolerance
-          .checkWithinTolerance(scan.getPrecursorMZ(), initial.precursorMz))) {
+          && precursorCharge == initial.precursorCharge && mzTolerance
+          .checkWithinTolerance(precursorMz, initial.precursorMz))) {
         Logger.getLogger(MsMsSpectraMergeModule.class.getName()).warning(
             "Scan " + scan.getScanNumber()
                 + " cannot be merged: it seems to belong to a different feature.");

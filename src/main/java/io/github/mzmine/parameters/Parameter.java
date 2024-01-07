@@ -1,25 +1,33 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import org.w3c.dom.Element;
 
 /**
@@ -32,23 +40,23 @@ public interface Parameter<ValueType> {
    *
    * @return Parameter name
    */
-  public String getName();
+  String getName();
 
-  public ValueType getValue();
+  ValueType getValue();
 
-  public void setValue(ValueType newValue);
+  void setValue(ValueType newValue);
 
-  public boolean checkValue(Collection<String> errorMessages);
+  boolean checkValue(Collection<String> errorMessages);
 
-  public void loadValueFromXML(Element xmlElement);
+  void loadValueFromXML(Element xmlElement);
 
-  public void saveValueToXML(Element xmlElement);
+  void saveValueToXML(Element xmlElement);
 
   /**
    * We use isSensitive() to decide whether a parameter has to be encrypted (e.g. passwords).
    * Further, sensitive parameters are not written to project level configs
    */
-  public default boolean isSensitive() {
+  default boolean isSensitive() {
     return false;
   }
 
@@ -56,10 +64,10 @@ public interface Parameter<ValueType> {
    * We use cloneParameter() instead of clone() to force the implementing classes to implement this
    * method. Plain clone() is automatically implemented by the Object class.
    */
-  public Parameter<ValueType> cloneParameter();
+  Parameter<ValueType> cloneParameter();
 
-  public default boolean valueEquals(Parameter<?> that) {
-    if(that == null) {
+  default boolean valueEquals(Parameter<?> that) {
+    if (that == null) {
       return false;
     }
     if (!(this.getClass() == that.getClass())) {
@@ -72,13 +80,9 @@ public interface Parameter<ValueType> {
       return Double.compare((Double) this.getValue(), (Double) that.getValue()) == 0;
     } else if (getValue() instanceof Float) {
       return Float.compare((Float) this.getValue(), (Float) that.getValue()) == 0;
-    } else if (getValue() instanceof Integer) {
-      return ((Integer) getValue()).equals((Integer) that.getValue());
-    } else if (getValue() instanceof String) {
-      return this.getValue().equals(that.getValue());
     } else if (getValue() instanceof Object[]) {
       return Arrays.deepEquals((Object[]) getValue(), (Object[]) that.getValue());
     }
-    return this.getValue().equals(that.getValue());
+    return Objects.equals(this.getValue(), that.getValue());
   }
 }

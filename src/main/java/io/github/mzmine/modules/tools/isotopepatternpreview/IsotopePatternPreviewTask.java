@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.tools.isotopepatternpreview;
@@ -31,8 +38,9 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FormulaUtils;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -41,42 +49,29 @@ import org.jfree.data.xy.XYDataset;
 
 public class IsotopePatternPreviewTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(IsotopePatternPreviewTask.class.getName());
   private static final double _2SQRT_2LN2 = 2 * Math.sqrt(2 * Math.log(2));
-
+  private final boolean applyFit;
   SimpleIsotopePattern pattern;
   IsotopePatternPreviewDialog dialog;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
   private String message;
-  private boolean parametersChanged;
   private double minIntensity, mergeWidth;
   private int charge;
   private PolarityType polarity;
   private String formula;
   private boolean displayResult;
 
-  public IsotopePatternPreviewTask() {
-    super(null, new Date()); // date irrelevant, not in batch mode
-    message = "Wating for parameters";
-    parametersChanged = false;
-    formula = "";
-    minIntensity = 0.d;
-    mergeWidth = 0.01d;
-    charge = 0;
-    pattern = null;
-  }
-
   public IsotopePatternPreviewTask(String formula, double minIntensity, double mergeWidth,
-      int charge, PolarityType polarity, IsotopePatternPreviewDialog dialog) {
-    super(null, new Date());
-    parametersChanged = false;
+      int charge, PolarityType polarity, boolean applyFit, IsotopePatternPreviewDialog dialog) {
+    super(null, Instant.now());
     this.minIntensity = minIntensity;
     this.mergeWidth = mergeWidth;
     this.charge = charge;
     this.formula = formula;
     this.polarity = polarity;
+    this.applyFit = applyFit;
     this.dialog = dialog;
     setStatus(TaskStatus.WAITING);
-    parametersChanged = true;
     pattern = null;
     displayResult = true;
     message = "Calculating isotope pattern " + formula + ".";
@@ -85,13 +80,11 @@ public class IsotopePatternPreviewTask extends AbstractTask {
   public void initialise(String formula, double minIntensity, double mergeWidth, int charge,
       PolarityType polarity) {
     message = "Wating for parameters";
-    parametersChanged = false;
     this.minIntensity = minIntensity;
     this.mergeWidth = mergeWidth;
     this.charge = charge;
     this.formula = formula;
     this.polarity = polarity;
-    parametersChanged = true;
     pattern = null;
     displayResult = true;
   }
@@ -102,8 +95,9 @@ public class IsotopePatternPreviewTask extends AbstractTask {
     assert mergeWidth > 0d;
 
     message = "Calculating isotope pattern " + formula + ".";
+    boolean keepComposition = FormulaUtils.getFormulaSize(formula) < 5E3;
     pattern = (SimpleIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(formula,
-        minIntensity, mergeWidth, charge, polarity, true);
+        minIntensity, mergeWidth, charge, polarity, keepComposition);
     if (pattern == null) {
       logger.warning("Isotope pattern could not be calculated.");
       setStatus(TaskStatus.FINISHED);
@@ -113,24 +107,26 @@ public class IsotopePatternPreviewTask extends AbstractTask {
 
     if (displayResult) {
       updateWindow();
-      startNextThread();
     }
     setStatus(TaskStatus.FINISHED);
   }
 
   public void updateWindow() {
-    final XYDataset fit = gaussianIsotopePatternFit(pattern, pattern.getBasePeakMz() / mergeWidth);
+    if (pattern == null) {
+      return;
+    }
+
+    final XYDataset fit =
+        applyFit ? gaussianIsotopePatternFit(pattern, pattern.getBasePeakMz() / mergeWidth) : null;
+    //
     Platform.runLater(() -> {
-      dialog.updateChart(pattern, fit);
-      dialog.updateTable(pattern);
+      if (displayResult) {
+        dialog.taskFinishedUpdate(this, pattern, fit);
+      }
     });
   }
 
-  public void startNextThread() {
-    Platform.runLater(() -> dialog.startNextThread());
-  }
-
-  public void setDisplayResult(boolean val) {
+  public synchronized void setDisplayResult(boolean val) {
     this.displayResult = val;
   }
 
@@ -146,9 +142,6 @@ public class IsotopePatternPreviewTask extends AbstractTask {
 
   /**
    * f(x) = a * e^( -(x-b)/(2(c^2)) )
-   *
-   * @param pattern
-   * @param resolution
    */
   public XYDataset gaussianIsotopePatternFit(@NotNull final IsotopePattern pattern,
       final double resolution) {
@@ -198,7 +191,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
       highest = Math.max(highest, intensities[i]);
     }
 
-    final Double basePeakIntensity = Objects.requireNonNullElse(pattern.getBasePeakIntensity(), 1d);
+    final double basePeakIntensity = Objects.requireNonNullElse(pattern.getBasePeakIntensity(), 1d);
     final DataPoint[] dataPoints = new DataPoint[mzs.length];
     for (int i = 0; i < dataPoints.length; i++) {
       intensities[i] = intensities[i] / highest * basePeakIntensity;

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation;
@@ -27,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
+import java.util.Map;
 
 public class InterSampleHeightCorrParameters extends SimpleParameterSet {
 
@@ -55,8 +63,8 @@ public class InterSampleHeightCorrParameters extends SimpleParameterSet {
 
 
   // min data points to be used for correlation
-  public static final IntegerParameter MIN_DP = new IntegerParameter("Min data points",
-      "Minimum of data points to be used for correlation", 2, 2, 100000);
+  public static final IntegerParameter MIN_DP = new IntegerParameter("Minimum samples",
+      "Minimum number of samples (data points) to be used for correlation", 2, 2, 100000);
 
   public static final ComboParameter<SimilarityMeasure> MEASURE = new ComboParameter<>("Measure",
       "Similarity measure", SimilarityMeasure.values(), SimilarityMeasure.PEARSON);
@@ -79,11 +87,20 @@ public class InterSampleHeightCorrParameters extends SimpleParameterSet {
   }
 
   /**
-   * 
+   *
    */
   public InterSampleHeightCorrParameters(boolean isSub) {
-    super(isSub ? new Parameter[] {MIN_DP, MEASURE, MIN_CORRELATION}
-        : new Parameter[] {MIN_HEIGHT, NOISE_LEVEL, MIN_DP, MEASURE, MIN_CORRELATION});
+    super(isSub ? new Parameter[]{MIN_DP, MEASURE, MIN_CORRELATION}
+        : new Parameter[]{MIN_HEIGHT, NOISE_LEVEL, MIN_DP, MEASURE, MIN_CORRELATION});
   }
 
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("Min data points", MIN_DP);
+    return nameParameterMap;
+  }
 }

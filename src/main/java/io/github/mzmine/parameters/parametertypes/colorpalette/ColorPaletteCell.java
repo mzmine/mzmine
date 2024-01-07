@@ -1,30 +1,34 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.parametertypes.colorpalette;
 
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import javafx.geometry.Insets;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import io.github.mzmine.util.color.SimpleColorPalette;
 import javafx.geometry.Pos;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
@@ -36,10 +40,10 @@ import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import org.graphstream.stream.file.FileSourceGEXF.GEXFConstants.COLORAttribute;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Implementation of ListCell to display color palettes and select between them.
@@ -50,8 +54,8 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
 
   private final static int MAX_PREVIEW_COLORS = 15;
   private static final Color BORDER_CLR = Color.DARKGRAY;
-  private static final Color TEXT_CLR = Color.BLACK;
-  private static final Color STROKE_CLR = Color.BLACK;
+  //  private static final Color TEXT_CLR = Color.BLACK;
+//  private static final Color STROKE_CLR = Color.BLACK;
   private static final double STROKE_WIDTH = 0.5;
 
   private static final Logger logger = Logger.getLogger(ColorPaletteCell.class.getName());
@@ -84,7 +88,6 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
     negativeRect = makeRect(Color.TRANSPARENT);
     neutralRect = makeRect(Color.TRANSPARENT);
     lblName = new Label();
-    lblName.setTextFill(TEXT_CLR);
 
     // nasty way to align the palettes in the dropdown menu
     lblName.setMinWidth(80);
@@ -103,17 +106,14 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
     pane.add(clrPane, 0, 1, 7, 1);
 
     Label label = new Label("Pos.:");
-    label.setTextFill(TEXT_CLR);
     pane.add(label, 1, 0);
     pane.add(positiveRect, 2, 0);
 
     label = new Label("Neu.:");
-    label.setTextFill(TEXT_CLR);
     pane.add(label, 3, 0);
     pane.add(neutralRect, 4, 0);
 
     label = new Label("Neg.:");
-    label.setTextFill(TEXT_CLR);
     pane.add(label, 5, 0);
     pane.add(negativeRect, 6, 0);
   }
@@ -154,7 +154,6 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
   protected Rectangle makeRect(@NotNull Color clr) {
     Rectangle rect = new Rectangle(height - STROKE_WIDTH * 2, height - STROKE_WIDTH * 2);
     rect.setFill(clr);
-    rect.setStroke(STROKE_CLR);
     rect.setStrokeWidth(STROKE_WIDTH);
     return rect;
   }

@@ -1,36 +1,51 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
-import java.util.Date;
+import io.github.mzmine.util.DataTypeUtils;
+import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -40,19 +55,55 @@ import org.w3c.dom.Element;
  */
 public interface FeatureList {
 
-  @NotNull
-  String getNameProperty();
-
   /**
    * @return Short descriptive name for the feature list
    */
-  @NotNull
-  public String getName();
+  @NotNull String getName();
 
   /**
    * Change the name of this feature list
+   *
+   * @return the actually set name after checking for resticted symbols and duplicate names
    */
-  public void setName(@NotNull String name);
+  String setName(@NotNull String name);
+
+  void addRowBinding(@NotNull List<RowBinding> bindings);
+
+  void addFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener);
+
+  void addRowTypeListener(DataType rowType, DataTypeValueChangeListener listener);
+
+  void removeRowTypeListener(DataType rowType, DataTypeValueChangeListener listener);
+
+  void removeFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener);
+
+  /**
+   * Apply all row bindings to all rows (e.g., calculating the average m/z etc)
+   */
+  void applyRowBindings();
+
+  /**
+   * Apply all row bindings to row (e.g., calculating the average m/z etc)
+   *
+   * @param row
+   */
+  void applyRowBindings(FeatureListRow row);
+
+  ObservableMap<Class<? extends DataType>, DataType> getFeatureTypes();
+
+  void addFeatureType(Collection<DataType> types);
+
+  void addFeatureType(@NotNull DataType<?>... types);
+
+  void addRowType(Collection<DataType> types);
+
+  void addRowType(@NotNull DataType<?>... types);
+
+  ObservableMap<Class<? extends DataType>, DataType> getRowTypes();
+
+  boolean hasFeatureType(Class typeClass);
+
+  boolean hasRowType(Class typeClass);
 
   /**
    * Returns number of raw data files participating in the feature list
@@ -106,6 +157,22 @@ public interface FeatureList {
   public ObservableList<FeatureListRow> getRows();
 
   /**
+   * Clear all rows and set new rows
+   *
+   * @param rows new rows to set
+   */
+  void setRows(FeatureListRow... rows);
+
+  /**
+   * Clear all rows and set new rows
+   *
+   * @param rows new rows to set
+   */
+  default void setRows(List<FeatureListRow> rows) {
+    setRows(rows.toArray(FeatureListRow[]::new));
+  }
+
+  /**
    * Creates a stream of FeatureListRows
    *
    * @return
@@ -113,6 +180,8 @@ public interface FeatureList {
   default Stream<FeatureListRow> stream(boolean parallel) {
     return parallel ? parallelStream() : stream();
   }
+
+  void removeRow(int rowNum, FeatureListRow row);
 
   /**
    * Creates a stream of FeatureListRows
@@ -152,6 +221,15 @@ public interface FeatureList {
   public Stream<ModularFeature> parallelStreamFeatures();
 
   /**
+   * prefer method {@link #setName} over this method to have path safe encoding and unique names in
+   * the project. Notifies listeners
+   *
+   * @param name force set this name
+   * @return the set name (equals the arguments)
+   */
+  String setNameNoChecks(@NotNull String name);
+
+  /**
    * The selected scans to build this feature/chromatogram
    *
    * @param file  the data file of the scans
@@ -165,8 +243,7 @@ public interface FeatureList {
    * @return The scans used to build this feature list. For ion mobility data, the frames are
    * returned.
    */
-  @Nullable
-  List<? extends Scan> getSeletedScans(@NotNull RawDataFile file);
+  @Nullable List<? extends Scan> getSeletedScans(@NotNull RawDataFile file);
 
   /**
    * Returns all rows with average retention time within given range
@@ -214,8 +291,7 @@ public interface FeatureList {
    * @param rtRange Retention time range
    * @param mzRange m/z range
    */
-  public List<Feature> getFeaturesInsideScanAndMZRange(RawDataFile file,
-      Range<Float> rtRange,
+  public List<Feature> getFeaturesInsideScanAndMZRange(RawDataFile file, Range<Float> rtRange,
       Range<Double> mzRange);
 
   /**
@@ -351,8 +427,61 @@ public interface FeatureList {
    *
    * @return a map that stores different relationship maps
    */
-  @NotNull
-  Map<Type, R2RMap<RowsRelationship>> getRowMaps();
+  @NotNull Map<Type, R2RMap<RowsRelationship>> getRowMaps();
+
+  /**
+   * Maps {@link Feature} DataType listeners, e.g., for calculating the mean values for a DataType
+   * over all features into a row DataType
+   *
+   * @return map of feature DataType listeners
+   */
+  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners();
+
+  /**
+   * Maps {@link FeatureListRow} DataType listeners, e.g., for graphical representations
+   *
+   * @return map of feature DataType listeners
+   */
+  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners();
+
+  /**
+   * @param row
+   * @param newFeature
+   * @param raw
+   * @param updateByRowBindings if true, update values by row bindings. This option may be set to
+   *                            false with caution, when multiple features are added. Remember to
+   *                            update call {@link #applyRowBindings(FeatureListRow)} manually.
+   */
+  default void fireFeatureChangedEvent(FeatureListRow row, Feature newFeature, RawDataFile raw,
+      boolean updateByRowBindings) {
+    if (updateByRowBindings) {
+      applyRowBindings(row);
+    }
+
+    if (newFeature != null) {
+      boolean isImagingFile = raw instanceof ImagingRawDataFile;
+      if (newFeature.getFeatureData() instanceof IonMobilogramTimeSeries) {
+        DataTypeUtils.DEFAULT_ION_MOBILITY_COLUMNS_ROW.stream()
+            .filter(type -> type instanceof LinkedGraphicalType)
+            .forEach(type -> row.set(type, true));
+        DataTypeUtils.DEFAULT_ION_MOBILITY_COLUMNS_FEATURE.stream()
+            .filter(type -> type instanceof LinkedGraphicalType)
+            .forEach(type -> row.set(type, true));
+      }
+      if (hasRowType(RTType.class) && !isImagingFile) {
+        // activate shape for this row
+        DataTypeUtils.DEFAULT_CHROMATOGRAPHIC_ROW.stream()
+            .filter(type -> type instanceof LinkedGraphicalType)
+            .forEach(type -> row.set(type, true));
+      }
+      if (isImagingFile && newFeature instanceof ModularFeature f) {
+        // activate image for this feature
+        DataTypeUtils.DEFAULT_IMAGING_COLUMNS_FEATURE.stream()
+            .filter(type -> type instanceof LinkedGraphicalType)
+            .forEach(type -> f.set(type, true));
+      }
+    }
+  }
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge
@@ -374,7 +503,7 @@ public interface FeatureList {
 
     public MZmineModule getModule();
 
-    public Date getModuleCallDate();
+    public Instant getModuleCallDate();
 
     public void saveValueToXML(Element element);
   }

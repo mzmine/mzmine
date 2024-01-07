@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.identities.iontype.networks;
@@ -22,13 +29,12 @@ package io.github.mzmine.datamodel.identities.iontype.networks;
 import io.github.mzmine.datamodel.identities.iontype.CombinedIonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
-import java.text.MessageFormat;
 import java.util.List;
 
 /**
  * Relationship between two IonNetworks: 2a --> b - H2O (condensation reaction)
  */
-public class IonNetworkCondensedRelation implements IonNetworkRelation {
+public class IonNetworkCondensedRelation extends AbstractIonNetworkRelation {
 
   // the linked network
   private final IonNetwork monomer;
@@ -69,27 +75,21 @@ public class IonNetworkCondensedRelation implements IonNetworkRelation {
 
   @Override
   public String getName(IonNetwork ionNetwork) {
-    if (ionNetwork.getID() == monomer.getID()) {
-      return parseNameA();
-    } else if (ionNetwork.getID() == condensedMultimer.getID()) {
-      return parseNameB();
-    }
-    return "";
+    return String.format("2(%d)→2M(%d)+H₂O", monomer.getID(), condensedMultimer.getID());
   }
 
   private String parseNameA() {
-    return MessageFormat.format("M({0}_condensed)", condensedMultimer.getID());
+    return String.format("2(%d)→2M(%d)+H₂O", monomer.getID(), condensedMultimer.getID());
   }
 
   private String parseNameB() {
-    return MessageFormat.format("2Mcondensed({0}){1}", monomer.getID(),
-        multimerModification != null ? " " + multimerModification.parseName() : "");
+    return String.format("2M(%d)+H₂O→2(%d)", condensedMultimer.getID(), monomer.getID());
   }
 
   @Override
   public String getDescription() {
-    return "condensation (2X-->XX+H2O) " +
-           (multimerModification != null ? multimerModification.parseName() : "");
+    return "condensation (2X→XX+H₂O) " + (multimerModification != null
+        ? multimerModification.parseName() : "");
   }
 
   @Override

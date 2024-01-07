@@ -1,29 +1,30 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_features_mztabm;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
 import com.google.common.collect.Range;
 import de.isas.mztab2.io.MzTabFileParser;
 import de.isas.mztab2.model.Assay;
@@ -55,7 +56,13 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileUtils;
+import java.io.File;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorList;
@@ -64,17 +71,17 @@ import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorType;
 public class MzTabmImportTask extends AbstractTask {
 
   // parameter values
-  private MZmineProject project;
+  private final MZmineProject project;
   private final ParameterSet parameters;
-  private File inputFile;
-  private boolean importRawFiles;
+  private final File inputFile;
+  private final boolean importRawFiles;
   private double finishedPercentage = 0.0;
 
   // underlying tasks for importing raw data
   private final List<Task> underlyingTasks = new ArrayList<Task>();
 
   MzTabmImportTask(MZmineProject project, ParameterSet parameters, File inputFile,
-      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.project = project;
     this.parameters = parameters;
@@ -131,8 +138,9 @@ public class MzTabmImportTask extends AbstractTask {
 
       if (!errors.isEmpty()) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Error processing" + inputFile + ":\n"
-            + mzTabmFileParser​.getErrorList().toString() + "\n" + messages.toString());
+        setErrorMessage(
+            "Error processing" + inputFile + ":\n" + mzTabmFileParser​.getErrorList().toString()
+                + "\n" + messages.toString());
         return;
       }
       MzTab mzTabFile = mzTabmFileParser​.getMZTabFile();
@@ -150,7 +158,7 @@ public class MzTabmImportTask extends AbstractTask {
 
       // Create new feature list
       String featureListName = inputFile.getName().replace(".mzTab", "");
-      RawDataFile rawDataArray[] = rawDataFiles.toArray(new RawDataFile[0]);
+      RawDataFile[] rawDataArray = rawDataFiles.toArray(new RawDataFile[0]);
       ModularFeatureList newFeatureList = new ModularFeatureList(featureListName,
           getMemoryMapStorage(), rawDataArray);
 
@@ -186,7 +194,6 @@ public class MzTabmImportTask extends AbstractTask {
       e.printStackTrace();
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Could not import data from " + inputFile + ": " + e.getMessage());
-      return;
     }
   }
 
@@ -242,8 +249,8 @@ public class MzTabmImportTask extends AbstractTask {
         }
         boolean tasksFinished = true;
         for (Task task : underlyingTasks) {
-          if ((task.getStatus() == TaskStatus.WAITING)
-              || (task.getStatus() == TaskStatus.PROCESSING)) {
+          if ((task.getStatus() == TaskStatus.WAITING) || (task.getStatus()
+              == TaskStatus.PROCESSING)) {
             tasksFinished = false;
           }
         }
@@ -289,8 +296,8 @@ public class MzTabmImportTask extends AbstractTask {
     if (variableMap.isEmpty()) {
       return;
     }
-    UserParameter<?, ?> newUserParameter =
-        new StringParameter(inputFile.getName() + " study variable", "");
+    UserParameter<?, ?> newUserParameter = new StringParameter(
+        inputFile.getName() + " study variable", "");
     project.addParameter(newUserParameter);
     for (StudyVariable studyVariable : variableMap) {
       // Stop the process if cancel() was called
@@ -324,6 +331,8 @@ public class MzTabmImportTask extends AbstractTask {
     List<SmallMoleculeFeature> smfList = mzTabmFile.getSmallMoleculeFeature();
     List<SmallMoleculeEvidence> smeList = mzTabmFile.getSmallMoleculeEvidence();
 
+    MzTabAccess mzTabAccess = new MzTabAccess(mzTabmFile);
+
     for (SmallMoleculeFeature smf : smfList) {
       // Stop the process if cancel() is called
       if (isCanceled()) {
@@ -346,16 +355,10 @@ public class MzTabmImportTask extends AbstractTask {
       if (sml.getUri().size() != 0) {
         url = sml.getUri().get(0);
       }
-      // Average Retention Time
-      rtValue = smf.getRetentionTimeInSeconds().floatValue();
+      // Average Retention Time, convert to minutes for MZmine
+      rtValue = smf.getRetentionTimeInSeconds().floatValue() / 60.0f;
       // Get corresponding SME objects from SMF
-      List<SmallMoleculeEvidence> corrSMEList = new ArrayList<>();
-      List<Integer> smeIDRefList = smf.getSmeIdRefs();
-      for (SmallMoleculeEvidence sme : smeList) {
-        if (smeIDRefList.contains(sme.getSmeId())) {
-          corrSMEList.add(sme);
-        }
-      }
+      List<SmallMoleculeEvidence> corrSMEList = mzTabAccess.getEvidences(smf);
       // Identification Method
       method = corrSMEList.get(0).getIdentificationMethod().getName();
       // Identifier
@@ -371,13 +374,13 @@ public class MzTabmImportTask extends AbstractTask {
       }
       // m/z value
       mzExp = smf.getExpMassToCharge();
-      // Add shared infor to peakListRow
+      // Add shared info to peakListRow
       FeatureListRow newRow = new ModularFeatureListRow(newFeatureList, rowCounter);
       newRow.setAverageMZ(mzExp);
       newRow.setAverageRT(rtValue);
       if (description != null) {
-        SimpleFeatureIdentity newIdentity =
-            new SimpleFeatureIdentity(description, formula, method, identifier, url);
+        SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(description, formula, method,
+            identifier, url);
         newRow.addFeatureIdentity(newIdentity, false);
       }
 
@@ -392,14 +395,14 @@ public class MzTabmImportTask extends AbstractTask {
         List<OptColumnMapping> optColList = sml.getOpt();
         // Use average values if optional data for each msrun is not provided
         feature_mz = mzExp;
+        // MzMine expects minutes, mzTab-M uses seconds
         feature_rt = rtValue;
         if (optColList != null) {
           for (OptColumnMapping optCol : optColList) {
-            MzTabAccess mzTabAccess = new MzTabAccess(mzTabmFile);
             Optional<Assay> optAssay = mzTabAccess.getAssayFor(optCol, mzTabmFile.getMetadata());
             if (!optAssay.isEmpty()) {
-              if (dataFileAssay.getName().equals(optAssay.get().getName())
-                  && optCol.getIdentifier().contains("peak_mz")) {
+              if (dataFileAssay.getName().equals(optAssay.get().getName()) && optCol.getIdentifier()
+                  .contains("peak_mz")) {
                 feature_mz = Double.parseDouble(optCol.getValue());
               } else if (dataFileAssay.getName().equals(optAssay.get().getName())
                   && optCol.getIdentifier().contains("peak_rt")) {
@@ -411,12 +414,11 @@ public class MzTabmImportTask extends AbstractTask {
             }
           }
         }
-        Scan scanNumbers[] = {};
-        DataPoint finalDataPoint[] = new DataPoint[1];
+        Scan[] scans = {rawData.binarySearchClosestScan(rtValue)};
+        DataPoint[] finalDataPoint = new DataPoint[1];
         finalDataPoint[0] = new SimpleDataPoint(feature_mz, feature_height);
         Scan representativeScan = null;
-        Scan fragmentScan = null;
-        Scan[] allFragmentScans = {};
+        List<Scan> allFragmentScans = List.of();
 
         Range<Float> finalRTRange = Range.singleton(feature_rt);
         Range<Double> finalMZRange = Range.singleton(feature_mz);
@@ -426,10 +428,9 @@ public class MzTabmImportTask extends AbstractTask {
           status = FeatureStatus.UNKNOWN;
         }
 
-        Feature feature =
-            new ModularFeature(newFeatureList, rawData, feature_mz, feature_rt, feature_height,
-                (float) abundance, scanNumbers, finalDataPoint, status, representativeScan,
-                fragmentScan, allFragmentScans, finalRTRange, finalMZRange, finalIntensityRange);
+        Feature feature = new ModularFeature(newFeatureList, rawData, feature_mz, feature_rt,
+            feature_height, (float) abundance, scans, finalDataPoint, status, representativeScan,
+            allFragmentScans, finalRTRange, finalMZRange, finalIntensityRange);
 
         feature.setCharge(charge);
         newRow.addFeature(rawData, feature);

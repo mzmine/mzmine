@@ -1,32 +1,44 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.msdk.datamodel.MsScan;
 import io.github.msdk.datamodel.MsSpectrumType;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWindow;
@@ -35,14 +47,13 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorAc
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public class ConversionUtils {
 
-  private static Logger logger = Logger.getLogger(ConversionUtils.class.getName());
+  private static final Logger logger = Logger.getLogger(ConversionUtils.class.getName());
 
   public static double[] convertFloatsToDoubles(float[] input, int length) {
     if (input == null) {
@@ -104,26 +115,12 @@ public class ConversionUtils {
   /**
    * Creates a {@link SimpleScan} from an MSDK scan from MzML import
    *
-   * @param rawDataFile
-   * @param scan        the scan
+   * @param scan the scan
    * @return a {@link SimpleScan}
    */
   public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan) {
-    return msdkScanToSimpleScan(rawDataFile, scan, scan.getMzValues(),
-        convertFloatsToDoubles(scan.getIntensityValues()));
-  }
-
-  /**
-   * Creates a {@link SimpleScan} from an MSDK scan from MzML import
-   *
-   * @param rawDataFile
-   * @param scan        the scan
-   * @param mzs         use these mz values instead of the scan data
-   * @param intensities use these intensity values instead of the scan data
-   * @return a {@link SimpleScan}
-   */
-  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan, double[] mzs,
-      double[] intensities) {
+    double[] mzs = scan.getMzValues();
+    double[] intensities = convertFloatsToDoubles(scan.getIntensityValues());
     return msdkScanToSimpleScan(rawDataFile, scan, mzs, intensities,
         ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()));
   }
@@ -131,7 +128,6 @@ public class ConversionUtils {
   /**
    * Creates a {@link SimpleScan} from an MSDK scan from MzML import
    *
-   * @param rawDataFile
    * @param scan         the scan
    * @param mzs          use these mz values instead of the scan data
    * @param intensities  use these intensity values instead of the scan data
@@ -140,37 +136,35 @@ public class ConversionUtils {
    */
   public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan, double[] mzs,
       double[] intensities, MassSpectrumType spectrumType) {
-    double precursorMz = 0.0;
-    int precursorCharge = -1;
-    for (MzMLPrecursorElement precursorElement : scan.getPrecursorList().getPrecursorElements()) {
-      Optional<MzMLPrecursorSelectedIonList> selectedIonList =
-          precursorElement.getSelectedIonList();
-      if (selectedIonList.isPresent()) {
-        if (selectedIonList.get().getSelectedIonList().size() > 1) {
-          logger.info("Selection of more than one ion in a single scan is not supported.");
-        }
-        for (MzMLCVParam param : selectedIonList.get().getSelectedIonList().get(0)
-            .getCVParamsList()) {
-          if (param.getAccession().equals(MzMLCV.cvPrecursorMz)) {
-            precursorMz = Double.parseDouble(param.getValue().get());
-          }
-          if (param.getAccession().equals(MzMLCV.cvChargeState)) {
-            precursorCharge = Integer.parseInt(param.getValue().get());
-          }
-        }
+    DDAMsMsInfo info = null;
+    if (scan.getPrecursorList() != null) {
+      final var precursorElements = scan.getPrecursorList().getPrecursorElements();
+      if (precursorElements.size() == 1) {
+        info = DDAMsMsInfoImpl.fromMzML(precursorElements.get(0), scan.getMsLevel());
+      } else if (precursorElements.size() > 1) {
+        info = MSnInfoImpl.fromMzML(precursorElements, scan.getMsLevel());
       }
     }
 
+    Float injTime = null;
+    try {
+      injTime = scan.getScanList().getScans().get(0).getCVParamsList().stream()
+          .filter(p -> MzMLCV.cvIonInjectTime.equals(p.getAccession()))
+          .map(p -> p.getValue().map(Float::parseFloat)).filter(Optional::isPresent)
+          .map(Optional::get).findFirst().orElse(null);
+    } catch (Exception e) {
+      // float parsing error
+    }
+    float retentionTimeInMinutes = requireNonNullElse(scan.getRetentionTime(), 0f) / 60;
     final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
-        scan.getRetentionTime() / 60, precursorMz, precursorCharge, mzs, intensities,
-        spectrumType, ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()),
-        scan.getScanDefinition(), scan.getScanningRange());
+        retentionTimeInMinutes, info, mzs, intensities, spectrumType,
+        ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
+        scan.getScanningRange(), injTime);
 
     return newScan;
   }
 
-  public static BuildingMobilityScan msdkScanToMobilityScan(int scannum,
-      MsScan scan) {
+  public static BuildingMobilityScan msdkScanToMobilityScan(int scannum, MsScan scan) {
     return new BuildingMobilityScan(scannum, scan.getMzValues(),
         convertFloatsToDoubles(scan.getIntensityValues()));
   }
@@ -179,11 +173,10 @@ public class ConversionUtils {
    * Builds precursor info based on the current scan. If a new Precursors was detected, a new
    * element is added to the list parameter.
    *
-   * @param scan
    * @param buildingInfos      Altered during this method. New Infos are added if not part of this
    *                           list
-   * @param currentFrameNumber
-   * @param currentScanNumber
+   * @param currentFrameNumber the IMS frame
+   * @param currentScanNumber  the IMS scan number
    */
   public static void extractImsMsMsInfo(final MzMLMsScan scan,
       @NotNull List<BuildingImsMsMsInfo> buildingInfos, final int currentFrameNumber,
@@ -194,8 +187,7 @@ public class ConversionUtils {
     Integer charge = null;
     Float colissionEnergy = null;
     for (MzMLPrecursorElement precursorElement : scan.getPrecursorList().getPrecursorElements()) {
-      Optional<MzMLPrecursorSelectedIonList> selectedIonList =
-          precursorElement.getSelectedIonList();
+      Optional<MzMLPrecursorSelectedIonList> selectedIonList = precursorElement.getSelectedIonList();
       if (selectedIonList.isPresent()) {
         if (selectedIonList.get().getSelectedIonList().size() > 1) {
           logger.info("Selection of more than one ion in a single scan is not supported.");
@@ -206,7 +198,7 @@ public class ConversionUtils {
             isolationMz = Double.parseDouble(param.getValue().get());
           }
           if (param.getAccession().equals(MzMLCV.cvChargeState)) {
-            charge = Integer.parseInt(param.getValue().get());
+            charge = Integer.parseInt(param.getValue().orElse("0"));
           }
         }
       }
@@ -237,8 +229,7 @@ public class ConversionUtils {
       if (lowerWindow != null && upperWindow != null && isolationMz != null
           && colissionEnergy != null) {
         boolean infoFound = false;
-        for (int i = 0; i < buildingInfos.size(); i++) {
-          BuildingImsMsMsInfo buildingInfo = buildingInfos.get(i);
+        for (BuildingImsMsMsInfo buildingInfo : buildingInfos) {
           if (Double.compare(isolationMz, buildingInfo.getLargestPeakMz()) == 0
               && Float.compare(colissionEnergy, buildingInfo.getCollisionEnergy()) == 0) {
             buildingInfo.setLastSpectrumNumber(currentScanNumber);
@@ -247,9 +238,9 @@ public class ConversionUtils {
         }
         if (!infoFound) {
           BuildingImsMsMsInfo info = new BuildingImsMsMsInfo(isolationMz,
-              Objects.requireNonNullElse(colissionEnergy, ImsMsMsInfo.UNKNOWN_COLISSIONENERGY)
-                  .floatValue(),
-              Objects.requireNonNullElse(charge, ImsMsMsInfo.UNKNOWN_CHARGE), currentFrameNumber,
+              requireNonNullElse(colissionEnergy,
+                  PasefMsMsInfo.UNKNOWN_COLISSIONENERGY).floatValue(),
+              requireNonNullElse(charge, PasefMsMsInfo.UNKNOWN_CHARGE), currentFrameNumber,
               currentScanNumber);
           buildingInfos.add(info);
         }

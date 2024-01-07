@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.projectload.version_3_0_old;
@@ -44,6 +51,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -356,15 +364,20 @@ public class PeakListOpenHandler_3_0_old extends DefaultHandler implements PeakL
       Range<Float> peakRTRange = null, peakIntensityRange = null;
       RawDataFile dataFile = dataFilesIDMap.get(peakColumnID);
 
-      if (dataFile == null)
+      if (dataFile == null) {
         throw new SAXException("Error in project: data file " + peakColumnID + " not found");
+      }
 
-      Scan[] scans =
-          Arrays.stream(scanNumbers).map(s -> dataFile.getScanAtNumber(s)).toArray(Scan[]::new);
-      Scan[] fragmentScans = currentAllMS2FragmentScans.stream()
-          .map(s -> dataFile.getScanAtNumber(s)).toArray(Scan[]::new);
+      Scan[] scans = Arrays.stream(scanNumbers).map(s -> dataFile.getScanAtNumber(s))
+          .toArray(Scan[]::new);
+      List<Scan> fragmentScans = currentAllMS2FragmentScans.stream()
+          .map(s -> dataFile.getScanAtNumber(s)).toList();
       Scan bestMS1 = dataFile.getScanAtNumber(representativeScan);
       Scan bestMS2 = dataFile.getScanAtNumber(fragmentScan);
+
+      if (fragmentScans.isEmpty() && bestMS2 != null) {
+        fragmentScans = List.of(bestMS2);
+      }
 
       for (int i = 0; i < numOfMZpeaks; i++) {
 
@@ -410,7 +423,7 @@ public class PeakListOpenHandler_3_0_old extends DefaultHandler implements PeakL
       // status, representativeScan, fragmentScan, allMS2FragmentScanNumbers, peakRTRange,
       // peakMZRange, peakIntensityRange);
       ModularFeature peak = new ModularFeature(buildingPeakList, dataFile, mass, rt, height, area,
-          scans, mzPeaks, status, bestMS1, bestMS2, fragmentScans, peakRTRange, peakMZRange,
+          scans, mzPeaks, status, bestMS1, fragmentScans, peakRTRange, peakMZRange,
           peakIntensityRange);
       // SimpleFeatureOld peak = new SimpleFeatureOld(dataFile, mass, rt, height, area, scanNumbers,
       // mzPeaks,
@@ -420,7 +433,7 @@ public class PeakListOpenHandler_3_0_old extends DefaultHandler implements PeakL
       peak.setCharge(currentPeakCharge);
 
       if (currentIsotopes.size() > 0) {
-        SimpleIsotopePattern newPattern = new SimpleIsotopePattern(null, null,
+        SimpleIsotopePattern newPattern = new SimpleIsotopePattern(null, null, -1,
             currentIsotopePatternStatus, currentIsotopePatternDescription);
         peak.setIsotopePattern(newPattern);
         currentIsotopes.clear();

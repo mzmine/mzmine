@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.identities.iontype;
@@ -37,7 +44,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -55,7 +61,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
   private final ConcurrentHashMap<FeatureListRow, IonIdentity> partner = new ConcurrentHashMap<>();
   // possible formulas for this neutral mass
   @NotNull
-  private final ObservableList<ResultFormula> molFormulas;
+  private final List<ResultFormula> molFormulas;
   private final IonType ionType;
   // identifier like [M+H]+
   private final String adduct;
@@ -88,8 +94,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
    * @param row2 identified by this row
    */
   public static IonIdentity[] addAdductIdentityToRow(MZTolerance mzTolerance, FeatureListRow row1,
-      IonType row1ID,
-      FeatureListRow row2, IonType row2ID) {
+      IonType row1ID, FeatureListRow row2, IonType row2ID) {
     // already added?
     IonIdentity a = getAdductEqualIdentity(row1, row1ID);
     IonIdentity b = getAdductEqualIdentity(row2, row2ID);
@@ -283,7 +288,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
    */
   public int getMSMSMultimerCount() {
     if (msmsIdent == null || msmsIdent.isEmpty()) {
-      return 0;
+      return -1;
     }
 
     return (int) msmsIdent.stream().filter(id -> id instanceof MSMSMultimerIdentity).count();
@@ -294,9 +299,9 @@ public class IonIdentity implements Comparable<IonIdentity> {
       return 0;
     }
 
-    return (int) msmsIdent.stream().filter(id -> id instanceof MSMSIonRelationIdentity
-                                                 && ((MSMSIonRelationIdentity) id).getRelation()
-                                                     .equals(Relation.NEUTRAL_LOSS)).count();
+    return (int) msmsIdent.stream().filter(
+        id -> id instanceof MSMSIonRelationIdentity && ((MSMSIonRelationIdentity) id).getRelation()
+            .equals(Relation.NEUTRAL_LOSS)).count();
   }
 
   public IonNetwork getNetwork() {
@@ -348,7 +353,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
 
   @NotNull
   public List<ResultFormula> getMolFormulas() {
-    return molFormulas;
+    return molFormulas == null ? List.of() : molFormulas;
   }
 
   public void clearMolFormulas() {
@@ -360,7 +365,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
    *
    * @param molFormulas
    */
-  public void addMolFormulas(List<ResultFormula> molFormulas) {
+  public synchronized void addMolFormulas(List<ResultFormula> molFormulas) {
     this.molFormulas.removeAll(molFormulas);
     this.molFormulas.addAll(molFormulas);
   }
@@ -370,16 +375,16 @@ public class IonIdentity implements Comparable<IonIdentity> {
    *
    * @param molFormulas
    */
-  public void addMolFormulas(ResultFormula... molFormulas) {
-    this.molFormulas.removeAll(molFormulas);
-    this.molFormulas.addAll(molFormulas);
+  public synchronized void addMolFormulas(ResultFormula... molFormulas) {
+    this.molFormulas.removeAll(List.of(molFormulas));
+    this.molFormulas.addAll(List.of(molFormulas));
   }
 
-  public void addMolFormula(ResultFormula formula) {
+  public synchronized void addMolFormula(ResultFormula formula) {
     addMolFormula(formula, false);
   }
 
-  public void addMolFormula(ResultFormula formula, boolean asBest) {
+  public synchronized void addMolFormula(ResultFormula formula, boolean asBest) {
     if (!molFormulas.isEmpty()) {
       molFormulas.remove(formula);
     }

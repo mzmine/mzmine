@@ -1,161 +1,215 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.exceptions.TypeColumnUndefinedException;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.stream.Stream;
 import javafx.beans.property.Property;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface ModularDataModel {
 
   /**
    * All types (columns) of this DataModel
-   * 
+   *
    * @return
    */
-  public ObservableMap<Class<? extends DataType>, DataType> getTypes();
+  ObservableMap<Class<? extends DataType>, DataType> getTypes();
 
   /**
    * The map containing all mappings to the types defined in getTypes
-   * 
+   *
    * @param
    * @return
    */
-  public ObservableMap<DataType, Property<?>> getMap();
+  ObservableMap<DataType, Object> getMap();
 
+  default boolean isEmpty() {
+    return getMap().isEmpty();
+  }
   /**
    * Get DataType column of this DataModel
-   * 
+   *
    * @param <T>
    * @param tclass
    * @return
    */
-  default <T extends Property<?>> DataType<T> getTypeColumn(Class<? extends DataType<T>> tclass) {
+  default <T> DataType<T> getTypeColumn(Class<? extends DataType<T>> tclass) {
     DataType<T> type = getTypes().get(tclass);
     return type;
   }
 
   /**
    * has DataType column of this DataModel
-   * 
+   *
    * @param <T>
    * @param tclass
    * @return
    */
-  default <T extends Property<?>> boolean hasTypeColumn(Class<? extends DataType<T>> tclass) {
+  default <T extends Object> boolean hasTypeColumn(Class<? extends DataType<T>> tclass) {
     DataType<T> type = getTypes().get(tclass);
     return type != null;
   }
 
   /**
    * Optional.ofNullable(value)
-   * 
+   *
    * @param <T>
    * @param type
    * @return
    */
-  default <T extends Property<?>> Entry<DataType<T>, T> getEntry(DataType<T> type) {
+  default <T> Entry<DataType<T>, T> getEntry(DataType<T> type) {
     return new SimpleEntry<>(type, get(type));
   }
 
   /**
    * Optional.ofNullable(value)
-   * 
+   *
    * @param <T>
    * @param tclass
    * @return
    */
-  default <T extends Property<?>> Entry<DataType<T>, T> getEntry(
-      Class<? extends DataType<T>> tclass) {
+  default <T> Entry<DataType<T>, T> getEntry(Class<? extends DataType<T>> tclass) {
     DataType<T> type = getTypeColumn(tclass);
     return getEntry(type);
   }
 
-  /**
-   * Value for this datatype
-   * 
-   * @param type
-   * @return
-   */
-  default Object getValue(DataType type) {
-    return getMap().get(type).getValue();
-  }
 
   /**
    * Value for this datatype
-   * 
+   *
    * @param tclass
    * @return
    */
-  default Object getValue(Class tclass) {
-    DataType type = getTypeColumn(tclass);
-    return get(type).getValue();
-  }
-
-  /**
-   * Property for this datatype
-   * 
-   * @param <T>
-   * @param type
-   * @return
-   */
-  @Nullable
-  default <T extends Property<?>> T get(DataType<T> type) {
-    return (T) getMap().get(type);
-  }
-
-  /**
-   * Property for this datatype
-   * 
-   * @param <T>
-   * @param tclass
-   * @return
-   */
-  @Nullable
-  default <T extends Property<?>> T get(Class<? extends DataType<T>> tclass) {
+  default <T> T get(Class<? extends DataType<T>> tclass) {
     DataType<T> type = getTypeColumn(tclass);
     return get(type);
   }
 
+
   /**
-   * type.getFormattedString(value)
-   * 
+   * Value for this datatype
+   *
    * @param <T>
    * @param type
    * @return
    */
-  default <T extends Property<?>> String getFormattedString(DataType<T> type) {
+  @Nullable
+  default <T extends Object> T get(DataType<T> type) {
+    return (T) getMap().get(type);
+  }
+
+
+  /**
+   * Value for this datatype or default value if no value was mapped. So only returns default if
+   * there was no mapping
+   *
+   * @return
+   */
+  @Nullable
+  default <T> T getOrDefault(Class<? extends DataType<T>> tclass, T defaultValue) {
+    DataType<T> type = getTypeColumn(tclass);
+    return getOrDefault(type, defaultValue);
+  }
+
+  /**
+   * Value for this datatype or default value if no value was mapped. So only returns default if
+   * there was no mapping
+   *
+   * @return
+   */
+  @Nullable
+  default <T> T getOrDefault(DataType<T> type, T defaultValue) {
+    return (T) getMap().getOrDefault(type, defaultValue);
+  }
+
+  /**
+   * Value for this datatype or default value if no value was mapped or the mapped value was null
+   *
+   * @return
+   */
+  @NotNull
+  default <T> T getNonNullElse(Class<? extends DataType<T>> tclass, @NotNull T defaultValue) {
+    DataType<T> type = getTypeColumn(tclass);
+    return getNonNullElse(type, defaultValue);
+  }
+
+  /**
+   * Value for this datatype or default value if no value was mapped or the mapped value was null
+   *
+   * @return
+   */
+  @NotNull
+  default <T> T getNonNullElse(DataType<T> type, @NotNull T defaultValue) {
+    return (T) requireNonNullElse(getMap().getOrDefault(type, null), defaultValue);
+  }
+
+
+  /**
+   * @param type
+   * @return true if value is not null
+   */
+  @Nullable
+  default <T extends Object> boolean hasValueFor(DataType<T> type) {
+    return getMap().get(type) != null;
+  }
+
+  /**
+   * @param typeClass the type class
+   * @return true if value is not null
+   */
+  @Nullable
+  default <T> boolean hasValueFor(Class<? extends DataType<T>> typeClass) {
+    return get(typeClass) != null;
+  }
+
+  /**
+   * type.getFormattedString(value)
+   *
+   * @param <T>
+   * @param type
+   * @return
+   */
+  default <T> String getFormattedString(DataType<T> type) {
     return type.getFormattedString(get(type));
   }
 
   /**
    * type.getFormattedString(value)
-   * 
+   *
    * @param <T>
    * @param tclass
    * @return
@@ -166,91 +220,78 @@ public interface ModularDataModel {
   }
 
   /**
-   * setProperty should only be called after adding a new DataType column (e.g., by the
-   * FeatureList). To set the value of wrapping Property<?> call
-   * {@link ModularDataModel#set(Class, Object)}
-   * 
-   * @param type
-   * @param value
-   */
-  default void setProperty(DataType<?> type, Property<?> value) {
-    // type in defined columns?
-    if (!getTypes().containsKey(type.getClass()))
-      throw new TypeColumnUndefinedException(this, type.getClass());
-
-    DataType realType = getTypes().get(type.getClass());
-    // only set datatype -> property value once
-    if (getMap().get(realType) == null)
-      getMap().put(realType, value);
-  }
-
-  /**
-   * Set the value that is wrapped inside a property
-   * 
+   * Set the value
+   *
    * @param <T>
    * @param type
    * @param value
+   * @return true if the new value is different than the old
    */
-  default <T extends Property<?>> void set(DataType<T> type, Object value) {
-    set((Class) type.getClass(), value);
+  default <T> boolean set(DataType<T> type, T value) {
+    return set((Class) type.getClass(), value);
   }
 
   /**
-   * Set the value that is wrapped inside a property
-   * 
+   * Set the value
+   *
    * @param <T>
    * @param tclass
    * @param value
+   * @return true if the new value is different than the old
    */
-  default <T extends Property<?>> void set(Class<? extends DataType<T>> tclass, Object value) {
-    // type in defined columns?
-    if (!getTypes().containsKey(tclass)) {
-      throw new TypeColumnUndefinedException(this, tclass);
-    }
+  default <T> boolean set(Class<? extends DataType<T>> tclass, T value) {
+    // automatically add columns if new
+    getTypes().computeIfAbsent(tclass, key -> DataTypes.get(tclass));
 
-    DataType realType = getTypeColumn(tclass);
-    Property property = get(realType);
-    // TODO check if good - init property if not there
-    if(property == null) {
-      property = realType.createProperty();
-      setProperty(realType, property);
+    DataType<T> realType = getTypeColumn(tclass);
+    Object old = getMap().put(realType, value);
+    // send changes to all listeners for this data type
+    List<DataTypeValueChangeListener<?>> listeners = getValueChangeListeners().get(realType);
+    if (!Objects.equals(old, value)) {
+      if (listeners != null) {
+        for (DataTypeValueChangeListener listener : listeners) {
+          listener.valueChanged(this, realType, old, value);
+        }
+      }
+      return true;
     }
-    if(value == null) {
-      property.setValue(null);
-      return;
-    }
-
-    if(value instanceof Property)
-      value = ((Property)value).getValue();
-
-    // lists need to be ObservableList
-    if (value instanceof List && !(value instanceof ObservableList)) {
-      property.setValue(FXCollections.observableList((List) value));
-    }
-    else if (value instanceof Map && !(value instanceof ObservableMap))
-      property.setValue(FXCollections.observableMap((Map) value));
-    else
-      property.setValue(value);
+    return false;
   }
 
   /**
-   * Should only be called whenever a DataType column is removed from this model. To remove the
-   * value of the underlying Property<?> call {@link ModularDataModel#set(DataType, Object)}
-   *  @param <T>
-   * @param tclass
+   * Should only be called whenever a DataType column is removed from this model.
+   *
+   * @param tclass the data type class to be removed
    */
-  default <T extends Property<?>> void removeProperty(Class<? extends DataType<T>> tclass) {
+  default <T> void remove(Class<? extends DataType<T>> tclass) {
     DataType type = getTypeColumn(tclass);
-    if (type != null)
-      getMap().remove(type);
+    if (type != null) {
+      Object old = getMap().remove(type);
+      if (old != null) {
+        List<DataTypeValueChangeListener<?>> listeners = getValueChangeListeners().get(type);
+        if (listeners != null) {
+          for (DataTypeValueChangeListener listener : listeners) {
+            listener.valueChanged(this, type, old, null);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Maps listeners to their {@link DataType}s. Default returns an empty list.
+   */
+  default @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getValueChangeListeners() {
+    return Map.of();
   }
 
   /**
    * Stream all map.entries
-   * 
+   *
    * @return
    */
-  default Stream<Entry<DataType, Property<?>>> stream() {
+  default Stream<Entry<DataType, Object>> stream() {
     return getMap().entrySet().stream();
   }
+
 }

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 /*
  * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
@@ -31,6 +38,7 @@ package io.github.mzmine.modules.io.export_features_gnps.gc;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
@@ -51,13 +59,12 @@ import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.awt.Desktop;
 import java.io.File;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -74,34 +81,33 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
   // Logger.
   private final Logger logger = Logger.getLogger(getClass().getName());
 
-  private ParameterSet parameters;
-  private AtomicDouble progress = new AtomicDouble(0);
+  private final ParameterSet parameters;
+  private final AtomicDouble progress = new AtomicDouble(0);
 
-  private FeatureList featureList;
-  private MzMode representativeMZ;
-  private FeatureMeasurementType featureMeasure;
+  private final FeatureList featureList;
+  private final MzMode representativeMZ;
+  private final AbundanceMeasure featureMeasure;
 
   private File file;
-  private boolean submit;
-  private boolean openFolder;
+  private final boolean openFolder;
 
-  GnpsGcExportAndSubmitTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  GnpsGcExportAndSubmitTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
 
     this.featureList = parameters.getParameter(GnpsGcExportAndSubmitParameters.FEATURE_LISTS)
         .getValue().getMatchingFeatureLists()[0];
-    this.representativeMZ =
-        parameters.getParameter(GnpsGcExportAndSubmitParameters.REPRESENTATIVE_MZ).getValue();
-    this.featureMeasure =
-        parameters.getParameter(GnpsGcExportAndSubmitParameters.FEATURE_INTENSITY).getValue();
+    this.representativeMZ = parameters.getParameter(
+        GnpsGcExportAndSubmitParameters.REPRESENTATIVE_MZ).getValue();
+    this.featureMeasure = parameters.getParameter(GnpsGcExportAndSubmitParameters.FEATURE_INTENSITY)
+        .getValue();
     openFolder = parameters.getParameter(GnpsGcExportAndSubmitParameters.OPEN_FOLDER).getValue();
     file = parameters.getParameter(GnpsGcExportAndSubmitParameters.FILENAME).getValue();
     file = FileAndPathUtil.eraseFormat(file);
     parameters.getParameter(GnpsGcExportAndSubmitParameters.FILENAME).setValue(file);
     // submit =
     // parameters.getParameter(GnpsGcExportAndSubmitParameters.SUBMIT).getValue();
-    submit = false;
+//    submit = false;
   }
 
   @Override
@@ -132,7 +138,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     // add csv quant table
     list.add(addLegacyQuantTableTask(parameters, null));
     // add full quant table
-    list.add(addFullQuantTableTask(parameters, null));
+//    list.add(addFullQuantTableTask(parameters, null));
 
     // finish listener to submit
     final File fileName = file;
@@ -142,11 +148,11 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
         l -> {
           try {
             logger.info("succeed" + thistask.getStatus().toString());
-            if (submit) {
-              GnpsGcSubmitParameters param = parameters
-                  .getParameter(GnpsGcExportAndSubmitParameters.SUBMIT).getEmbeddedParameters();
-              submit(fileName, param);
-            }
+//            if (submit) {
+//              GnpsGcSubmitParameters param = parameters.getParameter(
+//                  GnpsGcExportAndSubmitParameters.SUBMIT).getEmbeddedParameters();
+//              submit(fileName, param);
+//            }
 
             // open folder
             try {
@@ -200,12 +206,13 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     String name = FilenameUtils.removeExtension(full.getName());
     full = FileAndPathUtil.getRealFilePath(full.getParentFile(), name, "mgf");
 
-    ParameterSet mgfParam =
-        MZmineCore.getConfiguration().getModuleParameters(AdapMgfExportModule.class);
+    ParameterSet mgfParam = MZmineCore.getConfiguration()
+        .getModuleParameters(AdapMgfExportModule.class);
     mgfParam.getParameter(AdapMgfExportParameters.FILENAME).setValue(full);
     mgfParam.getParameter(AdapMgfExportParameters.FRACTIONAL_MZ).setValue(true);
     mgfParam.getParameter(AdapMgfExportParameters.REPRESENTATIVE_MZ).setValue(representativeMZ);
-    return new AdapMgfExportTask(mgfParam, new FeatureList[]{featureList}, getModuleCallDate()); // todo: this will be inconsistent for batch modes, because the task will add it's own applied method.
+    return new AdapMgfExportTask(mgfParam, new FeatureList[]{featureList},
+        getModuleCallDate()); // todo: this will be inconsistent for batch modes, because the task will add it's own applied method.
   }
 
   /**
@@ -237,15 +244,9 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     final String name = FilenameUtils.removeExtension(full.getName());
     full = new File(full.getParentFile(), name + "_quant_full.csv");
 
-    ModularFeatureList[] flist = parameters
-        .getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
-        .getMatchingFeatureLists();
-
-    FeatureListRowsFilter filter =
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
-
-    CSVExportModularTask quanExportModular = new CSVExportModularTask(flist, full, ",", ";",
-        filter, getModuleCallDate());
+    CSVExportModularTask quanExportModular = new CSVExportModularTask(new ModularFeatureList[]{
+        (ModularFeatureList) featureList}, full, ",", ";", FeatureListRowsFilter.ALL,
+        true, getModuleCallDate());
 
     if (tasks != null) {
       tasks.add(quanExportModular);
@@ -265,13 +266,12 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     full = FileAndPathUtil.getRealFilePath(full.getParentFile(), name + "_quant", "csv");
 
     LegacyExportRowCommonElement[] common = new LegacyExportRowCommonElement[]{
-        LegacyExportRowCommonElement.ROW_ID,
-        LegacyExportRowCommonElement.ROW_MZ, LegacyExportRowCommonElement.ROW_RT};
+        LegacyExportRowCommonElement.ROW_ID, LegacyExportRowCommonElement.ROW_MZ,
+        LegacyExportRowCommonElement.ROW_RT};
 
     // height or area?
     LegacyExportRowDataFileElement[] rawdata = new LegacyExportRowDataFileElement[]{
-        featureMeasure.equals(FeatureMeasurementType.AREA)
-            ? LegacyExportRowDataFileElement.FEATURE_AREA
+        featureMeasure.equals(AbundanceMeasure.Area) ? LegacyExportRowDataFileElement.FEATURE_AREA
             : LegacyExportRowDataFileElement.FEATURE_HEIGHT};
 
     LegacyCSVExportTask quanExport = new LegacyCSVExportTask(new FeatureList[]{featureList}, full,

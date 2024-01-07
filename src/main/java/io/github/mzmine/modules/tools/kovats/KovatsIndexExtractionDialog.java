@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.tools.kovats;
@@ -38,12 +45,11 @@ import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.TICSumDataSet;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.dialogs.EmptyParameterSetupDialogBase;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeComponent;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeComponent;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DialogLoggerUtil;
@@ -81,22 +87,24 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.controlsfx.control.CheckListView;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
 
-public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
+public class KovatsIndexExtractionDialog extends EmptyParameterSetupDialogBase {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private static final ExtensionFilter csvFilter =
-      new ExtensionFilter("Comma-separated values", "*.csv");
+  private static final ExtensionFilter csvFilter = new ExtensionFilter("Comma-separated values",
+      "*.csv");
 
-  private NumberFormat rtFormat = new DecimalFormat("0.###");
+  private final NumberFormat rtFormat = new DecimalFormat("0.###");
   private static final Stroke markerStroke = new BasicStroke(1.5f);
   public static final int MIN_MARKERS = 3;
   private static final Image iconNext = FxIconUtil.loadImageFromResources("icons/btnNext.png");
@@ -105,43 +113,43 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   // button size < >
   private static final int SIZE = 25;
 
-  private FlowPane newMainPanel;
-  private BorderPane pnChart;
+  private final FlowPane newMainPanel;
+  private final BorderPane pnChart;
   private KovatsIndex[] selectedKovats;
 
   // accepts saved files
-  private Consumer<File> saveFileListener;
+  private final Consumer<File> saveFileListener;
   private TextField txtFeaturePick;
-  private TextField valuesComponent;
+  private final TextField valuesComponent;
   private TICPlot chart;
 
   private String pickedValuesString;
   private TreeMap<KovatsIndex, Double> parsedValues;
   private double noiseLevel = 0;
   private double ratioEdge = 2;
-  private ComboBox<RawDataFile> comboDataFileName;
-  private ComboBox<RawDataFile> comboDataFileName2;
+  private final ComboBox<RawDataFile> comboDataFileName;
+  private final ComboBox<RawDataFile> comboDataFileName2;
   private RawDataFile[] selectedDataFile;
-  private IntegerComponent minc;
-  private IntegerComponent maxc;
-  private DelayedDocumentListener ddlKovats;
-  private CheckListView<KovatsIndex> comboKovats;
+  private final IntegerComponent minc;
+  private final IntegerComponent maxc;
+  private final DelayedDocumentListener ddlKovats;
+  private final CheckListView<KovatsIndex> comboKovats;
   private List<ValueMarker> markers;
   private ValueMarker currentlyDraggedMarker;
-  private CheckBox cbSecondRaw;
-  private CheckBox cbCurrentAlkaneSubH;
-  private Label lbCurrentAlkane;
+  private final CheckBox cbSecondRaw;
+  private final CheckBox cbCurrentAlkaneSubH;
+  private final Label lbCurrentAlkane;
   // for direct selection of mz by alkane buttons
   private KovatsIndex currentAlkane;
+  private final @NotNull GridPane parameterPane;
 
 
   public KovatsIndexExtractionDialog(ParameterSet parameters) {
     this(parameters, null);
   }
 
+
   /**
-   *
-   * @param parent
    * @param parameters
    * @param saveFileListener accepts saved files
    */
@@ -151,6 +159,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
     // paramsPane.getChildren().clear();
     // paramsPane.getParent().remove(paramsPane);
+    parameterPane = createParameterPane(parameters.getParameters());
 
     ddlKovats = new DelayedDocumentListener(e -> updateKovatsList());
     DelayedDocumentListener ddlUpdateChart = new DelayedDocumentListener(e -> updateChart());
@@ -189,7 +198,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     BorderPane pnKovatsSelect = new BorderPane();
     west.setCenter(pnKovatsSelect);
     comboKovats = getComponentForParameter(KovatsIndexExtractionParameters.kovats);
-    // comboKovats.addValueChangeListener(() -> handleKovatsSelectionChange());
+//     comboKovats.addValueChangeListener(() -> handleKovatsSelectionChange());
     pnKovatsSelect.setCenter(comboKovats);
 
     // center: Chart and parameters
@@ -204,13 +213,13 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     pnSouth.setCenter(pnFeaturePick);
 
     valuesComponent = getComponentForParameter(KovatsIndexExtractionParameters.pickedKovatsValues);
-    MZRangeComponent mzc =
-        (MZRangeComponent) getComponentForParameter(KovatsIndexExtractionParameters.mzRange);
-    RTRangeComponent rtc =
-        (RTRangeComponent) getComponentForParameter(KovatsIndexExtractionParameters.rtRange);
+    MZRangeComponent mzc = (MZRangeComponent) getComponentForParameter(
+        KovatsIndexExtractionParameters.mzRange);
+    RTRangeComponent rtc = (RTRangeComponent) getComponentForParameter(
+        KovatsIndexExtractionParameters.rtRange);
     DoubleComponent noisec = getComponentForParameter(KovatsIndexExtractionParameters.noiseLevel);
-    DoubleComponent edgeRatioC =
-        getComponentForParameter(KovatsIndexExtractionParameters.ratioTopEdge);
+    DoubleComponent edgeRatioC = getComponentForParameter(
+        KovatsIndexExtractionParameters.ratioTopEdge);
 
     // valuesComponent.addDocumentListener(new DelayedDocumentListener(e -> kovatsValuesChanged()));
     // valuesComponent.setLayout(new GridLayout(1, 1));
@@ -233,17 +242,16 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     btnLoad.setOnAction(e -> loadFile());
     pnButtonFlow.getChildren().add(btnLoad);
     Button btnCombineFiles = new Button("Combine files");
-    btnCombineFiles
-        .setTooltip(new Tooltip("Select multiple Kovats index files to be combined into one"));
+    btnCombineFiles.setTooltip(
+        new Tooltip("Select multiple Kovats index files to be combined into one"));
     btnCombineFiles.setOnAction(e -> combineFiles());
     pnButtonFlow.getChildren().add(btnCombineFiles);
 
     // add combo for raw data file
 
-    comboDataFileName = new ComboBox<RawDataFile>(
-        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
-    comboDataFileName2 = new ComboBox<RawDataFile>(
-        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
+    var rawFiles = FXCollections.observableList(MZmineCore.getProject().getCurrentRawDataFiles());
+    comboDataFileName = new ComboBox<>(rawFiles);
+    comboDataFileName2 = new ComboBox<>(rawFiles);
     cbSecondRaw = new CheckBox();
     initRawDataFileSelection();
 
@@ -269,17 +277,19 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     cbCurrentAlkaneSubH.setSelected(true);
     cbCurrentAlkaneSubH.setOnAction(e -> setMzRangeByAlkane(0));
 
-    pnAlkaneSelect.getChildren().addAll(btnPrevAlkane, lbCurrentAlkane, btnNextAlkane,
-        cbCurrentAlkaneSubH);
+    pnAlkaneSelect.getChildren()
+        .addAll(btnPrevAlkane, lbCurrentAlkane, btnNextAlkane, cbCurrentAlkaneSubH);
     pnFeaturePick.getChildren().add(pnAlkaneSelect);
 
     pnFeaturePick.getChildren().add(new Label("m/z range"));
     pnFeaturePick.getChildren().add(mzc);
     pnFeaturePick.getChildren().add(new Label(KovatsIndexExtractionParameters.rtRange.getName()));
     pnFeaturePick.getChildren().add(rtc);
-    pnFeaturePick.getChildren().add(new Label(KovatsIndexExtractionParameters.noiseLevel.getName()));
+    pnFeaturePick.getChildren()
+        .add(new Label(KovatsIndexExtractionParameters.noiseLevel.getName()));
     pnFeaturePick.getChildren().add(noisec);
-    pnFeaturePick.getChildren().add(new Label(KovatsIndexExtractionParameters.ratioTopEdge.getName()));
+    pnFeaturePick.getChildren()
+        .add(new Label(KovatsIndexExtractionParameters.ratioTopEdge.getName()));
     pnFeaturePick.getChildren().add(edgeRatioC);
 
     // add listeners
@@ -303,9 +313,8 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     lbCurrentAlkane.setText(formula);
     // set mz
     Range<Double> mzRange = MzRangeFormulaCalculatorModule.getMzRangeFromFormula(formula,
-        IonizationType.POSITIVE, new MZTolerance(0.75, 0), 1);
-    ((MZRangeComponent) getComponentForParameter(KovatsIndexExtractionParameters.mzRange))
-        .setValue(mzRange);
+        IonizationType.POSITIVE, new MZTolerance(0.75, 0));
+    getComponentForParameter(KovatsIndexExtractionParameters.mzRange).setValue(mzRange);
   }
 
   private void useSecondDataFile(boolean selected) {
@@ -316,47 +325,34 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
    * Init raw data selection to last used raw data file or "kovats" or "dro"
    */
   private void initRawDataFileSelection() {
+    RawDataFile[] selectedFiles = parameterSet.getValue(KovatsIndexExtractionParameters.dataFiles)
+        .getMatchingRawDataFiles();
 
-    var dataFiles = MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles();
-
-    if (dataFiles == null || dataFiles.isEmpty())
-      return;
-
-    RawDataFilesSelection select =
-        parameterSet.getParameter(KovatsIndexExtractionParameters.dataFiles).getValue();
-    RawDataFile[] raw = null;
-    // set to parameters files - if they exist in this project
-    if (select != null && select.getMatchingRawDataFiles().length > 0) {
-      RawDataFile[] exists = Arrays.stream(select.getMatchingRawDataFiles())
-          .filter(r -> dataFiles.stream().anyMatch(d -> r.getName().equals(d.getName())))
-          .toArray(RawDataFile[]::new);
-      if (exists.length > 0)
-        raw = exists;
-    }
-
-    if (raw == null) {
+    if (selectedFiles == null) {
       // find kovats or dro file
       // first use all kovats named files and then dro (max 2)
-      RawDataFile[] kovats = dataFiles.stream()
+      var allFiles = MZmineCore.getProject().getCurrentRawDataFiles();
+      RawDataFile[] kovats = allFiles.stream()
           .filter(d -> d.getName().toLowerCase().contains("kovats")).toArray(RawDataFile[]::new);
-      RawDataFile[] dro = dataFiles.stream().filter(d -> d.getName().toLowerCase().contains("dro"))
+      RawDataFile[] dro = allFiles.stream().filter(d -> d.getName().toLowerCase().contains("dro"))
           .toArray(RawDataFile[]::new);
 
       // maximum of two files are chosen (0,1,2)
       int size = Math.min(2, kovats.length + dro.length);
-      raw = new RawDataFile[size];
-      for (int i = 0; i < raw.length; i++) {
-        if (i < kovats.length)
-          raw[i] = kovats[i];
-        else
-          raw[i] = dro[i - kovats.length];
+      selectedFiles = new RawDataFile[size];
+      for (int i = 0; i < size; i++) {
+        if (i < kovats.length) {
+          selectedFiles[i] = kovats[i];
+        } else {
+          selectedFiles[i] = dro[i - kovats.length];
+        }
       }
     }
 
-    if (raw.length > 0) {
-      selectedDataFile = raw;
+    if (selectedFiles != null && selectedFiles.length > 0) {
+      selectedDataFile = selectedFiles;
       comboDataFileName.getSelectionModel().select(selectedDataFile[0]);
-      if (raw.length > 1) {
+      if (selectedFiles.length > 1) {
         comboDataFileName2.getSelectionModel().select(selectedDataFile[1]);
       }
     }
@@ -375,15 +371,16 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     if (parseValues() && chart != null) {
       //
       chart.getChart().getXYPlot().clearDomainMarkers();
-      if (markers == null)
+      if (markers == null) {
         markers = new ArrayList<>();
-      else
+      } else {
         markers.clear();
+      }
 
       for (Entry<KovatsIndex, Double> e : parsedValues.entrySet()) {
         ValueMarker marker = new ValueMarker(e.getValue(),
-            MZmineCore.getConfiguration().getDefaultColorPalette()
-                .getPositiveColorAWT(), markerStroke);
+            MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(),
+            markerStroke);
 
         marker.setLabelOffset(new RectangleInsets(10, 0, 0, 0));
         marker.setLabelFont(new Font("Arial", Font.PLAIN, 12));
@@ -400,14 +397,16 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
   private boolean parseValues() {
     updateParameterSetFromComponents();
-    if (parsedValues == null)
+    if (parsedValues == null) {
       parsedValues = new TreeMap<>();
+    }
     parsedValues.clear();
     try {
       String[] entries = pickedValuesString.split(",");
       for (String s : entries) {
-        if (s.isEmpty())
+        if (s.isEmpty()) {
           continue;
+        }
         String[] e = s.split(":");
         parsedValues.put(KovatsIndex.getByShortName(e[0]), Double.parseDouble(e[1]));
       }
@@ -441,13 +440,13 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   }
 
   /**
-   *
    * @param values
    * @param checkMinMaxSelectedChange check min max and selected Kovats for Kovats Index list
    */
   private void setValues(TreeMap<KovatsIndex, Double> values, boolean checkMinMaxSelectedChange) {
-    if (values.size() < 2)
+    if (values.size() < 2) {
       return;
+    }
 
     parsedValues = values;
     StringBuilder s = new StringBuilder();
@@ -482,7 +481,6 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
    * GNPS GC MS formatted table (comma-separated)
    *
    * @param values
-   *
    * @return
    */
   private String getCsvTable(TreeMap<KovatsIndex, Double> values) {
@@ -496,7 +494,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     for (Entry<KovatsIndex, Double> e : values.entrySet()) {
       s.append(e.getKey().getAlkaneName());
       s.append(",");
-      s.append(String.valueOf(e.getKey().getNumCarbon()));
+      s.append(e.getKey().getNumCarbon());
       s.append(",");
       // export rt in seconds for GNPS GC
       s.append(f.format(e.getValue() * 60.0));
@@ -507,8 +505,9 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
   private void updateChart() {
     updateParameterSetFromComponents();
-    if (selectedDataFile == null)
+    if (selectedDataFile == null) {
       return;
+    }
     try {
       // old charts axes ranges
       org.jfree.data.Range domainZoom =
@@ -516,39 +515,42 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
       org.jfree.data.Range rangeZoom =
           chart == null ? null : chart.getChart().getXYPlot().getRangeAxis().getRange();
 
-      Range<Double> rangeMZ =
-          parameterSet.getParameter(KovatsIndexExtractionParameters.mzRange).getValue();
+      Range<Double> rangeMZ = parameterSet.getParameter(KovatsIndexExtractionParameters.mzRange)
+          .getValue();
       Range<Float> rangeRT = RangeUtils.toFloatRange(
           parameterSet.getParameter(KovatsIndexExtractionParameters.rtRange).getValue());
       if (rangeMZ == null) {
         // set range to specific alkane fragment
         rangeMZ = Range.closed(56.6, 57.5);
-        ((MZRangeComponent) getComponentForParameter(KovatsIndexExtractionParameters.mzRange))
-            .setValue(rangeMZ);
+        getComponentForParameter(KovatsIndexExtractionParameters.mzRange).setValue(rangeMZ);
       }
       if (rangeRT == null) {
         rangeRT = selectedDataFile[0].getDataRTRange();
-        ((RTRangeComponent) getComponentForParameter(KovatsIndexExtractionParameters.rtRange))
-            .setValue(RangeUtils.toDoubleRange(rangeRT));
+        getComponentForParameter(KovatsIndexExtractionParameters.rtRange).setValue(
+            RangeUtils.toDoubleRange(rangeRT));
       }
 
       // create dataset
-      TICSumDataSet data =
-          new TICSumDataSet(selectedDataFile, rangeRT, rangeMZ, null, TICPlotType.BASEPEAK);
+      TICSumDataSet data = new TICSumDataSet(selectedDataFile, rangeRT, rangeMZ, null,
+          TICPlotType.BASEPEAK);
       chart = new TICPlot();
       chart.addDataSet(data);
-      if (domainZoom != null)
+      if (domainZoom != null) {
         chart.getChart().getXYPlot().getDomainAxis().setRange(domainZoom);
-      if (rangeZoom != null)
+      }
+      if (rangeZoom != null) {
         chart.getChart().getXYPlot().getRangeAxis().setRange(rangeZoom);
+      }
 
       // add control for markers
-      chart.getGestureAdapter().addGestureHandler(new ChartGestureDragDiffHandler(Entity.PLOT,
-          GestureButton.BUTTON1, new Key[] {Key.NONE}, e -> handleMarkerDrag(e)));
+      chart.getGestureAdapter().addGestureHandler(
+          new ChartGestureDragDiffHandler(Entity.PLOT, GestureButton.BUTTON1, new Key[]{Key.NONE},
+              e -> handleMarkerDrag(e)));
       chart.getGestureAdapter().addGestureHandler(
           new ChartGestureHandler(new ChartGesture(Entity.PLOT, Event.RELEASED), e -> {
-            if (chart != null)
+            if (chart != null) {
               chart.setMouseZoomable(true);
+            }
             if (currentlyDraggedMarker != null) {
               // set value of current marker
               logger.info("Marker dragging ended at " + currentlyDraggedMarker.getValue());
@@ -576,8 +578,9 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
    * @param e
    */
   private void handleMarkerDrag(ChartGestureDragDiffEvent e) {
-    if (markers == null || markers.isEmpty())
+    if (markers == null || markers.isEmpty()) {
       return;
+    }
 
     // dragged marker?
     if (currentlyDraggedMarker == null) {
@@ -604,32 +607,32 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   }
 
   @Override
-  public void updateParameterSetFromComponents() {
+  public ParameterSet updateParameterSetFromComponents() {
     super.updateParameterSetFromComponents();
     selectedKovats = parameterSet.getParameter(KovatsIndexExtractionParameters.kovats).getValue();
-    pickedValuesString =
-        parameterSet.getParameter(KovatsIndexExtractionParameters.pickedKovatsValues).getValue();
+    pickedValuesString = parameterSet.getParameter(
+        KovatsIndexExtractionParameters.pickedKovatsValues).getValue();
     noiseLevel =
         parameterSet.getParameter(KovatsIndexExtractionParameters.noiseLevel).getValue() != null
-            ? parameterSet.getParameter(KovatsIndexExtractionParameters.noiseLevel).getValue()
-            : 0;
+            ? parameterSet.getParameter(KovatsIndexExtractionParameters.noiseLevel).getValue() : 0;
     ratioEdge =
         parameterSet.getParameter(KovatsIndexExtractionParameters.ratioTopEdge).getValue() != null
             ? parameterSet.getParameter(KovatsIndexExtractionParameters.ratioTopEdge).getValue()
             : 2;
 
     if (cbSecondRaw.isSelected()
-        || comboDataFileName2.getSelectionModel().getSelectedItem() == null)
-      selectedDataFile = new RawDataFile[] {comboDataFileName.getSelectionModel().getSelectedItem(),
+        || comboDataFileName2.getSelectionModel().getSelectedItem() == null) {
+      selectedDataFile = new RawDataFile[]{comboDataFileName.getSelectionModel().getSelectedItem(),
           comboDataFileName2.getSelectionModel().getSelectedItem()};
-    else
-      selectedDataFile =
-          new RawDataFile[] {comboDataFileName.getSelectionModel().getSelectedItem()};
+    } else {
+      selectedDataFile = new RawDataFile[]{comboDataFileName.getSelectionModel().getSelectedItem()};
+    }
 
     if (selectedDataFile != null && selectedDataFile.length > 0 && selectedDataFile[0] != null) {
       parameterSet.getParameter(KovatsIndexExtractionParameters.dataFiles)
           .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, selectedDataFile);
     }
+    return parameterSet;
   }
 
   /**
@@ -646,10 +649,10 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
       parameterSet.getParameter(KovatsIndexExtractionParameters.kovats).setChoices(newValues);
       parameterSet.getParameter(KovatsIndexExtractionParameters.kovats).setValue(newSelected);
-      CheckListView<KovatsIndex> kovatsc =
-          getComponentForParameter(KovatsIndexExtractionParameters.kovats);
-      ObservableList<KovatsIndex> choicesList =
-          FXCollections.observableArrayList(Arrays.asList(newValues));
+      CheckListView<KovatsIndex> kovatsc = getComponentForParameter(
+          KovatsIndexExtractionParameters.kovats);
+      ObservableList<KovatsIndex> choicesList = FXCollections.observableArrayList(
+          Arrays.asList(newValues));
 
       kovatsc.setItems(choicesList);
       kovatsc.getSelectionModel().clearSelection();
@@ -676,8 +679,9 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     double lastRT = 0;
     for (KovatsIndex ki : selectedKovats) {
       Double rt = lastRT + 1;
-      if (parsedValues != null)
+      if (parsedValues != null) {
         rt = parsedValues.getOrDefault(ki, rt);
+      }
 
       s.append(ki.name() + ":" + rtFormat.format(rt) + ",");
       i++;
@@ -693,8 +697,9 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   private void pickRetentionTimes() {
     updateParameterSetFromComponents();
     XYDataset data = getData();
-    if (data == null)
+    if (data == null) {
       return;
+    }
 
     int items = data.getItemCount(0);
     List<Double> results = new ArrayList<>();
@@ -759,21 +764,22 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   }
 
   /**
-   *
    * @return number of loaded files
    */
   private int loadFile() {
-    File lastFile =
-        parameterSet.getParameter(KovatsIndexExtractionParameters.lastSavedFile).getValue();
+    File lastFile = parameterSet.getParameter(KovatsIndexExtractionParameters.lastSavedFile)
+        .getValue();
     FileChooser chooser = new FileChooser();
     chooser.getExtensionFilters().add(csvFilter);
-    if (lastFile != null)
+    if (lastFile != null) {
       chooser.setInitialFileName(lastFile.getAbsolutePath());
+    }
 
     List<File> f = chooser.showOpenMultipleDialog(this.getScene().getWindow());
 
-    if (f == null)
+    if (f == null) {
       return 0;
+    }
 
     TreeMap<KovatsIndex, Double> values = new TreeMap<>();
     // combine all
@@ -820,18 +826,20 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     }
     final TreeMap<KovatsIndex, Double> values = parsedValues;
 
-    File lastFile =
-        parameterSet.getParameter(KovatsIndexExtractionParameters.lastSavedFile).getValue();
+    File lastFile = parameterSet.getParameter(KovatsIndexExtractionParameters.lastSavedFile)
+        .getValue();
 
     FileChooser chooser = new FileChooser();
     chooser.getExtensionFilters().add(csvFilter);
-    if (lastFile != null)
+    if (lastFile != null) {
       chooser.setInitialFileName(lastFile.getAbsolutePath());
+    }
 
     File f = chooser.showSaveDialog(this.getScene().getWindow());
 
-    if (f == null)
+    if (f == null) {
       return;
+    }
 
     // set last file
     setLastFile(f);
@@ -839,8 +847,9 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     try {
       // save to file in GNPS GC format
       String exp = getCsvTable(values);
-      if (TxtWriter.write(exp, f, false))
+      if (TxtWriter.write(exp, f, false)) {
         saveFileListener.accept(f);
+      }
     } catch (Exception e) {
       logger.log(Level.WARNING, "Error while saving Kovats file to " + f.getAbsolutePath(), e);
     }

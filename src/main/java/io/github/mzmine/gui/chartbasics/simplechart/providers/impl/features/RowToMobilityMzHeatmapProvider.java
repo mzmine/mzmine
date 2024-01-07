@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features;
@@ -31,7 +38,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,8 +55,8 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
 
   private double maxValue = Double.NEGATIVE_INFINITY;
   private double minValue = Double.POSITIVE_INFINITY;
-  private double maxDiameter = 30d;
-  private double minDiameter = 10d;
+  private final double maxDiameter = 30d;
+  private final double minDiameter = 10d;
   private double deltaDiameter = 1d;
   private double deltaValue = 1d;
 
@@ -84,13 +91,10 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
   @Override
   public String getLabel(int index) {
     ModularFeatureListRow f = rows.get(index);
-    StringBuilder sb = new StringBuilder();
-    sb.append("m/z:");
-    sb.append(mzFormat.format(f.getAverageMZ()));
-    sb.append("\n");
-    sb.append("Mobility: ");
-    sb.append(mobilityFormat.format(f.getAverageMobility()));
-    return sb.toString();
+    final String sb =
+        "m/z:" + mzFormat.format(f.getAverageMZ()) + "\n" + "Mobility: " + mobilityFormat.format(
+            f.getAverageMobility());
+    return sb;
   }
 
   @NotNull
@@ -104,26 +108,17 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
   public String getToolTipText(int itemIndex) {
     ModularFeatureListRow f = rows.get(itemIndex);
 
-    StringBuilder sb = new StringBuilder();
-    sb.append("m/z:");
-    sb.append(mzFormat.format(f.getMZRange().lowerEndpoint()));
-    sb.append(" - ");
-    sb.append(mzFormat.format(f.getMZRange().upperEndpoint()));
-    sb.append("\n");
-    sb.append("Height: ");
-    sb.append(intensityFormat.format(f.getAverageHeight()));
-    sb.append("\n");
-    sb.append("Retention time");
-    sb.append(": ");
-    sb.append(rtFormat.format(f.getAverageRT()));
-    sb.append(" min\n");
-    sb.append("Mobility: ");
-    sb.append(mobilityFormat.format(f.getAverageMobility()));
-    return sb.toString();
+    final String sb =
+        "m/z:" + mzFormat.format(f.getMZRange().lowerEndpoint()) + " - " + mzFormat.format(
+            f.getMZRange().upperEndpoint()) + "\n" + "Height: " + intensityFormat.format(
+            f.getAverageHeight()) + "\n" + "Retention time" + ": " + rtFormat.format(
+            f.getAverageRT()) + " min\n" + "Mobility: " + mobilityFormat.format(
+            f.getAverageMobility());
+    return sb;
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
     for (int i = 0; i < rows.size(); i++) {
       final ModularFeatureListRow row = rows.get(i);
       for (final IMSRawDataFile file : files) {
@@ -134,7 +129,7 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
         minValue = Math.min(summedValues[i], minValue);
         maxValue = Math.max(summedValues[i], maxValue);
 
-        if (status.get() == TaskStatus.CANCELED) {
+        if (status.getValue() == TaskStatus.CANCELED) {
           return;
         }
       }
@@ -191,7 +186,7 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
 
   @Override
   public double getPieDiameter(int index) {
-    return (getZValue(index) - minValue)/deltaValue * deltaDiameter + minDiameter;
+    return (getZValue(index) - minValue) / deltaValue * deltaDiameter + minDiameter;
   }
 
   @Override

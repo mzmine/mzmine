@@ -1,40 +1,50 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.NeutralMassParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
+/**
+ * @deprecated because of old API usage. Hard to maintain. This was removed from the interfaces and
+ * is only here as reference point
+ */
+@Deprecated
 public class SingleRowIdentificationParameters extends SimpleParameterSet {
 
-  public static final ModuleComboParameter<OnlineDatabases> DATABASE =
-      new ModuleComboParameter<OnlineDatabases>("Database", "Database to search",
-          OnlineDatabases.values(), OnlineDatabases.PubChem);
+  public static final ModuleComboParameter<OnlineDatabases> DATABASE = new ModuleComboParameter<OnlineDatabases>(
+      "Database", "Database to search", OnlineDatabases.values(), OnlineDatabases.PubChem);
 
-  public static final NeutralMassParameter NEUTRAL_MASS =
-      new NeutralMassParameter("Neutral mass", "Value to use in the search query");
+  public static final NeutralMassParameter NEUTRAL_MASS = new NeutralMassParameter("Neutral mass",
+      "Value to use in the search query");
 
   // Max count of 10,000 is enforced by ChemSpider API
   public static final IntegerParameter MAX_RESULTS = new IntegerParameter("Number of results",
@@ -42,12 +52,11 @@ public class SingleRowIdentificationParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter();
 
-  public static final OptionalModuleParameter<IsotopePatternScoreParameters> ISOTOPE_FILTER =
-      new OptionalModuleParameter<>("Isotope pattern filter",
-          "Search only for compounds with a isotope pattern similar",
-          new IsotopePatternScoreParameters());
+  public static final OptionalModuleParameter<IsotopePatternScoreParameters> ISOTOPE_FILTER = new OptionalModuleParameter<>(
+      "Isotope pattern filter", "Search only for compounds with a isotope pattern similar",
+      new IsotopePatternScoreParameters());
 
   public SingleRowIdentificationParameters() {
-    super(new Parameter[] {DATABASE, NEUTRAL_MASS, MAX_RESULTS, MZ_TOLERANCE, ISOTOPE_FILTER});
+    super(DATABASE, NEUTRAL_MASS, MAX_RESULTS, MZ_TOLERANCE, ISOTOPE_FILTER);
   }
 }

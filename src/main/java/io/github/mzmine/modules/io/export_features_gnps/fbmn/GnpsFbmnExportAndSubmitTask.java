@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 /*
  * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
@@ -29,33 +36,26 @@
 
 package io.github.mzmine.modules.io.export_features_gnps.fbmn;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationTask;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportTask;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowCommonElement;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowDataFileElement;
-import io.github.mzmine.util.FeatureMeasurementType;
-import java.awt.Desktop;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.apache.commons.io.FilenameUtils;
-import com.google.common.util.concurrent.AtomicDouble;
-import io.github.msdk.MSDKRuntimeException;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.GNPSUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
+import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import java.awt.Desktop;
+import java.io.File;
+import java.time.Instant;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -65,115 +65,169 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
 
-  // Logger.
-  private final Logger logger = Logger.getLogger(getClass().getName());
+  private static final Logger logger = Logger.getLogger(
+      GnpsFbmnExportAndSubmitTask.class.getName());
+  private final ParameterSet parameters;
+  private final AbundanceMeasure featureMeasure;
+  private final File baseFile;
+  private final ModularFeatureList[] featureLists;
+  private final int totalSteps = 4;
+  private final FeatureTableExportType csvType;
+  private int currentStep = 0;
+  private Task currentTask;
+  private String currentDescription = "Export to GNPS FBMN and IIMN";
 
-  private ParameterSet parameters;
-  private AtomicDouble progress = new AtomicDouble(0);
-  private FeatureMeasurementType featureMeasure;
-
-  GnpsFbmnExportAndSubmitTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  GnpsFbmnExportAndSubmitTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
-  }
 
-  @Override
-  public TaskPriority getTaskPriority() {
-    // to not block mzmine with single process (1 thread)
-    return TaskPriority.HIGH;
+    featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
+        .getValue().getMatchingFeatureLists();
+    featureMeasure = parameters.getValue(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY);
+    csvType = parameters.getValue(GnpsFbmnExportAndSubmitParameters.CSV_TYPE);
+    baseFile = FileAndPathUtil.eraseFormat(
+        parameters.getValue(GnpsFbmnExportAndSubmitParameters.FILENAME));
+    parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).setValue(baseFile);
   }
 
   @Override
   public String getTaskDescription() {
-    return "Exporting files GNPS feature based molecular networking job";
+    return currentDescription == null ? "" : currentDescription;
   }
 
   @Override
   public double getFinishedPercentage() {
-    return progress.get();
+    if (currentTask != null) {
+      synchronized (currentTask) {
+        if (currentTask != null) {
+          return (currentTask.getFinishedPercentage() + currentStep) / (double) totalSteps;
+        }
+      }
+    }
+    return currentStep / (double) totalSteps;
   }
 
   @Override
   public void run() {
-    final AbstractTask thistask = this;
     setStatus(TaskStatus.PROCESSING);
 
-    boolean openFolder =
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.OPEN_FOLDER).getValue();
+    boolean openFolder = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.OPEN_FOLDER)
+        .getValue();
     boolean submit = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT).getValue();
-    File file = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
-    file = FileAndPathUtil.eraseFormat(file);
-    parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).setValue(file);
+    final FeatureListRowsFilter filter = parameters.getValue(
+        GnpsFbmnExportAndSubmitParameters.FILTER);
 
-    featureMeasure =
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY).getValue();
-
-    List<AbstractTask> list = new ArrayList<>(4);
-    GnpsFbmnMgfExportTask task = new GnpsFbmnMgfExportTask(parameters, getModuleCallDate());
-    list.add(task);
-
-    // add old csv quant table for old FBMN support
-    list.add(addLegacyQuantTableTask(parameters, null));
-    // add new csv export for whole table
-    list.add(addFullQuantTableTask(parameters, null));
-
-    // add csv extra edges
-    list.add(addExtraEdgesTask(parameters, null));
-
-    // finish listener to submit
-    final File fileName = file;
-    final File folder = file.getParentFile();
-    new AllTasksFinishedListener(list, true,
-        // succeed
-        l -> {
-          try {
-            logger.info("succeed" + thistask.getStatus().toString());
-            if (submit) {
-              GnpsFbmnSubmitParameters param = parameters
-                  .getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT).getEmbeddedParameters();
-              submit(fileName, param);
-            }
-
-            // open folder
-            try {
-              if (openFolder && Desktop.isDesktopSupported()) {
-                Desktop.getDesktop().open(folder);
-              }
-            } catch (Exception ex) {
-              logger.log(Level.WARNING, "Cannot open folder " + ex.getMessage(), ex);
-            }
-          } finally {
-            // finish task
-            if (thistask.getStatus() == TaskStatus.PROCESSING) {
-              thistask.setStatus(TaskStatus.FINISHED);
+    this.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      if (currentTask != null) {
+        synchronized (currentTask) {
+          if (TaskStatus.ERROR.equals(newStatus) || TaskStatus.CANCELED.equals(newStatus)) {
+            // cancel the subtask
+            if (currentTask != null) {
+              currentTask.cancel();
             }
           }
-        }, lerror -> {
-      setErrorMessage("GNPS submit was not started due too errors while file export");
-      thistask.setStatus(TaskStatus.ERROR);
-      throw new MSDKRuntimeException(
-          "GNPS submit was not started due too errors while file export");
-    },
-        // cancel if one was cancelled
-        listCancelled -> cancel()) {
-      @Override
-      public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus) {
-        super.taskStatusChanged(task, newStatus, oldStatus);
-        // show progress
-        progress.getAndSet(getProgress());
+        }
       }
-    };
+    });
 
-    MZmineCore.getTaskController().addTasks(list.toArray(AbstractTask[]::new));
+    currentDescription = "Exporting GNPS mgf of MS2 spectra";
+    currentTask = new GnpsFbmnMgfExportTask(parameters, getModuleCallDate());
+    currentTask.run();
+    currentStep++;
+    int mgfCount = ((ProcessedItemsCounter) currentTask).getProcessedItems();
 
-    // wait till finish
-    while (!(isCanceled() || isFinished())) {
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        logger.log(Level.SEVERE, "Error in GNPS export/submit task", e);
+    if (checkTaskCanceledOrFailed()) {
+      return;
+    }
+
+    int csvLineCount = 0;
+    final boolean allCSV = FeatureTableExportType.ALL.equals(csvType);
+    // add old csv quant table for old FBMN support
+    if (allCSV || FeatureTableExportType.SIMPLE.equals(csvType)) {
+      currentDescription = "Exporting GNPS legacy csv format (simple csv)";
+      currentTask = addLegacyQuantTableTask(parameters);
+      currentTask.run();
+      currentStep++;
+
+      csvLineCount = ((ProcessedItemsCounter) currentTask).getProcessedItems();
+      if (checkTaskCanceledOrFailed()) {
+        return;
       }
     }
+
+    // add new csv export for whole table
+    if (allCSV || FeatureTableExportType.COMPREHENSIVE.equals(csvType)) {
+      currentDescription = "Exporting MZmine csv format (complete feature table csv)";
+      currentTask = addFullQuantTableTask(parameters);
+      currentTask.run();
+      currentStep++;
+
+      csvLineCount = ((ProcessedItemsCounter) currentTask).getProcessedItems();
+      if (checkTaskCanceledOrFailed()) {
+        return;
+      }
+    }
+
+    // add csv extra edges
+    currentDescription = "Exporting extra edges csv format (ion identity networking)";
+    currentTask = addExtraEdgesTask(parameters);
+    currentTask.run();
+    currentStep++;
+
+    if (checkTaskCanceledOrFailed()) {
+      return;
+    }
+    currentTask = null;
+
+    final File folder = baseFile.getParentFile();
+    // csv count is always the same
+    // MGF and csv only of MS2 is required for export
+    if (!filter.requiresMS2() || csvLineCount == mgfCount) {
+      logger.log(Level.INFO,
+          String.format("GNPS export succeeded. mgf MS2=%d;  csv rows=%d", mgfCount, csvLineCount));
+      currentDescription = "All GNPS exports successful";
+    } else {
+      final String error = String.format(
+          "GNPS export resulted in files with different length despite using the same filter. Try to use this module manually after running a batch. mgf MS2=%d;  csv rows=%d",
+          mgfCount, csvLineCount);
+      currentDescription = "Error during csv export";
+      logger.log(Level.WARNING, error);
+      setErrorMessage(error);
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+    // submit HTTP request to GNPS FBMN quickstart
+    if (submit) {
+      currentDescription = "Submitting job to GNPS";
+      GnpsFbmnSubmitParameters param = parameters.getParameter(
+          GnpsFbmnExportAndSubmitParameters.SUBMIT).getEmbeddedParameters();
+      submit(baseFile, param);
+    }
+
+    // open folder
+    try {
+      if (openFolder && Desktop.isDesktopSupported()) {
+        Desktop.getDesktop().open(folder);
+      }
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Cannot open folder " + ex.getMessage(), ex);
+    }
+
+    setStatus(TaskStatus.FINISHED);
+  }
+
+  /**
+   * Check if the current task finished successfully.
+   *
+   * @return true if task is cancelled or failed
+   */
+  private boolean checkTaskCanceledOrFailed() {
+    if (isCanceled() || !TaskStatus.FINISHED.equals(currentTask.getStatus())) {
+      setStatus(currentTask.getStatus());
+      setErrorMessage(currentTask.getErrorMessage());
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -197,27 +251,17 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
    * Export the whole quant table in the new format
    *
    * @param parameters export parameters {@link GnpsFbmnExportAndSubmitParameters}
-   * @param tasks      new task is added to this list of tasks
    */
-  private AbstractTask addFullQuantTableTask(ParameterSet parameters, Collection<Task> tasks) {
+  private AbstractTask addFullQuantTableTask(ParameterSet parameters) {
     File full = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
     final String name = FilenameUtils.removeExtension(full.getName());
     full = new File(full.getParentFile(), name + "_quant_full.csv");
 
-    ModularFeatureList[] flist = parameters
-        .getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
-        .getMatchingFeatureLists();
+    FeatureListRowsFilter filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER)
+        .getValue();
 
-    FeatureListRowsFilter filter =
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
-
-    CSVExportModularTask quanExportModular = new CSVExportModularTask(flist, full, ",", ";",
-        filter, getModuleCallDate());
-
-    if (tasks != null) {
-      tasks.add(quanExportModular);
-    }
-    return quanExportModular;
+    return new CSVExportModularTask(featureLists, full, ",", ";", filter, true,
+        getModuleCallDate());
   }
 
 
@@ -225,71 +269,52 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
    * Export quant table in new and old format
    *
    * @param parameters export parameters {@link GnpsFbmnExportAndSubmitParameters}
-   * @param tasks      new task is added to this list of tasks
    */
-  private AbstractTask addLegacyQuantTableTask(ParameterSet parameters, Collection<Task> tasks) {
-    File full = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
-    final String name = FilenameUtils.removeExtension(full.getName());
-    full = new File(full.getParentFile(), name + "_quant.csv");
+  private AbstractTask addLegacyQuantTableTask(ParameterSet parameters) {
+    final String name = FilenameUtils.removeExtension(baseFile.getName());
+    File full = new File(baseFile.getParentFile(), name + "_quant.csv");
     // add old CSV export
     LegacyExportRowCommonElement[] common = new LegacyExportRowCommonElement[]{
         LegacyExportRowCommonElement.ROW_ID, LegacyExportRowCommonElement.ROW_MZ,
         LegacyExportRowCommonElement.ROW_RT,
+        // ion mobility columns
+        LegacyExportRowCommonElement.ROW_ION_MOBILITY,
+        LegacyExportRowCommonElement.ROW_ION_MOBILITY_UNIT, LegacyExportRowCommonElement.ROW_CCS,
         // extra for ion identity networking
-        LegacyExportRowCommonElement.ROW_CORR_GROUP_ID, LegacyExportRowCommonElement.ROW_MOL_NETWORK_ID,
+        LegacyExportRowCommonElement.ROW_CORR_GROUP_ID,
+        LegacyExportRowCommonElement.ROW_MOL_NETWORK_ID,
         LegacyExportRowCommonElement.ROW_BEST_ANNOTATION_AND_SUPPORT,
         LegacyExportRowCommonElement.ROW_NEUTRAL_MASS};
 
     // per raw data file
-    LegacyExportRowDataFileElement[] rawdata = new LegacyExportRowDataFileElement[]
-        {featureMeasure.equals(FeatureMeasurementType.AREA)
-            ? LegacyExportRowDataFileElement.FEATURE_AREA
+    LegacyExportRowDataFileElement[] rawdata = new LegacyExportRowDataFileElement[]{
+        featureMeasure.equals(AbundanceMeasure.Area) ? LegacyExportRowDataFileElement.FEATURE_AREA
             : LegacyExportRowDataFileElement.FEATURE_HEIGHT};
 
-    FeatureListRowsFilter filter =
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
+    FeatureListRowsFilter filter = parameters.getValue(GnpsFbmnExportAndSubmitParameters.FILTER);
 
-    ModularFeatureList[] flist = parameters
-        .getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
-        .getMatchingFeatureLists();
-
-    LegacyCSVExportTask quanExport = new LegacyCSVExportTask(flist, full, ",", common, rawdata,
-        false, ";", filter, getModuleCallDate());
-
-    if (tasks != null) {
-      tasks.add(quanExport);
-    }
-    return quanExport;
+    return new LegacyCSVExportTask(featureLists, full, ",", common, rawdata, false, ";", filter,
+        getModuleCallDate());
   }
 
 
   /**
    * Export extra edges (wont create files if empty)
-   *
-   * @param parameters
-   * @param tasks
    */
-  private AbstractTask addExtraEdgesTask(ParameterSet parameters, Collection<Task> tasks) {
+  private AbstractTask addExtraEdgesTask(ParameterSet parameters) {
     File full = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
     FeatureListRowsFilter filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER)
         .getValue();
-    boolean mergeLists =
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER).getValue();
 
     boolean exAnn = true;
     if (parameters.getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT).getValue()) {
-      exAnn = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT).getEmbeddedParameters()
+      exAnn = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT)
+          .getEmbeddedParameters()
           .getParameter(GnpsFbmnSubmitParameters.EXPORT_ION_IDENTITY_NETWORKS).getValue();
     }
-    ModularFeatureList[] flist = parameters
-        .getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
-        .getMatchingFeatureLists();
 
-    AbstractTask extraEdgeExport = new ExportCorrAnnotationTask(flist, full, 0, filter, exAnn, false, false, false, getModuleCallDate());
-
-    if (tasks != null)
-      tasks.add(extraEdgeExport);
-    return extraEdgeExport;
+    return new ExportCorrAnnotationTask(featureLists, full, 0, filter, exAnn, false, false, false,
+        getModuleCallDate());
   }
 
 }

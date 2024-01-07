@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui;
@@ -25,6 +32,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
@@ -43,8 +51,7 @@ import org.jetbrains.annotations.NotNull;
 public class HeadLessDesktop implements Desktop {
 
   private static final String MODULE_NAME = "Desktop";
-
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(HeadLessDesktop.class.getName());
 
   @Override
   public Stage getMainWindow() {
@@ -52,12 +59,9 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  public void setStatusBarText(String text) {
-    throw new UnsupportedOperationException();
+  public void setStatusBarText(String text, Color textColor, String url) {
+    // do nothing in headless
   }
-
-  @Override
-  public void setStatusBarText(String text, Color textColor) {}
 
   @Override
   public void displayMessage(String msg) {
@@ -67,6 +71,12 @@ public class HeadLessDesktop implements Desktop {
   @Override
   public void displayMessage(String title, String msg) {
     logger.info(msg);
+  }
+
+  @Override
+  public void displayMessage(final String title, final String msg, final String url) {
+    logger.info(msg);
+    logger.info("URL: " + url);
   }
 
   @Override
@@ -92,6 +102,11 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
+  public SpectralLibrary[] getSelectedSpectralLibraries() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return SimpleParameterSet.class;
   }
@@ -113,13 +128,17 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  public void openWebPage(URL url) {
+  public void openWebPage(@NotNull URL url) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void openWebPage(String url) {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public void addTab(MZmineTab tab) {
-    return;
   }
 
   @Override
@@ -145,10 +164,20 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
+  public void displayNotification(String msg, String buttonText, Runnable action,
+      Runnable hideForeverAction) {
+    logger.log(Level.INFO, msg);
+  }
+
+  @Override
   public ButtonType createAlertWithOptOut(String title, String headerText, String message,
       String optOutMessage, Consumer<Boolean> optOutAction) {
     logger.warning(title + "; " + headerText + "; " + message);
     return ButtonType.YES;
   }
 
+  @Override
+  public void handleShowTaskView() {
+    // nothing
+  }
 }

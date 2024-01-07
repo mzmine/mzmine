@@ -1,24 +1,32 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -68,13 +76,21 @@ public class MemoryMapStorage {
    * single MappedByteBuffer. 1 GB per file seems like a good start.
    */
   private static final long STORAGE_FILE_CAPACITY = 1_000_000_000L;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-  private final Set<File> temporaryFiles = new HashSet<>();
-  private final List<MappedByteBuffer> mappedByteBufferList = new ArrayList<>();
-
   private static boolean storeFeaturesInRam = false;
   private static boolean storeRawFilesInRam = false;
   private static boolean storeMassListsInRam = false;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Set<File> temporaryFiles = new HashSet<>();
+  private final List<MappedByteBuffer> mappedByteBufferList = new ArrayList<>();
+  /**
+   * The file that we are currently writing into.
+   */
+  private MappedByteBuffer currentMappedFile = null;
+
+  private MemoryMapStorage() {
+    // register this storage to MZmineCore, so we can delete all temp files later.
+    MZmineCore.registerStorage(this);
+  }
 
   /**
    * @return The {@link MemoryMapStorage} or null, if the data shall be stored in ram.
@@ -105,15 +121,40 @@ public class MemoryMapStorage {
     return new MemoryMapStorage();
   }
 
-  private MemoryMapStorage() {
-    // register this storage to MZmineCore, so we can delete all temp files later.
-    MZmineCore.registerStorage(this);
+  public static boolean isStoreFeaturesInRam() {
+    return storeFeaturesInRam;
+  }
+
+  public static void setStoreFeaturesInRam(boolean storeFeaturesInRam) {
+    MemoryMapStorage.storeFeaturesInRam = storeFeaturesInRam;
+  }
+
+  public static boolean isStoreRawFilesInRam() {
+    return storeRawFilesInRam;
+  }
+
+  public static void setStoreRawFilesInRam(boolean storeRawFilesInRam) {
+    MemoryMapStorage.storeRawFilesInRam = storeRawFilesInRam;
+  }
+
+  public static boolean isStoreMassListsInRam() {
+    return storeMassListsInRam;
+  }
+
+  public static void setStoreMassListsInRam(boolean storeMassListsInRam) {
+    MemoryMapStorage.storeMassListsInRam = storeMassListsInRam;
   }
 
   /**
-   * The file that we are currently writing into.
+   * Store everything in RAM instead of using MemoryMapStorage
+   *
+   * @param state true to keep all objects in RAM
    */
-  private MappedByteBuffer currentMappedFile = null;
+  public static void setStoreAllInRam(boolean state) {
+    storeFeaturesInRam = state;
+    storeMassListsInRam = state;
+    storeRawFilesInRam = state;
+  }
 
   /**
    * Creates a new temporary file, maps it into memory, and returns the corresponding
@@ -125,7 +166,7 @@ public class MemoryMapStorage {
   private MappedByteBuffer createNewMappedFile() throws IOException {
 
     // Create the temporary storage file
-    File storageFileName = File.createTempFile("mzmine", ".tmp");
+    File storageFileName = FileAndPathUtil.createTempFile("mzmine", ".tmp");
     temporaryFiles.add(storageFileName);
     logger.finest("Created a temporary file " + storageFileName);
 
@@ -236,7 +277,7 @@ public class MemoryMapStorage {
 
     // If we have no storage file or if the current file is full, create a new one
     if ((currentMappedFile == null)
-        || (currentMappedFile.position() + length > STORAGE_FILE_CAPACITY)) {
+        || (currentMappedFile.position() + (length * Float.BYTES) > STORAGE_FILE_CAPACITY)) {
       currentMappedFile = createNewMappedFile();
     }
 
@@ -292,7 +333,7 @@ public class MemoryMapStorage {
 
     // If we have no storage file or if the current file is full, create a new one
     if ((currentMappedFile == null)
-        || (currentMappedFile.position() + length > STORAGE_FILE_CAPACITY)) {
+        || (currentMappedFile.position() + (length * Integer.BYTES) > STORAGE_FILE_CAPACITY)) {
       currentMappedFile = createNewMappedFile();
     }
 
@@ -338,40 +379,5 @@ public class MemoryMapStorage {
 
     temporaryFiles.clear();
     currentMappedFile = null;
-  }
-
-
-  public static boolean isStoreFeaturesInRam() {
-    return storeFeaturesInRam;
-  }
-
-  public static void setStoreFeaturesInRam(boolean storeFeaturesInRam) {
-    MemoryMapStorage.storeFeaturesInRam = storeFeaturesInRam;
-  }
-
-  public static boolean isStoreRawFilesInRam() {
-    return storeRawFilesInRam;
-  }
-
-  public static void setStoreRawFilesInRam(boolean storeRawFilesInRam) {
-    MemoryMapStorage.storeRawFilesInRam = storeRawFilesInRam;
-  }
-
-  public static boolean isStoreMassListsInRam() {
-    return storeMassListsInRam;
-  }
-
-  public static void setStoreMassListsInRam(boolean storeMassListsInRam) {
-    MemoryMapStorage.storeMassListsInRam = storeMassListsInRam;
-  }
-  /**
-   * Store everything in RAM instead of using MemoryMapStorage
-   *
-   * @param state true to keep all objects in RAM
-   */
-  public static void setStoreAllInRam(boolean state) {
-    storeFeaturesInRam = state;
-    storeMassListsInRam = state;
-    storeRawFilesInRam = state;
   }
 }

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking;
@@ -23,6 +30,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary.CheckMode;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -32,12 +40,15 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParam
 import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 public class IonNetworkingParameters extends SimpleParameterSet {
 
   // different depth of settings
   public enum Setup {
-    FULL, SUB, SIMPLE;
+    FULL, SUB, SIMPLE
   }
 
   // NOT INCLUDED in sub
@@ -46,8 +57,8 @@ public class IonNetworkingParameters extends SimpleParameterSet {
 
   // INCLUDED in sub
   // MZ-tolerance: deisotoping, adducts
-  public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter("m/z tolerance",
-      "Tolerance value of the m/z difference between peaks");
+  public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter(
+      ToleranceType.INTRA_SAMPLE);
 
   public static final ComboParameter<CheckMode> CHECK_MODE =
       new ComboParameter<CheckMode>("Check",
@@ -77,7 +88,7 @@ public class IonNetworkingParameters extends SimpleParameterSet {
           new IonNetworkRefinementParameters(true), true);
 
   // setup
-  private Setup setup;
+  private final Setup setup;
 
   // Constructor
   public IonNetworkingParameters() {
@@ -92,10 +103,10 @@ public class IonNetworkingParameters extends SimpleParameterSet {
   private static Parameter[] createParam(Setup setup) {
     switch (setup) {
       case FULL:
-        return new Parameter[]{PEAK_LISTS, MZ_TOLERANCE, CHECK_MODE, MIN_HEIGHT,
-            ANNOTATION_REFINEMENTS, LIBRARY};
+        return new Parameter[]{PEAK_LISTS, MZ_TOLERANCE, CHECK_MODE, MIN_HEIGHT, LIBRARY,
+            ANNOTATION_REFINEMENTS};
       case SUB:
-        return new Parameter[]{MZ_TOLERANCE, CHECK_MODE, ANNOTATION_REFINEMENTS, LIBRARY};
+        return new Parameter[]{MZ_TOLERANCE, CHECK_MODE, LIBRARY, ANNOTATION_REFINEMENTS};
       case SIMPLE:
         return new Parameter[]{CHECK_MODE, LIBRARY};
     }
@@ -139,4 +150,17 @@ public class IonNetworkingParameters extends SimpleParameterSet {
     return setup;
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", MZ_TOLERANCE);
+    return nameParameterMap;
+  }
 }

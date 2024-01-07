@@ -1,19 +1,25 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * This file is part of MZmine.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.export_image_csv;
@@ -23,7 +29,7 @@ import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportParameters.HandleMissingValues;
 import io.github.mzmine.parameters.ParameterSet;
@@ -38,8 +44,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,37 +62,32 @@ public class ImageToCsvExportTask extends AbstractTask {
 
   private static Logger logger = Logger.getLogger(ImageToCsvExportTask.class.getName());
 
-  private final NumberFormat rtFormat;
   private final NumberFormat mzFormat;
   private final NumberFormat mobilityFormat;
-  private final NumberFormat intensityFormat;
-  private final UnitFormat unitFormat;
   private final String sep;
 
   private final File dir;
   private final Collection<ModularFeature> features;
   private final HandleMissingValues handleMissingSpectra;
   private final HandleMissingValues handleMissingSignals;
+  private final Boolean normalize;
 
   private int processed;
 
-  public ImageToCsvExportTask(ParameterSet param,
-      Collection<ModularFeature> features, @NotNull Date moduleCallDate) {
+  public ImageToCsvExportTask(ParameterSet param, Collection<ModularFeature> features,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.dir = param.getParameter(ImageToCsvExportParameters.dir).getValue();
     this.sep = param.getParameter(ImageToCsvExportParameters.delimiter).getValue().trim();
-    handleMissingSpectra = param
-        .getParameter(ImageToCsvExportParameters.handleMissingSpectra)
+    normalize = param.getParameter(ImageToCsvExportParameters.normalize).getValue();
+    handleMissingSpectra = param.getParameter(ImageToCsvExportParameters.handleMissingSpectra)
         .getValue();
-    handleMissingSignals = param
-        .getParameter(ImageToCsvExportParameters.handleMissingSignals).getValue();
+    handleMissingSignals = param.getParameter(ImageToCsvExportParameters.handleMissingSignals)
+        .getValue();
     this.features = features;
 
-    rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
-    intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
-    unitFormat = MZmineCore.getConfiguration().getUnitFormat();
   }
 
   public static String getImageParamString(ImagingRawDataFile file) {
@@ -117,8 +118,8 @@ public class ImageToCsvExportTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     logger.fine(() -> "Determining maximum export dimensions...");
-    final List<ImagingRawDataFile> distinctFiles = features
-        .stream().map(ModularFeature::getRawDataFile).distinct()
+    final List<ImagingRawDataFile> distinctFiles = features.stream()
+        .map(ModularFeature::getRawDataFile).distinct()
         .filter(file -> file instanceof ImagingRawDataFile).map(file -> (ImagingRawDataFile) file)
         .toList();
 
@@ -146,11 +147,18 @@ public class ImageToCsvExportTask extends AbstractTask {
         final IonTimeSeries<? extends Scan> featureData = f.getFeatureData();
         final IonTimeSeries<? extends ImagingScan> data;
         try {
-          data = (IonTimeSeries<? extends ImagingScan>) featureData;
+          if (normalize) {
+            final ImageNormalization imageNormalization = MZmineCore.getConfiguration()
+                .getImageNormalization();
+            data = imageNormalization.normalize((IonTimeSeries<ImagingScan>) featureData,
+                (List<ImagingScan>) f.getFeatureList().getSeletedScans(f.getRawDataFile()), null);
+          } else {
+            data = (IonTimeSeries<? extends ImagingScan>) featureData;
+          }
         } catch (ClassCastException e) {
-          logger
-              .info("Cannot cast feature data to IonTimeSeries<? extends ImagingScan> for feature "
-                    + FeatureUtils.featureToString(f));
+          logger.info(
+              "Cannot cast feature data to IonTimeSeries<? extends ImagingScan> for feature "
+                  + FeatureUtils.featureToString(f));
           continue;
         }
 
@@ -217,8 +225,7 @@ public class ImageToCsvExportTask extends AbstractTask {
    * @param minimumIntensity the minimum signal intensity that is used if handleMissingSignals is
    *                         {@link HandleMissingValues#REPLACE_BY_LOWEST_VALUE}
    */
-  private void handleMissingSpectra(double[][] dataMatrix,
-      double minimumIntensity) {
+  private void handleMissingSpectra(double[][] dataMatrix, double minimumIntensity) {
     if (handleMissingSpectra.equals(HandleMissingValues.LEAVE_EMPTY)) {
       return;
     }
@@ -255,8 +262,7 @@ public class ImageToCsvExportTask extends AbstractTask {
       return false;
     }
 
-    String newFilename =
-        f.getRawDataFile().getName() + "_mz-" + mzFormat.format(f.getMZ());
+    String newFilename = f.getRawDataFile().getName() + "_mz-" + mzFormat.format(f.getMZ());
     if (f.getMobility() != null && Float.compare(f.getMobility(), 0f) != 0) {
       newFilename += "_mobility-" + mobilityFormat.format(f.getMobility());
     }
@@ -266,8 +272,7 @@ public class ImageToCsvExportTask extends AbstractTask {
 
     final File file = FileAndPathUtil.getUniqueFilename(flDir, newFilename);
 
-    try (BufferedWriter writer = Files
-        .newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {
+    try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {
 
       for (int y = 0; y < dataMatrix.length; y++) {
         StringBuilder b = new StringBuilder();

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.ims_mobilitymzplot;
@@ -43,6 +50,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -69,7 +77,7 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
   private final UnitFormat unitFormat;
 
   private final ModularFeature feature;
-  private SimpleObjectProperty<MobilityScan> selectedMobilityScan;
+  private final SimpleObjectProperty<MobilityScan> selectedMobilityScan;
 
   public SingleIMSFeatureVisualiserPane(ModularFeature f) {
     super();
@@ -196,7 +204,7 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
 //    add(new BorderPane(legendCanvas), 1, 1);
 
     ComboBox<Scan> fragmentScanSelection = new ComboBox<>();
-    fragmentScanSelection.setItems(feature.getAllMS2FragmentScans());
+    fragmentScanSelection.setItems(FXCollections.observableList(feature.getAllMS2FragmentScans()));
     if (feature.getAllMS2FragmentScans() != null && feature.getMostIntenseFragmentScan() != null) {
       fragmentScanSelection.setValue(feature.getMostIntenseFragmentScan());
     }

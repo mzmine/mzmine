@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
@@ -28,12 +35,15 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.application.Platform;
-import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -50,8 +60,8 @@ import javafx.scene.layout.HBox;
 
 public class FeatureTableFXMLTabAnchorPaneController {
 
-  private static final Logger logger = Logger
-      .getLogger(FeatureTableFXMLTabAnchorPaneController.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      FeatureTableFXMLTabAnchorPaneController.class.getName());
 
   private static ParameterSet param;
 
@@ -61,15 +71,15 @@ public class FeatureTableFXMLTabAnchorPaneController {
   private SplitPane pnTablePreviewSplit;
   @FXML
   private FeatureTableFX featureTable;
-
+  private TextField idSearchField;
   private TextField mzSearchField;
   private TextField rtSearchField;
   private TextField anySearchField;
   private ComboBox<DataType> typeComboBox;
 
+
   public void initialize() {
-    param = MZmineCore.getConfiguration()
-        .getModuleParameters(FeatureTableFXModule.class);
+    param = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
 
     // Filters hbox
     HBox filtersRow = new HBox();
@@ -78,22 +88,23 @@ public class FeatureTableFXMLTabAnchorPaneController {
     Separator separator = new Separator(Orientation.VERTICAL);
 
     // Filter icon
-    ImageView filterIcon
-        = new ImageView(FxIconUtil.loadImageFromResources("icons/filtericon.png"));
+    ImageView filterIcon = new ImageView(FxIconUtil.loadImageFromResources("icons/filtericon.png"));
 
     // Search fields
     mzSearchField = new TextField();
-    //mzSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
     rtSearchField = new TextField();
-    // Add filter text fields listeners to filter on air
+    idSearchField = new TextField();
     mzSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
     rtSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
+    idSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
     HBox mzFilter = new HBox(new Label("m/z: "), mzSearchField);
     mzFilter.setAlignment(filtersRow.getAlignment());
     HBox rtFilter = new HBox(new Label("RT: "), rtSearchField);
     rtFilter.setAlignment(filtersRow.getAlignment());
+    HBox idFilter = new HBox(new Label("ID: "), idSearchField);
+    idFilter.setAlignment(filtersRow.getAlignment());
 
-    filtersRow.getChildren().addAll(filterIcon, mzFilter, separator, rtFilter);
+    filtersRow.getChildren().addAll(filterIcon, idFilter, mzFilter, separator, rtFilter);
 
     typeComboBox = new ComboBox<>();
     /*typeComboBox.setConverter(new StringConverter<>() {
@@ -113,8 +124,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
 
     typeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> filterRows());
     featureTable.featureListProperty().addListener(((observable, oldValue, newValue) -> {
-      typeComboBox.setItems(
-          FXCollections.observableArrayList(newValue.getRowTypes().values()));
+      typeComboBox.setItems(FXCollections.observableArrayList(newValue.getRowTypes().values()));
       if (!typeComboBox.getItems().isEmpty()) {
         typeComboBox.setValue(typeComboBox.getItems().get(0));
       }
@@ -130,8 +140,14 @@ public class FeatureTableFXMLTabAnchorPaneController {
         .addListener(((obs, o, n) -> selectedRowChanged()));
   }
 
+  public FeatureTableFX getFeatureTable() {
+    return featureTable;
+  }
+
   private void filterRows() {
     // Parse input text fields
+    Set<String> idFilter = Arrays.stream(idSearchField.getText().split(","))
+        .filter(s -> !s.isBlank()).collect(Collectors.toSet());
     Range<Double> mzFilter = parseNumericFilter(mzSearchField, 5e-5);
     Range<Double> rtFilter = parseNumericFilter(rtSearchField, 5e-3);
 
@@ -149,20 +165,27 @@ public class FeatureTableFXMLTabAnchorPaneController {
       ModularFeatureListRow row = item.getValue();
       boolean anyFilterOk = true;
       if (anyFilterString != null && type != null) {
-        Property<?> property = row.get(type);
-        anyFilterOk =
-            property != null && type.getFormattedString(property.getValue()).toLowerCase().trim()
-                .contains(anyFilterString);
+        Object value = row.get(type);
+        anyFilterOk = value != null && type.getFormattedStringCheckType(value).toLowerCase().trim()
+            .contains(anyFilterString);
+      }
+      if (idFilter.size() > 0 && !idFilter.contains(String.valueOf(row.getID()))) {
+        return false;
       }
 
-      return mzFilter.contains(row.getAverageMZ())
-          && rtFilter.contains((double) row.getAverageRT())
-          && anyFilterOk;
+      Double mz = row.getAverageMZ();
+      Float rt = row.getAverageRT();
+      return (mz == null || mzFilter.contains(mz)) && (rt == null || rtFilter.contains(
+          rt.doubleValue())) && anyFilterOk;
     });
 
     // Update rows in feature table
     featureTable.getRoot().getChildren().clear();
     featureTable.getRoot().getChildren().addAll(featureTable.getFilteredRowItems());
+  }
+
+  public TextField getIdSearchField() {
+    return idSearchField;
   }
 
   /**
@@ -176,27 +199,30 @@ public class FeatureTableFXMLTabAnchorPaneController {
    * string is invalid
    */
   private Range<Double> parseNumericFilter(TextField textField, double epsilon) {
-    textField.setStyle("-fx-control-inner-background: #ffffff;");
     String filterStr = textField.getText();
     filterStr = filterStr.replace(" ", "");
 
     if (filterStr.isEmpty()) { // Empty filter
-      textField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
+      textField.setStyle("-fx-prompt-text-fill: derive(-fx-text-fill, -50%);");
       return RangeUtils.DOUBLE_INFINITE_RANGE;
     } else if (filterStr.contains("-") && filterStr.indexOf("-") > 0) { // Filter by range
       try {
         Range<Double> parsedRange = RangeUtils.parseDoubleRange(filterStr);
-        return Range
-            .closed(parsedRange.lowerEndpoint() - epsilon, parsedRange.upperEndpoint() + epsilon);
+        textField.setStyle("-fx-control-inner-background: " + FxColorUtil.colorToHex(
+            MZmineCore.getConfiguration().getDefaultPaintScalePalette().getPositiveColor()));
+        return Range.closed(parsedRange.lowerEndpoint() - epsilon,
+            parsedRange.upperEndpoint() + epsilon);
       } catch (Exception exception) {
-        textField.setStyle("-fx-control-inner-background: #ffcccb;");
+        textField.setStyle("-fx-control-inner-background: " + FxColorUtil.colorToHex(
+            MZmineCore.getConfiguration().getDefaultPaintScalePalette().getNegativeColor()));
         return RangeUtils.DOUBLE_NAN_RANGE;
       }
     } else { // Filter by single value
       try {
         return RangeUtils.getRangeToCeilDecimal(filterStr);
       } catch (Exception exception) {
-        textField.setStyle("-fx-control-inner-background: #ffcccb;");
+        textField.setStyle("-fx-control-inner-background: " + FxColorUtil.colorToHex(
+            MZmineCore.getConfiguration().getDefaultPaintScalePalette().getNegativeColor()));
         return RangeUtils.DOUBLE_NAN_RANGE;
       }
     }
@@ -221,6 +247,10 @@ public class FeatureTableFXMLTabAnchorPaneController {
         param.getParameter(FeatureTableFXParameters.showFeatureTypeColumns).getValue());
   }
 
+  public FeatureList getFeatureList() {
+    return featureTable.getFeatureList();
+  }
+
   public void setFeatureList(FeatureList featureList) {
     if (!(featureList instanceof ModularFeatureList flist)) {
       return;
@@ -232,25 +262,23 @@ public class FeatureTableFXMLTabAnchorPaneController {
       NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
       Range<Double> mzRange = featureList.getRowsMZRange();
       if (mzRange != null) {
-        mzSearchField.setPromptText(mzFormat.format(mzRange.lowerEndpoint()) + " - "
-            + mzFormat.format(mzRange.upperEndpoint()));
+        mzSearchField.setPromptText(
+            mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat.format(
+                mzRange.upperEndpoint()));
       }
       mzSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
 
       NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
       Range<Float> rtRange = featureList.getRowsRTRange();
       if (rtRange != null) {
-        rtSearchField.setPromptText(rtFormat.format(rtRange.lowerEndpoint()) + " - "
-            + rtFormat.format(rtRange.upperEndpoint()));
+        rtSearchField.setPromptText(
+            rtFormat.format(rtRange.lowerEndpoint()) + " - " + rtFormat.format(
+                rtRange.upperEndpoint()));
       }
       rtSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Error in table visualization", ex);
     }
-  }
-
-  public FeatureList getFeatureList() {
-    return featureTable.getFeatureList();
   }
 
   void selectedRowChanged() {
@@ -271,5 +299,9 @@ public class FeatureTableFXMLTabAnchorPaneController {
     if (selectedRow == null) {
       return;
     }
+  }
+
+  public void close() {
+    featureTable.closeTable();
   }
 }

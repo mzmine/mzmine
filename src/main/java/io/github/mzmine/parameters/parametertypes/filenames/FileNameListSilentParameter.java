@@ -1,38 +1,44 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
+import io.github.mzmine.parameters.Parameter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import io.github.mzmine.parameters.Parameter;
-
 /**
  * Simple Parameter implementation
- * 
  */
 public class FileNameListSilentParameter implements Parameter<List<File>> {
 
@@ -47,9 +53,6 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
     value = new ArrayList<>();
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
   @Override
   public String getName() {
     return name;
@@ -63,16 +66,14 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
 
   @Override
   public void setValue(List<File> value) {
-    if (value == null)
-      this.value = new ArrayList<>();
-    else
-      this.value = value;
+    this.value = Objects.requireNonNullElse(value, new ArrayList<>());
     fireChanged();
   }
 
   public void addFile(File f) {
-    if (f == null)
+    if (f == null) {
       return;
+    }
 
     // add to last files if not already inserted
     value.remove(f);
@@ -95,8 +96,9 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
     for (int i = 0; i < nodes.getLength(); i++) {
       Node n = nodes.item(i);
       File f = new File(n.getTextContent());
-      if (f.exists())
+      if (f.exists()) {
         value.add(f);
+      }
     }
     fireChanged();
   }
@@ -120,15 +122,18 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
   }
 
   private void fireChanged() {
-    if (listener != null)
+    if (listener != null) {
       listener.stream().forEach(l -> l.fileListChanged(value));
+    }
   }
 
   public void addFileListChangedListener(FileNameListChangedListener list) {
-    if (list == null)
+    if (list == null) {
       return;
-    if (listener == null)
+    }
+    if (listener == null) {
       listener = new ArrayList<>();
+    }
     listener.add(list);
   }
 }

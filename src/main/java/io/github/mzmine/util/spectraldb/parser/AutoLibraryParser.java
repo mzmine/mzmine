@@ -1,95 +1,68 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util.spectraldb.parser;
 
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Logger;
-
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.util.files.FileTypeFilter;
 
 /**
  * Auto detects library format
- * 
- * @author Robin Schmid
  *
+ * @author Robin Schmid
  */
 public class AutoLibraryParser extends SpectralDBParser {
+
+  private SpectralDBParser subParser;
 
   public AutoLibraryParser(int bufferEntries, LibraryEntryProcessor processor) {
     super(bufferEntries, processor);
   }
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile)
+  public boolean parse(AbstractTask mainTask, File dataBaseFile, SpectralLibrary library)
       throws UnsupportedFormatException, IOException {
-    FileTypeFilter json = new FileTypeFilter("json", "");
-    FileTypeFilter msp = new FileTypeFilter("msp", "");
-    FileTypeFilter mgf = new FileTypeFilter("mgf", "");
-    FileTypeFilter jdx = new FileTypeFilter("jdx", "");
-    if (json.accept(dataBaseFile)) {
-      // test Gnps and MONA json parser
-      SpectralDBParser[] parser =
-          new SpectralDBParser[] {new MonaJsonParser(bufferEntries, processor),
-              new GnpsJsonParser(bufferEntries, processor)};
-      for (SpectralDBParser p : parser) {
-        if (mainTask.isCanceled())
-          return false;
-        try {
-          boolean state = p.parse(mainTask, dataBaseFile);
-          if (state)
-            return state;
-          else
-            continue;
-        } catch (Exception ex) {
-          // do nothing and try next json format
-        }
-      }
-    } else {
-      final SpectralDBParser parser;
-      // msp, jdx or mgf
-      if (msp.accept(dataBaseFile)) {
-        // load NIST msp format
-        parser = new NistMspParser(bufferEntries, processor);
-      } else if (jdx.accept(dataBaseFile)) {
-        // load jdx format
-        parser = new JdxParser(bufferEntries, processor);
-      } else if (mgf.accept(dataBaseFile)) {
-        parser = new GnpsMgfParser(bufferEntries, processor);
-      } else {
-        throw (new UnsupportedFormatException(
-            "Format not supported: " + dataBaseFile.getAbsolutePath()));
-      }
-
-      // parse the file
-      boolean state = parser.parse(mainTask, dataBaseFile);
-      if (state)
-        return state;
-    }
-    if (mainTask.isCanceled())
-      return false;
-    else
-      throw (new UnsupportedFormatException(
-          "Format not supported: " + dataBaseFile.getAbsolutePath()));
+    subParser = SpectralLibraryFormatChecker.getParser(dataBaseFile, bufferEntries, processor);
+    // parse the file
+    return subParser.parse(mainTask, dataBaseFile, library);
   }
 
+  @Override
+  public int getProcessedEntries() {
+    return subParser == null ? 0 : subParser.getProcessedEntries();
+  }
+
+  @Override
+  public double getProgress() {
+    return subParser == null ? 0 : subParser.getProgress();
+  }
+
+  @Override
+  public String getDescription() {
+    return subParser == null ? "" : subParser.getDescription();
+  }
 }

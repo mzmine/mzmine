@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf;
@@ -42,12 +49,15 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMe
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import io.github.mzmine.parameters.ParameterSet;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -61,16 +71,22 @@ import org.jetbrains.annotations.Nullable;
  */
 public class TDFUtils {
 
-  private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
-  private static int DEFAULT_NUMTHREADS = MZmineCore.getConfiguration().getPreferences()
-      .getParameter(MZminePreferences.numOfThreads).getValue();
-
   public static final int SCAN_PACKAGE_SIZE = 50;
   public static final int BUFFER_SIZE_INCREMENT = 100_000; // 100 kb increase each time we fail
-
+  private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
+  private static int DEFAULT_NUMTHREADS = (int) Math.max(
+      MZmineCore.getConfiguration().getPreferences().getParameter(MZminePreferences.numOfThreads)
+          .getValue() * 0.8f, 1);
+  private final NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+  private final int numThreads;
   public int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private TDFLibrary tdfLib = null;
-  private final int numThreads;
+
+
+  /**
+   * the handle of the currently opened file
+   **/
+  private long handle = 0L;
 
   public TDFUtils() {
     this(DEFAULT_NUMTHREADS);
@@ -81,11 +97,63 @@ public class TDFUtils {
   }
 
   /**
+   * Creates an array of the given size and populates it with numbers from 1 to size
+   *
+   * @param size The size
+   * @return the array
+   */
+  public static int[] createPopulatedArrayFrom1(final int size) {
+    return createPopulatedArray(size, 1); // scannums start at 1
+  }
+
+  public static int[] createPopulatedArray(final int size, int startOffset) {
+    int[] array = new int[size];
+    for (int i = 0; i < size; i++) {
+      array[i] = i + startOffset;
+    }
+    return array;
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // FILE OPENING/CLOSING
+  // -----------------------------------------------------------------------------------------------
+
+  /**
+   * @param msMsType The MsMsType of the respective frame from the {@link TDFFrameTable}. The types
+   *                 are also listed there.
+   * @return The MS level as usually handled by MZmine
+   */
+  public static int getMZmineMsLevelFromBrukerMsMsType(final int msMsType) {
+    return switch (msMsType) {
+      case 0 -> 1;
+      case 2, 9, 10, 8 -> 2;
+      default -> 0;
+    };
+  }
+
+  /**
+   * Sets the default number of threads to use for each raw file across all {@link TDFUtils}
+   * instances.
+   *
+   * @param numThreads
+   */
+  public static void setDefaultNumThreads(int numThreads) {
+    numThreads = Math.max(numThreads, 1);
+    final int finalNumThreads = numThreads;
+    logger.finest(() -> "Setting number of threads per file to " + finalNumThreads);
+    DEFAULT_NUMTHREADS = numThreads;
+  }
+
+  /**
    * Initialises the tdf library. Is called when openFile is called.
    *
    * @return true on success, false on failure.
    */
   private boolean loadLibrary() {
+    if (tdfLib != null) {
+      return true;
+    }
+
     logger.finest("Initialising tdf library.");
     File timsdataLib = null;
     String libraryFileName;
@@ -133,7 +201,7 @@ public class TDFUtils {
   }
 
   // -----------------------------------------------------------------------------------------------
-  // FILE OPENING/CLOSING
+  // HANDLING INDIVIDUAL SCANS
   // -----------------------------------------------------------------------------------------------
 
   /**
@@ -146,21 +214,41 @@ public class TDFUtils {
    * @return 0 on error, the handle otherwise.
    */
   public long openFile(final File path, final long useRecalibratedState) {
+    if (handle != 0L) {
+      close();
+    }
+
     if (!loadLibrary() || tdfLib == null) {
       logger.warning(() -> "File + " + path.getAbsolutePath() + " cannot be loaded because tdf "
           + "library could not be initialised.");
       return 0L;
     }
+
+    final Boolean applyPressureComp = false;
+    // currently disabled as it's not working as expected ~SteffenHeu
+    /*final Boolean applyPressureComp = MZmineCore.getConfiguration().getPreferences()
+        .getValue(MZminePreferences.applyTimsPressureCompensation)*/
+    int pressureCompensation = applyPressureComp == null || !applyPressureComp ? 0 : 2;
+
     if (path.isFile()) {
       logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
-      final long handle = tdfLib.tims_open(path.getParentFile().getAbsolutePath(),
-          useRecalibratedState);
+      handle = tdfLib.tims_open_v2(path.getParentFile().getAbsolutePath(), useRecalibratedState,
+          pressureCompensation);
+      if (handle == 0) {
+        printLastError(0);
+        throw new RuntimeException("Error opening tdf file.");
+      }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
       return handle;
     } else {
       logger.finest(() -> "Opening tdf path " + path.getAbsolutePath());
-      final long handle = tdfLib.tims_open(path.getAbsolutePath(), useRecalibratedState);
+      handle = tdfLib.tims_open_v2(path.getAbsolutePath(), useRecalibratedState,
+          pressureCompensation);
+      if (handle == 0) {
+        printLastError(0);
+        throw new RuntimeException("Error opening tdf file.");
+      }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
       return handle;
@@ -180,23 +268,24 @@ public class TDFUtils {
     return openFile(path, 1);
   }
 
-  public void close(final long handle) {
-    tdfLib.tims_close(handle);
+  public void close() {
+    if (tdfLib != null && handle != 0L) {
+      tdfLib.tims_close(handle);
+    }
+    handle = 0L;
   }
 
-  // -----------------------------------------------------------------------------------------------
-  // HANDLING INDIVIDUAL SCANS
-  // -----------------------------------------------------------------------------------------------
-
   /**
-   * @param handle    {@link TDFUtils#openFile(File)}
    * @param frameId   The id of the frame. See {@link TDFFrameTable}
-   * @param scanBegin The first scan number
-   * @param scanEnd   The last scan number
+   * @param scanBegin The first scan index (starting with 0)
+   * @param scanEnd   The last scan index
    * @return List of double[][]. Each array represents the data points of one scan
    */
-  public List<double[][]> loadDataPointsForFrame(final long handle, final long frameId,
-      final long scanBegin, final long scanEnd) {
+  public List<double[][]> loadDataPointsForFrame(final long frameId, final long scanBegin,
+      final long scanEnd) {
+    if (handle == 0L) {
+      throw new IllegalStateException("No tdf data file opened yet.");
+    }
 
     final List<double[][]> dataPoints = new ArrayList<>((int) (scanEnd - scanBegin));
 
@@ -212,17 +301,19 @@ public class TDFUtils {
       final long end = Math.min((start + SCAN_PACKAGE_SIZE), scanEnd);
       final int numScans = (int) (end - start);
 
-      final long lastError = tdfLib.tims_read_scans_v2(handle, frameId, start, end, buffer,
-          buffer.length);
-
-      // check if the buffer size was enough
-      if (printLastError(lastError)) {
-        BUFFER_SIZE += BUFFER_SIZE_INCREMENT;
-        final long finalStart = start;
-        logger.fine(() -> "Could not read scans " + finalStart + "-" + end + " for frame " + frameId
-            + ". Increasing buffer size to " + BUFFER_SIZE + " and reloading.");
-        buffer = new byte[BUFFER_SIZE];
-        continue; // try again
+      synchronized (tdfLib) {
+        final long lastError = tdfLib.tims_read_scans_v2(handle, frameId, start, end, buffer,
+            buffer.length);
+        // check if the buffer size was enough
+        if (printLastError(lastError)) {
+          BUFFER_SIZE += BUFFER_SIZE_INCREMENT;
+          final long finalStart = start;
+          logger.fine(
+              () -> "Could not read scans " + finalStart + "-" + end + " for frame " + frameId
+                  + ". Increasing buffer size to " + BUFFER_SIZE + " and reloading.");
+          buffer = new byte[BUFFER_SIZE];
+          continue; // try again
+        }
       }
 
       start = start + SCAN_PACKAGE_SIZE;
@@ -243,12 +334,14 @@ public class TDFUtils {
         final double[] intensities = ConversionUtils.convertIntsToDoubles(
             Arrays.copyOfRange(scanBuffer, d, d + numPeaks));
         d += numPeaks;
-        final double[] masses = convertIndicesToMZ(handle, frameId, indices);
 
-        double[][] dps = new double[2][];
-        dps[0] = masses;
-        dps[1] = intensities;
-        dataPoints.add(dps);
+        synchronized (tdfLib) {
+          final double[] masses = convertIndicesToMZ(handle, frameId, indices);
+          double[][] dps = new double[2][];
+          dps[0] = masses;
+          dps[1] = intensities;
+          dataPoints.add(dps);
+        }
       }
       Arrays.fill(buffer, (byte) 0);
     }
@@ -259,22 +352,20 @@ public class TDFUtils {
    * Loads mobility resolved scans of a specific frame. Tested with scan modes 0 and 8 (MS1 and
    * PASEF-MS/MS)
    *
-   * @param handle     {@link TDFUtils#openFile(File)}
    * @param frameId    The id of the frame. See {@link TDFFrameTable}
    * @param frameTable The frame table
    * @return List of scans for the given frame id. Empty scans have been filtered out.
    */
   @Nullable
-  public List<BuildingMobilityScan> loadSpectraForTIMSFrame(final long handle, final long frameId,
+  public List<BuildingMobilityScan> loadSpectraForTIMSFrame(final long frameId,
       @NotNull final TDFFrameTable frameTable) {
-    return loadSpectraForTIMSFrame(handle, frameId, frameTable, null, null);
+    return loadSpectraForTIMSFrame(frameId, frameTable, null, null);
   }
 
   /**
    * Loads mobility resolved scans of a specific frame. Tested with scan modes 0 and 8 (MS1 and
    * PASEF-MS/MS)
    *
-   * @param handle     {@link TDFUtils#openFile(File)}
    * @param frameId    The id of the frame. See {@link TDFFrameTable}
    * @param frameTable The frame table
    * @param msDetector Mass detector for the given ms level. May be null.
@@ -282,14 +373,14 @@ public class TDFUtils {
    * @return List of scans for the given frame id. Empty scans have been filtered out.
    */
   @Nullable
-  public List<BuildingMobilityScan> loadSpectraForTIMSFrame(final long handle, final long frameId,
+  public List<BuildingMobilityScan> loadSpectraForTIMSFrame(final long frameId,
       @NotNull final TDFFrameTable frameTable, @Nullable final MassDetector msDetector,
       @Nullable final ParameterSet msParam) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
     final List<BuildingMobilityScan> spectra = new ArrayList<>(numScans);
-    final List<double[][]> dataPoints = loadDataPointsForFrame(handle, frameId, 0, numScans);
+    final List<double[][]> dataPoints = loadDataPointsForFrame(frameId, 0, numScans);
 
     if (numScans != dataPoints.size()) {
       logger.warning(() -> "Number of scans for frame " + frameId + " in tdf (" + numScans
@@ -312,50 +403,52 @@ public class TDFUtils {
   // ---------------------------------------------------------------------------------------------
   // AVERAGE FRAMES
   // -----------------------------------------------------------------------------------------------
-  private double[][] extractCentroidsForFrame(final long handle, final long frameId,
-      final int startScanNum, final int endScanNum) {
-
-    final CentroidData data = new CentroidData();
-    final long error = tdfLib.tims_extract_centroided_spectrum_for_frame(handle, frameId,
-        startScanNum, endScanNum, data, Pointer.NULL);
-
-    if (error == 0) {
-      logger.warning(() -> "Could not extract centroid scan for frame " + frameId + " for scans "
-          + startScanNum + " to " + endScanNum + ".");
-      return new double[][]{{0}, {0}};
+  private double[][] extractCentroidsForFrame(final long frameId, final int startScanNum,
+      final int endScanNum) {
+    if (handle == 0L) {
+      throw new IllegalStateException("No tdf data file opened yet.");
     }
 
-    return data.toDoubles();
+    final CentroidData data = new CentroidData();
+
+    synchronized (tdfLib) {
+      final long error = tdfLib.tims_extract_centroided_spectrum_for_frame_v2(handle, frameId,
+          startScanNum, endScanNum, data, Pointer.NULL);
+
+      if (error == 0) {
+        logger.warning(() -> "Could not extract centroid scan for frame " + frameId + " for scans "
+            + startScanNum + " to " + endScanNum + ".");
+        return new double[][]{{0}, {0}};
+      }
+
+      return data.toDoubles();
+    }
   }
 
   /**
-   * @param handle              the file handle. {@link #openFile(File)}
    * @param frameId             the frame id.
    * @param metaDataTable       {@link TDFMetaDataTable} to construct the frame.
    * @param frameTable          {@link FramePrecursorTable} to construct the frame.
    * @param maldiFrameInfoTable Nullable for LC-IMS-MS. Required in case a maldi file is loaded.
    * @return The frame.
    */
-  public SimpleFrame extractCentroidScanForTimsFrame(IMSRawDataFile newFile, final long handle,
-      final long frameId, @NotNull final TDFMetaDataTable metaDataTable,
-      @NotNull final TDFFrameTable frameTable,
+  public SimpleFrame extractCentroidScanForTimsFrame(IMSRawDataFile newFile, final long frameId,
+      @NotNull final TDFMetaDataTable metaDataTable, @NotNull final TDFFrameTable frameTable,
       @NotNull final FramePrecursorTable framePrecursorTable,
       @Nullable final TDFMaldiFrameInfoTable maldiFrameInfoTable) {
-    return extractCentroidScanForTimsFrame(newFile, handle, frameId, metaDataTable, frameTable,
+    return extractCentroidScanForTimsFrame(newFile, frameId, metaDataTable, frameTable,
         framePrecursorTable, maldiFrameInfoTable, null, null, null, null);
   }
 
   /**
-   * @param handle              the file handle. {@link #openFile(File)}
    * @param frameId             the frame id.
    * @param metaDataTable       {@link TDFMetaDataTable} to construct the frame.
    * @param frameTable          {@link FramePrecursorTable} to construct the frame.
    * @param maldiFrameInfoTable Nullable for LC-IMS-MS. Required in case a maldi file is loaded.
    * @return The frame.
    */
-  public SimpleFrame extractCentroidScanForTimsFrame(IMSRawDataFile newFile, final long handle,
-      final long frameId, @NotNull final TDFMetaDataTable metaDataTable,
-      @NotNull final TDFFrameTable frameTable,
+  public SimpleFrame extractCentroidScanForTimsFrame(IMSRawDataFile newFile, final long frameId,
+      @NotNull final TDFMetaDataTable metaDataTable, @NotNull final TDFFrameTable frameTable,
       @NotNull final FramePrecursorTable framePrecursorTable,
       @Nullable final TDFMaldiFrameInfoTable maldiFrameInfoTable,
       @Nullable final MassDetector ms1Detector, @Nullable final ParameterSet ms1Param,
@@ -364,15 +457,19 @@ public class TDFUtils {
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
 
-    final String scanDefinition =
-        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
-            frameTable.getScanModeColumn().get(frameIndex).intValue());
-    final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
-        frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
+    final float rt = (float) (frameTable.getTimeColumn().get(frameIndex) / 60); // to minutes
     final PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
+    final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
+        frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
+    final String scanDefinition =
+        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
+            frameTable.getScanModeColumn().get(frameIndex).intValue()) + " Frame #" + frameId
+            + " RT: " + rtFormat.format(rt);
+    final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
+        .floatValue();
 
-    double[][] data = extractCentroidsForFrame(handle, frameId, 0, numScans);
+    double[][] data = extractCentroidsForFrame(frameId, 0, numScans);
 
     if (msLevel == 1 && ms1Detector != null && ms1Param != null) {
       data = ms1Detector.getMassValues(data[0], data[1], ms1Param);
@@ -381,21 +478,20 @@ public class TDFUtils {
     }
 
     final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
-        createPopulatedArray(numScans));
+        createPopulatedArrayFrom1(numScans));
 
     Range<Double> mzRange = metaDataTable.getMzRange();
 
     SimpleFrame frame;
     if (maldiFrameInfoTable == null || maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
-      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
-          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-          0.d, 0, data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
-          MobilityType.TIMS, null);
+      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0], data[1],
+          MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange, MobilityType.TIMS, null,
+          accumulationTime);
     } else {
-      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel,
-          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-          0.d, 0, data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
-          MobilityType.TIMS, null);
+      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0],
+          data[1], MassSpectrumType.CENTROIDED, polarity,
+          scanDefinition + " " + maldiFrameInfoTable.getSpotNameColumn().get(frameIndex), mzRange,
+          MobilityType.TIMS, null, accumulationTime);
       Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
           maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
       ((SimpleImagingFrame) frame).setCoordinates(coords);
@@ -407,52 +503,102 @@ public class TDFUtils {
   }
 
   @Nullable
-  public ProfileData extractProfileForFrame(final long handle, final long frameId,
-      final long startScanNum, final long endScanNum) {
+  public int[] extractProfileForFrame(final long frameId, final long startScanNum,
+      final long endScanNum) {
 
     final ProfileData data = new ProfileData();
-    final long error = tdfLib.tims_extract_profile_for_frame(handle, frameId, startScanNum,
-        endScanNum, data, null);
+    synchronized (tdfLib) {
+      final long error = tdfLib.tims_extract_profile_for_frame(handle, frameId, startScanNum,
+          endScanNum, data, null);
 
-    if (error == 0) {
-      logger.warning(() -> "Could not extract profile for frame " + frameId + ".");
-      return null;
+      if (error == 0) {
+        logger.warning(() -> "Could not extract profile for frame " + frameId + ".");
+        return null;
+      }
+
+      return data.getIntensities();
     }
-
-    return data;
   }
 
   /**
-   * @param handle
-   * @param frameId
-   * @param scanNum
-   * @param metaDataTable
-   * @param frameTable
-   * @return
-   * @deprecated not ready yet, yields to wrong m/z values. How does bruker distribute them?
+   * @return A pseudo profile spectrum
    */
-  /*
-   * @Deprecated public static Scan extractProfileScanForFrame(final long handle, final long
-   * frameId, final int scanNum, final TDFMetaDataTable metaDataTable, final TDFFrameTable
-   * frameTable) {
-   *
-   * final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId); final int numScans =
-   * frameTable.getNumScansColumn().get(frameIndex).intValue(); final ProfileData data =
-   * extractProfileForFrame(handle, frameId, 0, numScans); final String scanDefinition =
-   * metaDataTable.getInstrumentType() + " - " +
-   * BrukerScanMode.fromScanMode(frameTable.getScanModeColumn().get(frameIndex).intValue()); final
-   * int msLevel = getMZmineMsLevelFromBrukerMsMsType(
-   * frameTable.getMsMsTypeColumn().get(frameIndex).intValue()); final PolarityType polarity =
-   * PolarityType .fromSingleChar((String)
-   * frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
-   *
-   * final DataPoint[] dps = data.toDataPoints(metaDataTable.getMzRange().lowerEndpoint(),
-   * metaDataTable.getMzRange().upperEndpoint());
-   *
-   * return new SimpleScan(null, scanNum, msLevel, (float)
-   * (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes 0.d, 0, dps,
-   * MassSpectrumType.CENTROIDED, polarity, scanDefinition, metaDataTable.getMzRange()); }
-   */
+  public SimpleFrame extractProfileScanForFrame(IMSRawDataFile newFile, final long frameId,
+      @NotNull final TDFMetaDataTable metaDataTable, @NotNull final TDFFrameTable frameTable,
+      @NotNull final FramePrecursorTable framePrecursorTable,
+      @Nullable final TDFMaldiFrameInfoTable maldiFrameInfoTable,
+      @Nullable final MassDetector ms1Detector, @Nullable final ParameterSet ms1Param,
+      @Nullable final MassDetector ms2Detector, @Nullable final ParameterSet ms2Param) {
+
+    final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
+    final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
+
+    final float rt = (float) (frameTable.getTimeColumn().get(frameIndex) / 60); // to minutes
+    final PolarityType polarity = PolarityType.fromSingleChar(
+        (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
+    final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
+        frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
+    final String scanDefinition =
+        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
+            frameTable.getScanModeColumn().get(frameIndex).intValue()) + " Frame #" + frameId
+            + " RT: " + rtFormat.format(rt);
+    final Range<Double> mzRange = metaDataTable.getMzRange();
+    final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
+        .floatValue();
+
+    final int[] intensityData = extractProfileForFrame(frameId, 0, numScans);
+
+    // remove all extra zeros
+    final IntArrayList filteredMzIndices = new IntArrayList();
+    final DoubleArrayList filteredIntensities = new DoubleArrayList();
+    filteredMzIndices.add(0);
+    filteredIntensities.add(intensityData[0]);
+    for (int i = 1; i < intensityData.length - 1;
+        i++) { // previous , this and next are zero --> do not add this data point
+      if (intensityData[i - 1] != 0 || intensityData[i] != 0 || intensityData[i + 1] != 0) {
+        filteredMzIndices.add(i);
+        filteredIntensities.add(intensityData[i]);
+      }
+    }
+    filteredMzIndices.add(intensityData.length - 1);
+    filteredIntensities.add(intensityData[intensityData.length - 1]);
+
+    final double[] profileMzs = convertIndicesToMZ(handle, frameId, filteredMzIndices.toIntArray());
+
+    final double data[][];
+    boolean massesDetected = false;
+    if (msLevel == 1 && ms1Detector != null && ms1Param != null) {
+      data = ms1Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray(), ms1Param);
+      massesDetected = true;
+    } else if (msLevel == 2 && ms2Detector != null && ms2Param != null) {
+      data = ms2Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray(), ms2Param);
+      massesDetected = true;
+    } else {
+      data = new double[2][];
+      data[0] = profileMzs;
+      data[1] = filteredIntensities.toDoubleArray();
+    }
+
+    SimpleFrame frame;
+    if (maldiFrameInfoTable == null || maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
+      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0], data[1],
+          massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE, polarity,
+          scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
+    } else {
+      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0],
+          data[1], massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE,
+          polarity, scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
+      Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
+          maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
+      ((SimpleImagingFrame) frame).setCoordinates(coords);
+    }
+
+    final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
+        createPopulatedArrayFrom1(numScans));
+    frame.setMobilities(mobilities);
+
+    return frame;
+  }
 
   // ---------------------------------------------------------------------------------------------
   // PASEF MS MS FUNCTIONS
@@ -484,6 +630,10 @@ public class TDFUtils {
     return buffer;
   }
 
+  // ---------------------------------------------------------------------------------------------
+  // SQL-RELATED FUNCTIONS
+  // -----------------------------------------------------------------------------------------------
+
   public double[] convertScanNumsToOneOverK0(final long handle, final long frameId,
       final int[] scanNums) {
     double[] buffer = new double[scanNums.length];
@@ -496,50 +646,29 @@ public class TDFUtils {
     return buffer;
   }
 
-  /**
-   * Creates an array of the given size and populates it with numbers from 1 to size
-   *
-   * @param size The size
-   * @return the array
-   */
-  public static int[] createPopulatedArray(final int size) {
-    int[] array = new int[size];
-    for (int i = 0; i < size; i++) {
-      array[i] = i + 1; // scannums start at 1
-    }
-    return array;
-  }
+  // ---------------------------------------------------------------------------------------------
+  // UTILITY FUNCTIONS
+  // -----------------------------------------------------------------------------------------------
 
-  public Double calculateCCS(double ook0, long charge, double mz) {
+  public Float calculateCCS(double ook0, long charge, double mz) {
     if (tdfLib == null) {
       boolean loaded = loadLibrary();
       if (!loaded) {
         return null;
       }
     }
-    return tdfLib.tims_oneoverk0_to_ccs_for_mz(ook0, charge, mz);
+    return (float) tdfLib.tims_oneoverk0_to_ccs_for_mz(ook0, charge, mz);
   }
 
-  // ---------------------------------------------------------------------------------------------
-  // SQL-RELATED FUNCTIONS
-  // -----------------------------------------------------------------------------------------------
-
-  /**
-   * @param msMsType The MsMsType of the respective frame from the {@link TDFFrameTable}. The types
-   *                 are also listed there.
-   * @return The MS level as usually handled by MZmine
-   */
-  public static int getMZmineMsLevelFromBrukerMsMsType(final int msMsType) {
-    return switch (msMsType) {
-      case 0 -> 1;
-      case 2, 9, 10, 8 -> 2;
-      default -> 0;
-    };
+  public Float calculateOok0(double ccs, long charge, double mz) {
+    if (tdfLib == null) {
+      boolean loaded = loadLibrary();
+      if (!loaded) {
+        return null;
+      }
+    }
+    return (float) tdfLib.tims_ccs_to_oneoverk0_for_mz(ccs, charge, mz);
   }
-
-  // ---------------------------------------------------------------------------------------------
-  // UTILITY FUNCTIONS
-  // -----------------------------------------------------------------------------------------------
 
   /**
    * @param errorCode return value of tims library methods
@@ -553,27 +682,16 @@ public class TDFUtils {
         final String errorMessage = new String(errorBuffer, "UTF-8");
         logger.fine(() -> "Last TDF import error: " + errorMessage + " length: " + len
             + ". Required buffer size: " + errorCode + " actual size: " + BUFFER_SIZE);
+        if (errorMessage.contains("CorruptFrameDataError")) {
+          throw new IllegalStateException("Error reading tdf raw data. " + errorMessage);
+        }
       } catch (UnsupportedEncodingException e) {
-        e.printStackTrace();
+        logger.log(Level.WARNING, e.getMessage(), e);
       }
       return true;
     } else {
       return false;
     }
-
-  }
-
-  /**
-   * Sets the default number of threads to use for each raw file across all {@link TDFUtils}
-   * instances.
-   *
-   * @param numThreads
-   */
-  public static void setDefaultNumThreads(int numThreads) {
-    numThreads = Math.max(numThreads, 1);
-    final int finalNumThreads = numThreads;
-    logger.finest(() -> "Setting number of threads per file to " + finalNumThreads);
-    DEFAULT_NUMTHREADS = numThreads;
   }
 
   public void setNumThreads(int numThreads) {

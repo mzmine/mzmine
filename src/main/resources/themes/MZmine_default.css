@@ -1,8 +1,41 @@
+/*
+ * Copyright (c) 2004-2022 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 /** Controls **/
-.button, .combo-box, .choice-box, .check-box > .box  {
+.button, .combo-box, .choice-box, .check-box > .box {
   -fx-background-radius: 2, 2;
-  -fx-effect: dropshadow(gaussian , rgba(0,0,0,0.25) , 4,0,0,1 );
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 4, 0, 0, 1);
   -fx-border-radius: 2, 2;
+}
+
+.small-check-box > .box {
+  -fx-padding: 0.1em 0.1em 0.18em 0.18em;
+}
+
+.small-check-box > .box > .mark {
+  -fx-padding: 0.3em 0.3em 0.4em 0.4em;
 }
 
 .separator *.line {
@@ -55,6 +88,20 @@
 	-fx-padding : 1;
 }
 
+.notification-pane .notification-bar > .pane {
+  -fx-font-size : 13.0;
+  -fx-background-color: -menu-bg;
+  -fx-effect: dropshadow(three-pass-box, -selection-highlight-outline, 6, 0.0, 0, 3);
+}
+
+.notification-pane .notification-bar > .pane .label {
+  -fx-font-size : 14.0;
+}
+
+.ikonli-font-icon {
+  -fx-icon-color:-selection-highlight-outline;
+}
+
 /** ScrollPane **/
 .scroll-bar:horizontal .thumb,
 .scroll-bar:vertical .thumb {
@@ -80,11 +127,11 @@
 }
 
 .title-label {
-  -fx-font-size: 16.0pt;
+  -fx-font-size: 14.0pt;
 }
 
 .bold-title-label {
-  -fx-font-size: 16.0pt;
+  -fx-font-size: 14.0pt;
   -fx-font-weight: bold;
 }
 
@@ -97,7 +144,7 @@
 }
 
 .white-larger-label {
-  -fx-font-size: 14.0pt;
+  -fx-font-size: 13.0pt;
   -fx-text-fill: white;
   -fx-wrap-text: true;
   -fx-font-weight: bold;
@@ -109,6 +156,25 @@
   -fx-text-fill: white;
 }
 
+.white-score-label-small {
+  -fx-font-size: 7pt;
+  -fx-font-weight: bold;
+  -fx-text-fill: white;
+}
+.copyable-label, .copyable-label:focused {
+     -fx-background-color: transparent ;
+     -fx-background-insets: 0px ;
+ }
+
 .set-color-menu-item:hover, .set-color-menu-item:pressed, .set-color-menu-item {
   -fx-background-color: inherit;
+}
+
+.web-view {
+  -fx-font-smoothing-type: LCD;
+}
+
+.accordion > .titled-pane > .title {
+    -fx-background-insets: -1 0 0 0, 0 1 1 1, 1 2 2 2;
+    -fx-background-radius: 0, 0, 0;
 }

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -24,8 +31,12 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
+import javax.validation.constraints.Null;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Simple implementation of the Scan interface.
@@ -33,19 +44,17 @@ import org.jetbrains.annotations.NotNull;
 public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
   public static final String XML_SCAN_TYPE = "simplescan";
-
+  protected final Float injectionTime;
   @NotNull
   private final RawDataFile dataFile;
   private int scanNumber;
   private int msLevel;
-
-  private double precursorMZ;
-  private int precursorCharge;
   private float retentionTime;
   private PolarityType polarity;
   private String scanDefinition;
   private Range<Double> scanMZRange;
   private MassList massList = null;
+  private MsMsInfo msMsInfo;
 
   /**
    * Clone constructor
@@ -53,10 +62,9 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   public SimpleScan(@NotNull RawDataFile dataFile, Scan sc, double[] newMzValues,
       double[] newIntensityValues) {
 
-    this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getPrecursorMZ(),
-        sc.getPrecursorCharge(), newMzValues, newIntensityValues, sc.getSpectrumType(),
-        sc.getPolarity(),
-        sc.getScanDefinition(), sc.getScanningMZRange());
+    this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getMsMsInfo(),
+        newMzValues, newIntensityValues, sc.getSpectrumType(), sc.getPolarity(),
+        sc.getScanDefinition(), sc.getScanningMZRange(), sc.getInjectionTime());
   }
 
 
@@ -64,9 +72,18 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
    * Constructor for creating scan with given data
    */
   public SimpleScan(@NotNull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
-      double precursorMZ, int precursorCharge, double[] mzValues, double[] intensityValues,
+      @Nullable MsMsInfo msMsInfo, double[] mzValues, double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange) {
+
+    this(dataFile, scanNumber, msLevel, retentionTime, msMsInfo, mzValues, intensityValues,
+        spectrumType, polarity, scanDefinition, scanMZRange, null);
+  }
+
+  public SimpleScan(@NotNull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
+      @Nullable MsMsInfo msMsInfo, double[] mzValues, double[] intensityValues,
+      MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
+      Range<Double> scanMZRange, @Nullable Float injectionTime) {
 
     super(dataFile.getMemoryMapStorage(), mzValues, intensityValues);
 
@@ -74,12 +91,12 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     this.scanNumber = scanNumber;
     this.msLevel = msLevel;
     this.retentionTime = retentionTime;
-    this.precursorMZ = precursorMZ;
-    this.precursorCharge = precursorCharge;
     this.polarity = polarity;
     this.scanDefinition = scanDefinition;
     this.scanMZRange = scanMZRange;
     setSpectrumType(spectrumType);
+    setMsMsInfo(msMsInfo);
+    this.injectionTime = injectionTime;
   }
 
 
@@ -113,34 +130,17 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     this.msLevel = msLevel;
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.Scan#getPrecursorMZ()
-   */
   @Override
-  public double getPrecursorMZ() {
-    return precursorMZ;
+  public @Nullable MsMsInfo getMsMsInfo() {
+    return msMsInfo;
   }
 
-  /**
-   * @param precursorMZ The precursorMZ to set.
-   */
-  public void setPrecursorMZ(double precursorMZ) {
-    this.precursorMZ = precursorMZ;
-  }
-
-  /**
-   * @return Returns the precursorCharge.
-   */
-  @Override
-  public int getPrecursorCharge() {
-    return precursorCharge;
-  }
-
-  /**
-   * @param precursorCharge The precursorCharge to set.
-   */
-  public void setPrecursorCharge(int precursorCharge) {
-    this.precursorCharge = precursorCharge;
+  public void setMsMsInfo(@Nullable MsMsInfo info) {
+    msMsInfo = info; // in case its null
+    if (info != null) {
+      msMsInfo = info.createCopy();
+      msMsInfo.setMsMsScan(this);
+    }
   }
 
   /**
@@ -209,7 +209,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   }
 
   @Override
-  @NotNull
+  @Nullable
   public Range<Double> getScanningMZRange() {
     if (scanMZRange == null) {
       scanMZRange = getDataPointMZRange();
@@ -217,5 +217,9 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     return scanMZRange;
   }
 
+  @Override
+  public @Nullable Float getInjectionTime() {
+    return injectionTime;
+  }
 }
 

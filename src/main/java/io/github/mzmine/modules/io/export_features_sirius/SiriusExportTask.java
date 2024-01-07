@@ -1,47 +1,51 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- */
-
-/*
- * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
- * Lab (University of California, San Diego).
- *
- * It is freely available under the GNU GPL licence of MZmine2.
- *
- * For any questions or concerns, please refer to:
- * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
- *
- * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.export_features_sirius;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowGroup;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergeMode;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
@@ -50,493 +54,479 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.SortingDirection;
+import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SiriusExportTask extends AbstractTask {
 
-  // based on netID
-  public static final String COMPOUND_ID = "COMPOUND_ID=";
-  // based on feature shape correlation (metaMSEcorr)
-  public static final String CORR_GROUPID = "CORR_GROUPID=";
-  // neutral mass
-  public static final String COMPOUND_MASS = "COMPOUND_MASS=";
-  // ION
-  public static final String ION = "ION=";
-
-  protected static final Comparator<DataPoint> CompareDataPointsByMz = new Comparator<DataPoint>() {
-    @Override
-    public int compare(DataPoint o1, DataPoint o2) {
-      return Double.compare(o1.getMZ(), o2.getMZ());
-    }
-  };
-  protected static final Comparator<DataPoint> CompareDataPointsByDecreasingInt =
-      new Comparator<DataPoint>() {
-        @Override
-        public int compare(DataPoint o1, DataPoint o2) {
-          return Double.compare(o2.getIntensity(), o1.getIntensity());
-        }
-      };
+  public static final String MULTI_NAME_PATTERN = "{}";
   private static final Logger logger = Logger.getLogger(SiriusExportTask.class.getName());
-  private static final String plNamePattern = "{}";
-  private final FeatureList[] featureLists;
+  private final ParameterSet parameters;
+  private final ModularFeatureList[] featureLists;
   private final File fileName;
   private final boolean mergeEnabled;
   private final MsMsSpectraMergeParameters mergeParameters;
+  private final double minimumRelativeNumberOfScans;
   private final MZTolerance mzTol;
-  private final boolean excludeEmptyMSMS;
-  private final boolean excludeMultiCharge;
+  private final Boolean excludeMultiCharge;
   private final Boolean excludeMultimers;
   private final Boolean needAnnotation;
-  // rows
-  protected long finishedRows, totalRows;
-  // by robin
-  private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-  private NumberFormat intensityForm = MZmineCore.getConfiguration().getIntensityFormat();
-  // seconds
-  private NumberFormat rtsForm = new DecimalFormat("0.###");
-  // correlation
-  private NumberFormat corrForm = new DecimalFormat("0.0000");
-  // next id for renumbering
-  private int nextID = 1;
-  private boolean renumberID;
+  private final int totalRows;
+  private final NumberFormats format = MZmineCore.getConfiguration().getExportFormats();
+  private final MergeMode mergeMode;
+  private final AtomicInteger exportedRows = new AtomicInteger(0);
+  private final AtomicInteger processedRows = new AtomicInteger(0);
 
-  SiriusExportTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
-    super(null, moduleCallDate); // no new data stored -> null
-    this.featureLists = parameters.getParameter(SiriusExportParameters.FEATURE_LISTS).getValue()
+
+  protected SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate);
+
+    this.parameters = parameters;
+    this.featureLists = parameters.getValue(SiriusExportParameters.FEATURE_LISTS)
         .getMatchingFeatureLists();
-    this.fileName = parameters.getParameter(SiriusExportParameters.FILENAME).getValue();
-    this.mergeEnabled = parameters.getParameter(SiriusExportParameters.MERGE_PARAMETER).getValue();
-    this.mergeParameters =
-        parameters.getParameter(SiriusExportParameters.MERGE_PARAMETER).getEmbeddedParameters();
+    this.fileName = parameters.getValue(SiriusExportParameters.FILENAME);
+    this.mergeEnabled = parameters.getValue(SiriusExportParameters.MERGE_PARAMETER);
+    this.mergeParameters = parameters.getParameter(SiriusExportParameters.MERGE_PARAMETER)
+        .getEmbeddedParameters();
+
+    minimumRelativeNumberOfScans = mergeEnabled ? mergeParameters.getParameter(
+        MsMsSpectraMergeParameters.REL_SIGNAL_COUNT_PARAMETER).getValue() : 0d;
 
     // new parameters related to ion identity networking and feature grouping
-    mzTol = parameters.getParameter(SiriusExportParameters.MZ_TOL).getValue();
-    excludeEmptyMSMS =
-        parameters.getParameter(SiriusExportParameters.EXCLUDE_EMPTY_MSMS).getValue();
-    excludeMultiCharge =
-        parameters.getParameter(SiriusExportParameters.EXCLUDE_MULTICHARGE).getValue();
-    excludeMultimers = parameters.getParameter(SiriusExportParameters.EXCLUDE_MULTIMERS).getValue();
-    needAnnotation = parameters.getParameter(SiriusExportParameters.NEED_ANNOTATION).getValue();
+    mzTol = parameters.getValue(SiriusExportParameters.MZ_TOL);
+    excludeMultiCharge = parameters.getValue(SiriusExportParameters.EXCLUDE_MULTICHARGE);
+    excludeMultimers = parameters.getValue(SiriusExportParameters.EXCLUDE_MULTIMERS);
+    needAnnotation = parameters.getValue(SiriusExportParameters.NEED_ANNOTATION);
+    mergeMode = mergeParameters.getValue(MsMsSpectraMergeParameters.MERGE_MODE);
     // experimental
-    renumberID = parameters.getParameter(SiriusExportParameters.RENUMBER_ID).getValue();
 
+    totalRows = Arrays.stream(featureLists).mapToInt(FeatureList::getNumberOfRows).sum();
   }
 
-  @Override
-  public double getFinishedPercentage() {
-    return (totalRows == 0 ? 0.0 : (double) finishedRows / (double) totalRows);
+  private static void putMergedSpectrumFieldsIntoEntry(MergedSpectrum spectrum,
+      SpectralLibraryEntry entry) {
+    entry.putIfNotNull(DBEntryField.FILENAME,
+        Arrays.stream(spectrum.origins).map(RawDataFile::getName).collect(Collectors.joining(";")));
+    entry.putIfNotNull(DBEntryField.SIRIUS_MERGED_SCANS,
+        Arrays.stream(spectrum.scanIds).mapToObj(Integer::toString)
+            .collect(Collectors.joining(",")));
+    entry.putIfNotNull(DBEntryField.SIRIUS_MERGED_STATS, spectrum.getMergeStatsDescription());
+  }
+
+  private static void putFeatureFieldsIntoEntry(Feature f, SpectralLibraryEntry entry) {
+    int charge = 1;
+    PolarityType polarity = f.getRepresentativeScan().getPolarity();
+    if (f.getRow().getRowCharge() != null) {
+      charge = f.getRow().getRowCharge();
+    } else if (f.getMostIntenseFragmentScan().getMsMsInfo() instanceof DDAMsMsInfo dda) {
+      charge = dda.getPrecursorCharge() != null ? dda.getPrecursorCharge() : charge;
+    }
+    charge = Math.max(charge, 1); // no zero charge
+
+    entry.putIfNotNull(DBEntryField.FEATURE_ID, f.getRow().getID());
+    // replicate what GNPS does - some tools rely on the scan number to be there
+    // GNPS just uses the FEATURE_ID for this
+    entry.putIfNotNull(DBEntryField.SCAN_NUMBER, f.getRow().getID());
+    entry.putIfNotNull(DBEntryField.PRECURSOR_MZ, f.getMZ());
+    entry.putIfNotNull(DBEntryField.RT, f.getRT());
+    entry.setCharge(charge, polarity);
   }
 
   @Override
   public String getTaskDescription() {
-    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to MGF file(s)";
+    return "Running sirius export for feature list(s) " + Arrays.stream(featureLists)
+        .map(FeatureList::getName).collect(Collectors.joining(", ")) + ".";
+  }
+
+  @Override
+  public double getFinishedPercentage() {
+    return processedRows.get() / (double) totalRows;
   }
 
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    // Shall export several files?
-    boolean substitute = fileName.getPath().contains(plNamePattern);
-
-    for (FeatureList l : featureLists) {
-      this.totalRows += l.getNumberOfRows();
-      prefillStatistics(l.getRows().toArray(FeatureListRow[]::new));
-    }
-
     // Process feature lists
     for (FeatureList featureList : featureLists) {
+      if (isCanceled()) {
+        return;
+      }
 
       // Filename
-      File curFile = fileName;
-      if (substitute) {
-        // Cleanup from illegal filename characters
-        String cleanPlName = featureList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
-        // Substitute
-        String newFilename =
-            fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
-        curFile = new File(newFilename);
+      final File curFile = getFileForFeatureList(isSubstitute(), featureList);
+      if (curFile == null) {
+        setErrorMessage("Could not create directories for file " + curFile + " for writing.");
+        setStatus(TaskStatus.ERROR);
+        return;
       }
 
       // Open file
-      try (final BufferedWriter bw = new BufferedWriter(new FileWriter(curFile))) {
-        exportFeatureList(featureList, bw);
+      try (BufferedWriter writer = Files.newBufferedWriter(curFile.toPath(),
+          StandardCharsets.UTF_8)) {
+        logger.fine(() -> String.format("Exporting SIRIUS mgf for feature list: %s to file %s",
+            featureList.getName(), curFile.getAbsolutePath()));
+        exportFeatureList(featureList, writer);
       } catch (IOException e) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Could not open file " + curFile + " for writing.");
-      }
-
-      // If feature list substitution pattern wasn't found,
-      // treat one feature list only
-      if (!substitute) {
-        break;
+        logger.log(Level.WARNING, String.format(
+            "Error writing SIRIUS mgf format to file: %s for feature list: %s. Message: %s",
+            curFile.getAbsolutePath(), featureList.getName(), e.getMessage()), e);
+        return;
       }
     }
 
-    if (getStatus() == TaskStatus.PROCESSING) {
-      setStatus(TaskStatus.FINISHED);
+    for (ModularFeatureList featureList : featureLists) {
+      featureList.addDescriptionOfAppliedTask(
+          new SimpleFeatureListAppliedMethod(SiriusExportModule.class, parameters,
+              getModuleCallDate()));
     }
+
+    logger.info(
+        "Processed " + processedRows.get() + " rows, exported " + exportedRows.get() + " rows.");
+
+    setStatus(TaskStatus.FINISHED);
   }
 
-  public void runSingleRow(FeatureListRow row) {
-    setStatus(TaskStatus.PROCESSING);
-    try (final BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true))) {
-      exportFeatureListRow(row, bw);
-    } catch (IOException e) {
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage("Could not open file " + fileName + " for writing.");
-    }
-    if (getStatus() == TaskStatus.PROCESSING) {
-      setStatus(TaskStatus.FINISHED);
-    }
+  protected boolean isSubstitute() {
+    boolean substitute = fileName.getPath().contains(MULTI_NAME_PATTERN);
+    return substitute;
   }
 
-  public void runSingleRows(FeatureListRow[] rows) {
-    setStatus(TaskStatus.PROCESSING);
-    // prefill statistics
-    prefillStatistics(rows);
-    try (final BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true))) {
-      for (FeatureListRow row : rows) {
-        exportFeatureListRow(row, bw);
-      }
-    } catch (IOException e) {
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage("Could not open file " + fileName + " for writing.");
-    }
-    if (getStatus() == TaskStatus.PROCESSING) {
-      setStatus(TaskStatus.FINISHED);
-    }
-  }
-
-  private void prefillStatistics(FeatureListRow[] rows) {
-    ArrayList<FeatureListRow> copy = new ArrayList<>(Arrays.asList(rows));
-    Collections.shuffle(copy);
-  }
-
-  private int exportFeatureList(FeatureList featureList, BufferedWriter writer)
+  private void exportFeatureList(FeatureList featureList, BufferedWriter writer)
       throws IOException {
-    int exported = 0;
+
     for (FeatureListRow row : featureList.getRows()) {
       if (isCanceled()) {
-        return exported;
+        return;
       }
 
-      IonIdentity adduct = row.getBestIonIdentity();
-      boolean fitCharge = !excludeMultiCharge || row.getRowCharge() <= 1;
-      boolean fitAnnotation = !needAnnotation || adduct != null;
-      boolean fitMol =
-          !excludeMultimers || adduct == null || adduct.getIonType().getMolecules() <= 1;
-      if (fitAnnotation && fitCharge && fitMol && hasMsMsOrIsotopes(row)) {
-        if (exportFeatureListRow(row, writer)) {
-          exported++;
-        }
+      if (exportRow(writer, row)) {
+        exportedRows.getAndIncrement();
       }
-      finishedRows++;
+
+      processedRows.getAndIncrement();
     }
-    return exported;
   }
 
-  private boolean exportFeatureListRow(FeatureListRow row, BufferedWriter writer) throws IOException {
-    // get row charge and polarity
-    char polarity = 0;
-    for (Feature f : row.getFeatures()) {
-      if (f.getRepresentativeScan() == null) {
-        continue;
-      }
-      char pol = f.getRepresentativeScan().getPolarity().asSingleChar().charAt(0);
-      if (pol != polarity && polarity != 0) {
-        setErrorMessage(
-            "Joined features have different polarity. This is most likely a bug. If not, please separate them as individual features and/or write a feature request on github.");
-        setStatus(TaskStatus.ERROR);
-        return false;
-      } else {
-        polarity = pol;
-      }
+  /**
+   * @return True if the row was exported.
+   */
+  public boolean exportRow(BufferedWriter writer, FeatureListRow row) throws IOException {
+
+    if (!checkFeatureCriteria(row)) {
+      return false;
     }
 
-    // MS annotation and feature correlation group
-    // can be null (both)
-    // run MS annotations module or better metaMSEcorrelate
-    String msAnnotationsFlags = createMSAnnotationFlags(row, mzForm);
+    // Use SpectralLibraryEntry to easily generate MGF files
+    final List<SpectralLibraryEntry> entries = new ArrayList<>();
+
+    // export either correlated OR MS1
+    final MassSpectrum correlated = generateCorrelationSpectrum(row, null);
+    if (correlated != null && correlated.getNumberOfDataPoints() > 1) {
+      entries.add(spectrumToEntry(MsType.CORRELATED, correlated, row.getBestFeature()));
+    } else {
+      // export best MS1
+      entries.add(spectrumToEntry(MsType.MS, row.getBestFeature().getRepresentativeScan(),
+          row.getBestFeature()));
+    }
 
     if (mergeEnabled) {
-      MergeMode mergeMode =
-          mergeParameters.getParameter(MsMsSpectraMergeParameters.MERGE_MODE).getValue();
-      MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
-      if (mergeMode != MergeMode.ACROSS_SAMPLES) {
-        for (Feature f : row.getFeatures()) {
-          if (f.getFeatureStatus() == FeatureStatus.DETECTED
-              && f.getMostIntenseFragmentScan() != null) {
-            // write correlation spectrum
-            writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.CORRELATED, -1, null, msAnnotationsFlags);
-            writeCorrelationSpectrum(writer, f);
-            if (mergeMode == MergeMode.CONSECUTIVE_SCANS) {
-              // merge MS/MS
-              List<MergedSpectrum> spectra =
-                  merger.mergeConsecutiveScans(mergeParameters, f);
-              for (MergedSpectrum spectrum : spectra) {
-                writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.MSMS,
-                    spectrum.filterByRelativeNumberOfScans(mergeParameters
-                        .getParameter(MsMsSpectraMergeParameters.FEATURE_COUNT_PARAMETER)
-                        .getValue()), msAnnotationsFlags);
-                writeSpectrum(writer, spectrum.data);
-              }
-            } else {
-              MergedSpectrum spectrum = merger.mergeFromSameSample(mergeParameters, f)
-                  .filterByRelativeNumberOfScans(mergeParameters
-                      .getParameter(MsMsSpectraMergeParameters.FEATURE_COUNT_PARAMETER).getValue());
-              if (spectrum.data.length > 0) {
-                writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.MSMS, spectrum, msAnnotationsFlags);
-                writeSpectrum(writer, spectrum.data);
-              }
-            }
-          }
-        }
-      } else {
-        // write correlation spectrum
-        writeHeader(writer, row, row.getBestFeature().getRawDataFile(), polarity, MsType.CORRELATED,
-            -1, null, msAnnotationsFlags);
-        writeCorrelationSpectrum(writer, row.getBestFeature());
-        // merge everything into one
-        MergedSpectrum spectrum = merger.mergeAcrossSamples(mergeParameters, row)
-            .filterByRelativeNumberOfScans(mergeParameters
-                .getParameter(MsMsSpectraMergeParameters.FEATURE_COUNT_PARAMETER).getValue());
-        if (spectrum.data.length > 0) {
-          writeHeader(writer, row, row.getBestFeature().getRawDataFile(), polarity, MsType.MSMS,
-              spectrum, msAnnotationsFlags);
-          writeSpectrum(writer, spectrum.data);
-        }
+      final List<SpectralLibraryEntry> ms2Entries = getMergedMs2SpectraEntries(mergeMode, row);
+      if (ms2Entries != null) {
+        entries.addAll(ms2Entries);
       }
     } else {
-      // No merging
-      Feature bestFeature = row.getBestFeature();
-      MassList ms1MassList = bestFeature.getRepresentativeScan().getMassList();
-      if(ms1MassList==null) {
-        setErrorMessage("A mass list was missing for scan "
-                        + ScanUtils.scanToString(bestFeature.getRepresentativeScan(), true)
-                        + ". Maybe rerun mass detection on MS2 and MS1 without scan filtering (e.g., by retention time range).");
-        setStatus(TaskStatus.ERROR);
-        return false;
-      }
-        writeHeader(writer, row, bestFeature.getRawDataFile(), polarity, MsType.MS,
-            bestFeature.getRepresentativeScan(), msAnnotationsFlags);
-        writeSpectrum(writer, ms1MassList.getDataPoints());
-
-      for (Feature f : row.getFeatures()) {
-        for (Scan ms2scan : f.getAllMS2FragmentScans()) {
-          writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.MSMS, ms2scan, msAnnotationsFlags);
-          MassList ms2MassList = ms2scan.getMassList();
-          if (ms2MassList == null || (excludeEmptyMSMS && ms2MassList.getNumberOfDataPoints()<=0)) {
-            continue;
-          }
-          writeSpectrum(writer, ms2MassList.getDataPoints());
-        }
-      }
-
+      final List<SpectralLibraryEntry> ms2Entries = row.streamFeatures().flatMap(
+              f -> f.getAllMS2FragmentScans().stream().map(s -> spectrumToEntry(MsType.MSMS, s, f)))
+          .toList();
+      entries.addAll(ms2Entries);
     }
-    nextID++;
+
+    if (entries.size() < 2) {
+      // only MS1
+      return false;
+    }
+
+    for (SpectralLibraryEntry entry : entries) {
+      final String mgfEntry = MGFEntryGenerator.createMGFEntry(entry);
+      writer.write(mgfEntry);
+      writer.newLine();
+    }
     return true;
   }
 
+  public SpectralLibraryEntry spectrumToEntry(MsType spectrumType, MassSpectrum spectrum,
+      Feature f) {
 
-  /**
-   * Creates header for groupID, compoundGroupID compoundMass and ion annotation
-   *
-   * @param row
-   * @return
-   */
-  public static String createMSAnnotationFlags(FeatureListRow row, NumberFormat mzForm) {
-    // MS annotation and feature correlation group
-    // can be null (both)
-    // run MS annotations module or better metaMSEcorrelate
-    RowGroup group = row.getGroup();
-    IonIdentity adduct = row.getBestIonIdentity();
-    IonNetwork net = adduct != null ? adduct.getNetwork() : null;
+    // TODO MSAnnotationFlags from old sirius import
+    final SpectralLibraryEntry entry = switch (spectrum) {
+      case MergedSpectrum spec -> SpectralLibraryEntry.create(null, f.getMZ(), spec.data);
+      case Scan scan ->
+          SpectralLibraryEntry.create(null, f.getMZ(), ScanUtils.extractDataPoints(scan, true));
+      case SimpleMassSpectrum spec ->
+          SpectralLibraryEntry.create(null, f.getMZ(), ScanUtils.extractDataPoints(spec));
+      default -> throw new IllegalStateException(
+          "Cannot extract data points from spectrum class " + spectrum.getClass().getName());
+    };
 
-    // find ion species by annotation (can be null)
-    String corrGroupID = group != null ? "" + group.getGroupID() : "";
+    putFeatureFieldsIntoEntry(f, entry);
 
-    String ion = "";
-    String compoundGroupID = "";
-    String compoundMass = "";
-    if (adduct != null) {
-      ion = adduct.getAdduct();
+    switch (spectrumType) {
+      case CORRELATED -> {
+        entry.putIfNotNull(DBEntryField.MS_LEVEL, 1);
+        entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, "CORRELATED MS");
+        entry.putIfNotNull(DBEntryField.FILENAME,
+            f.getRow().getFeatures().stream().map(Feature::getRawDataFile).filter(Objects::nonNull)
+                .map(RawDataFile::getName).collect(Collectors.joining(";")));
+      }
+      case MS -> entry.putIfNotNull(DBEntryField.MS_LEVEL, 1);
+      case MSMS -> entry.putIfNotNull(DBEntryField.MS_LEVEL, 2);
     }
-    if (net != null) {
-      compoundGroupID = net.getID() + "";
-      compoundMass = mzForm.format(net.calcNeutralMass());
+
+    final IonIdentity ionType = f.getRow().getBestIonIdentity();
+    if (ionType != null) {
+      entry.putIfNotNull(DBEntryField.ION_TYPE, ionType.getAdduct());
     }
 
-    StringBuilder b = new StringBuilder();
-    if (!corrGroupID.isEmpty())
-      b.append(CORR_GROUPID + corrGroupID + "\n");
-    if (!compoundGroupID.isEmpty())
-      b.append(COMPOUND_ID + compoundGroupID + "\n");
-    if (!compoundMass.isEmpty())
-      b.append(COMPOUND_MASS + compoundMass + "\n");
-    if (!ion.isEmpty())
-      b.append(ION + ion + "\n");
-    return b.toString();
+    if (spectrum instanceof MergedSpectrum spec) {
+      putMergedSpectrumFieldsIntoEntry(spec, entry);
+    }
+
+    return entry;
   }
 
-  private boolean hasMsMsOrIsotopes(FeatureListRow row) {
-    // skip rows which have no isotope pattern and no MS/MS spectrum
-    for (Feature f : row.getFeatures()) {
-      if (f.getFeatureStatus() == FeatureStatus.DETECTED) {
-        // has isotope pattern or MS2
-        if ((f.getIsotopePattern() != null && f.getIsotopePattern().getNumberOfDataPoints() > 1)
-            || f.getMostIntenseFragmentScan() != null) {
-          return true;
+  private List<SpectralLibraryEntry> getMergedMs2SpectraEntries(MergeMode mergeMode,
+      FeatureListRow row) {
+
+    List<SpectralLibraryEntry> entries = new ArrayList<>();
+    final MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(
+        MsMsSpectraMergeModule.class);
+
+    switch (mergeMode) {
+      case SAME_SAMPLE -> {
+        for (Feature f : row.getFeatures()) {
+          final Scan bestMS2 = f.getMostIntenseFragmentScan();
+          if (bestMS2 == null) {
+            continue;
+          }
+          if (bestMS2.getMassList() == null) {
+            throw new MissingMassListException(bestMS2);
+          }
+          if (bestMS2.getMassList().getNumberOfDataPoints() <= 0) {
+            continue;
+          }
+
+          MergedSpectrum spectrum = merger.mergeFromSameSample(mergeParameters, f)
+              .filterByRelativeNumberOfScans(minimumRelativeNumberOfScans);
+          entries.add(spectrumToEntry(MsType.MSMS, spectrum, f));
+        }
+      }
+
+      case CONSECUTIVE_SCANS -> {
+        for (Feature f : row.getFeatures()) {
+          final Scan bestMS2 = f.getMostIntenseFragmentScan();
+          if (bestMS2 == null) {
+            continue;
+          }
+          if (bestMS2.getMassList() == null) {
+            throw new MissingMassListException(bestMS2);
+          }
+          if (bestMS2.getMassList().getNumberOfDataPoints() <= 0) {
+            continue;
+          }
+
+          final List<MergedSpectrum> mergedSpectra = merger.mergeConsecutiveScans(mergeParameters,
+              f);
+          for (MergedSpectrum spectrum : mergedSpectra) {
+            entries.add(spectrumToEntry(MsType.MSMS,
+                spectrum.filterByRelativeNumberOfScans(minimumRelativeNumberOfScans), f));
+          }
+        }
+      }
+
+      case ACROSS_SAMPLES -> {
+        // merge everything into one
+        MergedSpectrum spectrum = merger.mergeAcrossSamples(mergeParameters, row)
+            .filterByRelativeNumberOfScans(minimumRelativeNumberOfScans);
+        entries.add(spectrumToEntry(MsType.MSMS, spectrum, row.getBestFeature()));
+      }
+    }
+
+    entries.removeIf(e -> e.getNumberOfDataPoints() == 0);
+    return entries;
+  }
+
+  private boolean checkFeatureCriteria(final FeatureListRow row) {
+
+    if (!row.hasMs2Fragmentation()) {
+      return false;
+    }
+
+    if (excludeMultiCharge && Math.abs(row.getRowCharge()) > 1) {
+      return false;
+    }
+
+    IonIdentity adduct = row.getBestIonIdentity();
+    if (needAnnotation && adduct == null) {
+      return false;
+    }
+
+    return !excludeMultimers || adduct == null || adduct.getIonType().getMolecules() <= 1;
+  }
+
+
+  @Nullable
+  protected File getFileForFeatureList(boolean substitute, FeatureList featureList) {
+    File tmpFile = fileName;
+    if (substitute) {
+      // Cleanup from illegal filename characters
+      String cleanPlName = featureList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
+      // Substitute
+      String newFilename = fileName.getPath()
+          .replaceAll(Pattern.quote(MULTI_NAME_PATTERN), cleanPlName);
+      tmpFile = new File(newFilename);
+    }
+    final File curFile = FileAndPathUtil.getRealFilePath(tmpFile, "mgf");
+
+    if (!FileAndPathUtil.createDirectory(curFile.getParentFile())) {
+      return null;
+    }
+    return curFile;
+  }
+
+  /**
+   * Generates a spectrum of all correlated features, such as isotope patterns and adducts assigned
+   * via IIN (+ their isotopes).
+   */
+  @Nullable
+  private MassSpectrum generateCorrelationSpectrum(@NotNull FeatureListRow row,
+      @Nullable RawDataFile file) {
+    file = file != null ? file : row.getBestFeature().getRawDataFile();
+    final List<DataPoint> dps = new ArrayList<>();
+
+    final Feature feature = row.getFeature(file);
+    if (feature == null) {
+      return null;
+    }
+
+    final RowGroup group = row.getGroup();
+    final IonIdentity identity = row.getBestIonIdentity();
+    final IsotopePattern ip = feature.getIsotopePattern();
+
+    if (group == null && identity != null) {
+      throw new IllegalStateException("Cannot have an ion identity without a row group.");
+    }
+
+    if (group == null) {
+      // add isotope pattern of this feature only if we don't have a group, otherwise the isotope
+      // pattern is exported below.
+      addIsotopePattern(feature, dps, ip);
+    }
+
+    if (group != null) {
+      final IonNetwork network = identity != null ? identity.getNetwork() : null;
+      for (final FeatureListRow groupedRow : group.getRows()) {
+        // only write intensities of the same file, otherwise intensities will be distorted
+        final Feature sameFileFeature = groupedRow.getFeature(file);
+        if (sameFileFeature == null
+            || sameFileFeature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+          continue;
+        }
+
+        // this writes the data points of the row we want to export and all grouped rows + their isotope patterns.
+        if (row.equals(groupedRow) || group.isCorrelated(row, groupedRow)) {
+          // if we have an annotation, export the annotation
+          if (network != null && network.get(groupedRow) != null) {
+            dps.add(new AnnotatedDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight(),
+                network.get(groupedRow).getAdduct()));
+          } else {
+            dps.add(new SimpleDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight()));
+          }
+
+          // add isotope pattern of correlated ions. The groupedRow ion has been added previously.
+          addIsotopePattern(sameFileFeature, dps, sameFileFeature.getIsotopePattern());
         }
       }
     }
-    return false;
+
+    dps.sort(new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
+    removeDuplicateDataPoints(dps,
+        mzTol); // remove duplicate isotope peaks (might be correlated features too)
+    final double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(dps);
+    return dps.isEmpty() ? null : new SimpleMassSpectrum(dp[0], dp[1]);
   }
 
-  private void writeHeader(BufferedWriter writer, FeatureListRow row, RawDataFile raw,
-      char polarity, MsType msType, MergedSpectrum mergedSpectrum, String msAnnotationsFlags) throws IOException {
-    writeHeader(writer, row, raw, polarity, msType, row.getID(), Arrays
-        .stream(mergedSpectrum.origins).map(RawDataFile::getName).collect(Collectors.toList()), msAnnotationsFlags);
-    // add additional fields
-    writer.write("MERGED_SCANS=");
-    writer.write(String.valueOf(mergedSpectrum.scanIds[0]));
-    for (int k = 1; k < mergedSpectrum.scanIds.length; ++k) {
-      writer.write(',');
-      writer.write(String.valueOf(mergedSpectrum.scanIds[k]));
-    }
-    writer.newLine();
-    writer.write("MERGED_STATS=");
-    writer.write(mergedSpectrum.getMergeStatsDescription());
-    writer.newLine();
-  }
-
-  private void writeHeader(BufferedWriter writer, FeatureListRow row, RawDataFile raw,
-      char polarity, MsType msType, Scan scanNumber, String msAnnotationsFlags) throws IOException {
-    writeHeader(writer, row, raw, polarity, msType, scanNumber.getScanNumber(), null, msAnnotationsFlags);
-  }
-
-  private void writeHeader(BufferedWriter writer, FeatureListRow row, RawDataFile raw,
-      char polarity, MsType msType, Integer scanNumber, List<String> sources, String msAnnotationsFlags) throws IOException {
-    final Feature feature = row.getFeature(raw);
-    writer.write("BEGIN IONS");
-    writer.newLine();
-    writer.write("FEATURE_ID=");
-    writer.write(String.valueOf(row.getID()));
-    writer.newLine();
-    writer.write("PEPMASS=");
-    writer.write(String.valueOf(row.getBestFeature().getMZ()));
-    writer.newLine();
-    // ion identity etc
-    if (msAnnotationsFlags != null && !msAnnotationsFlags.isEmpty()) {
-      writer.write(msAnnotationsFlags);
-    }
-
-    writer.write("CHARGE=");
-    if (polarity == '-') {
-      writer.write("-");
-    }
-    writer.write(String.valueOf(Math.abs(row.getRowCharge())));
-    writer.newLine();
-    writer.write("RTINSECONDS=");
-    writer.write(String.valueOf(feature.getRT() * 60d));
-    writer.newLine();
-    switch (msType) {
-      case CORRELATED:
-        writer.write("SPECTYPE=CORRELATED MS");
-        writer.newLine();
-      case MS:
-        writer.write("MSLEVEL=1");
-        writer.newLine();
-        break;
-      case MSMS:
-        writer.write("MSLEVEL=2");
-        writer.newLine();
-    }
-    writer.write("FILENAME=");
-    if (sources != null) {
-      final String[] uniqSources = new HashSet<>(sources).toArray(new String[0]);
-      writer.write(escape(uniqSources[0], ";"));
-      for (int i = 1; i < uniqSources.length; ++i) {
-        writer.write(";");
-        writer.write(escape(uniqSources[i], ";"));
+  /**
+   * Adds the isotopic peaks of this row to the list of data points.
+   */
+  private void addIsotopePattern(@NotNull Feature feature, @NotNull List<DataPoint> dps,
+      @Nullable IsotopePattern ip) {
+    if (ip != null) {
+      for (int i = 0; i < ip.getNumberOfDataPoints(); i++) {
+        dps.add(new SimpleDataPoint(ip.getMzValue(i), ip.getIntensityValue(i)));
       }
-      writer.newLine();
-    } else if (msType == MsType.CORRELATED) {
-      RawDataFile[] raws = row.getRawDataFiles().toArray(new RawDataFile[0]);
-      final Set<String> set = new HashSet<>();
-      for (RawDataFile f : raws) {
-        set.add(f.getName());
+    }
+  }
+
+  /**
+   * Removes duplicate data points from the given list. In this case, isotopic features may be among
+   * the correlated ions and thus be added from the isotope pattern of the monoisotopic mass and as
+   * a correlated ion.
+   *
+   * @param sortedDp  data points sorted by mz.
+   * @param mzTol MZ tolerance to filter equal data points.
+   */
+  private void removeDuplicateDataPoints(List<DataPoint> sortedDp, MZTolerance mzTol) {
+    for (int i = sortedDp.size() - 2; i >= 0; i--) {
+      if (mzTol.checkWithinTolerance(sortedDp.get(i).getMZ(), sortedDp.get(i + 1).getMZ())) {
+        if (sortedDp.get(i) instanceof AnnotatedDataPoint) {
+          sortedDp.remove(i + 1);
+        } else {
+          sortedDp.remove(i);
+        }
       }
-      final String[] uniqSources = set.toArray(new String[0]);
-      writer.write(escape(uniqSources[0], ";"));
-      for (int i = 1; i < uniqSources.length; ++i) {
-        writer.write(";");
-        writer.write(escape(uniqSources[i], ";"));
-      }
-      writer.newLine();
-    } else {
-      writer.write(feature.getRawDataFile().getName());
-      writer.newLine();
     }
-    if (scanNumber != -1) {
-      writer.write("SCANS=");
-      writer.write(String.valueOf(scanNumber));
-      writer.newLine();
-    }
-  }
-
-  private void writeCorrelationSpectrum(BufferedWriter writer, Feature feature) throws IOException {
-    if (feature.getIsotopePattern() != null) {
-      writeSpectrum(writer, ScanUtils.extractDataPoints(feature.getIsotopePattern()));
-    } else {
-      // write nothing
-      writer.write(String.valueOf(feature.getMZ()));
-      writer.write(' ');
-      writer.write("100.0");
-      writer.newLine();
-      writer.write("END IONS");
-      writer.newLine();
-      writer.newLine();
-    }
-  }
-
-  private void writeSpectrum(BufferedWriter writer, DataPoint[] spectrum) throws IOException {
-    for (int i = 0; i < spectrum.length; i++) {
-      writer.write(String.valueOf(spectrum[i].getMZ()));
-      writer.write(' ');
-      writer.write(intensityForm.format(spectrum[i].getIntensity()));
-      writer.newLine();
-
-    }
-    writer.write("END IONS");
-    writer.newLine();
-    writer.newLine();
-  }
-
-  private String escape(String name, String s) {
-    return name.replaceAll(s, "\\" + s);
   }
 
   private enum MsType {
-    MS, MSMS, CORRELATED
+    /**
+     * Describes the original MS1 spectrum
+     */
+    MS,
+    /**
+     * The MS2 spectrum, either merged raw spectra, or the best raw spectrum.
+     */
+    MSMS,
+    /**
+     * Only contains m/zs of features that correlate with this feature. (e.g. isotopic signals or
+     * different adducts).
+     */
+    CORRELATED
   }
-
 }

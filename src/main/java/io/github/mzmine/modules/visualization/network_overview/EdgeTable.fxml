@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import org.controlsfx.control.tableview2.FilteredTableView?>
+<?import org.controlsfx.control.tableview2.FilteredTableColumn?>
+
+<BorderPane prefHeight="474.0" prefWidth="746.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.network_overview.EdgeTableController">
+   <center>
+      <ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+         <content>
+            <FilteredTableView fx:id="edgeTable">
+               <columns>
+                  <FilteredTableColumn fx:id="colId1"  editable="false"  prefWidth="75.0" text="ID1" />
+                  <FilteredTableColumn fx:id="colId2" editable="false"  prefWidth="75.0" text="ID2" />
+                  <FilteredTableColumn fx:id="colDeltaMz" editable="false"  prefWidth="100.0" text="Δm/z" />
+                  <FilteredTableColumn fx:id="colScore" editable="false" prefWidth="75.0" text="Score" />
+                  <FilteredTableColumn fx:id="colExplainedIntensity" editable="false" prefWidth="75.0" text="Explained intensity" />
+                  <FilteredTableColumn fx:id="colMatchedSignals" editable="false" prefWidth="75.0" text="Matched signals" />
+                  <FilteredTableColumn fx:id="colType" editable="false"  prefWidth="120" text="Type" />
+                  <FilteredTableColumn fx:id="colLabel" editable="false"  prefWidth="120" text="Label" />
+                  <FilteredTableColumn fx:id="colNeighborDistance" editable="false" prefWidth="75.0" text="Distance" />
+               </columns>
+            </FilteredTableView>
+         </content>
+      </ScrollPane>
+   </center>
+</BorderPane>

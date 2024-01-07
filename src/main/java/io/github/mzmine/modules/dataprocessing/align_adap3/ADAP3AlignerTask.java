@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.mzmine.modules.dataprocessing.align_adap3;
 
@@ -25,10 +32,7 @@ import dulab.adap.datamodel.Project;
 import dulab.adap.datamodel.ReferenceComponent;
 import dulab.adap.datamodel.Sample;
 import dulab.adap.workflow.AlignmentParameters;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.*;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -43,9 +47,9 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.adap.ADAPInterface;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -71,7 +75,7 @@ public class ADAP3AlignerTask extends AbstractTask {
   private final Project alignment;
 
   public ADAP3AlignerTask(MZmineProject project, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.project = project;
     this.parameters = parameters;
@@ -188,11 +192,15 @@ public class ADAP3AlignerTask extends AbstractTask {
     for (final ReferenceComponent referenceComponent : alignedComponents) {
 
       ModularFeatureListRow newRow = new ModularFeatureListRow(alignedPeakList, ++rowID);
+
       for (int i = 0; i < referenceComponent.size(); ++i) {
 
         Component component = referenceComponent.getComponent(i);
         Peak peak = component.getBestPeak();
         peak.getInfo().mzValue(component.getMZ());
+
+        FeatureList featureList = findPeakList(referenceComponent.getSampleID(i));
+
 
         FeatureListRow row =
             findPeakListRow(referenceComponent.getSampleID(i), peak.getInfo().peakID);
@@ -203,16 +211,17 @@ public class ADAP3AlignerTask extends AbstractTask {
                   referenceComponent.getSampleID(), peak.getInfo().peakID));
 
         RawDataFile file = row.getRawDataFiles().get(0);
-
+//        List<Scan> scanNumbers = row.getBestFeature().getScanNumbers();
         // Create a new MZmine feature
-        Feature feature = ADAPInterface.peakToFeature(alignedPeakList, file, peak);
+        Feature feature = ADAPInterface.peakToFeature(alignedPeakList, featureList, file, peak);
 
         // Add spectrum as an isotopic pattern
         DataPoint[] spectrum = component.getSpectrum().entrySet().stream()
             .map(e -> new SimpleDataPoint(e.getKey(), e.getValue())).toArray(DataPoint[]::new);
 
-        feature.setIsotopePattern(new SimpleIsotopePattern(spectrum,
-            IsotopePattern.IsotopePatternStatus.PREDICTED, "Spectrum"));
+        feature.setIsotopePattern(
+            new SimpleIsotopePattern(spectrum, -1, IsotopePattern.IsotopePatternStatus.PREDICTED,
+                "Spectrum"));
 
         newRow.addFeature(file, feature);
       }
@@ -231,6 +240,12 @@ public class ADAP3AlignerTask extends AbstractTask {
 
     alignedPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
         ADAP3AlignerModule.class, parameters, getModuleCallDate()));
+
+
+    for(int i = 0 ; i < peakLists.length ;i ++){
+       RawDataFile f = peakLists[i].getRawDataFile(0);
+       alignedPeakList.setSelectedScans(f, peakLists[i].getSeletedScans(f));
+    }
     return alignedPeakList;
   }
 

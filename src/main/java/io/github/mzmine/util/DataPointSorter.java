@@ -1,35 +1,49 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util;
 
-import java.util.Comparator;
-
 import io.github.mzmine.datamodel.DataPoint;
+import java.util.Comparator;
 
 /**
  * This class implements Comparator class to provide a comparison between two DataPoints.
- * 
  */
 public class DataPointSorter implements Comparator<DataPoint> {
 
-  private SortingProperty property;
-  private SortingDirection direction;
+  public static final DataPointSorter DEFAULT_MZ_ASCENDING = new DataPointSorter(SortingProperty.MZ,
+      SortingDirection.Ascending);
+
+  /**
+   * Sorts by descending intensity.
+   */
+  public static final DataPointSorter DEFAULT_INTENSITY = new DataPointSorter(
+      SortingProperty.Intensity, SortingDirection.Descending);
+
+  private final SortingProperty property;
+  private final SortingDirection direction;
 
   public DataPointSorter(SortingProperty property, SortingDirection direction) {
     this.property = property;
@@ -37,7 +51,6 @@ public class DataPointSorter implements Comparator<DataPoint> {
   }
 
   public int compare(DataPoint dp1, DataPoint dp2) {
-
     int result;
 
     switch (property) {
@@ -48,13 +61,15 @@ public class DataPointSorter implements Comparator<DataPoint> {
         // If the data points have same m/z, we do a second comparison of
         // intensity, to ensure that this comparator is consistent with
         // equality: (compare(x, y)==0) == (x.equals(y)),
-        if (result == 0)
+        if (result == 0) {
           result = Double.compare(dp1.getIntensity(), dp2.getIntensity());
+        }
 
-        if (direction == SortingDirection.Ascending)
+        if (direction == SortingDirection.Ascending) {
           return result;
-        else
+        } else {
           return -result;
+        }
 
       case Intensity:
         result = Double.compare(dp1.getIntensity(), dp2.getIntensity());
@@ -62,13 +77,15 @@ public class DataPointSorter implements Comparator<DataPoint> {
         // If the data points have same intensity, we do a second comparison
         // of m/z, to ensure that this comparator is consistent with
         // equality: (compare(x, y)==0) == (x.equals(y)),
-        if (result == 0)
+        if (result == 0) {
           result = Double.compare(dp1.getMZ(), dp2.getMZ());
+        }
 
-        if (direction == SortingDirection.Ascending)
+        if (direction == SortingDirection.Ascending) {
           return result;
-        else
+        } else {
           return -result;
+        }
       default:
         // We should never get here, so throw an exception
         throw (new IllegalStateException());

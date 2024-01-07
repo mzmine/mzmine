@@ -1,56 +1,64 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.NewVersionCheck;
+import io.github.mzmine.gui.NewVersionCheck.CheckType;
+import io.github.mzmine.gui.WindowLocation;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.batchmode.ModuleQuickSelectDialog;
+import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
+import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Date;
+import java.time.Instant;
 import java.util.logging.Logger;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.MZmineGUI;
-import io.github.mzmine.gui.NewVersionCheck;
-import io.github.mzmine.gui.NewVersionCheck.CheckType;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.MZmineRunnableModule;
-import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
-import io.github.mzmine.util.ExitCode;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import org.apache.commons.io.FileUtils;
 
 /**
  * The controller class for MainMenu.fxml
- *
  */
 public class MainMenuController {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MainMenuController.class.getName());
 
   @FXML
   private Menu recentProjectsMenu;
@@ -77,8 +85,8 @@ public class MainMenuController {
      * There doesn't seem to be any way to obtain the log file name from the logging FileHandler, so
      * it is hard-coded here for now
      */
-    final Path logFilePath =
-        Paths.get(System.getProperty("java.io.tmpdir") + File.separator + "mzmine.log");
+    final Path logFilePath = Paths.get(
+        FileUtils.getUserDirectory() + File.separator + "mzmine_0_0.log");
 
     try {
       Desktop gui = MZmineCore.getDesktop();
@@ -125,9 +133,8 @@ public class MainMenuController {
     MZmineGUI.showAboutWindow();
   }
 
-  public void setSampleParams(Event event) {
-    ProjectParametersSetupDialog dialog = new ProjectParametersSetupDialog();
-    dialog.show();
+  public void setSampleMetadata(Event event) {
+    MZmineCore.getDesktop().addTab(new ProjectMetadataTab());
   }
 
 
@@ -148,26 +155,8 @@ public class MainMenuController {
       MZmineCore.getDesktop().displayMessage("Cannot load module class " + moduleClass);
       return;
     }
-
-    MZmineModule module = MZmineCore.getModuleInstance(moduleJavaClass);
-
-    if (module == null) {
-      MZmineCore.getDesktop().displayMessage("Cannot find module of class " + moduleClass);
-      return;
-    }
-
-    ParameterSet moduleParameters =
-        MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
-
-    logger.info("Setting parameters for module " + module.getName());
-
-    ExitCode exitCode = moduleParameters.showSetupDialog(true);
-    if (exitCode != ExitCode.OK)
-      return;
-
-    ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
-    logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
-    MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
+    // show setup dialog and run
+    MZmineCore.setupAndRunModule(moduleJavaClass);
   }
 
   public void fillRecentProjects(Event event) {
@@ -188,22 +177,24 @@ public class MainMenuController {
     recentProjectsMenu.setDisable(false);
 
     // add items to load last used projects directly
-    recentProjects.stream().map(File::getAbsolutePath).forEach(name -> {
+    final MenuItem[] items = recentProjects.stream().map(File::getAbsolutePath).map(name -> {
       MenuItem item = new MenuItem(name);
 
       item.setOnAction(e -> {
         MenuItem c = (MenuItem) e.getSource();
-        if (c == null)
+        if (c == null) {
           return;
+        }
         File f = new File(c.getText());
         if (f.exists()) {
           // load file
-          ProjectOpeningTask newTask = new ProjectOpeningTask(f, new Date());
+          ProjectOpeningTask newTask = new ProjectOpeningTask(f, Instant.now());
           MZmineCore.getTaskController().addTask(newTask);
         }
       });
-      recentProjectsMenu.getItems().add(item);
-    });
+      return item;
+    }).toArray(MenuItem[]::new);
+    recentProjectsMenu.getItems().addAll(items);
   }
 
   public void handleAddIntroductionTab(ActionEvent event) {
@@ -213,9 +204,38 @@ public class MainMenuController {
 
   public void showWizardTab(ActionEvent actionEvent) {
     BatchWizardModule inst = MZmineCore.getModuleInstance(BatchWizardModule.class);
-    if(inst != null) {
+    if (inst != null) {
       inst.showTab();
     }
+  }
+
+  public void showMSnTreeTab(ActionEvent actionEvent) {
+    MSnTreeVisualizerModule.showNewTab();
+  }
+
+  public void setTaskViewerBottom(ActionEvent e) {
+    MZmineGUI.handleTaskManagerLocationChange(WindowLocation.MAIN);
+  }
+
+  public void setTaskViewerTab(ActionEvent e) {
+    MZmineGUI.handleTaskManagerLocationChange(WindowLocation.TAB);
+  }
+
+  public void setTaskViewerExternal(ActionEvent e) {
+    MZmineGUI.handleTaskManagerLocationChange(WindowLocation.EXTERNAL);
+  }
+
+  public void hideTaskViewer(ActionEvent e) {
+    MZmineGUI.handleTaskManagerLocationChange(WindowLocation.HIDDEN);
+  }
+
+  public void showSpectralMirrorDialog(ActionEvent event) {
+    MirrorScanWindowFXML window = new MirrorScanWindowFXML();
+    window.show();
+  }
+
+  public void openQuickSearch(final ActionEvent e) {
+    ModuleQuickSelectDialog.openQuickSearch();
   }
 }
 

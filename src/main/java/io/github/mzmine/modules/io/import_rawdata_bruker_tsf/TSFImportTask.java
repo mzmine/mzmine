@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_tsf;
@@ -41,9 +48,9 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +79,7 @@ public class TSFImportTask extends AbstractTask {
 
   public TSFImportTask(MZmineProject project, File fileName, @Nullable MemoryMapStorage storage,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;
@@ -153,10 +160,14 @@ public class TSFImportTask extends AbstractTask {
       return;
     }
 
+    newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
+
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
+    final boolean tryProfile = MZmineCore.getInstance().isTsfProfile();
     final MassSpectrumType importSpectrumType =
-        metaDataTable.hasLineSpectra() ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
+        tryProfile && metaDataTable.hasProfileSpectra() ? MassSpectrumType.PROFILE
+            : MassSpectrumType.CENTROIDED;
 
     if (!importTSF(tsfUtils, handle, numScans, newMZmineFile, importSpectrumType)) {
       return;
@@ -310,25 +321,14 @@ public class TSFImportTask extends AbstractTask {
 
       final int scanId = scan.getScanNumber();
       final int scanInfo = frameMsMsInfoTable.getColumn(TDFFrameMsMsInfoTable.FRAME_ID)
-          .indexOf((long)scanId);
+          .indexOf((long) scanId);
 
       if (scanInfo == -1) {
         continue;
       }
 
-      double ce = 0d;
-      double precursor = 0d;
-      int precursorCharge = 0;
-
-      ce = (double) Objects.requireNonNullElse(
-          frameMsMsInfoTable.getColumn(TDFFrameMsMsInfoTable.COLLISION_ENERGY).get(scanInfo), 0d);
-      precursor = (double) Objects.requireNonNullElse(
-          frameMsMsInfoTable.getColumn(TDFFrameMsMsInfoTable.TRIGGER_MASS).get(scanInfo), 0d);
-      precursorCharge = (int) (long) Objects.requireNonNullElse(
-          frameMsMsInfoTable.getColumn(TDFFrameMsMsInfoTable.PRECURSOR_CHARGE).get(scanInfo), 0);
-
-      ((SimpleScan) scan).setPrecursorCharge(precursorCharge);
-      ((SimpleScan) scan).setPrecursorMZ(precursor);
+      ((SimpleScan) scan).setMsMsInfo(
+          frameMsMsInfoTable.getDDAMsMsInfo(scanInfo, scan.getMSLevel(), scan, null));
     }
 
     Date end = new Date();

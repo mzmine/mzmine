@@ -1,26 +1,35 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.msms;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
-import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
@@ -28,20 +37,21 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboFieldParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javafx.application.Platform;
+import javafx.beans.property.Property;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.paint.Color;
-import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
@@ -57,26 +67,21 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
   private final RawDataFile dataFile;
   private final Range<Float> rtRange;
   private final Range<Double> mzRange;
-  private MsMsXYAxisType xAxisType;
-  private MsMsXYAxisType yAxisType;
-  private MsMsZAxisType zAxisType;
-  int msLevel;
   private final MZTolerance mzTolerance;
-
   private final Color color = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
-
+  private final List<MsMsDataPoint> dataPoints = new ArrayList<>();
+  MsLevelFilter msLevel;
   // Most intense fragments filtering
   boolean intensityFiltering;
   IntensityFilteringType intensityFilterType;
   double intensityFilterValue;
-
+  private MsMsXYAxisType xAxisType;
+  private MsMsXYAxisType yAxisType;
+  private MsMsZAxisType zAxisType;
   // Diagnostic fragmentation filtering
   private List<Double> dffListMz;
   private List<Double> dffListNl;
-
   private List<Scan> allScans;
-  private final List<MsMsDataPoint> dataPoints = new ArrayList<>();
-
   private int processedScans = 0;
   private double maxProductIntensity = 0;
   private double maxPrecursorIntensity = 0;
@@ -88,15 +93,16 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     dataFile = parameters.getParameter(MsMsParameters.dataFiles).getValue()
         .getMatchingRawDataFiles()[0];
     rtRange = RangeUtils.toFloatRange(
-        parameters.getParameter(MsMsParameters.rtRange).getValue());
-    mzRange = parameters.getParameter(MsMsParameters.mzRange).getValue();
+        parameters.getEmbeddedParameterValueIfSelectedOrElse(MsMsParameters.rtRange, Range.all()));
+    mzRange = parameters.getEmbeddedParameterValueIfSelectedOrElse(MsMsParameters.mzRange,
+        Range.all());
     xAxisType = parameters.getParameter(MsMsParameters.xAxisType).getValue();
     yAxisType = parameters.getParameter(MsMsParameters.yAxisType).getValue();
     zAxisType = parameters.getParameter(MsMsParameters.zAxisType).getValue();
     mzTolerance = parameters.getParameter(MsMsParameters.mzTolerance).getValue();
 
     msLevel = parameters.getParameter(MsMsParameters.msLevel).getValue();
-    if (msLevel < 2) {
+    if (msLevel.isMs1Only()) {
       Alert alert = new Alert(AlertType.ERROR);
       alert.setTitle("Invalid MS level");
       alert.setHeaderText("MS level must be greater then 1 for the MS/MS visualizer");
@@ -105,13 +111,12 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     allScans = dataFile.getScans();
 
     // Most intense fragments filtering
-    OptionalParameter<ComboFieldParameter<IntensityFilteringType>> intensityFilterParameter
-        = parameters.getParameter(MsMsParameters.intensityFiltering);
+    OptionalParameter<ComboFieldParameter<IntensityFilteringType>> intensityFilterParameter = parameters.getParameter(
+        MsMsParameters.intensityFiltering);
     intensityFiltering = intensityFilterParameter.getValue();
     if (intensityFiltering) {
       try {
-        ComboFieldParameter<IntensityFilteringType> intensityFilterTypeParameter
-            = intensityFilterParameter.getEmbeddedParameter();
+        ComboFieldParameter<IntensityFilteringType> intensityFilterTypeParameter = intensityFilterParameter.getEmbeddedParameter();
 
         String intensityFilter = intensityFilterTypeParameter.getValue().getFieldText();
         intensityFilterType = intensityFilterTypeParameter.getValue().getValueType();
@@ -121,7 +126,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
           if (intensityFilterType == IntensityFilteringType.NUM_OF_BEST_FRAGMENTS) {
             intensityFilterValue = Integer.parseInt(intensityFilter);
           } else if (intensityFilterType == IntensityFilteringType.BASE_PEAK_PERCENT
-              || intensityFilterType == IntensityFilteringType.INTENSITY_THRESHOLD) {
+                     || intensityFilterType == IntensityFilteringType.INTENSITY_THRESHOLD) {
             intensityFilterValue = Double.parseDouble(intensityFilter);
           }
         }
@@ -129,9 +134,9 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         Alert alert = new Alert(AlertType.ERROR);
         alert.setTitle("Invalid intensity filtering value level");
         alert.setHeaderText("Intensity filtering value must be a double number for \""
-            + IntensityFilteringType.BASE_PEAK_PERCENT.toString()
-            + "\" option and an integer number for \""
-            + IntensityFilteringType.NUM_OF_BEST_FRAGMENTS.toString() + "\" option");
+                            + IntensityFilteringType.BASE_PEAK_PERCENT
+                            + "\" option and an integer number for \""
+                            + IntensityFilteringType.NUM_OF_BEST_FRAGMENTS + "\" option");
         alert.showAndWait();
       }
     }
@@ -177,7 +182,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
 
     // Do not recompute values if they are already present
     if (!dataPoints.isEmpty()) {
@@ -190,41 +195,41 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     scansLoop:
     for (Scan scan : allScans) {
 
-      // Check the scan for the mass list of
-      if (scan.getMassList() == null) {
+      // Check the scan for the mass list or the scan is centroided
+      if (scan.getMassList() == null && !scan.getSpectrumType().isCentroided()) {
         status.setValue(TaskStatus.CANCELED);
-        Platform.runLater(() -> {
+        MZmineCore.runLater(() -> {
           Alert alert = new Alert(AlertType.ERROR);
           alert.setTitle("Mass detection issue");
           alert.setHeaderText("Masses are not detected properly for the " + dataFile.getName()
-              + " data file. Scan #" + scan.getScanNumber() + " has no mass list. Run"
-              + " \"Raw data methods\" -> \"Mass detection\", if you haven't done it yet.");
+                              + " data file. Scan #" + scan.getScanNumber()
+                              + " has no mass list. Run"
+                              + " \"Raw data methods\" -> \"Mass detection\", if you haven't done it yet. Scans are marked as profile mode.");
           alert.showAndWait();
         });
         return;
       }
 
-      if (scan.getMSLevel() != 1 && scan.getMSLevel() != msLevel) {
+      if (!msLevel.accept(scan)) {
         processedScans++;
-        continue;
-      }
-
-      // Save current MS1 scan to store the intensity of precursor ion
-      if (scan.getMSLevel() == 1) {
-        lastMS1Scan = scan;
-        processedScans++;
+        // Save current MS1 scan to store the intensity of precursor ion
+        if (scan.getMSLevel() == 1) {
+          lastMS1Scan = scan;
+        }
         continue;
       }
 
       // Skip empty scans and check parent m/z and rt bounds
-      if (scan.getBasePeakMz() == null || !mzRange.contains(scan.getPrecursorMZ())
-          || !rtRange.contains(scan.getRetentionTime())
-          || scan.getMassList().getNumberOfDataPoints() < 1) {
+      int precursorCharge = requireNonNullElse(scan.getPrecursorCharge(), -1);
+
+      // use mass list if not null or else use raw centroid scan (checked before)
+      MassSpectrum masses = requireNonNullElse(scan.getMassList(), scan);
+
+      if (scan.getBasePeakMz() == null || !mzRange.contains(scan.getPrecursorMz())
+          || !rtRange.contains(scan.getRetentionTime()) || masses.getNumberOfDataPoints() < 1) {
         processedScans++;
         continue;
       }
-
-      MassList massList = scan.getMassList();
 
       // Filter scans according to the input parameters
       List<Integer> filteredPointsIndices = new ArrayList<>();
@@ -237,39 +242,46 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
           // Test base peak percent condition
           double intensityThreshold = intensityFilterValue;
           if (intensityFilterType == IntensityFilteringType.BASE_PEAK_PERCENT) {
-            intensityThreshold = massList.getBasePeakIntensity() * (intensityFilterValue / 100);
+            intensityThreshold = masses.getBasePeakIntensity() * (intensityFilterValue / 100);
           }
 
           // Filter scans
-          for (int pointIndex = 0; pointIndex < massList.getNumberOfDataPoints(); pointIndex++) {
-            if (massList.getIntensityValue(pointIndex) >= intensityThreshold) {
+          for (int pointIndex = 0; pointIndex < masses.getNumberOfDataPoints(); pointIndex++) {
+            if (masses.getIntensityValue(pointIndex) >= intensityThreshold) {
               filteredPointsIndices.add(pointIndex);
             }
           }
 
           // Number of most intense fragments
         } else if (intensityFilterType == IntensityFilteringType.NUM_OF_BEST_FRAGMENTS) {
-          filteredPointsIndices = IntStream.range(0, massList.getNumberOfDataPoints() - 1)
-              .boxed().sorted((i, j)
-                  -> Doubles.compare(massList.getIntensityValue(j), massList.getIntensityValue(i)))
-              .limit((int) intensityFilterValue).mapToInt(i -> i).boxed()
-              .collect(Collectors.toList());
+          filteredPointsIndices = IntStream.range(0, masses.getNumberOfDataPoints() - 1).boxed()
+              .sorted((i, j) -> Doubles.compare(masses.getIntensityValue(j),
+                  masses.getIntensityValue(i))).limit((int) intensityFilterValue).mapToInt(i -> i)
+              .boxed().collect(Collectors.toList());
         }
       } else {
-        filteredPointsIndices = IntStream.rangeClosed(0, massList.getNumberOfDataPoints() - 1).boxed()
+        filteredPointsIndices = IntStream.rangeClosed(0, masses.getNumberOfDataPoints() - 1).boxed()
             .collect(Collectors.toList());
       }
 
       // Precursor intensity
       double precursorIntensity = 0;
+      double precursorMz = requireNonNullElse(scan.getPrecursorMz(), -1d);
       if (lastMS1Scan != null) {
 
         // Sum intensities of all ions from MS1 scan with similar m/z values
-        MassList lastMS1ScanMassList = lastMS1Scan.getMassList();
-        Range<Double> toleranceRange = mzTolerance.getToleranceRange(scan.getPrecursorMZ());
-        for (int i = 0; i < lastMS1ScanMassList.getNumberOfDataPoints(); i++) {
-          if (toleranceRange.contains(lastMS1ScanMassList.getMzValue(i))) {
-            precursorIntensity += lastMS1ScanMassList.getIntensityValue(i);
+        MassSpectrum lastMS1ScanMassList = requireNonNullElse(lastMS1Scan.getMassList(),
+            lastMS1Scan);
+        Range<Double> toleranceRange = mzTolerance.getToleranceRange(precursorMz);
+        int ind = lastMS1ScanMassList.binarySearch(toleranceRange.lowerEndpoint(),
+            DefaultTo.GREATER_EQUALS);
+        if (ind != -1) {
+          for (int i = ind; i < lastMS1ScanMassList.getNumberOfDataPoints(); i++) {
+            if (lastMS1ScanMassList.getMzValue(i) <= toleranceRange.upperEndpoint()) {
+              precursorIntensity += lastMS1ScanMassList.getIntensityValue(i);
+            } else {
+              break;
+            }
           }
         }
       }
@@ -290,8 +302,8 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
           return;
         }
 
-        double productMz = massList.getMzValue(pointIndex);
-        double productIntensity = massList.getIntensityValue(pointIndex);
+        double productMz = masses.getMzValue(pointIndex);
+        double productIntensity = masses.getIntensityValue(pointIndex);
 
         // Diagnostic fragmentation filtering (m/z)
         if (!(dffListMz == null || dffListMz.isEmpty())) {
@@ -306,7 +318,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
         // Diagnostic fragmentation filtering (neutral loss)
         if (!(dffListNl == null || dffListNl.isEmpty())) {
-          double neutralLoss = scan.getPrecursorMZ() - productMz;
+          double neutralLoss = precursorMz - productMz;
           Range<Double> toleranceRange = mzTolerance.getToleranceRange(neutralLoss);
           for (double targetNeutralLoss : dffListNl) {
             if (!toleranceRange.contains(targetNeutralLoss)) {
@@ -322,8 +334,8 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         }
 
         // Create new data point
-        MsMsDataPoint newPoint = new MsMsDataPoint(scan.getScanNumber(), productMz, scan.getPrecursorMZ(),
-            scan.getPrecursorCharge(), scan.getRetentionTime(), productIntensity, precursorIntensity);
+        MsMsDataPoint newPoint = new MsMsDataPoint(scan.getScanNumber(), productMz, precursorMz,
+            precursorCharge, scan.getRetentionTime(), productIntensity, precursorIntensity);
 
         dataPoints.add(newPoint);
       }
@@ -334,11 +346,11 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     // Show message, if there is nothing to plot
     if (dataPoints.isEmpty()) {
       status.setValue(TaskStatus.CANCELED);
-      Platform.runLater(() -> {
+      MZmineCore.runLater(() -> {
         Alert alert = new Alert(AlertType.WARNING);
         alert.setTitle("Suspicious module parameters");
         alert.setHeaderText("There are no data points in " + dataFile.getName()
-            + " data file, satisfying module parameters");
+                            + " data file, satisfying module parameters");
         alert.showAndWait();
       });
       return;
@@ -396,10 +408,10 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
   private double getRawZValue(MsMsDataPoint dataPoint) {
     return switch (zAxisType) {
-      case PRECURSOR_INTENSITY
-          -> scalePrecursorIntensity(dataPoint.getPrecursorIntensity()) / maxPrecursorIntensity;
-      case PRODUCT_INTENSITY
-          -> scaleProductIntensity(dataPoint.getProductIntensity()) / maxProductIntensity;
+      case PRECURSOR_INTENSITY ->
+          scalePrecursorIntensity(dataPoint.getPrecursorIntensity()) / maxPrecursorIntensity;
+      case PRODUCT_INTENSITY ->
+          scaleProductIntensity(dataPoint.getProductIntensity()) / maxProductIntensity;
       case RETENTION_TIME -> dataPoint.getRetentionTime() / maxRt;
     };
   }
@@ -428,12 +440,12 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     return xAxisType;
   }
 
-  public MsMsXYAxisType getYAxisType() {
-    return yAxisType;
-  }
-
   public void setXAxisType(MsMsXYAxisType xAxisType) {
     this.xAxisType = xAxisType;
+  }
+
+  public MsMsXYAxisType getYAxisType() {
+    return yAxisType;
   }
 
   public void setYAxisType(MsMsXYAxisType yAxisType) {

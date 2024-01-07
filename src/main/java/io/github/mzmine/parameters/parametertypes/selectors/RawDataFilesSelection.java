@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.parametertypes.selectors;
@@ -31,13 +38,13 @@ import java.util.logging.Logger;
 
 public class RawDataFilesSelection implements Cloneable {
 
-  private static Logger logger = Logger.getLogger(RawDataFilesSelection.class.getName());
+  private static final Logger logger = Logger.getLogger(RawDataFilesSelection.class.getName());
 
   private RawDataFilesSelectionType selectionType;
   private String namePattern;
-  private RawDataFile batchLastFiles[];
-  private RawDataFilePlaceholder specificFiles[];
-  private RawDataFilePlaceholder evaluatedSelection[] = null;
+  private RawDataFile[] batchLastFiles;
+  private RawDataFilePlaceholder[] specificFiles;
+  private RawDataFilePlaceholder[] evaluatedSelection = null;
 
   public RawDataFilesSelection() {
     this(RawDataFilesSelectionType.GUI_SELECTED_FILES);
@@ -46,13 +53,14 @@ public class RawDataFilesSelection implements Cloneable {
   public RawDataFilesSelection(RawDataFilesSelectionType selectionType) {
     this.selectionType = selectionType;
   }
+  public RawDataFilesSelection(RawDataFile[] specificDataFiles) {
+    this.selectionType = RawDataFilesSelectionType.SPECIFIC_FILES;
+    setSpecificFiles(specificDataFiles);
+  }
 
-  public RawDataFile[] getEvaluationResult() {
+  public RawDataFilePlaceholder[] getEvaluationResult() {
     if (evaluatedSelection != null) {
-      var value = Arrays.stream(evaluatedSelection)
-          .map(placeholder -> placeholder.getMatchingFile()).filter(Objects::nonNull)
-          .toArray(RawDataFile[]::new);
-      return value;
+      return Arrays.copyOf(evaluatedSelection, evaluatedSelection.length);
     }
     throw new IllegalStateException("Raw data file selection has not been evaluated.");
   }
@@ -60,30 +68,33 @@ public class RawDataFilesSelection implements Cloneable {
   public RawDataFile[] getMatchingRawDataFiles() {
 
     if (evaluatedSelection != null) {
-      /*var value = Arrays.stream(evaluatedSelection)
-          .map(placeholder -> placeholder.getMatchingFile()).filter(Objects::nonNull)
+      var value = Arrays.stream(evaluatedSelection).map(RawDataFilePlaceholder::getMatchingFile)
           .toArray(RawDataFile[]::new);
-      return value;*/
-      throw new IllegalStateException("Raw data file selection has already been evaluated.");
+      for (var raw : value) {
+        if (raw == null) {
+          throw new IllegalStateException(
+              "Data file selection points to a missing file (maybe it was removed after first evaluation).");
+        }
+      }
+      // Raw data file selection are only evaluated once - to keep the parameter value the same
+      // even if raw data files are removed or renamed
+      logger.fine(
+          "Using the already evaluated list of raw data files. This might be expected at this point depending on the module.");
+      return value;
     }
 
     final RawDataFile[] matchingFiles;
     switch (selectionType) {
-      case GUI_SELECTED_FILES -> {
-        matchingFiles = MZmineCore.getDesktop().getSelectedDataFiles();
-      }
-      case ALL_FILES -> {
-        matchingFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-      }
-      case SPECIFIC_FILES -> {
-        matchingFiles = getSpecificFiles();
-      }
+      case GUI_SELECTED_FILES -> matchingFiles = MZmineCore.getDesktop().getSelectedDataFiles();
+      case ALL_FILES -> matchingFiles = MZmineCore.getProjectManager().getCurrentProject()
+          .getDataFiles();
+      case SPECIFIC_FILES -> matchingFiles = getSpecificFiles();
       case NAME_PATTERN -> {
         if (Strings.isNullOrEmpty(namePattern)) {
           return new RawDataFile[0];
         }
-        ArrayList<RawDataFile> matchingDataFiles = new ArrayList<RawDataFile>();
-        RawDataFile allDataFiles[] = MZmineCore.getProjectManager().getCurrentProject()
+        ArrayList<RawDataFile> matchingDataFiles = new ArrayList<>();
+        RawDataFile[] allDataFiles = MZmineCore.getProjectManager().getCurrentProject()
             .getDataFiles();
 
         fileCheck:
@@ -103,13 +114,8 @@ public class RawDataFilesSelection implements Cloneable {
         }
         matchingFiles = matchingDataFiles.toArray(new RawDataFile[0]);
       }
-      case BATCH_LAST_FILES -> {
-        if (batchLastFiles == null) {
-          matchingFiles = new RawDataFile[0];
-        } else {
-          matchingFiles = batchLastFiles;
-        }
-      }
+      case BATCH_LAST_FILES -> matchingFiles = Objects.requireNonNullElseGet(batchLastFiles,
+          () -> new RawDataFile[0]);
       default -> throw new IllegalStateException("Unexpected value: " + selectionType);
     }
 
@@ -140,7 +146,7 @@ public class RawDataFilesSelection implements Cloneable {
     evaluatedSelection = null;
   }
 
-  public RawDataFile[] getSpecificFiles() {
+  RawDataFile[] getSpecificFiles() {
     MZmineProject currentProject = MZmineCore.getProjectManager().getCurrentProject();
     if (currentProject == null) {
       return new RawDataFile[0];
@@ -152,10 +158,12 @@ public class RawDataFilesSelection implements Cloneable {
 
     return Arrays.stream(specificFiles).<RawDataFile>mapMulti((specificFile, c) -> {
       for (RawDataFile file : MZmineCore.getProjectManager().getCurrentProject()
-          .getRawDataFiles()) {
+          .getCurrentRawDataFiles()) {
         if (file.getName().equals(specificFile.getName()) && (file.getAbsolutePath() == null
-            || specificFile.getAbsolutePath() == null || file.getAbsolutePath()
-            .equals(specificFile.getAbsolutePath()))) {
+                                                              || specificFile.getAbsolutePath()
+                                                                 == null || file.getAbsolutePath()
+                                                                  .equals(
+                                                                      specificFile.getAbsolutePath()))) {
           c.accept(file);
           break;
         }
@@ -216,7 +224,7 @@ public class RawDataFilesSelection implements Cloneable {
   public String toString() {
     if (evaluatedSelection != null) {
       StringBuilder str = new StringBuilder();
-      RawDataFile files[] = getEvaluationResult();
+      RawDataFile[] files = getEvaluationResult();
       for (int i = 0; i < files.length; i++) {
         if (i > 0) {
           str.append("\n");

@@ -1,25 +1,33 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrum;
@@ -38,7 +46,6 @@ import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
-import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
@@ -53,24 +60,21 @@ import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.DataPointUtils;
-import java.lang.reflect.InvocationTargetException;
+import io.github.mzmine.util.FeatureUtils;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
+import javafx.scene.layout.Pane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -81,32 +85,26 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ModularFeature implements Feature, ModularDataModel {
 
-  private final ObservableMap<DataType, Property<?>> map = FXCollections
-      .observableMap(new HashMap<>());
+  private static final Logger logger = Logger.getLogger(ModularFeature.class.getName());
+  private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
   // buffert col charts and nodes
-  private final Map<String, Node> buffertColCharts = new HashMap<>();
   @NotNull
   private ModularFeatureList flist;
 
+  private FeatureListRow parentRow;
+
   public ModularFeature(@NotNull ModularFeatureList flist) {
     this.flist = flist;
-
-    // add type property columns to maps
-    flist.getFeatureTypes().values().forEach(type -> {
-      this.setProperty(type, type.createProperty());
-    });
 
     // register listener to types map to automatically generate default properties for new DataTypes
     flist.getFeatureTypes().addListener(
         (MapChangeListener<? super Class<? extends DataType>, ? super DataType>) change -> {
           if (change.wasAdded()) {
-            // add type columns to maps
-            DataType type = change.getValueAdded();
-            this.setProperty(type, type.createProperty());
+            // do nothing for now
           } else if (change.wasRemoved()) {
             // remove type columns to maps
-            DataType<Property<?>> type = change.getValueRemoved();
-            this.removeProperty((Class<DataType<Property<?>>>) type.getClass());
+            DataType type = change.getValueRemoved();
+            this.remove((Class) type.getClass());
           }
         });
   }
@@ -119,21 +117,21 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Deprecated
   public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
       float height, float area, Scan[] scanNumbers, DataPoint[] dataPointsPerScan,
-      FeatureStatus featureStatus, Scan representativeScan, Scan fragmentScanNumber,
-      Scan[] allMS2FragmentScanNumbers, @NotNull Range<Float> rtRange,
-      @NotNull Range<Double> mzRange, @NotNull Range<Float> intensityRange) {
+      FeatureStatus featureStatus, Scan representativeScan, List<Scan> allMS2FragmentScanNumbers,
+      @NotNull Range<Float> rtRange, @NotNull Range<Double> mzRange,
+      @NotNull Range<Float> intensityRange) {
     this(flist, dataFile, mz, rt, height, area, Arrays.asList(scanNumbers),
         DataPointUtils.getMZsAsDoubleArray(dataPointsPerScan),
         DataPointUtils.getIntenstiesAsDoubleArray(dataPointsPerScan), featureStatus,
-        representativeScan, fragmentScanNumber, allMS2FragmentScanNumbers, rtRange, mzRange,
-        intensityRange);
+        representativeScan, allMS2FragmentScanNumbers, rtRange, mzRange, intensityRange);
   }
 
+  @Deprecated
   public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
       float height, float area, List<Scan> scans, double[] mzs, double[] intensities,
-      FeatureStatus featureStatus, Scan representativeScan, Scan fragmentScanNumber,
-      Scan[] allMS2FragmentScanNumbers, @NotNull Range<Float> rtRange,
-      @NotNull Range<Double> mzRange, @NotNull Range<Float> intensityRange) {
+      FeatureStatus featureStatus, Scan representativeScan, List<Scan> allMS2FragmentScanNumbers,
+      @NotNull Range<Float> rtRange, @NotNull Range<Double> mzRange,
+      @NotNull Range<Float> intensityRange) {
     this(flist);
 
     assert dataFile != null;
@@ -155,10 +153,9 @@ public class ModularFeature implements Feature, ModularDataModel {
           "Cannot create a ModularFeature instance with no data points");
     }
 
-    setFragmentScan(fragmentScanNumber);
     setRepresentativeScan(representativeScan);
     // add values to feature
-//    set(ScanNumbersType.class, List.of(scanNumbers));
+    //    set(ScanNumbersType.class, List.of(scanNumbers));
     set(RawFileType.class, dataFile);
     set(DetectionType.class, featureStatus);
     set(MZType.class, mz);
@@ -168,7 +165,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(BestScanNumberType.class, representativeScan);
 
     // datapoints of feature
-//    set(DataPointsType.class, Arrays.asList(dataPointsPerScan));
+    //    set(DataPointsType.class, Arrays.asList(dataPointsPerScan));
     SimpleIonTimeSeries featureData = new SimpleIonTimeSeries(flist.getMemoryMapStorage(), mzs,
         intensities, scans);
     set(FeatureDataType.class, featureData);
@@ -178,7 +175,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(RTRangeType.class, rtRange);
     set(IntensityRangeType.class, intensityRange);
 
-    set(FragmentScanNumbersType.class, List.of(allMS2FragmentScanNumbers));
+    setAllMS2FragmentScans(allMS2FragmentScanNumbers);
 
     float fwhm = QualityParameters.calculateFWHM(this);
     if (!Float.isNaN(fwhm)) {
@@ -195,7 +192,22 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   /**
-   * Creates a new feature. The properties are determined via {@link FeatureDataUtils#recalculateIonSeriesDependingTypes(ModularFeature)}.
+   * Creates a new feature.
+   *
+   * @param flist         The feature list.
+   * @param dataFile      The raw data file of this feature.
+   */
+  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, FeatureStatus featureStatus) {
+    this(flist);
+    assert dataFile != null;
+
+    set(RawFileType.class, dataFile);
+    set(DetectionType.class, featureStatus);
+  }
+
+  /**
+   * Creates a new feature. The properties are determined via
+   * {@link FeatureDataUtils#recalculateIonSeriesDependingTypes(ModularFeature)}.
    *
    * @param flist         The feature list.
    * @param dataFile      The raw data file of this feature.
@@ -203,23 +215,14 @@ public class ModularFeature implements Feature, ModularDataModel {
    * @param featureStatus The feature status.
    */
   public ModularFeature(ModularFeatureList flist, RawDataFile dataFile,
-      IonTimeSeries<? extends Scan> featureData, FeatureStatus featureStatus) {
-    this(flist);
-    assert dataFile != null;
+      @Nullable IonTimeSeries<? extends Scan> featureData, FeatureStatus featureStatus) {
+    this(flist, dataFile, featureStatus);
 
-    set(RawFileType.class, dataFile);
-    set(DetectionType.class, featureStatus);
-    set(FeatureDataType.class, featureData);
-
-    FeatureDataUtils.recalculateIonSeriesDependingTypes(this);
+    if (featureData != null) {
+      set(FeatureDataType.class, featureData);
+      FeatureDataUtils.recalculateIonSeriesDependingTypes(this);
+    }
   }
-
-  /**
-   * Copy constructor
-   */
-//  public ModularFeature(@NotNull Feature f) {
-//    this((ModularFeatureList) Objects.requireNonNull(f.getFeatureList()), f);
-//  }
 
   /**
    * Copy constructor with custom feature list
@@ -230,7 +233,7 @@ public class ModularFeature implements Feature, ModularDataModel {
       ((ModularFeature) f).stream().forEach(entry -> this.set(entry.getKey(), entry.getValue()));
     } else {
       // add values to feature
-//      set(ScanNumbersType.class, f.getScanNumbers());
+      //      set(ScanNumbersType.class, f.getScanNumbers());
       set(RawFileType.class, (f.getRawDataFile()));
       set(DetectionType.class, (f.getFeatureStatus()));
       set(MZType.class, (f.getMZ()));
@@ -238,19 +241,18 @@ public class ModularFeature implements Feature, ModularDataModel {
       set(HeightType.class, (f.getHeight()));
       set(AreaType.class, (f.getArea()));
       set(BestScanNumberType.class, (f.getRepresentativeScan()));
-      set(BestFragmentScanNumberType.class, (f.getMostIntenseFragmentScan()));
-      set(FragmentScanNumbersType.class, (f.getAllMS2FragmentScans()));
+      setAllMS2FragmentScans(f.getAllMS2FragmentScans());
 
       // datapoints of feature
-//      set(DataPointsType.class, f.getDataPoints());
-//      if(f instanceof ModularFeature) {
-//        set(FeatureDataType.class, ((ModularFeature)f).getFeatureData());
-//      } else {
+      //      set(DataPointsType.class, f.getDataPoints());
+      //      if(f instanceof ModularFeature) {
+      //        set(FeatureDataType.class, ((ModularFeature)f).getFeatureData());
+      //      } else {
       double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(f.getDataPoints());
       SimpleIonTimeSeries featureData = new SimpleIonTimeSeries(flist.getMemoryMapStorage(), dp[0],
           dp[1], f.getScanNumbers());
       set(FeatureDataType.class, featureData);
-//      }
+      //      }
 
       // ranges
       set(MZRangeType.class, f.getRawDataPointsMZRange());
@@ -273,32 +275,13 @@ public class ModularFeature implements Feature, ModularDataModel {
     }
   }
 
-  public Node getBufferedColChart(String colname) {
-    return buffertColCharts.get(colname);
-  }
-
-  public void addBufferedColChart(String colname, Node node) {
-    buffertColCharts.put(colname, node);
-  }
-
+  /**
+   * Maps listeners to their {@link DataType}s. Default returns an empty list.
+   */
   @Override
-  public <T extends Property<?>> void set(Class<? extends DataType<T>> tclass, Object value) {
-    // type in defined columns?
-    if (!getTypes().containsKey(tclass)) {
-      try {
-        DataType newType = tclass.getConstructor().newInstance();
-        ModularFeatureList flist = (ModularFeatureList) getFeatureList();
-        flist.addFeatureType(newType);
-        setProperty(newType, newType.createProperty());
-      } catch (NullPointerException | InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-        e.printStackTrace();
-        return;
-      }
-    }
-    // access default method
-    ModularDataModel.super.set(tclass, value);
+  public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getValueChangeListeners() {
+    return getFeatureList().getFeatureTypeChangeListeners();
   }
-
 
   @Override
   public ObservableMap<Class<? extends DataType>, DataType> getTypes() {
@@ -307,12 +290,14 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   // todo make this private?
   @Override
-  public ObservableMap<DataType, Property<?>> getMap() {
+  public ObservableMap<DataType, Object> getMap() {
     return map;
   }
 
   /**
-   * Use {@link ModularFeature#getFeatureData()} and {@link io.github.mzmine.datamodel.featuredata.IonSpectrumSeries#getIntensityForSpectrum(MassSpectrum)}
+   * Use {@link ModularFeature#getFeatureData()} and
+   * {@link
+   * io.github.mzmine.datamodel.featuredata.IonSpectrumSeries#getIntensityForSpectrum(MassSpectrum)}
    * or {@link io.github.mzmine.datamodel.featuredata.IonSpectrumSeries#getIntensity} instead.
    *
    * @param scan
@@ -334,52 +319,51 @@ public class ModularFeature implements Feature, ModularDataModel {
   @NotNull
   @Override
   public Range<Float> getRawDataPointsRTRange() {
-    ObjectProperty<Range<Float>> v = get(RTRangeType.class);
-    return v == null || v.getValue() == null ? Range.singleton(0f) : v.getValue();
+    Range<Float> v = get(RTRangeType.class);
+    return v == null ? Range.singleton(0f) : v;
   }
 
   @NotNull
   @Override
   public Range<Double> getRawDataPointsMZRange() {
-    ObjectProperty<Range<Double>> v = get(MZRangeType.class);
-    return v == null || v.getValue() == null ? Range.singleton(0d) : v.getValue();
+    Range<Double> v = get(MZRangeType.class);
+    return v == null ? Range.singleton(0d) : v;
   }
 
   @NotNull
   @Override
   public Range<Float> getRawDataPointsIntensityRange() {
-    ObjectProperty<Range<Float>> v = get(IntensityRangeType.class);
-    return v == null || v.getValue() == null ? Range.singleton(0f) : v.getValue();
+    Range<Float> v = get(IntensityRangeType.class);
+    return v == null ? Range.singleton(0f) : v;
   }
 
   @Override
   public Scan getMostIntenseFragmentScan() {
-    Property<Scan> v = get(BestFragmentScanNumberType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+    List<Scan> allMS2 = get(FragmentScanNumbersType.class);
+    if (allMS2 != null && !allMS2.isEmpty()) {
+      return allMS2.get(0);
+    } else {
+      return null;
+    }
   }
 
   @Override
-  public void setFragmentScan(Scan fragmentScan) {
-    set(BestFragmentScanNumberType.class, fragmentScan);
+  @NotNull
+  public List<Scan> getAllMS2FragmentScans() {
+    // return empty list instead
+    return Objects.requireNonNullElse(get(FragmentScanNumbersType.class), List.of());
   }
 
   @Override
-  public ObservableList<Scan> getAllMS2FragmentScans() {
-    ListProperty<Scan> v = get(FragmentScanNumbersType.class);
-    return v == null || v.getValue() == null ? FXCollections
-        .unmodifiableObservableList(FXCollections.emptyObservableList()) : v.getValue();
-  }
-
-  @Override
-  public void setAllMS2FragmentScans(ObservableList<Scan> allMS2FragmentScanNumbers) {
-    set(FragmentScanNumbersType.class, allMS2FragmentScanNumbers);
+  public void setAllMS2FragmentScans(List<Scan> allFragmentScans) {
+    boolean empty = allFragmentScans == null || allFragmentScans.isEmpty();
+    set(FragmentScanNumbersType.class, empty ? null : allFragmentScans);
   }
 
   @Nullable
   @Override
   public IsotopePattern getIsotopePattern() {
-    Property<IsotopePattern> v = get(IsotopePatternType.class);
-    return v == null ? null : v.getValue();
+    return get(IsotopePatternType.class);
   }
 
   @Override
@@ -389,8 +373,8 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public Integer getCharge() {
-    Property<Integer> charge = get(ChargeType.class);
-    return charge == null || charge.getValue() == null ? 0 : charge.getValue();
+    Integer charge = get(ChargeType.class);
+    return charge == null ? 0 : charge;
   }
 
   @Override
@@ -400,8 +384,7 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public Float getFWHM() {
-    Property<Float> v = get(FwhmType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return get(FwhmType.class);
   }
 
   @Override
@@ -411,8 +394,7 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public Float getTailingFactor() {
-    Property<Float> v = get(TailingFactorType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return get(TailingFactorType.class);
   }
 
   @Override
@@ -422,8 +404,7 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public Float getAsymmetryFactor() {
-    Property<Float> v = get(AsymmetryFactorType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return get(AsymmetryFactorType.class);
   }
 
   @Override
@@ -437,13 +418,12 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
-  public SimpleFeatureInformation getFeatureInformation() {
-    ObjectProperty<SimpleFeatureInformation> v = get(FeatureInformationType.class);
-    return v == null ? null : v.getValue();
+  public FeatureInformation getFeatureInformation() {
+    return get(FeatureInformationType.class);
   }
 
   @Override
-  public void setFeatureInformation(SimpleFeatureInformation featureInfo) {
+  public void setFeatureInformation(FeatureInformation featureInfo) {
     set(FeatureInformationType.class, featureInfo);
   }
 
@@ -458,35 +438,16 @@ public class ModularFeature implements Feature, ModularDataModel {
     this.flist = (ModularFeatureList) flist;
   }
 
+  @Override
+  public int getNumberOfDataPoints() {
+    final IonTimeSeries<? extends Scan> data = getFeatureData();
+    return data == null ? 0 : data.getNumberOfValues();
+  }
+
   @Nullable
   @Override
   public RawDataFile getRawDataFile() {
-    ObjectProperty<RawDataFile> raw = get(RawFileType.class);
-    return raw == null ? null : raw.getValue();
-  }
-
-  public Property<Float> getRTProperty() {
-    return get(RTType.class);
-  }
-
-  public Property<Double> getMZProperty() {
-    return get(MZType.class);
-  }
-
-  public Property<Float> getHeightProperty() {
-    return get(HeightType.class);
-  }
-
-//  public ListProperty<Scan> getScanNumbersProperty() {
-//    return get(ScanNumbersType.class);
-//  }
-
-//  public ListProperty<DataPoint> getDataPointsProperty() {
-//    return get(DataPointsType.class);
-//  }
-
-  public Property<Float> getAreaProperty() {
-    return get(AreaType.class);
+    return get(RawFileType.class);
   }
 
   /**
@@ -498,13 +459,13 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   public List<Scan> getScanNumbers() {
     IonTimeSeries<? extends Scan> data = getFeatureData();
-    return data == null ? Collections.emptyList() : (List<Scan>) data.getSpectra();
+    return data == null ? List.of() : (List<Scan>) data.getSpectra();
   }
+
 
   @Override
   public Scan getRepresentativeScan() {
-    Property<Scan> v = get(BestScanNumberType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+    return get(BestScanNumberType.class);
   }
 
   @Override
@@ -519,25 +480,38 @@ public class ModularFeature implements Feature, ModularDataModel {
    */
   @Override
   @Deprecated
-  public ObservableList<DataPoint> getDataPoints() {
-//    ListProperty<DataPoint> v = get(DataPointsType.class);
-//    return v == null || v.getValue() == null ?
-//        FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
-//        : v.getValue();
+  public List<DataPoint> getDataPoints() {
     IonTimeSeries<? extends Scan> data = getFeatureData();
     return data == null ? null
         : FXCollections.observableArrayList(data.stream().collect(Collectors.toList()));
   }
 
+  @Override
+  public @Nullable DataPoint getDataPointAtIndex(int i) {
+    if (i < 0) {
+      return null;
+    }
+    IonTimeSeries<? extends Scan> data = getFeatureData();
+    return data == null || i >= data.getNumberOfValues() ? null
+        : new SimpleDataPoint(data.getMZ(i), data.getIntensity(i));
+  }
+
   public IonTimeSeries<? extends Scan> getFeatureData() {
-    ObjectProperty<IonTimeSeries<? extends Scan>> v = get(FeatureDataType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+    return get(FeatureDataType.class);
+  }
+
+  @Override
+  public @Nullable FeatureListRow getRow() {
+    return parentRow;
+  }
+
+  public void setRow(FeatureListRow row) {
+    parentRow = row;
   }
 
   @Override
   public Float getRT() {
-    Property<Float> v = get(RTType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return get(RTType.class);
   }
 
   @Override
@@ -548,14 +522,13 @@ public class ModularFeature implements Feature, ModularDataModel {
   @NotNull
   @Override
   public FeatureStatus getFeatureStatus() {
-    ObjectProperty<FeatureStatus> v = get(DetectionType.class);
-    return v == null || v.getValue() == null ? FeatureStatus.UNKNOWN : v.getValue();
+    FeatureStatus v = get(DetectionType.class);
+    return v == null ? FeatureStatus.UNKNOWN : v;
   }
 
   @Override
   public Double getMZ() {
-    Property<Double> mz = get(MZType.class);
-    return mz == null || mz.getValue() == null ? Double.NaN : mz.getValue();
+    return get(MZType.class);
   }
 
   @Override
@@ -564,8 +537,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   public Float getHeight() {
-    Property<Float> v = get(HeightType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return get(HeightType.class);
   }
 
   @Override
@@ -574,8 +546,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   public Float getArea() {
-    Property<Float> v = get(AreaType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return get(AreaType.class);
   }
 
   @Override
@@ -586,8 +557,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Nullable
   @Override
   public Float getMobility() {
-    Property<Float> v = get(io.github.mzmine.datamodel.features.types.numbers.MobilityType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+    return get(io.github.mzmine.datamodel.features.types.numbers.MobilityType.class);
   }
 
   @Override
@@ -598,8 +568,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Nullable
   @Override
   public MobilityType getMobilityUnit() {
-    Property<MobilityType> v = get(MobilityUnitType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+    return get(MobilityUnitType.class);
   }
 
   @Override
@@ -609,8 +578,7 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public Float getCCS() {
-    Property<Float> v = get(CCSType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+    return get(CCSType.class);
   }
 
   @Override
@@ -621,12 +589,16 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Nullable
   @Override
   public Range<Float> getMobilityRange() {
-    ObjectProperty<Range<Float>> v = get(MobilityRangeType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+    return get(MobilityRangeType.class);
   }
 
   @Override
   public void setMobilityRange(Range<Float> range) {
     set(MobilityRangeType.class, range);
+  }
+
+  @Override
+  public String toString() {
+    return FeatureUtils.featureToString(this);
   }
 }

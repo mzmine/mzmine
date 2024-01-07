@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.projectsave;
@@ -42,7 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
-import javafx.collections.ObservableList;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -159,8 +165,9 @@ public class PeakListSaveHandler {
     FeatureListRow row;
     for (int i = 0; i < numberOfRows; i++) {
 
-      if (canceled)
+      if (canceled) {
         return;
+      }
 
       atts.clear();
       row = featureList.getRow(i);
@@ -193,13 +200,14 @@ public class PeakListSaveHandler {
 
     // <PEAK_IDENTITY>
     FeatureIdentity preferredIdentity = row.getPreferredFeatureIdentity();
-    ObservableList<FeatureIdentity> identities = row.getPeakIdentities();
+    List<FeatureIdentity> identities = row.getPeakIdentities();
     AttributesImpl atts = new AttributesImpl();
 
     for (int i = 0; i < identities.size(); i++) {
 
-      if (canceled)
+      if (canceled) {
         return;
+      }
 
       atts.addAttribute("", "", PeakListElementName.ID.getElementName(), "CDATA",
           String.valueOf(i));
@@ -214,8 +222,9 @@ public class PeakListSaveHandler {
 
     // atts.clear();
 
-    if (canceled)
+    if (canceled) {
       return;
+    }
 
     // atts.addAttribute("", "", PeakListElementName.ID.getElementName(),
     // "CDATA", "INFORMATION");
@@ -225,8 +234,9 @@ public class PeakListSaveHandler {
 
     // <PEAK>
     for (Feature feature : row.getFeatures()) {
-      if (canceled)
+      if (canceled) {
         return;
+      }
 
       atts.clear();
       String dataFileID = dataFilesIDMap.get(feature.getRawDataFile());
@@ -286,8 +296,9 @@ public class PeakListSaveHandler {
 
   private void fillInformationElement(FeatureInformation information, TransformerHandler hd)
       throws SAXException {
-    if (information == null)
+    if (information == null) {
       return;
+    }
 
     AttributesImpl atts = new AttributesImpl();
 
@@ -322,7 +333,8 @@ public class PeakListSaveHandler {
 
     // <FRAGMENT_SCAN>
     hd.startElement("", "", PeakListElementName.FRAGMENT_SCAN.getElementName(), atts);
-    hd.characters(String.valueOf(feature.getMostIntenseFragmentScan().getScanNumber()).toCharArray(), 0,
+    hd.characters(
+        String.valueOf(feature.getMostIntenseFragmentScan().getScanNumber()).toCharArray(), 0,
         String.valueOf(feature.getMostIntenseFragmentScan().getScanNumber()).length());
     hd.endElement("", "", PeakListElementName.FRAGMENT_SCAN.getElementName());
 
@@ -363,7 +375,7 @@ public class PeakListSaveHandler {
     DataOutputStream dataHeightStream = new DataOutputStream(byteHeightStream);
 
     float mass, height;
-    for (int i=0; i<feature.getNumberOfDataPoints(); i++) {
+    for (int i = 0; i < feature.getNumberOfDataPoints(); i++) {
       Scan scan = feature.getScanAtIndex(i);
       dataScanStream.writeInt(scan.getScanNumber());
       dataScanStream.flush();
@@ -433,8 +445,9 @@ public class PeakListSaveHandler {
    * @return the progress of these functions saving the feature list to the zip file.
    */
   public double getProgress() {
-    if (numberOfRows == 0)
+    if (numberOfRows == 0) {
       return 0;
+    }
     return (double) finishedRows / numberOfRows;
   }
 

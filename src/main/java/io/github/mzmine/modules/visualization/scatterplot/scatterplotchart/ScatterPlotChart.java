@@ -1,32 +1,55 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.scatterplot.scatterplotchart;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
+import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
+import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotTab;
+import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotTopPanel;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.SearchDefinition;
+import io.github.mzmine.util.components.ComponentToolTipManager;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import javafx.scene.control.ContextMenu;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.LogAxis;
@@ -36,22 +59,6 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.SeriesRenderingOrder;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleInsets;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
-import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
-import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
-import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotTopPanel;
-import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotTab;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.util.SearchDefinition;
-import io.github.mzmine.util.components.ComponentToolTipManager;
-import javafx.scene.control.ContextMenu;
 
 public class ScatterPlotChart extends EChartViewer {
 
@@ -62,25 +69,25 @@ public class ScatterPlotChart extends EChartViewer {
   private static final Color crossHairColor = Color.gray;
 
   // crosshair stroke
-  private static final BasicStroke crossHairStroke =
-      new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {5, 3}, 0);
+  private static final BasicStroke crossHairStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
+      BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5, 3}, 0);
 
-  private JFreeChart chart;
-  private XYPlot plot;
+  private final JFreeChart chart;
+  private final XYPlot plot;
 
   // Renderers
-  private ScatterPlotRenderer mainRenderer;
-  private DiagonalLineRenderer diagonalLineRenderer;
+  private final ScatterPlotRenderer mainRenderer;
+  private final DiagonalLineRenderer diagonalLineRenderer;
 
   // Data sets
-  private ScatterPlotDataSet mainDataSet;
-  private DiagonalLineDataset diagonalLineDataset;
+  private final ScatterPlotDataSet mainDataSet;
+  private final DiagonalLineDataset diagonalLineDataset;
 
-  private ScatterPlotTopPanel topPanel;
+  private final ScatterPlotTopPanel topPanel;
   private ComponentToolTipManager ttm;
 
-  private ScatterPlotTab tab;
-  private FeatureList featureList;
+  private final ScatterPlotTab tab;
+  private final FeatureList featureList;
   private ScatterPlotAxisSelection axisX, axisY;
   private int fold;
 
@@ -167,8 +174,9 @@ public class ScatterPlotChart extends EChartViewer {
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
-    if (history != null)
+    if (history != null) {
       history.clear();
+    }
   }
 
   /*
@@ -216,10 +224,7 @@ public class ScatterPlotChart extends EChartViewer {
 
   public void actionPerformed(ActionEvent event) {
 
-
-
     String command = event.getActionCommand();
-
 
     if (command.equals("TIC")) {
 
@@ -245,7 +250,7 @@ public class ScatterPlotChart extends EChartViewer {
         labelMap.put(bestPeak, featureIdentity.getName());
       }
 
-      ScanSelection scanSelection = new ScanSelection(rtRange, 1);
+      ScanSelection scanSelection = new ScanSelection(1, rtRange);
 
       ChromatogramVisualizerModule.showNewTICVisualizerWindow(
           featureList.getRawDataFiles().toArray(RawDataFile[]::new),

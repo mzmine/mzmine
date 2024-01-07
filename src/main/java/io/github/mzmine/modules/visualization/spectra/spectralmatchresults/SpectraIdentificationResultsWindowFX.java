@@ -1,132 +1,240 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.javafx.TableViewUtils;
+import io.github.mzmine.util.javafx.WeakAdapter;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
-import javafx.application.Platform;
-import javafx.scene.Scene;
-import javafx.scene.control.CheckMenuItem;
+import java.util.stream.Collectors;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TreeItem;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Window to show all spectral database matches from selected scan or feature list match
+ * Window to show all spectral libraries matches from selected scan or feature list match
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de) & SteffenHeu (s_heuc03@uni-muenster.de)
  */
-public class SpectraIdentificationResultsWindowFX extends Stage {
+public class SpectraIdentificationResultsWindowFX extends SimpleTab implements
+    FeatureRowInterfaceFx {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(
+      SpectraIdentificationResultsWindowFX.class.getName());
 
+  private final WeakAdapter weak = new WeakAdapter();
+
+  // link row selection to results
   private final Font headerFont = new Font("Dialog Bold", 16);
-  private final GridPane pnGrid;
-  private final javafx.scene.control.ScrollPane scrollPane;
-  private final List<SpectralDBFeatureIdentity> totalMatches;
-  private final Map<SpectralDBFeatureIdentity, SpectralMatchPanelFX> matchPanels;
+  private final ObservableList<SpectralDBAnnotation> totalMatches;
+  private final ObservableList<SpectralDBAnnotation> visibleMatches;
+
+  private final Map<SpectralDBAnnotation, SpectralMatchPanelFX> matchPanels;
+  private final VBox mainBox;
+  private final Label noMatchesFound;
+  private final BorderPane pnMain;
   // couple y zoom (if one is changed - change the other in a mirror plot)
   private boolean isCouplingZoomY;
-
-  private final Label noMatchesFound;
-
-  private final BorderPane pnMain;
+  private int currentIndex = 0;
+  private int showBestN = 15;
+  private Label shownMatchesLbl;
+  private TableColumn<SpectralDBAnnotation, SpectralDBAnnotation> column;
 
   public SpectraIdentificationResultsWindowFX() {
-    super();
+    this(null);
+  }
 
-    pnMain = new BorderPane();
-    this.setScene(new Scene(pnMain));
-    getScene().getStylesheets()
-        .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+  public SpectraIdentificationResultsWindowFX(@Nullable final FeatureTableFX table) {
+    super("Spectral matches", false, false);
+    setOnCloseRequest(event -> weak.dipose());
 
-    pnMain.setPrefSize(1000, 600);
-    pnMain.setMinSize(700, 500);
-    setMinWidth(700);
-    setMinHeight(500);
+    addRowSelectionListener(table);
 
-    setTitle("Processing...");
-
-    pnGrid = new GridPane();
+    totalMatches = FXCollections.observableList(Collections.synchronizedList(new ArrayList<>()));
+    visibleMatches = FXCollections.observableArrayList();
     // any number of rows
 
     noMatchesFound = new Label("I'm working on it");
     noMatchesFound.setFont(headerFont);
     // yellow
     noMatchesFound.setTextFill(Color.web("0xFFCC00"));
-    pnGrid.add(noMatchesFound, 0, 0);
-    pnGrid.setVgap(5);
 
-    // Add the Windows menu
-    MenuBar menuBar = new MenuBar();
-    // menuBar.add(new WindowsMenu());
+    HBox btnmenu = createButtonMenu();
+    mainBox = new VBox(noMatchesFound, btnmenu);
 
-    Menu menu = new Menu("Menu");
+    pnMain = new BorderPane(createTable());
+    pnMain.setTop(mainBox);
+    pnMain.setMinWidth(700);
+    pnMain.setMinHeight(500);
+    setContent(pnMain);
 
+    matchPanels = new HashMap<>();
+    setCoupleZoomY(true);
+  }
+
+  private void addRowSelectionListener(final FeatureTableFX table) {
+    if (table == null) {
+      return;
+    }
+    weak.addListChangeListener(table, table.getSelectedTableRows(), c -> {
+      if (weak.isDisposed()) {
+        return;
+      }
+
+      var rows = c.getList().stream().map(TreeItem::getValue).toList();
+      setFeatureRows(rows);
+    });
+  }
+
+  @Override
+  public boolean hasContent() {
+    return !totalMatches.isEmpty();
+  }
+
+  @Override
+  public void setFeatureRows(final @NotNull List<? extends FeatureListRow> rows) {
+    var allMatches = rows.stream().map(FeatureListRow::getSpectralLibraryMatches)
+        .flatMap(Collection::stream).toList();
+    setMatches(allMatches);
+    setTitle(rows);
+  }
+
+  @NotNull
+  private HBox createButtonMenu() {
     // set font size of chart
-    MenuItem btnSetup = new MenuItem("Setup dialog");
+    Button btnSetup = new Button("Setup");
     btnSetup.setOnAction(e -> {
-      Platform.runLater(() -> {
+      MZmineCore.runLater(() -> {
         if (MZmineCore.getConfiguration()
-            .getModuleParameters(SpectraIdentificationResultsModule.class)
-            .showSetupDialog(true) == ExitCode.OK) {
+                .getModuleParameters(SpectraIdentificationResultsModule.class).showSetupDialog(true)
+            == ExitCode.OK) {
           showExportButtonsChanged();
         }
       });
     });
 
-    menu.getItems().add(btnSetup);
-
-    CheckMenuItem cbCoupleZoomY = new CheckMenuItem("Couple y-zoom");
+    CheckBox cbCoupleZoomY = new CheckBox("Couple y-zoom");
     cbCoupleZoomY.setSelected(true);
     cbCoupleZoomY.setOnAction(e -> setCoupleZoomY(cbCoupleZoomY.isSelected()));
-    menu.getItems().add(cbCoupleZoomY);
 
-    menuBar.getMenus().add(menu);
-    pnMain.setTop(menuBar);
+    var prev = new Button("<<");
+    prev.setOnAction(event -> showPrevious());
+    var next = new Button(">>");
+    next.setOnAction(event -> showNext());
 
-    scrollPane = new ScrollPane(pnGrid);
-    pnMain.setCenter(scrollPane);
-    scrollPane.setHbarPolicy(ScrollBarPolicy.AS_NEEDED);
-    scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+    var showN = new TextField("15");
+    showN.textProperty().addListener((o, ov, nv) -> {
+      try {
+        if (!nv.isBlank()) {
+          showBestN = Integer.parseInt(nv);
+        }
+      } catch (Exception ex) {
+      }
+    });
 
-    totalMatches = new ArrayList<>();
-    matchPanels = new HashMap<>();
-    setCoupleZoomY(true);
+    shownMatchesLbl = new Label("");
 
-    show();
+    var hBox = new HBox(btnSetup, cbCoupleZoomY, prev, showN, next, shownMatchesLbl);
+    hBox.setAlignment(Pos.CENTER_LEFT);
+    hBox.setSpacing(5);
+    return hBox;
+  }
+
+  @NotNull
+  private TableView<SpectralDBAnnotation> createTable() {
+    TableView<SpectralDBAnnotation> tableView = new TableView<>(visibleMatches);
+    tableView.setPadding(Insets.EMPTY);
+    column = new TableColumn<>();
+    column.setSortable(false);
+
+    column.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue()));
+    column.setCellFactory(param -> new TableCell<>() {
+      private final BorderPane pane;
+
+      {
+        setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        pane = new BorderPane();
+        this.setPadding(Insets.EMPTY);
+        this.setStyle("-fx-padding: 0 0 0 0;");
+        setBorder(Border.EMPTY);
+      }
+
+      @Override
+      protected void updateItem(final SpectralDBAnnotation item, final boolean empty) {
+        super.updateItem(item, empty);
+        if (item == null || empty) {
+          setGraphic(null);
+        } else {
+          pane.setCenter(getChart(item));
+          setGraphic(pane);
+        }
+      }
+    });
+
+    tableView.getColumns().add(column);
+    TableViewUtils.autoFitLastColumn(tableView);
+    return tableView;
+  }
+
+  private Node getChart(final SpectralDBAnnotation item) {
+    return matchPanels.containsKey(item) ? matchPanels.get(item) : new Label("No chart found");
   }
 
   public void setCoupleZoomY(boolean selected) {
@@ -139,20 +247,28 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
   }
 
   /**
-   * Add a new match and sort the view. Call from {@link Platform#runLater}.
-   *
-   * @param match
+   * Column header title
    */
-  public synchronized void addMatches(SpectralDBFeatureIdentity match) {
+  public void setTitle(String title) {
+    column.setText(title);
+  }
+
+  /**
+   * Column header title
+   */
+  public void setTitle(List<? extends FeatureListRow> rows) {
+    column.setText(rows.stream().map(FeatureUtils::rowToString).collect(Collectors.joining("; ")));
+  }
+
+  /**
+   * Add a new match and sort the view.
+   *
+   * @param match single match
+   */
+  public synchronized void addMatches(SpectralDBAnnotation match) {
     if (!totalMatches.contains(match)) {
       // add
       totalMatches.add(match);
-      SpectralMatchPanelFX pn = new SpectralMatchPanelFX(match);
-      pn.setCoupleZoomY(isCouplingZoomY);
-      pn.prefWidthProperty().bind(this.widthProperty());
-      matchPanels.put(match, pn);
-
-      //pnGrid.add(pn, 0, matchPanels.size() - 1);
 
       // sort and show
       sortTotalMatches();
@@ -161,41 +277,46 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
 
   /**
    * add all matches and sort the view.
-   * Call from {@link Platform#runLater}.
    *
    * @param matches
    */
-  public synchronized void addMatches(List<SpectralDBFeatureIdentity> matches) {
+  public void addMatches(List<SpectralDBAnnotation> matches) {
     if (matches.isEmpty()) {
       return;
     }
-    // add all
-    for (SpectralDBFeatureIdentity match : matches) {
-      if (!totalMatches.contains(match)) {
-        // add
-        totalMatches.add(match);
-        SpectralMatchPanelFX pn = new SpectralMatchPanelFX(match);
-        pn.setCoupleZoomY(isCouplingZoomY);
-        pn.prefWidthProperty().bind(this.widthProperty());
-        matchPanels.put(match, pn);
-      }
-    }
+    totalMatches.addAll(matches);
     // sort and show
     sortTotalMatches();
   }
+
+  /**
+   * set all matches
+   *
+   * @param matches
+   */
+  public void setMatches(List<SpectralDBAnnotation> matches) {
+    totalMatches.setAll(matches);
+    matchPanels.clear();
+    // sort and show
+    sortTotalMatches();
+  }
+
 
   /**
    * Sort all matches and renew panels
    */
   public void sortTotalMatches() {
     if (totalMatches.isEmpty()) {
+      setMatchingFinished();
       return;
+    } else {
+      mainBox.getChildren().remove(noMatchesFound);
     }
 
     // reversed sorting (highest cosine first
     synchronized (totalMatches) {
-      totalMatches.sort((SpectralDBFeatureIdentity a, SpectralDBFeatureIdentity b) -> Double
-          .compare(b.getSimilarity().getScore(), a.getSimilarity().getScore()));
+      totalMatches.sort((SpectralDBAnnotation a, SpectralDBAnnotation b) -> Double.compare(
+          b.getSimilarity().getScore(), a.getSimilarity().getScore()));
     }
     // renew layout and show
     renewLayout();
@@ -203,7 +324,7 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
 
   public void setMatchingFinished() {
     if (totalMatches.isEmpty()) {
-      noMatchesFound.setText("Sorry no matches found");
+      noMatchesFound.setText("Sorry no matches found.");
       noMatchesFound.setTextFill(Color.RED);
     }
   }
@@ -212,38 +333,52 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
    * Removes panels and puts them in order.
    */
   private void renewLayout() {
-//    Platform.runLater(() -> {
-    // add all panel in order
-    synchronized (totalMatches) {
-      pnGrid.getChildren().clear();
-      int row = 0;
-      for (SpectralDBFeatureIdentity match : totalMatches) {
-        Pane pn = matchPanels.get(match);
-        if (pn != null) {
-          pnGrid.add(pn, 0, row);
-          row++;
+    currentIndex = 0;
+    handleLayoutChangeIndex();
+  }
+
+  private void handleLayoutChangeIndex() {
+    MZmineCore.runLater(() -> {
+      // add all panel in order
+      synchronized (totalMatches) {
+        // select first 15 matches
+        var best = totalMatches.stream().skip(currentIndex).limit(showBestN).toList();
+        // add all
+        for (SpectralDBAnnotation match : best) {
+          if (!matchPanels.containsKey(match)) {
+            // add and skip matches without datapoints
+            SpectralMatchPanelFX pn = new SpectralMatchPanelFX(match);
+            pn.setCoupleZoomY(isCouplingZoomY);
+//          pn.prefWidthProperty().bind(this.widthProperty());
+            matchPanels.put(match, pn);
+          }
         }
+        visibleMatches.setAll(best);
+        shownMatchesLbl.setText(
+            "(%d-%d of %d)".formatted(currentIndex, currentIndex + visibleMatches.size(),
+                totalMatches.size()));
       }
-      }
-//    });
+    });
+  }
+
+  private void showNext() {
+    currentIndex = Math.min(currentIndex + showBestN, totalMatches.size() - 1);
+    handleLayoutChangeIndex();
+  }
+
+  private void showPrevious() {
+    currentIndex = Math.max(currentIndex - showBestN, 0);
+    handleLayoutChangeIndex();
   }
 
   private void showExportButtonsChanged() {
     if (matchPanels == null) {
       return;
     }
-    matchPanels.values().stream().forEach(pn -> {
+    matchPanels.values().forEach(pn -> {
       pn.applySettings(MZmineCore.getConfiguration()
           .getModuleParameters(SpectraIdentificationResultsModule.class));
     });
   }
 
-
-  protected void removeMatch(SpectralMatchPanelFX pn) {
-    pn.prefWidthProperty().unbind();
-    pnGrid.getChildren().remove(pn);
-
-    totalMatches.remove(pn.getHit());
-    matchPanels.remove(pn.getHit());
-  }
 }

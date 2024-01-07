@@ -1,35 +1,42 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots.cvplot;
 
-import java.util.Vector;
-import java.util.logging.Logger;
-import org.jfree.data.xy.AbstractXYZDataset;
 import com.google.common.primitives.Doubles;
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataanalysis.bubbleplots.RTMZDataset;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.MathUtils;
+import java.util.Vector;
+import java.util.logging.Logger;
+import org.jfree.data.xy.AbstractXYZDataset;
 
 public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 
@@ -38,7 +45,7 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
    */
   private static final long serialVersionUID = 1L;
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private double[] xCoords = new double[0];
   private double[] yCoords = new double[0];
@@ -51,17 +58,18 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 
     int numOfRows = alignedFeatureList.getNumberOfRows();
 
-    RawDataFile selectedFiles[] = parameters.getParameter(CVParameters.dataFiles).getValue();
-    FeatureMeasurementType measurementType =
-        parameters.getParameter(CVParameters.measurementType).getValue();
+    RawDataFile[] selectedFiles = parameters.getParameter(CVParameters.dataFiles).getValue();
+    AbundanceMeasure measurementType = parameters.getParameter(CVParameters.measurementType)
+        .getValue();
 
     // Generate title for the dataset
     datasetTitle = "Correlation of variation analysis";
     datasetTitle = datasetTitle.concat(" (");
-    if (measurementType == FeatureMeasurementType.AREA)
+    if (measurementType == AbundanceMeasure.Area) {
       datasetTitle = datasetTitle.concat("CV of feature areas");
-    else
+    } else {
       datasetTitle = datasetTitle.concat("CV of feature heights");
+    }
     datasetTitle = datasetTitle.concat(" in " + selectedFiles.length + " files");
     datasetTitle = datasetTitle.concat(")");
 
@@ -82,10 +90,11 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
       for (int fileIndex = 0; fileIndex < selectedFiles.length; fileIndex++) {
         Feature feature = row.getFeature(selectedFiles[fileIndex]);
         if (feature != null) {
-          if (measurementType == FeatureMeasurementType.AREA)
+          if (measurementType == AbundanceMeasure.Area) {
             featureIntensities.add((double) feature.getArea());
-          else
+          } else {
             featureIntensities.add((double) feature.getHeight());
+          }
         }
       }
 
@@ -127,18 +136,21 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 
   @Override
   public Comparable<?> getSeriesKey(int series) {
-    if (series == 0)
+    if (series == 0) {
       return 1;
-    else
+    } else {
       return null;
+    }
   }
 
   @Override
   public Number getZ(int series, int item) {
-    if (series != 0)
+    if (series != 0) {
       return null;
-    if ((colorCoords.length - 1) < item)
+    }
+    if ((colorCoords.length - 1) < item) {
       return null;
+    }
     return colorCoords[item];
   }
 
@@ -149,19 +161,23 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 
   @Override
   public Number getX(int series, int item) {
-    if (series != 0)
+    if (series != 0) {
       return null;
-    if ((xCoords.length - 1) < item)
+    }
+    if ((xCoords.length - 1) < item) {
       return null;
+    }
     return xCoords[item];
   }
 
   @Override
   public Number getY(int series, int item) {
-    if (series != 0)
+    if (series != 0) {
       return null;
-    if ((yCoords.length - 1) < item)
+    }
+    if ((yCoords.length - 1) < item) {
       return null;
+    }
     return yCoords[item];
   }
 

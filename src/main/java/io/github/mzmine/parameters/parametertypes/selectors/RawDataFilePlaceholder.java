@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.parameters.parametertypes.selectors;
@@ -21,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -32,7 +40,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,14 +54,13 @@ public class RawDataFilePlaceholder implements RawDataFile {
   public RawDataFilePlaceholder(@NotNull final RawDataFile file) {
     name = file.getName();
     absPath = file.getAbsolutePath();
-    if(file instanceof RawDataFilePlaceholder rfp) {
-      if(rfp.fileHashCode == null) {
+    if (file instanceof RawDataFilePlaceholder rfp) {
+      if (rfp.fileHashCode == null) {
         fileHashCode = null;
       } else {
         fileHashCode = rfp.fileHashCode;
       }
-    }
-    else {
+    } else {
       fileHashCode = file.hashCode();
     }
   }
@@ -84,13 +90,13 @@ public class RawDataFilePlaceholder implements RawDataFile {
       return null;
     }
 
-    return proj.getRawDataFiles().stream().filter(this::matches).findFirst().orElse(null);
+    return proj.getCurrentRawDataFiles().stream().filter(this::matches).findFirst().orElse(null);
   }
 
   public boolean matches(@Nullable final RawDataFile file) {
-    return file != null && file.getName().equals(name) && Objects
-        .equals(absPath, file.getAbsolutePath()) && (fileHashCode == null || Objects
-        .equals(fileHashCode, file.hashCode()));
+    return file != null && file.getName().equals(name) && Objects.equals(absPath,
+        file.getAbsolutePath()) && (fileHashCode == null || Objects.equals(fileHashCode,
+        file.hashCode()));
   }
 
   @Override
@@ -106,12 +112,6 @@ public class RawDataFilePlaceholder implements RawDataFile {
   @Override
   public @Nullable String getAbsolutePath() {
     return absPath;
-  }
-
-  @Override
-  public void setName(@NotNull String name) {
-    throw new UnsupportedOperationException(
-        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }
 
   @Override
@@ -157,19 +157,49 @@ public class RawDataFilePlaceholder implements RawDataFile {
   }
 
   @Override
-  public Scan getScanNumberAtRT(float rt, int mslevel) {
+  public Scan binarySearchClosestScan(float rt, int mslevel) {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }
 
   @Override
-  public Scan getScanNumberAtRT(float rt) {
+  public Scan binarySearchClosestScan(float rt) {
+    throw new UnsupportedOperationException(
+        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
+  }
+
+  @Override
+  public int binarySearchClosestScanIndex(final float rt) {
+    throw new UnsupportedOperationException(
+        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
+  }
+
+  @Override
+  public int binarySearchClosestScanIndex(final float rt, final int mslevel) {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }
 
   @Override
   public @NotNull Range<Double> getDataMZRange() {
+    throw new UnsupportedOperationException(
+        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
+  }
+
+  @Override
+  public boolean isContainsZeroIntensity() {
+    throw new UnsupportedOperationException(
+        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
+  }
+
+  @Override
+  public boolean isContainsEmptyScans() {
+    throw new UnsupportedOperationException(
+        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
+  }
+
+  @Override
+  public MassSpectrumType getSpectraType() {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }
@@ -253,19 +283,7 @@ public class RawDataFilePlaceholder implements RawDataFile {
   }
 
   @Override
-  public void setRTRange(int msLevel, Range<Float> rtRange) {
-    throw new UnsupportedOperationException(
-        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
-  }
-
-  @Override
-  public void setMZRange(int msLevel, Range<Double> mzRange) {
-    throw new UnsupportedOperationException(
-        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
-  }
-
-  @Override
-  public ObservableList<Scan> getScans() {
+  public @NotNull ObservableList<Scan> getScans() {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }
@@ -278,12 +296,6 @@ public class RawDataFilePlaceholder implements RawDataFile {
 
   @Override
   public @NotNull ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
-    throw new UnsupportedOperationException(
-        "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
-  }
-
-  @Override
-  public @NotNull StringProperty nameProperty() {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }

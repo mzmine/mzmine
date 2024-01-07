@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel;
@@ -51,6 +58,23 @@ public interface TDFLibrary extends Library {
    * describing the problem.
    */
   long tims_open(String analysis_dir, long use_recalib);
+
+  /**
+   * Open data set.
+   *
+   * @param analysis_dir         the name of the directory in the file system that contains the
+   *                             analysis data, in UTF-8 encoding.
+   * @param use_recalib          if non-zero, use the most recent recalibrated state of the
+   *                             analysis, if there is one; if zero, use the original "raw"
+   *                             calibration written during acquisition time.
+   * @param pressureCompensation the pressure compensation strategy. 0 = NoPressureCompensation,
+   *                             1=AnalyisGlobalPressureCompensation,
+   *                             2=PerFramePressureCompensation
+   * @return On success, returns a non-zero instance handle that needs to be passed to subsequent
+   * API calls, in particular to the required call to tims_close(). On failure, returns 0, and you
+   * can use tims_get_last_error_string() to obtain a string describing the problem.
+   */
+  long tims_open_v2(String analysis_dir, long use_recalib, int pressureCompensation);
 
   /**
    * Close data set.
@@ -219,6 +243,16 @@ public interface TDFLibrary extends Library {
    */
   double tims_oneoverk0_to_ccs_for_mz(double ook0, long charge, double mz);
 
+  /**
+   * Converts the CCS (in Angstrom^2) to 1/K0 using the Mason-Shamp equation
+   *
+   * @param ccs    the ccs value in Angstrom^2
+   * @param charge the charge
+   * @param mz     the mz of the ion
+   * @return the 1/K0 value in Vs/cm2
+   **/
+  double tims_ccs_to_oneoverk0_for_mz(double ccs, long charge, double mz);
+
 
   /**
    * Read peak-picked spectra for a tims frame.
@@ -237,11 +271,11 @@ public interface TDFLibrary extends Library {
    *                   different order"
    * @param scan_begin first scan number to read (inclusive)
    * @param scan_end   last scan number (exclusive)
-   * @param callback   Bruker: "callback accepting the MS/MS spectra" - sounds more like MS1 to me?
-   * @param user_data  ?????
+   * @param callback   callback accepting the spectra
+   * @param user_data  will be passed to callback
    * @return 0 on error
    */
-  long tims_extract_centroided_spectrum_for_frame(long handle, long frame_id, long scan_begin,
+  long tims_extract_centroided_spectrum_for_frame_v2(long handle, long frame_id, long scan_begin,
       long scan_end, CentroidCallback callback, Pointer user_data);
 
   /**
@@ -259,7 +293,6 @@ public interface TDFLibrary extends Library {
       ProfileCallback callback, Pointer userData);
 
   /**
-   *
    * @param numThreads The number of threads used to read one file. >= 1.
    */
   void tims_set_num_threads(int numThreads);

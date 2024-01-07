@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport;
@@ -26,8 +33,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.R2RMS2CosineSimilarityGNPS;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
-import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibMatchSummaryType;
-import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchType;
+import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -39,9 +45,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
-import java.util.Date;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -69,7 +77,8 @@ public class GNPSResultsImportTask extends AbstractTask {
   private final ParameterSet parameters;
   private final FeatureListRowIdCache rowIdCache;
 
-  public GNPSResultsImportTask(ParameterSet parameters, ModularFeatureList featureList, @NotNull Date moduleCallDate) {
+  public GNPSResultsImportTask(ParameterSet parameters, ModularFeatureList featureList,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
     this.featureList = featureList;
@@ -83,8 +92,10 @@ public class GNPSResultsImportTask extends AbstractTask {
   public static void addGNPSLibraryMatchToRow(ModularFeatureListRow row,
       GNPSLibraryMatch identity) {
     // add column first if needed
-    row.get(GNPSSpectralLibraryMatchType.class).get(GNPSSpectralLibMatchSummaryType.class)
-        .add(identity);
+    List<GNPSLibraryMatch> list = Objects
+        .requireNonNullElse(row.get(GNPSSpectralLibraryMatchesType.class), new ArrayList<>());
+    list.add(identity);
+    row.set(GNPSSpectralLibraryMatchesType.class, list);
   }
 
   @Override
@@ -111,7 +122,7 @@ public class GNPSResultsImportTask extends AbstractTask {
     Graph graph = new DefaultGraph("GNPS");
     if (importGraphData(graph, file)) {
       // import library matches from nodes
-      featureList.addRowType(new GNPSSpectralLibraryMatchType());
+      featureList.addRowType(new GNPSSpectralLibraryMatchesType());
       importLibraryMatches(graph);
 
       // import all edges between two feature list rows
@@ -139,7 +150,8 @@ public class GNPSResultsImportTask extends AbstractTask {
       Path path = Paths.get(file.getAbsolutePath());
       Stream<String> lines = Files.lines(path);
       List<String> replaced =
-          lines.map(line -> line.replaceAll("edge id=\"0\"", "edge")).collect(Collectors.toList());
+          lines.map(line -> line.replaceAll("edge id=\"0\"", "edge")
+              .replaceAll("edge id=\"Cosine\"", "edge")).collect(Collectors.toList());
       Files.write(path, replaced);
       lines.close();
       logger.info("zero ids in graphml replaces");

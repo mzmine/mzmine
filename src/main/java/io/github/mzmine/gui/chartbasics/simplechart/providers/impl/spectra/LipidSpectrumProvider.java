@@ -1,40 +1,45 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
 
-import java.awt.Color;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.FxColorUtil;
-import javafx.beans.property.SimpleObjectProperty;
+import java.awt.Color;
+import java.util.Iterator;
+import java.util.List;
+import javafx.beans.property.Property;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LipidSpectrumProvider implements PlotXYDataProvider {
 
@@ -69,16 +74,19 @@ public class LipidSpectrumProvider implements PlotXYDataProvider {
 
       @Override
       public MassSpectrumType getSpectrumType() {
+        if (spectrum != null) {
+          return spectrum.getSpectrumType();
+        }
         return null;
       }
 
       @Override
-      public double[] getMzValues(@Nonnull double[] dst) {
+      public double[] getMzValues(@NotNull double[] dst) {
         return new double[0]; // Local implementation only so this does not matter
       }
 
       @Override
-      public double[] getIntensityValues(@Nonnull double[] dst) {
+      public double[] getIntensityValues(@NotNull double[] dst) {
         return new double[0]; // Local implementation only so this does not matter
       }
 
@@ -122,76 +130,39 @@ public class LipidSpectrumProvider implements PlotXYDataProvider {
         return null;
       }
 
-      @Override
-      public Stream<DataPoint> stream() {
-        return null;
-      }
-
-      @Nonnull
+      @NotNull
       @Override
       public Iterator<DataPoint> iterator() {
         return null;
       }
+
     };
 
     this.seriesKey = seriesKey;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return color;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return FxColorUtil.awtColorToFX(color);
   }
 
-  @Nullable
-  @Override
-  public String getLabel(int index) {
-    if (matchedFragments != null) {
-      return buildFragmentAnnotation(matchedFragments.get(index));
-    } else {
-      return null;
-    }
-  }
 
-  private String buildFragmentAnnotation(LipidFragment lipidFragment) {
-    if (lipidFragment.getLipidFragmentInformationLevelType()
-        .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
-      StringBuilder sb = new StringBuilder();
-      sb.append(lipidFragment.getLipidChainType() + " " + lipidFragment.getChainLength() + ":"
-          + lipidFragment.getNumberOfDBEs());
-      System.out.println(sb.toString());
-      return sb.toString();
-    } else {
-      StringBuilder sb = new StringBuilder();
-      sb.append(lipidFragment.getRuleType());
-      return sb.toString();
-    }
-  }
-
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;
   }
 
-  @Nullable
-  @Override
-  public String getToolTipText(int itemIndex) {
-    if (matchedFragments != null) {
-      return buildFragmentAnnotation(matchedFragments.get(itemIndex));
-    } else {
-      return null;
-    }
-  }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
+  public void computeValues(Property<TaskStatus> status) {
 
   }
 
@@ -213,5 +184,15 @@ public class LipidSpectrumProvider implements PlotXYDataProvider {
   @Override
   public double getComputationFinishedPercentage() {
     return 1d;
+  }
+
+  @Override
+  public @org.jetbrains.annotations.Nullable String getLabel(int index) {
+    return null;
+  }
+
+  @Override
+  public @org.jetbrains.annotations.Nullable String getToolTipText(int itemIndex) {
+    return null;
   }
 }

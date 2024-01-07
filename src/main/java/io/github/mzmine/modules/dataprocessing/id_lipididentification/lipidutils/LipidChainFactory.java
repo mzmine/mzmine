@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils;
@@ -27,14 +34,17 @@ import io.github.mzmine.util.FormulaUtils;
 
 /**
  * This class constructs alkyl and acyl chains for lipids.
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class LipidChainFactory {
 
   public ILipidChain buildLipidChain(LipidChainType chainType, int chainLength, int numberOfDBE) {
+    if (chainLength / 2 < numberOfDBE) {
+      return null;
+    }
     IMolecularFormula chainFormula = buildLipidChainFormula(chainType, chainLength, numberOfDBE);
-    String chainAnnotation = builLipidChainAnnotation(chainType, chainLength, numberOfDBE);
+    String chainAnnotation = buildLipidChainAnnotation(chainType, chainLength, numberOfDBE);
 
     if (chainType.equals(LipidChainType.ACYL_CHAIN)) {
       return new AcylLipidChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
@@ -47,42 +57,35 @@ public class LipidChainFactory {
 
   public IMolecularFormula buildLipidChainFormula(LipidChainType chainType, int chainLength,
       int numberOfDBE) {
-    switch (chainType) {
-      case ACYL_CHAIN:
-        return calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
-      case ALKYL_CHAIN:
-        return calculateMolecularFormulaAlkylChain(chainLength, numberOfDBE);
-      default:
-        return calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
+    if (chainLength / 2 < numberOfDBE) {
+      return null;
     }
+    return switch (chainType) {
+      case ACYL_CHAIN -> calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
+      case ALKYL_CHAIN -> calculateMolecularFormulaAlkylChain(chainLength, numberOfDBE);
+    };
   }
 
   private IMolecularFormula calculateMolecularFormulaAcylChain(int chainLength,
       int numberOfDoubleBonds) {
-    int numberOfCAtoms = chainLength;
-    int numberOfHAtoms = numberOfCAtoms * 2 - numberOfDoubleBonds * 2;
+    int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2;
     int numberOfOAtoms = 2;
     return FormulaUtils.createMajorIsotopeMolFormula(
-        "C" + numberOfCAtoms + "H" + numberOfHAtoms + "O" + numberOfOAtoms);
+        "C" + chainLength + "H" + numberOfHAtoms + "O" + numberOfOAtoms);
   }
 
   private IMolecularFormula calculateMolecularFormulaAlkylChain(int chainLength,
       int numberOfDoubleBonds) {
-    int numberOfCAtoms = chainLength;
-    int numberOfHAtoms = numberOfCAtoms * 2 - numberOfDoubleBonds * 2 + 2;
-    return FormulaUtils.createMajorIsotopeMolFormula("C" + numberOfCAtoms + "H" + numberOfHAtoms);
+    int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2 + 2;
+    return FormulaUtils.createMajorIsotopeMolFormula("C" + chainLength + "H" + numberOfHAtoms);
   }
 
-  private String builLipidChainAnnotation(LipidChainType chainType, int chainLength,
+  private String buildLipidChainAnnotation(LipidChainType chainType, int chainLength,
       int numberOfDBE) {
-    switch (chainType) {
-      case ACYL_CHAIN:
-        return chainLength + ":" + numberOfDBE;
-      case ALKYL_CHAIN:
-        return "O-" + chainLength + ":" + numberOfDBE;
-      default:
-        return chainLength + ":" + numberOfDBE;
-    }
+    return switch (chainType) {
+      case ACYL_CHAIN -> chainLength + ":" + numberOfDBE;
+      case ALKYL_CHAIN -> "O-" + chainLength + ":" + numberOfDBE;
+    };
   }
 
   public String connectLipidChainAnnotations(List<ILipidChain> chains) {
@@ -112,9 +115,9 @@ public class LipidChainFactory {
         sb.append(chains.get(i).getChainAnnotation());
       } else {
         if (allChainsAreSame) {
-          sb.append("/" + chains.get(i).getChainAnnotation());
+          sb.append("/").append(chains.get(i).getChainAnnotation());
         } else {
-          sb.append("_" + chains.get(i).getChainAnnotation());
+          sb.append("_").append(chains.get(i).getChainAnnotation());
         }
       }
     }
@@ -123,10 +126,11 @@ public class LipidChainFactory {
 
   private boolean allChainsAreSame(List<ILipidChain> chains) {
     String firstChainAnnotation = chains.get(0).getChainAnnotation();
-    for (int i = 1; i < chains.size(); i++)
+    for (int i = 1; i < chains.size(); i++) {
       if (!chains.get(i).getChainAnnotation().equals(firstChainAnnotation)) {
         return false;
       }
+    }
     return true;
   }
 

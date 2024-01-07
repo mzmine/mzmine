@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.mzmine.modules.dataprocessing.id_formula_sort;
 
@@ -25,36 +32,39 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public class FormulaSortTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final float weightIsotopeScore;
+  private final float ppmMaxWeight;
+  private final float weightMSMSscore;
+  private final ParameterSet parameterSet;
   private ModularFeatureList featureList;
   private String message;
   private int totalRows;
   private int finishedRows = 0;
-  private Double weightIsotopeScore;
-  private Double ppmMaxWeight;
-  private Double weightMSMSscore;
-  private final ParameterSet parameterSet;
 
   /**
    * @param parameters
    */
-  public FormulaSortTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public FormulaSortTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     weightIsotopeScore =
-        parameters.getParameter(FormulaSortParameters.ISOTOPE_SCORE_WEIGHT).getValue();
-    ppmMaxWeight = parameters.getParameter(FormulaSortParameters.MAX_PPM_WEIGHT).getValue();
-    weightMSMSscore = parameters.getParameter(FormulaSortParameters.MSMS_SCORE_WEIGHT).getValue();
+        parameters.getParameter(FormulaSortParameters.ISOTOPE_SCORE_WEIGHT).getValue().floatValue();
+    ppmMaxWeight = parameters.getParameter(FormulaSortParameters.MAX_PPM_WEIGHT).getValue()
+        .floatValue();
+    weightMSMSscore = parameters.getParameter(FormulaSortParameters.MSMS_SCORE_WEIGHT).getValue()
+        .floatValue();
     parameterSet = parameters;
   }
 
-  public FormulaSortTask(ModularFeatureList featureList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public FormulaSortTask(ModularFeatureList featureList, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     this(parameters, moduleCallDate);
     this.featureList = featureList;
     message = "Sorting formula lists of feature list " + featureList.getName();
@@ -101,8 +111,10 @@ public class FormulaSortTask extends AbstractTask {
   public void sort(List<ResultFormula> list) {
     FormulaUtils.sortFormulaList(list, ppmMaxWeight, weightIsotopeScore, weightMSMSscore);
   }
+
   public void sort(List<ResultFormula> list, double neutralMass) {
-    FormulaUtils.sortFormulaList(list, neutralMass, ppmMaxWeight, weightIsotopeScore, weightMSMSscore);
+    FormulaUtils
+        .sortFormulaList(list, neutralMass, ppmMaxWeight, weightIsotopeScore, weightMSMSscore);
   }
 
 }

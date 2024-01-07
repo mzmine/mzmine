@@ -1,65 +1,76 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.mzmine.util.components;
 
-import io.github.mzmine.main.MZmineCore;
-import javafx.scene.control.ColorPicker;
-import javafx.scene.control.ContentDisplay;
+import io.github.mzmine.util.javafx.FxColorUtil;
+import javafx.scene.Node;
 import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 
 /**
- * @param <T>
- * @author akshaj This class represents the color picker in the table of Fx3DVisualizer.
+ * A simple color cell type. Either filled or as circles
+ *
+ * @param <S> table data type
  */
-public class ColorTableCell<T> extends TableCell<T, Color> {
+public class ColorTableCell<S> extends TableCell<S, Color> {
 
-  private final ColorPicker colorPicker;
+  private final Style style;
+  private final Node node;
 
-  public ColorTableCell(TableColumn<T, Color> column) {
-    colorPicker = new ColorPicker();
-    colorPicker.editableProperty().bind(column.editableProperty());
-    colorPicker.disableProperty().bind(column.editableProperty().not());
-    colorPicker.setOnShowing(event -> {
-      final TableView<T> tableView = getTableView();
-      tableView.getSelectionModel().select(getTableRow().getIndex());
-      tableView.edit(tableView.getSelectionModel().getSelectedIndex(), column);
-    });
-    colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
-      commitEdit(newValue);
-    });
-    colorPicker.getCustomColors().addAll(MZmineCore.getConfiguration().getDefaultColorPalette());
-    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+  public ColorTableCell(Style style) {
+    this.style = style;
+    node = switch (style) {
+      case FILL -> null;
+      case CIRCLE -> {
+        Circle circle = new Circle();
+        circle.setRadius(10);
+        yield circle;
+      }
+    };
   }
 
   @Override
   protected void updateItem(Color item, boolean empty) {
-
     super.updateItem(item, empty);
 
     setText(null);
     if (empty) {
       setGraphic(null);
     } else {
-      colorPicker.setValue(item);
-      setGraphic(colorPicker);
+      switch (style) {
+        case FILL -> this.setStyle("-fx-background-color:" + FxColorUtil.colorToHex(item) + ";");
+        case CIRCLE -> {
+          ((Circle) node).setFill(item);
+          setGraphic(node);
+        }
+      }
     }
+  }
+
+  public enum Style {
+    FILL, CIRCLE
   }
 }

@@ -1,24 +1,32 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
+import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.IsolationInfo;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.DataPoint;
@@ -27,9 +35,13 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
 import java.util.Iterator;
-import java.util.stream.Stream;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,14 +52,37 @@ public class MsdkScanWrapper implements Scan {
 
   // wrap this scan
   private final MsScan scan;
+  private final MsMsInfo msMsInfo;
+  private final double[] mzs;
+  private final float[] intensities;
 
   public MsdkScanWrapper(MsScan scan) {
     this.scan = scan;
+
+    // preload as getMzValue(i) is inefficient in MSDK scans
+    mzs = scan.getMzValues();
+    intensities = scan.getIntensityValues();
+
+    scan.getIsolations();
+    if (!scan.getIsolations().isEmpty()) {
+      IsolationInfo isolationInfo = scan.getIsolations().get(0);
+      ActivationInfo activationInfo = isolationInfo.getActivationInfo();
+      Float energy = activationInfo != null && activationInfo.getActivationEnergy() != null
+          ? activationInfo.getActivationEnergy().floatValue() : null;
+      ActivationMethod activationMethod = activationInfo != null ? ActivationMethod.valueOf(
+          activationInfo.getActivationType().name()) : null;
+
+      msMsInfo = new DDAMsMsInfoImpl(isolationInfo.getPrecursorMz(),
+          isolationInfo.getPrecursorCharge(), energy, this, null, scan.getMsLevel(),
+          activationMethod, null);
+    } else {
+      msMsInfo = null;
+    }
   }
 
   @Override
   public int getNumberOfDataPoints() {
-    return scan.getNumberOfDataPoints();
+    return mzs.length;
   }
 
   @Override
@@ -57,7 +92,8 @@ public class MsdkScanWrapper implements Scan {
 
   @Override
   public double[] getMzValues(@NotNull double[] dst) {
-    return scan.getMzValues(dst);
+    throw new UnsupportedOperationException(
+        "Unsupported operation. MSDK scan uses float array and the conversion in this method is not efficient.");
   }
 
   @Override
@@ -68,12 +104,12 @@ public class MsdkScanWrapper implements Scan {
 
   @Override
   public double getMzValue(int index) {
-    return scan.getMzValues()[index];
+    return mzs[index];
   }
 
   @Override
   public double getIntensityValue(int index) {
-    return scan.getIntensityValues()[index];
+    return intensities[index];
   }
 
   @Nullable
@@ -107,12 +143,6 @@ public class MsdkScanWrapper implements Scan {
   @Override
   public Double getTIC() {
     return Double.valueOf(scan.getTIC());
-  }
-
-  @Override
-  public Stream<DataPoint> stream() {
-    throw new UnsupportedOperationException(
-        "Unsupported operation. MSDK scan is not supposed to be used here.");
   }
 
   @NotNull
@@ -157,14 +187,8 @@ public class MsdkScanWrapper implements Scan {
   }
 
   @Override
-  public double getPrecursorMZ() {
-    return scan.getIsolations().stream().findFirst().map(IsolationInfo::getPrecursorMz).orElse(-1d);
-  }
-
-  @Override
-  public int getPrecursorCharge() {
-    return scan.getIsolations().stream().findFirst().map(IsolationInfo::getPrecursorCharge)
-        .orElse(-1);
+  public @Nullable MsMsInfo getMsMsInfo() {
+    return msMsInfo;
   }
 
   @NotNull
@@ -183,5 +207,18 @@ public class MsdkScanWrapper implements Scan {
   @Override
   public void addMassList(@NotNull MassList massList) {
 
+  }
+
+  @Override
+  public @Nullable Float getInjectionTime() {
+    try {
+      return ((MzMLMsScan) scan).getScanList().getScans().get(0).getCVParamsList().stream()
+          .filter(p -> MzMLCV.cvIonInjectTime.equals(p.getAccession()))
+          .map(p -> p.getValue().map(Float::parseFloat)).map(Optional::get).findFirst()
+          .orElse(null);
+    } catch (Exception ex) {
+      // float parsing error
+      return null;
+    }
   }
 }

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.identities.iontype;
@@ -21,13 +28,18 @@ package io.github.mzmine.datamodel.identities.iontype;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.NeutralMolecule;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.ParsingUtils;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -40,6 +52,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  */
 public class IonType extends NeutralMolecule implements Comparable<IonType> {
 
+  public static final String XML_ELEMENT = "iontype";
   @NotNull
   protected final IonModification adduct;
   @Nullable
@@ -68,6 +81,63 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     name = parseName();
   }
 
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement("iontype");
+    writer.writeAttribute("molecules", String.valueOf(molecules));
+    writer.writeAttribute("charge", String.valueOf(charge));
+
+    writer.writeStartElement("adduct");
+    adduct.saveToXML(writer);
+    writer.writeEndElement();
+
+    if (mod != null) {
+      writer.writeStartElement("modification");
+      mod.saveToXML(writer);
+      writer.writeEndElement();
+    }
+
+    writer.writeEndElement();
+  }
+
+  public static IonType loadFromXML(XMLStreamReader reader) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      throw new IllegalStateException("Current element is not an iontype");
+    }
+
+    final int molecules = Integer.parseInt(reader.getAttributeValue(null, "molecules"));
+    final int charge = Integer.parseInt(reader.getAttributeValue(null, "charge"));
+
+    IonModification adduct = null;
+    IonModification mod = null;
+
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals("iontype"))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      if (reader.getLocalName().equals("adduct")) {
+        if (ParsingUtils.progressToStartElement(reader, IonModification.XML_ELEMENT,
+            CONST.XML_DATA_TYPE_ELEMENT)) {
+          adduct = IonModification.loadFromXML(reader);
+        } else {
+          return null;
+        }
+      }
+      if (reader.getLocalName().equals("modification")) {
+        if (ParsingUtils.progressToStartElement(reader, IonModification.XML_ELEMENT,
+            CONST.XML_DATA_TYPE_ELEMENT)) {
+          mod = IonModification.loadFromXML(reader);
+        }
+      }
+    }
+
+    assert adduct != null;
+
+    return mod != null ? new IonType(molecules, adduct, mod) : new IonType(molecules, adduct);
+  }
+
   /**
    * New ion type with different molecules count
    *
@@ -76,26 +146,6 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
    */
   public IonType(int molecules, IonType ion) {
     this(molecules, ion.adduct, ion.mod);
-  }
-
-  /**
-   * Create a new modified ion type by adding all newMods
-   *
-   * @return modified IonType
-   */
-  public IonType createModified(final @NotNull IonModification... newMod) {
-    List<IonModification> allMods = new ArrayList<>();
-    Collections.addAll(allMods, newMod);
-
-    if (this.mod != null) {
-      for (IonModification m : this.mod.getModifications()) {
-        allMods.add(m);
-      }
-    }
-
-    IonModification combinedIonModification =
-        CombinedIonModification.create(allMods);
-    return new IonType(this.molecules, this.adduct, combinedIonModification);
   }
 
   /**
@@ -195,6 +245,10 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     }
 
     for (final IonModification aa : a) {
+      // do not check the ? unknown adduct as this does not count as an adduct overlap
+      if (aa.getType() == IonModificationType.UNDEFINED_ADDUCT) {
+        continue;
+      }
       if (Arrays.stream(b).anyMatch(ab -> aa.equals(ab))) {
         return true;
       }
@@ -202,16 +256,29 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     return false;
   }
 
+  /**
+   * Create a new modified ion type by adding all newMods
+   *
+   * @return modified IonType
+   */
+  public IonType createModified(final @NotNull IonModification... newMod) {
+    List<IonModification> allMods = new ArrayList<>();
+    Collections.addAll(allMods, newMod);
 
-  @Override
-  public String toString() {
-    return toString(true);
+    if (this.mod != null) {
+      Collections.addAll(allMods, this.mod.getModifications());
+    }
+
+    IonModification combinedIonModification = CombinedIonModification.create(allMods);
+    return new IonType(this.molecules, this.adduct, combinedIonModification);
   }
 
   public String toString(boolean showMass) {
     int absCharge = Math.abs(charge);
-    String z = absCharge > 1 ? absCharge + "" : "";
-    z += (charge < 0 ? "-" : "+");
+    String z = charge < 0 ? "-" : "+";
+    if (absCharge > 1) {
+      z += absCharge;
+    }
     if (charge == 0) {
       z = "";
     }
@@ -332,12 +399,28 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     return new IonType(1, IonModification.getUndefinedforCharge(this.charge), mod);
   }
 
+
   /**
    * @return count of modification
    */
   public int getModCount() {
     return mod == null ? 0 : mod.getModCount();
   }
+
+  /**
+   * @return count of adducts
+   */
+  public int getAdductCount() {
+    return adduct == null ? 0 : adduct.getModCount();
+  }
+
+  /**
+   * @return sum of modification and adducts, molecules, charge
+   */
+  public int getTotalPartsCount() {
+    return molecules + charge + getModCount() + getAdductCount();
+  }
+
 
   /**
    * ((mz * charge) - deltaMass) / numberOfMolecules
@@ -362,16 +445,8 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
   }
 
   @Override
-  public boolean equals(final Object obj) {
-    if (obj == null || !obj.getClass().equals(this.getClass()) || !(obj instanceof IonType)) {
-      return false;
-    }
-    if (!super.equals(obj)) {
-      return false;
-    }
-
-    final IonType a = (IonType) obj;
-    return (sameMathDifference(a) && adductsEqual(a) && modsEqual(a));
+  public String toString() {
+    return toString(false);
   }
 
   @Override
@@ -462,5 +537,19 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
           .forEach(m -> FormulaUtils.subtractFormula(result, m.getCDKFormula()));
     }
     return result;
+  }
+
+
+  @Override
+  public boolean equals(final Object obj) {
+    if (obj == null || !obj.getClass().equals(this.getClass())
+        || !(obj instanceof final IonType a)) {
+      return false;
+    }
+    if (!super.equals(obj)) {
+      return false;
+    }
+
+    return (sameMathDifference(a) && adductsEqual(a) && modsEqual(a));
   }
 }

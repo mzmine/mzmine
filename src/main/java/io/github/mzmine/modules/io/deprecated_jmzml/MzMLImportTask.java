@@ -1,24 +1,47 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.deprecated_jmzml;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,18 +55,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleFrame;
-import io.github.mzmine.datamodel.impl.SimpleScan;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
-import io.github.mzmine.util.scans.ScanUtils;
 import org.jetbrains.annotations.NotNull;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArray;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArrayList;
@@ -86,7 +97,8 @@ public class MzMLImportTask extends AbstractTask {
   private SimpleFrame buildingFrame;
   private Map<Integer, Double> buildingMobilities;
 
-  public MzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile, @NotNull Date moduleCallDate) {
+  public MzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
@@ -123,8 +135,8 @@ public class MzMLImportTask extends AbstractTask {
       // unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", Spectrum.class),
       // totalScans);
 
-      MzMLObjectIterator<Spectrum> spectrumIterator =
-          unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", Spectrum.class);
+      MzMLObjectIterator<Spectrum> spectrumIterator = unmarshaller.unmarshalCollectionFromXpath(
+          "/run/spectrumList/spectrum", Spectrum.class);
 
       int mobilityScanNumberCounter = 1;
       Date start = new Date();
@@ -155,7 +167,7 @@ public class MzMLImportTask extends AbstractTask {
         PolarityType polarity = extractPolarity(spectrum);
         // int parentScan = extractParentScanNumber(spectrum);
         double precursorMz = extractPrecursorMz(spectrum);
-        int precursorCharge = extractPrecursorCharge(spectrum);
+        Integer precursorCharge = extractPrecursorCharge(spectrum);
         String scanDefinition = extractScanDefinition(spectrum);
         double mzValues[] = extractMzValues(spectrum);
         double intensityValues[] = extractIntensityValues(spectrum);
@@ -166,10 +178,12 @@ public class MzMLImportTask extends AbstractTask {
 
         io.github.mzmine.datamodel.Scan scan = null;
 
+        final DDAMsMsInfo info =
+            msLevel != 1 && precursorMz != 0d ? new DDAMsMsInfoImpl(precursorMz, precursorCharge,
+                null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
         // if (mobility == null) {
-        scan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, precursorMz,
-            precursorCharge, mzValues, intensityValues, spectrumType, polarity, scanDefinition,
-            null);
+        scan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, info, mzValues,
+            intensityValues, spectrumType, polarity, scanDefinition, null);
         /*
          * } else if (mobility != null && newImsFile != null) { if (buildingFrame == null ||
          * Float.compare(retentionTime, buildingFrame.getRetentionTime()) != 0) {
@@ -178,7 +192,7 @@ public class MzMLImportTask extends AbstractTask {
          * have been loaded buildingFrame = new SimpleFrame(newImsFile, scanNumber, msLevel,
          * retentionTime, precursorMz, precursorCharge, mzValues, intensityValues, spectrumType,
          * polarity, scanDefinition, null, mobility.mobilityType(), 0, buildingMobilities, null); }
-         * buildingFrame.addMobilityScan( new SimpleMobilityScan(newImsFile,
+         * buildingFrame.addMobilityScan( new BuildingMobilityScan(newImsFile,
          * mobilityScanNumberCounter, buildingFrame, mzValues, intensityValues));
          * buildingMobilities.put(mobilityScanNumberCounter, mobility.mobility());
          * mobilityScanNumberCounter++; }
@@ -204,8 +218,9 @@ public class MzMLImportTask extends AbstractTask {
         parsedScans++;
         if (getFinishedPercentage() >= 5) {
           Date fivePerc = new Date();
-          logger.info("Extracted " + parsedScans + " in "
-              + ((fivePerc.getTime() - start.getTime()) / 1000) + " s");
+          logger.info(
+              "Extracted " + parsedScans + " in " + ((fivePerc.getTime() - start.getTime()) / 1000)
+                  + " s");
         }
 
       }
@@ -457,10 +472,10 @@ public class MzMLImportTask extends AbstractTask {
     return 0;
   }
 
-  private int extractPrecursorCharge(Spectrum spectrum) {
+  private Integer extractPrecursorCharge(Spectrum spectrum) {
     PrecursorList precursorListElement = spectrum.getPrecursorList();
     if ((precursorListElement == null) || (precursorListElement.getCount().equals(0))) {
-      return 0;
+      return null;
     }
 
     List<Precursor> precursorList = precursorListElement.getPrecursor();
@@ -468,7 +483,7 @@ public class MzMLImportTask extends AbstractTask {
 
       SelectedIonList selectedIonListElement = parent.getSelectedIonList();
       if ((selectedIonListElement == null) || (selectedIonListElement.getCount().equals(0))) {
-        return 0;
+        return null;
       }
       List<ParamGroup> selectedIonParams = selectedIonListElement.getSelectedIon();
       if (selectedIonParams == null) {
@@ -582,10 +597,11 @@ public class MzMLImportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    if (totalScans == 0)
+    if (totalScans == 0) {
       return "Opening file " + file;
-    else
+    } else {
       return "Opening file " + file + ", parsed " + parsedScans + "/" + totalScans + " scans";
+    }
   }
 
   boolean isMsSpectrum(Spectrum spectrum) {
@@ -609,14 +625,12 @@ public class MzMLImportTask extends AbstractTask {
   }
 
   /**
-   * Agilent/Waters(?)
-   * <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value=
-   * "0.217002108693" unitCvRef="UO" unitAccession="UO:0000028" unitName="millisecond"/>
+   * Agilent/Waters(?) <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time"
+   * value= "0.217002108693" unitCvRef="UO" unitAccession="UO:0000028" unitName="millisecond"/>
    * <p>
-   * Bruker (converted by Proteowizard MSConvert):
-   * <cvParam cvRef="MS" accession="MS:1002815" name="inverse reduced ion mobility" value=
-   * "1.582079103978" unitCvRef="MS" unitAccession="MS:1002814" unitName="volt-second per square
-   * centimeter"/>
+   * Bruker (converted by Proteowizard MSConvert): <cvParam cvRef="MS" accession="MS:1002815"
+   * name="inverse reduced ion mobility" value= "1.582079103978" unitCvRef="MS"
+   * unitAccession="MS:1002814" unitName="volt-second per square centimeter"/>
    *
    * @param spectrum
    * @return

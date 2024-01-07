@@ -1,34 +1,49 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.util.MemoryMapStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Mass spectrum acquired during an ion mobility experiment. Note that this class does not extend
- * {@link Scan} but just {@link MassSpectrum}.
+ * Mass spectrum acquired during an ion mobility experiment. The main implementation of this
+ * interface, ({@link io.github.mzmine.datamodel.impl.StoredMobilityScan}, is created on demand by
+ * the respective parent {@link Frame}. This means, that if available, existing instances shall be
+ * reused as done in, e.g. {@link io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries#copy(MemoryMapStorage)}
+ * and other methods that copy lists of scans.
+ * <p></p>
+ * During project import, the instances of this interface are cached in a {@link
+ * io.github.mzmine.modules.io.projectload.CachedIMSFrame} to minimize ram consumption by using the
+ * same instances throughout all feature lists.
  *
  * @author https://github.com/SteffenHeu
  */
-public interface MobilityScan extends MassSpectrum, Scan {
+public interface MobilityScan extends Scan {
 
   static final double DEFAULT_MOBILITY = -1.0d;
 
@@ -61,8 +76,6 @@ public interface MobilityScan extends MassSpectrum, Scan {
    * @return The index of this mobility subscan.
    */
   int getMobilityScanNumber();
-
-  @Nullable ImsMsMsInfo getMsMsInfo();
 
   @Nullable MassList getMassList();
 
@@ -103,11 +116,6 @@ public interface MobilityScan extends MassSpectrum, Scan {
     return getFrame().getScanningMZRange();
   }
 
-  @Override
-  default double getPrecursorMZ() {
-    return getMsMsInfo() != null ? getMsMsInfo().getLargestPeakMz() : 0d;
-  }
-
   @NotNull
   @Override
   default PolarityType getPolarity() {
@@ -115,13 +123,14 @@ public interface MobilityScan extends MassSpectrum, Scan {
   }
 
   @Override
-  default int getPrecursorCharge() {
-    return getMsMsInfo() != null ? getMsMsInfo().getPrecursorCharge() : 0;
-  }
-
-  @Override
   default int getMSLevel() {
     return getFrame().getMSLevel();
   }
 
+  /**
+   *
+   * @return The injection time of the frame or null.
+   */
+  @Override
+  @Nullable Float getInjectionTime();
 }

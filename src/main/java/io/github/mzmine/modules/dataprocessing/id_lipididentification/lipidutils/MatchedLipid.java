@@ -1,29 +1,55 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils;
 
-import java.util.Set;
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.SpeciesLevelAnnotation;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.util.ParsingUtils;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 
 public class MatchedLipid {
+
+  public static final String XML_ELEMENT = "matchedlipid";
+  private static final String XML_LIPID_ANNOTATION_ELEMENT = "lipidannotation";
+  private static final String XML_ACCURATE_MZ = "accuratemz";
+  private static final String XML_IONIZATION_TYPE = "ionizationtype";
+  private static final String XML_MATCHED_FRAGMENTS = "matchedfragments";
+  private static final String XML_MSMS_SCORE = "msmsscore";
+  private static final String XML_COMMENT = "comment";
 
   private ILipidAnnotation lipidAnnotation;
   private Double accurateMz;
@@ -92,6 +118,117 @@ public class MatchedLipid {
   @Override
   public String toString() {
     return lipidAnnotation.getAnnotation();
+  }
+
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+    lipidAnnotation.saveToXML(writer);
+    writer.writeStartElement(XML_ACCURATE_MZ);
+    writer.writeCharacters(accurateMz.toString());
+    writer.writeEndElement();
+    writer.writeStartElement(XML_IONIZATION_TYPE);
+    writer.writeCharacters(ionizationType.name());
+    writer.writeEndElement();
+    writer.writeStartElement(XML_MATCHED_FRAGMENTS);
+    if (matchedFragments != null) {
+      for (LipidFragment lipidFragment : matchedFragments) {
+        lipidFragment.saveToXML(writer);
+      }
+    } else {
+      writer.writeCharacters(CONST.XML_NULL_VALUE);
+    }
+    writer.writeEndElement();
+    writer.writeStartElement(XML_MSMS_SCORE);
+    writer.writeCharacters(msMsScore.toString());
+    writer.writeEndElement();
+    writer.writeStartElement(XML_COMMENT);
+    if (comment != null) {
+      writer.writeCharacters(comment);
+    } else {
+      writer.writeCharacters(CONST.XML_NULL_VALUE);
+    }
+    writer.writeEndElement();
+
+    writer.writeEndElement();
+
+  }
+
+  public static MatchedLipid loadFromXML(XMLStreamReader reader,
+      Collection<RawDataFile> possibleFiles) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      throw new IllegalStateException(
+          "Cannot load matched lipid from the current element. Wrong name.");
+    }
+
+    ILipidAnnotation lipidAnnotation = null;
+    Double accurateMz = null;
+    IonizationType ionizationType = null;
+    Set<LipidFragment> lipidFragments = null;
+    Double msMsScore = null;
+    String comment = null;
+    while (reader.hasNext()
+        && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      switch (reader.getLocalName()) {
+        case XML_LIPID_ANNOTATION_ELEMENT:
+          if (reader.getAttributeValue(null, XML_LIPID_ANNOTATION_ELEMENT)
+              .equals(LipidAnnotationLevel.SPECIES_LEVEL.name())) {
+            lipidAnnotation = SpeciesLevelAnnotation.loadFromXML(reader);
+          } else if (reader.getAttributeValue(null, XML_LIPID_ANNOTATION_ELEMENT)
+              .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL.name())) {
+            lipidAnnotation = MolecularSpeciesLevelAnnotation.loadFromXML(reader);
+          }
+          break;
+        case XML_ACCURATE_MZ:
+          accurateMz = Double.parseDouble(reader.getElementText());
+          break;
+        case XML_IONIZATION_TYPE:
+          ionizationType = ParsingUtils.ionizationNameToIonizationType(reader.getElementText());
+          break;
+        case XML_MATCHED_FRAGMENTS:
+          lipidFragments = loadLipidFragmentsFromXML(reader, possibleFiles);
+          break;
+        case XML_MSMS_SCORE:
+          msMsScore = Double.parseDouble(reader.getElementText());
+          break;
+        case XML_COMMENT:
+          comment = reader.getElementText();
+          break;
+        default:
+          break;
+      }
+    }
+
+    MatchedLipid matchedLipid =
+        new MatchedLipid(lipidAnnotation, accurateMz, ionizationType, lipidFragments, msMsScore);
+    if (comment != null) {
+      matchedLipid.setComment(comment);
+    }
+    return matchedLipid;
+  }
+
+  private static Set<LipidFragment> loadLipidFragmentsFromXML(XMLStreamReader reader,
+      Collection<RawDataFile> possibleFiles) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_MATCHED_FRAGMENTS))) {
+      throw new IllegalStateException(
+          "Cannot load matched lipid fragments from the current element. Wrong name.");
+    }
+
+    Set<LipidFragment> lipidFragments = new HashSet<>();
+    while (reader.hasNext()
+        && !(reader.isEndElement() && reader.getLocalName().equals(XML_MATCHED_FRAGMENTS))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+      lipidFragments.add(LipidFragment.loadFromXML(reader, possibleFiles));
+
+    }
+    return lipidFragments;
   }
 
   @Override

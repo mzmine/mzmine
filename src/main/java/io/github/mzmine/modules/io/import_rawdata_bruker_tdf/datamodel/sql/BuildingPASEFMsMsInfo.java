@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql;
@@ -25,20 +32,21 @@ public class BuildingPASEFMsMsInfo {
   private final double precursorMz;
   private final Range<Integer> spectrumNumberRange;
   private final float collisionEnergy;
-  private final int precursorCharge;
-  private final int parentFrameNumber;
-  private final int fragmentFrameNumber;
+  private final Integer precursorCharge;
+  private final Integer parentFrameNumber;
+  private final Integer fragmentFrameNumber;
+  private final double isolationWidth;
 
-
-  public BuildingPASEFMsMsInfo(double precursorMz,
-      Range<Integer> spectrumNumberRange, float collisionEnergy, int precursorCharge,
-      int parentFrameNumber, int fragmentFrameNumber) {
+  public BuildingPASEFMsMsInfo(double precursorMz, Range<Integer> spectrumNumberRange,
+      float collisionEnergy, Integer precursorCharge, Integer parentFrameNumber, Integer fragmentFrameNumber,
+      double isolationWidth) {
     this.precursorMz = precursorMz;
     this.spectrumNumberRange = spectrumNumberRange;
     this.collisionEnergy = collisionEnergy;
     this.precursorCharge = precursorCharge;
     this.parentFrameNumber = parentFrameNumber;
     this.fragmentFrameNumber = fragmentFrameNumber;
+    this.isolationWidth = isolationWidth;
   }
 
   public double getLargestPeakMz() {
@@ -53,15 +61,19 @@ public class BuildingPASEFMsMsInfo {
     return collisionEnergy;
   }
 
-  public int getPrecursorCharge() {
+  public Integer getPrecursorCharge() {
     return precursorCharge;
   }
 
-  public int getParentFrameNumber() {
+  public Integer getParentFrameNumber() {
     return parentFrameNumber;
   }
 
-  public int getFrameNumber() {
+  public Integer getFrameNumber() {
     return fragmentFrameNumber;
+  }
+
+  public Range<Double> getIsolationWindow() {
+    return Range.closed(precursorMz - isolationWidth / 2, precursorMz + isolationWidth / 2);
   }
 }

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.example;
@@ -27,6 +34,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -35,8 +43,8 @@ import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +54,7 @@ class MultiRawDataLearnerTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(MultiRawDataLearnerTask.class.getName());
 
   private final MZmineProject project;
+  private final OriginalFeatureListOption handleOriginal;
   private FeatureList featureList;
   private FeatureList resultFeatureList;
 
@@ -57,14 +66,13 @@ class MultiRawDataLearnerTask extends AbstractTask {
   private String suffix;
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
-  private boolean removeOriginal;
   private ParameterSet parameters;
 
   /**
    * Constructor to set all parameters and the project
    */
   public MultiRawDataLearnerTask(MZmineProject project, FeatureList featureList,
-      ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.project = project;
     this.featureList = featureList;
@@ -73,7 +81,7 @@ class MultiRawDataLearnerTask extends AbstractTask {
     suffix = parameters.getParameter(LearnerParameters.suffix).getValue();
     mzTolerance = parameters.getParameter(LearnerParameters.mzTolerance).getValue();
     rtTolerance = parameters.getParameter(LearnerParameters.rtTolerance).getValue();
-    removeOriginal = parameters.getParameter(LearnerParameters.autoRemove).getValue();
+    handleOriginal = parameters.getValue(LearnerParameters.handleOriginal);
   }
 
   /**
@@ -162,7 +170,7 @@ class MultiRawDataLearnerTask extends AbstractTask {
    */
   public void addResultToProject() {
     // Add new feature list to the project
-    project.addFeatureList(resultFeatureList);
+    handleOriginal.reflectNewFeatureListToProject(suffix, project, resultFeatureList, featureList);
 
     // Load previous applied methods
     for (FeatureListAppliedMethod proc : featureList.getAppliedMethods()) {
@@ -174,10 +182,6 @@ class MultiRawDataLearnerTask extends AbstractTask {
         .addDescriptionOfAppliedTask(
             new SimpleFeatureListAppliedMethod(LearnerModule.class, parameters, getModuleCallDate()));
 
-    // Remove the original feature list if requested
-    if (removeOriginal) {
-      project.removeFeatureList(featureList);
-    }
   }
 
 }

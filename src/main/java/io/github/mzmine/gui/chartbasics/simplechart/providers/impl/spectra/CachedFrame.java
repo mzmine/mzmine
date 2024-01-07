@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
@@ -21,23 +28,23 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.impl.MobilityScanStorage;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.DataPointUtils;
-import java.nio.DoubleBuffer;
+import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,10 +58,10 @@ public class CachedFrame implements Frame {
   private final double[] mzs;
   private final double[] intensities;
   private final Frame originalFrame;
-  private List<MobilityScan> mobilityScans;
-  private List<MobilityScan> sortedMobilityScans;
+  private final List<MobilityScan> mobilityScans;
+  private final List<MobilityScan> sortedMobilityScans;
 
-  public CachedFrame(SimpleFrame frame, double frameNoiseLevel, double mobilityScaNoiseLevel) {
+  public CachedFrame(Frame frame, double frameNoiseLevel, double mobilityScaNoiseLevel) {
     originalFrame = frame;
 
     double[] allmz = new double[frame.getNumberOfDataPoints()];
@@ -62,8 +69,8 @@ public class CachedFrame implements Frame {
     frame.getMzValues(allmz);
     frame.getIntensityValues(allintensities);
 
-    double[][] data = DataPointUtils
-        .getDatapointsAboveNoiseLevel(allmz, allintensities, frameNoiseLevel);
+    double[][] data = DataPointUtils.getDatapointsAboveNoiseLevel(allmz, allintensities,
+        frameNoiseLevel);
 
     mzs = data[0];
     intensities = data[1];
@@ -121,30 +128,28 @@ public class CachedFrame implements Frame {
   }
 
   @Override
+  public MobilityScanStorage getMobilityScanStorage() {
+    return originalFrame.getMobilityScanStorage();
+  }
+
+  @Override
   public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
     return originalFrame.getMobilityForMobilityScanNumber(mobilityScanIndex);
   }
 
   @Override
-  public double getMobilityForMobilityScan(MobilityScan scan) {
-    return originalFrame.getMobilityForMobilityScan(scan);
-  }
-
-  @Nullable
-  @Override
-  public DoubleBuffer getMobilities() {
+  public @Nullable DoubleImmutableList getMobilities() {
     return originalFrame.getMobilities();
   }
 
-  @NotNull
   @Override
-  public Set<ImsMsMsInfo> getImsMsMsInfos() {
+  public @NotNull Set<PasefMsMsInfo> getImsMsMsInfos() {
     return originalFrame.getImsMsMsInfos();
   }
 
   @Nullable
   @Override
-  public ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
+  public PasefMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
     return originalFrame.getImsMsMsInfoForMobilityScan(mobilityScanNumber);
   }
 
@@ -213,12 +218,6 @@ public class CachedFrame implements Frame {
         "Not intended. This frame is used for visualisation only");
   }
 
-  @Override
-  public Stream<DataPoint> stream() {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
-  }
-
   @NotNull
   @Override
   public RawDataFile getDataFile() {
@@ -252,6 +251,11 @@ public class CachedFrame implements Frame {
     return originalFrame.getScanningMZRange();
   }
 
+  @Override
+  public @Nullable MsMsInfo getMsMsInfo() {
+    return null;
+  }
+
   @NotNull
   @Override
   public PolarityType getPolarity() {
@@ -279,7 +283,29 @@ public class CachedFrame implements Frame {
   }
 
   @Override
-  public int getMaxMobilityScanDataPoints() {
-    return originalFrame.getMaxMobilityScanDataPoints();
+  public int getMaxMobilityScanRawDataPoints() {
+    return originalFrame.getMaxMobilityScanRawDataPoints();
+  }
+
+  @Override
+  public int getTotalMobilityScanRawDataPoints() {
+    return originalFrame.getTotalMobilityScanRawDataPoints();
+  }
+
+  @Override
+  public int getMaxMobilityScanMassListDataPoints() {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Override
+  public int getTotalMobilityScanMassListDataPoints() {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Override
+  public @Nullable Float getInjectionTime() {
+    return originalFrame.getInjectionTime();
   }
 }

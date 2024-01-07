@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
@@ -173,7 +180,7 @@ public class LipidDatabaseTableController {
     possibleInterFX = palette.getNeutralColor();
     interFX = palette.getNegativeColor();
 
-    // awt/swing colors or jfreechart
+    // awt/swing colors for jfreechart
     noInterSwing = palette.getPositiveColorAWT();
     possibleInterSwing = palette.getNeutralColorAWT();
     interSwing = palette.getNegativeColorAWT();
@@ -184,7 +191,7 @@ public class LipidDatabaseTableController {
       public void updateItem(String item, boolean empty) {
         // Always invoke super constructor.
         super.updateItem(item, empty);
-        if (getIndex() >= 0) {
+        if (getIndex() >= 0 && item != null) {
           if (tableData.get(getIndex()).getInfo().contains("interference")) {
             this.setStyle("-fx-background-color:" + ColorsFX.toHexString(interFX));
           } else if (tableData.get(getIndex()).getInfo().contains("possible interference")) {
@@ -219,25 +226,20 @@ public class LipidDatabaseTableController {
         for (int chainDoubleBonds =
             minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
 
-          // If we have non-zero fatty acid, which is shorter
-          // than minimal length, skip this lipid
-          if (((chainLength > 0) && (chainLength < minChainLength))) {
-            continue;
-          }
-
-          // If we have more double bonds than carbons, it
-          // doesn't make sense, so let's skip such lipids
-          if (((chainDoubleBonds > 0) && (chainDoubleBonds > chainLength - 1))) {
+          if (chainLength / 2 < chainDoubleBonds || chainLength == 0) {
             continue;
           }
           // Prepare a lipid instance
           SpeciesLevelAnnotation lipid = LIPID_FACTORY.buildSpeciesLevelLipid(selectedLipids[i],
               chainLength, chainDoubleBonds);
+          if (lipid == null) {
+            continue;
+          }
           List<LipidFragmentationRule> fragmentationRules =
               Arrays.asList(selectedLipids[i].getFragmentationRules());
           StringBuilder fragmentationRuleSB = new StringBuilder();
           fragmentationRules.stream().forEach(rule -> {
-            fragmentationRuleSB.append(rule.toString() + "\n");
+            fragmentationRuleSB.append(rule.toString()).append("\n");
           });
           StringBuilder exactMassSB = new StringBuilder();
           Set<IonizationType> ionizationTypes = fragmentationRules.stream()
@@ -245,13 +247,13 @@ public class LipidDatabaseTableController {
           for (IonizationType ionizationType : ionizationTypes) {
             double mz = MolecularFormulaManipulator.getMass(lipid.getMolecularFormula(),
                 AtomContainerManipulator.MonoIsotopic) + ionizationType.getAddedMass();
-            exactMassSB.append(ionizationType.getAdductName() + " "
-                + MZmineCore.getConfiguration().getMZFormat().format(mz) + "\n");
+            exactMassSB.append(ionizationType.getAdductName()).append(" ")
+                .append(MZmineCore.getConfiguration().getMZFormat().format(mz)).append("\n");
           }
           tableData.add(new LipidClassDescription(String.valueOf(id), // id
               selectedLipids[i].getName(), // lipid class
               MolecularFormulaManipulator.getString(lipid.getMolecularFormula()), // molecular
-                                                                                  // formula
+              // formula
               lipid.getAnnotation(),
               // abbr
               exactMassSB.toString(), // exact mass
@@ -287,17 +289,18 @@ public class LipidDatabaseTableController {
               if (!sb.isEmpty()) {
                 sb.append("\n");
               }
-              sb.append(entryCompare.getKey() + " interference with "
-                  + tableData.get(i).getAbbreviation() + " " + entry.getKey());
+              sb.append(entryCompare.getKey()).append(" interference with ")
+                  .append(tableData.get(i).getAbbreviation()).append(" ").append(entry.getKey());
             } else if (mzTolerance.checkWithinTolerance(valueOne, valueTwo) && j != i
                 && isSamePolarity(entry.getKey(), entryCompare.getKey())) {
               double delta = valueOne - valueTwo;
               if (!sb.isEmpty()) {
                 sb.append("\n");
               }
-              sb.append(entryCompare.getKey() + " possible interference with "
-                  + tableData.get(i).getAbbreviation() + " " + entry.getKey() + " \u0394 "
-                  + MZmineCore.getConfiguration().getMZFormat().format(delta));
+              sb.append(entryCompare.getKey()).append(" possible interference with ")
+                  .append(tableData.get(i).getAbbreviation()).append(" ").append(entry.getKey())
+                  .append(" \u0394 ")
+                  .append(MZmineCore.getConfiguration().getMZFormat().format(delta));
             }
           }
           if (!sb.isEmpty()) {
@@ -418,7 +421,7 @@ public class LipidDatabaseTableController {
     return ionSpecificMzValues;
   }
 
-  class DataPointXYZ {
+  static class DataPointXYZ {
 
     private double x;
     private double y;

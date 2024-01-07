@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration;
@@ -27,16 +34,27 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
-import java.util.Date;
+import java.time.Instant;
+import java.util.ArrayList;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.Separator;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.apache.commons.text.WordUtils;
-
-import java.util.ArrayList;
 
 /**
  * This class extends ParameterSetupDialog class to include mass calibration plots. This is used to
@@ -73,15 +91,9 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
   public MassCalibrationSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
 
-    // super(valueCheckRequired, parameters);
-
     super(valueCheckRequired, parameters, universalCalibrantsMessage);
 
     dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-
-    if (dataFiles.length == 0) {
-      // throw new RuntimeException("No datafiles");
-    }
 
     RawDataFile[] selectedFiles = MZmineCore.getDesktop().getSelectedDataFiles();
 
@@ -93,6 +105,18 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
       previewDataFile = null;
     }
 
+    //TODO: Improve handling of ComboBox in case no raw files are loaded
+    if (previewDataFile != null) {
+      comboDataFileName = new ComboBox<>(FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
+      comboDataFileName.setOnAction(e -> {
+        parametersChanged(true);
+      });
+      comboDataFileName.getSelectionModel().select(previewDataFile);
+    } else {
+      comboDataFileName = new ComboBox<>();
+    }
+
     previewCheckBox = new CheckBox("Show preview");
 
     paramsPane.add(new Separator(), 0, getNumberOfParameters() + 1);
@@ -101,13 +125,6 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     // Elements of pnlLab
     pnlDataFile = new FlowPane();
     pnlDataFile.getChildren().add(new Label("Data file "));
-
-    comboDataFileName = new ComboBox<RawDataFile>(
-        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
-    comboDataFileName.setOnAction(e -> {
-      parametersChanged(false);
-    });
-    comboDataFileName.getSelectionModel().select(previewDataFile);
 
     pnlDataFile.getChildren().add(comboDataFileName);
 
@@ -160,21 +177,21 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
     chartsPane.visibleProperty().bind(previewCheckBox.selectedProperty());
     chartsPane.visibleProperty().addListener((c, o, n) -> {
-      if (n == true) {
+      if (n) {
         mainPane.setCenter(chartsPane);
-        mainPane.setLeft(mainScrollPane);
+        mainPane.setLeft(getParamPane());
         mainPane.autosize();
         mainPane.getScene().getWindow().sizeToScene();
         parametersChanged(false);
       } else {
         mainPane.setLeft(null);
-        mainPane.setCenter(mainScrollPane);
+        mainPane.setCenter(getParamPane());
         mainPane.autosize();
         mainPane.getScene().getWindow().sizeToScene();
       }
     });
 
-    paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3, 2, 1);
+    paramsPane.add(pnlPreviewFields, 0, getNumberOfParameters() + 3, 1, 1);
     this.setOnCloseRequest(event -> cancelRunningPreviewTask());
   }
 
@@ -192,7 +209,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   }
 
   protected void loadPreview(boolean rerun) {
-    ArrayList<String> errors = new ArrayList<String>();
+    ArrayList<String> errors = new ArrayList<>();
     boolean paramsOK = parameterSet.checkParameterValues(errors);
     if (!paramsOK) {
       return;
@@ -208,7 +225,8 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
         previewTask.cancel();
       }
 
-      previewTask = new MassCalibrationTask(previewDataFile, parameterSet, null, true, new Date());
+      previewTask = new MassCalibrationTask(previewDataFile, parameterSet, null, true,
+          Instant.now());
 
       previewTask.setAfterHook(() -> Platform.runLater(() -> updatePreviewAfterTaskRun(rerun)));
       MZmineCore.getTaskController().addTask(previewTask);
@@ -221,8 +239,8 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   protected void updatePreviewAfterTaskRun(boolean rerun) {
     if (previewTask.getStatus() != TaskStatus.FINISHED) {
       if (previewTask.getErrorMessage() != null) {
-        MZmineCore.getDesktop().displayMessage("Mass calibration error message",
-            previewTask.getErrorMessage());
+        MZmineCore.getDesktop()
+            .displayMessage("Mass calibration error message", previewTask.getErrorMessage());
       }
       return;
     }

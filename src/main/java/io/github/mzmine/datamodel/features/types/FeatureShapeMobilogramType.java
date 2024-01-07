@@ -1,46 +1,43 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features.types;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeMobilogramChart;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
-import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
+import java.util.logging.Logger;
 import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
-import javafx.scene.layout.StackPane;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatureShapeMobilogramType extends LinkedDataType
-    implements GraphicalColumType<Boolean> {
+public class FeatureShapeMobilogramType extends LinkedGraphicalType {
+
+  private static final Logger logger = Logger.getLogger(FeatureShapeMobilogramType.class.getName());
 
   @NotNull
   @Override
@@ -56,54 +53,24 @@ public class FeatureShapeMobilogramType extends LinkedDataType
   }
 
   @Override
-  public Node getCellNode(
-      TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll,
-      Boolean cellData, RawDataFile raw) {
-    ModularFeatureListRow row = cell.getTreeTableRow().getItem();
-    if (row == null || row.getRawDataFiles().stream()
-        .filter(file -> (file instanceof IMSRawDataFile)).findAny().isEmpty()) {
-      return null;
-    }
-
-    // get existing buffered node from row (for column name)
-    // TODO listen to changes in features data
-    Node node = row.getBufferedColChart(coll.getText());
-    if (node != null) {
-      return node;
-    }
-
-    StackPane pane = new StackPane();
-
-    // TODO stop task if new task is started
-    Task task = new FeaturesGraphicalNodeTask(FeatureShapeMobilogramChart.class, pane, row,
-        coll.getText());
-    MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
-
-    return pane;
-  }
-
-  @Override
   public double getColumnWidth() {
     return DEFAULT_GRAPHICAL_CELL_WIDTH;
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
-      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
-      @Nullable RawDataFile file) throws XMLStreamException {
-    // return something so this datatype is loaded and added to the feature table
-    return false;
+  public boolean getDefaultVisibility() {
+    return true;
   }
 
   @Override
-  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value,
-      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
-      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
-      throws XMLStreamException {
-    if (value == null) {
-      return;
+  public @Nullable Node createCellContent(ModularFeatureListRow row, Boolean cellData,
+      RawDataFile raw, AtomicDouble progress) {
+    if (row == null || cellData == null || !cellData || row.getRawDataFiles().stream()
+        .filter(file -> (file instanceof IMSRawDataFile)).findAny().isEmpty()) {
+      return null;
     }
-    writer.writeCharacters(String.valueOf(value));
+
+    var chart = new FeatureShapeMobilogramChart(row, progress);
+    return chart;
   }
 }

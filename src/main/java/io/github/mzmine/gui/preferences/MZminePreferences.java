@@ -1,33 +1,42 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.preferences;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
+import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.FontSpecs;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.OptOutParameter;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
@@ -35,19 +44,20 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePaletteParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.color.ColorUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Map;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.scene.control.ButtonType;
+import javafx.scene.paint.Color;
 import org.w3c.dom.Element;
 
 public class MZminePreferences extends SimpleParameterSet {
-
-  // public static final ComboParameter<Vision> colorPalettes = new ComboParameter<>(
-  // "Color palettes (color blindness mode)",
-  // "Some modules use the color blindness aware palettes for a higher contrast. Think about using
-  // this mode even with \"normal vision\" to reach everyone.",
-  // FXCollections.observableArrayList(Vision.values()), Vision.DEUTERANOPIA);
 
   public static final NumberFormatParameter mzFormat = new NumberFormatParameter("m/z value format",
       "Format of m/z values", false, new DecimalFormat("0.0000"));
@@ -60,7 +70,7 @@ public class MZminePreferences extends SimpleParameterSet {
       "Mobility value format", "Format of mobility values", false, new DecimalFormat("0.000"));
 
   public static final NumberFormatParameter ccsFormat = new NumberFormatParameter(
-      "CCS value format", "Format for colission cross section (CCS) values.", false,
+      "CCS value format", "Format for collision cross section (CCS) values.", false,
       new DecimalFormat("0.0"));
 
   public static final NumberFormatParameter intensityFormat = new NumberFormatParameter(
@@ -73,6 +83,10 @@ public class MZminePreferences extends SimpleParameterSet {
       "Format used for scores, e.g., Pearson correlation, cosine similarity etc.", false,
       new DecimalFormat("0.000"));
 
+  public static final NumberFormatParameter percentFormat = new NumberFormatParameter(
+      "Percent format", "Format used for percentages, e.g., relative errors (except ppm) etc.",
+      false, new DecimalFormat("0.0 %"));
+
   public static final ComboParameter<UnitFormat> unitFormat = new ComboParameter<>("Unit format",
       "The default unit format to format e.g. axis labels in MZmine.",
       FXCollections.observableArrayList(UnitFormat.values()), UnitFormat.DIVIDE);
@@ -80,11 +94,11 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();
 
   public static final OptionalModuleParameter proxySettings = new OptionalModuleParameter(
-      "Use proxy", "Use proxy for internet connection?", new ProxySettings());
+      "Use proxy", "Use proxy for internet connection?", new ProxySettings(), false);
 
   public static final FileNameParameter rExecPath = new FileNameParameter("R executable path",
       "Full R executable file path (If left blank, MZmine will try to find out automatically). On Windows, this should point to your R.exe file.",
-      FileSelectionType.OPEN);
+      FileSelectionType.OPEN, true);
 
   public static final BooleanParameter sendStatistics = new BooleanParameter(
       "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
@@ -104,86 +118,245 @@ public class MZminePreferences extends SimpleParameterSet {
       "Default paint scale",
       "Defines the default paint scale used to create charts throughout MZmine");
 
-  public static final ParameterSetParameter chartParam = new ParameterSetParameter(
+  public static final ParameterSetParameter<ChartThemeParameters> chartParam = new ParameterSetParameter<>(
       "Chart parameters", "The default chart parameters to be used throughout MZmine",
       new ChartThemeParameters());
 
-  public static final BooleanParameter darkMode = new BooleanParameter("Dark mode",
-      "Enables dark mode", false);
+  public static final ComboParameter<Themes> theme = new ComboParameter<>("Theme",
+      "Select JavaFX style to theme the MZmine window.", Themes.values(), Themes.MZMINE_LIGHT);
 
   public static final BooleanParameter presentationMode = new BooleanParameter("Presentation mode",
       "If checked, fonts in the MZmine gui will be enlarged. The chart fonts are still controlled by the chart theme.",
       false);
 
-  public static final HiddenParameter<OptOutParameter, Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
+  public static final HiddenParameter<Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
       new OptOutParameter("Ion mobility compatibility warnings",
           "Shows a warning message when a module without explicit ion mobility support is "
               + "used to process ion mobility data."));
 
   public static final DirectoryParameter tempDirectory = new DirectoryParameter(
       "Temporary file directory", "Directory where temporary files"
-      + " will be stored. Requires a restart of MZmine to take effect",
+      + " will be stored. Directory should be located on a drive with fast read and write "
+      + "(e.g., an SSD). Requires a restart of MZmine to take effect (the program argument --temp "
+      + "overrides this parameter, if set: --temp D:\\your_tmp_dir\\)",
       System.getProperty("java.io.tmpdir"));
 
+  public static final ComboParameter<KeepInMemory> memoryOption = new ComboParameter<>(
+      "Keep in memory", String.format(
+      "Specifies the objects that are kept in memory rather than memory mapping "
+          + "them into temp files in the temp directory. Parameter is overriden by the program "
+          + "argument --memory. Depending on the read/write speed of the temp directory,"
+          + " memory mapping is a fast and memory efficient way to handle data, therefore, the "
+          + "default is to memory map all spectral data and feature data with the option %s. On "
+          + "systems where memory (RAM) is no concern, viable options are %s and %s, to keep all in memory "
+          + "or to keep mass lists and feauture data in memory, respectively.", KeepInMemory.NONE,
+      KeepInMemory.ALL, KeepInMemory.MASSES_AND_FEATURES), KeepInMemory.values(),
+      KeepInMemory.NONE);
+
+  /*public static final BooleanParameter applyTimsPressureCompensation = new BooleanParameter(
+      "Use MALDI-TIMS pressure compensation", """
+      Specifies if mobility values from Bruker timsTOF fleX MALDI raw data shall be recalibrated using a Bruker algorithm.
+      This compensation is applied during file import and cannot be applied afterwards.
+      Will cause additional memory consumption, because every pixel might have it's own mobility calibration (in theory).
+      In practical cases, this memory consumption is mostly negligible. 
+      """, false);*/
+
+  public static final BooleanParameter showPrecursorWindow = new BooleanParameter(
+      "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
+      true);
+
+  public static final BooleanParameter showTempFolderAlert = new BooleanParameter("Show temp alert",
+      "Show temp folder alert", true);
+
+  public static final ComboParameter<ImageNormalization> imageNormalization = new ComboParameter<ImageNormalization>(
+      "Normalize images",
+      "Specifies if displayed images shall be normalized to the average TIC or shown according to the raw data."
+          + "only applies to newly generated plots.", ImageNormalization.values(),
+      ImageNormalization.NO_NORMALIZATION);
+  private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
+      new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
+      new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.##"),
+      new DecimalFormat("0.###"), UnitFormat.DIVIDE);
+  private final boolean isDarkMode = false;
+  private NumberFormats guiFormat = exportFormat; // default value
+
   public MZminePreferences() {
-    super(new Parameter[]{
+    super(// start with performance
+        numOfThreads, memoryOption, tempDirectory, proxySettings, rExecPath, sendStatistics,
+        /*applyTimsPressureCompensation,*/
+        // visuals
         // number formats
         mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat, scoreFormat,
+        percentFormat,
         // how to format unit strings
         unitFormat,
         // other preferences
-        numOfThreads, proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
-        defaultColorPalette, defaultPaintScale, chartParam, darkMode, presentationMode,
-        imsModuleWarnings, tempDirectory});
+        defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
+        imageNormalization, showPrecursorWindow, imsModuleWarnings, windowSetttings, sendErrorEMail,
+        // silent parameters without controls
+        showTempFolderAlert);
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    return showSetupDialog(valueCheckRequired, "");
+  }
 
-    ExitCode retVal = super.showSetupDialog(valueCheckRequired);
+  public ExitCode showSetupDialog(boolean valueCheckRequired, String filterParameters) {
+    assert Platform.isFxApplicationThread();
+    final Themes previousTheme = getValue(MZminePreferences.theme);
+    GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this);
 
-    if (retVal == ExitCode.OK) {
+    // add groups
+    dialog.addParameterGroup("General",
+        new Parameter[]{numOfThreads, memoryOption, tempDirectory, proxySettings, rExecPath,
+            sendStatistics/*, applyTimsPressureCompensation*/});
+    dialog.addParameterGroup("Formats",
+        new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,
+            scoreFormat, unitFormat});
+    dialog.addParameterGroup("Visuals",
+        new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
+            showPrecursorWindow, imageNormalization});
+    dialog.addParameterGroup("Other", new Parameter[]{sendErrorEMail,
+        // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
+    });
+    dialog.setFilterText(filterParameters);
 
-      // Update proxy settings
-      updateSystemProxySettings();
+    // check
+    dialog.showAndWait();
+    final ExitCode retVal = dialog.getExitCode();
+    if (retVal != ExitCode.OK) {
+      return retVal;
+    }
 
-      // Repaint windows to update number formats
-      // MZmineCore.getDesktop().getMainWindow().repaint();
+    // Update proxy settings
+    updateSystemProxySettings();
 
+    // enforce memory option (only applies to new data)
+    final KeepInMemory keepInMemory = MZmineCore.getConfiguration().getPreferences()
+        .getParameter(MZminePreferences.memoryOption).getValue();
+    keepInMemory.enforceToMemoryMapping();
+
+    final Themes theme = getValue(MZminePreferences.theme);
+    updateChartColorsToTheme(previousTheme, theme);
+    theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+
+    Boolean presentation = MZmineCore.getConfiguration().getPreferences()
+        .getParameter(MZminePreferences.presentationMode).getValue();
+    if (presentation) {
       MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-          .removeIf(e -> e.contains("_dark.css"));
+          .add("themes/MZmine_default_presentation.css");
+    } else {
       MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-          .removeIf(e -> e.contains("_light.css"));
-      Boolean darkMode = MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.darkMode).getValue();
-      if (darkMode) {
-        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-            .add(getClass().getResource("/themes/MZmine_dark.css").toExternalForm());
-      } else {
-        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-            .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
+          .removeIf(e -> e.contains("MZmine_default_presentation"));
+    }
+
+    updateGuiFormat();
+
+    final File tempDir = getValue(MZminePreferences.tempDirectory);
+    if (tempDir != null && tempDir.isDirectory()) {
+      if (!tempDir.exists()) {
+        tempDir.mkdirs();
       }
-
-      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-          .removeIf(e -> e.contains("MZmine_default"));
-      Boolean presentation = MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.presentationMode).getValue();
-      if (presentation) {
-        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets().add(
-            getClass().getResource("/themes/MZmine_default_presentation.css").toExternalForm());
-      } else {
-        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-            .add(getClass().getResource("/themes/MZmine_default.css").toExternalForm());
-      }
+      FileAndPathUtil.setTempDir(tempDir);
     }
 
     return retVal;
+  }
+
+  private void updateChartColorsToTheme(Themes previousTheme, Themes theme) {
+    if (previousTheme.isDark() != theme.isDark()) {
+      final ChartThemeParameters chartParams = getValue(MZminePreferences.chartParam);
+      final Color bgColor = chartParams.getValue(ChartThemeParameters.color);
+      final FontSpecs axisFont = chartParams.getValue(ChartThemeParameters.axisLabelFont);
+      final FontSpecs itemFont = chartParams.getValue(ChartThemeParameters.itemLabelFont);
+      final FontSpecs titleFont = chartParams.getValue(ChartThemeParameters.titleFont);
+      final FontSpecs subTitleFont = chartParams.getValue(ChartThemeParameters.subTitleFont);
+
+      boolean changeColors = false;
+      if (theme.isDark() && (ColorUtils.isDark(bgColor) || ColorUtils.isDark(axisFont.getColor())
+          || ColorUtils.isDark(itemFont.getColor()) || ColorUtils.isDark(titleFont.getColor())
+          || ColorUtils.isDark(subTitleFont.getColor()))) {
+        if (MZmineCore.getDesktop().displayConfirmation("""
+            MZmine detected that you changed the GUI theme.
+            The current chart theme colors might not be readable.
+            Would you like to adapt them?
+            """, ButtonType.YES, ButtonType.NO) == ButtonType.YES) {
+          changeColors = true;
+        }
+      } else if (!theme.isDark() && (ColorUtils.isLight(bgColor) || ColorUtils.isLight(
+          axisFont.getColor()) || ColorUtils.isLight(itemFont.getColor()) || ColorUtils.isLight(
+          titleFont.getColor()) || ColorUtils.isLight(subTitleFont.getColor()))) {
+        if (MZmineCore.getDesktop().displayConfirmation("""
+            MZmine detected that you changed the GUI theme.
+            The current chart theme colors might not be readable.
+            Would you like to adapt them?
+            """, ButtonType.YES, ButtonType.NO) == ButtonType.YES) {
+          changeColors = true;
+        }
+      }
+
+      if (!changeColors) {
+        return;
+      }
+
+      if (theme.isDark()) {
+        if (ColorUtils.isLight(bgColor)) {
+          chartParams.setParameter(ChartThemeParameters.color, Color.TRANSPARENT);
+        }
+        if (ColorUtils.isDark(axisFont.getColor())) {
+          chartParams.setParameter(ChartThemeParameters.axisLabelFont,
+              new FontSpecs(Color.WHITE, axisFont.getFont()));
+        }
+        if (ColorUtils.isDark(itemFont.getColor())) {
+          chartParams.setParameter(ChartThemeParameters.itemLabelFont,
+              new FontSpecs(Color.WHITE, itemFont.getFont()));
+        }
+        if (ColorUtils.isDark(titleFont.getColor())) {
+          chartParams.setParameter(ChartThemeParameters.titleFont,
+              new FontSpecs(Color.WHITE, titleFont.getFont()));
+        }
+        if (ColorUtils.isDark(subTitleFont.getColor())) {
+          chartParams.setParameter(ChartThemeParameters.subTitleFont,
+              new FontSpecs(Color.WHITE, subTitleFont.getFont()));
+        }
+      } else {
+        if (ColorUtils.isDark(bgColor)) {
+          chartParams.setParameter(ChartThemeParameters.color, Color.WHITE);
+        }
+        if (ColorUtils.isLight(axisFont.getColor())) {
+          chartParams.setParameter(ChartThemeParameters.axisLabelFont,
+              new FontSpecs(Color.BLACK, axisFont.getFont()));
+        }
+        if (ColorUtils.isLight(itemFont.getColor())) {
+          chartParams.setParameter(ChartThemeParameters.itemLabelFont,
+              new FontSpecs(Color.BLACK, itemFont.getFont()));
+        }
+        if (ColorUtils.isLight(titleFont.getColor())) {
+          chartParams.setParameter(ChartThemeParameters.titleFont,
+              new FontSpecs(Color.BLACK, titleFont.getFont()));
+        }
+        if (ColorUtils.isLight(subTitleFont.getColor())) {
+          chartParams.setParameter(ChartThemeParameters.subTitleFont,
+              new FontSpecs(Color.BLACK, subTitleFont.getFont()));
+        }
+      }
+    }
+  }
+
+  private void updateGuiFormat() {
+    guiFormat = new NumberFormats(getValue(MZminePreferences.mzFormat),
+        getValue(MZminePreferences.rtFormat), getValue(MZminePreferences.mobilityFormat),
+        getValue(MZminePreferences.ccsFormat), getValue(MZminePreferences.intensityFormat),
+        getValue(MZminePreferences.ppmFormat), getValue(MZminePreferences.percentFormat),
+        getValue(MZminePreferences.scoreFormat), getValue(MZminePreferences.unitFormat));
   }
 
   @Override
   public void loadValuesFromXML(Element xmlElement) {
     super.loadValuesFromXML(xmlElement);
     updateSystemProxySettings();
+    updateGuiFormat();
   }
 
   private void updateSystemProxySettings() {
@@ -196,11 +369,30 @@ public class MZminePreferences extends SimpleParameterSet {
       System.setProperty("http.proxySet", "true");
       System.setProperty("http.proxyHost", address);
       System.setProperty("http.proxyPort", port);
+
+      System.setProperty("https.proxySet", "true");
+      System.setProperty("https.proxyHost", address);
+      System.setProperty("https.proxyPort", port);
     } else {
       System.clearProperty("http.proxySet");
       System.clearProperty("http.proxyHost");
       System.clearProperty("http.proxyPort");
+
+      System.clearProperty("https.proxySet");
+      System.clearProperty("https.proxyHost");
+      System.clearProperty("https.proxyPort");
     }
   }
 
+  public NumberFormats getExportFormats() {
+    return exportFormat;
+  }
+
+  public NumberFormats getGuiFormats() {
+    return guiFormat;
+  }
+
+  public boolean isDarkMode() {
+    return getValue(MZminePreferences.theme).isDark();
+  }
 }

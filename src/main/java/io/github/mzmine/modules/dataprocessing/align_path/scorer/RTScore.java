@@ -1,31 +1,39 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.align_path.scorer;
 
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.align_path.PathAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.align_path.functions.AlignmentPath;
 import io.github.mzmine.modules.dataprocessing.align_path.functions.ScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
+import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -34,9 +42,9 @@ import io.github.mzmine.util.RangeUtils;
 
 public class RTScore implements ScoreCalculator {
 
-  MZTolerance mzTolerance;
-  RTTolerance rtTolerance;
   private final static double WORST_SCORE = Double.MAX_VALUE;
+  private MZTolerance mzTolerance;
+  private RTTolerance rtTolerance;
 
   public double calculateScore(AlignmentPath path, FeatureListRow peak, ParameterSet parameters) {
     try {
@@ -53,8 +61,8 @@ public class RTScore implements ScoreCalculator {
 
       double rtDiff = Math.abs(path.getRT() - peak.getAverageRT());
 
-      double score = ((mzDiff / (RangeUtils.rangeLength(mzRange) / 2.0)))
-          + ((rtDiff / (RangeUtils.rangeLength(rtRange) / 2.0)));
+      double score = ((mzDiff / (RangeUtils.rangeLength(mzRange) / 2.0))) + ((rtDiff / (
+          RangeUtils.rangeLength(rtRange) / 2.0)));
 
       if (parameters.getParameter(PathAlignerParameters.SameChargeRequired).getValue()) {
         if (!FeatureUtils.compareChargeState(path.convertToAlignmentRow(0), peak)) {
@@ -73,10 +81,20 @@ public class RTScore implements ScoreCalculator {
         IsotopePattern ip2 = peak.getBestIsotopePattern();
 
         if ((ip1 != null) && (ip2 != null)) {
-          ParameterSet isotopeParams = parameters
-              .getParameter(PathAlignerParameters.compareIsotopePattern).getEmbeddedParameters();
+          boolean compareIsotopePattern = parameters
+              .getParameter(JoinAlignerParameters.compareIsotopePattern).getValue();
+          final ParameterSet isoParam = parameters
+              .getParameter(JoinAlignerParameters.compareIsotopePattern).getEmbeddedParameters();
 
-          if (!IsotopePatternScoreCalculator.checkMatch(ip1, ip2, isotopeParams)) {
+          Double minIsotopeScore = isoParam
+              .getValue(IsotopePatternScoreParameters.isotopePatternScoreThreshold);
+          Double isotopeNoiseLevel = isoParam
+              .getValue(IsotopePatternScoreParameters.isotopeNoiseLevel);
+          MZTolerance isotopeMZTolerance = isoParam
+              .getValue(IsotopePatternScoreParameters.mzTolerance);
+
+          if (compareIsotopePattern && !IsotopePatternScoreCalculator
+              .checkMatch(ip1, ip2, isotopeMZTolerance, isotopeNoiseLevel, minIsotopeScore)) {
             return WORST_SCORE;
           }
         }

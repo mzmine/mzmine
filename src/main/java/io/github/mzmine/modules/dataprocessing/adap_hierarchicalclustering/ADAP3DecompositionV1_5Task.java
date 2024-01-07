@@ -1,17 +1,26 @@
 /*
- * Copyright (C) 2016 Du-Lab Team <dulab.binf@gmail.com>
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This program is free software; you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU General Public License along with this program; if
- * not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
@@ -41,10 +50,10 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,7 +82,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
   private final ParameterSet parameters;
 
   ADAP3DecompositionV1_5Task(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     // Initialize.
     this.project = project;
@@ -163,6 +172,8 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
             + parameters.getParameter(ADAP3DecompositionV1_5Parameters.SUFFIX).getValue(),
         getMemoryMapStorage(), dataFile);
 
+    resolvedPeakList.setSelectedScans(dataFile, peakList.getSeletedScans(dataFile));
+
     // Load previous applied methods.
     for (final FeatureList.FeatureListAppliedMethod method : peakList.getAppliedMethods()) {
       resolvedPeakList.addDescriptionOfAppliedTask(method);
@@ -196,11 +207,11 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
       ModularFeatureListRow row = new ModularFeatureListRow(resolvedPeakList, ++rowID);
 
       // Add the reference peak
-      FeatureListRow refPeakRow = originalPeakList.getRow(component.getBestPeak().getInfo().peakID);
+      FeatureListRow originalPeakRow = originalPeakList.getRow(component.getBestPeak().getInfo().peakID);
       // ?
-      refPeakRow.setFeatureList(resolvedPeakList);
+      originalPeakRow.setFeatureList(resolvedPeakList);
       // ?
-      Feature refPeak = new ModularFeature(resolvedPeakList, refPeakRow.getBestFeature());
+      Feature refPeak = new ModularFeature(resolvedPeakList, originalPeakRow.getBestFeature());
 
       // Add spectrum
       List<DataPoint> dataPoints = new ArrayList<>();
@@ -209,21 +220,17 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
       }
 
       refPeak.setIsotopePattern(
-          new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[dataPoints.size()]),
+          new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[dataPoints.size()]), -1,
               IsotopePattern.IsotopePatternStatus.PREDICTED, "Spectrum"));
 
       row.addFeature(dataFile, refPeak);
 
       // Add PeakInformation
-      if (refPeakRow.getFeatureInformation() == null) {
+      if (originalPeakRow.getFeatureInformation() != null) {
         SimpleFeatureInformation information = new SimpleFeatureInformation(
-            new HashMap<>(refPeakRow.getFeatureInformation().getAllProperties()));
+            new HashMap<>(originalPeakRow.getFeatureInformation().getAllProperties()));
         row.setFeatureInformation(information);
       }
-
-      // Set row properties
-      row.setAverageMZ(refPeakRow.getAverageMZ());
-      row.setAverageRT(refPeakRow.getAverageRT());
 
       // resolvedPeakList.addRow(row);
       newPeakListRows.add(row);

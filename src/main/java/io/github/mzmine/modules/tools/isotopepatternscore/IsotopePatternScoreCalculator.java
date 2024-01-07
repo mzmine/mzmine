@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.tools.isotopepatternscore;
@@ -23,7 +30,6 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.SortingDirection;
@@ -31,16 +37,15 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class IsotopePatternScoreCalculator {
 
   public static boolean checkMatch(IsotopePattern ip1, IsotopePattern ip2,
-      ParameterSet parameters) {
+      @NotNull MZTolerance mzTolerance, double noiseIntensity, double minimumScore) {
 
-    double score = getSimilarityScore(ip1, ip2, parameters);
-
-    double minimumScore = parameters
-        .getParameter(IsotopePatternScoreParameters.isotopePatternScoreThreshold).getValue();
+    double score = getSimilarityScore(ip1, ip2, mzTolerance, noiseIntensity);
 
     return score >= minimumScore;
   }
@@ -49,16 +54,8 @@ public class IsotopePatternScoreCalculator {
    * Returns a calculated similarity score of two isotope patterns in the range of 0 (not similar at
    * all) to 1 (100% same).
    */
-  public static double getSimilarityScore(IsotopePattern ip1, IsotopePattern ip2,
-      ParameterSet parameters) {
-
-    assert ip1 != null;
-    assert ip2 != null;
-
-    MZTolerance mzTolerance =
-        parameters.getParameter(IsotopePatternScoreParameters.mzTolerance).getValue();
-
-    assert mzTolerance != null;
+  public static float getSimilarityScore(@NotNull IsotopePattern ip1, @NotNull IsotopePattern ip2,
+      @NotNull MZTolerance mzTolerance, double noiseIntensity) {
 
     double pattern1Intensity = 0.0, pattern2Intensity = 0.0;
     if (ip1.getBasePeakIndex() >= 0) {
@@ -69,9 +66,6 @@ public class IsotopePatternScoreCalculator {
     }
     final double patternIntensity = Math.max(pattern1Intensity, pattern2Intensity);
 
-    final double noiseIntensity =
-        parameters.getParameter(IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
-
     // Normalize the isotopes to intensity 0..1
     IsotopePattern nip1 = IsotopePatternCalculator.normalizeIsotopePattern(ip1);
     IsotopePattern nip2 = IsotopePatternCalculator.normalizeIsotopePattern(ip2);
@@ -79,15 +73,17 @@ public class IsotopePatternScoreCalculator {
     // Merge the data points from both isotope patterns into a single array.
     // Data points from first pattern will have positive intensities, data
     // points from second pattern will have negative intensities.
-    ArrayList<DataPoint> mergedDataPoints = new ArrayList<DataPoint>();
+    List<DataPoint> mergedDataPoints = new ArrayList<>();
     for (DataPoint dp : ScanUtils.extractDataPoints(nip1)) {
-      if (dp.getIntensity() * patternIntensity < noiseIntensity)
+      if (dp.getIntensity() * patternIntensity < noiseIntensity) {
         continue;
+      }
       mergedDataPoints.add(dp);
     }
     for (DataPoint dp : ScanUtils.extractDataPoints(nip2)) {
-      if (dp.getIntensity() * patternIntensity < noiseIntensity)
+      if (dp.getIntensity() * patternIntensity < noiseIntensity) {
         continue;
+      }
       DataPoint negativeDP = new SimpleDataPoint(dp.getMZ(), dp.getIntensity() * -1);
       mergedDataPoints.add(negativeDP);
     }
@@ -102,8 +98,9 @@ public class IsotopePatternScoreCalculator {
 
       Range<Double> toleranceRange = mzTolerance.getToleranceRange(mergedDPArray[i].getMZ());
 
-      if (!toleranceRange.contains(mergedDPArray[i + 1].getMZ()))
+      if (!toleranceRange.contains(mergedDPArray[i + 1].getMZ())) {
         continue;
+      }
 
       double summedIntensity =
           mergedDPArray[i].getIntensity() + mergedDPArray[i + 1].getIntensity();
@@ -118,20 +115,22 @@ public class IsotopePatternScoreCalculator {
 
     // Calculate the resulting score. Ideal score is 1, in case the final
     // data point array is empty.
-    double result = 1;
+    float result = 1f;
 
     for (DataPoint dp : mergedDPArray) {
-      if (dp == null)
+      if (dp == null) {
         continue;
+      }
       double remainingIntensity = Math.abs(dp.getIntensity());
 
       // In case some large isotopes were grouped together, the summed
       // intensity may be over 1
-      if (remainingIntensity > 1)
+      if (remainingIntensity > 1) {
         remainingIntensity = 1;
+      }
 
       // Decrease the score with each remaining peak
-      result *= 1 - remainingIntensity;
+      result *= 1.f - remainingIntensity;
     }
 
     return result;

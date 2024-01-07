@@ -1,60 +1,86 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.ModularType;
+import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
+import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
+import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.util.CorrelationGroupingUtils;
+import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 
+@SuppressWarnings("rawtypes")
 public class ModularFeatureList implements FeatureList {
 
   public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -66,32 +92,44 @@ public class ModularFeatureList implements FeatureList {
   @Nullable
   private final MemoryMapStorage memoryMapStorage;
   // bindings for values
-  private final List<RowBinding> rowBindings = new ArrayList<>();
+  private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> featureTypeListeners = new HashMap<>();
+  private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> rowTypeListeners = new HashMap<>();
+
   // unmodifiable list
   private final ObservableList<RawDataFile> dataFiles;
   private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
+
+  private NodeGenerationThread nodeThread;
+  private final ReentrantReadWriteLock nodeThreadLock = new ReentrantReadWriteLock(false);
+
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
-  private ObservableMap<Class<? extends DataType>, DataType> rowTypes =
-      FXCollections.observableMap(new LinkedHashMap<>());
+  private final ObservableMap<Class<? extends DataType>, DataType> rowTypes = FXCollections.observableMap(
+      new LinkedHashMap<>());
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
-  private ObservableMap<Class<? extends DataType>, DataType> featureTypes =
-      FXCollections.observableMap(new LinkedHashMap<>());
-  private ObservableList<FeatureListRow> featureListRows;
-  private ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
-  private String dateCreated;
-  private Range<Double> mzRange;
-  private Range<Float> rtRange;
+  private final ObservableMap<Class<? extends DataType>, DataType> featureTypes = FXCollections.observableMap(
+      new LinkedHashMap<>());
+  private final ObservableList<FeatureListRow> featureListRows;
+  private final ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
+  // a map that stores row-2-row relationship maps for MS1, MS2, and other relationships
+  private final Map<RowsRelationship.Type, R2RMap<RowsRelationship>> r2rMaps = new ConcurrentHashMap<>();
   @NotNull
-  private final StringProperty nameProperty;
-
+  private String nameProperty = "";
+  private String dateCreated;
   // grouping
   private List<RowGroup> groups;
 
-  // a map that stores row-2-row relationship maps for MS1, MS2, and other relationships
-  private Map<RowsRelationship.Type, R2RMap<RowsRelationship>> r2rMaps = new ConcurrentHashMap<>();
-
+  /**
+   * Used to buffer charts of rows and features to display in the
+   * {@link io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX}. The key
+   * is of the following format: "<row id>-<DataType.getUniqueID()>-<raw file name or empty
+   * string>:
+   * <p>
+   * final String key = "%d-%s-%s".formatted(row.getID(), type.getUniqueID(), (file != null ?
+   * file.getName() : ""));
+   */
+  private final Map<String, Node> bufferedCharts = new HashMap<>();
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
       @NotNull RawDataFile... dataFiles) {
@@ -100,7 +138,7 @@ public class ModularFeatureList implements FeatureList {
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
       @NotNull List<RawDataFile> dataFiles) {
-    this.nameProperty = new SimpleStringProperty(name);
+    setName(name);
     this.dataFiles = FXCollections.observableList(dataFiles);
     featureListRows = FXCollections.observableArrayList();
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
@@ -111,22 +149,65 @@ public class ModularFeatureList implements FeatureList {
     // only a few standard types
     addRowType(new IDType());
     addRowType(new ManualAnnotationType());
+    addDefaultListeners();
+  }
+
+  private void addDefaultListeners() {
+    addFeatureTypeListener(new FeatureDataType(), (dataModel, type, oldValue, newValue) -> {
+      // check feature data for graphical columns
+      DataTypeUtils.applyFeatureSpecificGraphicalTypes((ModularFeature) dataModel);
+    });
+
+    // add row bindings automatically
+    featureTypes.addListener(
+        (MapChangeListener<? super Class<? extends DataType>, ? super DataType>) change -> {
+          DataType added = change.getValueAdded();
+          if (added == null) {
+            return;
+          }
+          // add row bindings
+          addRowBinding(added.createDefaultRowBindings());
+        });
   }
 
   @Override
-  @NotNull
-  public String getNameProperty() {
-    return nameProperty.get();
+  public @NotNull String getName() {
+    return nameProperty;
+  }
+
+  /**
+   * Checks for safe path encoding and no duplicate names in project
+   *
+   * @param name the new name candidate
+   * @return the actually set name
+   */
+  @Override
+  public String setName(@NotNull String name) {
+    if (name.isBlank() || name.equals(this.nameProperty)) {
+      // keep old name
+      return this.nameProperty;
+    }
+
+    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+
+    if (project != null) {
+      // project finds the name and calls the setNameNoChecks method
+      project.setUniqueFeatureListName(this, name);
+    } else {
+      setNameNoChecks(FileAndPathUtil.safePathEncode(name));
+    }
+    return this.nameProperty;
   }
 
   @Override
-  public String getName() {
-    return nameProperty.get();
-  }
+  public String setNameNoChecks(@NotNull String name) {
+    this.nameProperty = name;
 
-  @Override
-  public void setName(String name) {
-    MZmineCore.runLater(() -> this.nameProperty.set(name));
+    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    if (project != null) {
+      project.fireFeatureListsChangeEvent(List.of(this), ProjectChangeEvent.Type.RENAMED);
+    }
+    return nameProperty;
   }
 
   @Override
@@ -160,54 +241,133 @@ public class ModularFeatureList implements FeatureList {
    *
    * @param bindings list of bindings
    */
+  @Override
   public void addRowBinding(@NotNull List<RowBinding> bindings) {
     for (RowBinding b : bindings) {
-      rowBindings.add(b);
+      addFeatureTypeListener(b.getFeatureType(), b);
       // add missing row types, that are based on RowBindings
       addRowType(b.getRowType());
       // apply to all rows
-      modularStream().forEach(b::apply);
+      for (FeatureListRow row : getRows()) {
+        b.apply(row);
+      }
     }
   }
 
-  public void addRowBinding(@NotNull RowBinding... bindings) {
-    addRowBinding(Arrays.asList(bindings));
+  /**
+   * Add a listener for a feature DataType
+   *
+   * @param featureType data type that is present in the feature types
+   * @param listener    the listener for value changes
+   */
+  @Override
+  public void addFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener) {
+    featureTypeListeners.compute(featureType, (key, list) -> {
+      if (list == null) {
+        list = new ArrayList<>();
+      }
+      list.add(listener);
+      return list;
+    });
   }
 
   /**
-   * Apply all bindings to all this row
+   * Add a listener for a FeatureListRow DataType
    *
-   * @param row
+   * @param rowType  data type that is present in the FeatureListRow types
+   * @param listener the listener for value changes
    */
-  private void applyRowBindings(ModularFeatureListRow row) {
-    rowBindings.forEach(bind -> bind.apply(row));
+  @Override
+  public void addRowTypeListener(DataType rowType, DataTypeValueChangeListener listener) {
+    rowTypeListeners.compute(rowType, (key, list) -> {
+      if (list == null) {
+        list = new ArrayList<>();
+      }
+      list.add(listener);
+      return list;
+    });
+  }
+
+  /**
+   * Removes a listener for a FeatureListRow DataType
+   *
+   * @param rowType  data type that is present in the FeatureListRow types
+   * @param listener the listener for value changes
+   */
+  @Override
+  public void removeRowTypeListener(DataType rowType, DataTypeValueChangeListener listener) {
+    rowTypeListeners.compute(rowType, (key, list) -> {
+      if (list == null || list.isEmpty()) {
+        return null;
+      }
+      list.remove(listener);
+      return list.isEmpty() ? null : list;
+    });
+  }
+
+  /**
+   * Removes a listener for a Feature DataType
+   *
+   * @param featureType data type that is present in the Feature types
+   * @param listener    the listener for value changes
+   */
+  @Override
+  public void removeFeatureTypeListener(DataType featureType,
+      DataTypeValueChangeListener listener) {
+    featureTypeListeners.compute(featureType, (key, list) -> {
+      if (list == null || list.isEmpty()) {
+        return null;
+      }
+      list.remove(listener);
+      return list.isEmpty() ? null : list;
+    });
+  }
+
+  @Override
+  public void applyRowBindings() {
+    for (var row : featureListRows) {
+      applyRowBindings(row);
+    }
+  }
+
+  @Override
+  public void applyRowBindings(FeatureListRow row) {
+    for (var listeners : featureTypeListeners.values()) {
+      for (var listener : listeners) {
+        if (listener instanceof RowBinding bind) {
+          bind.apply(row);
+        }
+      }
+    }
   }
 
   /**
    * Summary of all feature type columns
    *
-   * @return
+   * @return feature types (columns)
    */
+  @Override
   public ObservableMap<Class<? extends DataType>, DataType> getFeatureTypes() {
     return featureTypes;
   }
 
-  public void addFeatureType(@NotNull List<DataType<?>> types) {
+  @Override
+  public void addFeatureType(Collection<DataType> types) {
     for (DataType<?> type : types) {
       if (!featureTypes.containsKey(type.getClass())) {
-        // all {@link ModularFeature} will automatically add a default property to their data map
+        // all {@link ModularFeature} will automatically add a default data map
         featureTypes.put(type.getClass(), type);
-        // add row bindings
-        addRowBinding(type.createDefaultRowBindings());
       }
     }
   }
 
+  @Override
   public void addFeatureType(@NotNull DataType<?>... types) {
     addFeatureType(Arrays.asList(types));
   }
 
-  public void addRowType(@NotNull List<DataType<?>> types) {
+  @Override
+  public void addRowType(Collection<DataType> types) {
     for (DataType<?> type : types) {
       if (!rowTypes.containsKey(type.getClass())) {
         // add row type - all rows will automatically generate a default property for this type in
@@ -217,6 +377,7 @@ public class ModularFeatureList implements FeatureList {
     }
   }
 
+  @Override
   public void addRowType(@NotNull DataType<?>... types) {
     addRowType(Arrays.asList(types));
   }
@@ -224,30 +385,31 @@ public class ModularFeatureList implements FeatureList {
   /**
    * Row type columns
    *
-   * @return
+   * @return row types (columns)
    */
+  @Override
   public ObservableMap<Class<? extends DataType>, DataType> getRowTypes() {
     return rowTypes;
   }
 
   /**
-   * Checks if typeClass was added as a FeatureType - does not check nested types in a {@link
-   * ModularType}
+   * Checks if typeClass was added as a FeatureType
    *
    * @param typeClass class of a DataType
    * @return true if feature type is available
    */
+  @Override
   public boolean hasFeatureType(Class typeClass) {
     return getFeatureTypes().containsKey(typeClass);
   }
 
   /**
-   * Checks if typeClass was added as a row type - does not check nested types in a {@link
-   * ModularType}
+   * Checks if typeClass was added as a row type
    *
    * @param typeClass class of a DataType
    * @return true if row type is available
    */
+  @Override
   public boolean hasRowType(Class typeClass) {
     return getRowTypes().containsKey(typeClass);
   }
@@ -263,7 +425,7 @@ public class ModularFeatureList implements FeatureList {
   /**
    * Returns all raw data files participating in the alignment
    *
-   * @return
+   * @return the raw data files for this list
    */
   @Override
   public ObservableList<RawDataFile> getRawDataFiles() {
@@ -327,6 +489,32 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
+  public void setRows(FeatureListRow... rows) {
+    Set<RawDataFile> fileSet = new HashSet<>();
+    for (FeatureListRow row : rows) {
+      if (!(row instanceof ModularFeatureListRow)) {
+        throw new IllegalArgumentException(
+            "Can not add non-modular feature list row to modular feature list");
+      }
+      for (var raw : row.getRawDataFiles()) {
+        fileSet.add(raw);
+      }
+    }
+
+    // check that all files are represented
+    final List<RawDataFile> rawFiles = getRawDataFiles();
+    for (var raw : fileSet) {
+      if (!rawFiles.contains(raw)) {
+        throw (new IllegalArgumentException("Data file " + raw + " is not in this feature list"));
+      }
+    }
+//    logger.log(Level.FINEST, "SET ALL ROWS");
+    featureListRows.clear();
+    featureListRows.addAll(rows);
+    applyRowBindings();
+  }
+
+  @Override
   public List<FeatureListRow> getRowsInsideMZRange(Range<Double> mzRange) {
     Range<Float> all = Range.all();
     return getRowsInsideScanAndMZRange(all, mzRange);
@@ -341,19 +529,24 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public List<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
       Range<Double> mzRange) {
-    // TODO handle if mz or rt is not present
-    return modularStream().filter(
-        row -> rtRange.contains(row.getAverageRT()) && mzRange.contains(row.getAverageMZ()))
-        .collect(Collectors.toCollection(FXCollections::observableArrayList));
+    List<FeatureListRow> rows = new ArrayList<>();
+    for (var row : getRows()) {
+      Float rt = row.getAverageRT();
+      if (rt == null || (rtRange.contains(rt) && mzRange.contains(row.getAverageMZ()))) {
+        rows.add(row);
+      } else if (rt > rtRange.upperEndpoint()) {
+        break;
+      }
+    }
+    return rows;
   }
 
   @Override
   public void addRow(FeatureListRow row) {
-    if (!(row instanceof ModularFeatureListRow)) {
+    if (!(row instanceof ModularFeatureListRow modularRow)) {
       throw new IllegalArgumentException(
           "Can not add non-modular feature list row to modular feature list");
     }
-    ModularFeatureListRow modularRow = (ModularFeatureListRow) row;
 
     ObservableList<RawDataFile> myFiles = this.getRawDataFiles();
     for (RawDataFile testFile : modularRow.getRawDataFiles()) {
@@ -362,7 +555,7 @@ public class ModularFeatureList implements FeatureList {
             "Data file " + testFile + " is not in this feature list"));
       }
     }
-
+    //    logger.finest("ADD ROW");
     featureListRows.add(modularRow);
     applyRowBindings(modularRow);
 
@@ -396,37 +589,39 @@ public class ModularFeatureList implements FeatureList {
    * @see FeatureList#getFeaturesInsideScanAndMZRange
    */
   @Override
-  public List<Feature> getFeaturesInsideScanAndMZRange(RawDataFile raw,
-      Range<Float> rtRange,
+  public List<Feature> getFeaturesInsideScanAndMZRange(RawDataFile raw, Range<Float> rtRange,
       Range<Double> mzRange) {
     // TODO solve with bindings and check for rt or mz presence in row
     return modularStream().map(ModularFeatureListRow::getFilesFeatures).map(map -> map.get(raw))
         .filter(Objects::nonNull)
-        .filter(
-            f -> rtRange.contains(f.getRT()) && mzRange.contains(f.getMZ()))
+        .filter(f -> rtRange.contains(f.getRT()) && mzRange.contains(f.getMZ()))
         .collect(Collectors.toCollection(FXCollections::observableArrayList));
   }
 
   /**
-   * @see FeatureList#removeRow(FeatureListRow)
+   *
    */
   @Override
   public void removeRow(FeatureListRow row) {
     featureListRows.remove(row);
-    updateMaxIntensity();
   }
 
   /**
-   * @see FeatureList#removeRow(FeatureListRow)
+   * if available pass index and row {@see #removeRow(int, FeatureListRow)} for optimized version.
    */
   @Override
   public void removeRow(int rowNum) {
     removeRow(featureListRows.get(rowNum));
   }
 
-  private void updateMaxIntensity() {
-    // TODO
-    // binding
+  /**
+   *
+   */
+  @Override
+  public void removeRow(int rowNum, FeatureListRow row) {
+    removeRow(featureListRows.get(rowNum));
+    // remove buffered charts, otherwise the reference is kept alive. What references the row, though?
+    featureListRows.remove(rowNum);
   }
 
   @Override
@@ -454,8 +649,7 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public Stream<ModularFeature> parallelStreamFeatures() {
-    return parallelStream().flatMap(row -> row.getFeatures().stream())
-        .filter(Objects::nonNull);
+    return parallelStream().flatMap(row -> row.getFeatures().stream()).filter(Objects::nonNull);
   }
 
 
@@ -494,11 +688,11 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public FeatureListRow findRowByID(int id) {
     List<FeatureListRow> featureListRows = stream().filter(r -> r.getID() == id).toList();
-    if(featureListRows.isEmpty()) {
+    if (featureListRows.isEmpty()) {
       return null;
     }
 
-    if(featureListRows.size() > 1) {
+    if (featureListRows.size() > 1) {
       logger.info("more than one row with id " + id);
     }
 
@@ -534,13 +728,11 @@ public class ModularFeatureList implements FeatureList {
       return Range.singleton(0d);
     }
 
-    updateMaxIntensity(); // Update range before returning value
+    DoubleSummaryStatistics mzStatistics = getRows().stream().map(FeatureListRow::getAverageMZ)
+        .filter(Objects::nonNull).mapToDouble(Double::doubleValue).summaryStatistics();
 
-    DoubleSummaryStatistics mzStatistics = getRows().stream()
-        .map(FeatureListRow::getAverageMZ)
-        .collect(Collectors.summarizingDouble((Double::doubleValue)));
-
-    return Range.closed(mzStatistics.getMin(), mzStatistics.getMax());
+    return mzStatistics.getCount() == 0 ? Range.singleton(0d)
+        : Range.closed(mzStatistics.getMin(), mzStatistics.getMax());
   }
 
   // TODO: if this method would be called frequently, then store and update whole rt range in
@@ -551,11 +743,12 @@ public class ModularFeatureList implements FeatureList {
       return Range.singleton(0f);
     }
 
-    updateMaxIntensity(); // Update range before returning value
+    DoubleSummaryStatistics rtStatistics = getRows().stream().map(FeatureListRow::getAverageRT)
+        .filter(Objects::nonNull).mapToDouble(Float::doubleValue).summaryStatistics();
 
-    DoubleSummaryStatistics rtStatistics = getRows().stream()
-        .map(row -> (double) (row).getAverageRT())
-        .collect(Collectors.summarizingDouble((Double::doubleValue)));
+    if (rtStatistics.getCount() == 0) {
+      return Range.singleton(0f);
+    }
 
     return Range.closed((float) rtStatistics.getMin(), (float) rtStatistics.getMax());
   }
@@ -577,8 +770,17 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  public void addRowsRelationships(R2RMap<? extends RowsRelationship> map,
-      Type relationship) {
+  public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners() {
+    return featureTypeListeners;
+  }
+
+  @Override
+  public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners() {
+    return rowTypeListeners;
+  }
+
+  @Override
+  public void addRowsRelationships(R2RMap<? extends RowsRelationship> map, Type relationship) {
     R2RMap<RowsRelationship> rowMap = r2rMaps.computeIfAbsent(relationship, key -> new R2RMap<>());
     rowMap.putAll(map);
   }
@@ -586,8 +788,8 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public void addRowsRelationship(FeatureListRow a, FeatureListRow b,
       RowsRelationship relationship) {
-    R2RMap<RowsRelationship> rowMap = r2rMaps
-        .computeIfAbsent(relationship.getType(), key -> new R2RMap<>());
+    R2RMap<RowsRelationship> rowMap = r2rMaps.computeIfAbsent(relationship.getType(),
+        key -> new R2RMap<>());
     rowMap.add(a, b, relationship);
   }
 
@@ -625,11 +827,14 @@ public class ModularFeatureList implements FeatureList {
     for (FeatureListRow row : this.getRows()) {
       id = renumberIDs ? id + 1 : row.getID();
       ModularFeatureListRow copyRow = new ModularFeatureListRow(flist, id,
-          (ModularFeatureListRow) row,
-          true);
+          (ModularFeatureListRow) row, true);
       flist.addRow(copyRow);
       mapCopied.put(row, copyRow);
     }
+
+    // todo copy all row to row relationships and exchange row references in datatypes
+
+    // change references in IIN
 
     // Load previous applied methods
     for (FeatureListAppliedMethod proc : this.getAppliedMethods()) {
@@ -640,13 +845,100 @@ public class ModularFeatureList implements FeatureList {
     return flist;
   }
 
-  public List<RowBinding> getRowBindings() {
-    return rowBindings;
-  }
-
   @Nullable
   public MemoryMapStorage getMemoryMapStorage() {
     return memoryMapStorage;
   }
 
+  /**
+   * Replaces {@link CachedIMSRawDataFile}s and {@link CachedIMSFrame}s in the selected scans and
+   * raw data files of this feature list. Cached files are used during feature list import to avoid
+   * multiple copies of {@link io.github.mzmine.datamodel.MobilityScan}s, since the main
+   * implementation ({@link io.github.mzmine.datamodel.impl.StoredMobilityScan}) is created on
+   * demand and passed through data types.
+   * <p></p>
+   * After the project import, the files have to be replaced to lower ram consumption and allow
+   * further processing.
+   */
+  public void replaceCachedFilesAndScans() {
+    for (int i = 0; i < getNumberOfRawDataFiles(); i++) {
+      RawDataFile file = getRawDataFile(i);
+      if (file instanceof IMSRawDataFile imsfile) {
+        if (imsfile instanceof CachedIMSRawDataFile cached) {
+          dataFiles.set(i, cached.getOriginalFile());
+
+          List<? extends Scan> scans = selectedScans.remove(cached);
+          List<Frame> frames = scans.stream()
+              .map(scan -> ((CachedIMSFrame) scan).getOriginalFrame()).toList();
+          selectedScans.put(cached.getOriginalFile(), frames);
+        }
+      }
+    }
+  }
+
+  public <S, T extends DataType<S>> Node getChartForRow(FeatureListRow row, T type,
+      RawDataFile file) {
+
+    final String key = "%d-%s-%s".formatted(row.getID(), type.getUniqueID(),
+        (file != null ? file.getName() : ""));
+    final Node node = bufferedCharts.get(key);
+
+    if (node != null && node.getParent() == null) {
+      return node;
+    }
+
+    final StackPane parentPane = new StackPane(new Label("Preparing content..."));
+    parentPane.setPrefHeight(((GraphicalColumType) type).getCellHeight());
+    parentPane.setMinHeight(((GraphicalColumType) type).getCellHeight());
+    parentPane.setMaxHeight(((GraphicalColumType) type).getCellHeight());
+    bufferedCharts.putIfAbsent(key, parentPane);
+
+    ensureNodeThreadRunnning();
+    nodeThread.requestNode((ModularFeatureListRow) row, type,
+        file != null ? ((ModularFeature) row.getFeature(file)).get(type) : row.get(type), file,
+        parentPane);
+
+    return parentPane;
+  }
+
+  private void ensureNodeThreadRunnning() {
+
+    nodeThreadLock.writeLock().lock();
+    try {
+      if (nodeThread == null || nodeThread.isFinished()) {
+        nodeThread = new NodeGenerationThread(null, Instant.now(), this);
+        logger.finest("Starting new node thread.");
+        MZmineCore.getTaskController().addTask(nodeThread);
+      }
+    } catch (Exception e) {
+      logger.log(Level.SEVERE,
+          "Error starting node thread for feature table %s".formatted(getName()), e);
+    }
+    nodeThreadLock.writeLock().unlock();
+  }
+
+  public void onFeatureTableFxClosed() {
+    nodeThreadLock.writeLock().lock();
+    try {
+      if (nodeThread != null) {
+        nodeThread.cancel();
+        nodeThread = null;
+      }
+    } catch (Exception e) {
+      logger.log(Level.SEVERE,
+          "Error cancelling node thread for feature table %s".formatted(getName()), e);
+    }
+    nodeThreadLock.writeLock().unlock();
+
+    // We used this before when charts were stored at the row/feature level.
+    // leave it here for now for reference.
+    /*bufferedCharts.forEach((k, v) -> {
+      if (v instanceof Pane p && p.getParent() instanceof Pane pane) {
+        // remove the node from the parent so there is no more reference and it can be GC'ed
+        pane.getChildren().remove(v);
+      }
+    });*/
+
+    bufferedCharts.clear();
+  }
 }

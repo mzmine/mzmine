@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util;
@@ -22,10 +29,38 @@ import java.util.Arrays;
 
 public class ArrayUtils {
 
+  /**
+   * Throws out of range exceptions
+   *
+   * @param arrayLength
+   * @param fromIndex
+   * @param toIndex
+   */
+  public static void rangeCheck(int arrayLength, int fromIndex, int toIndex) {
+    if (fromIndex > toIndex) {
+      throw new IllegalArgumentException("fromIndex(" + fromIndex + ") > toIndex(" + toIndex + ")");
+    }
+    if (fromIndex < 0) {
+      throw new ArrayIndexOutOfBoundsException(fromIndex);
+    }
+    if (toIndex > arrayLength) {
+      throw new ArrayIndexOutOfBoundsException(toIndex);
+    }
+  }
+
   public static <T> int indexOf(T needle, T[] haystack) {
     for (int i = 0; i < haystack.length; i++) {
-      if ((haystack[i] != null && haystack[i].equals(needle))
-          || (needle == null && haystack[i] == null)) {
+      if ((haystack[i] != null && haystack[i].equals(needle)) || (needle == null
+                                                                  && haystack[i] == null)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  public static int indexOf(double needle, double[] haystack) {
+    for (int i = 0; i < haystack.length; i++) {
+      if(Double.compare(haystack[i], needle) == 0) {
         return i;
       }
     }
@@ -98,5 +133,20 @@ public class ArrayUtils {
       input[i] = input[last - i];
       input[last - i] = temp;
     }
+  }
+
+  public static void reverse(double[] input) {
+    int last = input.length - 1;
+    int middle = input.length / 2;
+    for (int i = 0; i <= middle; i++) {
+      double temp = input[i];
+      input[i] = input[last - i];
+      input[last - i] = temp;
+    }
+  }
+
+  public static double lastElement(double[] array) {
+    assert array.length > 0;
+    return array[array.length - 1];
   }
 }

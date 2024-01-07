@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.projectsave;
@@ -35,32 +42,28 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.StreamCopy;
+import io.github.mzmine.util.XMLUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import javafx.beans.property.Property;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -68,12 +71,10 @@ import org.w3c.dom.Element;
 
 public class FeatureListSaveTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(FeatureListSaveTask.class.getName());
-
-
   public static final String METADATA_FILE_SUFFIX = "_metadata.xml";
   public static final String DATA_FILE_SUFFIX = "_data.xml";
   public static final String FLIST_FOLDER = "featurelists/";
+  private static final Logger logger = Logger.getLogger(FeatureListSaveTask.class.getName());
   private static final IDType idType = new IDType();
 
   private final ModularFeatureList flist;
@@ -83,11 +84,19 @@ public class FeatureListSaveTask extends AbstractTask {
   private int processedRows = 0;
 
   public FeatureListSaveTask(ModularFeatureList flist, ZipOutputStream zos) {
-    super(null, new Date());
+    super(null, Instant.now());
     this.flist = flist;
     this.zos = zos;
     rows = flist.getNumberOfRows();
     copy = new StreamCopy();
+  }
+
+  public static String getDataFileName(String flistname) {
+    return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flistname + DATA_FILE_SUFFIX;
+  }
+
+  public static String getMetadataFileName(String flistname) {
+    return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flistname + METADATA_FILE_SUFFIX;
   }
 
   @Override
@@ -117,7 +126,7 @@ public class FeatureListSaveTask extends AbstractTask {
     logger.finest(() -> "Creating temporary file for feature list " + flist.getName() + ".");
     File tempFile;
     try {
-      tempFile = File.createTempFile("mzmine_featurelist_applied_methods", ".tmp");
+      tempFile = FileAndPathUtil.createTempFile("mzmine_featurelist_applied_methods", ".tmp");
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Cannot create temporary file.", e);
       setStatus(TaskStatus.ERROR);
@@ -133,21 +142,7 @@ public class FeatureListSaveTask extends AbstractTask {
 
       appendMetadata(document, root, flist);
 
-      TransformerFactory transfac = TransformerFactory.newInstance();
-      Transformer transformer = transfac.newTransformer();
-      transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-      transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-      try (var stream = new FileOutputStream(tempFile)) {
-        StreamResult result = new StreamResult(stream);
-        DOMSource source = new DOMSource(document);
-        transformer.transform(source, result);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-
+      XMLUtils.saveToFile(tempFile, document);
       zos.putNextEntry(new ZipEntry(getMetadataFileName(flist.getName())));
 
       try (InputStream is = new FileInputStream(tempFile)) {
@@ -165,8 +160,8 @@ public class FeatureListSaveTask extends AbstractTask {
   }
 
   private void appendMetadata(Document document, Element root, ModularFeatureList flist) {
-    final Element appliedMethodsList = document
-        .createElement(CONST.XML_FLIST_APPLIED_METHODS_LIST_ELEMENT);
+    final Element appliedMethodsList = document.createElement(
+        CONST.XML_FLIST_APPLIED_METHODS_LIST_ELEMENT);
     root.appendChild(appliedMethodsList);
 
     // write metadata
@@ -201,9 +196,8 @@ public class FeatureListSaveTask extends AbstractTask {
       fileElement.appendChild(filePathElement);
 
       Element selectedScansElement = document.createElement(CONST.XML_FLIST_SELECTED_SCANS_ELEMENT);
-      int[] indices = ParsingUtils
-          .getIndicesOfSubListElements((List<Scan>) flist.getSeletedScans(rawDataFile),
-              rawDataFile.getScans());
+      int[] indices = ParsingUtils.getIndicesOfSubListElements(
+          (List<Scan>) flist.getSeletedScans(rawDataFile), rawDataFile.getScans());
       selectedScansElement.setTextContent(ParsingUtils.intArrayToString(indices, indices.length));
 
       fileElement.appendChild(selectedScansElement);
@@ -218,7 +212,7 @@ public class FeatureListSaveTask extends AbstractTask {
     logger.finest(() -> "Creating temporary file for feature list " + flist.getName() + ".");
     File tempFile;
     try {
-      tempFile = File.createTempFile("mzmine_featurelist_data", ".tmp");
+      tempFile = FileAndPathUtil.createTempFile("mzmine_featurelist_data", ".tmp");
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Cannot create temporary file.", e);
       setStatus(TaskStatus.ERROR);
@@ -279,13 +273,13 @@ public class FeatureListSaveTask extends AbstractTask {
     writer.writeStartElement(CONST.XML_ROW_ELEMENT);
     writer.writeAttribute(idType.getUniqueID(), String.valueOf(row.getID()));
 
-    for (Entry<DataType, Property<?>> entry : row.getMap().entrySet()) {
-      DataType<?> dataType = entry.getKey();
-      Property<?> valueProperty = entry.getValue();
+    for (Entry<DataType, Object> entry : row.getMap().entrySet()) {
+      DataType dataType = entry.getKey();
+      Object value = entry.getValue();
       if (dataType instanceof FeaturesType) {
         continue;
       }
-      writeDataType(writer, dataType, valueProperty.getValue(), flist, row, null, null);
+      writeDataType(writer, dataType, value, flist, row, null, null);
     }
 
     for (ModularFeature feature : row.getFeatures()) {
@@ -307,7 +301,7 @@ public class FeatureListSaveTask extends AbstractTask {
       dataType.saveToXML(writer, value, flist, row, feature, file);
     } catch (XMLStreamException e) {
       logger.warning(() -> "Error while writing data type " + dataType.getClass().getSimpleName()
-          + " with value " + String.valueOf(value) + " to xml.");
+          + " with value " + value + " to xml.");
       e.printStackTrace();
     }
     writer.writeEndElement();
@@ -316,26 +310,17 @@ public class FeatureListSaveTask extends AbstractTask {
   private void writeFeature(XMLStreamWriter writer, ModularFeatureListRow row,
       ModularFeature feature) throws XMLStreamException {
     final RawDataFile rawDataFile = feature.getRawDataFile();
-    if(rawDataFile == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+    if (rawDataFile == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
       return;
     }
 
     writer.writeStartElement(CONST.XML_FEATURE_ELEMENT);
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, rawDataFile.getName());
 
-    for (Entry<DataType, Property<?>> entry : feature.getMap().entrySet()) {
-      writeDataType(writer, entry.getKey(), entry.getValue().getValue(), flist, row, feature,
-          rawDataFile);
+    for (Entry<DataType, Object> entry : feature.getMap().entrySet()) {
+      writeDataType(writer, entry.getKey(), entry.getValue(), flist, row, feature, rawDataFile);
     }
 
     writer.writeEndElement();
-  }
-
-  public static String getDataFileName(String flistname) {
-    return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flistname + DATA_FILE_SUFFIX;
-  }
-
-  public static String getMetadataFileName(String flistname) {
-    return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flistname + METADATA_FILE_SUFFIX;
   }
 }

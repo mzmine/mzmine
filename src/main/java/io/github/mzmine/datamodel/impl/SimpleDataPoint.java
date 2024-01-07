@@ -1,27 +1,34 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.impl;
 
-import java.text.Format;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.main.MZmineCore;
+import java.text.Format;
+import java.util.Objects;
 
 /**
  * This class represents one data point of a spectrum (m/z and intensity pair). Data point is
@@ -29,7 +36,8 @@ import io.github.mzmine.main.MZmineCore;
  */
 public class SimpleDataPoint implements DataPoint {
 
-  private double mz, intensity;
+  private final double mz;
+  private final double intensity;
 
   /**
    * Constructor which copies the data from another DataPoint
@@ -59,18 +67,20 @@ public class SimpleDataPoint implements DataPoint {
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (!(obj instanceof DataPoint)) {
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    DataPoint dp = (DataPoint) obj;
-    return (Double.compare(this.mz, dp.getMZ()) == 0
-        && Double.compare(this.intensity, dp.getIntensity()) == 0);
+    SimpleDataPoint that = (SimpleDataPoint) o;
+    return Double.compare(that.mz, mz) == 0 && Double.compare(that.intensity, intensity) == 0;
   }
 
   @Override
   public int hashCode() {
-    return (int) (this.mz + this.intensity);
+    return Objects.hash(mz, intensity);
   }
 
   @Override

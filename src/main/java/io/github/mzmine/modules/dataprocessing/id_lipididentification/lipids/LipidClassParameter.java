@@ -1,59 +1,66 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
+import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.util.CollectionUtils;
 
 /**
- * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class LipidClassParameter<ValueType>
-    implements UserParameter<ValueType[], LipidClassComponent> {
+public class LipidClassParameter<ValueType> implements
+    UserParameter<ValueType[], LipidClassComponent> {
 
-  private String name;
-  private String description;
+  private final String name;
+  private final String description;
   private ValueType[] choices;
   private ValueType[] values;
-  private int minNumber;
+  private final int minNumber;
 
   /**
    * We need the choices parameter non-null even when the length may be 0. We need it to determine
    * the class of the ValueType.
    */
-  public LipidClassParameter(String name, String description, ValueType choices[]) {
+  public LipidClassParameter(String name, String description, ValueType[] choices) {
     this(name, description, choices, null, 1);
   }
 
-  public LipidClassParameter(String name, String description, ValueType choices[],
-      ValueType values[]) {
+  public LipidClassParameter(String name, String description, ValueType[] choices,
+      ValueType[] values) {
     this(name, description, choices, values, 1);
   }
 
-  public LipidClassParameter(String name, String description, ValueType choices[],
-      ValueType values[], int minNumber) {
+  public LipidClassParameter(String name, String description, ValueType[] choices,
+      ValueType[] values, int minNumber) {
 
     assert choices != null;
 
@@ -64,15 +71,12 @@ public class LipidClassParameter<ValueType>
     this.minNumber = minNumber;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
   @Override
   public String getName() {
     return name;
   }
 
-  public void setChoices(ValueType choices[]) {
+  public void setChoices(ValueType[] choices) {
     this.choices = choices;
   }
 
@@ -80,9 +84,6 @@ public class LipidClassParameter<ValueType>
     return choices;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
   @Override
   public String getDescription() {
     return description;
@@ -105,8 +106,8 @@ public class LipidClassParameter<ValueType>
 
   @Override
   public LipidClassParameter<ValueType> cloneParameter() {
-    LipidClassParameter<ValueType> copy =
-        new LipidClassParameter<ValueType>(name, description, choices, values);
+    LipidClassParameter<ValueType> copy = new LipidClassParameter<ValueType>(name, description,
+        choices, values);
     copy.setValue(this.getValue());
     return copy;
   }
@@ -114,13 +115,13 @@ public class LipidClassParameter<ValueType>
   @SuppressWarnings("unchecked")
   @Override
   public void setValueFromComponent(LipidClassComponent component) {
-    Object componentValue[] = component.getValue();
+    Object[] componentValue = component.getValue();
     Class<ValueType> arrayType = (Class<ValueType>) this.choices.getClass().getComponentType();
     this.values = CollectionUtils.changeArrayType(componentValue, arrayType);
   }
 
   @Override
-  public void setValueToComponent(LipidClassComponent component, ValueType[] newValue) {
+  public void setValueToComponent(LipidClassComponent component, @Nullable ValueType[] newValue) {
     component.setValue(newValue);
   }
 
@@ -134,18 +135,20 @@ public class LipidClassParameter<ValueType>
       for (int j = 0; j < choices.length; j++) {
         if (choices[j].toString().equals(itemString)) {
           newValues.add(choices[j]);
+          break;
         }
       }
     }
     Class<ValueType> arrayType = (Class<ValueType>) this.choices.getClass().getComponentType();
-    Object newArray[] = newValues.toArray();
+    Object[] newArray = newValues.toArray();
     this.values = CollectionUtils.changeArrayType(newArray, arrayType);
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (values == null)
+    if (values == null) {
       return;
+    }
     Document parentDocument = xmlElement.getOwnerDocument();
     for (ValueType item : values) {
       Element newElement = parentDocument.createElement("item");
