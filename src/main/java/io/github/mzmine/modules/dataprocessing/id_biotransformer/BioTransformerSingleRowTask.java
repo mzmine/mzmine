@@ -28,6 +28,8 @@ package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -54,7 +56,7 @@ public class BioTransformerSingleRowTask extends AbstractTask {
   private final ParameterSet parameters;
   private final File bioPath;
   private final MZTolerance mzTolerance;
-  private final boolean rowGroupFilter;
+  private final boolean rowCorrelationFilter;
   private final RTTolerance rtTolerance;
   private String description;
 
@@ -71,8 +73,8 @@ public class BioTransformerSingleRowTask extends AbstractTask {
     final boolean enableAdvancedFilters = parameters.getValue(BioTransformerParameters.advanced);
     final ParameterSet filterParams = parameters.getEmbeddedParameterValue(
         BioTransformerParameters.advanced);
-    rowGroupFilter =
-        enableAdvancedFilters && filterParams.getValue(RtClusterFilterParameters.rowGroupFilter);
+    rowCorrelationFilter =
+        enableAdvancedFilters && filterParams.getValue(RtClusterFilterParameters.rowCorrelationFilter);
     rtTolerance = enableAdvancedFilters ? filterParams.getEmbeddedParameterValueIfSelectedOrElse(
         RtClusterFilterParameters.rtTolerance, null) : null;
 
@@ -129,13 +131,14 @@ public class BioTransformerSingleRowTask extends AbstractTask {
     }
 
     final ModularFeatureList flist = row.getFeatureList();
+    final R2RMap<RowsRelationship> ms1Groups = flist.getMs1CorrelationMap();
     for (CompoundDBAnnotation annotation : bioTransformerAnnotations) {
       flist.stream().forEach(r -> {
         final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(r,
             mzTolerance, rtTolerance, null, null);
         if (clone != null) {
-          if (rowGroupFilter && !(row.getGroupID() == r.getGroupID())) {
-            // -1 is default, if both groups have no id it's fine
+          final RowsRelationship correlation = ms1Groups != null ? ms1Groups.get(row, r) : null;
+          if (rowCorrelationFilter && correlation == null) {
             return;
           }
 

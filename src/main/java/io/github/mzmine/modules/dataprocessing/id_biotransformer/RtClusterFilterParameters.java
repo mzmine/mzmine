@@ -25,12 +25,14 @@
 
 package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import java.util.Map;
 
 public class RtClusterFilterParameters extends SimpleParameterSet {
 
@@ -39,11 +41,25 @@ public class RtClusterFilterParameters extends SimpleParameterSet {
           "If selected, transformation products will only be matched within the given RT tolerance window (+-).",
           new RTTolerance(0.15f, Unit.MINUTES)));
 
-  public static final BooleanParameter rowGroupFilter = new BooleanParameter("Filter by Row group",
-      "If selected, transformation products will only be matched to features with the same row group.",
+  public static final BooleanParameter rowCorrelationFilter = new BooleanParameter(
+      "Filter by row correlation",
+      "If selected, transformation products will only be matched to correlated features.\n"
+          + "The feature list must be grouped by the metaCorr module.",
       false);
 
   public RtClusterFilterParameters() {
-    super(rtTolerance, rowGroupFilter);
+    super(rtTolerance, rowCorrelationFilter);
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var map =  super.getNameParameterMap();
+    map.put("Filter by Row group", rowCorrelationFilter);
+    return map;
   }
 }

@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
@@ -79,7 +81,7 @@ public class BioTransformerTask extends AbstractTask {
   private final boolean checkProductIntensity;
   private final double minEductIntensity;
   private final double minProductIntensity;
-  private final boolean rowGroupFilter;
+  private final boolean rowCorrelationFilter;
 
   /**
    * Null if no filter is applied
@@ -113,8 +115,8 @@ public class BioTransformerTask extends AbstractTask {
     final boolean enableAdvancedFilters = parameters.getValue(BioTransformerParameters.advanced);
     final ParameterSet filterParams = parameters.getEmbeddedParameterValue(
         BioTransformerParameters.advanced);
-    rowGroupFilter =
-        enableAdvancedFilters && filterParams.getValue(RtClusterFilterParameters.rowGroupFilter);
+    rowCorrelationFilter =
+        enableAdvancedFilters && filterParams.getValue(RtClusterFilterParameters.rowCorrelationFilter);
     rtTolerance = enableAdvancedFilters ? filterParams.getEmbeddedParameterValueIfSelectedOrElse(
         RtClusterFilterParameters.rtTolerance, null) : null;
 
@@ -252,6 +254,7 @@ public class BioTransformerTask extends AbstractTask {
           continue;
         }
 
+        final R2RMap<RowsRelationship> ms1Groups = flist.getMs1CorrelationMap();
         AtomicInteger numAnnotations = new AtomicInteger(0);
         for (CompoundDBAnnotation annotation : bioTransformerAnnotations) {
           flist.stream().filter(this::filterProductRow).forEach(r -> {
@@ -259,8 +262,8 @@ public class BioTransformerTask extends AbstractTask {
                 mzTolerance, rtTolerance, null, null);
             if (clone != null) {
 
-              if (rowGroupFilter && !(row.getGroupID() == r.getGroupID())) {
-                // -1 is default, if both groups have no id it's fine
+              final RowsRelationship correlation = ms1Groups != null ? ms1Groups.get(row, r) : null;
+              if (rowCorrelationFilter && correlation == null) {
                 return;
               }
 
