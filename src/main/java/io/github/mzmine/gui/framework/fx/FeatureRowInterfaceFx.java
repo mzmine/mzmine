@@ -26,13 +26,16 @@
 package io.github.mzmine.gui.framework.fx;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.framework.fx.features.FeatureListRowsPane;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * a JavaFX interface that can handle changes in selected rows, update the content based on the
  * rows
+ * @TODO remove as this has been moved to {@link FeatureListRowsPane}
  */
+@Deprecated
 public interface FeatureRowInterfaceFx {
 
   /**

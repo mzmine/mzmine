@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,7 +58,7 @@ public record AlignmentScores(float rate, int alignedFeatures, int extraFeatures
 
   @SuppressWarnings("rawtypes")
   public static List<DataType> getSubTypes() {
-    return DataTypes.getList(RateType.class, AlignedFeaturesNType.class,
+    return DataTypes.getAll(RateType.class, AlignedFeaturesNType.class,
         AlignExtraFeaturesType.class, WeightedDistanceScore.class, MzPpmDifferenceType.class,
         MzAbsoluteDifferenceType.class, RtAbsoluteDifferenceType.class,
         MobilityAbsoluteDifferenceType.class);

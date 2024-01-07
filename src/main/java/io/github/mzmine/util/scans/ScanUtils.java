@@ -1254,6 +1254,24 @@ public class ScanUtils {
   }
 
   /**
+   * Sum of intensities
+   */
+  public static double getTIC(MassSpectrum spec) {
+    Double tic = spec.getTIC();
+    if (tic != null) {
+      return tic;
+    }
+
+    int size = spec.getNumberOfDataPoints();
+    double sum = 0;
+    for (int i = 0; i < size; i++) {
+      double intensity = spec.getIntensityValue(i);
+      sum += intensity;
+    }
+    return sum;
+  }
+
+  /**
    * Number of signals >=noiseLevel
    *
    * @param spec
