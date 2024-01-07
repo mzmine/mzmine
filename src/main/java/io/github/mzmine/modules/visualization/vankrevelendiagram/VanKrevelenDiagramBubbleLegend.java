@@ -82,21 +82,13 @@ public class VanKrevelenDiagramBubbleLegend extends BorderPane {
   }
 
   private NumberFormat identifyNumberFormat(VanKrevelenDiagramDataTypes bubbleVanKrevelenDiagramDataTypes) {
-    switch (bubbleVanKrevelenDiagramDataTypes) {
-      case MZ -> {
-        return MZmineCore.getConfiguration().getMZFormat();
-      }
-      case RETENTION_TIME, TAILING_FACTOR, ASYMMETRY_FACTOR, FWHM -> {
-        return MZmineCore.getConfiguration().getRTFormat();
-      }
-      case MOBILITY -> {
-        return MZmineCore.getConfiguration().getMobilityFormat();
-      }
-      case INTENSITY, AREA -> {
-        return MZmineCore.getConfiguration().getIntensityFormat();
-      }
-    }
-    return MZmineCore.getConfiguration().getRTFormat();
+    return switch (bubbleVanKrevelenDiagramDataTypes) {
+      case MZ -> MZmineCore.getConfiguration().getMZFormat();
+      case RETENTION_TIME, TAILING_FACTOR, ASYMMETRY_FACTOR, FWHM ->
+          MZmineCore.getConfiguration().getRTFormat();
+      case MOBILITY -> MZmineCore.getConfiguration().getMobilityFormat();
+      case INTENSITY, AREA -> MZmineCore.getConfiguration().getIntensityFormat();
+    };
   }
 
   private Circle createBubble(int size) {
