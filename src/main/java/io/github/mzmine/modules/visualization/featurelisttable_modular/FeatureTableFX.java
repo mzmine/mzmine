@@ -517,7 +517,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
     // add features
     if (featureList.hasRowType(FeaturesType.class)) {
-      addColumn(rowCol, featureList.getRowType(FeaturesType.class));
+      addColumn(rowCol, DataTypes.get(FeaturesType.class));
     }
 
   }
