@@ -40,7 +40,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import javafx.beans.property.Property;
@@ -76,8 +75,7 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
     FeatureList featureList = parameters.getParameter(VanKrevelenDiagramParameters.featureList)
         .getValue().getMatchingFeatureLists()[0];
     this.parameters = parameters.cloneParameterSet();
-    FeatureListRow[] selectedRows = featureList.getRows().toArray(new FeatureListRow[0]);
-    filteredRows = Arrays.stream(selectedRows)
+    filteredRows = featureList.stream()
         .filter(featureListRow -> featureListRow.getPreferredAnnotation() != null).toList();
     xValues = new double[filteredRows.size()];
     yValues = new double[filteredRows.size()];
