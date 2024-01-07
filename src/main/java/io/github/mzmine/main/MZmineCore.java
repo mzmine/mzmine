@@ -518,8 +518,8 @@ public final class MZmineCore {
 
     return newTasks;
     // Log module run in audit log
-    //AuditLogEntry auditLogEntry = new AuditLogEntry(module, parameters,
-    //newTasks);
+    // AuditLogEntry auditLogEntry = new AuditLogEntry(module, parameters,
+    // newTasks);
     // currentProject.logProcessingStep(auditLogEntry);
   }
 
