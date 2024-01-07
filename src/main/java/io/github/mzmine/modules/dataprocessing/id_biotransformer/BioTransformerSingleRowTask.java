@@ -28,7 +28,6 @@ package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.parameters.ParameterSet;
@@ -48,7 +47,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class BioTransformerSingleRowTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(BioTransformerSingleRowTask.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      BioTransformerSingleRowTask.class.getName());
 
   private final ModularFeatureListRow row;
   private final String smiles;
@@ -73,8 +73,8 @@ public class BioTransformerSingleRowTask extends AbstractTask {
     final boolean enableAdvancedFilters = parameters.getValue(BioTransformerParameters.advanced);
     final ParameterSet filterParams = parameters.getEmbeddedParameterValue(
         BioTransformerParameters.advanced);
-    rowCorrelationFilter =
-        enableAdvancedFilters && filterParams.getValue(RtClusterFilterParameters.rowCorrelationFilter);
+    rowCorrelationFilter = enableAdvancedFilters && filterParams.getValue(
+        RtClusterFilterParameters.rowCorrelationFilter);
     rtTolerance = enableAdvancedFilters ? filterParams.getEmbeddedParameterValueIfSelectedOrElse(
         RtClusterFilterParameters.rtTolerance, null) : null;
 
@@ -109,12 +109,12 @@ public class BioTransformerSingleRowTask extends AbstractTask {
 
     final List<CompoundDBAnnotation> bioTransformerAnnotations;
     try {
-      bioTransformerAnnotations = BioTransformerTask.singleRowPrediction(
-          row.getID(), smiles, prefix, bioPath, parameters);
+      bioTransformerAnnotations = BioTransformerTask.singleRowPrediction(row.getID(), smiles,
+          prefix, bioPath, parameters);
     } catch (IOException e) {
       logger.log(Level.WARNING, e.getMessage(), e);
       setErrorMessage("Error reading/writing temporary files during BioTransformer prediciton.\n"
-          + e.getMessage());
+                      + e.getMessage());
       setStatus(TaskStatus.ERROR);
       return;
     }
@@ -131,13 +131,13 @@ public class BioTransformerSingleRowTask extends AbstractTask {
     }
 
     final ModularFeatureList flist = row.getFeatureList();
-    final R2RMap<RowsRelationship> ms1Groups = flist.getMs1CorrelationMap();
+    final var ms1Groups = flist.getMs1CorrelationMap();
     for (CompoundDBAnnotation annotation : bioTransformerAnnotations) {
       flist.stream().forEach(r -> {
         final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(r,
             mzTolerance, rtTolerance, null, null);
         if (clone != null) {
-          final RowsRelationship correlation = ms1Groups != null ? ms1Groups.get(row, r) : null;
+          final RowsRelationship correlation = ms1Groups.map(map -> map.get(row, r)).orElse(null);
           if (rowCorrelationFilter && correlation == null) {
             return;
           }

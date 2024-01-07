@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
@@ -41,6 +42,8 @@ import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
 import io.github.mzmine.modules.dataprocessing.align_join.RowAlignmentScoreCalculator;
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.javafx.WeakAdapter;
 import java.util.ArrayList;
@@ -498,5 +501,19 @@ public class FeatureListUtils {
       }
     }
     return allDataFiles;
+  }
+
+  /**
+   * Maps the row ID to the feature list for quick lookup
+   *
+   * @return ID to row map
+   */
+  @NotNull
+  public static Int2ObjectMap<FeatureListRow> getRowIdMap(final ModularFeatureList featureList) {
+    Int2ObjectMap<FeatureListRow> map = new Int2ObjectArrayMap<>(featureList.getRows().size());
+    for (final FeatureListRow row : featureList.getRows()) {
+      map.put(row.getID(), row);
+    }
+    return map;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.correlation.CorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RFullCorrelationData;
+import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.main.MZmineCore;
@@ -45,6 +46,7 @@ import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.io.File;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
@@ -118,6 +120,12 @@ public class CorrelatedFeaturesMzHistogramTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
+    Optional<R2RMap<RowsRelationship>> ms1CorrelationMap = flist.getMs1CorrelationMap();
+    if (ms1CorrelationMap.isEmpty()) {
+      setStatus(TaskStatus.FINISHED);
+      logger.fine("Apply correlation before this visualizer");
+      return;
+    }
 
     StringBuilder csvOutput = new StringBuilder();
     StringBuilder csvOutputNeutralMass = new StringBuilder();
@@ -126,7 +134,7 @@ public class CorrelatedFeaturesMzHistogramTask extends AbstractTask {
     DoubleArrayList deltaMZToNeutralMassList = new DoubleArrayList();
 
     int counter = 0;
-    for (RowsRelationship r2r : flist.getMs1CorrelationMap().values()) {
+    for (RowsRelationship r2r : ms1CorrelationMap.get().values()) {
       if (r2r instanceof R2RFullCorrelationData corr) {
         FeatureListRow a = corr.getRowA();
         FeatureListRow b = corr.getRowB();
