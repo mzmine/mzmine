@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,6 +44,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
 import java.util.LinkedHashSet;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.data.Range;
@@ -100,8 +101,12 @@ public class FeatureShapeMobilogramChart extends BufferedChartNode {
     }
 
     chart.addDatasets(datasets);
-    chart.getXYPlot().getDomainAxis().setRange(defaultRange);
-    chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
+    try {
+      chart.getXYPlot().getDomainAxis().setRange(defaultRange);
+      chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
+    } catch (NoSuchElementException e) {
+      System.out.println("Exception for row " + row.getID());
+    }
 
     setChartCreateImage(chart, GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH,
         GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);

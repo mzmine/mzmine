@@ -198,7 +198,9 @@ public class GraphStreamUtils {
         .map(nodes -> new NetworkCluster(nodes, nextClusterId.getAndIncrement())).toList();
 
     if (addAttribute) {
-      for (NetworkCluster(List<Node> nodes, int id) : sortedClusters) {
+      for (var cluster : sortedClusters) {
+        int id = cluster.id();
+        List<Node> nodes = cluster.nodes();
         for (final Node node : nodes) {
           node.setAttribute(NodeAtt.CLUSTER_ID.toString(), id);
           node.setAttribute(NodeAtt.CLUSTER_SIZE.toString(), nodes.size());

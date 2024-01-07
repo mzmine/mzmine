@@ -62,7 +62,8 @@ public class MassvoltammogramFromFeatureListParameters extends SimpleParameterSe
 
   public MassvoltammogramFromFeatureListParameters() {
     super(new Parameter[]{featureLists, reactionMode, delayTime, potentialRampSpeed, potentialRange,
-        stepSize, mzRange});
+            stepSize, mzRange},
+        "https://mzmine.github.io/mzmine_documentation/visualization_modules/massvoltammogram/massvoltammogram.html");
   }
 }
 

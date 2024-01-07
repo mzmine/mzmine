@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,6 +42,7 @@ import io.github.mzmine.util.IsotopePatternUtils;
 import io.github.mzmine.util.IsotopesUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -314,25 +315,31 @@ class IsotopesUtilsTest {
     final IsotopePattern isotopes = getPattern(getBr3C10IsotopePatter(), 1);
     final double mz3 = isotopes.getMzValue(3);
 
-    assertEquals(3, isotopes.binarySearch(mz3, true));
-    assertEquals(3, isotopes.binarySearch(mz3, false));
-    assertEquals(3, isotopes.binarySearch(mz3 + 0.00001, true));
-    assertEquals(-5, isotopes.binarySearch(mz3 + 0.00001, false));
-    assertEquals(3, isotopes.binarySearch(mz3 - 0.00001, true));
-    assertEquals(-4, isotopes.binarySearch(mz3 - 0.00001, false));
+    assertEquals(3, isotopes.binarySearch(mz3, DefaultTo.CLOSEST_VALUE));
+    assertEquals(3, isotopes.binarySearch(mz3, DefaultTo.MINUS_INSERTION_POINT));
+    assertEquals(3, isotopes.binarySearch(mz3 + 0.00001, DefaultTo.CLOSEST_VALUE));
+    assertEquals(-5, isotopes.binarySearch(mz3 + 0.00001, DefaultTo.MINUS_INSERTION_POINT));
+    assertEquals(3, isotopes.binarySearch(mz3 - 0.00001, DefaultTo.CLOSEST_VALUE));
+    assertEquals(-4, isotopes.binarySearch(mz3 - 0.00001, DefaultTo.MINUS_INSERTION_POINT));
 
-    assertEquals(0, isotopes.binarySearch(isotopes.getMzValue(0), true));
-    assertEquals(0, isotopes.binarySearch(isotopes.getMzValue(0), false));
+    assertEquals(0, isotopes.binarySearch(isotopes.getMzValue(0), DefaultTo.CLOSEST_VALUE));
+    assertEquals(0, isotopes.binarySearch(isotopes.getMzValue(0), DefaultTo.MINUS_INSERTION_POINT));
     // out of bounds
-    assertEquals(0, isotopes.binarySearch(isotopes.getMzValue(0) - 0.0001, true));
-    assertEquals(-1, isotopes.binarySearch(isotopes.getMzValue(0) - 0.0001, false));
+    assertEquals(0,
+        isotopes.binarySearch(isotopes.getMzValue(0) - 0.0001, DefaultTo.CLOSEST_VALUE));
+    assertEquals(-1,
+        isotopes.binarySearch(isotopes.getMzValue(0) - 0.0001, DefaultTo.MINUS_INSERTION_POINT));
 
     final int size = isotopes.getNumberOfDataPoints();
-    assertEquals(size - 1, isotopes.binarySearch(isotopes.getMzValue(size - 1), true));
-    assertEquals(size - 1, isotopes.binarySearch(isotopes.getMzValue(size - 1), false));
+    assertEquals(size - 1,
+        isotopes.binarySearch(isotopes.getMzValue(size - 1), DefaultTo.CLOSEST_VALUE));
+    assertEquals(size - 1,
+        isotopes.binarySearch(isotopes.getMzValue(size - 1), DefaultTo.MINUS_INSERTION_POINT));
     // out of bounds
-    assertEquals(size - 1, isotopes.binarySearch(isotopes.getMzValue(size - 1) + 0.001, true));
-    assertEquals(-(size + 1), isotopes.binarySearch(isotopes.getMzValue(size - 1) + 0.001, false));
+    assertEquals(size - 1,
+        isotopes.binarySearch(isotopes.getMzValue(size - 1) + 0.001, DefaultTo.CLOSEST_VALUE));
+    assertEquals(-(size + 1), isotopes.binarySearch(isotopes.getMzValue(size - 1) + 0.001,
+        DefaultTo.MINUS_INSERTION_POINT));
   }
 
   @Test
