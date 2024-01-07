@@ -107,61 +107,35 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
   }
 
   private void initElementRatioValues(IElement elementOne, IElement elementTwo, double[] values) {
-    List<Object> annotations = filteredRows.stream().map(FeatureListRow::getPreferredAnnotation)
-        .toList();
-    for (int i = 0; i < annotations.size(); i++) {
-      switch (annotations.get(i)) {
-        case MatchedLipid lipid -> {
+    for (int i = 0; i < filteredRows.size(); i++) {
+      Object preferredAnnotation = filteredRows.get(i).getPreferredAnnotation();
+      if (preferredAnnotation != null) {
+        String formula = getFormulaFromAnnotation(preferredAnnotation);
+        if (formula != null) {
           int elementOneCount = MolecularFormulaManipulator.getElementCount(
-              lipid.getLipidAnnotation().getMolecularFormula(), elementOne);
-          int elementTwoCount = MolecularFormulaManipulator.getElementCount(
-              lipid.getLipidAnnotation().getMolecularFormula(), elementTwo);
-          if (elementOneCount > 0 && elementTwoCount > 0) {
-            values[i] = (double) elementOneCount / elementTwoCount;
-          } else {
-            values[i] = 0.0;
-          }
-        }
-        case FeatureAnnotation ann -> {
-          int elementOneCount = MolecularFormulaManipulator.getElementCount(
-              Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormula(ann.getFormula())),
+              Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormula(formula)),
               elementOne);
           int elementTwoCount = MolecularFormulaManipulator.getElementCount(
-              Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormula(ann.getFormula())),
+              Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormula(formula)),
               elementTwo);
-          if (elementOneCount > 0 && elementTwoCount > 0) {
-            values[i] = (double) elementOneCount / elementTwoCount;
-          } else {
-            values[i] = 0.0;
-          }
+          values[i] = (elementOneCount > 0 && elementTwoCount > 0) ? (double) elementOneCount
+              / elementTwoCount : 0.0;
+        } else {
+          values[i] = 0.0;
         }
-        case ManualAnnotation ann -> {
-          int elementOneCount = MolecularFormulaManipulator.getElementCount(
-              Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormula(ann.getFormula())),
-              elementOne);
-          int elementTwoCount = MolecularFormulaManipulator.getElementCount(
-              Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormula(ann.getFormula())),
-              elementTwo);
-          if (elementOneCount > 0 && elementTwoCount > 0) {
-            values[i] = (double) elementOneCount / elementTwoCount;
-          } else {
-            values[i] = 0.0;
-          }
-        }
-        case MolecularFormulaIdentity ann -> {
-          int elementOneCount = MolecularFormulaManipulator.getElementCount(Objects.requireNonNull(
-              FormulaUtils.createMajorIsotopeMolFormula(ann.getFormulaAsString())), elementOne);
-          int elementTwoCount = MolecularFormulaManipulator.getElementCount(Objects.requireNonNull(
-              FormulaUtils.createMajorIsotopeMolFormula(ann.getFormulaAsString())), elementTwo);
-          if (elementOneCount > 0 && elementTwoCount > 0) {
-            values[i] = (double) elementOneCount / elementTwoCount;
-          } else {
-            values[i] = 0.0;
-          }
-        }
-        default -> throw new IllegalStateException("Unexpected value: " + annotations.get(i));
       }
     }
+  }
+
+  private String getFormulaFromAnnotation(Object annotation) {
+    return switch (annotation) {
+      case MatchedLipid lipid ->
+          MolecularFormulaManipulator.getString(lipid.getLipidAnnotation().getMolecularFormula());
+      case FeatureAnnotation ann -> ann.getFormula();
+      case ManualAnnotation ann -> ann.getFormula();
+      case MolecularFormulaIdentity ann -> ann.getFormulaAsString();
+      default -> null;
+    };
   }
 
   private void initDimensionValues(double[] values,
