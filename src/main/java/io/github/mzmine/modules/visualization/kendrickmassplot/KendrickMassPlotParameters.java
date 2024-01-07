@@ -47,7 +47,7 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
 
   public static final ComboParameter<KendrickPlotDataTypes> xAxisValues = new ComboParameter<>(
       "X-Axis", "Select a parameter to be plotted on axis", KendrickPlotDataTypes.values(),
-      KendrickPlotDataTypes.M_OVER_Z);
+      KendrickPlotDataTypes.MZ);
 
   public static final StringParameter xAxisCustomKendrickMassBase = new StringParameter(
       "Repeating unit for x-Axis",

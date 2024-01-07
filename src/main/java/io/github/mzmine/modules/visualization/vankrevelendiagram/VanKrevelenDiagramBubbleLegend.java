@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,7 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.kendrickmassplot;
+
+package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
 import io.github.mzmine.main.MZmineCore;
 import java.text.NumberFormat;
@@ -36,24 +37,23 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 
-public class KendrickMassPlotBubbleLegend extends BorderPane {
+public class VanKrevelenDiagramBubbleLegend extends BorderPane {
 
-  private final KendrickMassPlotXYZDataset kendrickMassPlotXYZDataset;
+  private final VanKrevelenDiagramXYZDataset vanKrevelenDiagramXYZDataset;
 
-  public KendrickMassPlotBubbleLegend(KendrickMassPlotXYZDataset kendrickMassPlotXYZDataset) {
-    this.kendrickMassPlotXYZDataset = kendrickMassPlotXYZDataset;
+  public VanKrevelenDiagramBubbleLegend(VanKrevelenDiagramXYZDataset vanKrevelenDiagramXYZDataset) {
+    this.vanKrevelenDiagramXYZDataset = vanKrevelenDiagramXYZDataset;
     init();
   }
 
   private void init() {
-    double min = Arrays.stream(kendrickMassPlotXYZDataset.getBubbleSizeValues()).min().orElse(0.0);
-    double max = Arrays.stream(kendrickMassPlotXYZDataset.getBubbleSizeValues()).max().orElse(0.0);
+    double min = Arrays.stream(vanKrevelenDiagramXYZDataset.getBubbleSizeValues()).min().orElse(0.0);
+    double max = Arrays.stream(vanKrevelenDiagramXYZDataset.getBubbleSizeValues()).max().orElse(0.0);
     GridPane gridPane = new GridPane();
     gridPane.setHgap(10);
     gridPane.setVgap(10);
     gridPane.setPadding(new Insets(10));
-    Text valueType = new Text(
-        kendrickMassPlotXYZDataset.getBubbleKendrickDataType().getName());
+    Text valueType = new Text(vanKrevelenDiagramXYZDataset.getBubbleVanKrevelenDataType().getName());
     gridPane.add(valueType, 0, 0);
     GridPane.setHalignment(valueType, HPos.CENTER);
     GridPane.setValignment(valueType, VPos.CENTER);
@@ -69,37 +69,26 @@ public class KendrickMassPlotBubbleLegend extends BorderPane {
     gridPane.add(bigBubble, 2, 1);
     GridPane.setHalignment(bigBubble, HPos.CENTER);
     GridPane.setValignment(bigBubble, VPos.CENTER);
-    NumberFormat numberFormat = identifyNumberFormat(
-        kendrickMassPlotXYZDataset.getBubbleKendrickDataType());
-    Text smallValue = new Text(
-        numberFormat.format(min));
+    NumberFormat numberFormat = identifyNumberFormat(vanKrevelenDiagramXYZDataset.getBubbleVanKrevelenDataType());
+    Text smallValue = new Text(numberFormat.format(min));
     gridPane.add(smallValue, 0, 2);
     GridPane.setHalignment(smallValue, HPos.CENTER);
     GridPane.setValignment(smallValue, VPos.CENTER);
-    Text bigValue = new Text(
-        numberFormat.format(max));
+    Text bigValue = new Text(numberFormat.format(max));
     gridPane.add(bigValue, 2, 2);
     GridPane.setHalignment(bigValue, HPos.CENTER);
     GridPane.setValignment(bigValue, VPos.CENTER);
     this.setCenter(gridPane);
   }
 
-  private NumberFormat identifyNumberFormat(KendrickPlotDataTypes bubbleKendrickDataType) {
-    switch (bubbleKendrickDataType) {
-      case MZ, KENDRICK_MASS -> {
-        return MZmineCore.getConfiguration().getMZFormat();
-      }
-      case KENDRICK_MASS_DEFECT, REMAINDER_OF_KENDRICK_MASS, RETENTION_TIME, TAILING_FACTOR, ASYMMETRY_FACTOR, FWHM -> {
-        return MZmineCore.getConfiguration().getRTFormat();
-      }
-      case MOBILITY -> {
-        return MZmineCore.getConfiguration().getMobilityFormat();
-      }
-      case INTENSITY, AREA -> {
-        return MZmineCore.getConfiguration().getIntensityFormat();
-      }
-    }
-    return MZmineCore.getConfiguration().getRTFormat();
+  private NumberFormat identifyNumberFormat(VanKrevelenDiagramDataTypes bubbleVanKrevelenDiagramDataTypes) {
+    return switch (bubbleVanKrevelenDiagramDataTypes) {
+      case MZ -> MZmineCore.getConfiguration().getMZFormat();
+      case RETENTION_TIME, TAILING_FACTOR, ASYMMETRY_FACTOR, FWHM ->
+          MZmineCore.getConfiguration().getRTFormat();
+      case MOBILITY -> MZmineCore.getConfiguration().getMobilityFormat();
+      case INTENSITY, AREA -> MZmineCore.getConfiguration().getIntensityFormat();
+    };
   }
 
   private Circle createBubble(int size) {

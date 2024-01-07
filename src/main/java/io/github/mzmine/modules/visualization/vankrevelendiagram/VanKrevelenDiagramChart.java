@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,7 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.kendrickmassplot;
+
+package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
@@ -37,6 +38,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.axis.AxisLocation;
@@ -45,31 +47,24 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.ui.RectangleEdge;
 
-public class KendrickMassPlotChart extends EChartViewer {
+public class VanKrevelenDiagramChart extends EChartViewer {
 
   private final String colorScaleLabel;
   private final Color legendBg = new Color(0, 0, 0, 0);
 
-  public KendrickMassPlotChart(String title, String xAxisLabel, String yAxisLabel,
-      String colorScaleLabel, KendrickMassPlotXYZDataset dataset) {
-    super(ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset,
-        PlotOrientation.VERTICAL, false, true, true));
+  public VanKrevelenDiagramChart(String title, String xAxisLabel, String yAxisLabel, String colorScaleLabel, VanKrevelenDiagramXYZDataset dataset) {
+    super(ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset, PlotOrientation.VERTICAL, false, true, true));
     this.colorScaleLabel = colorScaleLabel;
 
     EStandardChartTheme defaultChartTheme = MZmineCore.getConfiguration().getDefaultChartTheme();
     defaultChartTheme.apply(this);
     double[] colorScaleValues = dataset.getColorScaleValues();
     final double[] quantiles = MathUtils.calcQuantile(colorScaleValues, new double[]{0.00, 1.00});
-    PaintScale paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
-        .toPaintScale(PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
-    if (dataset.getParameters().getParameter(KendrickMassPlotParameters.yAxisValues).getValue()
-        .isKendrickType()) {
-      getChart().getXYPlot().getRangeAxis().setRange(-0.5, 0.5);
-    }
-    if (dataset.getParameters().getParameter(KendrickMassPlotParameters.xAxisValues).getValue()
-        .isKendrickType()) {
-      getChart().getXYPlot().getDomainAxis().setRange(-0.5, 0.5);
-    }
+    PaintScale paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette().toPaintScale(PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
+    getChart().getXYPlot().getRangeAxis().setRange(Arrays.stream(dataset.getyValues()).min().orElse(0.0),
+        Arrays.stream(dataset.getyValues()).max().orElse(0.0));
+    getChart().getXYPlot().getDomainAxis().setRange(Arrays.stream(dataset.getxValues()).min().orElse(0.0),
+        Arrays.stream(dataset.getxValues()).max().orElse(0.0));
     ColoredBubbleDatasetRenderer renderer = new ColoredBubbleDatasetRenderer();
     renderer.setPaintScale(paintScale);
     PaintScaleLegend legend = generateLegend(paintScale);
@@ -83,8 +78,7 @@ public class KendrickMassPlotChart extends EChartViewer {
     Font axisTickLabelFont = this.getChart().getXYPlot().getDomainAxis().getTickLabelFont();
 
     NumberAxis scaleAxis = new NumberAxis(null);
-    scaleAxis.setRange(scale.getLowerBound(),
-        Math.max(scale.getUpperBound(), scale.getUpperBound()));
+    scaleAxis.setRange(scale.getLowerBound(), Math.max(scale.getUpperBound(), scale.getUpperBound()));
     scaleAxis.setAxisLinePaint(axisPaint);
     scaleAxis.setTickMarkPaint(axisPaint);
     scaleAxis.setNumberFormatOverride(new DecimalFormat("0.#"));
@@ -107,4 +101,3 @@ public class KendrickMassPlotChart extends EChartViewer {
   }
 
 }
-

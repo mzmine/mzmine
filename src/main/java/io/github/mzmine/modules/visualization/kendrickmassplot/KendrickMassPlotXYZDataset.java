@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
@@ -46,7 +47,8 @@ import org.jfree.data.xy.AbstractXYZDataset;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Task {
+public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Task,
+    XYZBubbleDataset {
 
   protected final @NotNull Property<TaskStatus> status = new SimpleObjectProperty<>(
       TaskStatus.WAITING);
@@ -163,115 +165,36 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     setStatus(TaskStatus.FINISHED);
   }
 
+
   private void initDimensionValues(double[] values, String kendrickMassBase,
       KendrickPlotDataTypes kendrickPlotDataType, int divisor, int charge) {
-    boolean isKendrickType = kendrickPlotDataType.isKendrickType();
-    if (isKendrickType) {
+    for (int i = 0; i < selectedRows.length; i++) {
+      FeatureListRow row = selectedRows[i];
       switch (kendrickPlotDataType) {
-        case KENDRICK_MASS -> calculateKMs(values, kendrickMassBase, divisor, charge);
-        case KENDRICK_MASS_DEFECT -> calculateKMDs(values, kendrickMassBase, divisor, charge);
-        case REMAINDER_OF_KENDRICK_MASS -> calculateRKMs(values, kendrickMassBase, divisor, charge);
+        case KENDRICK_MASS ->
+            values[i] = calculateKendrickMassChargeAndDivisorDependent(row.getAverageMZ(),
+                kendrickMassBase, charge, divisor);
+        case KENDRICK_MASS_DEFECT ->
+            values[i] = calculateKendrickMassDefectChargeAndDivisorDependent(row.getAverageMZ(),
+                kendrickMassBase, charge, divisor);
+        case REMAINDER_OF_KENDRICK_MASS ->
+            values[i] = calculateRemainderOfKendrickMassChargeAndDivisorDependent(
+                row.getAverageMZ(), kendrickMassBase, charge, divisor);
+        case MZ -> values[i] = row.getAverageMZ();
+        case RETENTION_TIME -> values[i] = row.getAverageRT();
+        case MOBILITY ->
+            values[i] = (row.getAverageMobility() != null) ? row.getAverageMobility() : 0.0;
+        case INTENSITY -> values[i] = row.getAverageHeight();
+        case AREA -> values[i] = row.getAverageArea();
+        case TAILING_FACTOR -> values[i] =
+            (row.getBestFeature().getTailingFactor() != null) ? row.getBestFeature()
+                .getTailingFactor() : 0.0;
+        case ASYMMETRY_FACTOR -> values[i] =
+            (row.getBestFeature().getAsymmetryFactor() != null) ? row.getBestFeature()
+                .getAsymmetryFactor() : 0.0;
+        case FWHM -> values[i] =
+            (row.getBestFeature().getFWHM() != null) ? row.getBestFeature().getFWHM() : 0.0;
       }
-    } else {
-      switch (kendrickPlotDataType) {
-        case M_OVER_Z -> {
-          useMZ(values);
-        }
-        case RETENTION_TIME -> {
-          useRT(values);
-        }
-        case MOBILITY -> {
-          useMobility(values);
-        }
-        case INTENSITY -> {
-          useIntensity(values);
-        }
-        case AREA -> {
-          useArea(values);
-        }
-        case TAILING_FACTOR -> {
-          useTailingFactor(values);
-        }
-        case ASYMMETRY_FACTOR -> {
-          useAsymmetryFactor(values);
-        }
-        case FWHM -> {
-          useFwhm(values);
-        }
-      }
-    }
-  }
-
-  private void useFwhm(double[] values) {
-    for (int i = 0; i < selectedRows.length; i++) {
-      values[i] = selectedRows[i].getBestFeature().getFWHM();
-    }
-  }
-
-  private void useAsymmetryFactor(double[] values) {
-    for (int i = 0; i < selectedRows.length; i++) {
-      values[i] = selectedRows[i].getBestFeature().getAsymmetryFactor();
-    }
-  }
-
-  private void useTailingFactor(double[] values) {
-    for (int i = 0; i < selectedRows.length; i++) {
-      values[i] = selectedRows[i].getBestFeature().getTailingFactor();
-    }
-  }
-
-  private void useArea(double[] values) {
-    for (int i = 0; i < selectedRows.length; i++) {
-      values[i] = selectedRows[i].getAverageArea();
-    }
-  }
-
-  private void useIntensity(double[] values) {
-    for (int i = 0; i < selectedRows.length; i++) {
-      values[i] = selectedRows[i].getAverageHeight();
-    }
-  }
-
-  private void useMobility(double[] values) {
-    for (int i = 0; i < selectedRows.length; i++) {
-      if (selectedRows[i].getAverageMobility() != null) {
-        values[i] = selectedRows[i].getAverageMobility();
-      } else {
-        values[i] = 0;
-      }
-    }
-  }
-
-  private void useRT(double[] values) {
-    for (int i = 0; i < selectedRows.length; i++) {
-      values[i] = selectedRows[i].getAverageRT();
-    }
-  }
-
-  private void useMZ(double[] values) {
-    for (int i = 0; i < selectedRows.length; i++) {
-      values[i] = selectedRows[i].getAverageMZ();
-    }
-  }
-
-  private void calculateKMDs(double[] values, String kendrickMassBase, int divisor, int charge) {
-    for (int i = 0; i < selectedRows.length; i++) {
-      values[i] = calculateKendrickMassDefectChargeAndDivisorDependent(
-          selectedRows[i].getAverageMZ(), kendrickMassBase, charge, divisor);
-    }
-  }
-
-  private void calculateRKMs(double[] values, String kendrickMassBase, int divisor, int charge) {
-    for (int i = 0; i < selectedRows.length; i++) {
-      values[i] = calculateRemainderOfKendrickMassChargeAndDivisorDependent(
-          selectedRows[i].getAverageMZ(), kendrickMassBase, charge, divisor);
-    }
-  }
-
-  private void calculateKMs(double[] values, String kendrickMassBase, int divisor, int charge) {
-    for (int i = 0; i < selectedRows.length; i++) {
-      values[i] = calculateKendrickMassChargeAndDivisorDependent(selectedRows[i].getAverageMZ(),
-          kendrickMassBase, charge, divisor);
     }
   }
 
@@ -319,7 +242,9 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     }
   }
 
-  public double getBubbleSize(int series, int item) {
+
+  @Override
+  public double getBubbleSizeValue(int series, int item) {
     if (status.getValue().equals(TaskStatus.FINISHED)) {
       return bubbleSizeValues[item];
     } else {
