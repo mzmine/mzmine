@@ -218,15 +218,14 @@ public class MatchedLipid {
           msMsScore = Double.parseDouble(reader.getElementText());
           break;
         case XML_COMMENT:
-          if (Objects.equals(reader.getElementText(), "NULL_VALUE")) {
+          if (Objects.equals(reader.getElementText(), CONST.XML_NULL_VALUE)) {
             comment = "";
           } else {
             comment = reader.getElementText();
           }
           break;
         case XML_STATUS:
-          status = ParsingUtils.matchedLipidStatusNameToMatchedLipidStatusType(
-              reader.getElementText());
+          status = MatchedLipidStatus.valueOf(reader.getElementText());
           break;
         default:
           break;
