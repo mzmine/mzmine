@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Modified cosine similarity between two rows imported from GNPS results
  */
-public class R2RMS2CosineSimilarityGNPS extends AbstractRowsRelationship {
+public class R2RMS2CosineSimilarityGNPS extends InternalTypedRowsRelationship {
 
   private final double cosine;
   private final String annotation;
@@ -46,7 +46,7 @@ public class R2RMS2CosineSimilarityGNPS extends AbstractRowsRelationship {
    */
   public R2RMS2CosineSimilarityGNPS(FeatureListRow a, FeatureListRow b, double cosine,
       String annotation, String edgeType) {
-    super(a, b);
+    super(a, b, Type.MS2_GNPS_COSINE_SIM);
     this.cosine = cosine;
     this.annotation = annotation;
     this.edgeType = edgeType;
@@ -66,12 +66,6 @@ public class R2RMS2CosineSimilarityGNPS extends AbstractRowsRelationship {
   @Override
   public double getScore() {
     return getCosineSimilarity();
-  }
-
-  @NotNull
-  @Override
-  public Type getType() {
-    return Type.MS2_GNPS_COSINE_SIM;
   }
 
   @NotNull

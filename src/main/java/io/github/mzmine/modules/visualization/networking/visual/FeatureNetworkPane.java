@@ -371,8 +371,7 @@ public class FeatureNetworkPane extends NetworkPane {
       if (type != null) {
         switch (type) {
           case ION_IDENTITY -> setVisible(edge, !collapse);
-          case MODIFIED_COSINE_NEUTRAL_M_TO_FEATURE, MODIFIED_COSINE_NEUTRAL_M, MODIFIED_COSINE, NETWORK_RELATIONS ->
-              setVisible(edge, true);
+          case MS2_MODIFIED_COSINE, NETWORK_RELATIONS -> setVisible(edge, true);
           default -> {
           }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,8 +28,11 @@ package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
@@ -44,7 +47,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class BioTransformerSingleRowTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(BioTransformerSingleRowTask.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      BioTransformerSingleRowTask.class.getName());
 
   private final ModularFeatureListRow row;
   private final String smiles;
@@ -52,6 +56,8 @@ public class BioTransformerSingleRowTask extends AbstractTask {
   private final ParameterSet parameters;
   private final File bioPath;
   private final MZTolerance mzTolerance;
+  private final boolean rowCorrelationFilter;
+  private final RTTolerance rtTolerance;
   private String description;
 
   public BioTransformerSingleRowTask(ModularFeatureListRow row, String smiles, String prefix,
@@ -63,6 +69,14 @@ public class BioTransformerSingleRowTask extends AbstractTask {
     this.parameters = parameters;
     bioPath = parameters.getValue(BioTransformerParameters.bioPath);
     mzTolerance = parameters.getValue(BioTransformerParameters.mzTol);
+
+    final boolean enableAdvancedFilters = parameters.getValue(BioTransformerParameters.advanced);
+    final ParameterSet filterParams = parameters.getEmbeddedParameterValue(
+        BioTransformerParameters.advanced);
+    rowCorrelationFilter = enableAdvancedFilters && filterParams.getValue(
+        RtClusterFilterParameters.rowCorrelationFilter);
+    rtTolerance = enableAdvancedFilters ? filterParams.getEmbeddedParameterValueIfSelectedOrElse(
+        RtClusterFilterParameters.rtTolerance, null) : null;
 
     description = "Biotransformer task - SMILES: " + smiles;
   }
@@ -95,12 +109,12 @@ public class BioTransformerSingleRowTask extends AbstractTask {
 
     final List<CompoundDBAnnotation> bioTransformerAnnotations;
     try {
-      bioTransformerAnnotations = BioTransformerTask.singleRowPrediction(
-          row.getID(), smiles, prefix, bioPath, parameters);
+      bioTransformerAnnotations = BioTransformerTask.singleRowPrediction(row.getID(), smiles,
+          prefix, bioPath, parameters);
     } catch (IOException e) {
       logger.log(Level.WARNING, e.getMessage(), e);
       setErrorMessage("Error reading/writing temporary files during BioTransformer prediciton.\n"
-          + e.getMessage());
+                      + e.getMessage());
       setStatus(TaskStatus.ERROR);
       return;
     }
@@ -110,12 +124,24 @@ public class BioTransformerSingleRowTask extends AbstractTask {
       return;
     }
 
+    // rtTolerance filtering enabled -> we need to set the rt of the main compound to the
+    // annotation for the filtering to work. Otherwise we don't set an rt to avoid confusion
+    if (rtTolerance != null) {
+      bioTransformerAnnotations.forEach(a -> a.put(RTType.class, row.getAverageRT()));
+    }
+
     final ModularFeatureList flist = row.getFeatureList();
+    final var ms1Groups = flist.getMs1CorrelationMap();
     for (CompoundDBAnnotation annotation : bioTransformerAnnotations) {
       flist.stream().forEach(r -> {
         final CompoundDBAnnotation clone = annotation.checkMatchAndCalculateDeviation(r,
-            mzTolerance, null, null, null);
+            mzTolerance, rtTolerance, null, null);
         if (clone != null) {
+          final RowsRelationship correlation = ms1Groups.map(map -> map.get(row, r)).orElse(null);
+          if (rowCorrelationFilter && correlation == null) {
+            return;
+          }
+
           r.addCompoundAnnotation(clone);
           row.getCompoundAnnotations()
               .sort(Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));

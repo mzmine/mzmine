@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,8 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 
 public class BioTransformerFilterParameters extends SimpleParameterSet {
 
-  public static final BooleanParameter eductMustHaveMsMs = new BooleanParameter("Educt must have MS/MS",
+  public static final BooleanParameter eductMustHaveMsMs = new BooleanParameter(
+      "Educt must have MS/MS",
       "Transformation products will only be predicted for educts with MS/MS.", false);
 
   public static final OptionalParameter<DoubleParameter> minEductHeight = new OptionalParameter<>(
@@ -52,6 +53,8 @@ public class BioTransformerFilterParameters extends SimpleParameterSet {
           MZmineCore.getConfiguration().getIntensityFormat(), 1E4), false);
 
   public BioTransformerFilterParameters() {
-    super(new Parameter[] {eductMustHaveMsMs, minEductHeight, productMustHaveMsMs, minProductHeight});
+    super(
+        new Parameter[]{eductMustHaveMsMs, minEductHeight, productMustHaveMsMs, minProductHeight});
   }
+
 }

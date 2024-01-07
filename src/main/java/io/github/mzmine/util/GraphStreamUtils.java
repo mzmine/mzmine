@@ -316,6 +316,26 @@ public class GraphStreamUtils {
   /**
    * Creates a filtered graph with only the selected nodes and all edges between those nodes.
    *
+   * @param edges list of filtered edges
+   * @return filtered graph
+   */
+  @NotNull
+  public static MultiGraph createFilteredCopy(Graph source, final List<Edge> edges) {
+    MultiGraph gl = new MultiGraph("layout_graph");
+
+    // all nodes
+    source.nodes().forEach(n -> addCopy(gl, n));
+    // filtered edges
+    for (Edge edge : edges) {
+      addCopy(gl, edge);
+    }
+
+    return gl;
+  }
+
+  /**
+   * Creates a filtered graph with only the selected nodes and all edges between those nodes.
+   *
    * @param nodes list of filtered nodes
    * @return filtered graph
    */
@@ -395,7 +415,7 @@ public class GraphStreamUtils {
    * @return set of unique values
    */
   public static Set<String> getUniqueEdgeTypes(final MultiGraph graph) {
-    return graph.edges().map(e -> getStringOrElse(e, EdgeAtt.TYPE, "NONE"))
+    return graph.edges().map(e -> getStringOrElse(e, EdgeAtt.TYPE_STRING, "UNDEFINED"))
         .collect(Collectors.toUnmodifiableSet());
   }
 
