@@ -355,7 +355,9 @@ public class ModularFeatureList implements FeatureList {
   public void addFeatureType(Collection<DataType> types) {
     for (DataType<?> type : types) {
       if (!hasFeatureType(type)) {
-        featureTypes.add(type);
+        synchronized (featureTypes) {
+          featureTypes.add(type);
+        }
       }
     }
   }
@@ -369,7 +371,9 @@ public class ModularFeatureList implements FeatureList {
   public void addRowType(Collection<DataType> types) {
     for (DataType<?> type : types) {
       if (!hasRowType(type)) {
-        rowTypes.add(type);
+        synchronized (rowTypes) {
+          rowTypes.add(type);
+        }
       }
     }
   }
