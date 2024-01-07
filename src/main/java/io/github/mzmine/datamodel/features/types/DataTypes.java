@@ -149,6 +149,14 @@ public class DataTypes {
   }
 
   /**
+   * Get a list of the singleton datatypes, same order as input
+   */
+  @SafeVarargs
+  public static List<DataType> getAll(final Class<? extends DataType<?>>... classes) {
+    return Arrays.stream(classes).map(c -> TYPES.get(c.getName())).toList();
+  }
+
+  /**
    * @return A collection of all data type instances.
    */
   public static Collection<DataType> getInstances() {
@@ -197,12 +205,8 @@ public class DataTypes {
     return prioMap;
   }
 
-  public static List<DataType> getList(final Class... classes) {
-    return Arrays.stream(classes).map(c -> TYPES.get(c.getName())).toList();
-  }
-
   /**
-   * Check of type of clazz is contained in a collection of types
+   * Check if type of clazz is contained in a collection of types
    *
    * @param types collection of types
    * @param clazz type class
