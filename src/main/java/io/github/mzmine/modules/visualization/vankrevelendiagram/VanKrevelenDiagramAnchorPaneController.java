@@ -1,32 +1,37 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
-import java.awt.Color;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.logging.Logger;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.XYPlot;
-import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 
 public class VanKrevelenDiagramAnchorPaneController {
@@ -35,86 +40,49 @@ public class VanKrevelenDiagramAnchorPaneController {
 
   @FXML
   private BorderPane plotPane;
+  @FXML
+  private BorderPane bubbleLegendPane;
+
+  private ParameterSet parameters;
+
+
+  private FeatureList featureList;
 
   @FXML
-  private Button blockSizeButton;
+  public void initialize(ParameterSet parameters) {
+    this.parameters = parameters.cloneParameterSet();
+    this.featureList = parameters.getParameter(VanKrevelenDiagramParameters.featureList).getValue()
+        .getMatchingFeatureLists()[0];
 
-  @FXML
-  private Button backgroundButton;
-
-  @FXML
-  private Button gridButton;
-
-  @FXML
-  private Button annotationButton;
-
-  // Plot style actions
-  @FXML
-  void toggleAnnotation(ActionEvent event) {
-    logger.finest("Toggle annotations");
-    XYPlot plot = getChart().getXYPlot();
-    XYBlockPixelSizeRenderer renderer = (XYBlockPixelSizeRenderer) plot.getRenderer();
-    Boolean itemNameVisible = renderer.getDefaultItemLabelsVisible();
-    if (itemNameVisible == false) {
-      renderer.setDefaultItemLabelsVisible(true);
-    } else {
-      renderer.setDefaultItemLabelsVisible(false);
-    }
-    if (plot.getBackgroundPaint() == Color.BLACK) {
-      renderer.setDefaultItemLabelPaint(Color.WHITE);
-    } else {
-      renderer.setDefaultItemLabelPaint(Color.BLACK);
-    }
+    String title = "Van Krevelen Diagram of" + featureList;
+    String zAxisLabel = parameters.getParameter(VanKrevelenDiagramParameters.colorScaleValues)
+        .getValue().getName();
+    plotPane.setCenter(new Label("Preparing content"));
+    VanKrevelenDiagramXYZDataset vanKrevelenDiagramXYZDataset = new VanKrevelenDiagramXYZDataset(
+        parameters);
+    vanKrevelenDiagramXYZDataset.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      if (newStatus == TaskStatus.FINISHED) {
+        if (vanKrevelenDiagramXYZDataset.getItemCount(0) > 0) {
+          VanKrevelenDiagramChart vanKrevelenDiagramChart = new VanKrevelenDiagramChart(title,
+              "O/C", "H/C", zAxisLabel, vanKrevelenDiagramXYZDataset);
+          VanKrevelenDiagramBubbleLegend vanKrevelenDiagramBubbleLegend = new VanKrevelenDiagramBubbleLegend(
+              vanKrevelenDiagramXYZDataset);
+          MZmineCore.runLater(() -> {
+            plotPane.setCenter(vanKrevelenDiagramChart);
+            bubbleLegendPane.setCenter(vanKrevelenDiagramBubbleLegend);
+          });
+        } else {
+          MZmineCore.runLater(() -> {
+            plotPane.setCenter(new Label(
+                "Nothing to plot. Check if the selected feature list has annotations. A Van Krevelen Diagram requires molecular formulas."));
+          });
+        }
+      }
+    });
   }
 
-  @FXML
-  void toggleBackColor(ActionEvent event) {
-    logger.finest("Toggle background");
-    XYPlot plot = getChart().getXYPlot();
-    if (plot.getBackgroundPaint() == Color.WHITE) {
-      plot.setBackgroundPaint(Color.BLACK);
-    } else {
-      plot.setBackgroundPaint(Color.WHITE);
-    }
-  }
-
-  @FXML
-  void toggleBolckSize(ActionEvent event) {
-    logger.finest("Toggle block size");
-    XYPlot plot = getChart().getXYPlot();
-    XYBlockPixelSizeRenderer renderer = (XYBlockPixelSizeRenderer) plot.getRenderer();
-    int height = (int) renderer.getBlockHeightPixel();
-
-    if (height == 1) {
-      height++;
-    } else if (height == 5) {
-      height = 1;
-    } else if (height < 5 && height != 1) {
-      height++;
-    }
-    renderer.setBlockHeightPixel(height);
-    renderer.setBlockWidthPixel(height);
-  }
-
-  @FXML
-  void toggleGrid(ActionEvent event) {
-    logger.finest("Toggle grid");
-    XYPlot plot = getChart().getXYPlot();
-    if (plot.getDomainGridlinePaint() == Color.BLACK) {
-      plot.setDomainGridlinePaint(Color.WHITE);
-      plot.setRangeGridlinePaint(Color.WHITE);
-    } else {
-      plot.setDomainGridlinePaint(Color.BLACK);
-      plot.setRangeGridlinePaint(Color.BLACK);
-    }
-  }
-
-  private JFreeChart getChart() {
-    if (plotPane.getChildren().get(0) instanceof EChartViewer) {
-      EChartViewer viewer = (EChartViewer) plotPane.getChildren().get(0);
-      return viewer.getChart();
-    }
-    return null;
+  public FeatureList getFeatureList() {
+    return featureList;
   }
 
   public BorderPane getPlotPane() {

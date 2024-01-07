@@ -1,23 +1,32 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.io.File;
 import java.util.Collection;
@@ -54,24 +63,19 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * MS Level for search.
    */
   public static final IntegerParameter MS_LEVEL = new IntegerParameter("MS level",
-      "Choose MS level for spectal matching. Enter \"1\" for MS1 precursors or ADAP Cluster Spectra.",
+      "Choose MS level for spectal matching. Enter \"1\" for MS1 spectra or ADAP-GC Cluster Spectra.",
       2, 1, 1000);
 
   /**
    * Match factor cut-off.
    */
-  public static final IntegerParameter MIN_MATCH_FACTOR = new IntegerParameter("Min. match factor",
-      "The minimum match factor (0 .. 1000) that search hits must have", 700, 0, 1000);
+  public static final DoubleParameter DOT_PRODUCT = new DoubleParameter("Min cosine similarity",
+      "The minimum cosine similarity score (dot product) for identification",
+      MZmineCore.getConfiguration().getScoreFormat(),
+      0.7, 0.0, 1.0);
 
   /**
-   * Reverse match factor cut-off.
-   */
-  public static final IntegerParameter MIN_REVERSE_MATCH_FACTOR =
-      new IntegerParameter("Min. reverse match factor",
-          "The minimum reverse match factor (0 .. 1000) that search hits must have", 700, 0, 1000);
-
-  /**
-   * Optional MSMS merging parameters.
+   * Optional MS/MS merging parameters.
    */
   public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER =
       new OptionalModuleParameter<>("Merge MS/MS (experimental)",
@@ -82,8 +86,16 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * Optional MZ rounding.
    */
   public static final OptionalParameter<ComboParameter<IntegerMode>> INTEGER_MZ =
-      new OptionalParameter<>(new ComboParameter<IntegerMode>("Integer m/z",
-          "Merging mode for fractional m/z to unit mass", IntegerMode.values()), false);
+      new OptionalParameter<>(
+          new ComboParameter<>("Integer m/z", "Merging mode for fractional m/z to unit mass",
+              IntegerMode.values()), false);
+
+  /**
+   * Spectrum import option: Overwrite or Append.
+   */
+  public static final ComboParameter<ImportOption> IMPORT_PARAMETER =
+      new ComboParameter<>("Spectrum Import", "Import Options", ImportOption
+          .values(), ImportOption.OVERWRITE);
 
   // NIST MS Search executable.
   private static final String NIST_MS_SEARCH_EXE = "nistms$.exe";
@@ -92,8 +104,9 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * Construct the parameter set.
    */
   public NistMsSearchParameters() {
-    super(new Parameter[] {PEAK_LISTS, NIST_MS_SEARCH_DIR, MS_LEVEL, MIN_MATCH_FACTOR,
-        MIN_REVERSE_MATCH_FACTOR, MERGE_PARAMETER, INTEGER_MZ});
+    super(new Parameter[] {PEAK_LISTS, NIST_MS_SEARCH_DIR, MS_LEVEL, DOT_PRODUCT,
+        MERGE_PARAMETER, INTEGER_MZ, IMPORT_PARAMETER},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectra_NIST/NIST-ms-search.html");
   }
 
   @Override

@@ -1,25 +1,31 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_gridmass;
 
 import com.google.common.collect.Range;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -30,18 +36,18 @@ import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import java.util.Collection;
 
 public class GridMassParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter(new ScanSelection(1));
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      new ScanSelection(1));
 
   public static final DoubleRangeParameter timeSpan = new DoubleRangeParameter(
-      "Min-max width time (min)",
-      "Time range for a peak to be recognized as a 'mass'.\n"
-          + "The optimal value depends on the chromatography system setup.\nSee 2D raw data to determine typical time spans.",
+      "Min-max width time (min)", "Time range for a peak to be recognized as a 'mass'.\n"
+      + "The optimal value depends on the chromatography system setup.\nSee 2D raw data to determine typical time spans.",
       MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.1, 3.0));
 
   public static final DoubleParameter minimumHeight = new DoubleParameter("Minimum height",
@@ -52,8 +58,8 @@ public class GridMassParameters extends SimpleParameterSet {
       "Maximum difference in m/z to recognize features/peaks as the same.",
       MZmineCore.getConfiguration().getMZFormat(), 0.10);
 
-  public static final StringParameter suffix =
-      new StringParameter("Suffix", "This string is added to filename as suffix", "chromatograms");
+  public static final StringParameter suffix = new StringParameter("Suffix",
+      "This string is added to filename as suffix", "chromatograms");
 
   public static final DoubleParameter smoothingTimeSpan = new DoubleParameter(
       "Smoothing time (min)",
@@ -69,8 +75,8 @@ public class GridMassParameters extends SimpleParameterSet {
       "To reduce false positives removing similarly joint masses crowed along time (solvents or artifacts) > max time span.",
       MZmineCore.getConfiguration().getMZFormat(), 0.50);
 
-  public static final String[] debugLevels =
-      new String[] {"No debug", "Basic information", "Final peak information", "All information"};
+  public static final String[] debugLevels = new String[]{"No debug", "Basic information",
+      "Final peak information", "All information"};
 
   public static final ComboParameter<String> showDebug = new ComboParameter<String>(
       "Debugging level", "Shows details of the process. Useful to optimize parameters.",
@@ -81,8 +87,23 @@ public class GridMassParameters extends SimpleParameterSet {
       "0-0");
 
   public GridMassParameters() {
-    super(new Parameter[] {dataFiles, scanSelection, suffix, minimumHeight, mzTolerance, timeSpan,
-        smoothingTimeSpan, smoothingTimeMZ, intensitySimilarity, ignoreTimes, showDebug});
+    super(new Parameter[]{dataFiles, scanSelection, suffix, minimumHeight, mzTolerance, timeSpan,
+            smoothingTimeSpan, smoothingTimeMZ, intensitySimilarity, ignoreTimes, showDebug},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/lc-ms_featdet/featdet_gridmass/gridmass.html");
+  }
+
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages) {
+    boolean allParameterOK = super.checkParameterValues(errorMessages);
+
+    var selection = getValue(scanSelection);
+    if (!selection.getMsLevelFilter().isSingleMsLevel(1)) {
+      errorMessages.add("Grid Mass module is only suitable for MS level 1 data."
+          + "\nPlease, choose the correct level in Scans.");
+      allParameterOK = false;
+    }
+
+    return allParameterOK;
   }
 
 }

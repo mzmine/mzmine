@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.tools.kovats;
@@ -21,8 +28,6 @@ package io.github.mzmine.modules.tools.kovats;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.kovats.KovatsValues.KovatsIndex;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -51,42 +56,42 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
   );
 
   // last saved file
-  public static final FileNameParameter lastSavedFile =
-      new FileNameParameter("Last file", "Last saved file", extensions, FileSelectionType.SAVE);
+  public static final FileNameParameter lastSavedFile = new FileNameParameter("Last file",
+      "Last saved file", extensions, FileSelectionType.SAVE);
 
-  public static final StringParameter pickedKovatsValues =
-      new StringParameter("Picked Kovats values", "The picked values as C10:time,C12:time ... ");
+  public static final StringParameter pickedKovatsValues = new StringParameter(
+      "Picked Kovats values", "The picked values as C10:time,C12:time ... ");
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 2);
-  public static final DoubleParameter noiseLevel =
-      new DoubleParameter("Min intensity", "Minimum intensity to recognice a feature",
-          MZmineCore.getConfiguration().getIntensityFormat(), 0d);
+  public static final DoubleParameter noiseLevel = new DoubleParameter("Min intensity",
+      "Minimum intensity to recognice a feature",
+      MZmineCore.getConfiguration().getIntensityFormat(), 0d);
   public static final DoubleParameter ratioTopEdge = new DoubleParameter("Ratio top/edge",
       "Minimum ratio top/edge (left and right edge)", new DecimalFormat("0.0"), 3d);
   // limit ranges to show EIC
   public static final MZRangeParameter mzRange = new MZRangeParameter();
   public static final RTRangeParameter rtRange = new RTRangeParameter();
   // show min max kovats in list
-  public static final IntegerParameter minKovats =
-      new IntegerParameter("Min Kovats", "Show Kovats indexes from min", 8, 1, 49);
-  public static final IntegerParameter maxKovats =
-      new IntegerParameter("Max Kovats", "Show Kovats indexes until max (inclusive)", 24, 2, 50);
-  public static final MultiChoiceParameter<KovatsIndex> kovats =
-      new MultiChoiceParameter<KovatsIndex>("Kovats", "Choice of Kovats indexes",
-          KovatsIndex.values(), null);
+  public static final IntegerParameter minKovats = new IntegerParameter("Min Kovats",
+      "Show Kovats indexes from min", 8, 1, 49);
+  public static final IntegerParameter maxKovats = new IntegerParameter("Max Kovats",
+      "Show Kovats indexes until max (inclusive)", 24, 2, 50);
+  public static final MultiChoiceParameter<KovatsIndex> kovats = new MultiChoiceParameter<KovatsIndex>(
+      "Kovats", "Choice of Kovats indexes", KovatsIndex.values(), null);
 
   public KovatsIndexExtractionParameters() {
-    super(new Parameter[] {lastSavedFile, pickedKovatsValues,
+    super(lastSavedFile, pickedKovatsValues,
         // picking of features
         dataFiles, mzRange, rtRange, noiseLevel, ratioTopEdge,
         // kovats selection
         minKovats, maxKovats, kovats //
-    });
+    );
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    if ((getParameters() == null) || (getParameters().length == 0))
+    if ((getParameters() == null) || (getParameters().length == 0)) {
       return ExitCode.OK;
+    }
 
     // at least one raw data file in project
     RawDataFile[] raw = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
@@ -101,7 +106,7 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
     int max = getParameter(maxKovats).getValue();
     getParameter(kovats).setChoices(KovatsIndex.getRange(min, max));
 
-    ParameterSetupDialog dialog = new KovatsIndexExtractionDialog(this);
+    KovatsIndexExtractionDialog dialog = new KovatsIndexExtractionDialog(this);
     dialog.showAndWait();
     return dialog.getExitCode();
   }

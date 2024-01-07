@@ -1,25 +1,33 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
+import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -45,7 +53,9 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
    */
   public static void saveScanToXML(@NotNull final XMLStreamWriter writer, @NotNull final Scan scan)
       throws XMLStreamException {
-    if (scan instanceof SimpleScan || scan instanceof Frame) {
+    if (scan instanceof PseudoSpectrum pseudo) { // first, because instanceof's for frame trigger, too.
+      pseudo.saveToXML(writer);
+    } else if (scan instanceof SimpleScan || scan instanceof Frame) {
       writer.writeStartElement(CONST.XML_RAW_FILE_SCAN_ELEMENT);
 
       writer.writeAttribute(Scan.XML_SCAN_TYPE_ATTR, SimpleScan.XML_SCAN_TYPE);
@@ -81,6 +91,10 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
       throw new IllegalStateException("Current element is not a scan element.");
     }
 
+    // this name belongs the raw data file the original feature is from and is usually sufficient.
+    // However, in the case of MALDI-SIMSEF acquisitions, multiple raw files may be used to generate
+    // a merged MS2 spectrum (e.g. multiple collision energies) So we later also pass all the
+    // project files to SimpleMergedMsMsSpectrum.
     final String name = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
     final RawDataFile file = possibleFiles.stream().filter(f -> f.getName().equals(name))
         .findFirst().orElse(null);
@@ -96,11 +110,13 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
         return scan instanceof CachedIMSFrame cached ? cached.getOriginalFrame() : scan;
       }
       case SimpleMergedMsMsSpectrum.XML_SCAN_TYPE -> {
-        return SimpleMergedMsMsSpectrum.loadFromXML(reader, (IMSRawDataFile) file);
+        return SimpleMergedMsMsSpectrum.loadFromXML(reader, (IMSRawDataFile) file, possibleFiles);
       }
-      default -> {
-        throw new IllegalArgumentException("Cannot load scan from xml. Scan type not recognized.");
+      case SimplePseudoSpectrum.XML_SCAN_TYPE -> {
+        return SimplePseudoSpectrum.loadFromXML(reader, file);
       }
+      default -> throw new IllegalArgumentException(
+          "Cannot load scan from xml. Scan type not recognized.");
     }
   }
 
@@ -130,18 +146,26 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   float getRetentionTime();
 
   /**
+   * @return The injection time of this scan or null.
+   */
+  @Nullable
+  public Float getInjectionTime();
+
+  default boolean hasInjectionTime() {
+    return getInjectionTime() != null && getInjectionTime() >= 0;
+  }
+
+  /**
    * @return The actual scanning range of the instrument
    */
   @NotNull Range<Double> getScanningMZRange();
 
   /**
-   *
    * @return The {@link MsMsInfo}. If null, this is not an MSn scan.
    */
   @Nullable MsMsInfo getMsMsInfo();
 
   /**
-   *
    * @return The charge or null. Works for subclasses of {@link DDAMsMsInfo}.
    */
   default Integer getPrecursorCharge() {
@@ -149,7 +173,6 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   }
 
   /**
-   *
    * @return The precursor mz or null. Works for subclasses of {@link DDAMsMsInfo}.
    */
   default Double getPrecursorMz() {
@@ -178,5 +201,15 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
       return Float.compare(this.getRetentionTime(), s.getRetentionTime());
     }
   }
+
+  /**
+   * Method to check if the scan m/z range is not empty
+   *
+   * @return boolean
+   */
+  default boolean isEmptyScan() {
+    return this.getNumberOfDataPoints() == 0;
+  }
+
 }
 

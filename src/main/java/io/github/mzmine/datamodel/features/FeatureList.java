@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features;
@@ -24,6 +31,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -36,6 +44,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -368,29 +377,13 @@ public interface FeatureList {
    */
   void setGroups(List<RowGroup> groups);
 
-  /**
-   * Add row-to-row relationships
-   *
-   * @param a            rows in any order
-   * @param b            rows in any order
-   * @param relationship the relationship between a and b
-   */
-  void addRowsRelationship(FeatureListRow a, FeatureListRow b, RowsRelationship relationship);
-
-  /**
-   * Add row-to-row relationships to a specific master list for {@link Type}.
-   *
-   * @param map          a map of relationships
-   * @param relationship the relationship type between the pairs of rows
-   */
-  void addRowsRelationships(R2RMap<? extends RowsRelationship> map, Type relationship);
 
   /**
    * Short cut to get the MS1 correlation map of grouped features
    *
    * @return the map for {@link Type#MS1_FEATURE_CORR}
    */
-  default R2RMap<RowsRelationship> getMs1CorrelationMap() {
+  default Optional<R2RMap<RowsRelationship>> getMs1CorrelationMap() {
     return getRowMap(Type.MS1_FEATURE_CORR);
   }
 
@@ -399,20 +392,28 @@ public interface FeatureList {
    *
    * @return the map for {@link Type#MS2_COSINE_SIM}
    */
-  default R2RMap<RowsRelationship> getMs2SimilarityMap() {
+  default Optional<R2RMap<RowsRelationship>> getMs2SimilarityMap() {
     return getRowMap(Type.MS2_COSINE_SIM);
   }
 
   /**
-   * A mutable map of row-to-row relationships. See {@link #addRowsRelationships(R2RMap, Type)} to
-   * add.
+   * A mutable map of row-to-row relationships.
    *
    * @param relationship the relationship between two rows
    * @return
    */
-  @Nullable
-  default R2RMap<RowsRelationship> getRowMap(Type relationship) {
-    return getRowMaps().get(relationship);
+  default Optional<R2RMap<RowsRelationship>> getRowMap(Type relationship) {
+    return getRowMap(relationship.toString());
+  }
+
+  /**
+   * A mutable map of row-to-row relationships.
+   *
+   * @param type the relationship between two rows
+   * @return
+   */
+  default Optional<R2RMap<RowsRelationship>> getRowMap(String type) {
+    return getRowMaps().getRowsMap(type);
   }
 
   /**
@@ -420,7 +421,7 @@ public interface FeatureList {
    *
    * @return a map that stores different relationship maps
    */
-  @NotNull Map<Type, R2RMap<RowsRelationship>> getRowMaps();
+  @NotNull R2RNetworkingMaps getRowMaps();
 
   /**
    * Maps {@link Feature} DataType listeners, e.g., for calculating the mean values for a DataType
@@ -467,13 +468,17 @@ public interface FeatureList {
             .filter(type -> type instanceof LinkedGraphicalType)
             .forEach(type -> row.set(type, true));
       }
-      if (isImagingFile) {
-        // activate shape for this row
-        DataTypeUtils.DEFAULT_IMAGING_COLUMNS_ROW.stream()
-            .filter(type -> type instanceof LinkedGraphicalType)
-            .forEach(type -> row.set(type, true));
+      if (isImagingFile && newFeature instanceof ModularFeature f) {
+        // activate image for this feature
+        DataTypeUtils.DEFAULT_IMAGING_COLUMNS_FEATURE.stream()
+            .filter(type -> type instanceof LinkedGraphicalType).forEach(type -> f.set(type, true));
       }
     }
+  }
+
+  default void addRowMaps(R2RNetworkingMaps maps) {
+    var master = getRowMaps();
+    master.addAll(maps);
   }
 
   /**

@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util;
@@ -22,24 +29,24 @@ import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.util.collections.BinarySearch;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.logging.Logger;
+import java.util.function.IntToDoubleFunction;
 
 public class DataPointUtils {
-
-  private static final Logger logger = Logger.getLogger(DataPointUtils.class.getName());
 
   /**
    * Used to keep legacy-modules running, not to be used in new modules. Directly access the
    * underlying DoubleBuffers of Scans or {@link io.github.mzmine.datamodel.featuredata.IonSeries}
    * and extending classes.
    *
-   * @param dataPoints
-   * @return 2-d array with dimension double[2][dataPoints.length]. [0][i] will contain mz, [1][i]
-   * will contain intensity values.
+   * @return 2-d array [mzs, intensities] with dimension double[2][dataPoints.length]. [0][i] will
+   * contain mz, [1][i] will contain intensity values.
    */
   public static double[][] getDataPointsAsDoubleArray(DataPoint[] dataPoints) {
     double[][] data = new double[2][];
@@ -54,11 +61,11 @@ public class DataPointUtils {
 
   /**
    * Used to keep legacy-modules running, not to be used in new modules. Directly access the
-   * underlying DoubleBuffers of Scans or the {@link io.github.mzmine.datamodel.features.ModularFeature}'s
+   * underlying DoubleBuffers of Scans or the
+   * {@link io.github.mzmine.datamodel.features.ModularFeature}'s
    * {@link io.github.mzmine.datamodel.featuredata.IonSeries} and extending classes.
    *
-   * @param dataPoints
-   * @return
+   * @return array of [2][] with [mzs, intensities]
    * @see ModularFeature#getFeatureData()
    */
   public static double[][] getDataPointsAsDoubleArray(Collection<? extends DataPoint> dataPoints) {
@@ -79,37 +86,23 @@ public class DataPointUtils {
    * Used when copying an {@link io.github.mzmine.datamodel.featuredata.IonSpectrumSeries} and
    * subclasses. Usually, the data should be accessed directly via the buffer.
    *
-   * @param mzValues
-   * @param intensityValues
-   * @return
+   * @return array of [2][] with [mzs, intensities]
    */
   public static double[][] getDataPointsAsDoubleArray(DoubleBuffer mzValues,
       DoubleBuffer intensityValues) {
-    assert mzValues.capacity() == intensityValues.capacity();
-
-    double data[][] = new double[2][];
-    data[0] = new double[mzValues.capacity()];
-    data[1] = new double[mzValues.capacity()];
-    for (int i = 0; i < mzValues.capacity(); i++) {
-      data[0][i] = mzValues.get(i);
-      data[1][i] = intensityValues.get(i);
-    }
-    return data;
+    assert mzValues.limit() == intensityValues.limit();
+    return new double[][]{getDoubleBufferAsArray(mzValues),
+        getDoubleBufferAsArray(intensityValues)};
   }
 
   /**
    * Used when copying an {@link io.github.mzmine.datamodel.featuredata.IonSpectrumSeries} and
    * subclasses. Usually, the data should be accessed directly via the buffer.
-   *
-   * @param values
-   * @return
    */
   public static double[] getDoubleBufferAsArray(DoubleBuffer values) {
-    double[] data = new double[values.capacity()];
-
-    for (int i = 0; i < values.capacity(); i++) {
-      data[i] = values.get(i);
-    }
+    double[] data = new double[values.limit()];
+    // set start to 0 to get absolute array not relative to point
+    values.get(0, data);
     return data;
   }
 
@@ -117,9 +110,6 @@ public class DataPointUtils {
    * Used in legacy classes and to keep up compatibility. Do not use in new classes, directly refer
    * to the DoubleBuffers of Scans or {@link io.github.mzmine.datamodel.featuredata.IonSeries} and
    * extending classes.
-   *
-   * @param dataPoints
-   * @return
    */
   @Deprecated
   public static double[] getMZsAsDoubleArray(DataPoint[] dataPoints) {
@@ -135,9 +125,6 @@ public class DataPointUtils {
    * Used in legacy classes and to keep up compatibility. Do not use in new classes, directly refer
    * to the DoubleBuffers of Scans or {@link io.github.mzmine.datamodel.featuredata.IonSeries} and
    * extending classes.
-   *
-   * @param dataPoints
-   * @return
    */
   @Deprecated
   public static double[] getIntenstiesAsDoubleArray(DataPoint[] dataPoints) {
@@ -150,14 +137,13 @@ public class DataPointUtils {
   }
 
   public static double[][] getDatapointsAboveNoiseLevel(DoubleBuffer rawMzs,
-      DoubleBuffer rawIntensities,
-      double noiseLevel) {
-    assert rawMzs.capacity() == rawIntensities.capacity();
+      DoubleBuffer rawIntensities, double noiseLevel) {
+    assert rawMzs.limit() == rawIntensities.limit();
 
     List<Double> mzs = new ArrayList<>();
     List<Double> intensities = new ArrayList<>();
 
-    for (int i = 0; i < rawMzs.capacity(); i++) {
+    for (int i = 0; i < rawMzs.limit(); i++) {
       if (rawIntensities.get(i) > noiseLevel) {
         mzs.add(rawMzs.get(i));
         intensities.add(rawIntensities.get(i));
@@ -189,10 +175,9 @@ public class DataPointUtils {
   }
 
   /**
-   *
-   * @param rawMzs array of mz values
+   * @param rawMzs         array of mz values
    * @param rawIntensities array of intensity values
-   * @param mzRange the mz range
+   * @param mzRange        the mz range
    * @return double[2][n], [0][] being mz values, [1][] being intensity values
    */
   public static double[][] getDataPointsInMzRange(double[] rawMzs, double[] rawIntensities,
@@ -206,7 +191,7 @@ public class DataPointUtils {
       if (mzRange.contains(rawMzs[i])) {
         mzs.add(rawMzs[i]);
         intensities.add(rawIntensities[i]);
-      } else if(mzRange.upperEndpoint() < rawMzs[i] || rawMzs[i] == 0.0) {
+      } else if (mzRange.upperEndpoint() < rawMzs[i] || rawMzs[i] == 0.0) {
         break;
       }
     }
@@ -214,6 +199,113 @@ public class DataPointUtils {
     data[0] = Doubles.toArray(mzs);
     data[1] = Doubles.toArray(intensities);
     return data;
+  }
+
+  /**
+   * @return array of data points
+   */
+  public static DataPoint[] getDataPoints(double[] mzs, double[] intensities) {
+    assert mzs.length == intensities.length;
+    DataPoint[] dps = new DataPoint[mzs.length];
+    for (int i = 0; i < mzs.length; i++) {
+      dps[i] = new SimpleDataPoint(mzs[i], intensities[i]);
+    }
+    return dps;
+  }
+
+  /**
+   * Sorts the two arrays as data points
+   *
+   * @param mzs         mz values to be sorted
+   * @param intensities intensity values to be sorted
+   * @param sorter      sorting direction and property
+   * @return sorted array of [2][length] for [mz, intensity]
+   */
+  public static double[][] sort(double[] mzs, double[] intensities, DataPointSorter sorter) {
+    assert mzs.length == intensities.length;
+    DataPoint[] dps = DataPointUtils.getDataPoints(mzs, intensities);
+    Arrays.sort(dps, sorter);
+    return getDataPointsAsDoubleArray(dps);
+  }
+
+  /**
+   * Ensure sorting by mz ascending. Only applied if input data was unsorted.
+   *
+   * @param mzs         input mzs
+   * @param intensities input intensities
+   * @return [mzs, intensities], either the input arrays if already sorted or new sorted arrays
+   */
+  public static double[][] ensureSortingMzAscendingDefault(final double[] mzs,
+      final double[] intensities) {
+    for (int i = 1; i < mzs.length; i++) {
+      if (mzs[i - 1] > mzs[i]) {
+        return sort(mzs, intensities, DataPointSorter.DEFAULT_MZ_ASCENDING);
+      }
+    }
+    return new double[][]{mzs, intensities};
+  }
+
+
+  /**
+   * Apply intensityPercentage filter so that the returned array contains all data points that make
+   * X % of the total intensity. The result is further cropped to a maxNumSignals.
+   *
+   * @param intensitySorted           sorted by intensity descending
+   * @param targetIntensityPercentage intensity percentage,e.g., 0.99
+   * @param maxNumSignals             maximum signals to crop to
+   * @return filtered data points array that make either >=X% of intensity or have reached the
+   * maxNumSignals
+   */
+  public static DataPoint[] filterDataByIntensityPercent(final DataPoint[] intensitySorted,
+      double targetIntensityPercentage, int maxNumSignals) {
+    double total = 0;
+    for (final DataPoint dp : intensitySorted) {
+      total += dp.getIntensity();
+    }
+
+    double sum = 0;
+    for (int i = 0; i < intensitySorted.length; i++) {
+      if (i >= maxNumSignals - 1) {
+        // max signals reached
+        return Arrays.copyOf(intensitySorted, maxNumSignals);
+      }
+      sum += intensitySorted[i].getIntensity();
+      if (sum / total >= targetIntensityPercentage) {
+        // intensity percentage reached
+        return Arrays.copyOf(intensitySorted, Math.min(i + 1, maxNumSignals));
+      }
+    }
+    // percent not reached - should not happen
+    return intensitySorted.length > maxNumSignals ? Arrays.copyOf(intensitySorted, maxNumSignals)
+        : intensitySorted;
+  }
+
+  /**
+   * Remove all signals that fall within precursorMZ +- removePrecursorMz
+   *
+   * @param mzSorted          sorted by mz ascending
+   * @param precursorMz       center of the signals to be removed
+   * @param removePrecursorMz +-delta to remove signals
+   * @return the filtered list
+   */
+  public static DataPoint[] removePrecursorMz(final DataPoint[] mzSorted, final double precursorMz,
+      final double removePrecursorMz) {
+    if (mzSorted.length == 0) {
+      return mzSorted;
+    }
+
+    IntToDoubleFunction mzExtractor = index -> mzSorted[index].getMZ();
+    // might be higher or lower or -1
+    final double lowerMz = precursorMz - removePrecursorMz;
+    final double upperMzBound = precursorMz + removePrecursorMz;
+
+    var indexRange = BinarySearch.indexRange(lowerMz, upperMzBound, mzSorted.length, mzExtractor);
+
+    return indexRange.copyRemoveRange(mzSorted);
+  }
+
+  public static boolean inRange(final double tested, final double center, final double delta) {
+    return tested >= center - delta && tested <= center + delta;
   }
 
 }

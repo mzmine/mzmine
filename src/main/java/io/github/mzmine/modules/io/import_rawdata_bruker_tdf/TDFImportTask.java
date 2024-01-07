@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf;
@@ -22,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingFrame;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
@@ -32,14 +40,13 @@ import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.BuildingPASEFMsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.FramePrecursorTable;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.PrmFrameTargetTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
@@ -74,8 +81,8 @@ import org.jetbrains.annotations.Nullable;
 public class TDFImportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(TDFImportTask.class.getName());
-
   private final MZmineProject project;
+
   @Nullable
   private final MassDetector ms1Detector;
   @Nullable
@@ -84,9 +91,6 @@ public class TDFImportTask extends AbstractTask {
   private final ParameterSet ms1DetectorParam;
   @Nullable
   private final ParameterSet ms2DetectorParam;
-
-  private final boolean denoising = false;
-  private static final double NOISE_THRESHOLD = 9E0;
 
   private File fileNameToOpen;
   private File tdf, tdfBin;
@@ -97,6 +101,7 @@ public class TDFImportTask extends AbstractTask {
   private TDFPasefFrameMsMsInfoTable pasefFrameMsMsInfoTable;
   private TDFFrameMsMsInfoTable frameMsMsInfoTable;
   private FramePrecursorTable framePrecursorTable;
+  private PrmFrameTargetTable prmFrameTargetTable;
   private TDFMaldiFrameInfoTable maldiFrameInfoTable;
   private TDFMaldiFrameLaserInfoTable maldiFrameLaserInfoTable;
   private IMSRawDataFile newMZmineFile;
@@ -123,8 +128,8 @@ public class TDFImportTask extends AbstractTask {
   /**
    * @param project
    * @param file
-   * @param newMZmineFile needs to be created as {@link IMSRawDataFileImpl} via {@link
-   *                      MZmineCore#createNewIMSFile}.
+   * @param newMZmineFile needs to be created as {@link IMSRawDataFileImpl} via
+   *                      {@link MZmineCore#createNewIMSFile}.
    */
   public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
@@ -150,33 +155,19 @@ public class TDFImportTask extends AbstractTask {
       ms1DetectorParam = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)
           .getEmbeddedParameter().getValue().getParameterSet();
     } else {
-      if (denoising) {
-        ms1Detector = MassDetectionParameters.centroid;
-        ms1DetectorParam = MZmineCore.getConfiguration()
-            .getModuleParameters(CentroidMassDetector.class).cloneParameterSet();
-        ms1DetectorParam.getParameter(CentroidMassDetectorParameters.noiseLevel)
-            .setValue(NOISE_THRESHOLD);
-        ms1DetectorParam.setParameter(CentroidMassDetectorParameters.detectIsotopes, false);
-      } else {
-        ms1Detector = null;
-        ms1DetectorParam = null;
-      }
+      ms1Detector = null;
+      ms1DetectorParam = null;
     }
     if (advancedParam != null && advancedParam.getParameter(
-        AdvancedSpectraImportParameters.msMassDetection).getValue()) {
+        AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
       ms2Detector = advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection)
           .getEmbeddedParameter().getValue().getModule();
       ms2DetectorParam = advancedParam.getParameter(
               AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter().getValue()
           .getParameterSet();
     } else {
-      if (denoising) {
-        ms2Detector = ms1Detector;
-        ms2DetectorParam = ms1DetectorParam;
-      } else {
-        ms2Detector = null;
-        ms2DetectorParam = null;
-      }
+      ms2Detector = null;
+      ms2DetectorParam = null;
     }
   }
 
@@ -234,8 +225,10 @@ public class TDFImportTask extends AbstractTask {
     frameTable = new TDFFrameTable();
     precursorTable = new TDFPrecursorTable();
     pasefFrameMsMsInfoTable = new TDFPasefFrameMsMsInfoTable();
+    prmFrameTargetTable = new PrmFrameTargetTable();
     frameMsMsInfoTable = new TDFFrameMsMsInfoTable();
     framePrecursorTable = new FramePrecursorTable();
+
     maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
     maldiFrameLaserInfoTable = new TDFMaldiFrameLaserInfoTable();
     isMaldi = false;
@@ -253,6 +246,8 @@ public class TDFImportTask extends AbstractTask {
       }
     }
 
+    newMZmineFile.setStartTimeStamp(metaDataTable.getAcquisitionDateTime());
+
     rawDataFileName = tdfBin.getParentFile().getName();
 
     if (!(newMZmineFile instanceof IMSRawDataFileImpl)) {
@@ -264,7 +259,7 @@ public class TDFImportTask extends AbstractTask {
     final TDFUtils tdfUtils = new TDFUtils();
     logger.finest(() -> "Opening tdf file " + tdfBin.getAbsolutePath());
     final long handle = tdfUtils.openFile(tdfBin);
-    newMZmineFile.setName(rawDataFileName);
+//    newMZmineFile.setName(rawDataFileName);
     if (handle == 0L) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Failed to open the file " + tdfBin + " using the Bruker TDF library");
@@ -280,7 +275,7 @@ public class TDFImportTask extends AbstractTask {
     // collect average spectra for each frame
     Set<SimpleFrame> frames = new LinkedHashSet<>();
 
-   final boolean importProfile = MZmineCore.getInstance().isTdfPseudoProfile();
+    final boolean importProfile = MZmineCore.getInstance().isTdfPseudoProfile();
 
     try {
       for (int i = 0; i < numFrames; i++) {
@@ -305,6 +300,12 @@ public class TDFImportTask extends AbstractTask {
           frame.addMassList(new ScanPointerMassList(frame));
         }
 
+        if (isMaldi && frame instanceof ImagingFrame imgFrame) {
+          final MaldiSpotInfo maldiSpotInfo = maldiFrameInfoTable.getMaldiSpotInfo(
+              frame.getFrameId());
+          imgFrame.setMaldiSpotInfo(maldiSpotInfo);
+        }
+
         newMZmineFile.addScan(frame);
         frames.add(frame);
         loadedFrames++;
@@ -318,7 +319,14 @@ public class TDFImportTask extends AbstractTask {
     }
 
     // extract mobility scans
-    appendScansFromTimsSegment(tdfUtils, frameTable, frames);
+    try {
+      appendScansFromTimsSegment(tdfUtils, frameTable, frames);
+    } catch (IndexOutOfBoundsException e) {
+      // happens on corrupt data
+      logger.warning("Cannot import raw data from " + tdf.getName() + ", data is corrupt.");
+      setStatus(TaskStatus.FINISHED);
+      return;
+    }
 
     // now assign MS/MS infos
     constructMsMsInfo(newMZmineFile, framePrecursorTable);
@@ -337,7 +345,6 @@ public class TDFImportTask extends AbstractTask {
         "Imported " + rawDataFileName + ". Loaded " + newMZmineFile.getNumOfScans() + " scans and "
             + newMZmineFile.getNumberOfFrames() + " frames.");
     project.addFile(newMZmineFile);
-    // compareMobilities(newMZmineFile);
 
     setStatus(TaskStatus.FINISHED);
 
@@ -368,40 +375,27 @@ public class TDFImportTask extends AbstractTask {
 
         setDescription("Reading metadata for " + tdf.getName());
         metaDataTable.executeQuery(connection);
-        // metaDataTable.print();
 
         setDescription("Reading frame data for " + tdf.getName());
         frameTable.executeQuery(connection);
-        // frameTable.print();
 
         isMaldi = frameTable.getScanModeColumn()
             .contains(Integer.toUnsignedLong(BrukerScanMode.MALDI.getNum()));
 
-        if (!isMaldi) {
-          if (frameTable.getScanModeColumn()
-              .contains(Integer.toUnsignedLong(BrukerScanMode.PASEF.getNum()))) {
-            setDescription("Reading precursor info for " + tdf.getName());
-            precursorTable.executeQuery(connection);
-            // precursorTable.print();
+        setDescription("Reading precursor info for " + tdf.getName());
+        precursorTable.executeQuery(connection);
 
-            setDescription("Reading PASEF info for " + tdf.getName());
-            pasefFrameMsMsInfoTable.executeQuery(connection);
-            // pasefFrameMsMsInfoTable.print();
+        setDescription("Reading MS/MS-Precursor info for " + tdf.getName());
+        framePrecursorTable.executeQuery(connection);
 
-            setDescription("Reading Frame MS/MS info for " + tdf.getName());
-            frameMsMsInfoTable.executeQuery(connection);
-            // frameMsMsInfoTable.print();
+        setDescription("Reading PRM Target info for " + tdf.getName());
+        prmFrameTargetTable.executeQuery(connection);
 
-            setDescription("Reading MS/MS-Precursor info for " + tdf.getName());
-            framePrecursorTable.executeQuery(connection);
-            // framePrecursorTable.print();
-          }
-        } else {
+        if (isMaldi) {
           setDescription("MALDI info for " + tdf.getName());
           maldiFrameInfoTable.executeQuery(connection);
           maldiFrameInfoTable.process();
           maldiFrameLaserInfoTable.executeQuery(connection);
-          // maldiFrameInfoTable.print();
         }
 
         connection.close();
@@ -443,6 +437,9 @@ public class TDFImportTask extends AbstractTask {
       final ParameterSet param = msLevel == 1 ? ms1DetectorParam : ms2DetectorParam;
       final List<BuildingMobilityScan> spectra = tdfUtils.loadSpectraForTIMSFrame(
           frame.getFrameId(), frameTable, detector, param);
+      if (spectra.isEmpty()) {
+        spectra.add(new BuildingMobilityScan(0, new double[]{}, new double[]{}));
+      }
 
       frame.setMobilityScans(spectra, detector != null);
 
@@ -496,15 +493,24 @@ public class TDFImportTask extends AbstractTask {
         continue;
       }
 
-      Set<BuildingPASEFMsMsInfo> buildingInfo = precursorTable.getMsMsInfoForFrame(
+      Set<BuildingPASEFMsMsInfo> pasefBuildingInfo = precursorTable.getMsMsInfoForFrame(
           frame.getFrameId());
+      final Set<BuildingPASEFMsMsInfo> prmBuildingInfo = prmFrameTargetTable.getMsMsInfoForFrame(
+          frame.getFrameId());
+      if (pasefBuildingInfo != null && prmBuildingInfo != null) {
+        pasefBuildingInfo.addAll(prmBuildingInfo);
+      } else if (pasefBuildingInfo == null && prmBuildingInfo != null) {
+        pasefBuildingInfo = prmBuildingInfo;
+      }
 
-      for (BuildingPASEFMsMsInfo building : buildingInfo) {
-        int parentFrameNumber = building.getParentFrameNumber();
+      if (pasefBuildingInfo == null) {
+        continue;
+      }
 
-        Optional<Frame> optionalFrame = (Optional<Frame>) file.getFrames().stream()
-            .filter(f -> f.getFrameId() == parentFrameNumber).findFirst();
-        Frame parentFrame = optionalFrame.orElseGet(() -> null);
+      for (BuildingPASEFMsMsInfo building : pasefBuildingInfo) {
+        Integer parentFrameNumber = building.getParentFrameNumber();
+
+        final Frame parentFrame = getParentFrame(file, parentFrameNumber);
 
         PasefMsMsInfo info = new PasefMsMsInfoImpl(building.getLargestPeakMz(),
             Range.closedOpen(building.getSpectrumNumberRange().lowerEndpoint() - 1,
@@ -522,6 +528,17 @@ public class TDFImportTask extends AbstractTask {
     logger.info(
         "Construced " + constructed + " ImsMsMsInfos for " + file.getFrames().size() + " in " + (
             end.getTime() - start.getTime()) + " ms");
+  }
+
+  @Nullable
+  private Frame getParentFrame(IMSRawDataFile file, Integer parentFrameNumber) {
+    if (parentFrameNumber == null) {
+      return null;
+    }
+    Optional<Frame> optionalFrame = (Optional<Frame>) file.getFrames().stream()
+        .filter(f -> f.getFrameId() == parentFrameNumber).findFirst();
+    Frame parentFrame = optionalFrame.orElseGet(() -> null);
+    return parentFrame;
   }
 
  /*private void compareMobilities(IMSRawDataFile rawDataFile) {
@@ -544,4 +561,5 @@ public class TDFImportTask extends AbstractTask {
       }
     }
   }*/
+
 }

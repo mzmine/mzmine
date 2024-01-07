@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.mainwindow;
@@ -39,6 +46,13 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.util.ExitCode;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -47,12 +61,14 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureListSummaryController {
 
-  private static final Logger logger = Logger
-      .getLogger(FeatureListSummaryController.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      FeatureListSummaryController.class.getName());
 
   @FXML
   public TextField tfNumRows;
@@ -66,6 +82,35 @@ public class FeatureListSummaryController {
   public Label lbFeatureListName;
   @FXML
   public Button btnOpenInBatchQueue;
+  @FXML
+  public Button exportfeature;
+
+  public static String parameterToString(Parameter<?> parameter) {
+    String name = parameter.getName();
+    Object value = parameter.getValue();
+    StringBuilder sb = new StringBuilder(name);
+    sb.append(":\t");
+    if (value == null) {
+      sb.append("<not set>");
+    } else if (value.getClass().isArray()) {
+      sb.append(Arrays.toString((Object[]) value));
+    } else {
+      sb.append(value.toString());
+    }
+    if (parameter instanceof EmbeddedParameterSet embedded) {
+      ParameterSet parameterSet = embedded.getEmbeddedParameters();
+      for (Parameter<?> parameter1 : parameterSet.getParameters()) {
+        sb.append("\n\t");
+        sb.append(parameterToString(parameter1));
+      }
+    }
+    if (parameter instanceof OptionalParameter) {
+      sb.append("\t(");
+      sb.append(((OptionalParameter<?>) parameter).getEmbeddedParameter().getValue());
+      sb.append(")");
+    }
+    return sb.toString();
+  }
 
   @FXML
   public void initialize() {
@@ -120,27 +165,6 @@ public class FeatureListSummaryController {
     tvParameterValues.setText("");
   }
 
-  private String parameterToString(Parameter<?> parameter) {
-    String name = parameter.getName();
-    Object value = parameter.getValue();
-    StringBuilder sb = new StringBuilder(name);
-    sb.append(":\t");
-    sb.append(value.toString());
-    if (parameter instanceof EmbeddedParameterSet embedded) {
-      ParameterSet parameterSet = embedded.getEmbeddedParameters();
-      for (Parameter<?> parameter1 : parameterSet.getParameters()) {
-        sb.append("\n\t");
-        sb.append(parameterToString(parameter1));
-      }
-    }
-    if(parameter instanceof OptionalParameter) {
-      sb.append("\t(");
-      sb.append(((OptionalParameter<?>) parameter).getEmbeddedParameter().getValue());
-      sb.append(")");
-    }
-    return sb.toString();
-  }
-
   @FXML
   void setAsBatchQueue() {
 
@@ -155,6 +179,10 @@ public class FeatureListSummaryController {
     BatchQueue queue = new BatchQueue();
 
     for (FeatureListAppliedMethod item : lvAppliedMethods.getItems()) {
+      if (item == null) {
+        logger.info("Skipping module ???, cannot find module class. Was it renamed?");
+        continue;
+      }
       if (item.getModule() instanceof MZmineProcessingModule) {
         ParameterSet parameterSet = item.getParameters().cloneParameterSet();
         setSelectionToLastBatchStep(parameterSet);
@@ -171,7 +199,7 @@ public class FeatureListSummaryController {
         .getModuleParameters(BatchModeModule.class);
     batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(queue);
 
-    if(batchModeParameters.showSetupDialog(true) == ExitCode.OK) {
+    if (batchModeParameters.showSetupDialog(true) == ExitCode.OK) {
       MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters.cloneParameterSet());
     }
   }
@@ -187,6 +215,41 @@ public class FeatureListSummaryController {
             RawDataFilesSelectionType.BATCH_LAST_FILES);
         ((RawDataFilesParameter) parameter).setValue(rawDataFilesSelection);
       }
+    }
+  }
+
+  @FXML
+    //Export Record
+  void exportRecord() throws IOException {
+    ButtonType btn = MZmineCore.getDesktop()
+        .displayConfirmation("Export Feature Summary List\nDo you wish to continue?",
+            ButtonType.YES, ButtonType.NO);
+    if (btn != ButtonType.YES) {
+      return;
+    }
+    FileChooser fc = new FileChooser();
+    fc.getExtensionFilters()
+        .addAll(new FileChooser.ExtensionFilter("comma-separated values", "*.csv"),
+            new FileChooser.ExtensionFilter("All File", "*.*"));
+    fc.setTitle("Save Feature List Summary");
+    File file = fc.showSaveDialog(new Stage());
+    try {
+      BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8);
+      PrintWriter pw = new PrintWriter(writer);
+      for (FeatureListAppliedMethod item : lvAppliedMethods.getItems()) {
+        String sb = item.getDescription();
+        //StringBuilder sb = new StringBuilder(item.getDescription());
+        pw.println(sb);
+        ParameterSet parameterSet = item.getParameters();
+        for (Parameter<?> parameter : parameterSet.getParameters()) {
+          pw.println(parameterToString(parameter));
+        }
+        pw.println();
+      }
+      pw.flush();
+      pw.close();
+    } catch (Exception e) {
+      logger.info(e.getMessage());
     }
   }
 }

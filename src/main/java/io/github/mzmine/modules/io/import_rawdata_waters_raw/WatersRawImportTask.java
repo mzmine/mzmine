@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_rawdata_waters_raw;
@@ -34,6 +41,8 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.TextUtils;
+import io.github.mzmine.util.ZipUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -42,10 +51,12 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.Instant;
-import java.util.Date;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipInputStream;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -54,18 +65,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public class WatersRawImportTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
+  public static final Logger logger = Logger.getLogger(WatersRawImportTask.class.getName());
+  private final ParameterSet parameters;
+  private final Class<? extends MZmineModule> module;
   private File file;
   private MZmineProject project;
   private RawDataFile newMZmineFile;
-  private final ParameterSet parameters;
-  private final Class<? extends MZmineModule> module;
-
   private Process dumper = null;
-
   private int totalScans = 0, parsedScans = 0;
-
   /*
    * These variables are used during parsing of the RAW dump.
    */
@@ -78,13 +85,59 @@ public class WatersRawImportTask extends AbstractTask {
   private double precursorMZ = 0;
 
   public WatersRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;
     this.parameters = parameters;
     this.module = module;
+  }
+
+  public static File unzipWatersParser() throws IOException {
+    final String tmpPath = System.getProperty("java.io.tmpdir");
+    File watersRawFileParserFolder = new File(tmpPath, "mzmine_waters_raw_parser");
+    final File watersRawFileParserExe = new File(watersRawFileParserFolder, "WatersRawDump.exe");
+
+    // Check if it has already been unzipped
+    if (watersRawFileParserFolder.exists() && watersRawFileParserFolder.isDirectory()
+        && watersRawFileParserFolder.canRead() && watersRawFileParserExe.exists()
+        && watersRawFileParserExe.isFile() && watersRawFileParserExe.canExecute()) {
+      logger.finest("Waters RawFileParser found in folder " + watersRawFileParserFolder);
+      return watersRawFileParserFolder;
+    }
+    synchronized (WatersRawImportTask.class) {
+      // double checked
+      if (watersRawFileParserFolder.exists() && watersRawFileParserFolder.isDirectory()
+          && watersRawFileParserFolder.canRead() && watersRawFileParserExe.exists()
+          && watersRawFileParserExe.isFile() && watersRawFileParserExe.canExecute()) {
+        logger.finest("Waters RawFileParser found in folder " + watersRawFileParserFolder);
+        return watersRawFileParserFolder;
+      }
+
+      // In case the folder already exists, unzip to a different folder
+      if (watersRawFileParserFolder.exists()) {
+        logger.finest("Folder " + watersRawFileParserFolder + " exists, creating a new one");
+        watersRawFileParserFolder = FileAndPathUtil.createTempDirectory("mzmine_waters_raw_parser")
+            .toFile();
+      }
+
+      logger.finest("Unpacking Waters RawFileParser to folder " + watersRawFileParserFolder);
+      InputStream zipStream = WatersRawImportTask.class.getResourceAsStream(
+          "/vendorlib/waters/waters.zip");
+      if (zipStream == null) {
+        throw new IOException("Failed to open the resource /vendorlib/waters/waters.zip");
+      }
+      ZipInputStream zipInputStream = new ZipInputStream(zipStream);
+      ZipUtils.unzipStream(zipInputStream, watersRawFileParserFolder);
+      zipInputStream.close();
+
+      // Delete the temporary folder on application exit
+      FileUtils.forceDeleteOnExit(watersRawFileParserFolder);
+
+      return watersRawFileParserFolder;
+    }
   }
 
   /**
@@ -95,9 +148,6 @@ public class WatersRawImportTask extends AbstractTask {
     return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
   }
 
-  /**
-   * @see java.lang.Runnable#run()
-   */
   @Override
   public void run() {
 
@@ -106,15 +156,25 @@ public class WatersRawImportTask extends AbstractTask {
 
     // Check the OS we are running
     String osName = System.getProperty("os.name").toUpperCase();
-    String rawDumpPath =
-        System.getProperty("user.dir") + File.separator + "lib" + File.separator + "vendor_lib"
-            + File.separator + "waters" + File.separator + "WatersRawDump.exe";
+    String rawDumpPath = "";
+
+    try {
+      final File folder = unzipWatersParser();
+      rawDumpPath = new File(folder, "WatersRawDump.exe").getPath();
+    } catch (IOException e) {
+      final String msg = "Error while reading waters raw library. " + e.getMessage();
+      logger.log(Level.WARNING, msg, e);
+      setErrorMessage(msg);
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+
     String cmdLine[];
 
     if (osName.toUpperCase().contains("WINDOWS")) {
-      cmdLine = new String[]{rawDumpPath, file.getPath()};
+      cmdLine = new String[]{rawDumpPath, this.file.getPath()};
     } else {
-      cmdLine = new String[]{"wine", rawDumpPath, file.getPath()};
+      cmdLine = new String[]{"wine", rawDumpPath, this.file.getPath()};
     }
 
     try {
@@ -147,7 +207,8 @@ public class WatersRawImportTask extends AbstractTask {
                 + totalScans + ")"));
       }
 
-      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
+      newMZmineFile.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
@@ -166,7 +227,7 @@ public class WatersRawImportTask extends AbstractTask {
       return;
     }
 
-    logger.info("Finished parsing " + file + ", parsed " + parsedScans + " scans");
+    logger.info("Finished parsing " + this.file + ", parsed " + parsedScans + " scans");
     setStatus(TaskStatus.FINISHED);
 
   }
@@ -194,7 +255,7 @@ public class WatersRawImportTask extends AbstractTask {
       }
 
       if (line.startsWith("ERROR: ")) {
-        throw (new IOException(line.substring("ERROR: ".length())));
+        throw (new IOException(file.getAbsolutePath() + line.substring("ERROR: ".length())));
       }
 
       if (line.startsWith("NUMBER OF SCANS: ")) {
@@ -280,8 +341,8 @@ public class WatersRawImportTask extends AbstractTask {
         // VALUES
         if (numOfDataPoints != Integer.parseInt(m.group(1))) {
           throw new IOException(
-              "Scan " + scanNumber + " contained " + numOfDataPoints + " mass values, but " + m
-                  .group(1) + " intensity values");
+              "Scan " + scanNumber + " contained " + numOfDataPoints + " mass values, but "
+                  + m.group(1) + " intensity values");
         }
         final int byteSize = Integer.parseInt(m.group(2));
 
@@ -321,9 +382,8 @@ public class WatersRawImportTask extends AbstractTask {
             msLevel != 1 && precursorMZ != 0d ? new DDAMsMsInfoImpl(precursorMZ, precursorCharge,
                 null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
 
-        SimpleScan newScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
-            info, mzValues, intensityValues, spectrumType, polarity, scanId,
-            mzRange);
+        SimpleScan newScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, info,
+            mzValues, intensityValues, spectrumType, polarity, scanId, mzRange);
         newMZmineFile.addScan(newScan);
 
         parsedScans++;
@@ -354,5 +414,4 @@ public class WatersRawImportTask extends AbstractTask {
       dumper.destroy();
     }
   }
-
 }

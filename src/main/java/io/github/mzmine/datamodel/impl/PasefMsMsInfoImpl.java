@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -21,12 +28,15 @@ package io.github.mzmine.datamodel.impl;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
+import java.util.List;
 import java.util.Objects;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -68,6 +78,59 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
     this.parentFrame = parentScan;
     this.fragmentFrame = fragmentFrameNumber;
     this.isolationWindow = isolationWindow;
+  }
+
+  /**
+   * @param reader          A reader at an {@link PasefMsMsInfoImpl} element.
+   * @param allProjectFiles
+   * @return A loaded {@link PasefMsMsInfoImpl}.
+   */
+  public static PasefMsMsInfoImpl loadFromXML(XMLStreamReader reader, IMSRawDataFile file,
+      List<RawDataFile> allProjectFiles) {
+    if (!reader.isStartElement() && reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE)
+        .equals(XML_TYPE_NAME)) {
+      throw new IllegalStateException("Wrong msms info type.");
+    }
+
+    final double precursorMz = Double.parseDouble(
+        reader.getAttributeValue(null, XML_PRECURSOR_MZ_ATTR));
+
+    final Integer precursorCharge = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_PRECURSOR_CHARGE_ATTR, null, Integer::parseInt);
+
+    final Integer frameIndex = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_FRAGMENT_SCAN_ATTR, null, Integer::parseInt);
+
+    final Integer parentFrameIndex = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_PARENT_SCAN_ATTR, null, Integer::parseInt);
+
+    final Float collisionEnergy = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_ACTIVATION_ENERGY_ATTR, null, Float::parseFloat);
+
+    final Range<Double> isolationWindow = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
+
+    Range<Integer> spectrumRange = ParsingUtils.parseIntegerRange(
+        reader.getAttributeValue(null, XML_SPECTRUM_NUMBER_RANGE_ATTR));
+
+    final String rawFileName = ParsingUtils.readAttributeValueOrDefault(reader,
+        CONST.XML_RAW_FILE_ELEMENT, null, s -> s);
+
+    // use the correct file if the ms info comes from a different file.
+    if (rawFileName != null && !rawFileName.equals(file != null ? file.getName() : null)) {
+      file = (IMSRawDataFile) allProjectFiles.stream()
+          .filter(f -> f.getName().equals(rawFileName) && f instanceof IMSRawDataFile).findFirst()
+          .orElse(file);
+    }
+
+    // replace by original file so we store the original frames and not the cached ones.
+    if (file instanceof CachedIMSRawDataFile cachedIMSRawDataFile) {
+      file = (IMSRawDataFile) cachedIMSRawDataFile.getOriginalFile();
+    }
+
+    return new PasefMsMsInfoImpl(precursorMz, spectrumRange, collisionEnergy, precursorCharge,
+        parentFrameIndex != null && file != null ? file.getFrame(parentFrameIndex) : null,
+        frameIndex != null && file != null ? file.getFrame(frameIndex) : null, isolationWindow);
   }
 
   @Override
@@ -162,6 +225,7 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
     if (fragmentFrame != null) {
       writer.writeAttribute(XML_FRAGMENT_SCAN_ATTR,
           String.valueOf(fragmentFrame.getDataFile().getScans().indexOf(fragmentFrame)));
+      writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, fragmentFrame.getDataFile().getName());
     }
 
     if (parentFrame != null) {
@@ -182,47 +246,6 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
     }
 
     writer.writeEndElement();
-  }
-
-  /**
-   * @param reader A reader at an {@link PasefMsMsInfoImpl} element.
-   * @return A loaded {@link PasefMsMsInfoImpl}.
-   */
-  public static PasefMsMsInfoImpl loadFromXML(XMLStreamReader reader, IMSRawDataFile file) {
-    if (!reader.isStartElement() && reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE)
-        .equals(XML_TYPE_NAME)) {
-      throw new IllegalStateException("Wrong msms info type.");
-    }
-
-    final double precursorMz = Double.parseDouble(
-        reader.getAttributeValue(null, XML_PRECURSOR_MZ_ATTR));
-
-    final Integer precursorCharge = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_PRECURSOR_CHARGE_ATTR, null, Integer::parseInt);
-
-    final Integer frameIndex = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_FRAGMENT_SCAN_ATTR, null, Integer::parseInt);
-
-    final Integer parentFrameIndex = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_PARENT_SCAN_ATTR, null, Integer::parseInt);
-
-    final Float collisionEnergy = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_ACTIVATION_ENERGY_ATTR, null, Float::parseFloat);
-
-    final Range<Double> isolationWindow = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
-
-    Range<Integer> spectrumRange = ParsingUtils.parseIntegerRange(
-        reader.getAttributeValue(null, XML_SPECTRUM_NUMBER_RANGE_ATTR));
-
-    // replace by original file so we store the original frames and not the cached ones.
-    if(file instanceof CachedIMSRawDataFile cachedIMSRawDataFile) {
-      file = (IMSRawDataFile) cachedIMSRawDataFile.getOriginalFile();
-    }
-
-    return new PasefMsMsInfoImpl(precursorMz, spectrumRange, collisionEnergy, precursorCharge,
-        parentFrameIndex != null ? file.getFrame(parentFrameIndex) : null,
-        frameIndex != null ? file.getFrame(frameIndex) : null, isolationWindow);
   }
 
   @Override
@@ -251,6 +274,6 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
   @Override
   public MsMsInfo createCopy() {
     return new PasefMsMsInfoImpl(precursorMz, spectrumNumberRange, collisionEnergy, precursorCharge,
-        parentFrame, null, isolationWindow);
+        parentFrame, fragmentFrame, isolationWindow);
   }
 }

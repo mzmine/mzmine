@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.tools.isotopeprediction;
@@ -28,14 +35,17 @@ import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Window;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.formula.IsotopeContainer;
 import org.openscience.cdk.formula.IsotopePatternGenerator;
+import org.openscience.cdk.formula.MolecularFormula;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
@@ -104,14 +114,16 @@ public class IsotopePatternCalculator implements MZmineModule {
 
     DataPoint dataPoints[] = new DataPoint[numOfIsotopes];
     String isotopeComposition[] = new String[numOfIsotopes];
+    // For each unit of charge, we have to add or remove a mass of a
+    // single electron. If the charge is positive, we remove electron
+    // mass. If the charge is negative, we add it.
+    charge = Math.abs(charge);
+    var electronMass = polarity.getSign() * -1 * charge * ELECTRON_MASS;
 
     for (int i = 0; i < numOfIsotopes; i++) {
       IsotopeContainer isotope = pattern.getIsotope(i);
 
-      // For each unit of charge, we have to add or remove a mass of a
-      // single electron. If the charge is positive, we remove electron
-      // mass. If the charge is negative, we add it.
-      double mass = isotope.getMass() + (polarity.getSign() * -1 * charge * ELECTRON_MASS);
+      double mass = isotope.getMass() + electronMass;
 
       if (charge != 0) {
         mass /= charge;
@@ -137,9 +149,27 @@ public class IsotopePatternCalculator implements MZmineModule {
     }
   }
 
+  public static HashMap <Double, IsotopePattern> calculateIsotopePatternForResolutions(IMolecularFormula cdkFormula,
+      double minAbundance, MZTolerance[] tolerances, int charge, PolarityType polarity,
+      boolean storeFormula) {
+    // TODO: check if the formula is not too big (>100 of a single atom?).
+    // if so, just cancel the prediction
+
+    // Set the minimum abundance of isotope
+    // TODO: in the CDK minAbundance is now called minIntensity and refers
+    // to the relative intensity
+    // in the isotope pattern, should change it here, too
+    HashMap <Double, IsotopePattern> calculatedIsotopePatternForResolutions = new HashMap<>();
+    for (MZTolerance mzTolerance : tolerances) {
+      calculatedIsotopePatternForResolutions.put(mzTolerance.getMzTolerance(),calculateIsotopePattern(
+          cdkFormula,minAbundance,mzTolerance.getMzTolerance(),charge,polarity,storeFormula));
+    }
+  return calculatedIsotopePatternForResolutions;
+  }
+
+
   public static IsotopePattern removeDataPointsBelowIntensity(IsotopePattern pattern,
       double minIntensity) {
-
     DataPoint[] dp = ScanUtils.extractDataPoints(pattern);
     for (int i = 0; i < pattern.getNumberOfDataPoints(); i++) {
       if (dp[i].getIntensity() < minIntensity) {

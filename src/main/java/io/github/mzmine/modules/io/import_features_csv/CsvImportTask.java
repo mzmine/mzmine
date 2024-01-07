@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.import_features_csv;
@@ -29,11 +36,13 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.io.File;
 import java.io.FileReader;
 import java.time.Instant;
@@ -44,17 +53,20 @@ import org.jetbrains.annotations.Nullable;
 public class CsvImportTask extends AbstractTask {
 
   private final MZmineProject project;
-  private RawDataFile rawDataFile;
+  private final RawDataFile rawDataFile;
   private final File fileName;
-  private double percent = 0.0;
+  private final ParameterSet parameters;
+  private final double percent = 0.0;
 
   CsvImportTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate) {
-    super(storage, moduleCallDate); this.project = project;
+    super(storage, moduleCallDate);
+    this.project = project;
     // first file only
     this.rawDataFile = parameters.getParameter(CsvImportParameters.dataFiles).getValue()
         .getMatchingRawDataFiles()[0];
     this.fileName = parameters.getParameter(CsvImportParameters.filename).getValue()[0];
+    this.parameters = parameters;
   }
 
 
@@ -128,16 +140,15 @@ public class CsvImportTask extends AbstractTask {
         finalDataPoint[0] = new SimpleDataPoint(feature_mz, feature_height);
         FeatureStatus status = FeatureStatus.UNKNOWN; // abundance unknown
         Scan representativeScan = null;
-        for (Scan s_no : rawDataFile.getScans()) {
-          if (s_no.getRetentionTime() == feature_rt) {
-            representativeScan = s_no;
-            for (DataPoint dp : s_no) {
-              if (dp.getMZ() == feature_mz) {
-                finalDataPoint[0] = new SimpleDataPoint(feature_mz, dp.getIntensity());
-                break;
-              }
-            }
+
+        final Scan s_no = rawDataFile.binarySearchClosestScan(feature_rt, 1);
+        if (s_no != null && finalRTRange.contains(s_no.getRetentionTime())) {
+          representativeScan = s_no;
+          final int peakIndex = s_no.binarySearch(feature_mz, DefaultTo.CLOSEST_VALUE);
+          if (finalMZRange.contains(s_no.getMzValue(peakIndex))) {
+            finalDataPoint[0] = new SimpleDataPoint(feature_mz, s_no.getIntensityValue(peakIndex));
           }
+          scanNumbers = new Scan[]{representativeScan};
         }
 
         Feature feature = new ModularFeature(newFeatureList, rawDataFile, feature_mz, feature_rt,
@@ -150,6 +161,11 @@ public class CsvImportTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
+
+      newFeatureList.setSelectedScans(rawDataFile, rawDataFile.getScanNumbers(1));
+      newFeatureList.addDescriptionOfAppliedTask(
+          new SimpleFeatureListAppliedMethod(CsvImportModule.class, parameters,
+              getModuleCallDate()));
 
       fileReader.close();
       project.addFeatureList(newFeatureList);

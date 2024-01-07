@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
@@ -48,7 +55,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -78,15 +84,15 @@ public class MultiSpectraVisualizerPane extends BorderPane {
   private final NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
   private final UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private List<RawDataFile> rawFiles;
   private FeatureListRow row;
   private RawDataFile activeRaw;
 
   private static final long serialVersionUID = 1L;
-  private GridPane pnGrid;
-  private Label lbRaw;
+  private final GridPane pnGrid;
+  private final Label lbRaw;
 
   /**
    * Shows best fragmentation scan raw data file first
@@ -182,7 +188,12 @@ public class MultiSpectraVisualizerPane extends BorderPane {
   public void setData(FeatureListRow row, RawDataFile raw) {
     rawFiles = row.getRawDataFiles();
     this.row = row;
-    setRawFileAndShow(raw);
+
+    if(row.getFeature(raw) != null) {
+      setRawFileAndShow(raw);
+    } else {
+      setRawFileAndShow(row.getBestFeature().getRawDataFile());
+    }
   }
 
   /**
@@ -193,6 +204,9 @@ public class MultiSpectraVisualizerPane extends BorderPane {
    */
   public boolean setRawFileAndShow(RawDataFile raw) {
     Feature peak = row.getFeature(raw);
+    if(peak == null && row.getRawDataFiles().size() == 1 && row.getBestFeature() != null) {
+      peak = row.getBestFeature();
+    }
     // no peak / no ms2 - return false
     if (peak == null || peak.getAllMS2FragmentScans() == null
         || peak.getAllMS2FragmentScans().size() == 0) {
@@ -214,8 +228,8 @@ public class MultiSpectraVisualizerPane extends BorderPane {
     int n = indexOfRaw(raw);
     lbRaw.setText(n + ": " + raw.getName());
     logger.finest(
-        "All MS/MS scans window: Added " + numbers.size() + " spectra of raw file " + n + ": " + raw
-            .getName());
+        "All MS/MS scans window: Added " + numbers.size() + " spectra of raw file " + n + ": "
+            + raw.getName());
     // show
 //    pnGrid.revalidate();
 //    pnGrid.repaint();
@@ -240,7 +254,7 @@ public class MultiSpectraVisualizerPane extends BorderPane {
     ModularFeature peak = (ModularFeature) row.getFeature(activeRaw);
 
     // scan selection
-    ScanSelection scanSelection = new ScanSelection(activeRaw.getDataRTRange(1), 1);
+    ScanSelection scanSelection = new ScanSelection(1, activeRaw.getDataRTRange(1));
 
     // mz range
     Range<Double> mzRange = null;
@@ -282,10 +296,10 @@ public class MultiSpectraVisualizerPane extends BorderPane {
     ticAndMobilogram.setOrientation(Orientation.HORIZONTAL);
     ticAndMobilogram.getItems().add(ticPlot);
 
-    if (peak.getFeatureData() instanceof IonMobilogramTimeSeries series && peak
-        .getMostIntenseFragmentScan() instanceof MergedMsMsSpectrum mergedMsMs) {
-      SimpleXYChart<PlotXYDataProvider> mobilogramChart = createMobilogramChart(peak,
-          mzRange, palette, series, mergedMsMs);
+    if (peak.getFeatureData() instanceof IonMobilogramTimeSeries series
+        && peak.getMostIntenseFragmentScan() instanceof MergedMsMsSpectrum mergedMsMs) {
+      SimpleXYChart<PlotXYDataProvider> mobilogramChart = createMobilogramChart(peak, mzRange,
+          palette, series, mergedMsMs);
       ticAndMobilogram.getItems().add(mobilogramChart);
     }
 

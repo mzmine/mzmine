@@ -1,38 +1,44 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features.types;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.ImageChart;
-import io.github.mzmine.datamodel.features.types.tasks.FeatureGraphicalNodeTask;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
+import java.util.logging.Logger;
 import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
-import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ImageType extends LinkedGraphicalType {
+
+  private static final Logger logger = Logger.getLogger(ImageType.class.getName());
 
   @NotNull
   @Override
@@ -48,10 +54,9 @@ public class ImageType extends LinkedGraphicalType {
   }
 
   @Override
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean value, RawDataFile raw) {
-    ModularFeatureListRow row = cell.getTreeTableRow().getItem();
-    if (row == null || !value || row.getFeature(raw) == null
+  public @Nullable Node createCellContent(ModularFeatureListRow row, Boolean cellData,
+      RawDataFile raw, AtomicDouble progress) {
+    if (row == null || (cellData != null && !cellData) || row.getFeature(raw) == null
         || !(raw instanceof ImagingRawDataFile)) {
       return null;
     }
@@ -65,25 +70,23 @@ public class ImageType extends LinkedGraphicalType {
       return null;
     }
 
-    // get existing buffered node from row (for column name)
-    // TODO listen to changes in features data
-    Node node = feature.getBufferedColChart(coll.getText());
-    if (node != null) {
-      return node;
-    }
-
-    StackPane pane = new StackPane();
-
-    // TODO stop task if new task is started
-    Task task = new FeatureGraphicalNodeTask(ImageChart.class, pane, feature, coll.getText());
-    MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
-
-    return pane;
+    var chart = new ImageChart(feature, progress);
+    return chart;
   }
 
   @Override
   public double getColumnWidth() {
     return 205;
+  }
+
+  @Override
+  public double getCellHeight() {
+    return DEFAULT_IMAGE_CELL_HEIGHT;
+  }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
   }
 
 }

@@ -1,36 +1,42 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.group_metacorrelate.export;
-
 
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -42,7 +48,6 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.TxtWriter;
 import java.io.File;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -56,6 +61,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javafx.collections.ObservableList;
 import org.apache.commons.lang3.StringUtils;
@@ -77,7 +83,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
   private boolean exportIinRelationships = false;
   private boolean mergeLists = false;
 
-  private List<File> exportedFiles = new ArrayList<>();
+  private final List<File> exportedFiles = new ArrayList<>();
 
   /**
    * Create the task.
@@ -91,10 +97,10 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
     // tolerances
     filename = parameterSet.getParameter(ExportCorrAnnotationParameters.filename).getValue();
-    exportAnnotationEdges =
-        parameterSet.getParameter(ExportCorrAnnotationParameters.exportIIN).getValue();
-    exportIinRelationships =
-        parameterSet.getParameter(ExportCorrAnnotationParameters.exportIINRelationship).getValue();
+    exportAnnotationEdges = parameterSet.getParameter(ExportCorrAnnotationParameters.exportIIN)
+        .getValue();
+    exportIinRelationships = parameterSet.getParameter(
+        ExportCorrAnnotationParameters.exportIINRelationship).getValue();
     filter = parameterSet.getParameter(ExportCorrAnnotationParameters.filter).getValue();
     exportTypes = parameterSet.getParameter(ExportCorrAnnotationParameters.exportTypes).getValue();
     allInOneFile = parameterSet.getParameter(ExportCorrAnnotationParameters.allInOneFile)
@@ -123,12 +129,13 @@ public class ExportCorrAnnotationTask extends AbstractTask {
   public boolean exportIonIdentityEdges(FeatureList featureList, File filename, Double progress,
       AbstractTask task) {
     LOG.info("Export ion identity networking edges file");
-    NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-    NumberFormat corrForm = new DecimalFormat("0.000");
+    NumberFormats formats = MZmineCore.getConfiguration().getExportFormats();
+    NumberFormat mzForm = formats.mzFormat();
+    NumberFormat corrForm = formats.scoreFormat();
     try {
       List<FeatureListRow> rows = featureList.getRows();
-      Collections
-          .sort(rows, new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
+      Collections.sort(rows,
+          new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
       StringBuilder ann = createHeader();
 
       AtomicInteger added = new AtomicInteger(0);
@@ -152,7 +159,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
             // add all connection for ids>rowID to avoid duplicates
             links.entrySet().stream().filter(Objects::nonNull)
                 .filter(e -> e.getKey().getID() > rowID).forEach(e -> {
-              FeatureListRow link = e.getKey();
+                  FeatureListRow link = e.getKey();
                   if (filter.accept(link)) {
                     IonIdentity id = e.getValue();
                     double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
@@ -162,7 +169,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
                         id.getAdduct() + " " + adduct.getAdduct() + " dm/z=" + mzForm.format(dmz));
                     added.incrementAndGet();
                   }
-            });
+                });
           });
         }
       }
@@ -171,8 +178,19 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
       // export ann edges
       // Filename
+
       if (added.get() > 0) {
-        writeToFile(ann.toString(), filename, "_edges_msannotation");
+        String CString = "{}";
+        boolean check = filename.getPath().contains(CString);
+        if (check) {
+          File curFile = filename;
+          String cleanPlName = featureList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
+          String newFilename = filename.getPath().replaceAll(Pattern.quote(CString), cleanPlName);
+          curFile = new File(newFilename);
+          writeToFile(ann.toString(), curFile, "_edges_msannotation");
+        } else {
+          writeToFile(ann.toString(), filename, "_edges_msannotation");
+        }
         return true;
       } else {
         return false;
@@ -185,8 +203,6 @@ public class ExportCorrAnnotationTask extends AbstractTask {
   public boolean exportIINRelationships(FeatureList pkl, File filename, Double progress,
       AbstractTask task) {
     LOG.fine("Export IIN relationships edge file");
-    NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-    NumberFormat corrForm = new DecimalFormat("0.000");
 
     try {
       StringBuilder ann = createHeader();
@@ -223,12 +239,22 @@ public class ExportCorrAnnotationTask extends AbstractTask {
           }
         }
       }
-      LOG.info("IIN relationship edges exported " + added.get() + "");
+      LOG.info("IIN relationship edges exported " + added.get());
 
       // export ann edges
       // Filename
       if (added.get() > 0) {
-        writeToFile(ann.toString(), filename, "_edges_iin_relations");
+        String CString = "{}";
+        boolean check = filename.getPath().contains(CString);
+        if (check) {
+          File curFile = filename;
+          String cleanPlName = pkl.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
+          String newFilename = filename.getPath().replaceAll(Pattern.quote(CString), cleanPlName);
+          curFile = new File(newFilename);
+          writeToFile(ann.toString(), curFile, "_edges_iin_relations");
+        } else {
+          writeToFile(ann.toString(), filename, "_edges_iin_relations");
+        }
         return true;
       } else {
         return false;
@@ -346,19 +372,19 @@ public class ExportCorrAnnotationTask extends AbstractTask {
   private void writeToFile(String data, File filename, String suffix) {
     File realFile = FileAndPathUtil.eraseFormat(filename);
     String name = allInOneFile ? realFile.getName() : realFile.getName() + suffix;
-    realFile = FileAndPathUtil
-        .getRealFilePath(filename.getParentFile(), realFile.getName() + suffix, ".csv");
+    realFile = FileAndPathUtil.getRealFilePath(filename.getParentFile(),
+        realFile.getName() + suffix, ".csv");
 
     if (allInOneFile) {
-      realFile = FileAndPathUtil
-          .getRealFilePath(filename.getParentFile(), realFile.getName(), ".csv");
+      realFile = FileAndPathUtil.getRealFilePath(filename.getParentFile(), realFile.getName(),
+          ".csv");
       boolean append = exportedFiles.size() > 0;
       TxtWriter.write(data, realFile, append);
       LOG.log(Level.INFO, "File {1}: {0}",
           new Object[]{realFile.getAbsolutePath(), append ? "created" : "appended"});
     } else {
-      realFile = FileAndPathUtil
-          .getRealFilePath(filename.getParentFile(), realFile.getName() + suffix, ".csv");
+      realFile = FileAndPathUtil.getRealFilePath(filename.getParentFile(),
+          realFile.getName() + suffix, ".csv");
       TxtWriter.write(data, realFile);
       LOG.log(Level.INFO, "File created: {0}", realFile.getAbsolutePath());
     }
@@ -411,12 +437,10 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
       // exports all row-2-row relationship maps
       var rowMaps = featureList.getRowMaps();
-      if (exportTypes != null && rowMaps != null) {
+      if (exportTypes != null) {
         for (Type type : exportTypes) {
-          R2RMap<RowsRelationship> map = rowMaps.get(type);
-          if (map != null) {
-            exportMap(type, map.values());
-          }
+          rowMaps.getRowsMap(type.toString())
+              .ifPresent(map -> exportMap(type, map.values(), featureList.getName()));
         }
       }
 
@@ -438,18 +462,28 @@ public class ExportCorrAnnotationTask extends AbstractTask {
    * @param type          type.toString is used as a file suffix
    * @param relationships list of relationships to export to one file
    */
-  private void exportMap(Type type, Collection<RowsRelationship> relationships) {
+  private void exportMap(Type type, Collection<RowsRelationship> relationships, String fname) {
     // creates the standard header
     StringBuilder ann = createHeader();
     for (RowsRelationship rel : relationships) {
       // only export if both rows match
       if (filter.accept(rel.getRowA()) && filter.accept(rel.getRowB())) {
-        exportEdge(ann, rel.getType().toString(), rel.getRowA().getID(), rel.getRowB().getID(),
+        exportEdge(ann, rel.getType(), rel.getRowA().getID(), rel.getRowB().getID(),
             rel.getScoreFormatted(), rel.getAnnotation());
       }
     }
     String suffix = "_" + type.toString().toLowerCase().replaceAll(" ", "_");
-    writeToFile(ann.toString(), filename, suffix);
+    String CString = "{}";
+    boolean check = filename.getPath().contains(CString);
+    if (check) {
+      File curFile = filename;
+      String cleanPlName = fname.replaceAll("[^a-zA-Z0-9.-]", "_");
+      String newFilename = filename.getPath().replaceAll(Pattern.quote(CString), cleanPlName);
+      curFile = new File(newFilename);
+      writeToFile(ann.toString(), filename, suffix);
+    } else {
+      writeToFile(ann.toString(), filename, suffix);
+    }
   }
 
   private void exportMergedLists() {
@@ -458,8 +492,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     // export edges of annotations
     if (exportAnnotationEdges) {
       exportAnnotationEdgesMerged(featureLists, filename,
-          filter.equals(FeatureListRowsFilter.ONLY_WITH_MS2),
-          progress, this);
+          filter.equals(FeatureListRowsFilter.ONLY_WITH_MS2), progress, this);
     }
   }
 
@@ -489,8 +522,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       }
     }
 
-    NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-    NumberFormat corrForm = new DecimalFormat("0.000");
+    NumberFormats formats = MZmineCore.getConfiguration().getExportFormats();
+    NumberFormat mzForm = formats.mzFormat();
+    NumberFormat corrForm = formats.scoreFormat();
     try {
       StringBuilder ann = createHeader();
 
@@ -498,8 +532,8 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
       for (FeatureList pkl : featureLists) {
         ObservableList<FeatureListRow> rows = pkl.getRows();
-        Collections
-            .sort(rows, new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
+        Collections.sort(rows,
+            new FeatureListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
 
         // for all rows
         for (FeatureListRow r : rows) {
@@ -521,28 +555,27 @@ public class ExportCorrAnnotationTask extends AbstractTask {
               // add all connection for ids>rowID
               links.entrySet().stream().filter(Objects::nonNull)
                   .filter(e -> e.getKey().getID() > rowID).forEach(e -> {
-                FeatureListRow link = e.getKey();
-                if (!limitToMSMS || link.getMostIntenseFragmentScan() != null) {
-                  IonIdentity id = e.getValue();
-                  double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
+                    FeatureListRow link = e.getKey();
+                    if (!limitToMSMS || link.getMostIntenseFragmentScan() != null) {
+                      IonIdentity id = e.getValue();
+                      double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
 
-                  // convert ids for merging
-                  Integer id1 = renumbered.get(getRowMapKey(r));
-                  Integer id2 = renumbered.get(getRowMapKey(e.getKey()));
+                      // convert ids for merging
+                      Integer id1 = renumbered.get(getRowMapKey(r));
+                      Integer id2 = renumbered.get(getRowMapKey(e.getKey()));
 
-                  // the data
-                  exportEdge(ann, "MS1 annotation", id1, id2,
-                      corrForm.format((id.getScore() + adduct.getScore()) / 2d), //
-                      id.getAdduct() + " " + adduct.getAdduct() + " dm/z="
-                      + mzForm.format(dmz));
-                  added.incrementAndGet();
-                }
-              });
+                      // the data
+                      exportEdge(ann, "MS1 annotation", id1, id2,
+                          corrForm.format((id.getScore() + adduct.getScore()) / 2d), //
+                          id.getAdduct() + " " + adduct.getAdduct() + " dm/z=" + mzForm.format(dmz));
+                      added.incrementAndGet();
+                    }
+                  });
             });
           }
         }
 
-        LOG.info("Annotation edges exported " + added.get() + "");
+        LOG.info("Annotation edges exported " + added.get());
       }
 
       // export ann edges
@@ -567,5 +600,4 @@ public class ExportCorrAnnotationTask extends AbstractTask {
   public enum EDGES {
     ID1, ID2, EdgeType, Score, Annotation
   }
-
 }

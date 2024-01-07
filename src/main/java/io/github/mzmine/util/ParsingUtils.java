@@ -1,19 +1,26 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util;
@@ -24,11 +31,13 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -157,27 +166,25 @@ public class ParsingUtils {
   }
 
   public static Range<Double> stringToDoubleRange(String str) {
-    Pattern regex = Pattern.compile(
-        "\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
-    Matcher matcher = regex.matcher(str);
-    if (matcher.matches()) {
-      double lower = Double.parseDouble(matcher.group(1));
-      double upper = Double.parseDouble(matcher.group(3));
-      return Range.closed(lower, upper);
+    if (str.isEmpty()) {
+      return null;
     }
-    return null;
+    String[] vals = str.replaceAll("\\[", "").replaceAll("\\]", "").split(SEPARATOR);
+    if (vals.length != 2) {
+      throw new IllegalStateException("Error while parsing double range from string " + str);
+    }
+    return Range.closed(Double.parseDouble(vals[0]), Double.parseDouble(vals[1]));
   }
 
   public static Range<Float> stringToFloatRange(String str) {
-    Pattern regex = Pattern.compile(
-        "\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
-    Matcher matcher = regex.matcher(str);
-    if (matcher.matches()) {
-      float lower = Float.parseFloat(matcher.group(1));
-      float upper = Float.parseFloat(matcher.group(3));
-      return Range.closed(lower, upper);
+    if (str.isEmpty()) {
+      return null;
     }
-    return null;
+    String[] vals = str.replaceAll("\\[", "").replaceAll("\\]", "").split(SEPARATOR);
+    if (vals.length != 2) {
+      throw new IllegalStateException("Error while parsing float range from string " + str);
+    }
+    return Range.closed(Float.parseFloat(vals[0]), Float.parseFloat(vals[1]));
   }
 
   public static Range<Integer> parseIntegerRange(String str) {
@@ -191,28 +198,48 @@ public class ParsingUtils {
     return null;
   }
 
-  public static String mobilityScanListToString(List<MobilityScan> scans) {
-    // {frameindex}[mobilityscanindices]\\
-    StringBuilder b = new StringBuilder();
-    final Map<Frame, List<MobilityScan>> mapping = scans.stream()
-        .collect(Collectors.groupingBy(MobilityScan::getFrame));
-    for (Iterator<Entry<Frame, List<MobilityScan>>> it = mapping.entrySet().iterator();
-        it.hasNext(); ) {
-      Entry<Frame, List<MobilityScan>> entry = it.next();
-      Frame frame = entry.getKey();
-      List<MobilityScan> mobilityScans = entry.getValue();
-      mobilityScans.sort(Comparator.comparingInt(MobilityScan::getMobilityScanNumber));
-      b.append("{").append(frame.getDataFile().getScans().indexOf(frame)).append("}");
+  /**
+   * Maps a list of mobility scans to their respective {@link RawDataFile} and represents them as a
+   * parseable string. Repeating element: {frameindex}[mobilityscanindices]. Indices are seperated
+   * by ';' and repeating elements are split by ';;'
+   *
+   * @param scans A list of mobility scans.
+   * @return A hash map key = data file; value = string as described above
+   */
+  public static Map<RawDataFile, String> mobilityScanListToStrings(List<MobilityScan> scans) {
 
-      int[] indices = ParsingUtils.getIndicesOfSubListElements(mobilityScans,
-          frame.getMobilityScans());
-      b.append("[").append(ParsingUtils.intArrayToString(indices, indices.length)).append("]");
+    final Map<RawDataFile, String> result = new HashMap<>();
 
-      if (it.hasNext()) {
-        b.append(SEPARATOR).append(SEPARATOR);
+    // first group scans by file
+    final Map<RawDataFile, List<MobilityScan>> fileScanMapping = scans.stream()
+        .collect(Collectors.groupingBy(MobilityScan::getDataFile));
+
+    for (Entry<RawDataFile, List<MobilityScan>> fileScansEntry : fileScanMapping.entrySet()) {
+      // {frameindex}[mobilityscanindices]\\
+      StringBuilder b = new StringBuilder();
+
+      // group mobility scans of a single file by frame
+      final Map<Frame, List<MobilityScan>> mapping = fileScansEntry.getValue().stream()
+          .collect(Collectors.groupingBy(MobilityScan::getFrame));
+      for (Iterator<Entry<Frame, List<MobilityScan>>> it = mapping.entrySet().iterator();
+          it.hasNext(); ) {
+        Entry<Frame, List<MobilityScan>> entry = it.next();
+        Frame frame = entry.getKey();
+        List<MobilityScan> mobilityScans = entry.getValue();
+        mobilityScans.sort(Comparator.comparingInt(MobilityScan::getMobilityScanNumber));
+        b.append("{").append(frame.getDataFile().getScans().indexOf(frame)).append("}");
+
+        int[] indices = ParsingUtils.getIndicesOfSubListElements(mobilityScans,
+            frame.getMobilityScans());
+        b.append("[").append(ParsingUtils.intArrayToString(indices, indices.length)).append("]");
+
+        if (it.hasNext()) {
+          b.append(SEPARATOR).append(SEPARATOR);
+        }
       }
+      result.put(fileScansEntry.getKey(), b.toString());
     }
-    return b.toString();
+    return result;
   }
 
   @Nullable
@@ -332,7 +359,7 @@ public class ParsingUtils {
       throws XMLStreamException {
     while (reader.hasNext() && !(reader.isStartElement() && reader.getLocalName()
         .equals(startElement))) {
-      if(reader.isEndElement() && reader.getLocalName().equals(breakpointEndElement)) {
+      if (reader.isEndElement() && reader.getLocalName().equals(breakpointEndElement)) {
         return false;
       }
       reader.next();
@@ -343,5 +370,58 @@ public class ParsingUtils {
   public static IonType parseIon(String str) {
     Pattern.compile("(\\[)?(\\d*)(M)([\\+\\-])([a-zA-Z_0-9\\\\+\\\\-]*)([\\]])?([\\d])?([\\+\\-])");
     return null;
+  }
+
+  /**
+   * @param number A number or null
+   * @return The string representation of the given number. ({@link CONST#XML_NULL_VALUE} for null).
+   */
+  @NotNull
+  public static String numberToString(@Nullable Number number) {
+    if (number == null) {
+      return CONST.XML_NULL_VALUE;
+    } else {
+      return String.valueOf(number);
+    }
+  }
+
+  /**
+   * Converts a string to a double. If the string is equal to {@link CONST#XML_NULL_VALUE}, null is
+   * returned.
+   *
+   * @param str The string.
+   * @return The Double.
+   */
+  @Nullable
+  public static Double stringToDouble(@Nullable String str) {
+    if (str == null || str.equals(CONST.XML_NULL_VALUE)) {
+      return null;
+    }
+
+    try {
+      return Double.valueOf(str);
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
+
+  /**
+   * Converts a string to a float. If the string is equal to {@link CONST#XML_NULL_VALUE}, null is
+   * returned.
+   *
+   * @param str The string.
+   * @return The float.
+   */
+  @Nullable
+  public static Float stringToFloat(@Nullable String str) {
+    if (str == null || str.equals(CONST.XML_NULL_VALUE)) {
+      return null;
+    }
+
+    try {
+      return Float.valueOf(str);
+    } catch (NumberFormatException e) {
+      return null;
+    }
   }
 }

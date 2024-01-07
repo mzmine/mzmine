@@ -1,28 +1,35 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features.types.annotations.compounddb;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.DatabaseMatchInfo;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.main.MZmineCore;
@@ -81,9 +88,9 @@ public class DatabaseMatchInfoType extends DataType<DatabaseMatchInfo> {
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
-      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
-      @Nullable RawDataFile file) throws XMLStreamException {
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
     if (!reader.isStartElement() && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR)
         .equals(getUniqueID())) {
       throw new IllegalStateException("Current element is not a database match info element.");
@@ -91,34 +98,19 @@ public class DatabaseMatchInfoType extends DataType<DatabaseMatchInfo> {
 
     final String database_id = ParsingUtils.readNullableString(
         reader.getAttributeValue(null, "database_id"));
-    final OnlineDatabases database = OnlineDatabases.valueOf(ParsingUtils.readNullableString(
-        reader.getAttributeValue(null, "database_name")));
+    final OnlineDatabases database = OnlineDatabases.valueOf(
+        ParsingUtils.readNullableString(reader.getAttributeValue(null, "database_name")));
     final String url = reader.getElementText();
 
     return new DatabaseMatchInfo(database, database_id, url);
   }
 
   @Override
-  public @NotNull String getFormattedString(DatabaseMatchInfo value) {
-    if (value == null) {
-      return "";
-    }
-
-    return value.toString();
-  }
-
-  @Override
   public @Nullable Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> file) {
-    final List<CompoundDBAnnotation> compoundAnnotations = row.getCompoundAnnotations();
-    if (compoundAnnotations.isEmpty()) {
-      return null;
-    }
+      @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
 
-    final DatabaseMatchInfo databaseId = compoundAnnotations.get(0)
-        .get(DatabaseMatchInfoType.class);
-    if (databaseId == null || databaseId.onlineDatabase() == null || databaseId.id() == null
-        || databaseId.url() == null) {
+    if (!(value instanceof DatabaseMatchInfo databaseId) || databaseId.onlineDatabase() == null
+        || databaseId.id() == null || databaseId.url() == null) {
       return null;
     }
 

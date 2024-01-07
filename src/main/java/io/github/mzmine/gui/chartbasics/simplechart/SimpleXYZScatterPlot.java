@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart;
@@ -41,6 +48,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -73,6 +81,7 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.title.Title;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.data.Range;
 import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.general.DatasetUtils;
@@ -124,14 +133,16 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    */
   private Title currentLegend = null;
 
+  private boolean legendVisible = true;
+
   public SimpleXYZScatterPlot() {
     this("");
   }
 
   public SimpleXYZScatterPlot(@NotNull String title) {
 
-    super(ChartFactory.createScatterPlot("", "x", "y", null,
-        PlotOrientation.VERTICAL, true, false, true), true, true, true, true, false);
+    super(ChartFactory.createScatterPlot("", "x", "y", null, PlotOrientation.VERTICAL, true, false,
+        true), true, true, true, true, false);
 
     chart = getChart();
     chartTitle = new TextTitle(title);
@@ -160,8 +171,9 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   }
 
   /**
-   * Updates the legend to the paint scale currently set via {@link #setLegendPaintScale(PaintScale)}
-   * or the paint scale from data set with index 0. If neither is set, the legend is removed.
+   * Updates the legend to the paint scale currently set via
+   * {@link #setLegendPaintScale(PaintScale)} or the paint scale from data set with index 0. If
+   * neither is set, the legend is removed.
    */
   public void updateLegend() {
     final XYDataset dataset = getXYPlot().getDataset(0);
@@ -169,6 +181,9 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
       return;
     }
     getChart().clearSubtitles();
+    if (!legendVisible) {
+      return;
+    }
 
     if (dataset instanceof PaintScaleProvider) {
       final PaintScale paintScale;
@@ -191,8 +206,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     } else {
       LegendTitle legend = new LegendTitle(getChart().getXYPlot());
       legend.setPosition(RectangleEdge.BOTTOM);
-      final EStandardChartTheme theme = MZmineCore.getConfiguration()
-          .getDefaultChartTheme();
+      final EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
       legend.setBackgroundPaint(legendBg);
       legend.setItemFont(theme.getRegularFont());
       legend.setItemPaint(theme.getLegendItemPaint());
@@ -302,8 +316,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     return addDataset(dataset, defaultRenderer.get());
   }
 
-  public void addDatasetsAndRenderers(
-      Map<XYZDataset, XYItemRenderer> datasetsAndRenderers) {
+  public void addDatasetsAndRenderers(Map<XYZDataset, XYItemRenderer> datasetsAndRenderers) {
     getChart().setNotify(false);
     getXYPlot().setNotify(false);
     datasetsAndRenderers.forEach(this::addDataset);
@@ -421,10 +434,9 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
       }
     }
 
-    return (index != -1) ?
-        new PlotCursorPosition(domainValue, rangeValue, zValue, index,
-            plot.getDataset(datasetIndex)) :
-        new PlotCursorPosition(domainValue, rangeValue, index, null);
+    return (index != -1) ? new PlotCursorPosition(domainValue, rangeValue, zValue, index,
+        plot.getDataset(datasetIndex))
+        : new PlotCursorPosition(domainValue, rangeValue, index, null);
   }
 
   public XYPlot getXYPlot() {
@@ -501,7 +513,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     if (!(dataset instanceof ColoredXYZDataset xyz)
         || ((ColoredXYZDataset) dataset).getPaintScale() == null
         || ((ColoredXYZDataset) dataset).getStatus() != TaskStatus.FINISHED) {
-      org.jfree.data.Range range = DatasetUtils.findZBounds(dataset);
+      org.jfree.data.Range range = Objects.requireNonNullElse(DatasetUtils.findZBounds(dataset),
+          new Range(0d, 1d));
       return new LookupPaintScale(range.getLowerBound(), range.getUpperBound(), Color.BLACK);
     } else {
       return xyz.getPaintScale();
@@ -678,7 +691,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
 
   /**
    * Initializes a {@link RegionSelectionListener} and adds it to the plot. Following clicks will be
-   * added to a region. Region selection can be finished by {@link SimpleXYZScatterPlot#finishPath()}.
+   * added to a region. Region selection can be finished by
+   * {@link SimpleXYZScatterPlot#finishPath()}.
    */
   @Override
   public void startRegion() {
@@ -719,5 +733,14 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     RegionSelectionListener tempRegionListener = currentRegionListener;
     currentRegionListener = null;
     return tempRegionListener;
+  }
+
+  public boolean isLegendVisible() {
+    return legendVisible;
+  }
+
+  public void setLegendVisible(boolean legendVisible) {
+    this.legendVisible = legendVisible;
+    updateLegend();
   }
 }

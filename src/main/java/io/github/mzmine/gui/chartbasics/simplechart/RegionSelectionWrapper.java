@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart;
@@ -22,13 +29,13 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.RegionsParameter;
+import io.github.mzmine.util.XMLUtils;
 import java.awt.BasicStroke;
 import java.awt.Paint;
 import java.awt.Stroke;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,12 +54,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -152,14 +154,14 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
     btnClearRegions.setDisable(true);
     btnClearRegions.setOnAction(e -> {
       final List<XYAnnotation> annotations = node.getChart().getXYPlot().getAnnotations();
-      new ArrayList<>(annotations)
-          .forEach(a -> node.getChart().getXYPlot().removeAnnotation(a, true));
+      new ArrayList<>(annotations).forEach(
+          a -> node.getChart().getXYPlot().removeAnnotation(a, true));
       finishedRegionSelectionListeners.clear();
       btnFinishRegion.setDisable(true);
     });
 
-    finishedRegionSelectionListeners
-        .addListener((ListChangeListener<RegionSelectionListener>) c -> {
+    finishedRegionSelectionListeners.addListener(
+        (ListChangeListener<RegionSelectionListener>) c -> {
           c.next();
           if (c.wasRemoved()) {
             boolean disable = c.getList().isEmpty();
@@ -215,7 +217,8 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
             finishedRegionSelectionListeners.add(l);
           }
         }
-      } catch (ParserConfigurationException | IOException | SAXException | XPathExpressionException e) {
+      } catch (ParserConfigurationException | IOException | SAXException |
+               XPathExpressionException e) {
         e.printStackTrace();
       }
     });
@@ -223,8 +226,8 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
 
   private void saveRegionsToFile() {
     final RegionsParameter parameter = new RegionsParameter("Regions", "User defined regions");
-    finishedRegionSelectionListeners
-        .forEach(l -> parameter.getValue().add(l.buildingPointsProperty().getValue()));
+    finishedRegionSelectionListeners.forEach(
+        l -> parameter.getValue().add(l.buildingPointsProperty().getValue()));
     MZmineCore.runLater(() -> {
       final FileChooser chooser = new FileChooser();
       chooser.getExtensionFilters()
@@ -242,18 +245,7 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
         parameter.saveValueToXML(element);
         root.appendChild(element);
 
-        final TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        final Transformer transformer = transformerFactory.newTransformer();
-        transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-        final DOMSource source = new DOMSource(doc);
-        final FileWriter writer = new FileWriter(file);
-        final StreamResult result = new StreamResult(writer);
-        transformer.transform(source, result);
-        writer.close();
+        XMLUtils.saveToFile(file, doc);
       } catch (ParserConfigurationException | IOException | TransformerException e) {
         e.printStackTrace();
       }

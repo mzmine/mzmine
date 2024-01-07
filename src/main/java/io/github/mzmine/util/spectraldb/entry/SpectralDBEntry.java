@@ -1,28 +1,37 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.util.spectraldb.entry;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
-import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -30,24 +39,49 @@ import java.util.Optional;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class SpectralDBEntry {
+public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEntry {
 
-  public static final String XML_ELEMENT = "spectraldatabaseentry";
   public static final String XML_DB_FIELD_LIST_ELEMENT = "databasefieldslist";
+  public static final String XML_LIBRARY_FILE_NAME_ATTR = "library_file";
   private static final String XML_DB_FIELD_ELEMENT = "entry";
   private static final String XML_FIELD_NAME_ATTR = "name";
-
   private final Map<DBEntryField, Object> fields;
-  private final DataPoint[] dps;
 
-  public SpectralDBEntry(Map<DBEntryField, Object> fields, DataPoint[] dps) {
-    this.fields = fields;
-    this.dps = dps;
+  @Nullable
+  private SpectralLibrary library;
+
+  public SpectralDBEntry(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
+      @NotNull double[] intensityValues, @Nullable Map<DBEntryField, Object> fields,
+      @Nullable SpectralLibrary library) {
+    super(storage, mzValues, intensityValues);
+    this.fields = new HashMap<>();
+    if (fields != null) {
+      this.fields.putAll(fields);
+    }
+    this.library = library;
   }
 
-  public static SpectralDBEntry loadFromXML(XMLStreamReader reader) throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+  public SpectralDBEntry(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
+      @NotNull double[] intensityValues, @Nullable Map<DBEntryField, Object> fields) {
+    this(storage, mzValues, intensityValues, fields, null);
+  }
+
+  public SpectralDBEntry(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
+      @NotNull double[] intensityValues, SpectralLibrary library) {
+    this(storage, mzValues, intensityValues, null, library);
+  }
+
+  public SpectralDBEntry(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
+      @NotNull double[] intensityValues) {
+    this(storage, mzValues, intensityValues, null, null);
+  }
+
+  public static SpectralLibraryEntry loadFromXML(XMLStreamReader reader, MZmineProject project)
+      throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT_ENTRY))) {
       throw new IllegalStateException(
           "Cannot load spectral db entry from the current element. Wrong name.");
     }
@@ -56,17 +90,19 @@ public class SpectralDBEntry {
     double[] intensities = null;
     Map<DBEntryField, Object> fields = null;
 
+    final String libraryFileName = reader.getAttributeValue(null, XML_LIBRARY_FILE_NAME_ATTR);
+
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
-        .equals(XML_ELEMENT))) {
+        .equals(XML_ELEMENT_ENTRY))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
       }
       switch (reader.getLocalName()) {
-        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
-        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
+        case CONST.XML_MZ_VALUES_ELEMENT ->
+            mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT ->
+            intensities = ParsingUtils.stringToDoubleArray(reader.getElementText());
         case XML_DB_FIELD_LIST_ELEMENT -> fields = loadDBEntriesFromXML(reader);
         default -> {
         }
@@ -76,12 +112,13 @@ public class SpectralDBEntry {
     assert mzs != null && intensities != null;
     assert mzs.length == intensities.length;
 
-    DataPoint[] dps = new DataPoint[mzs.length];
-    for (int i = 0; i < dps.length; i++) {
-      dps[i] = new SimpleDataPoint(mzs[i], intensities[i]);
+    if (libraryFileName != null) {
+      final SpectralLibrary library = project.getCurrentSpectralLibraries().stream()
+          .filter(l -> l.getName().equals(libraryFileName)).findFirst().orElse(null);
+      return new SpectralDBEntry(null, mzs, intensities, fields, library);
+    } else {
+      return new SpectralDBEntry(null, mzs, intensities, fields);
     }
-
-    return new SpectralDBEntry(fields, dps);
   }
 
   private static Map<DBEntryField, Object> loadDBEntriesFromXML(XMLStreamReader reader)
@@ -111,28 +148,45 @@ public class SpectralDBEntry {
     return fields;
   }
 
-  public Double getPrecursorMZ() {
-    return (Double) fields.get(DBEntryField.MZ);
+  @Override
+  public void putAll(Map<DBEntryField, Object> fields) {
+    this.fields.putAll(fields);
   }
 
+  @Override
+  public boolean putIfNotNull(DBEntryField field, Object value) {
+    if (field != null && value != null) {
+      fields.put(field, value);
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public Double getPrecursorMZ() {
+    return (Double) fields.get(DBEntryField.PRECURSOR_MZ);
+  }
+
+  @Override
   public Optional<Object> getField(DBEntryField f) {
     return Optional.ofNullable(fields.get(f));
   }
 
+  @Override
   public <T> T getOrElse(DBEntryField f, T defaultValue) {
     final Object value = fields.get(f);
     return value == null ? defaultValue : (T) value;
   }
 
-  public DataPoint[] getDataPoints() {
-    return dps;
-  }
-
+  @Override
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
-    writer.writeStartElement(XML_ELEMENT);
+    writer.writeStartElement(XML_ELEMENT_ENTRY);
+    if (getLibraryName() != null) {
+      writer.writeAttribute(XML_LIBRARY_FILE_NAME_ATTR, getLibraryName());
+    }
 
-    double[] mzs = Arrays.stream(dps).mapToDouble(DataPoint::getMZ).toArray();
-    double[] intensities = Arrays.stream(dps).mapToDouble(DataPoint::getIntensity).toArray();
+    double[] mzs = getMzValues(new double[getNumberOfDataPoints()]);
+    double[] intensities = getIntensityValues(new double[getNumberOfDataPoints()]);
 
     writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
     writer.writeCharacters(ParsingUtils.doubleArrayToString(mzs, mzs.length));
@@ -164,15 +218,37 @@ public class SpectralDBEntry {
       return false;
     }
     SpectralDBEntry that = (SpectralDBEntry) o;
-    boolean b1 = Arrays.equals(dps, that.dps);
-    boolean b2 = Objects.equals(fields, that.fields);
-    return b1 && b2;
+    return Objects.equals(fields, that.fields)
+        && getNumberOfDataPoints() == that.getNumberOfDataPoints();
+  }
+
+  @Override
+  public String toString() {
+    return String.format("Entry: %s (dp: %d)", getOrElse(DBEntryField.NAME, ""),
+        getNumberOfDataPoints());
   }
 
   @Override
   public int hashCode() {
-    int result = Objects.hash(fields);
-    result = 31 * result + Arrays.hashCode(dps);
-    return result;
+    return Objects.hash(fields, getNumberOfDataPoints());
   }
+
+  @Override
+  public Map<DBEntryField, Object> getFields() {
+    return fields;
+  }
+
+  public @Nullable SpectralLibrary getLibrary() {
+    return library;
+  }
+
+  public void setLibrary(@Nullable SpectralLibrary library) {
+    this.library = library;
+  }
+
+  @Nullable
+  public String getLibraryName() {
+    return library != null ? library.getName() : null;
+  }
+
 }

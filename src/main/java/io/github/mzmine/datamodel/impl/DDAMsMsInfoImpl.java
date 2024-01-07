@@ -1,21 +1,27 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
@@ -30,6 +36,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWi
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.List;
 import java.util.Objects;
@@ -45,13 +52,19 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
   public static final String XML_TYPE_NAME = "ddamsmsinfo";
 
   private final double isolationMz;
-  @Nullable private final Integer charge;
-  @Nullable private final Float activationEnergy;
-  @Nullable private Scan msMsScan;
-  @Nullable private Scan parentScan;
+  @Nullable
+  private final Integer charge;
+  @Nullable
+  private final Float activationEnergy;
   private final int msLevel;
-  @NotNull private final ActivationMethod method;
-  @Nullable private final Range<Double> isolationWindow;
+  @NotNull
+  private final ActivationMethod method;
+  @Nullable
+  private final Range<Double> isolationWindow;
+  @Nullable
+  private final Scan parentScan;
+  @Nullable
+  private Scan msMsScan;
 
   public DDAMsMsInfoImpl(double isolationMz, @Nullable Integer charge,
       @Nullable Float activationEnergy, @Nullable Scan msMsScan, @Nullable Scan parentScan,
@@ -66,9 +79,13 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     this.isolationWindow = isolationWindow;
   }
 
+  public DDAMsMsInfoImpl(double isolationMz, @Nullable Integer charge, final int msLevel) {
+    this(isolationMz, charge, null, null, null, msLevel, null, null);
+  }
+
   public static DDAMsMsInfo fromMzML(MzMLPrecursorElement precursorElement, int msLevel) {
     Optional<MzMLPrecursorSelectedIonList> list = precursorElement.getSelectedIonList();
-    if (!list.isPresent()) {
+    if (list.isEmpty()) {
       return null;
     }
 
@@ -81,7 +98,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     for (MzMLCVParam mzMLCVParam : activation.getCVParamsList()) {
       if (mzMLCVParam.getAccession().equals(MzMLCV.cvActivationEnergy) || mzMLCVParam.getAccession()
           .equals(MzMLCV.cvPercentCollisionEnergy) || mzMLCVParam.getAccession()
-              .equals(MzMLCV.cvActivationEnergy2)) {
+          .equals(MzMLCV.cvActivationEnergy2)) {
         energy = Float.parseFloat(mzMLCVParam.getValue().get());
       }
       if (mzMLCVParam.getAccession().equals(MzMLCV.cvActivationCID)) {
@@ -110,6 +127,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
 
     Double lower = null;
     Double upper = null;
+    Double targetWindowCenter = null;
     final Optional<MzMLIsolationWindow> mzmlWindow = precursorElement.getIsolationWindow();
     if (mzmlWindow.isPresent()) {
       for (var param : mzmlWindow.get().getCVParamsList()) {
@@ -119,7 +137,20 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
         if (param.getAccession().equals(MzMLCV.cvIsolationWindowUpperOffset)) {
           upper = Double.parseDouble(param.getValue().get());
         }
+        if (param.getAccession().equals(MzMLCV.cvIsolationWindowTarget)) {
+          targetWindowCenter = Double.parseDouble(param.getValue().get());
+        }
       }
+    }
+
+    /*
+     use center of isolation window. At least for Orbitrap instruments and
+     msconvert conversion we found that the isolated ion actually refers to the main peak in
+     an isotope pattern whereas the isolation window is the correct isolation mz
+     see issue https://github.com/mzmine/mzmine3/issues/717
+    */
+    if (targetWindowCenter != null) {
+      precursorMz = targetWindowCenter;
     }
 
     if (precursorMz == null) {
@@ -131,6 +162,51 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
       mzwindow = Range.closed(precursorMz - lower, precursorMz + upper);
     }
     return new DDAMsMsInfoImpl(precursorMz, charge, energy, null, null, msLevel, method, mzwindow);
+  }
+
+  /**
+   * @param reader A reader at an {@link DDAMsMsInfoImpl} element.
+   * @return A loaded {@link DDAMsMsInfoImpl}.
+   */
+  public static DDAMsMsInfoImpl loadFromXML(XMLStreamReader reader, RawDataFile file,
+      List<RawDataFile> allProjectFiles) {
+
+    final double precursorMz = Double.parseDouble(
+        reader.getAttributeValue(null, XML_PRECURSOR_MZ_ATTR));
+
+    final Integer precursorCharge = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_PRECURSOR_CHARGE_ATTR, null, Integer::parseInt);
+
+    final Integer scanIndex = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_FRAGMENT_SCAN_ATTR, null, Integer::parseInt);
+
+    final Integer parentScanIndex = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_PARENT_SCAN_ATTR, null, Integer::parseInt);
+
+    final Float activationEnergy = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_ACTIVATION_ENERGY_ATTR, null, Float::parseFloat);
+
+    final int msLevel = Integer.parseInt(reader.getAttributeValue(null, XML_MSLEVEL_ATTR));
+
+    final ActivationMethod method = ActivationMethod.valueOf(
+        reader.getAttributeValue(null, XML_ACTIVATION_TYPE_ATTR));
+
+    final Range<Double> isolationWindow = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
+
+    final String rawFileName = ParsingUtils.readAttributeValueOrDefault(reader,
+        CONST.XML_RAW_FILE_ELEMENT, null, s -> s);
+
+    // use the correct file if the ms info comes from a different file.
+    if (rawFileName != null && !rawFileName.equals(file != null ? file.getName() : null)) {
+      file = allProjectFiles.stream().filter(f -> f.getName().equals(rawFileName)).findFirst()
+          .orElse(file);
+    }
+
+    return new DDAMsMsInfoImpl(precursorMz, precursorCharge, activationEnergy,
+        scanIndex != null && scanIndex != -1 && file != null ? file.getScan(scanIndex) : null,
+        parentScanIndex != null && parentScanIndex != -1 && file != null ? file.getScan(parentScanIndex) : null, msLevel, method,
+        isolationWindow);
   }
 
   @Override
@@ -202,6 +278,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     if (getMsMsScan() != null) {
       writer.writeAttribute(XML_FRAGMENT_SCAN_ATTR,
           String.valueOf(getMsMsScan().getDataFile().getScans().indexOf(getMsMsScan())));
+      writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getMsMsScan().getDataFile().getName());
     }
 
     if (getParentScan() != null) {
@@ -223,41 +300,6 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     writer.writeEndElement();
   }
 
-  /**
-   * @param reader A reader at an {@link DDAMsMsInfoImpl} element.
-   * @return A loaded {@link DDAMsMsInfoImpl}.
-   */
-  public static DDAMsMsInfoImpl loadFromXML(XMLStreamReader reader, RawDataFile file) {
-
-    final double precursorMz = Double.parseDouble(
-        reader.getAttributeValue(null, XML_PRECURSOR_MZ_ATTR));
-
-    final Integer precursorCharge = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_PRECURSOR_CHARGE_ATTR, null, Integer::parseInt);
-
-    final Integer scanIndex = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_FRAGMENT_SCAN_ATTR, null, Integer::parseInt);
-
-    final Integer parentScanIndex = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_PARENT_SCAN_ATTR, null, Integer::parseInt);
-
-    final Float activationEnergy = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_ACTIVATION_ENERGY_ATTR, null, Float::parseFloat);
-
-    final int msLevel = Integer.parseInt(reader.getAttributeValue(null, XML_MSLEVEL_ATTR));
-
-    final ActivationMethod method = ActivationMethod.valueOf(
-        reader.getAttributeValue(null, XML_ACTIVATION_TYPE_ATTR));
-
-    final Range<Double> isolationWindow = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
-
-    return new DDAMsMsInfoImpl(precursorMz, precursorCharge, activationEnergy,
-        scanIndex != null ? file.getScan(scanIndex) : null,
-        parentScanIndex != null ? file.getScan(parentScanIndex) : null, msLevel, method,
-        isolationWindow);
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -269,15 +311,29 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     DDAMsMsInfoImpl that = (DDAMsMsInfoImpl) o;
     return Double.compare(that.getIsolationMz(), getIsolationMz()) == 0
         && getMsLevel() == that.getMsLevel() && Objects.equals(charge, that.charge)
-        && Objects.equals(getActivationEnergy(), that.getActivationEnergy()) && Objects.equals(
-        getMsMsScan(), that.getMsMsScan()) && Objects.equals(getParentScan(), that.getParentScan())
-        && method == that.method && Objects.equals(getIsolationWindow(), that.getIsolationWindow());
+        && Objects.equals(getActivationEnergy(), that.getActivationEnergy()) && (
+        Objects.equals(getMsMsScan(), that.getMsMsScan()) || (getMsMsScan() != null
+            && that.getMsMsScan() != null && getMsMsScan().getScanNumber() == that.getMsMsScan()
+            .getScanNumber())) && (Objects.equals(getParentScan(), that.getParentScan())
+        || Objects.equals(getMsMsScan(), that.getMsMsScan()) || (getParentScan() != null
+        && that.getParentScan() != null && getParentScan().getScanNumber() == that.getParentScan()
+        .getScanNumber())
+
+    ) && method == that.method && Objects.equals(getIsolationWindow(), that.getIsolationWindow());
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(getIsolationMz(), charge, getActivationEnergy(), getMsMsScan(),
         getParentScan(), getMsLevel(), method, getIsolationWindow());
+  }
+
+  @Override
+  public String toString() {
+    return "DDAMsMsInfoImpl{" + "isolationMz=" + isolationMz + ", charge=" + charge
+        + ", activationEnergy=" + activationEnergy + ", msLevel=" + msLevel + ", method=" + method
+        + ", isolationWindow=" + isolationWindow + ", parentScan=" + parentScan + ", msMsScan="
+        + msMsScan + '}';
   }
 
   @Override

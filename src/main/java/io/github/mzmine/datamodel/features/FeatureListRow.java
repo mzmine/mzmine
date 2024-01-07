@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features;
@@ -26,14 +33,17 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.ApiStatus.ScheduledForRemoval;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,8 +93,8 @@ public interface FeatureListRow extends ModularDataModel {
    * @param rawData             associated raw data file
    * @param feature             added feature
    * @param updateByRowBindings updates values by row bindings if true. In case multiple features
-   *                            are added, this option may be set to false. Remember to call {@link
-   *                            #applyRowBindings()}.
+   *                            are added, this option may be set to false. Remember to call
+   *                            {@link #applyRowBindings()}.
    */
   void addFeature(RawDataFile rawData, Feature feature, boolean updateByRowBindings);
 
@@ -171,37 +181,59 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @param identity  New feature identity
    * @param preffered boolean value to define this identity as preferred identity
+   * @deprecated To be replaced by {@link #get(DataType)} and {@link #set(DataType, Object)} and the
+   * corresponding data types.
    */
+  @Deprecated
+  @ScheduledForRemoval
   void addFeatureIdentity(FeatureIdentity identity, boolean preffered);
+
+  @NotNull List<MatchedLipid> getLipidMatches();
 
   /**
    * Remove identity candidate
    *
    * @param identity Feature identity
+   * @deprecated To be replaced by {@link #get(DataType)} and {@link #set(DataType, Object)} and the
+   * corresponding data types.
    */
+  @Deprecated
+  @ScheduledForRemoval
   void removeFeatureIdentity(FeatureIdentity identity);
 
-  void addCompoundAnnotation(CompoundDBAnnotation id);
+  @Nullable ManualAnnotation getManualAnnotation();
 
   /**
    * Returns all candidates for this feature's identity
    *
    * @return Identity candidates
+   * @deprecated To be replaced by {@link #get(DataType)} and {@link #set(DataType, Object)} and the
+   * corresponding data types.
    */
+  @Deprecated
+  @ScheduledForRemoval
   List<FeatureIdentity> getPeakIdentities();
 
   /**
    * Returns preferred feature identity among candidates
    *
    * @return Preferred identity
+   * @deprecated To be replaced by {@link #get(DataType)} and {@link #set(DataType, Object)} and the
+   * corresponding data types.
    */
+  @Deprecated
+  @ScheduledForRemoval
   FeatureIdentity getPreferredFeatureIdentity();
 
   /**
    * Sets a preferred feature identity among candidates
    *
    * @param identity Preferred identity
+   * @deprecated To be replaced by {@link #get(DataType)} and {@link #set(DataType, Object)} and the
+   * corresponding data types.
    */
+  @Deprecated
+  @ScheduledForRemoval
   void setPreferredFeatureIdentity(FeatureIdentity identity);
 
   /**
@@ -238,7 +270,7 @@ public interface FeatureListRow extends ModularDataModel {
   Scan getMostIntenseFragmentScan();
 
   /**
-   * Returns all fragmentation scans of this row
+   * Returns all fragmentation scans of this row - a new ArrayList
    */
   @NotNull List<Scan> getAllFragmentScans();
 
@@ -252,11 +284,26 @@ public interface FeatureListRow extends ModularDataModel {
 
   void setFeatureList(@NotNull FeatureList flist);
 
+  /**
+   * @return A list of all compound annotations.
+   */
   @NotNull List<CompoundDBAnnotation> getCompoundAnnotations();
 
+  /**
+   * @param annotations sets all compound annotations.
+   */
   void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
 
-  void addSpectralLibraryMatch(SpectralDBFeatureIdentity id);
+  /**
+   * Appends a compound annotation.
+   *
+   * @param id
+   */
+  void addCompoundAnnotation(CompoundDBAnnotation id);
+
+  void addSpectralLibraryMatch(SpectralDBAnnotation id);
+
+  boolean isIdentified();
 
   /**
    * Correlated features grouped
@@ -407,8 +454,8 @@ public interface FeatureListRow extends ModularDataModel {
    */
   default double getSumIntensity() {
     return this.getFeatures().stream().filter(Objects::nonNull)
-        .filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN).mapToDouble(Feature::getHeight)
-        .sum();
+        .filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN).map(Feature::getHeight)
+        .filter(Objects::nonNull).mapToDouble(Float::doubleValue).sum();
   }
 
   /**
@@ -416,14 +463,14 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @param matches new list of matches
    */
-  void setSpectralLibraryMatch(List<SpectralDBFeatureIdentity> matches);
+  void setSpectralLibraryMatch(List<SpectralDBAnnotation> matches);
 
   /**
    * List of library matches sorted from best (index 0) to last match
    *
    * @return list of library matches or an empty list
    */
-  @NotNull List<SpectralDBFeatureIdentity> getSpectralLibraryMatches();
+  @NotNull List<SpectralDBAnnotation> getSpectralLibraryMatches();
 
   /**
    * Add annotations from lipid search
@@ -435,7 +482,7 @@ public interface FeatureListRow extends ModularDataModel {
   // -- ModularFeatureListRow additions
   Stream<ModularFeature> streamFeatures();
 
-  void addSpectralLibraryMatches(List<SpectralDBFeatureIdentity> matches);
+  void addSpectralLibraryMatches(List<SpectralDBAnnotation> matches);
 
   @Nullable Range<Float> getMobilityRange();
 
@@ -445,4 +492,29 @@ public interface FeatureListRow extends ModularDataModel {
    * @return true if isotope pattern available with at least two signals
    */
   boolean hasIsotopePattern();
+
+  /**
+   * Uses {@link FeatureAnnotationPriority} to find the best annotation from different methods
+   *
+   * @return the preferred annotation or null
+   */
+  @Nullable Object getPreferredAnnotation();
+
+
+  @NotNull
+  default Stream<Object> streamAllFeatureAnnotations() {
+    return new FeatureAnnotationIterator(this).stream();
+  }
+
+  @NotNull
+  default List<Object> getAllFeatureAnnotations() {
+    return streamAllFeatureAnnotations().toList();
+  }
+
+  /**
+   * Uses {@link #getPreferredAnnotation()}
+   *
+   * @return preferred compound name
+   */
+  @Nullable String getPreferredAnnotationName();
 }

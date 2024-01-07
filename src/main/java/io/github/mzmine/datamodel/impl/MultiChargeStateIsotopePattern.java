@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -24,10 +31,10 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -42,9 +49,11 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
 
   public static final String XML_ELEMENT = "multi_charge_state_isotopepattern";
 
+  public static final Comparator<IsotopePattern> patternSizeComparator = Comparator.comparingInt(
+      IsotopePattern::getNumberOfDataPoints);
+
   @NotNull
   private final List<IsotopePattern> patterns = new ArrayList<>();
-
 
   public MultiChargeStateIsotopePattern(@NotNull IsotopePattern... patterns) {
     this(Arrays.asList(patterns));
@@ -55,6 +64,7 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
       throw new IllegalArgumentException("List of isotope patterns cannot be empty");
     }
     this.patterns.addAll(patterns);
+    evaluateIsotopePatterns();
   }
 
   public static IsotopePattern loadFromXML(XMLStreamReader reader) throws XMLStreamException {
@@ -70,9 +80,8 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
         continue;
       }
 
-      switch (reader.getLocalName()) {
-        case SimpleIsotopePattern.XML_ELEMENT -> patterns.add(
-            SimpleIsotopePattern.loadFromXML(reader));
+      if (SimpleIsotopePattern.XML_ELEMENT.equals(reader.getLocalName())) {
+        patterns.add(SimpleIsotopePattern.loadFromXML(reader));
       }
     }
     return patterns.isEmpty() ? null : new MultiChargeStateIsotopePattern(patterns);
@@ -103,10 +112,12 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
    * @param setPreferred true: start of list; false: end of list
    */
   public void addPattern(IsotopePattern pattern, boolean setPreferred) {
+    patterns.remove(pattern);
     if (setPreferred) {
       patterns.add(0, pattern);
     } else {
       patterns.add(pattern);
+      evaluateIsotopePatterns();
     }
   }
 
@@ -217,11 +228,6 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
   }
 
   @Override
-  public Stream<DataPoint> stream() {
-    return getPreferredIsotopePattern().stream();
-  }
-
-  @Override
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
 
@@ -247,5 +253,12 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
   @Override
   public int hashCode() {
     return Objects.hash(patterns);
+  }
+
+  /**
+   * Sorts the isotope patterns by pattern size.
+   */
+  private void evaluateIsotopePatterns() {
+    patterns.sort(patternSizeComparator);
   }
 }

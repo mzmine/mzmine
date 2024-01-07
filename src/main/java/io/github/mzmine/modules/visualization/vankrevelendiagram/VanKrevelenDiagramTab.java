@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
@@ -21,8 +28,7 @@ package io.github.mzmine.modules.visualization.vankrevelendiagram;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.parameters.ParameterSet;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,20 +36,17 @@ import java.util.Collection;
 import java.util.Collections;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
 import org.jetbrains.annotations.NotNull;
 
-public class VanKrevelenDiagramTab extends MZmineTab {
-  private FeatureList featureList;
+public class VanKrevelenDiagramTab extends SimpleTab {
 
-  public VanKrevelenDiagramTab(ParameterSet parameters, EChartViewer chartViewer) {
-    super("Van Krevelen Diagram", true, false);
+  private final VanKrevelenDiagramAnchorPaneController controller;
 
-    featureList = parameters.getParameter(VanKrevelenDiagramParameters.featureList).getValue()
-        .getMatchingFeatureLists()[0];
+  public VanKrevelenDiagramTab(ParameterSet parameters) {
+    super("Van Krevelen Diagram");
 
-    FXMLLoader loader =
-        new FXMLLoader((getClass().getResource("VanKrevelenDiagramAnchorPane.fxml")));
+    FXMLLoader loader = new FXMLLoader(
+        (getClass().getResource("VanKrevelenDiagramAnchorPane.fxml")));
 
     AnchorPane root = null;
     try {
@@ -54,45 +57,22 @@ public class VanKrevelenDiagramTab extends MZmineTab {
     }
 
     // Get controller
-    VanKrevelenDiagramAnchorPaneController controller = loader.getController();
-    BorderPane plotPane = controller.getPlotPane();
-    plotPane.setCenter(chartViewer);
-
+    controller = loader.getController();
+    controller.initialize(parameters);
     setContent(root);
   }
 
   @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
-    return featureList.getRawDataFiles();
+    return controller.getFeatureList().getRawDataFiles();
   }
 
   @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
-    return
-        new ArrayList<>(Collections.singletonList((ModularFeatureList)featureList));
+    return new ArrayList<>(
+        Collections.singletonList((ModularFeatureList) controller.getFeatureList()));
   }
 
-  @NotNull
-  @Override
-  public Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-
-  }
-
-  @Override
-  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
-  }
-
-  @Override
-  public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featureLists) {
-
-  }
 }

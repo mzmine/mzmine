@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.identities.iontype;
@@ -122,6 +129,9 @@ public class CombinedIonModification extends IonModification {
     int counter = 0;
     for (int i = 0; i < mods.length; i++) {
       String cs = mods[i].getName();
+      if("e".equals(cs)){
+        continue;
+      }
       if (s == null) {
         s = cs;
         counter = 1;
@@ -135,18 +145,18 @@ public class CombinedIonModification extends IonModification {
         counter = 1;
       }
     }
-    String sign = (mods[mods.length - 1].getMass() < 0 ? "-" : "+");
-    String counterS = counter > 1 ? String.valueOf(counter) : "";
-    nname.append(sign).append(counterS).append(s);
+    if(s!=null) {
+      String sign = (mods[mods.length - 1].getMass() < 0 ? "-" : "+");
+      String counterS = counter > 1 ? String.valueOf(counter) : "";
+      nname.append(sign).append(counterS).append(s);
+    }
     return nname.toString();
   }
 
   @Override
   public IonModification remove(IonModification type) {
     List<IonModification> newList = new ArrayList<>();
-    for (IonModification m : this.getModifications()) {
-      newList.add(m);
-    }
+    Collections.addAll(newList, this.getModifications());
 
     for (IonModification m : type.getModifications()) {
       newList.remove(m);
@@ -197,5 +207,10 @@ public class CombinedIonModification extends IonModification {
     map.put("Formula",
         streamModifications().map(IonModification::getMolFormula).collect(Collectors.joining(";")));
     return map;
+  }
+
+  @Override
+  public IonModification withCharge(final int newCharge) {
+    return new CombinedIonModification(mods, type, mass, newCharge);
   }
 }

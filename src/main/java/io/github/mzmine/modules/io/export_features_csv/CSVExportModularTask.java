@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.io.export_features_csv;
@@ -24,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
@@ -69,6 +77,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   private final String headerSeparator = ":";
   private final FeatureListRowsFilter rowFilter;
   private final boolean removeEmptyCols;
+  private final ParameterSet parameters;
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
   private int processedTypes = 0, totalTypes = 0;
@@ -82,6 +91,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     idSeparator = parameters.getParameter(CSVExportModularParameters.idSeparator).getValue();
     this.rowFilter = parameters.getParameter(CSVExportModularParameters.filter).getValue();
     removeEmptyCols = parameters.getValue(CSVExportModularParameters.omitEmptyColumns);
+    this.parameters = parameters;
   }
 
   /**
@@ -105,6 +115,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     this.idSeparator = idSeparator;
     this.rowFilter = rowFilter;
     this.removeEmptyCols = removeEmptyCols;
+    parameters = null;
   }
 
   @Override
@@ -133,6 +144,15 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     // Shall export several files?
     String plNamePattern = "{}";
     boolean substitute = fileName.getPath().contains(plNamePattern);
+
+    if (!substitute && featureLists.length > 1) {
+      setErrorMessage("""
+          Cannot export multiple feature lists to the same CSV file. Please use "{}" pattern in filename.\
+          This will be replaced with the feature list name to generate one file per feature list.
+          """);
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
 
     // Total number of rows
     for (ModularFeatureList featureList : featureLists) {
@@ -178,6 +198,13 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
       }
 
       checkConcurrentModification(featureList, numRows, numFeatures, numMS2);
+
+      if (parameters != null) { // if this is null, the external constructor was used.
+        featureList.getAppliedMethods().add(
+            new SimpleFeatureListAppliedMethod(CSVExportModularModule.class, parameters,
+                getModuleCallDate()));
+      }
+
       // If feature list substitution pattern wasn't found,
       // treat one feature list only
       if (!substitute) {
@@ -319,7 +346,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     if (value == null) {
       value = ((DataType) subColFactory).getDefaultValue();
     }
-    return csvEscape(subColFactory.getFormattedSubColValue(col, value));
+    return csvEscape(subColFactory.getFormattedSubColExportValue(col, value));
   }
 
   private String getFormattedValue(@Nullable ModularDataModel data, DataType type) {
@@ -328,7 +355,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
       value = type.getDefaultValue();
     }
     try {
-      return csvEscape(type.getFormattedString(value));
+      return csvEscape(type.getFormattedExportString(value));
     } catch (Exception e) {
       logger.log(Level.FINEST,
           "Cannot format value of type " + type.getClass().getName() + " value: " + value, e);

@@ -1,95 +1,143 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.taskcontrol;
 
 import java.util.List;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Listens for end of all tasks in the list
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class AllTasksFinishedListener implements TaskStatusListener {
 
-  private List<AbstractTask> tasks;
-  private Consumer<List<AbstractTask>> operation;
-  private Consumer<List<AbstractTask>> operationOnError;
-  private Consumer<List<AbstractTask>> operationOnCancel;
+  private final List<? extends Task> tasks;
+  private final Consumer<List<? extends Task>> operation;
+  private final Consumer<List<? extends Task>> operationOnError;
+  private final Consumer<List<? extends Task>> operationOnCancel;
   private boolean stopOnError = false;
   // mark when done
   private boolean done = false;
 
   private double progress = 0;
 
-  public AllTasksFinishedListener(List<AbstractTask> tasks,
-      Consumer<List<AbstractTask>> operation) {
+  public AllTasksFinishedListener(List<? extends Task> tasks,
+      Consumer<List<? extends Task>> operation) {
     this(tasks, false, operation);
   }
 
-  public AllTasksFinishedListener(List<AbstractTask> tasks, boolean stopOnError,
-      Consumer<List<AbstractTask>> operation) {
+  public AllTasksFinishedListener(List<? extends Task> tasks, boolean stopOnError,
+      Consumer<List<? extends Task>> operation) {
     this(tasks, stopOnError, operation, null);
   }
 
   /**
-   * 
    * @param tasks
    * @param stopOnError
-   * @param operation gets fired on completion of all tasks
+   * @param operation        gets fired on completion of all tasks
    * @param operationOnError gets fired on error (only once)
    */
-  public AllTasksFinishedListener(List<AbstractTask> tasks, boolean stopOnError,
-      Consumer<List<AbstractTask>> operation, Consumer<List<AbstractTask>> operationOnError) {
+  public AllTasksFinishedListener(List<? extends Task> tasks, boolean stopOnError,
+      Consumer<List<? extends Task>> operation, Consumer<List<? extends Task>> operationOnError) {
     this(tasks, stopOnError, operation, operationOnError, null);
   }
 
-  public AllTasksFinishedListener(List<AbstractTask> tasks, boolean stopOnError,
-      Consumer<List<AbstractTask>> operation, Consumer<List<AbstractTask>> operationOnError,
-      Consumer<List<AbstractTask>> operationOnCancel) {
+  public AllTasksFinishedListener(List<? extends Task> tasks, boolean stopOnError,
+      Consumer<List<? extends Task>> operation, Consumer<List<? extends Task>> operationOnError,
+      Consumer<List<? extends Task>> operationOnCancel) {
     this.tasks = tasks;
     this.stopOnError = stopOnError;
     this.operationOnCancel = operationOnCancel;
     this.operation = operation;
     this.operationOnError = operationOnError;
-    tasks.stream().forEach(t -> t.addTaskStatusListener(this));
+    tasks.forEach(t -> t.addTaskStatusListener(this));
+  }
+
+  public static void registerCallbacks(List<? extends Task> tasks, boolean stopOnError,
+      Consumer<List<? extends Task>> operation, Consumer<List<? extends Task>> operationOnError) {
+    new AllTasksFinishedListener(tasks, stopOnError, operation, operationOnError);
+  }
+
+  public static void registerCallbacks(List<? extends Task> tasks, boolean stopOnError,
+      Consumer<List<? extends Task>> operation, Consumer<List<? extends Task>> operationOnError,
+      Consumer<List<? extends Task>> operationOnCancel) {
+    new AllTasksFinishedListener(tasks, stopOnError, operation, operationOnError,
+        operationOnCancel);
+  }
+
+  /**
+   * Simple callbacks for on finish, on error, on cancel
+   *
+   * @param tasks       the list of tasks
+   * @param stopOnError stop all tasks if one fails
+   * @param onFinish    called once all tasks are finished
+   * @param onError     called on errors
+   * @param onCancel    called on cancelled tasks
+   */
+  public static void registerCallbacks(final List<Task> tasks, final boolean stopOnError,
+      @Nullable final Runnable onFinish, @Nullable final Runnable onError,
+      @Nullable final Runnable onCancel) {
+    new AllTasksFinishedListener(tasks, stopOnError, success -> {
+      if (onFinish != null) {
+        onFinish.run();
+      }
+    }, error -> {
+      if (onError != null) {
+        onError.run();
+      }
+    }, cancel -> {
+      if (onCancel != null) {
+        onCancel.run();
+      }
+    });
   }
 
   @Override
   public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus) {
-    if (done)
+    if (done) {
       return;
+    }
     // if one is cancelled cancel all
     if (tasks.stream().map(Task::getStatus).anyMatch(s -> s.equals(TaskStatus.CANCELED))) {
-      tasks.forEach(AbstractTask::cancel);
-      if (operationOnCancel != null)
+      tasks.forEach(Task::cancel);
+      if (operationOnCancel != null) {
         operationOnCancel.accept(tasks);
+      }
       done = true;
       return;
     }
 
     // stop on error
-    if (stopOnError
-        && tasks.stream().map(Task::getStatus).anyMatch(s -> s.equals(TaskStatus.ERROR))) {
-      if (operationOnError != null)
+    if (stopOnError && tasks.stream().map(Task::getStatus)
+        .anyMatch(s -> s.equals(TaskStatus.ERROR))) {
+      if (operationOnError != null) {
         operationOnError.accept(tasks);
+      }
       done = true;
       return;
     }
@@ -101,7 +149,6 @@ public class AllTasksFinishedListener implements TaskStatusListener {
       // all done
       operation.accept(tasks);
       done = true;
-      return;
     }
   }
 

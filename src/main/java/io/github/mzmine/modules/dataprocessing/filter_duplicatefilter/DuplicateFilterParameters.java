@@ -1,34 +1,78 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.dataprocessing.filter_duplicatefilter;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class DuplicateFilterParameters extends SimpleParameterSet {
+
+  public static final FeatureListsParameter peakLists = new FeatureListsParameter();
+  public static final StringParameter suffix = new StringParameter("Name suffix",
+      "Suffix to be added to feature list name", "filtered");
+  public static final ComboParameter<FilterMode> filterMode = new ComboParameter<>("Filter mode",
+      "Old average: Only keep the row with the maximum avg area.\n New average: Create consensus row from duplicates (DETECTED>ESTIMATED>UNKNOWN).\n "
+          + "Single feature: Marks rows as duplicates if they share at least one feature (in one raw data file) with the same RT and m/z. Creates a consensus row.",
+      FilterMode.values(), FilterMode.NEW_AVERAGE);
+  public static final MZToleranceParameter mzDifferenceMax = new MZToleranceParameter(
+      "m/z tolerance", "Maximum m/z difference between duplicate peaks");
+  public static final RTToleranceParameter rtDifferenceMax = new RTToleranceParameter(
+      "RT tolerance", "Maximum retention time difference between duplicate peaks");
+  public static final OptionalParameter<MobilityToleranceParameter> mobilityDifferenceMax = new OptionalParameter<>(
+      new MobilityToleranceParameter("Mobility tolerance",
+          "Maximum mobility difference between duplicate peaks", new MobilityTolerance(0.008f)),
+      true);
+  public static final BooleanParameter requireSameIdentification = new BooleanParameter(
+      "Require same identification",
+      "If checked, duplicate peaks must have same identification(s)");
+  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
+      true);
+
+  public DuplicateFilterParameters() {
+    super(new Parameter[]{peakLists, suffix, filterMode, mzDifferenceMax, rtDifferenceMax,
+            mobilityDifferenceMax, requireSameIdentification, handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_duplicate_features/duplicate_feature_filter.html");
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 
   public enum FilterMode {
     OLD_AVERAGE, NEW_AVERAGE, SINGLE_FEATURE;
@@ -38,32 +82,4 @@ public class DuplicateFilterParameters extends SimpleParameterSet {
       return super.toString().replaceAll("_", " ");
     }
   }
-
-  public static final FeatureListsParameter peakLists = new FeatureListsParameter();
-
-  public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to feature list name", "filtered");
-
-  public static final ComboParameter<FilterMode> filterMode = new ComboParameter<>("Filter mode",
-      "Old average: Only keep the row with the maximum avg area.\n New average: Create consensus row from duplicates (DETECTED>ESTIMATED>UNKNOWN).\n "
-          + "Single feature: Marks rows as duplicates if they share at least one feature (in one raw data file) with the same RT and m/z. Creates a consensus row.",
-      FilterMode.values(), FilterMode.NEW_AVERAGE);
-
-  public static final MZToleranceParameter mzDifferenceMax =
-      new MZToleranceParameter("m/z tolerance", "Maximum m/z difference between duplicate peaks");
-  public static final RTToleranceParameter rtDifferenceMax = new RTToleranceParameter(
-      "RT tolerance", "Maximum retention time difference between duplicate peaks");
-
-  public static final BooleanParameter requireSameIdentification =
-      new BooleanParameter("Require same identification",
-          "If checked, duplicate peaks must have same identification(s)");
-
-  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
-      true);
-
-  public DuplicateFilterParameters() {
-    super(new Parameter[]{peakLists, suffix, filterMode, mzDifferenceMax, rtDifferenceMax,
-        requireSameIdentification, handleOriginal});
-  }
-
 }

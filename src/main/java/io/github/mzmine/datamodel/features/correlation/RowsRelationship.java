@@ -1,19 +1,26 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features.correlation;
@@ -21,10 +28,11 @@ package io.github.mzmine.datamodel.features.correlation;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingTask;
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityTask;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportTask;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Relationship between two rows - describes the edge in a network where the nodes are {@link
@@ -62,7 +70,7 @@ public interface RowsRelationship {
    *
    * @return formatted score string
    */
-  default String getScoreFormatted() {
+  default @NotNull String getScoreFormatted() {
     double score = getScore();
     return Double.isNaN(score) ? "NaN"
         : MZmineCore.getConfiguration().getScoreFormat().format(score);
@@ -73,8 +81,7 @@ public interface RowsRelationship {
    *
    * @return the type of this relationship
    */
-  @NotNull
-  Type getType();
+  @NotNull String getType();
 
   /**
    * The annotation of this row-2-row relationship
@@ -89,14 +96,14 @@ public interface RowsRelationship {
    *
    * @return the first row
    */
-  FeatureListRow getRowA();
+  @NotNull FeatureListRow getRowA();
 
   /**
    * Row b
    *
    * @return the second row
    */
-  FeatureListRow getRowB();
+  @NotNull FeatureListRow getRowB();
 
 
   /**
@@ -113,26 +120,46 @@ public interface RowsRelationship {
      */
     ION_IDENTITY_NET,
     /**
-     * MS2 spectral similarity, see {@link MS2SimilarityTask}
+     * MS2 spectral similarity, see {@link SpectralNetworkingTask}
      */
     MS2_COSINE_SIM,
     /**
-     * MS2 similarity of neutral losses see {@link MS2SimilarityTask}
+     * MS2 similarity of neutral losses see {@link SpectralNetworkingTask}
      */
     MS2_NEUTRAL_LOSS_SIM,
     /**
      * GNPS modified cosine similarity, see {@link GNPSResultsImportTask}
      */
-    MS2_GNPS_COSINE_SIM;
+    MS2_GNPS_COSINE_SIM,
+    /**
+     * External or other undefined
+     */
+    OTHER;
+
+    @Nullable
+    public static Type parse(final String type) {
+      try {
+        return valueOf(type);
+      } catch (Exception e) {
+        // maybe just the toString
+        for (final Type value : values()) {
+          if (value.toString().equalsIgnoreCase(type)) {
+            return value;
+          }
+        }
+        return null;
+      }
+    }
 
     @Override
     public String toString() {
       return switch (this) {
-        case MS1_FEATURE_CORR -> "MS1 feature correlation";
-        case ION_IDENTITY_NET -> "Ion identity network";
-        case MS2_COSINE_SIM -> "MS2 cosine similarity";
-        case MS2_NEUTRAL_LOSS_SIM -> "MS2 neutral loss cosine similarity";
-        case MS2_GNPS_COSINE_SIM -> "MS2 modified cosine similarity (GNPS)";
+        case MS1_FEATURE_CORR -> "MS1 shape correlation";
+        case ION_IDENTITY_NET -> "Ion Identity";
+        case MS2_COSINE_SIM -> "MS2 mod-cosine";
+        case MS2_NEUTRAL_LOSS_SIM -> "MS2 neutral loss cosine";
+        case MS2_GNPS_COSINE_SIM -> "GNPS mod-cosine";
+        case OTHER -> "Other";
       };
     }
   }

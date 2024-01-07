@@ -1,24 +1,32 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright (c) 2004-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.FeatureInformation;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -35,8 +43,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatureInformationType extends
-    DataType<FeatureInformation> implements NullColumnType {
+public class FeatureInformationType extends DataType<FeatureInformation> implements NullColumnType {
 
   @NotNull
   @Override
@@ -53,9 +60,9 @@ public class FeatureInformationType extends
 
   @Override
   @NotNull
-  public String getFormattedString(@Nullable FeatureInformation value) {
-    return value != null ? value.getAllProperties().entrySet().stream()
-        .map(Object::toString).collect(Collectors.joining(";")) : "";
+  public String getFormattedString(@Nullable FeatureInformation value, boolean export) {
+    return value != null ? value.getAllProperties().entrySet().stream().map(Object::toString)
+        .collect(Collectors.joining(";")) : "";
   }
 
   @Override
@@ -72,28 +79,27 @@ public class FeatureInformationType extends
     }
     if (!(value instanceof FeatureInformation info)) {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value
-              .getClass());
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
     }
 
     info.saveToXML(writer);
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
-      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
-      @Nullable RawDataFile file) throws XMLStreamException {
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
     while (
         !(reader.isStartElement() && reader.getLocalName().equals(FeatureInformation.XML_ELEMENT))
-        && reader.hasNext()) {
+            && reader.hasNext()) {
       if (reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
         return null;
       }
       reader.next();
     }
 
-    if (reader.isStartElement() && reader.getLocalName()
-        .equals(FeatureInformation.XML_ELEMENT)) {
+    if (reader.isStartElement() && reader.getLocalName().equals(FeatureInformation.XML_ELEMENT)) {
       return SimpleFeatureInformation.loadFromXML(reader);
     }
     return null;
