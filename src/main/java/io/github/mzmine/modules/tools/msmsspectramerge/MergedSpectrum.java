@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -266,21 +266,6 @@ public class MergedSpectrum implements MassSpectrum {
       tic += p.intensity;
     }
     return tic;
-  }
-
-  @Override
-  public int binarySearch(double mz, boolean defaultToClosestMz) {
-    return MassSpectrum.super.binarySearch(mz, defaultToClosestMz);
-  }
-
-  @Override
-  public int binarySearch(double mz, boolean defaultToClosestMz, int fromIndex, int toIndex) {
-    return MassSpectrum.super.binarySearch(mz, defaultToClosestMz, fromIndex, toIndex);
-  }
-
-  @Override
-  public int indexOf(double mz, boolean defaultToClosestMz) {
-    return MassSpectrum.super.indexOf(mz, defaultToClosestMz);
   }
 
   /**

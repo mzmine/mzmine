@@ -133,7 +133,7 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab implements
     if (table == null) {
       return;
     }
-    weak.addListChangeListener(table.getSelectedTableRows(), c -> {
+    weak.addListChangeListener(table, table.getSelectedTableRows(), c -> {
       if (weak.isDisposed()) {
         return;
       }
