@@ -86,7 +86,7 @@ public class KendrickMassPlotBubbleLegend extends BorderPane {
 
   private NumberFormat identifyNumberFormat(KendrickPlotDataTypes bubbleKendrickDataType) {
     switch (bubbleKendrickDataType) {
-      case M_OVER_Z, KENDRICK_MASS -> {
+      case MZ, KENDRICK_MASS -> {
         return MZmineCore.getConfiguration().getMZFormat();
       }
       case KENDRICK_MASS_DEFECT, REMAINDER_OF_KENDRICK_MASS, RETENTION_TIME, TAILING_FACTOR, ASYMMETRY_FACTOR, FWHM -> {
