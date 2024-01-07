@@ -23,37 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual.enums;
+package io.github.mzmine.util.exceptions;
 
-public enum EdgeAtt implements GraphElementAttr {
+import java.util.List;
 
-  NONE, ID1, ID2, LABEL, SCORE, MATCHED_SIGNALS, EXPLAINED_INTENSITY, TYPE, TYPE_STRING, DELTA_MZ, NEIGHBOR_DISTANCE;
+public class MissingColumnException extends Exception {
 
-  @Override
-  public String toString() {
-    return super.toString().toLowerCase();
-  }
-
-  public boolean isNumber() {
-    return switch (this) {
-      case TYPE, TYPE_STRING, LABEL, NONE -> false;
-      case ID1, ID2, SCORE, DELTA_MZ, NEIGHBOR_DISTANCE, MATCHED_SIGNALS, EXPLAINED_INTENSITY ->
-          true;
-    };
-  }
-
-  @Override
-  public boolean isReversed() {
-    return this == NEIGHBOR_DISTANCE;
-  }
-
-  @Override
-  public boolean isChangingDynamically() {
-    return NEIGHBOR_DISTANCE == this;
-  }
-
-  @Override
-  public GraphObject getGraphObject() {
-    return GraphObject.EDGE;
+  public MissingColumnException(List<String> missingColumns) {
+    super("The following columns were not found: " + String.join(", ", missingColumns));
   }
 }

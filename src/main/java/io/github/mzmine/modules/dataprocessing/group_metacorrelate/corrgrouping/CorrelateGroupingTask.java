@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -213,7 +213,8 @@ public class CorrelateGroupingTask extends AbstractTask {
         return;
       }
       // set correlation map
-      groupedPKL.addRowsRelationships(corrMap, Type.MS1_FEATURE_CORR);
+      var r2rNetworkingMaps = groupedPKL.getRowMaps();
+      r2rNetworkingMaps.addAllRowsRelationships(corrMap, Type.MS1_FEATURE_CORR);
 
       logger.fine("Corr: Starting to group by correlation");
       groups = CorrelationGroupingUtils.createCorrGroups(groupedPKL);

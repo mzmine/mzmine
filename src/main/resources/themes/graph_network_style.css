@@ -30,6 +30,11 @@ edge.COSINE {
   fill-mode: dyn-plain;
   fill-color: #8be4ff, #008eff, #19475d, #0d3549;
 }
+edge.OTHER {
+  size-mode: dyn-size;
+  fill-mode: dyn-plain;
+  fill-color: #ffe519, #ffa63e, #da7e0e, #885313, #492d0d;
+}
 edge.GNPS {
   fill-color: rgb(77, 108, 187);
   size-mode: dyn-size;

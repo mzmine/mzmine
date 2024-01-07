@@ -31,9 +31,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.correlation.R2RMap;
-import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
-import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
+import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
@@ -63,7 +61,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -113,8 +110,9 @@ public class ModularFeatureList implements FeatureList {
       new LinkedHashSet<>());
   private final ObservableList<FeatureListRow> featureListRows;
   private final ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
-  // a map that stores row-2-row relationship maps for MS1, MS2, and other relationships
-  private final Map<RowsRelationship.Type, R2RMap<RowsRelationship>> r2rMaps = new ConcurrentHashMap<>();
+
+  private final R2RNetworkingMaps r2rNetworkingMaps = new R2RNetworkingMaps();
+
   @NotNull
   private String nameProperty = "";
   private String dateCreated;
@@ -742,9 +740,10 @@ public class ModularFeatureList implements FeatureList {
     CorrelationGroupingUtils.setGroupsToAllRows(groups);
   }
 
+  @Override
   @NotNull
-  public Map<Type, R2RMap<RowsRelationship>> getRowMaps() {
-    return r2rMaps;
+  public R2RNetworkingMaps getRowMaps() {
+    return r2rNetworkingMaps;
   }
 
   @Override
@@ -755,20 +754,6 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners() {
     return rowTypeListeners;
-  }
-
-  @Override
-  public void addRowsRelationships(R2RMap<? extends RowsRelationship> map, Type relationship) {
-    R2RMap<RowsRelationship> rowMap = r2rMaps.computeIfAbsent(relationship, key -> new R2RMap<>());
-    rowMap.putAll(map);
-  }
-
-  @Override
-  public void addRowsRelationship(FeatureListRow a, FeatureListRow b,
-      RowsRelationship relationship) {
-    R2RMap<RowsRelationship> rowMap = r2rMaps.computeIfAbsent(relationship.getType(),
-        key -> new R2RMap<>());
-    rowMap.add(a, b, relationship);
   }
 
   /**

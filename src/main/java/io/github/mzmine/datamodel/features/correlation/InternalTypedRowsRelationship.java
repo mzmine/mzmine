@@ -28,51 +28,22 @@ package io.github.mzmine.datamodel.features.correlation;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Modified cosine similarity between two rows imported from GNPS results
- */
-public class R2RMS2CosineSimilarityGNPS extends InternalTypedRowsRelationship {
+public abstract class InternalTypedRowsRelationship extends AbstractRowsRelationship {
 
-  private final double cosine;
-  private final String annotation;
-  private final String edgeType;
+  private final Type type;
 
-  /**
-   * Modified cosine similarity imported from GNPS
-   *
-   * @param a      the two rows
-   * @param b      the two rows
-   * @param cosine cosine similarity
-   */
-  public R2RMS2CosineSimilarityGNPS(FeatureListRow a, FeatureListRow b, double cosine,
-      String annotation, String edgeType) {
-    super(a, b, Type.MS2_GNPS_COSINE_SIM);
-    this.cosine = cosine;
-    this.annotation = annotation;
-    this.edgeType = edgeType;
-  }
-
-  /**
-   * The edge type string used by GNPS
-   */
-  public String getGNPSEdgeType() {
-    return edgeType;
-  }
-
-  public double getCosineSimilarity() {
-    return cosine;
-  }
-
-  @Override
-  public double getScore() {
-    return getCosineSimilarity();
+  public InternalTypedRowsRelationship(FeatureListRow a, FeatureListRow b, final Type type) {
+    super(a, b);
+    this.type = type;
   }
 
   @NotNull
-  @Override
-  public String getAnnotation() {
-    return annotation == null || annotation.strip().isEmpty() ? "cos=" + getScoreFormatted()
-        : annotation;
+  public String getType() {
+    return type.toString();
+  }
+
+  public Type getInternalType() {
+    return type;
   }
 
 }

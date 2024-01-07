@@ -23,37 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.networking.visual.enums;
+package io.github.mzmine.modules.visualization.networking.visual;
 
-public enum EdgeAtt implements GraphElementAttr {
+import io.github.mzmine.modules.visualization.networking.visual.enums.EdgeAtt;
+import java.util.List;
+import java.util.Set;
+import org.graphstream.graph.Edge;
 
-  NONE, ID1, ID2, LABEL, SCORE, MATCHED_SIGNALS, EXPLAINED_INTENSITY, TYPE, TYPE_STRING, DELTA_MZ, NEIGHBOR_DISTANCE;
+public class EdgeTypeFilter implements EdgeFilter {
 
-  @Override
-  public String toString() {
-    return super.toString().toLowerCase();
+  private final Set<String> edgeTypes;
+
+  public EdgeTypeFilter(final Set<String> edgeTypes) {
+    this.edgeTypes = edgeTypes;
   }
 
-  public boolean isNumber() {
-    return switch (this) {
-      case TYPE, TYPE_STRING, LABEL, NONE -> false;
-      case ID1, ID2, SCORE, DELTA_MZ, NEIGHBOR_DISTANCE, MATCHED_SIGNALS, EXPLAINED_INTENSITY ->
-          true;
-    };
-  }
-
-  @Override
-  public boolean isReversed() {
-    return this == NEIGHBOR_DISTANCE;
+  public EdgeTypeFilter(final List<? extends String> list) {
+    edgeTypes = Set.of(list.toArray(String[]::new));
   }
 
   @Override
-  public boolean isChangingDynamically() {
-    return NEIGHBOR_DISTANCE == this;
-  }
-
-  @Override
-  public GraphObject getGraphObject() {
-    return GraphObject.EDGE;
+  public boolean accept(final Edge edge) {
+    return edgeTypes.contains(edge.getAttribute(EdgeAtt.TYPE_STRING.toString()).toString());
   }
 }
