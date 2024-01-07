@@ -165,47 +165,27 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
 
 
   public int getItemCount(int series) {
-    if (status.getValue().equals(TaskStatus.FINISHED)) {
-      return xValues.length;
-    } else {
-      return 0;
-    }
+    return isFinished() ? xValues.length : 0;
   }
 
   @Override
   public Number getX(int series, int item) {
-    if (status.getValue().equals(TaskStatus.FINISHED)) {
-      return xValues[item];
-    } else {
-      return 0;
-    }
+    return isFinished() ? xValues[item] : 0;
   }
 
   @Override
   public Number getY(int series, int item) {
-    if (status.getValue().equals(TaskStatus.FINISHED)) {
-      return yValues[item];
-    } else {
-      return 0;
-    }
+    return isFinished() ? yValues[item] : 0;
   }
 
   @Override
   public Number getZ(int series, int item) {
-    if (status.getValue().equals(TaskStatus.FINISHED)) {
-      return colorScaleValues[item];
-    } else {
-      return 0;
-    }
+    return isFinished() ? colorScaleValues[item] : 0;
   }
 
   @Override
   public double getBubbleSizeValue(int series, int item) {
-    if (status.getValue().equals(TaskStatus.FINISHED)) {
-      return bubbleSizeValues[item];
-    } else {
-      return 0;
-    }
+    return isFinished() ? bubbleSizeValues[item] : 0;
   }
 
   @Override
