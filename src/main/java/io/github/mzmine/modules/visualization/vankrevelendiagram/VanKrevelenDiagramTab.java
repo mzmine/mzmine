@@ -28,7 +28,7 @@ package io.github.mzmine.modules.visualization.vankrevelendiagram;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.parameters.ParameterSet;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,12 +38,12 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import org.jetbrains.annotations.NotNull;
 
-public class VanKrevelenDiagramTab extends MZmineTab {
+public class VanKrevelenDiagramTab extends SimpleTab {
 
   private final VanKrevelenDiagramAnchorPaneController controller;
 
   public VanKrevelenDiagramTab(ParameterSet parameters) {
-    super("Van Krevelen Diagram", true, false);
+    super("Van Krevelen Diagram");
 
     FXMLLoader loader = new FXMLLoader(
         (getClass().getResource("VanKrevelenDiagramAnchorPane.fxml")));
@@ -75,25 +75,4 @@ public class VanKrevelenDiagramTab extends MZmineTab {
         Collections.singletonList((ModularFeatureList) controller.getFeatureList()));
   }
 
-  @NotNull
-  @Override
-  public Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-
-  }
-
-  @Override
-  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
-  }
-
-  @Override
-  public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featureLists) {
-
-  }
 }
