@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -397,6 +397,7 @@ public interface FeatureList {
    *
    * @return the map for {@link Type#MS1_FEATURE_CORR}
    */
+  @Nullable
   default R2RMap<RowsRelationship> getMs1CorrelationMap() {
     return getRowMap(Type.MS1_FEATURE_CORR);
   }

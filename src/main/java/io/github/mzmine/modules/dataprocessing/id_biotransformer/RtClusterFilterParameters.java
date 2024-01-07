@@ -25,36 +25,41 @@
 
 package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import java.util.Map;
 
-public class BioTransformerFilterParameters extends SimpleParameterSet {
+public class RtClusterFilterParameters extends SimpleParameterSet {
 
-  public static final BooleanParameter eductMustHaveMsMs = new BooleanParameter(
-      "Educt must have MS/MS",
-      "Transformation products will only be predicted for educts with MS/MS.", false);
+  public static final OptionalParameter<RTToleranceParameter> rtTolerance = new OptionalParameter<>(
+      new RTToleranceParameter("RT tolerance filter",
+          "If selected, transformation products will only be matched within the given RT tolerance window (+-).",
+          new RTTolerance(0.15f, Unit.MINUTES)));
 
-  public static final OptionalParameter<DoubleParameter> minEductHeight = new OptionalParameter<>(
-      new DoubleParameter("Minimum Educt intensity",
-          "Products will only be predicted for educts above this intensity.",
-          MZmineCore.getConfiguration().getIntensityFormat(), 1E4), false);
+  public static final BooleanParameter rowCorrelationFilter = new BooleanParameter(
+      "Filter by row correlation",
+      "If selected, transformation products will only be matched to correlated features.\n"
+          + "The feature list must be grouped by the metaCorr module.",
+      false);
 
-  public static final BooleanParameter productMustHaveMsMs = new BooleanParameter(
-      "Product must have MS/MS",
-      "Transformation products will only be assigned to products with an MS/MS spectrum.", false);
-
-  public static final OptionalParameter<DoubleParameter> minProductHeight = new OptionalParameter<>(
-      new DoubleParameter("Minimum Product intensity",
-          "Products will only be assigned to products above this intensity.",
-          MZmineCore.getConfiguration().getIntensityFormat(), 1E4), false);
-
-  public BioTransformerFilterParameters() {
-    super(
-        new Parameter[]{eductMustHaveMsMs, minEductHeight, productMustHaveMsMs, minProductHeight});
+  public RtClusterFilterParameters() {
+    super(rtTolerance, rowCorrelationFilter);
   }
 
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var map =  super.getNameParameterMap();
+    map.put("Filter by Row group", rowCorrelationFilter);
+    return map;
+  }
 }
