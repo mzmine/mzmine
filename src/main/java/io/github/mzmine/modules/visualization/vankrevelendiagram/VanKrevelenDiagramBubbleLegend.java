@@ -83,7 +83,7 @@ public class VanKrevelenDiagramBubbleLegend extends BorderPane {
 
   private NumberFormat identifyNumberFormat(VanKrevelenDiagramDataTypes bubbleVanKrevelenDiagramDataTypes) {
     switch (bubbleVanKrevelenDiagramDataTypes) {
-      case M_OVER_Z -> {
+      case MZ -> {
         return MZmineCore.getConfiguration().getMZFormat();
       }
       case RETENTION_TIME, TAILING_FACTOR, ASYMMETRY_FACTOR, FWHM -> {

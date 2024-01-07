@@ -141,7 +141,7 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
   private void initDimensionValues(double[] values,
       VanKrevelenDiagramDataTypes vanKrevelenDiagramDataType) {
     switch (vanKrevelenDiagramDataType) {
-      case M_OVER_Z -> {
+      case MZ -> {
         useMZ(values);
       }
       case RETENTION_TIME -> {

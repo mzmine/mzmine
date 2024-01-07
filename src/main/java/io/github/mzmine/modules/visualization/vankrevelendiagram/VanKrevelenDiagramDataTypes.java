@@ -27,7 +27,7 @@
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
 public enum VanKrevelenDiagramDataTypes {
-  M_OVER_Z("m/z", "m/z"),//
+  MZ("m/z", "m/z"),//
   RETENTION_TIME("Retention Time", "rt"),//
   MOBILITY("Mobility", "mobility"),//
   INTENSITY("Intensity", "Int."),//
