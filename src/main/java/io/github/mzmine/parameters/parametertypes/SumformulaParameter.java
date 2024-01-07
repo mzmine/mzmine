@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -81,7 +81,6 @@ public class SumformulaParameter extends StringParameter {
 
   /**
    * Full name with charge
-   *
    */
   public String getFullName() {
     return name;
@@ -115,7 +114,6 @@ public class SumformulaParameter extends StringParameter {
 
   /**
    * Monoisotopic mass of sum formula (not mass to charge!). Mass of electrons is subtracted/added
-   *
    */
   public double getMonoisotopicMass() {
     if (!value.isBlank()) {
@@ -133,35 +131,32 @@ public class SumformulaParameter extends StringParameter {
   }
 
   public IMolecularFormula getFormula() {
-    if(value.isBlank()) {
-
-      return null
-    }
-    if (!value.isEmpty()) {
-      try {
-        String formString = this.value;
-        // cutoff first - (negative mz)
-        if (formString.startsWith("-")) {
-          formString = formString.substring(1);
-        }
-
-        //
-        int l = Math.max(formString.lastIndexOf('+'), formString.lastIndexOf('-'));
-        if (l == -1) {
-          return MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formString, builder);
-        } else {
-          String f = formString.substring(0, l);
-          String charge = formString.substring(l);
-          return MolecularFormulaManipulator.getMajorIsotopeMolecularFormula("[" + f + "]" + charge,
-              builder);
-        }
-      } catch (Exception e) {
+    if (value.isBlank()) {
+      if (valueRequired) {
         throw new MSDKRuntimeException("Could not set up formula. Invalid input.");
       }
-    } else if (valueRequired) {
+      return null;
+    }
+    try {
+      String formString = this.value;
+      // cutoff first - (negative mz)
+      if (formString.startsWith("-")) {
+        formString = formString.substring(1);
+      }
+
+      //
+      int l = Math.max(formString.lastIndexOf('+'), formString.lastIndexOf('-'));
+      if (l == -1) {
+        return MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formString, builder);
+      } else {
+        String f = formString.substring(0, l);
+        String charge = formString.substring(l);
+        return MolecularFormulaManipulator.getMajorIsotopeMolecularFormula("[" + f + "]" + charge,
+            builder);
+      }
+    } catch (Exception e) {
       throw new MSDKRuntimeException("Could not set up formula. Invalid input.");
     }
-    return null;
   }
 
   public boolean checkValue() {
