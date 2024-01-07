@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
@@ -254,7 +253,7 @@ public class BioTransformerTask extends AbstractTask {
           continue;
         }
 
-        final R2RMap<RowsRelationship> ms1Groups = flist.getMs1CorrelationMap();
+        final var ms1Groups = flist.getMs1CorrelationMap();
         AtomicInteger numAnnotations = new AtomicInteger(0);
         for (CompoundDBAnnotation annotation : bioTransformerAnnotations) {
           flist.stream().filter(this::filterProductRow).forEach(r -> {
@@ -262,7 +261,8 @@ public class BioTransformerTask extends AbstractTask {
                 mzTolerance, rtTolerance, null, null);
             if (clone != null) {
 
-              final RowsRelationship correlation = ms1Groups != null ? ms1Groups.get(row, r) : null;
+              final RowsRelationship correlation = ms1Groups.map(map -> map.get(row, r))
+                  .orElse(null);
               if (rowCorrelationFilter && correlation == null) {
                 return;
               }
