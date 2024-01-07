@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,7 +44,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -150,16 +149,17 @@ public class IonNetworkingTask extends AbstractTask {
     }
     //
     AtomicInteger compared = new AtomicInteger(0);
-    AtomicInteger annotPairs = new AtomicInteger(0);
     // for all groups
-    groups.parallelStream().forEach(g -> {
-      if (!this.isCanceled()) {
-        annotateGroup(g, compared, annotPairs);
-        stageProgress.addAndGet(1d / groups.size());
+    long annotPairs = groups.parallelStream().mapToLong(g -> {
+      if (this.isCanceled()) {
+        return 0;
       }
-    });
+      final long annotations = annotateGroup(g, compared);
+      stageProgress.addAndGet(1d / groups.size());
+      return annotations;
+    }).sum();
     LOG.info("Corr: A total of " + compared.get() + " row2row adduct comparisons with " + annotPairs
-        .get() + " annotation pairs");
+             + " annotation pairs");
 
     refineAndFinishNetworks();
   }
@@ -169,9 +169,9 @@ public class IonNetworkingTask extends AbstractTask {
    *
    * @param g
    * @param compared
-   * @param annotPairs
    */
-  private void annotateGroup(RowGroup g, AtomicInteger compared, AtomicInteger annotPairs) {
+  private long annotateGroup(RowGroup g, AtomicInteger compared) {
+    long annotations = 0;
     for (int i = 0; i < g.size() - 1; i++) {
       // check against existing networks
       for (int k = i + 1; k < g.size(); k++) {
@@ -179,15 +179,16 @@ public class IonNetworkingTask extends AbstractTask {
         if (g.isCorrelated(i, k)) {
           compared.incrementAndGet();
           // check for adducts in library
-          List<IonIdentity[]> id = library
-              .findAdducts(featureList, g.get(i), g.get(k), adductCheckMode, minHeight);
+          List<IonIdentity[]> id = library.findAdducts(featureList, g.get(i), g.get(k),
+              adductCheckMode, minHeight);
           if (!id.isEmpty()) {
-            annotPairs.incrementAndGet();
+            annotations++;
           }
         }
       }
       // finished.incrementAndGet();
     }
+    return annotations;
   }
 
 
