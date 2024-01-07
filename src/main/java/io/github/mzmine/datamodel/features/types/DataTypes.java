@@ -140,11 +140,11 @@ public class DataTypes {
   }
 
   /**
-   * Get a list of the singleton datatypes
+   * Get a list of the singleton datatypes, same order as input
    */
   @SafeVarargs
-  public static List<DataType> getAll(Class<? extends DataType<?>>... classes) {
-    return Arrays.stream(classes).map(clazz -> get((Class) clazz)).toList();
+  public static List<DataType> getAll(final Class<? extends DataType<?>>... classes) {
+    return Arrays.stream(classes).map(c -> TYPES.get(c)).toList();
   }
 
   /**
@@ -194,9 +194,5 @@ public class DataTypes {
       prioMap.put(DataTypes.get(aClass), i++);
     }
     return prioMap;
-  }
-
-  public static List<DataType> getList(final Class... classes) {
-    return Arrays.stream(classes).map(c -> TYPES.get(c)).toList();
   }
 }
