@@ -77,10 +77,6 @@ public class BatchComponentController implements LastFilesComponent {
 
   private final static Logger logger = Logger.getLogger(BatchComponentController.class.getName());
 
-  // by using linked hash map, the items will be added to the tree view as specified in the modules list
-  private final Map<MainCategory, TreeItem<Object>> mainCategoryItems = new TreeMap<>(Comparator.comparingInt(MainCategory::ordinal));
-  private final Map<MZmineModuleCategory, TreeItem<Object>> categoryItems = new LinkedHashMap<>();
-
   @FXML
   public AnchorPane root;
   @FXML
