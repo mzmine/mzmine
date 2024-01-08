@@ -65,9 +65,9 @@ public class RTTolerance {
   public Range<Float> getToleranceRange(final float rtValue) {
     // rtValue is given in minutes
     float absoluteTolerance = switch (unit) {
+      case MINUTES -> tolerance;
       case SECONDS -> tolerance / 60;
       case PERCENT -> rtValue * (tolerance / 100);
-      default -> tolerance;
     };
     return Range.closed(rtValue - absoluteTolerance, rtValue + absoluteTolerance);
   }
