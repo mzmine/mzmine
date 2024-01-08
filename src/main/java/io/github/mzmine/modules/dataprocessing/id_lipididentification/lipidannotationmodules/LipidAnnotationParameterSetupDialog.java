@@ -26,8 +26,10 @@
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassDescription;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClassParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidDatabaseCalculator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -40,6 +42,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -57,6 +60,7 @@ import javafx.scene.layout.BorderPane;
 public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
 
   private Object[] selectedObjects;
+  private ILipidClass[] selectedCustomLipidClasses;
   private ObservableList<LipidClassDescription> tableData = FXCollections.observableArrayList();
 
   private static final Logger logger = Logger.getLogger(
@@ -76,11 +80,21 @@ public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
         LipidDatabaseTableController controller = null;
         tableData.clear();
         selectedObjects = LipidAnnotationParameters.lipidClasses.getValue();
+        this.selectedCustomLipidClasses = null;
+        if (parameters.getParameter(LipidAnnotationParameters.customLipidClasses).getValue()) {
+          this.selectedCustomLipidClasses = LipidAnnotationParameters.customLipidClasses.getEmbeddedParameters()
+              .getParameter(CustomLipidClassParameters.customLipidClassChoices).getChoices();
+        }
 
-        // Convert Objects to LipidClasses
-        LipidClasses[] selectedLipids = Arrays.stream(selectedObjects)
-            .filter(o -> o instanceof LipidClasses).map(o -> (LipidClasses) o)
-            .toArray(LipidClasses[]::new);
+        Stream<ILipidClass> selectedObjectsStream = Arrays.stream(selectedObjects)
+            .filter(o -> o instanceof LipidClasses).map(o -> (LipidClasses) o);
+
+        Stream<ILipidClass> selectedCustomLipidClassesStream =
+            selectedCustomLipidClasses != null ? Arrays.stream(selectedCustomLipidClasses)
+                : Stream.empty();
+
+        ILipidClass[] selectedLipids = Stream.concat(selectedObjectsStream,
+            selectedCustomLipidClassesStream).toArray(ILipidClass[]::new);
 
         LipidDatabaseCalculator lipidDatabaseCalculator = new LipidDatabaseCalculator(parameters,
             selectedLipids);

@@ -6,7 +6,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassDescription;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationChainParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -33,11 +32,11 @@ public class LipidDatabaseCalculator {
   private int maxDoubleBonds;
   private Boolean onlySearchForEvenChains;
   private MZTolerance mzTolerance;
-  private LipidClasses[] selectedLipids;
+  private ILipidClass[] selectedLipids;
 
   private final ObservableList<LipidClassDescription> tableData = FXCollections.observableArrayList();
 
-  public LipidDatabaseCalculator(ParameterSet parameters, LipidClasses[] selectedLipids) {
+  public LipidDatabaseCalculator(ParameterSet parameters, ILipidClass[] selectedLipids) {
 
     this.minChainLength = parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
         .getEmbeddedParameters().getParameter(LipidAnnotationChainParameters.minChainLength)

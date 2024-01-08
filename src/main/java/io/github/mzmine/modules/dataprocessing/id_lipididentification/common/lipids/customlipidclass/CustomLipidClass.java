@@ -172,31 +172,20 @@ public class CustomLipidClass implements ILipidClass {
       }
 
       switch (reader.getLocalName()) {
-        case XML_LIPID_CLASS_NAME:
-          name = reader.getElementText();
-          break;
-        case XML_LIPID_CLASS_ABBR:
-          abbr = reader.getElementText();
-          break;
-        case XML_LIPID_CATEGORY:
-          lipidCategory = LipidParsingUtils.lipidCategoryNameToLipidLipidCategory(
-              reader.getElementText());
-          break;
-        case XML_LIPID_MAIN_CLASS:
-          lipidMainClass = LipidParsingUtils.lipidMainClassNameToLipidLipidMainClass(
-              reader.getElementText());
-          break;
-        case XML_LIPID_CLASS_BACKBONE_FORMULA:
-          backBoneFormula = reader.getElementText();
-          break;
-        case XML_LIPID_CLASS_CHAIN_TYPE:
-          chainTypes = loadLipidChainTypesFromXML(reader);
-          break;
-        case XML_LIPID_CLASS_FRAGMENTATION_RULES:
-          fragmentationRules = loadLipidFragmentationRulesFromXML(reader);
-          break;
-        default:
-          break;
+        case XML_LIPID_CLASS_NAME -> name = reader.getElementText();
+        case XML_LIPID_CLASS_ABBR -> abbr = reader.getElementText();
+        case XML_LIPID_CATEGORY ->
+            lipidCategory = LipidParsingUtils.lipidCategoryNameToLipidLipidCategory(
+                reader.getElementText());
+        case XML_LIPID_MAIN_CLASS ->
+            lipidMainClass = LipidParsingUtils.lipidMainClassNameToLipidLipidMainClass(
+                reader.getElementText());
+        case XML_LIPID_CLASS_BACKBONE_FORMULA -> backBoneFormula = reader.getElementText();
+        case XML_LIPID_CLASS_CHAIN_TYPE -> chainTypes = loadLipidChainTypesFromXML(reader);
+        case XML_LIPID_CLASS_FRAGMENTATION_RULES ->
+            fragmentationRules = loadLipidFragmentationRulesFromXML(reader);
+        default -> {
+        }
       }
     }
     return new CustomLipidClass(name, abbr, lipidCategory, lipidMainClass, backBoneFormula,
