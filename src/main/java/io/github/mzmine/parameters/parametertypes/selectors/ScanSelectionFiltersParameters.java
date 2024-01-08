@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -59,8 +59,8 @@ public class ScanSelectionFiltersParameters extends SimpleParameterSet {
 
   public static final StringParameter scanDefinitionParameter = new StringParameter(
       "Scan definition",
-      "Include only scans that match this scan definition. You can use wild cards, e.g. *FTMS*",
-      null, false);
+      "Include only scans that match this scan definition. You can use wild cards, e.g. *FTMS*", "",
+      false);
 
   public static final ComboParameter<PolarityType> polarityParameter = new ComboParameter<>(
       "Polarity", "Include only scans of this polarity",
