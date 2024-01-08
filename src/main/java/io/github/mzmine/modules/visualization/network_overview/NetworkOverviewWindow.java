@@ -46,8 +46,8 @@ public class NetworkOverviewWindow extends Stage {
   private NetworkOverviewController controller;
 
   public NetworkOverviewWindow(@NotNull ModularFeatureList featureList,
-      @Nullable FeatureTableFX externalTable,
-      @Nullable List<? extends FeatureListRow> selectedRows) {
+      @Nullable FeatureTableFX externalTable, @Nullable List<? extends FeatureListRow> selectedRows,
+      final NetworkOverviewFlavor flavor) {
     setTitle("Network overview: " + featureList.getName());
     setOnCloseRequest(event -> {
       if (controller != null) {
@@ -59,7 +59,7 @@ public class NetworkOverviewWindow extends Stage {
       FXMLLoader loader = new FXMLLoader(getClass().getResource("NetworkOverviewPane.fxml"));
       BorderPane rootPane = loader.load();
       controller = loader.getController();
-      controller.setUp(featureList, externalTable, selectedRows);
+      controller.setUp(featureList, externalTable, selectedRows, flavor);
 
       Scene mainScene = new Scene(rootPane);
       mainScene.getStylesheets()

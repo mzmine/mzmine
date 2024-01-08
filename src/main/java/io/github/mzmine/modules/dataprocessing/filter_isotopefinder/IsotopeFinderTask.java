@@ -57,6 +57,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.IsotopesUtils;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -304,7 +305,7 @@ class IsotopeFinderTask extends AbstractTask {
 
   private List<DataPoint> normalizeImsIntensities(List<DataPoint> candidates, Scan scan,
       SimpleDataPoint featureDp) {
-    final int i = scan.binarySearch(featureDp.getMZ(), true);
+    final int i = scan.binarySearch(featureDp.getMZ(), DefaultTo.CLOSEST_VALUE);
     if (i < 0) {
       // did not find the expected feature data point
       return candidates;
@@ -348,9 +349,10 @@ class IsotopeFinderTask extends AbstractTask {
 
   @Nullable
   private MobilityScanDataAccess initMobilityScanDataAccess(RawDataFile raw) {
-    return raw instanceof IMSRawDataFile imsFile && featureList.getFeatureTypes()
-        .containsKey(MobilityUnitType.class) ? new MobilityScanDataAccess(imsFile,
-        MobilityScanDataType.MASS_LIST, (List<Frame>) featureList.getSeletedScans(imsFile)) : null;
+    return
+        raw instanceof IMSRawDataFile imsFile && featureList.hasFeatureType(MobilityUnitType.class)
+            ? new MobilityScanDataAccess(imsFile, MobilityScanDataType.MASS_LIST,
+            (List<Frame>) featureList.getSeletedScans(imsFile)) : null;
   }
 
   private void checkCandidatesInScan(ScanDataAccess scans, List<MergedDataPoint> candidates,

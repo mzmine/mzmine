@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,40 +28,17 @@ package io.github.mzmine.datamodel.features.correlation;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * row to row correlation (2 rows) Intensity profile and peak shape correlation
  *
  * @author Robin Schmid
  */
-public abstract class R2RCorrelationData implements RowsRelationship {
-
-  // correlation of a to b
-  // id A < id B
-  private final FeatureListRow a;
-  private final FeatureListRow b;
+public abstract class R2RCorrelationData extends InternalTypedRowsRelationship {
 
   public R2RCorrelationData(FeatureListRow a, FeatureListRow b) {
-    if (a.getID() < b.getID()) {
-      this.a = a;
-      this.b = b;
-    } else {
-      this.b = a;
-      this.a = b;
-    }
+    super(a, b, Type.MS1_FEATURE_CORR);
   }
-
-  @Override
-  public FeatureListRow getRowB() {
-    return b;
-  }
-
-  @Override
-  public FeatureListRow getRowA() {
-    return a;
-  }
-
 
   @Override
   public double getScore() {
@@ -73,12 +50,6 @@ public abstract class R2RCorrelationData implements RowsRelationship {
     double score = getScore();
     return Double.isNaN(score) ? "NaN"
         : MZmineCore.getConfiguration().getScoreFormat().format(score);
-  }
-
-  @NotNull
-  @Override
-  public Type getType() {
-    return Type.MS1_FEATURE_CORR;
   }
 
   @Override

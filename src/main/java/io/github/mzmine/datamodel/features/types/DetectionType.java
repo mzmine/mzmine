@@ -25,19 +25,25 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
+import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
+import javafx.util.Callback;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -71,9 +77,78 @@ public class DetectionType extends DataType<FeatureStatus> implements
   }
 
   @Override
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, FeatureStatus> cell,
-      TreeTableColumn<ModularFeatureListRow, FeatureStatus> coll, FeatureStatus cellData,
-      RawDataFile raw) {
+  public double getColumnWidth() {
+    return 10;
+  }
+
+  @Override
+  public @Nullable TreeTableColumn<ModularFeatureListRow, Object> createColumn(
+      @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType, int subColumnIndex) {
+    TreeTableColumn<ModularFeatureListRow, Object> col = new TreeTableColumn<>(
+        this.getHeaderString());
+    col.setUserData(this);
+    col.setSortable(true);
+
+    // define observable
+    col.setCellValueFactory(new DataTypeCellValueFactory(raw, this, parentType, subColumnIndex));
+    // value representation
+
+    col.setCellFactory(
+        new Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>>() {
+
+          @Override
+          public TreeTableCell<ModularFeatureListRow, Object> call(
+              TreeTableColumn<ModularFeatureListRow, Object> param) {
+            return new TreeTableCell<>() {
+
+              private Circle circle;
+              private StackPane pane;
+              {
+                pane = new StackPane();
+                circle = new Circle(10);
+                pane.setAlignment(Pos.CENTER);
+                pane.getChildren().add(circle);
+              }
+
+              @Override
+              protected void updateItem(Object item, boolean empty) {
+
+                try {
+                  super.updateItem(item, empty);
+                  // needs to check for row visibility
+                  if (empty || item == null) {
+                    setGraphic(null);
+                    return;
+                  }
+
+                  final ModularFeatureListRow row = this.getTableRow().getItem();
+                  if (row == null) {
+                    setGraphic(null);
+                    return;
+                  }
+                  final ModularFeature f = row.getFeature(raw);
+                  if (f == null) {
+                    setGraphic(null);
+                    return;
+                  }
+
+                  circle.setFill(f.getFeatureStatus().getColorFX());
+                  setGraphic(pane);
+
+                } catch (Exception ex) {
+                  // silent
+                }
+              }
+            };
+          }
+        });
+    return col;
+  }
+
+
+  @Override
+  public @Nullable Node createCellContent(ModularFeatureListRow row, FeatureStatus cellData,
+      RawDataFile raw, AtomicDouble progress) {
     if (cellData == null) {
       return null;
     }
@@ -82,11 +157,6 @@ public class DetectionType extends DataType<FeatureStatus> implements
     circle.setRadius(10);
     circle.setFill(cellData.getColorFX());
     return circle;
-  }
-
-  @Override
-  public double getColumnWidth() {
-    return 10;
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,12 +34,18 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
 import io.github.mzmine.modules.dataprocessing.align_join.RowAlignmentScoreCalculator;
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.util.javafx.WeakAdapter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -47,11 +53,47 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureListUtils {
+
+  /**
+   * Bind rows of feature list to a list in a {@link WeakAdapter}
+   *
+   * @param flist source of changes, used as parent in weak
+   * @param rows  target
+   */
+  public static void bindRows(@NotNull WeakAdapter weak, @NotNull FeatureList flist,
+      @NotNull ObservableList<FeatureListRow> rows) {
+    weak.addListChangeListener(flist, flist.getRows(), change -> {
+      if (weak.isActive()) {
+        rows.setAll(change.getList());
+      }
+    });
+    rows.setAll(flist.getRows());
+  }
+
+  /**
+   * Bind selected rows of {@link FeatureTableFX} to a list in a {@link WeakAdapter}. Use the
+   * FeatureList and {@link #bindRows(WeakAdapter, FeatureList, ObservableList)} directly to bind
+   * rows of a feature list. Also listen to changes to the active FeatureList in the table. See
+   * {@link ParentFeatureListPaneGroup}
+   *
+   * @param table source of changes, used as parent in weak
+   * @param rows  target
+   */
+  public static void bindSelectedRows(@NotNull WeakAdapter weak, @NotNull FeatureTableFX table,
+      @NotNull ObservableList<FeatureListRow> rows) {
+    weak.addListChangeListener(table, table.getSelectedTableRows(), change -> {
+      if (weak.isActive()) {
+        rows.setAll(table.getSelectedRows());
+      }
+    });
+    rows.setAll(table.getSelectedRows());
+  }
 
   /**
    * Copies the FeatureListAppliedMethods from <b>source</b> to <b>target</b>
@@ -100,7 +142,8 @@ public class FeatureListUtils {
         var rowMobility = row.getAverageMobility();
         var rowRT = row.getAverageRT();
         if ((rowMobility == null || mobilityRange.contains(rowMobility)) && (rowRT == null
-            || rtRange.contains(rowRT))) {
+                                                                             || rtRange.contains(
+            rowRT))) {
           candidates.add(row);
         }
       } else {
@@ -115,7 +158,8 @@ public class FeatureListUtils {
         var rowMobility = row.getAverageMobility();
         var rowRT = row.getAverageRT();
         if ((rowMobility == null || mobilityRange.contains(rowMobility)) && (rowRT == null
-            || rtRange.contains(rowRT))) {
+                                                                             || rtRange.contains(
+            rowRT))) {
           candidates.add(row);
         }
       } else {
@@ -416,11 +460,8 @@ public class FeatureListUtils {
   public static void transferRowTypes(FeatureList targetFlist,
       Collection<FeatureList> sourceFlists) {
     for (FeatureList sourceFlist : sourceFlists) {
-      for (Class<? extends DataType> value : sourceFlist.getRowTypes().keySet()) {
-        if (!targetFlist.hasRowType(value)) {
-          targetFlist.addRowType(sourceFlist.getRowTypes().get(value));
-        }
-      }
+      // uses a set so okay to use addAll
+      targetFlist.addRowType(sourceFlist.getRowTypes());
     }
   }
 
@@ -457,5 +498,19 @@ public class FeatureListUtils {
       }
     }
     return allDataFiles;
+  }
+
+  /**
+   * Maps the row ID to the feature list for quick lookup
+   *
+   * @return ID to row map
+   */
+  @NotNull
+  public static Int2ObjectMap<FeatureListRow> getRowIdMap(final ModularFeatureList featureList) {
+    Int2ObjectMap<FeatureListRow> map = new Int2ObjectArrayMap<>(featureList.getRows().size());
+    for (final FeatureListRow row : featureList.getRows()) {
+      map.put(row.getID(), row);
+    }
+    return map;
   }
 }

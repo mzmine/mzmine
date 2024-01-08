@@ -150,16 +150,16 @@ public class IonIdentityTest {
       when(formula.getRDBE()).thenReturn(4.5f);
       IonIdentity ion = rowProtonated.getBestIonIdentity();
       ion.addMolFormula(formula);
-      assertEquals(0.9f, ion.getBestMolFormula().getIsotopeScore());
-      assertEquals(4.5f, ion.getBestMolFormula().getRDBE());
+      ResultFormula best = ion.getBestMolFormula().get();
+      assertEquals(0.9f, best.getIsotopeScore());
+      assertEquals(4.5f, best.getRDBE());
 
       // setting the formula should have updated the sub properties
       // test properties in ion identity
-      assertEquals(4.5f,
-          rowProtonated.get(IonIdentityListType.class).get(0).getBestMolFormula().getRDBE(),
+      best = rowProtonated.get(IonIdentityListType.class).get(0).getBestMolFormula().get();
+      assertEquals(4.5f, best.getRDBE(),
           "Cannot access formula specific types from sub types of IonIdentityModularType.class");
-      assertEquals(0.9f,
-          rowProtonated.get(IonIdentityListType.class).get(0).getBestMolFormula().getIsotopeScore(),
+      assertEquals(0.9f, best.getIsotopeScore(),
           "Cannot access formula specific types from sub types of IonIdentityModularType.class");
 
   }

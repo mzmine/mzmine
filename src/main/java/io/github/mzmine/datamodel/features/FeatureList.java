@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,9 +31,12 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.MZmineModule;
@@ -43,9 +46,10 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -89,7 +93,7 @@ public interface FeatureList {
    */
   void applyRowBindings(FeatureListRow row);
 
-  ObservableMap<Class<? extends DataType>, DataType> getFeatureTypes();
+  ObservableSet<DataType> getFeatureTypes();
 
   void addFeatureType(Collection<DataType> types);
 
@@ -99,11 +103,48 @@ public interface FeatureList {
 
   void addRowType(@NotNull DataType<?>... types);
 
-  ObservableMap<Class<? extends DataType>, DataType> getRowTypes();
+  ObservableSet<DataType> getRowTypes();
 
-  boolean hasFeatureType(Class typeClass);
 
-  boolean hasRowType(Class typeClass);
+  /**
+   * Checks if typeClass was added as a FeatureType
+   *
+   * @param typeClass class of a DataType
+   * @return true if feature type is available
+   */
+  default boolean hasFeatureType(Class<? extends DataType> typeClass) {
+    return hasFeatureType(DataTypes.get(typeClass));
+  }
+
+  /**
+   * Checks if typeClass was added as a FeatureType
+   *
+   * @param type DataType
+   * @return true if feature type is available
+   */
+  default boolean hasFeatureType(DataType type) {
+    return getFeatureTypes().contains(type);
+  }
+
+  /**
+   * Checks if typeClass was added as a row type
+   *
+   * @param typeClass class of a DataType
+   * @return true if row type is available
+   */
+  default boolean hasRowType(Class<? extends DataType> typeClass) {
+    return hasRowType(DataTypes.get(typeClass));
+  }
+
+  /**
+   * Checks if typeClass was added as a row type
+   *
+   * @param type DataType
+   * @return true if row type is available
+   */
+  default boolean hasRowType(DataType type) {
+    return getRowTypes().contains(type);
+  }
 
   /**
    * Returns number of raw data files participating in the feature list
@@ -375,29 +416,13 @@ public interface FeatureList {
    */
   void setGroups(List<RowGroup> groups);
 
-  /**
-   * Add row-to-row relationships
-   *
-   * @param a            rows in any order
-   * @param b            rows in any order
-   * @param relationship the relationship between a and b
-   */
-  void addRowsRelationship(FeatureListRow a, FeatureListRow b, RowsRelationship relationship);
-
-  /**
-   * Add row-to-row relationships to a specific master list for {@link Type}.
-   *
-   * @param map          a map of relationships
-   * @param relationship the relationship type between the pairs of rows
-   */
-  void addRowsRelationships(R2RMap<? extends RowsRelationship> map, Type relationship);
 
   /**
    * Short cut to get the MS1 correlation map of grouped features
    *
    * @return the map for {@link Type#MS1_FEATURE_CORR}
    */
-  default R2RMap<RowsRelationship> getMs1CorrelationMap() {
+  default Optional<R2RMap<RowsRelationship>> getMs1CorrelationMap() {
     return getRowMap(Type.MS1_FEATURE_CORR);
   }
 
@@ -406,20 +431,28 @@ public interface FeatureList {
    *
    * @return the map for {@link Type#MS2_COSINE_SIM}
    */
-  default R2RMap<RowsRelationship> getMs2SimilarityMap() {
+  default Optional<R2RMap<RowsRelationship>> getMs2SimilarityMap() {
     return getRowMap(Type.MS2_COSINE_SIM);
   }
 
   /**
-   * A mutable map of row-to-row relationships. See {@link #addRowsRelationships(R2RMap, Type)} to
-   * add.
+   * A mutable map of row-to-row relationships.
    *
    * @param relationship the relationship between two rows
    * @return
    */
-  @Nullable
-  default R2RMap<RowsRelationship> getRowMap(Type relationship) {
-    return getRowMaps().get(relationship);
+  default Optional<R2RMap<RowsRelationship>> getRowMap(Type relationship) {
+    return getRowMap(relationship.toString());
+  }
+
+  /**
+   * A mutable map of row-to-row relationships.
+   *
+   * @param type the relationship between two rows
+   * @return
+   */
+  default Optional<R2RMap<RowsRelationship>> getRowMap(String type) {
+    return getRowMaps().getRowsMap(type);
   }
 
   /**
@@ -427,7 +460,7 @@ public interface FeatureList {
    *
    * @return a map that stores different relationship maps
    */
-  @NotNull Map<Type, R2RMap<RowsRelationship>> getRowMaps();
+  @NotNull R2RNetworkingMaps getRowMaps();
 
   /**
    * Maps {@link Feature} DataType listeners, e.g., for calculating the mean values for a DataType
@@ -477,10 +510,14 @@ public interface FeatureList {
       if (isImagingFile && newFeature instanceof ModularFeature f) {
         // activate image for this feature
         DataTypeUtils.DEFAULT_IMAGING_COLUMNS_FEATURE.stream()
-            .filter(type -> type instanceof LinkedGraphicalType)
-            .forEach(type -> f.set(type, true));
+            .filter(type -> type instanceof LinkedGraphicalType).forEach(type -> f.set(type, true));
       }
     }
+  }
+
+  default void addRowMaps(R2RNetworkingMaps maps) {
+    var master = getRowMaps();
+    master.addAll(maps);
   }
 
   /**

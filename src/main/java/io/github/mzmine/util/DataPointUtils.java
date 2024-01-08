@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -282,63 +282,30 @@ public class DataPointUtils {
 
   /**
    * Remove all signals that fall within precursorMZ +- removePrecursorMz
-   * @param mzSorted sorted by mz ascending
-   * @param precursorMz center of the signals to be removed
+   *
+   * @param mzSorted          sorted by mz ascending
+   * @param precursorMz       center of the signals to be removed
    * @param removePrecursorMz +-delta to remove signals
    * @return the filtered list
    */
   public static DataPoint[] removePrecursorMz(final DataPoint[] mzSorted, final double precursorMz,
       final double removePrecursorMz) {
-    var numDps = mzSorted.length;
-    if (numDps == 0) {
+    if (mzSorted.length == 0) {
       return mzSorted;
     }
 
     IntToDoubleFunction mzExtractor = index -> mzSorted[index].getMZ();
     // might be higher or lower or -1
-    final double lowerMzBound = precursorMz - removePrecursorMz;
-    int lower = BinarySearch.binarySearch(lowerMzBound, true, numDps, mzExtractor);
-    if (lower == -1) {
-      // no signal found
-      return mzSorted;
-    }
-    double lowerMz = mzSorted[lower].getMZ();
-
+    final double lowerMz = precursorMz - removePrecursorMz;
     final double upperMzBound = precursorMz + removePrecursorMz;
-    if (lowerMz < lowerMzBound) {
-      lower++; // increment to be within mz range or higher
-      if (lower >= numDps) {
-        return mzSorted;
-      }
-      lowerMz = mzSorted[lower].getMZ();
-    }
-    if (lowerMz > upperMzBound) {
-      // nothing in range
-      return mzSorted;
-    }
 
-    int upper = BinarySearch.binarySearch(upperMzBound, true, numDps, mzExtractor);
-    double upperMz = mzSorted[upper].getMZ();
-    if (upperMz <= upperMzBound) {
-      upper = Math.min(numDps, upper + 1); // increment to be above mz range
-    }
+    var indexRange = BinarySearch.indexRange(lowerMz, upperMzBound, mzSorted.length, mzExtractor);
 
-    // all the last signals are within range
-    if (upper == numDps) {
-      return Arrays.copyOf(mzSorted, lower); // lower points to the first index within range
-    } else {
-      // concat ranges
-      var upperLength = numDps - upper;
-      DataPoint[] results = new DataPoint[lower + upperLength];
-      System.arraycopy(mzSorted, 0, results, 0, lower);
-      System.arraycopy(mzSorted, upper, results, lower, upperLength);
-      return results;
-    }
+    return indexRange.copyRemoveRange(mzSorted);
   }
 
   public static boolean inRange(final double tested, final double center, final double delta) {
     return tested >= center - delta && tested <= center + delta;
   }
-
 
 }
