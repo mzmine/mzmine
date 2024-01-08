@@ -25,15 +25,19 @@
 
 package io.github.mzmine.parameters;
 
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class ParameterUtils {
 
@@ -161,5 +165,15 @@ public class ParameterUtils {
     }
 
     return true;
+  }
+
+  @NotNull
+  public static <T> Optional<T> getValueFromAppliedMethods(
+      Collection<FeatureListAppliedMethod> appliedMethods,
+      Class<? extends ParameterSet> parameterClass, Parameter<T> mzTolParameter) {
+    return appliedMethods.stream()
+        .filter(appliedMethod -> appliedMethod.getParameters().getClass().equals(parameterClass))
+        .findFirst().map(FeatureListAppliedMethod::getParameters)
+        .map(parameterSet -> parameterSet.getValue(mzTolParameter));
   }
 }

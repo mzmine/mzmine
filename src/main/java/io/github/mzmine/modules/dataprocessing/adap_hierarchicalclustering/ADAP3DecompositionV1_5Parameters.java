@@ -24,8 +24,6 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import java.text.NumberFormat;
 import dulab.adap.workflow.TwoStepDecompositionParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -33,9 +31,12 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.ListDoubleRangeParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
+import java.text.NumberFormat;
 import javafx.collections.FXCollections;
 
 /**
@@ -109,15 +110,14 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
   public static final StringParameter SUFFIX = new StringParameter("Suffix",
       "This string is added to feature list name as suffix", "ADAP-GC 3 Peak Decomposition");
 
-  public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
-      "Remove original feature list",
-      "If checked, original chromatogram will be removed and only the deconvolved version remains");
+  public static final OriginalFeatureListHandlingParameter handleOriginal = //
+      new OriginalFeatureListHandlingParameter(false);
 
   public ADAP3DecompositionV1_5Parameters() {
     super(
-        new Parameter[] {PEAK_LISTS, MIN_CLUSTER_DISTANCE, MIN_CLUSTER_SIZE, MIN_CLUSTER_INTENSITY,
+        new Parameter[]{PEAK_LISTS, MIN_CLUSTER_DISTANCE, MIN_CLUSTER_SIZE, MIN_CLUSTER_INTENSITY,
             USE_ISSHARED, EDGE_TO_HEIGHT_RATIO, DELTA_TO_HEIGHT_RATIO, MIN_MODEL_SHARPNESS,
-            SHAPE_SIM_THRESHOLD, MODEL_PEAK_CHOICE, MZ_VALUES, SUFFIX, AUTO_REMOVE},
+            SHAPE_SIM_THRESHOLD, MODEL_PEAK_CHOICE, MZ_VALUES, SUFFIX, handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_hierarch_clustering/featdet_hierarch_clustering.html");
   }
 
@@ -125,7 +125,7 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     String message = "<html>Module Disclaimer:"
         + "<br> If you use this Spectral Deconvolution Module, please cite the "
-        + "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"
+        + "<a href=\"https://doi.org/10.1038/s41587-023-01690-2\">MZmine 3 paper</a> and the following article:"
         + "<br><a href=\"http://pubs.acs.org/doi/10.1021/acs.jproteome.7b00633\"> Smirnov A, Jia W, Walker D, Jones D, Du X: ADAP-GC 3.2: Graphical Software Tool for "
         + "<br>Efficient Spectral Deconvolution of Gas Cromatography&mdash;High-Resolution Mass Spectrometry "
         + "<br>Metabolomics Data. J. Proteome Res 2017, DOI: 10.1021/acs.jproteome.7b00633</a>"
@@ -136,5 +136,10 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
 
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
   }
 }
