@@ -37,13 +37,14 @@ import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
@@ -57,6 +58,7 @@ public class PseudoSpectrumVisualizerPane extends SplitPane {
   private RawDataFile rawDataFile;
   private SpectraPlot spectraPlot;
   private TICPlot ticPlot;
+
 
   public PseudoSpectrumVisualizerPane(ModularFeature selectedFeature) {
     super();
@@ -105,21 +107,14 @@ public class PseudoSpectrumVisualizerPane extends SplitPane {
   private MZTolerance extractMzToleranceFromPreviousMethods() {
 
     try {
-      ObservableList<FeatureListAppliedMethod> appliedMethods = Objects.requireNonNull(
+      Collection<FeatureListAppliedMethod> appliedMethods = Objects.requireNonNull(
           selectedFeature.getFeatureList()).getAppliedMethods();
         if (pseudoScan.getMSLevel() > 1) {
 
           // for DIA correlation
-          boolean isDia = appliedMethods.stream().anyMatch(
-              appliedMethod -> appliedMethod.getParameters().getClass()
-                  .equals(DiaMs2CorrParameters.class));
-          if (isDia) {
-            return appliedMethods.stream().filter(
-                    appliedMethod -> appliedMethod.getParameters().getClass()
-                        .equals(DiaMs2CorrParameters.class)).findFirst().get().getParameters()
-                .getParameter(DiaMs2CorrParameters.ms2ScanToScanAccuracy).cloneParameter()
-                .getValue();
-          }
+          return ParameterUtils.getValueFromAppliedMethods(appliedMethods,
+                  DiaMs2CorrParameters.class, DiaMs2CorrParameters.ms2ScanToScanAccuracy)
+              .orElse(new MZTolerance(0.005, 15));
         } else {
 
           // for GC-EI workflow use tolerance of chromatogram building, because deconvolution does
@@ -128,13 +123,11 @@ public class PseudoSpectrumVisualizerPane extends SplitPane {
               appliedMethod -> appliedMethod.getParameters().getClass()
                   .equals(ADAPChromatogramBuilderParameters.class));
           if (hasChromatograms) {
-            return appliedMethods.stream().filter(
-                    appliedMethod -> appliedMethod.getParameters().getClass()
-                        .equals(ADAPChromatogramBuilderParameters.class)).findFirst().get()
-                .getParameters().getParameter(ADAPChromatogramBuilderParameters.mzTolerance)
-                .cloneParameter().getValue();
+            return ParameterUtils.getValueFromAppliedMethods(appliedMethods,
+                ADAPChromatogramBuilderParameters.class,
+                ADAPChromatogramBuilderParameters.mzTolerance).orElse(new MZTolerance(0.005, 15));
           }
-      }
+        }
     } catch (Exception e) {
       LOGGER.log(Level.WARNING,
           " Could not extract previously used mz tolerance, will apply default settings. "
@@ -142,4 +135,5 @@ public class PseudoSpectrumVisualizerPane extends SplitPane {
     }
     return new MZTolerance(0.005, 15);
   }
+
 }
