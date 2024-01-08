@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,6 @@ import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
-import java.util.Objects;
 import javafx.scene.control.TextField;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +38,7 @@ public class StringParameter implements UserParameter<String, TextField> {
 
   protected final boolean sensitive;
   protected String name, description;
-  protected @NotNull String value;
+  protected @NotNull String value = "";
   protected int inputsize = 20;
   protected boolean valueRequired = true;
 
@@ -94,7 +93,7 @@ public class StringParameter implements UserParameter<String, TextField> {
   }
 
   @Override
-  public String getValue() {
+  public @NotNull String getValue() {
     return value;
   }
 
@@ -129,7 +128,7 @@ public class StringParameter implements UserParameter<String, TextField> {
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    value = Objects.requireNonNullElse(xmlElement.getTextContent(), "");
+    value = requireNonNullElse(xmlElement.getTextContent(), "");
   }
 
   @Override

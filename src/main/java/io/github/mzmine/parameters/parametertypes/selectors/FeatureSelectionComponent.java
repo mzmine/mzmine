@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -71,8 +71,8 @@ public class FeatureSelectionComponent extends BorderPane {
           new IntRangeParameter("ID", "Range of included peak IDs", false, null);
       final MZRangeParameter mzParameter = new MZRangeParameter(false);
       final RTRangeParameter rtParameter = new RTRangeParameter(false);
-      final StringParameter nameParameter =
-          new StringParameter("Name", "Peak identity name", null, false);
+      final StringParameter nameParameter = new StringParameter("Name", "Peak identity name", "",
+          false);
       SimpleParameterSet paramSet = new SimpleParameterSet(
           new Parameter[] {idParameter, mzParameter, rtParameter, nameParameter});
       ExitCode exitCode = paramSet.showSetupDialog(true);
