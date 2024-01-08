@@ -130,6 +130,15 @@ public class MZTolerance {
         && Double.compare(that.getPpmTolerance(), getPpmTolerance()) == 0;
   }
 
+  public static MZTolerance [] getDefaultResolutions (){
+    MZTolerance [] mzTol= new MZTolerance [4];
+    mzTol[0] = new MZTolerance(0.00025,0);
+    mzTol[1] = new MZTolerance(0.001,0);
+    mzTol[2] = new MZTolerance(0.01,0);
+    mzTol[3] = new MZTolerance(0.1,0);
+    return mzTol;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(getMzTolerance(), getPpmTolerance());

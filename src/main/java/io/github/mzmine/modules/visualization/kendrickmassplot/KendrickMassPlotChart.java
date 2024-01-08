@@ -27,7 +27,7 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.gui.chartbasics.chartutils.XYCirclePixelSizeRenderer;
+import io.github.mzmine.gui.chartbasics.chartutils.ColoredBubbleDatasetRenderer;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
@@ -70,7 +70,7 @@ public class KendrickMassPlotChart extends EChartViewer {
         .isKendrickType()) {
       getChart().getXYPlot().getDomainAxis().setRange(-0.5, 0.5);
     }
-    XYCirclePixelSizeRenderer renderer = new XYCirclePixelSizeRenderer();
+    ColoredBubbleDatasetRenderer renderer = new ColoredBubbleDatasetRenderer();
     renderer.setPaintScale(paintScale);
     PaintScaleLegend legend = generateLegend(paintScale);
     getChart().addSubtitle(legend);

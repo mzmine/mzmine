@@ -89,7 +89,8 @@ public class NetworkOverviewController {
   }
 
   public void setUp(@NotNull ModularFeatureList featureList, @Nullable FeatureTableFX externalTable,
-      @Nullable List<? extends FeatureListRow> focussedRows) throws IOException {
+      @Nullable List<? extends FeatureListRow> focussedRows, final NetworkOverviewFlavor flavor)
+      throws IOException {
     if (setUpCalled) {
       throw new IllegalStateException(
           "Cannot setup NetworkOverviewController twice. Create a new one.");
@@ -97,7 +98,7 @@ public class NetworkOverviewController {
     setUpCalled = true;
 
     // create network
-    networkController = FeatureNetworkController.create(featureList, this.focussedRows);
+    networkController = FeatureNetworkController.create(featureList, this.focussedRows, flavor);
     pnNetwork.setCenter(networkController.getMainPane());
 
     // create edge table

@@ -28,7 +28,7 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.parameters.ParameterSet;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,12 +38,12 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import org.jetbrains.annotations.NotNull;
 
-public class KendrickMassPlotTab extends MZmineTab {
+public class KendrickMassPlotTab extends SimpleTab {
 
   private final KendrickMassPlotAnchorPaneController controller;
 
   public KendrickMassPlotTab(ParameterSet parameters) {
-    super("Kendrick Mass Plot", true, false);
+    super("Kendrick Mass Plot");
 
     AnchorPane root = null;
     FXMLLoader loader = new FXMLLoader((getClass().getResource("KendrickMassPlotAnchorPane.fxml")));
@@ -74,25 +74,4 @@ public class KendrickMassPlotTab extends MZmineTab {
         new ArrayList<>(Collections.singletonList((ModularFeatureList)controller.getFeatureList()));
   }
 
-  @NotNull
-  @Override
-  public Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-
-  }
-
-  @Override
-  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
-  }
-
-  @Override
-  public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featureLists) {
-
-  }
 }
