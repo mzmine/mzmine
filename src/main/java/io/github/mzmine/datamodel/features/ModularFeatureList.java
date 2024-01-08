@@ -56,7 +56,7 @@ import java.util.Date;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -67,9 +67,10 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
@@ -101,12 +102,12 @@ public class ModularFeatureList implements FeatureList {
 
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
-  // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
-  private final ObservableMap<Class<? extends DataType>, DataType> rowTypes = FXCollections.observableMap(
-      new LinkedHashMap<>());
-  // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
-  private final ObservableMap<Class<? extends DataType>, DataType> featureTypes = FXCollections.observableMap(
-      new LinkedHashMap<>());
+  // TODO do we need two sets? We could have observableSet of LinkedHashSet
+  private final ObservableSet<DataType> rowTypes = FXCollections.observableSet(
+      new LinkedHashSet<>());
+  // TODO do we need two sets? We could have observableSet of LinkedHashSet
+  private final ObservableSet<DataType> featureTypes = FXCollections.observableSet(
+      new LinkedHashSet<>());
   private final ObservableList<FeatureListRow> featureListRows;
   private final ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
 
@@ -157,15 +158,14 @@ public class ModularFeatureList implements FeatureList {
     });
 
     // add row bindings automatically
-    featureTypes.addListener(
-        (MapChangeListener<? super Class<? extends DataType>, ? super DataType>) change -> {
-          DataType added = change.getValueAdded();
-          if (added == null) {
-            return;
-          }
-          // add row bindings
-          addRowBinding(added.createDefaultRowBindings());
-        });
+    featureTypes.addListener((SetChangeListener<? super DataType>) change -> {
+      DataType added = change.getElementAdded();
+      if (added == null) {
+        return;
+      }
+      // add row bindings
+      addRowBinding(added.createDefaultRowBindings());
+    });
   }
 
   @Override
@@ -345,16 +345,17 @@ public class ModularFeatureList implements FeatureList {
    * @return feature types (columns)
    */
   @Override
-  public ObservableMap<Class<? extends DataType>, DataType> getFeatureTypes() {
+  public ObservableSet<DataType> getFeatureTypes() {
     return featureTypes;
   }
 
   @Override
   public void addFeatureType(Collection<DataType> types) {
     for (DataType<?> type : types) {
-      if (!featureTypes.containsKey(type.getClass())) {
-        // all {@link ModularFeature} will automatically add a default data map
-        featureTypes.put(type.getClass(), type);
+      if (!hasFeatureType(type)) {
+        synchronized (featureTypes) {
+          featureTypes.add(type);
+        }
       }
     }
   }
@@ -367,10 +368,10 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public void addRowType(Collection<DataType> types) {
     for (DataType<?> type : types) {
-      if (!rowTypes.containsKey(type.getClass())) {
-        // add row type - all rows will automatically generate a default property for this type in
-        // their data map
-        rowTypes.put(type.getClass(), type);
+      if (!hasRowType(type)) {
+        synchronized (rowTypes) {
+          rowTypes.add(type);
+        }
       }
     }
   }
@@ -386,31 +387,10 @@ public class ModularFeatureList implements FeatureList {
    * @return row types (columns)
    */
   @Override
-  public ObservableMap<Class<? extends DataType>, DataType> getRowTypes() {
+  public ObservableSet<DataType> getRowTypes() {
     return rowTypes;
   }
 
-  /**
-   * Checks if typeClass was added as a FeatureType
-   *
-   * @param typeClass class of a DataType
-   * @return true if feature type is available
-   */
-  @Override
-  public boolean hasFeatureType(Class typeClass) {
-    return getFeatureTypes().containsKey(typeClass);
-  }
-
-  /**
-   * Checks if typeClass was added as a row type
-   *
-   * @param typeClass class of a DataType
-   * @return true if row type is available
-   */
-  @Override
-  public boolean hasRowType(Class typeClass) {
-    return getRowTypes().containsKey(typeClass);
-  }
 
   /**
    * Returns number of raw data files participating in the alignment
@@ -494,9 +474,7 @@ public class ModularFeatureList implements FeatureList {
         throw new IllegalArgumentException(
             "Can not add non-modular feature list row to modular feature list");
       }
-      for (var raw : row.getRawDataFiles()) {
-        fileSet.add(raw);
-      }
+      fileSet.addAll(row.getRawDataFiles());
     }
 
     // check that all files are represented

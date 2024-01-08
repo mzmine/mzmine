@@ -349,9 +349,10 @@ class IsotopeFinderTask extends AbstractTask {
 
   @Nullable
   private MobilityScanDataAccess initMobilityScanDataAccess(RawDataFile raw) {
-    return raw instanceof IMSRawDataFile imsFile && featureList.getFeatureTypes()
-        .containsKey(MobilityUnitType.class) ? new MobilityScanDataAccess(imsFile,
-        MobilityScanDataType.MASS_LIST, (List<Frame>) featureList.getSeletedScans(imsFile)) : null;
+    return
+        raw instanceof IMSRawDataFile imsFile && featureList.hasFeatureType(MobilityUnitType.class)
+            ? new MobilityScanDataAccess(imsFile, MobilityScanDataType.MASS_LIST,
+            (List<Frame>) featureList.getSeletedScans(imsFile)) : null;
   }
 
   private void checkCandidatesInScan(ScanDataAccess scans, List<MergedDataPoint> candidates,
