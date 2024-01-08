@@ -290,8 +290,6 @@
   <!-- FEATURE LIST METHODS -->
   <Menu text="Feature list methods">
 <!--    <Menu text="Import feature list">-->
-<!--      <MenuItem text="mzTab" onAction="#runModule"-->
-<!--        userData="io.github.mzmine.modules.io.import_features_mztab.MzTabImportModule"/>-->
 <!--      <MenuItem text="mzTab-m" onAction="#runModule"-->
 <!--        userData="io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule"/>-->
 <!--      <MenuItem text="csv" onAction="#runModule"-->
@@ -314,8 +312,6 @@
         userData="io.github.mzmine.modules.io.export_features_venn.VennExportModule"/>
       <MenuItem text="Statistics export (MetaboAnalyst)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule"/>
-      <MenuItem text="mzTab" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_features_mztab.MzTabExportModule"/>
       <MenuItem text="mzTab-m" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule"/>
       <MenuItem text="SQL Database" onAction="#runModule"
@@ -331,6 +327,8 @@
         userData="io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmitModule"/>
       <MenuItem text="SIRIUS / CSI-FingerID" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule"/>
+      <MenuItem text="Import feature networks from csv" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.import_feature_networks.ImportFeatureNetworksSimpleModule"/>
       <MenuItem text="Export feature networks to csv" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule"/>
       <MenuItem text="Export spectral networks to graphml (FBMN/IIMN)" onAction="#runModule"
@@ -341,6 +339,8 @@
         userData="io.github.mzmine.modules.io.export_library_gnps_batch.GNPSLibraryBatchExportModule"/>
       <MenuItem text="FeatureML" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_featureML.FeatureMLExportModularModule"/>
+        <MenuItem text="CCSBase export" onAction="#runModule"
+                userData="io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule"/>
     </Menu>
 
     <Menu text="Processing">
@@ -575,7 +575,7 @@
 
     <MenuItem onAction="#runModule" text="MS/MS scatter plot"
       userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="Interactive Ion Identity Molecular Networks"
+    <MenuItem onAction="#runModule" text="Feature overview / Interactive Ion Identity Molecular Networks"
       userData="io.github.mzmine.modules.visualization.network_overview.FeatureNetworkOverviewModule"/>
     <MenuItem onAction="#runModule" text="Correlated features Δm/z histogram"
       userData="io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule"/>

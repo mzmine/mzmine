@@ -117,6 +117,7 @@ import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModul
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
 import io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule;
+import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule;
@@ -127,7 +128,6 @@ import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmit
 import io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
-import io.github.mzmine.modules.io.export_features_mztab.MzTabExportModule;
 import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule;
@@ -138,7 +138,7 @@ import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportMo
 import io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule;
 import io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFExportModule;
 import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
-import io.github.mzmine.modules.io.import_features_mztab.MzTabImportModule;
+import io.github.mzmine.modules.io.import_feature_networks.ImportFeatureNetworksSimpleModule;
 import io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule;
@@ -172,7 +172,7 @@ import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotM
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
-import io.github.mzmine.modules.visualization.networking.AnnotationNetworkModule;
+import io.github.mzmine.modules.visualization.network_overview.FeatureNetworkOverviewModule;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportModule;
 import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
 import io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule;
@@ -369,17 +369,16 @@ public class BatchModeModulesList {
       GnpsFbmnExportAndSubmitModule.class, //
       GnpsGcExportAndSubmitModule.class, //
       ExportCorrAnnotationModule.class, //
+      ImportFeatureNetworksSimpleModule.class, //
       NetworkGraphMlExportModule.class, //
       MetaboAnalystExportModule.class, //
       AdapMgfExportModule.class, //
       GNPSResultsImportModule.class, //
       AdapMspExportModule.class, //
-      MzTabExportModule.class, //
       MZTabmExportModule.class, //
       NetCDFExportModule.class, //
       SiriusExportModule.class, //
       MZTabmImportModule.class, //
-      MzTabImportModule.class, //
       CSVExportModularModule.class, //
       LegacyCSVExportModule.class, //
       CompoundAnnotationsCSVExportModule.class, //
@@ -389,6 +388,7 @@ public class BatchModeModulesList {
       FeatureMLExportModularModule.class, //
       MsMsQualityExportModule.class, //
       ExportAllIdsGraphicalModule.class, //
+      CcsBaseExportModule.class, //
 
       /*
        * needed in batch mode?
@@ -426,7 +426,7 @@ public class BatchModeModulesList {
       MassvoltammogramFromFeatureListModule.class, //
       MSnTreeVisualizerModule.class, //
       MsMsVisualizerModule.class, //
-      AnnotationNetworkModule.class, //
+      FeatureNetworkOverviewModule.class, //
       CorrelatedFeaturesMzHistogramModule.class, //
       FeatureCorrelationHistogramModule.class, //
       RawDataSummaryModule.class, //

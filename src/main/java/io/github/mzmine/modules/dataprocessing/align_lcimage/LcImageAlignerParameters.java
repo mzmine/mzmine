@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -80,9 +80,9 @@ public class LcImageAlignerParameters extends SimpleParameterSet {
     final ModularFeatureList[] matchingFeatureLists = getValue(
         LcImageAlignerParameters.flists).getMatchingFeatureLists();
     final var imageList = Arrays.stream(matchingFeatureLists)
-        .filter(flist -> flist.getFeatureTypes().containsValue(new ImageType())).toList();
+        .filter(flist -> flist.hasFeatureType(ImageType.class)).toList();
     final var baseLists = Arrays.stream(matchingFeatureLists)
-        .filter(flist -> !flist.getFeatureTypes().containsValue(new ImageType())).toList();
+        .filter(flist -> !flist.hasFeatureType(ImageType.class)).toList();
 
     if (imageList.isEmpty()) {
       errorMessages.add("No feature list with images selected.");

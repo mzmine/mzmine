@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.network_overview;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
@@ -37,7 +38,7 @@ import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStack
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
 import io.github.mzmine.util.javafx.WeakAdapter;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,6 +51,8 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TreeItem;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
 import org.controlsfx.control.ToggleSwitch;
 import org.graphstream.graph.Node;
 import org.jetbrains.annotations.NotNull;
@@ -71,18 +74,21 @@ public class NetworkOverviewController {
   private boolean setUpCalled = false;
   private FeatureNetworkController networkController;
   private FeatureTableFX internalTable;
-  private MirrorScanWindowController mirrorScanController;
+
+  /**
+   * all interfaces that listen for changes to selected rows
+   */
+  private @NotNull List<FeatureRowInterfaceFx> featureRowInterfaces;
+  private @NotNull List<FeatureRowInterfaceFx> annotationInterfaces;
   private SpectraIdentificationResultsWindowFX spectralMatchesController;
-  private CompoundDatabaseMatchTab compoundMatchController;
-  private EdgeTableController edgeTableController;
-  private SpectraStackVisualizerPane allMs2Pane;
 
   public NetworkOverviewController() {
     this.focussedRows = FXCollections.observableArrayList();
   }
 
   public void setUp(@NotNull ModularFeatureList featureList, @Nullable FeatureTableFX externalTable,
-      @Nullable List<? extends FeatureListRow> focussedRows) throws IOException {
+      @Nullable List<? extends FeatureListRow> focussedRows, final NetworkOverviewFlavor flavor)
+      throws IOException {
     if (setUpCalled) {
       throw new IllegalStateException(
           "Cannot setup NetworkOverviewController twice. Create a new one.");
@@ -90,7 +96,7 @@ public class NetworkOverviewController {
     setUpCalled = true;
 
     // create network
-    networkController = FeatureNetworkController.create(featureList, this.focussedRows);
+    networkController = FeatureNetworkController.create(featureList, this.focussedRows, flavor);
     pnNetwork.setCenter(networkController.getMainPane());
 
     // create edge table
@@ -101,17 +107,15 @@ public class NetworkOverviewController {
     linkFeatureTableSelections(internalTable, externalTable);
 
     // all MS2
-    allMs2Pane = new SpectraStackVisualizerPane();
+    SpectraStackVisualizerPane allMs2Pane = new SpectraStackVisualizerPane();
 
     // create annotations tab
     spectralMatchesController = new SpectraIdentificationResultsWindowFX(internalTable);
-    compoundMatchController = new CompoundDatabaseMatchTab(internalTable);
-    gridAnnotations.add(spectralMatchesController.getContent(), 0, 0);
-    gridAnnotations.add(compoundMatchController.getContent(), 0, 1);
+    CompoundDatabaseMatchTab compoundMatchController = new CompoundDatabaseMatchTab(internalTable);
 
     // create mirror scan tab
     var mirrorScanTab = new MirrorScanWindowFXML();
-    mirrorScanController = mirrorScanTab.getController();
+    MirrorScanWindowController mirrorScanController = mirrorScanTab.getController();
 
     // set content to panes
     // tabEdges.
@@ -120,8 +124,16 @@ public class NetworkOverviewController {
     tabAnnotations.setContent(gridAnnotations);
     tabAllMs2.setContent(allMs2Pane);
 
+    // all content that listens to selected feature changes
+    featureRowInterfaces = List.of(spectralMatchesController, compoundMatchController, allMs2Pane,
+        mirrorScanController);
+    // only annotation interfaces to control visibility
+    annotationInterfaces = List.of(spectralMatchesController, compoundMatchController);
+    layoutAnnotations();
+
     // add callbacks
-    weak.addListChangeListener(networkController.getNetworkPane().getSelectedNodes(),
+    weak.addListChangeListener(networkController,
+        networkController.getNetworkPane().getSelectedNodes(),
         c -> handleSelectedNodesChanged(c));
 
     // set focussed rows last
@@ -132,12 +144,30 @@ public class NetworkOverviewController {
     }
   }
 
+  private void layoutAnnotations() {
+    gridAnnotations.getChildren().clear();
+    List<RowConstraints> rows = new ArrayList<>();
+    for (final FeatureRowInterfaceFx inter : annotationInterfaces) {
+      if (inter.isEmptyContent()) {
+        continue;
+      }
+
+      gridAnnotations.add(spectralMatchesController.getContent(), 0, rows.size());
+      RowConstraints row = new RowConstraints();
+      row.setFillHeight(true);
+      row.setVgrow(Priority.SOMETIMES);
+      rows.add(row);
+    }
+    gridAnnotations.getRowConstraints().setAll(rows);
+  }
+
+
   private void createEdgeTable() {
     try {
       // Load the window FXML
       FXMLLoader loader = new FXMLLoader(getClass().getResource("EdgeTable.fxml"));
       BorderPane rootPane = loader.load();
-      edgeTableController = loader.getController();
+      EdgeTableController edgeTableController = loader.getController();
       edgeTableController.setGraph(networkController.getNetworkPane().getGraph());
 
       tabEdges.setContent(rootPane);
@@ -146,14 +176,14 @@ public class NetworkOverviewController {
     }
   }
 
-  @NotNull
   private void createInternalTable(final @NotNull ModularFeatureList featureList) {
     FeatureTableTab tempTab = new FeatureTableTab(featureList);
     internalTable = tempTab.getFeatureTable();
     tabNodes.setContent(tempTab.getMainPane());
 
     var tabController = tempTab.getController();
-    weak.addListChangeListener(networkController.getNetworkPane().getVisibleRows(), c -> {
+    weak.addListChangeListener(networkController,
+        networkController.getNetworkPane().getVisibleRows(), c -> {
       if (weak.isDisposed()) {
         return;
       }
@@ -168,7 +198,7 @@ public class NetworkOverviewController {
   private void linkFeatureTableSelections(final @NotNull FeatureTableFX internal,
       final @Nullable FeatureTableFX external) {
     // just apply selections in network
-    weak.addListChangeListener(internal.getSelectedTableRows(), c -> {
+    weak.addListChangeListener(internal, internal.getSelectedTableRows(), c -> {
       if (weak.isDisposed()) {
         return;
       }
@@ -178,7 +208,7 @@ public class NetworkOverviewController {
     });
     // external directly sets new focussed rows - and then selected rows in the internal table
     if (external != null) {
-      weak.addListChangeListener(external.getSelectedTableRows(), c -> {
+      weak.addListChangeListener(external, external.getSelectedTableRows(), c -> {
         if (weak.isDisposed()) {
           return;
         }
@@ -196,31 +226,11 @@ public class NetworkOverviewController {
     }
 
     var selectedRows = networkController.getNetworkPane().getRowsFromNodes(change.getList());
-    showAnnotations(selectedRows);
-    showAllMs2(selectedRows);
-    if (selectedRows.size() >= 2) {
-      showSimilarityMirror(selectedRows.get(0), selectedRows.get(1));
-    } else {
-      mirrorScanController.clearScans();
+
+    for (final FeatureRowInterfaceFx interfaceFx : featureRowInterfaces) {
+      interfaceFx.setFeatureRows(selectedRows);
     }
-  }
-
-  private void showAllMs2(final List<FeatureListRow> rows) {
-    allMs2Pane.setData(rows, false);
-  }
-
-  public void showAnnotations(final List<FeatureListRow> rows) {
-    var spectralMatches = rows.stream().map(FeatureListRow::getSpectralLibraryMatches)
-        .flatMap(Collection::stream).toList();
-    spectralMatchesController.setMatches(spectralMatches);
-    compoundMatchController.setFeatureRows(rows);
-  }
-
-  /**
-   * Run the MSMS-MirrorScan module whenever user clicks on edges
-   */
-  public void showSimilarityMirror(FeatureListRow a, FeatureListRow b) {
-    mirrorScanController.setScans(a.getMostIntenseFragmentScan(), b.getMostIntenseFragmentScan());
+    layoutAnnotations();
   }
 
   public void close() {

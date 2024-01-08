@@ -42,6 +42,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
 import java.util.LinkedHashSet;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.data.Range;
@@ -105,8 +106,12 @@ public class FeatureShapeChart extends BufferedChartNode {
     }
 
     chart.addDatasets(datasets);
-    chart.getXYPlot().getDomainAxis().setRange(defaultRange);
-    chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
+    try {
+      chart.getXYPlot().getDomainAxis().setRange(defaultRange);
+      chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
+    } catch (NoSuchElementException ex) {
+      // error in jfreechart draw method
+    }
 
     var width = GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH;
     var height = GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT;

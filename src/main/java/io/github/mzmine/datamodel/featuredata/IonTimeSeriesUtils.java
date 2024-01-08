@@ -37,6 +37,7 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -165,7 +166,7 @@ public class IonTimeSeriesUtils {
   public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull RawDataFile file,
       @NotNull ScanSelection selection, @NotNull Range<Double> mzRange,
       @Nullable MemoryMapStorage storage) {
-    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.CENTROID, selection);
+    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.MASS_LIST, selection);
     return extractIonTimeSeries(access, mzRange, null, storage);
   }
 
@@ -175,7 +176,7 @@ public class IonTimeSeriesUtils {
   public static IonTimeSeries<Scan> extractIonTimeSeries(@NotNull RawDataFile file,
       @NotNull List<Scan> scans, @NotNull Range<Double> mzRange, @Nullable Range<Float> rtRange,
       @Nullable MemoryMapStorage storage) {
-    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.CENTROID, scans);
+    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.MASS_LIST, scans);
     return extractIonTimeSeries(access, mzRange, rtRange, storage);
   }
 
@@ -209,7 +210,7 @@ public class IonTimeSeriesUtils {
         continue;
       }
 
-      final int closestPeakIndex = access.binarySearch(centerMz, true);
+      final int closestPeakIndex = access.binarySearch(centerMz, DefaultTo.CLOSEST_VALUE);
       final double mz = access.getMzValue(closestPeakIndex);
 
       if (mzRange.contains(mz)) {

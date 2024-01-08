@@ -25,27 +25,41 @@
 
 package io.github.mzmine.modules.visualization.networking.visual;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.GraphStreamUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FilterableGraph extends MultiGraph {
 
   private final MultiGraph fullGraph;
+  private final IntegerProperty distanceProperty = new SimpleIntegerProperty(1);
   private final List<Consumer<FilterableGraph>> graphChangeListener = new ArrayList<>();
+  private final ObservableList<Node> centered = FXCollections.observableArrayList();
+  private EdgeTypeFilter edgeFilter;
+  private @Nullable MultiGraph edgeFilteredGraph;
   private boolean fullGraphLayoutApplied = false;
   private boolean fullGraphLayoutFinished = false;
+  private boolean edgeGraphLayoutApplied = false;
+  private boolean edgeGraphLayoutFinished = false;
 
   public FilterableGraph(String id, final MultiGraph fullGraph, boolean showFullNetwork) {
     super(id);
@@ -55,22 +69,50 @@ public class FilterableGraph extends MultiGraph {
     if (showFullNetwork) {
       showFullNetwork();
     }
+    centered.addListener((ListChangeListener<? super Node>) c -> filterCenterNeighbors());
   }
 
-  private static void copyAttributes(final Element source, final Element target) {
-    source.attributeKeys().forEach(att -> {
-      target.setAttribute(att, source.getAttribute(att));
-    });
+  private void filterEdges(boolean update) {
+    edgeGraphLayoutApplied = false;
+    edgeGraphLayoutFinished = false;
+    if (edgeFilter == null) {
+      edgeFilteredGraph = null;
+      return;
+    }
+    List<Edge> edges = fullGraph.edges().filter(e -> edgeFilter.accept(e)).toList();
+    edgeFilteredGraph = GraphStreamUtils.createFilteredCopy(fullGraph, edges);
+
+    // show graph
+    if (update) {
+      filterCenterNeighbors();
+    }
+  }
+
+  private void filterCenterNeighbors() {
+    MultiGraph mainGraph = getMainGraph();
+    if (centered.isEmpty()) {
+      showNetwork(mainGraph);
+    } else {
+      List<Node> correctNodes = centered.stream().map(Element::getId).map(mainGraph::getNode)
+          .toList();
+      setNodeFilter(
+          GraphStreamUtils.getNodeNeighbors(mainGraph, correctNodes, distanceProperty.get()),
+          correctNodes.get(0));
+    }
   }
 
   private void applyLayout(final @Nullable Node frozen, final MultiGraph gl,
       boolean externalThread) {
-    NetworkLayoutComputeTask task = new NetworkLayoutComputeTask(frozen, gl);
+    Task task = new NetworkLayoutParallelComputeTask(gl);
     if (externalThread) {
       MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH);
       task.addTaskStatusListener((task1, newStatus, oldStatus) -> {
         if (newStatus == TaskStatus.FINISHED) {
-          fullGraphLayoutFinished = true;
+          if (Objects.equals(gl, edgeFilteredGraph)) {
+            edgeGraphLayoutFinished = true;
+          } else {
+            fullGraphLayoutFinished = true;
+          }
           showNetwork(gl);
         }
       });
@@ -105,6 +147,14 @@ public class FilterableGraph extends MultiGraph {
     return fullGraph;
   }
 
+  public MultiGraph getMainGraph() {
+    return requireNonNullElse(edgeFilteredGraph, fullGraph);
+  }
+
+  public MultiGraph getEdgeFilteredGraph() {
+    return edgeFilteredGraph;
+  }
+
   @Override
   public void clear() {
     var ccs = getAttribute("ui.stylesheet");
@@ -113,7 +163,8 @@ public class FilterableGraph extends MultiGraph {
   }
 
   public void setNodeFilter(Collection<Node> neighboringNodes, @Nullable Node frozen) {
-    MultiGraph gl = copyNetworkApplyLayout(neighboringNodes, frozen);
+    MultiGraph gl = GraphStreamUtils.createFilteredCopy(neighboringNodes);
+    applyLayout(frozen, gl, false);
 
     // copy network over
     showNetwork(gl);
@@ -123,78 +174,55 @@ public class FilterableGraph extends MultiGraph {
    * show full network without filters
    */
   public synchronized void showFullNetwork() {
-    if (!fullGraphLayoutApplied) {
-      fullGraphLayoutApplied = true;
-      applyLayout(null, fullGraph, true);
-    } else if (fullGraphLayoutFinished) {
-      showNetwork(fullGraph);
+    if (!isMainGraphLayoutApplied()) {
+      setMainGraphLayoutApplied(true);
+      applyLayout(null, getMainGraph(), true);
+    } else if (isMainGraphLayoutFinished()) {
+      showNetwork(getMainGraph());
+    }
+  }
+
+  public boolean isMainGraphLayoutApplied() {
+    return edgeFilteredGraph == null ? fullGraphLayoutApplied : edgeGraphLayoutApplied;
+  }
+
+  private void setMainGraphLayoutApplied(final boolean state) {
+    if (edgeFilteredGraph == null) {
+      fullGraphLayoutApplied = state;
+    } else {
+      edgeGraphLayoutApplied = state;
+    }
+  }
+
+  public boolean isMainGraphLayoutFinished() {
+    return edgeFilteredGraph == null ? fullGraphLayoutFinished : edgeGraphLayoutFinished;
+  }
+
+  private void setMainGraphLayoutFinished(final boolean state) {
+    if (edgeFilteredGraph == null) {
+      fullGraphLayoutFinished = state;
+    } else {
+      edgeGraphLayoutFinished = state;
     }
   }
 
   public void showNetwork(final MultiGraph source) {
     // make sure its javafx
     MZmineCore.runLater(() -> {
-      clear();
-
-      source.nodes().forEach(n -> {
-        addCopy(this, n);
-      });
-      source.edges().forEach(e -> {
-        addCopy(this, e);
-      });
+      this.clear();
+      GraphStreamUtils.copyGraphContent(source, this);
       graphChangeListener.forEach(listener -> listener.accept(this));
     });
   }
 
-  @NotNull
-  private MultiGraph copyNetworkApplyLayout(final Collection<Node> neighboringNodes,
-      final @Nullable Node frozen) {
-    MultiGraph gl = new MultiGraph("layout_graph");
-
-    for (Node n : neighboringNodes) {
-      addCopy(gl, n);
-    }
-    for (Node n : neighboringNodes) {
-      n.enteringEdges().forEach(edge -> {
-        // need to contain both nodes
-        if (neighboringNodes.contains(edge.getSourceNode()) && neighboringNodes.contains(
-            edge.getTargetNode())) {
-          addCopy(gl, edge);
-        }
-      });
-    }
-
-    applyLayout(frozen, gl, false);
-
-    return gl;
-  }
-
-  private Element addCopy(final MultiGraph g, final Element element) {
-    if (element instanceof Node n) {
-      var node = g.addNode(n.getId());
-      copyAttributes(n, node);
-      return node;
-    }
-    if (element instanceof Edge e) {
-      if (g.getEdge(e.getId()) != null) {
-        return null;
-      }
-      var source = g.getNode(e.getSourceNode().getId());
-      var target = g.getNode(e.getTargetNode().getId());
-      if (source == null || target == null) {
-        return null;
-      }
-      var edge = g.addEdge(e.getId(), source, target);
-      copyAttributes(e, edge);
-      return edge;
-    }
-    return null;
-  }
-
   public void setNodeNeighborFilter(final List<Node> central, final int distance) {
     // make sure the correct nodes are selected from full graph
-    List<Node> correctNodes = central.stream().map(Element::getId).map(fullGraph::getNode).toList();
-    setNodeFilter(GraphStreamUtils.getNodeNeighbors(fullGraph, correctNodes, distance),
-        correctNodes.get(0));
+    distanceProperty.set(distance);
+    centered.setAll(central);
+  }
+
+  public void setEdgeTypeFilter(final EdgeTypeFilter filter, final boolean update) {
+    edgeFilter = filter;
+    filterEdges(update);
   }
 }

@@ -32,11 +32,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,8 +53,7 @@ public class SpectralLibrary {
   // internals
   @Nullable
   private final MemoryMapStorage storage;
-  private final ObservableMap<Class<? extends DataType>, DataType> types = FXCollections.observableMap(
-      new LinkedHashMap<>());
+  private final ObservableSet<DataType> types = FXCollections.observableSet(new LinkedHashSet<>());
 
   public SpectralLibrary(@Nullable MemoryMapStorage storage, @NotNull File path) {
     this(storage, path.getName(), path);
@@ -100,18 +99,12 @@ public class SpectralLibrary {
     return getName();
   }
 
-  public MemoryMapStorage getStorage() {
+  public @Nullable MemoryMapStorage getStorage() {
     return storage;
   }
 
   public void addType(Collection<DataType> newTypes) {
-    for (DataType<?> type : newTypes) {
-      if (!types.containsKey(type.getClass())) {
-        // add row type - all rows will automatically generate a default property for this type in
-        // their data map
-        types.put(type.getClass(), type);
-      }
-    }
+    types.addAll(newTypes);
   }
 
   public void addType(@NotNull DataType<?>... types) {

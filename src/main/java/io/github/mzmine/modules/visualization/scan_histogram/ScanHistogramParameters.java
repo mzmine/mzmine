@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,7 +52,7 @@ public class ScanHistogramParameters extends SimpleParameterSet {
       "MS data selection",
       "Show either raw data or filtered centroid data (after mass detection and other filters).\n"
           + "RAW on profile mode spectra may result in unwanted results, apply mass detection and choose centroid instead. ",
-      ScanDataType.values(), ScanDataType.CENTROID);
+      ScanDataType.values(), ScanDataType.MASS_LIST);
 
   public static final OptionalParameter<MZRangeParameter> mzRange = new OptionalParameter<>(
       new MZRangeParameter(true), false);

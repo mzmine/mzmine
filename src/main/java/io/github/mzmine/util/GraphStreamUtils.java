@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,7 @@ import io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -192,11 +193,14 @@ public class GraphStreamUtils {
     });
 
     nextClusterId.set(1);
-    var sortedClusters = clusters.values().stream().sorted(Comparator.comparingInt(List::size))
+    var sortedClusters = clusters.values().stream()
+        .sorted(Comparator.comparing(List::size, Comparator.reverseOrder()))
         .map(nodes -> new NetworkCluster(nodes, nextClusterId.getAndIncrement())).toList();
 
     if (addAttribute) {
-      for (NetworkCluster(List<Node> nodes, int id) : sortedClusters) {
+      for (var cluster : sortedClusters) {
+        int id = cluster.id();
+        List<Node> nodes = cluster.nodes();
         for (final Node node : nodes) {
           node.setAttribute(NodeAtt.CLUSTER_ID.toString(), id);
           node.setAttribute(NodeAtt.CLUSTER_SIZE.toString(), nodes.size());
@@ -310,6 +314,87 @@ public class GraphStreamUtils {
   }
 
   /**
+   * Creates a filtered graph with only the selected nodes and all edges between those nodes.
+   *
+   * @param edges list of filtered edges
+   * @return filtered graph
+   */
+  @NotNull
+  public static MultiGraph createFilteredCopy(Graph source, final List<Edge> edges) {
+    MultiGraph gl = new MultiGraph("layout_graph");
+
+    // all nodes
+    source.nodes().forEach(n -> addCopy(gl, n));
+    // filtered edges
+    for (Edge edge : edges) {
+      addCopy(gl, edge);
+    }
+
+    return gl;
+  }
+
+  /**
+   * Creates a filtered graph with only the selected nodes and all edges between those nodes.
+   *
+   * @param nodes list of filtered nodes
+   * @return filtered graph
+   */
+  @NotNull
+  public static MultiGraph createFilteredCopy(final Collection<Node> nodes) {
+    MultiGraph gl = new MultiGraph("layout_graph");
+
+    for (Node n : nodes) {
+      addCopy(gl, n);
+    }
+    for (Node n : nodes) {
+      n.enteringEdges().forEach(edge -> {
+        // need to contain both nodes
+        if (nodes.contains(edge.getSourceNode()) && nodes.contains(edge.getTargetNode())) {
+          addCopy(gl, edge);
+        }
+      });
+    }
+
+    return gl;
+  }
+
+  /**
+   * Add copy of element to targetGraph
+   *
+   * @return the element copy
+   */
+  public static Element addCopy(final MultiGraph targetGraph, final Element element) {
+    if (element instanceof Node n) {
+      var node = targetGraph.addNode(n.getId());
+      copyAttributes(n, node);
+      return node;
+    }
+    if (element instanceof Edge e) {
+      if (targetGraph.getEdge(e.getId()) != null) {
+        return null;
+      }
+      var source = targetGraph.getNode(e.getSourceNode().getId());
+      var target = targetGraph.getNode(e.getTargetNode().getId());
+      if (source == null || target == null) {
+        return null;
+      }
+      var edge = targetGraph.addEdge(e.getId(), source, target);
+      copyAttributes(e, edge);
+      return edge;
+    }
+    return null;
+  }
+
+  /**
+   * Add all attributes from source to target
+   */
+  public static void copyAttributes(final Element source, final Element target) {
+    source.attributeKeys().forEach(att -> {
+      target.setAttribute(att, source.getAttribute(att));
+    });
+  }
+
+  /**
    * UI class of node or edge
    *
    * @param element node or edge
@@ -330,7 +415,19 @@ public class GraphStreamUtils {
    * @return set of unique values
    */
   public static Set<String> getUniqueEdgeTypes(final MultiGraph graph) {
-    return graph.edges().map(e -> getStringOrElse(e, EdgeAtt.TYPE, "NONE"))
+    return graph.edges().map(e -> getStringOrElse(e, EdgeAtt.TYPE_STRING, "UNDEFINED"))
         .collect(Collectors.toUnmodifiableSet());
+  }
+
+  /**
+   * Clears target graph and adds all content from source
+   */
+  public static void copyGraphContent(final MultiGraph source, final MultiGraph target) {
+    source.nodes().forEach(n -> {
+      addCopy(target, n);
+    });
+    source.edges().forEach(e -> {
+      addCopy(target, e);
+    });
   }
 }

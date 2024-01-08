@@ -539,7 +539,7 @@ public class MZmineGUI extends Application implements Desktop {
     GoogleAnalyticsTracker.track("MZmine Loaded (GUI mode)", "/JAVA/Main/GUI");
 
     // add global keys that may be added to other dialogs to receive the same key event handling
-    rootScene.addEventFilter(KeyEvent.KEY_PRESSED, new GlobalKeyHandler());
+    rootScene.addEventFilter(KeyEvent.KEY_PRESSED, GlobalKeyHandler.getInstance());
 
     // register shutdown hook only if we have GUI - we don't want to
     // save configuration on exit if we only run a batch

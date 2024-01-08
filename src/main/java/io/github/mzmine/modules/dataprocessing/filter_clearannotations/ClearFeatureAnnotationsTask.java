@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -71,8 +71,9 @@ public class ClearFeatureAnnotationsTask extends AbstractTask {
     final Map<DataType<?>, Boolean> annotationTypes = parameterSet.getValue(
         ClearFeatureAnnotationsParameters.clear);
 
+    final var types = list.getRowTypes();
     typesToClear = (List) annotationTypes.entrySet().stream().filter(Entry::getValue)
-        .map(Entry::getKey).filter(t -> list.getRowTypes().containsValue(t)).toList();
+        .map(Entry::getKey).filter(t -> types.contains(t)).toList();
   }
 
   @Override
@@ -96,7 +97,7 @@ public class ClearFeatureAnnotationsTask extends AbstractTask {
       totalRows = origFeatureList.getRows().size() * typesToClear.size();
 
       for (DataType<?> dataType : typesToClear) {
-        if (!origFeatureList.getRowTypes().containsKey(dataType.getClass())) {
+        if (!origFeatureList.getRowTypes().contains(dataType)) {
           continue;
         }
         // Filter the feature list.

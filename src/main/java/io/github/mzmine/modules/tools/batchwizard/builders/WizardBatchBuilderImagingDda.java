@@ -138,7 +138,8 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
       final CentroidMassDetector massDetector = MassDetectionParameters.centroid;
       final ParameterSet massDetectorParam = MZmineCore.getConfiguration()
           .getModuleParameters(CentroidMassDetector.class).cloneParameterSet();
-      massDetectorParam.setParameter(CentroidMassDetectorParameters.noiseLevel, noiseLevelMs1);
+      massDetectorParam.setParameter(CentroidMassDetectorParameters.noiseLevel,
+          massDetectorOption.getMs1NoiseLevel());
       massDetectorParam.setParameter(CentroidMassDetectorParameters.detectIsotopes, false);
       MZmineProcessingStep<MassDetector> massDetectorStep = new MZmineProcessingStepImpl<>(
           massDetector, massDetectorParam);
@@ -168,7 +169,7 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(ImsExpanderParameters.useRawData, false);
     param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter()
-        .setValue(noiseLevelMs1);
+        .setValue(massDetectorOption.getMs1NoiseLevel());
     param.setParameter(ImsExpanderParameters.mzTolerance, true);
     param.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
         .setValue(mzTolScans);

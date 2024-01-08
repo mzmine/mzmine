@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -153,7 +152,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
         originalFeatureList.getName() + " " + suffix, getMemoryMapStorage(),
         keepBackgroundFeatures == BlankSubtractionOptions.KEEP
             ? originalFeatureList.getRawDataFiles() : nonBlankRaws);
-    originalFeatureList.getRowTypes().values()
+    originalFeatureList.getRowTypes()
         .forEach(notBackgroundAlignedFeaturesList::addRowType);
 
     // use all samples that are not defined as blanks
@@ -171,7 +170,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     final ModularFeatureList backgroundAlignedFeaturesList = new ModularFeatureList(
         originalFeatureList.getName() + " subtractedBackground", getMemoryMapStorage(),
         originalFeatureList.getRawDataFiles());
-    originalFeatureList.getRowTypes().values().forEach(backgroundAlignedFeaturesList::addRowType);
+    originalFeatureList.getRowTypes().forEach(backgroundAlignedFeaturesList::addRowType);
     originalFeatureList.getRawDataFiles().forEach(
         f -> backgroundAlignedFeaturesList.setSelectedScans(f,
             originalFeatureList.getSeletedScans(f)));

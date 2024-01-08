@@ -54,6 +54,15 @@ public class FileAndPathUtil {
   private final static File USER_MZMINE_DIR = new File(FileUtils.getUserDirectory(), ".mzmine/");
   private static File MZMINE_TEMP_DIR = new File(System.getProperty("java.io.tmpdir"));
 
+
+  public static final List<ExtensionFilter> CSV_TSV_FILTER = List.of( //
+      new ExtensionFilter("CSV or TSV data", "*.csv", "*.tsv"), //
+      new ExtensionFilter("comma-separated data", "*.csv"), //
+      new ExtensionFilter("tab-separated data", "*.tsv"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
+
+
   /**
    * Count the number of lines in a text file (should be seconds even for large files)
    *

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Objects;
 
 public class CompoundAnnotationUtils {
-
 
   /**
    * A list of matches where each entry has a different compound name.
@@ -82,4 +81,5 @@ public class CompoundAnnotationUtils {
     return Comparator.comparing(CompoundDBAnnotation::getScore,
         Comparator.nullsLast(Comparator.reverseOrder()));
   }
+
 }

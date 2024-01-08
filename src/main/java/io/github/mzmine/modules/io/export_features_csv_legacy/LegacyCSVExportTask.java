@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,12 +27,12 @@ package io.github.mzmine.modules.io.export_features_csv_legacy;
 
 import com.google.common.collect.Lists;
 import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
@@ -427,7 +427,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
           line.append(mobility == null ? "" : mobility).append(fieldSeparator);
           break;
         case ROW_ION_MOBILITY_UNIT:
-          final MobilityType unit = featureListRow.get(MobilityUnitType.class);
+          final var unit = featureListRow.get(MobilityUnitType.class);
           line.append(unit == null ? "" : unit).append(fieldSeparator);
           break;
         case ROW_CCS:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -246,7 +246,7 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
 
   private boolean processImsFile(List<? extends Gap> gaps, IMSRawDataFile imsFile) {
     final MobilityScanDataAccess access = new MobilityScanDataAccess(imsFile,
-        MobilityScanDataType.CENTROID, (List<Frame>) processedFeatureList.getSeletedScans(imsFile));
+        MobilityScanDataType.MASS_LIST, (List<Frame>) processedFeatureList.getSeletedScans(imsFile));
     List<ImsGap> imsGaps = (List<ImsGap>) gaps;
 
     while (access.hasNextFrame()) {
@@ -272,7 +272,7 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
   }
 
   private boolean processLcmsFile(List<Gap> gaps) {
-    final ScanDataAccess access = EfficientDataAccess.of(dataFile, ScanDataType.CENTROID,
+    final ScanDataAccess access = EfficientDataAccess.of(dataFile, ScanDataType.MASS_LIST,
         matchingScans);
 
     while (access.hasNextScan()) {
