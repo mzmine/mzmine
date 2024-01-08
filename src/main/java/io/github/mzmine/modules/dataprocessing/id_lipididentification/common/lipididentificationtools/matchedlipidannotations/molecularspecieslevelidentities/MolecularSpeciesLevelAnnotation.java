@@ -30,17 +30,8 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AcylLipidChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AcylMonoHydroxyChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AlkylLipidChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AmidLipidChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AmidMonoHydroxyLipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.ILipidChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.SphingolipidDiHydroxyBackboneChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.SphingolipidMonoHydroxyBackboneChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.SphingolipidTriHydroxyBackboneChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.TwoAcylLipidChains;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidParsingUtils;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.FormulaUtils;
@@ -230,33 +221,9 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
     while (reader.hasNext()
         && !(reader.isEndElement() && reader.getLocalName().equals(XML_LIPID_CHAINS))) {
       reader.next();
-      if (!reader.isStartElement()) {
-        continue;
+      if (reader.isStartElement()) {
+        lipidChains.add(LipidChain.loadFromXML(reader));
       }
-
-      if (reader.getLocalName().equals(LipidChainType.ACYL_CHAIN.name())) {
-        lipidChains.add(AcylLipidChain.loadFromXML(reader));
-      } else if (reader.getLocalName().equals(LipidChainType.ACYL_MONO_HYDROXY_CHAIN.name())) {
-        lipidChains.add(AcylMonoHydroxyChain.loadFromXML(reader));
-      } else if (reader.getLocalName().equals(LipidChainType.TWO_ACYL_CHAINS_COMBINED.name())) {
-        lipidChains.add(TwoAcylLipidChains.loadFromXML(reader));
-      } else if (reader.getLocalName().equals(LipidChainType.ALKYL_CHAIN.name())) {
-        lipidChains.add(AlkylLipidChain.loadFromXML(reader));
-      } else if (reader.getLocalName().equals(LipidChainType.AMID_CHAIN.name())) {
-        lipidChains.add(AmidLipidChain.loadFromXML(reader));
-      } else if (reader.getLocalName().equals(LipidChainType.AMID_MONO_HYDROXY_CHAIN.name())) {
-        lipidChains.add(AmidMonoHydroxyLipidChain.loadFromXML(reader));
-      } else if (reader.getLocalName()
-          .equals(LipidChainType.SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN.name())) {
-        lipidChains.add(SphingolipidMonoHydroxyBackboneChain.loadFromXML(reader));
-      } else if (reader.getLocalName()
-          .equals(LipidChainType.SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN.name())) {
-        lipidChains.add(SphingolipidDiHydroxyBackboneChain.loadFromXML(reader));
-      } else if (reader.getLocalName()
-          .equals(LipidChainType.SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN.name())) {
-        lipidChains.add(SphingolipidTriHydroxyBackboneChain.loadFromXML(reader));
-      }
-
     }
     return lipidChains;
   }

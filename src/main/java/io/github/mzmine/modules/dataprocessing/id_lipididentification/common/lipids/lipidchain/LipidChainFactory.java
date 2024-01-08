@@ -1,52 +1,13 @@
-/*
- * Copyright (c) 2004-2022 The MZmine Development Team
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
+package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain;
 
-package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils;
-
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AcylLipidChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AcylMonoHydroxyChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AlkylLipidChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AmidLipidChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.AmidMonoHydroxyLipidChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.ILipidChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.SphingolipidDiHydroxyBackboneChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.SphingolipidMonoHydroxyBackboneChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.SphingolipidTriHydroxyBackboneChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.TwoAcylLipidChains;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-/**
- * This class constructs alkyl and acyl chains for lipids.
- *
- * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
- */
 public class LipidChainFactory {
 
   public ILipidChain buildLipidChain(LipidChainType chainType, int chainLength, int numberOfDBE) {
@@ -56,30 +17,8 @@ public class LipidChainFactory {
     IMolecularFormula chainFormula = buildLipidChainFormula(chainType, chainLength, numberOfDBE);
     String chainAnnotation = buildLipidChainAnnotation(chainType, chainLength, numberOfDBE);
 
-    return switch (chainType) {
-      case ACYL_CHAIN:
-        yield new AcylLipidChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
-      case ACYL_MONO_HYDROXY_CHAIN:
-        yield new AcylMonoHydroxyChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
-      case TWO_ACYL_CHAINS_COMBINED:
-        yield new TwoAcylLipidChains(chainAnnotation, chainFormula, chainLength, numberOfDBE);
-      case ALKYL_CHAIN:
-        yield new AlkylLipidChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
-      case AMID_CHAIN:
-        yield new AmidLipidChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
-      case AMID_MONO_HYDROXY_CHAIN:
-        yield new AmidMonoHydroxyLipidChain(chainAnnotation, chainFormula, chainLength,
-            numberOfDBE);
-      case SPHINGOLIPID_MONO_HYDROXY_BACKBONE_CHAIN:
-        yield new SphingolipidMonoHydroxyBackboneChain(chainAnnotation, chainFormula, chainLength,
-            numberOfDBE);
-      case SPHINGOLIPID_DI_HYDROXY_BACKBONE_CHAIN:
-        yield new SphingolipidDiHydroxyBackboneChain(chainAnnotation, chainFormula, chainLength,
-            numberOfDBE);
-      case SPHINGOLIPID_TRI_HYDROXY_BACKBONE_CHAIN:
-        yield new SphingolipidTriHydroxyBackboneChain(chainAnnotation, chainFormula, chainLength,
-            numberOfDBE);
-    };
+    return createLipidChain(chainAnnotation, chainFormula, chainLength, numberOfDBE, chainType);
+
   }
 
   public IMolecularFormula buildLipidChainFormula(LipidChainType chainType, int chainLength,
@@ -88,11 +27,11 @@ public class LipidChainFactory {
       return null;
     }
     return switch (chainType) {
-      case ACYL_CHAIN -> calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
+      case ACYL_CHAIN, TWO_ACYL_CHAINS_COMBINED ->
+          calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
       case ACYL_MONO_HYDROXY_CHAIN ->
           calculateMolecularFormulaAcylMonoHydroxyChain(chainLength, numberOfDBE,
               chainType.getFixNumberOfOxygens());
-      case TWO_ACYL_CHAINS_COMBINED -> calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
       case ALKYL_CHAIN -> calculateMolecularFormulaAlkylChain(chainLength, numberOfDBE);
       case AMID_CHAIN -> calculateMolecularFormulaAmidChain(chainLength, numberOfDBE);
       case AMID_MONO_HYDROXY_CHAIN ->
@@ -280,5 +219,23 @@ public class LipidChainFactory {
       }
     }
     return true;
+  }
+
+  public static ILipidChain createLipidChain(String chainAnnotation,
+      IMolecularFormula molecularFormula, int numberOfCarbons, int numberOfDBEs,
+      LipidChainType type) {
+    return new LipidChain(chainAnnotation, molecularFormula, numberOfCarbons, numberOfDBEs, type);
+  }
+
+  public static ILipidChain createLipidChain(String chainAnnotation,
+      IMolecularFormula molecularFormula, int numberOfCarbons, int numberOfDBEs,
+      LipidChainType type, int additionalNumberOfOxygens) {
+    return new LipidChain(chainAnnotation, molecularFormula, numberOfCarbons, numberOfDBEs, type,
+        additionalNumberOfOxygens);
+  }
+
+  public static ILipidChain loadLipidChainFromXML(XMLStreamReader reader)
+      throws XMLStreamException {
+    return LipidChain.loadFromXML(reader);
   }
 }
