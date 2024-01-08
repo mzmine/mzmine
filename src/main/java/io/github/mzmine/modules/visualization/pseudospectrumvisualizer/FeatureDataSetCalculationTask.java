@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class FeatureDataSetCalculationTask extends AbstractTask {
 
@@ -53,6 +54,7 @@ public class FeatureDataSetCalculationTask extends AbstractTask {
   private final Scan pseudoScan;
   private final ModularFeature feature;
   private final MZTolerance mzTolerance;
+  private final AtomicInteger processedFeatures = new AtomicInteger(0);
 
   public FeatureDataSetCalculationTask(RawDataFile rawDataFile, TICPlot chromPlot, Scan pseudoScan,
       ModularFeature feature, MZTolerance mzTolerance) {
@@ -72,8 +74,9 @@ public class FeatureDataSetCalculationTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return 0;
+    return processedFeatures.get() / (double) pseudoScan.getNumberOfDataPoints();
   }
+
 
   @Override
   public void run() {
@@ -100,6 +103,7 @@ public class FeatureDataSetCalculationTask extends AbstractTask {
             newFeatureList, feature);
         features.add(new FeatureDataSet(modularFeature));
       }
+      processedFeatures.getAndIncrement();
     }
 
     MZmineCore.runLater(() -> {
