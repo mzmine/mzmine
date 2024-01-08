@@ -38,6 +38,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -196,7 +197,7 @@ public class MatchedLipid {
       }
 
       switch (reader.getLocalName()) {
-        case XML_LIPID_ANNOTATION_ELEMENT:
+        case XML_LIPID_ANNOTATION_ELEMENT -> {
           if (reader.getAttributeValue(null, XML_LIPID_ANNOTATION_ELEMENT)
               .equals(LipidAnnotationLevel.SPECIES_LEVEL.name())) {
             lipidAnnotation = SpeciesLevelAnnotation.loadFromXML(reader);
@@ -204,31 +205,24 @@ public class MatchedLipid {
               .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL.name())) {
             lipidAnnotation = MolecularSpeciesLevelAnnotation.loadFromXML(reader);
           }
-          break;
-        case XML_ACCURATE_MZ:
-          accurateMz = Double.parseDouble(reader.getElementText());
-          break;
-        case XML_IONIZATION_TYPE:
-          ionizationType = ParsingUtils.ionizationNameToIonizationType(reader.getElementText());
-          break;
-        case XML_MATCHED_FRAGMENTS:
-          lipidFragments = loadLipidFragmentsFromXML(reader, possibleFiles);
-          break;
-        case XML_MSMS_SCORE:
-          msMsScore = Double.parseDouble(reader.getElementText());
-          break;
-        case XML_COMMENT:
-          if (Objects.equals(reader.getElementText(), CONST.XML_NULL_VALUE)) {
-            comment = "";
-          } else {
-            comment = reader.getElementText();
+        }
+        case XML_ACCURATE_MZ -> accurateMz = Double.parseDouble(reader.getElementText());
+        case XML_IONIZATION_TYPE ->
+            ionizationType = ParsingUtils.ionizationNameToIonizationType(reader.getElementText());
+        case XML_MATCHED_FRAGMENTS ->
+            lipidFragments = loadLipidFragmentsFromXML(reader, possibleFiles);
+        case XML_MSMS_SCORE -> msMsScore = Double.parseDouble(reader.getElementText());
+        case XML_COMMENT -> {
+          if (reader.hasNext() && reader.next() == XMLStreamConstants.CHARACTERS) {
+            String text = reader.getText();
+            if (!Objects.equals(text, CONST.XML_NULL_VALUE)) {
+              comment = text;
+            }
           }
-          break;
-        case XML_STATUS:
-          status = MatchedLipidStatus.valueOf(reader.getElementText());
-          break;
-        default:
-          break;
+        }
+        case XML_STATUS -> status = MatchedLipidStatus.valueOf(reader.getElementText());
+        default -> {
+        }
       }
     }
 
