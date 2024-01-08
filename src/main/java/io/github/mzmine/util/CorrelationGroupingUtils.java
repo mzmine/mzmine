@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -74,14 +74,15 @@ public class CorrelationGroupingUtils {
     logger.log(Level.INFO, "Corr: Creating correlation groups for {0}", flist.getName());
 
     try {
-      var corrMap = flist.getMs1CorrelationMap();
-      if (corrMap.isEmpty()) {
+      var opCorrMap = flist.getMs1CorrelationMap();
+      if (opCorrMap.isEmpty()) {
         logger.log(Level.INFO,
             "Feature list ({0}) contains no grouped rows. First run a grouping module",
             flist.getName());
         return List.of();
       }
       logger.info("Creating groups for " + flist.getName());
+      var corrMap = opCorrMap.get();
 
       List<RowGroup> groups = new ArrayList<>();
       HashMap<FeatureListRow, RowGroup> used = new HashMap<>();
@@ -89,7 +90,7 @@ public class CorrelationGroupingUtils {
       int c = 0;
       ObservableList<RawDataFile> raw = flist.getRawDataFiles();
       // add all connections
-      for (Entry<Integer, RowsRelationship> e : corrMap.get().entrySet()) {
+      for (Entry<Integer, RowsRelationship> e : corrMap.entrySet()) {
         RowsRelationship r2r = e.getValue();
         FeatureListRow rowA = r2r.getRowA();
         FeatureListRow rowB = r2r.getRowB();
