@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,13 +36,13 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.time.Instant;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public class NetCDFExportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(NetCDFExportTask.class.getName());
-  private final Boolean useMassList;
   private final RawDataFile dataFile;
   private final File outFilename;
   private MSDKMethod<?> msdkMethod = null;
@@ -56,7 +56,6 @@ public class NetCDFExportTask extends AbstractTask {
     super(null, moduleCallDate); // no new data stored -> null
     this.dataFile = dataFile;
     this.outFilename = outFilename;
-    useMassList = parameters.getValue(NetCDFExportParameters.useMassList);
   }
 
   public String getTaskDescription() {
@@ -71,7 +70,6 @@ public class NetCDFExportTask extends AbstractTask {
   }
 
   public void run() {
-
     try {
       if (isCanceled()) {
         return;
@@ -85,14 +83,9 @@ public class NetCDFExportTask extends AbstractTask {
       if (outFilename.getName().toLowerCase().endsWith("mzml")) {
         msdkMethod = new MzMLFileExportMethod(msdkDataFile, outFilename, MzMLCompressionType.ZLIB,
             MzMLCompressionType.ZLIB);
-        msdkMethod.execute();
       }
 
       if (outFilename.getName().toLowerCase().endsWith("cdf")) {
-        if (useMassList) {
-
-        }
-
         msdkMethod = new NetCDFFileExportMethod(msdkDataFile, outFilename);
       }
       msdkMethod.execute();
@@ -102,11 +95,10 @@ public class NetCDFExportTask extends AbstractTask {
       logger.info("Finished export of file " + dataFile + " to " + outFilename);
 
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, "Error in netcdf export", e);
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Error in file export: " + e.getMessage());
     }
-
   }
 
   @Override
