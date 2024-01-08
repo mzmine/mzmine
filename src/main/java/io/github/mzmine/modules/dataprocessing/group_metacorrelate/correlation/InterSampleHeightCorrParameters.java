@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
+import java.util.Map;
 
 public class InterSampleHeightCorrParameters extends SimpleParameterSet {
 
@@ -62,8 +63,8 @@ public class InterSampleHeightCorrParameters extends SimpleParameterSet {
 
 
   // min data points to be used for correlation
-  public static final IntegerParameter MIN_DP = new IntegerParameter("Min data points",
-      "Minimum of data points to be used for correlation", 2, 2, 100000);
+  public static final IntegerParameter MIN_DP = new IntegerParameter("Minimum samples",
+      "Minimum number of samples (data points) to be used for correlation", 2, 2, 100000);
 
   public static final ComboParameter<SimilarityMeasure> MEASURE = new ComboParameter<>("Measure",
       "Similarity measure", SimilarityMeasure.values(), SimilarityMeasure.PEARSON);
@@ -86,11 +87,20 @@ public class InterSampleHeightCorrParameters extends SimpleParameterSet {
   }
 
   /**
-   * 
+   *
    */
   public InterSampleHeightCorrParameters(boolean isSub) {
-    super(isSub ? new Parameter[] {MIN_DP, MEASURE, MIN_CORRELATION}
-        : new Parameter[] {MIN_HEIGHT, NOISE_LEVEL, MIN_DP, MEASURE, MIN_CORRELATION});
+    super(isSub ? new Parameter[]{MIN_DP, MEASURE, MIN_CORRELATION}
+        : new Parameter[]{MIN_HEIGHT, NOISE_LEVEL, MIN_DP, MEASURE, MIN_CORRELATION});
   }
 
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("Min data points", MIN_DP);
+    return nameParameterMap;
+  }
 }

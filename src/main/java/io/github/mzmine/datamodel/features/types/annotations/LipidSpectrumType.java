@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,27 +25,25 @@
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
-import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
 import java.util.List;
+import java.util.logging.Logger;
 import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
-import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LipidSpectrumType extends LinkedGraphicalType {
+
+  private static final Logger logger = Logger.getLogger(LipidSpectrumType.class.getName());
 
   @NotNull
   @Override
@@ -60,39 +58,25 @@ public class LipidSpectrumType extends LinkedGraphicalType {
   }
 
   @Override
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean value, RawDataFile raw) {
-    ModularFeatureListRow row = cell.getTreeTableRow().getItem();
-
-    if (row == null || !value) {
+  public @Nullable Node createCellContent(@NotNull ModularFeatureListRow row, Boolean cellData,
+      @Nullable RawDataFile raw, AtomicDouble progress) {
+    List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
+    if (matchedLipids == null || matchedLipids.isEmpty()) {
       return null;
     }
-
-    Node node = row.getBufferedColChart(coll.getText());
-    if (node != null) {
-      return node;
-    }
-
-    StackPane pane = new StackPane();
-
-    List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
-    if (matchedLipids != null && !matchedLipids.isEmpty()) {
-      Task task = new FeaturesGraphicalNodeTask(LipidSpectrumChart.class, pane, row,
-          coll.getText());
-      MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
-    }
-    return pane;
+    var chart = new LipidSpectrumChart(matchedLipids.get(0), progress, RunOption.THIS_THREAD);
+    return chart;
   }
 
   @Override
   public double getColumnWidth() {
-    return DEFAULT_GRAPHICAL_CELL_WIDTH + 50;
+    return LARGE_GRAPHICAL_CELL_WIDTH;
   }
 
   @Nullable
   @Override
-  public Runnable getDoubleClickAction(@Nonnull ModularFeatureListRow row,
-      @Nonnull List<RawDataFile> file, DataType<?> superType,
+  public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
+      @NotNull List<RawDataFile> file, DataType<?> superType,
       @org.jetbrains.annotations.Nullable final Object value) {
     List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
     if (matchedLipids != null) {
@@ -104,4 +88,5 @@ public class LipidSpectrumType extends LinkedGraphicalType {
       return null;
     }
   }
+
 }

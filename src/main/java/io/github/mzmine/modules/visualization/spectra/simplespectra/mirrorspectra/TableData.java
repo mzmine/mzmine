@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
 
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.SignalAlignmentAnnotation;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalAlignmentAnnotation;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)

@@ -32,10 +32,10 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import io.github.mzmine.util.ExitCode;
 import org.jetbrains.annotations.NotNull;
 
@@ -60,15 +60,17 @@ public class SmoothingParameters extends SimpleParameterSet {
       "The suffix to be added to processed feature lists.", "sm");
 
   public SmoothingParameters() {
-    super(createParams(Setup.FULL), "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_smoothing/smoothing.html");
+    super(createParams(Setup.FULL),
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_smoothing/smoothing.html");
   }
 
   public SmoothingParameters(Setup setup) {
-    super(createParams(setup), "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_smoothing/smoothing.html");
+    super(createParams(setup),
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_smoothing/smoothing.html");
   }
 
   private enum Setup {
-    FULL, INTEGRATED;
+    FULL, INTEGRATED
   }
 
   private static Parameter[] createParams(Setup setup) {

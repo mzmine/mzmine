@@ -149,9 +149,9 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
               : isolationMzColumn.get(i);
 
       entry.add(new BuildingPASEFMsMsInfo(precursorMz,
-          Range.closedOpen(scanNumBeginColumn.get(i).intValue() - 1,
+          Range.closedOpen(scanNumBeginColumn.get(i).intValue(),
               // bruker scan numbers start at 1, ours start at 0
-              scanNumEndColumn.get(i).intValue() - 1), collisionEnergyColumn.get(i).floatValue(),
+              scanNumEndColumn.get(i).intValue()), collisionEnergyColumn.get(i).floatValue(),
           chargeColumn.get(i).intValue(), parentIdColumn.get(i).intValue(), frameId,
           isolationWidthColumn.get(i)));
     }

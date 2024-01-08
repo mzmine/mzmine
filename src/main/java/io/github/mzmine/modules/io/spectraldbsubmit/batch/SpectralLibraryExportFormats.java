@@ -39,7 +39,9 @@ public enum SpectralLibraryExportFormats {
 
   public String getExtension() {
     return switch (this) {
-      case json, msp, mgf -> toString();
+      case json -> "json";
+      case msp -> "msp";
+      case mgf -> "mgf";
     };
   }
 }

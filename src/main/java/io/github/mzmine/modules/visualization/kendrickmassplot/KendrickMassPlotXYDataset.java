@@ -25,16 +25,16 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
-import java.awt.Color;
-import org.jfree.data.xy.AbstractXYDataset;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FormulaUtils;
+import java.awt.Color;
+import org.jfree.data.xy.AbstractXYDataset;
 
 /**
  * XYDataset for Kendrick mass plots
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class KendrickMassPlotXYDataset extends AbstractXYDataset {
@@ -50,8 +50,8 @@ public class KendrickMassPlotXYDataset extends AbstractXYDataset {
   private double[] yValues;
   private double[] bubbleSizeValues;
   private ParameterSet parameters;
-  private String seriesKey;
-  private int itemCount;
+  private final String seriesKey;
+  private final int itemCount;
   private Color color;
 
   public KendrickMassPlotXYDataset(double[] xValues, double[] yValues, double[] bubbleSizeValues,
@@ -74,30 +74,28 @@ public class KendrickMassPlotXYDataset extends AbstractXYDataset {
 
     this.parameters = parameters;
 
-    this.selectedRows = parameters.getParameter(KendrickMassPlotParameters.selectedRows)
-        .getMatchingRows(featureList);
+    this.selectedRows = featureList.getRows().toArray(new FeatureListRow[0]);
 
-    this.customYAxisKMBase =
-        parameters.getParameter(KendrickMassPlotParameters.yAxisCustomKendrickMassBase).getValue();
+    this.customYAxisKMBase = parameters.getParameter(
+        KendrickMassPlotParameters.yAxisCustomKendrickMassBase).getValue();
 
-    this.bubbleSizeLabel =
-        parameters.getParameter(KendrickMassPlotParameters.bubbleSize).getValue();
+    this.bubbleSizeLabel = parameters.getParameter(KendrickMassPlotParameters.bubbleSizeValues)
+        .getValue().getName();
 
-    if (parameters.getParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase)
-        .getValue() == true) {
-      this.customXAxisKMBase =
-          parameters.getParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase)
-              .getEmbeddedParameter().getValue();
+    if (parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue()
+        .isKendrickType()) {
+      this.customXAxisKMBase = parameters.getParameter(
+          KendrickMassPlotParameters.xAxisCustomKendrickMassBase).getValue();
     } else {
-      this.xAxisKMBase = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue();
+      this.xAxisKMBase = null;
     }
 
     itemCount = selectedRows.length;
 
     // Calc xValues
     xValues = new double[selectedRows.length];
-    if (parameters.getParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase)
-        .getValue() == true) {
+    if (parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue()
+        .isKendrickType()) {
       for (int i = 0; i < selectedRows.length; i++) {
         xValues[i] =
             Math.ceil(selectedRows[i].getAverageMZ() * getKendrickMassFactor(customXAxisKMBase))

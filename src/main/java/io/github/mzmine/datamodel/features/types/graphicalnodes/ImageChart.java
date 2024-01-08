@@ -39,11 +39,6 @@ import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXParameters;
 import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.util.logging.Logger;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
@@ -52,9 +47,7 @@ import org.jfree.data.Range;
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class ImageChart extends StackPane {
-
-  private static Logger logger = Logger.getLogger(ImageChart.class.getName());
+public class ImageChart extends BufferedChartNode {
 
   public ImageChart(@NotNull ModularFeature f, AtomicDouble progress) {
     FeatureImageProvider<ImagingScan> prov = new FeatureImageProvider<>(f);
@@ -85,31 +78,21 @@ public class ImageChart extends StackPane {
     axis.setRange(new Range(0, imagingFile.getImagingParam().getLateralWidth()));
     axis.setVisible(!hideAxes);
 
+    chart.setLegendVisible(!hideAxes);
+
     final boolean lockOnAspectRatio = MZmineCore.getConfiguration()
-        .getModuleParameters(FeatureTableFXModule.class).getParameter(
-            FeatureTableFXParameters.lockImagesToAspectRatio).getValue();
+        .getModuleParameters(FeatureTableFXModule.class)
+        .getParameter(FeatureTableFXParameters.lockImagesToAspectRatio).getValue();
     ImagingParameters param = imagingFile.getImagingParam();
 
-    final double width = lockOnAspectRatio ?
-        Math.min(
-            GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT / (float) param.getMaxNumberOfPixelY()
-                * param.getMaxNumberOfPixelX(), GraphicalColumType.MAXIMUM_GRAPHICAL_CELL_WIDTH)
+    final double width = lockOnAspectRatio ? Math.min(
+        GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT / (float) param.getMaxNumberOfPixelY()
+            * param.getMaxNumberOfPixelX(), GraphicalColumType.MAXIMUM_GRAPHICAL_CELL_WIDTH)
         : GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH;
-    final double height = GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT;
 
-    setPrefHeight(height);
-    setPrefWidth(width);
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
 
-    BufferedImage img = chart.getChart().createBufferedImage((int) width, (int) height);
-
-    ImageView view = new ImageView(SwingFXUtils.toFXImage(img, null));
-    view.setOnMouseClicked(e -> MZmineCore.runLater(() -> {
-      getChildren().remove(view);
-      getChildren().add(chart);
-    }));
-
-    MZmineCore.runLater(() -> getChildren().add(view));
+    setChartCreateImage(chart, (int) width, GraphicalColumType.DEFAULT_IMAGE_CELL_HEIGHT);
   }
 
 }

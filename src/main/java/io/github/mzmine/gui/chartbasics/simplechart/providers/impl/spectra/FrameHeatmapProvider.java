@@ -106,8 +106,10 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
 
   @Override
   public Comparable<?> getSeriesKey() {
-    return frame.getDataFile().getName() + " - Frame " + frame.getFrameId() + " " + rtFormat.format(
-        frame.getRetentionTime()) + " min";
+
+    return frame.getScanDefinition();
+//    return frame.getDataFile().getName() + " - Frame " + frame.getFrameId() + " " + rtFormat.format(
+//        frame.getRetentionTime()) + " min";
   }
 
   @Override

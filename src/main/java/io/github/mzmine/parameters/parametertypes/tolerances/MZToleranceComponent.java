@@ -32,6 +32,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.util.converter.NumberStringConverter;
+import org.jetbrains.annotations.Nullable;
 
 public class MZToleranceComponent extends FlowPane {
 
@@ -66,9 +67,14 @@ public class MZToleranceComponent extends FlowPane {
     }
   }
 
-  public void setValue(MZTolerance value) {
-    mzToleranceField.setText(String.valueOf(value.getMzTolerance()));
-    ppmToleranceField.setText(String.valueOf(value.getPpmTolerance()));
+  public void setValue(@Nullable MZTolerance value) {
+    if (value == null) {
+      mzToleranceField.setText("");
+      ppmToleranceField.setText("");
+    } else {
+      mzToleranceField.setText(String.valueOf(value.getMzTolerance()));
+      ppmToleranceField.setText(String.valueOf(value.getPpmTolerance()));
+    }
   }
 
   public void setToolTipText(String toolTip) {

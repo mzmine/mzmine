@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,15 @@
 
 package io.github.mzmine.util.scans;
 
+import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,20 +42,34 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Drives the selection of fragmentation spectra. Based on input spectra (MS2 or MSn) merged spectra
  * are generated.
  *
- * @param mzTol
- * @param mergeSeparateEnergies
- * @param inputSpectra
+ * @param mzTol                 tolerance to merge signals
+ * @param mergeSeparateEnergies the final list will contain one representative spectrum for each
+ *                              energy
+ * @param inputSpectra          keep input spectra in the final list or only use representative
+ *                              spectra
+ * @param msLevelFilter         is applied last after all merging is done. for MSn data this would
+ *                              mean that either all MSn levels are used or only the pseudo MS2 scan
+ *                              merged from all is kept when using MS2 only
  */
-public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEnergies,
-                                    IncludeInputSpectra inputSpectra,
-                                    IntensityMergingType intensityMergeType) {
+public record FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSeparateEnergies,
+                                    @NotNull IncludeInputSpectra inputSpectra,
+                                    @NotNull IntensityMergingType intensityMergeType,
+                                    @NotNull MsLevelFilter msLevelFilter,
+                                    @Nullable MemoryMapStorage storage) {
 
   private static final Logger logger = Logger.getLogger(FragmentScanSelection.class.getName());
+
+  public FragmentScanSelection(@NotNull MZTolerance mzTol, boolean mergeSeparateEnergies,
+      @NotNull IncludeInputSpectra inputSpectra, @NotNull IntensityMergingType intensityMergeType,
+      @NotNull MsLevelFilter msLevelFilter) {
+    this(mzTol, mergeSeparateEnergies, inputSpectra, intensityMergeType, msLevelFilter, null);
+  }
 
   public List<Scan> getAllFragmentSpectra(final FeatureListRow row) {
     return getAllFragmentSpectra(row.getAllFragmentScans());
@@ -66,39 +83,54 @@ public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEner
    * @return list of merged and single scans
    */
   public @NotNull List<Scan> getAllFragmentSpectra(final List<Scan> scans) {
-    if (scans.size() == 1) {
+    if (scans.size() <= 1) {
       return scans;
     }
 
     boolean hasMSn = scans.stream().anyMatch(s -> s.getMSLevel() > 2);
-    return hasMSn ? getAllFromMSn(scans) : computeAllScans(scans);
+    // make sure its mutable
+    var allScans = new ArrayList<>(hasMSn ? getAllFromMSn(scans) : computeAllScans(scans));
+
+    if (msLevelFilter.isFilter()) {
+      allScans.removeIf(msLevelFilter::notMatch);
+    }
+    return allScans;
   }
 
   /**
    * Applies the selection to a list of MS spectra from the same MS level. The first scan is the
    * representative scan that merges all
    *
-   * @param scans all scans from the same level
-   * @return list of merged and single spectra
+   * @param scans all scans from the same level. Already merged scans are removed.
+   * @return list of merged and single spectra. Previously merged scans are removed.
    */
   private List<Scan> computeAllScans(final List<Scan> scans) {
     if (scans.size() == 1) {
       return scans;
     }
 
-    Map<Float, List<Scan>> byFragmentationEnergy = ScanUtils.splitByFragmentationEnergy(scans);
+    final List<Scan> noMergedScans = scans.stream().filter(
+        scan -> !(scan instanceof MergedMassSpectrum merged)
+            || merged.getMergingType() == MergingType.PASEF_SINGLE).toList();
+
+    if (noMergedScans.isEmpty()) {
+      return scans;
+    }
+
+    Map<Float, List<Scan>> byFragmentationEnergy = ScanUtils.splitByFragmentationEnergy(
+        noMergedScans);
     List<Scan> allScans = new ArrayList<>();
     // merge by energies separately and then all together
     List<Scan> mergedByEnergy = mergeByFragmentationEnergy(byFragmentationEnergy);
     // first entry should be the mergeAll
-    allScans.add(mergeSpectra(mergedByEnergy, MergingType.ALL));
+    allScans.add(mergeSpectra(mergedByEnergy, MergingType.ALL_ENERGIES));
     addIf(mergeSeparateEnergies, allScans, mergedByEnergy);
 
     // filter out duplicates from the original scans list, same energy
     switch (inputSpectra) {
       case NONE -> {
       }
-      case ALL -> allScans.addAll(scans);
+      case ALL -> allScans.addAll(noMergedScans);
       case HIGHEST_TIC_PER_ENERGY ->
           allScans.addAll(filterBestScansPerEnergy(byFragmentationEnergy.values()));
     }
@@ -138,11 +170,15 @@ public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEner
     List<Scan> representativeMergedScans = mergedPerTreeNode.stream().map(list -> list.get(0))
         .toList();
 
-    Scan allMerged = mergeSpectra(representativeMergedScans, MergingType.ALL_MSN);
+    Scan allMerged = mergeSpectra(representativeMergedScans, MergingType.ALL_MSN_TO_PSEUDO_MS2);
 
     List<Scan> allScans = new ArrayList<>();
     allScans.add(allMerged);
     mergedPerTreeNode.forEach(allScans::addAll);
+
+    if (msLevelFilter.isFilter()) {
+      allScans.removeIf(msLevelFilter::notMatch);
+    }
     return allScans;
   }
 
@@ -210,7 +246,7 @@ public record FragmentScanSelection(MZTolerance mzTol, boolean mergeSeparateEner
     if (scans.size() == 1) {
       return scans.get(0);
     }
-    return SpectraMerging.mergeSpectra(scans, mzTol, mergeType, intensityMergeType, null);
+    return SpectraMerging.mergeSpectra(scans, mzTol, mergeType, intensityMergeType, storage);
   }
 
   private void addIf(boolean condition, final List<Scan> targetList, final Object scans) {

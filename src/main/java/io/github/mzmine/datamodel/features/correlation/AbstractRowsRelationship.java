@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,9 +37,13 @@ public abstract class AbstractRowsRelationship implements RowsRelationship {
   private final FeatureListRow b;
 
   public AbstractRowsRelationship(FeatureListRow a, FeatureListRow b) {
-    super();
-    this.a = a;
-    this.b = b;
+    if (a.getID() < b.getID()) {
+      this.a = a;
+      this.b = b;
+    } else {
+      this.b = a;
+      this.a = b;
+    }
   }
 
   @Override

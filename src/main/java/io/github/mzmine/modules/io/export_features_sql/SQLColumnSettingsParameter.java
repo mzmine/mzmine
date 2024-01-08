@@ -25,15 +25,12 @@
 
 package io.github.mzmine.modules.io.export_features_sql;
 
+import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
-
 import org.jetbrains.annotations.Nullable;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import io.github.mzmine.parameters.UserParameter;
 
 /**
  * Simple Parameter implementation
@@ -155,7 +152,10 @@ public class SQLColumnSettingsParameter
 
   @Override
   public void setValueToComponent(SQLColumnSettingsComponent component,
-      SQLColumnSettings newValue) {
+      @Nullable SQLColumnSettings newValue) {
+    if (newValue == null) {
+      return;
+    }
     component.setValue(newValue);
   }
 

@@ -37,7 +37,6 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.formats;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
@@ -46,29 +45,9 @@ import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import org.jetbrains.annotations.Nullable;
 
 public class MGFEntryGenerator {
-
-//  public static final List<DBEntryField> EXPORT_FIELDS = List.of(DBEntryField.SCAN_NUMBER,
-//      DBEntryField.MS_LEVEL, DBEntryField.CHARGE, DBEntryField.NAME, DBEntryField.PRECURSOR_MZ,
-//      DBEntryField.ION_TYPE, DBEntryField.RT, DBEntryField.CCS, DBEntryField.EXACT_MASS,
-//      DBEntryField.FORMULA, DBEntryField.SMILES, DBEntryField.INCHI, DBEntryField.INCHIKEY,
-//     DBEntryField.ISOLATION_WINDOW,
-//
-//      // instrument
-//      DBEntryField.FRAGMENTATION_METHOD, DBEntryField.COLLISION_ENERGY, DBEntryField.INSTRUMENT, DBEntryField.INSTRUMENT_FIELDS
-//      // MSn
-//      DBEntryField.MSN_FRAGMENTATION_METHODS, DBEntryField.MSN_COLLISION_ENERGIES,
-//      DBEntryField.MSN_PRECURSOR_MZS, DBEntryField.MSN_ISOLATION_WINDOWS,
-//      // reference to dataset
-//      DBEntryField.DATASET_ID, DBEntryField.USI,
-//      //
-//      DBEntryField.ACQUISITION,
-//      //
-//      DBEntryField.MERGED_SPEC_TYPE,
-//      // quality
-//      DBEntryField.QUALITY_CHIMERIC,
-//      DBEntryField.SOFTWARE);
 
   /**
    * Creates a simple MSP nist format DB entry
@@ -147,7 +126,15 @@ public class MGFEntryGenerator {
    * Creates a simple MSP nist format DB entry
    */
   public static String createMGFEntry(SpectralLibraryEntry entry) {
-    String def = "=";
+    return createMGFEntry(entry, entry.getOrElse(DBEntryField.SCAN_NUMBER, null));
+  }
+
+  /**
+   * Creates a simple MSP nist format DB entry
+   *
+   * @param scanNumber overwrite the scannumber used for this entry
+   */
+  public static String createMGFEntry(SpectralLibraryEntry entry, @Nullable Integer scanNumber) {
     String br = "\n";
     StringBuilder s = new StringBuilder();
     s.append("BEGIN IONS").append(br);
@@ -158,13 +145,15 @@ public class MGFEntryGenerator {
       if (id == null || id.isBlank()) {
         continue;
       }
-      entry.getField(field)
-          .ifPresent(value -> s.append(field.getMgfID()).append(def).append(value).append(br));
+      // if scanNumber override is set - replace scan number and featureID (used by GNPS)
+      if (scanNumber != null && (field == DBEntryField.SCAN_NUMBER
+                                 || field == DBEntryField.FEATURE_ID)) {
+        appendValue(s, field, scanNumber);
+      } else {
+        // just use the value
+        entry.getField(field).ifPresent(value -> appendValue(s, field, value));
+      }
     }
-    entry.getField(DBEntryField.POLARITY).ifPresent(p -> {
-      String pol = PolarityType.NEGATIVE.equals(p) ? "Negative" : "Positive";
-      s.append(DBEntryField.POLARITY.getMgfID()).append(def).append(pol).append(br);
-    });
 
     // num peaks and data
     DataPoint[] dps = entry.getDataPoints();
@@ -184,5 +173,10 @@ public class MGFEntryGenerator {
     }
     s.append("END IONS").append(br);
     return s.toString();
+  }
+
+  private static StringBuilder appendValue(final StringBuilder s, final DBEntryField field,
+      final Object value) {
+    return s.append(field.getMgfID()).append("=").append(field.formatForMgf(value)).append("\n");
   }
 }

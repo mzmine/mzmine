@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.util.spectraldb.entry;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
@@ -85,7 +86,7 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
     this.ccsError = ccsError;
   }
 
-  public static SpectralDBFeatureIdentity loadFromXML(XMLStreamReader reader,
+  public static SpectralDBFeatureIdentity loadFromXML(XMLStreamReader reader, MZmineProject project,
       Collection<RawDataFile> possibleFiles) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName()
         .equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT) && reader.getAttributeValue(null,
@@ -110,7 +111,7 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
 
       switch (reader.getLocalName()) {
         case SpectralLibraryEntry.XML_ELEMENT_ENTRY ->
-            entry = SpectralLibraryEntry.loadFromXML(reader);
+            entry = SpectralLibraryEntry.loadFromXML(reader, project);
         case SpectralSimilarity.XML_ELEMENT -> similarity = SpectralSimilarity.loadFromXML(reader);
         case SimpleFeatureIdentity.XML_PROPERTIES_ELEMENT ->
             map = SimpleFeatureIdentity.readPropertyValues(reader);

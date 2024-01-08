@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Collection API related utilities
@@ -139,4 +140,28 @@ public class CollectionUtils {
     return result;
   }
 
+  /**
+   * creates a stream of duplicates. Filters by hashset
+   *
+   * @param input the input stream
+   * @return filtered stream of duplicates
+   */
+  public static <T> Stream<T> streamDuplicates(Stream<T> input) {
+    Set<T> items = new HashSet<>();
+    return input.filter(n -> !items.add(n));
+  }
+
+
+  /**
+   * Creates a new array. Copied from {@link Arrays#copyOfRange(Object[], int, int)}
+   *
+   * @return
+   */
+  @SuppressWarnings("unchecked")
+  public static <T> T[] createArray(final T[] data, final int newLength) {
+    Class<? extends T[]> newType = (Class<? extends T[]>) data.getClass();
+    T[] copy = ((Object) newType == (Object) Object[].class) ? (T[]) new Object[newLength]
+        : (T[]) Array.newInstance(newType.getComponentType(), newLength);
+    return copy;
+  }
 }

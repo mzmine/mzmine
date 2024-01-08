@@ -25,16 +25,21 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Collection;
-import org.w3c.dom.Element;
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
 import javafx.scene.control.TextArea;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 public class TextParameter implements UserParameter<String, TextArea> {
 
-  private String name, description, value;
+  private final String name;
+  private final String description;
+  private String value;
 
-  private boolean valueRequired;
+  private final boolean valueRequired;
 
   public TextParameter(String name, String description) {
     this(name, description, null);
@@ -100,8 +105,8 @@ public class TextParameter implements UserParameter<String, TextArea> {
   }
 
   @Override
-  public void setValueToComponent(TextArea component, String newValue) {
-    component.setText(newValue);
+  public void setValueToComponent(TextArea component, @Nullable String newValue) {
+    component.setText(requireNonNullElse(newValue, ""));
   }
 
   @Override

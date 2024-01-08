@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,17 +48,15 @@ import org.jfree.chart.JFreeChart;
 public class GraphicsExportDialogFX extends ParameterSetupDialog {
 
   private static final Logger logger = Logger.getLogger(GraphicsExportDialogFX.class.getName());
-
+  private final Button btnRenewPreview;
+  private final Button btnApply;
+  private final Button btnSave;
   protected EStandardChartTheme theme;
   protected BorderPane pnChartPreview;
   protected JFreeChart chart;
   protected EChartViewer chartPanel;
   protected ExportChartThemeParameters chartParam;
   protected SimpleColorPalette colorPalette;
-
-  private final Button btnRenewPreview;
-  private final Button btnApply;
-  private final Button btnSave;
 
 
   public GraphicsExportDialogFX(boolean valueCheckRequired, ParameterSet parameterSet,
@@ -183,6 +181,12 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
         // DialogLoggerUtil.showErrorDialog(this, "File not written. ", e); TODO
       }
     }
+  }
+
+  public void export() {
+    applyTheme();
+    renewPreview();
+    saveGraphicsAs();
   }
 
   public BorderPane getPnChartPreview() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,19 +63,18 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureUtils;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
-import javafx.scene.Node;
-import javafx.scene.layout.Pane;
+import javafx.collections.SetChangeListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,7 +88,6 @@ public class ModularFeature implements Feature, ModularDataModel {
   private static final Logger logger = Logger.getLogger(ModularFeature.class.getName());
   private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
   // buffert col charts and nodes
-  private final Map<String, Node> buffertColCharts = new HashMap<>();
   @NotNull
   private ModularFeatureList flist;
 
@@ -98,17 +96,23 @@ public class ModularFeature implements Feature, ModularDataModel {
   public ModularFeature(@NotNull ModularFeatureList flist) {
     this.flist = flist;
 
+    // TODO turn into weak bindings? with WeakAdapter in FeatureList
     // register listener to types map to automatically generate default properties for new DataTypes
-    flist.getFeatureTypes().addListener(
-        (MapChangeListener<? super Class<? extends DataType>, ? super DataType>) change -> {
-          if (change.wasAdded()) {
-            // do nothing for now
-          } else if (change.wasRemoved()) {
-            // remove type columns to maps
-            DataType type = change.getValueRemoved();
-            this.remove((Class) type.getClass());
-          }
-        });
+    flist.getFeatureTypes().addListener((SetChangeListener<? super DataType>) change -> {
+      if (change.wasAdded()) {
+        // do nothing for now
+      } else if (change.wasRemoved()) {
+        // remove type columns to maps
+        DataType type = change.getElementRemoved();
+        this.remove(type);
+      }
+    });
+    //
+    map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
+      if (change.wasAdded()) {
+        flist.addFeatureType(change.getKey());
+      }
+    });
   }
 
   // NOT TESTED
@@ -194,6 +198,21 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   /**
+   * Creates a new feature.
+   *
+   * @param flist    The feature list.
+   * @param dataFile The raw data file of this feature.
+   */
+  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile,
+      FeatureStatus featureStatus) {
+    this(flist);
+    assert dataFile != null;
+
+    set(RawFileType.class, dataFile);
+    set(DetectionType.class, featureStatus);
+  }
+
+  /**
    * Creates a new feature. The properties are determined via
    * {@link FeatureDataUtils#recalculateIonSeriesDependingTypes(ModularFeature)}.
    *
@@ -203,15 +222,13 @@ public class ModularFeature implements Feature, ModularDataModel {
    * @param featureStatus The feature status.
    */
   public ModularFeature(ModularFeatureList flist, RawDataFile dataFile,
-      IonTimeSeries<? extends Scan> featureData, FeatureStatus featureStatus) {
-    this(flist);
-    assert dataFile != null;
+      @Nullable IonTimeSeries<? extends Scan> featureData, FeatureStatus featureStatus) {
+    this(flist, dataFile, featureStatus);
 
-    set(RawFileType.class, dataFile);
-    set(DetectionType.class, featureStatus);
-    set(FeatureDataType.class, featureData);
-
-    FeatureDataUtils.recalculateIonSeriesDependingTypes(this);
+    if (featureData != null) {
+      set(FeatureDataType.class, featureData);
+      FeatureDataUtils.recalculateIonSeriesDependingTypes(this);
+    }
   }
 
   /**
@@ -265,42 +282,6 @@ public class ModularFeature implements Feature, ModularDataModel {
     }
   }
 
-  public Node getBufferedColChart(String colname) {
-    return buffertColCharts.get(colname);
-  }
-
-  public void addBufferedColChart(String colname, Node node) {
-    buffertColCharts.put(colname, node);
-  }
-
-  public void clearBufferedColCharts() {
-    buffertColCharts.forEach((k, v) -> {
-      if (v instanceof Pane p && p.getParent() instanceof Pane pane) {
-        // remove the node from the parent so there is no more reference and it can be GC'ed
-        pane.getChildren().remove(v);
-      }
-    });
-    buffertColCharts.clear();
-  }
-
-  @Override
-  public <T> boolean set(Class<? extends DataType<T>> tclass, T value) {
-    // type in defined columns?
-    if (!getTypes().containsKey(tclass)) {
-      try {
-        DataType newType = tclass.getConstructor().newInstance();
-        ModularFeatureList flist = (ModularFeatureList) getFeatureList();
-        flist.addFeatureType(newType);
-      } catch (NullPointerException | InstantiationException | NoSuchMethodException |
-               InvocationTargetException | IllegalAccessException e) {
-        e.printStackTrace();
-        return false;
-      }
-    }
-    // access default method
-    return ModularDataModel.super.set(tclass, value);
-  }
-
   /**
    * Maps listeners to their {@link DataType}s. Default returns an empty list.
    */
@@ -310,7 +291,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
-  public ObservableMap<Class<? extends DataType>, DataType> getTypes() {
+  public Set<DataType> getTypes() {
     return flist.getFeatureTypes();
   }
 

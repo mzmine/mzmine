@@ -24,9 +24,8 @@
  */
 package io.github.mzmine.modules.visualization.fx3d;
 
-import java.util.logging.Logger;
-
 import io.github.mzmine.datamodel.RawDataFile;
+import java.util.logging.Logger;
 import javafx.scene.DepthTest;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
@@ -173,6 +172,7 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
     Image diffuseMap = wr;
     PhongMaterial material = new PhongMaterial();
     material.setDiffuseMap(diffuseMap);
+    material.setSpecularColor(Color.WHITE);
     meshView.setMaterial(material);
   }
 

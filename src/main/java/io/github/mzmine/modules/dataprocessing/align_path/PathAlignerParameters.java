@@ -34,16 +34,18 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
+import java.util.Map;
 
 public class PathAlignerParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
-  public static final StringParameter peakListName =
-      new StringParameter("Feature list name", "Feature list name");
+  public static final StringParameter peakListName = new StringParameter("Feature list name",
+      "Feature list name");
 
-  public static final MZToleranceParameter MZTolerance =
-      new MZToleranceParameter("m/z tolerance", "Maximum allowed M/Z difference");
+  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter(
+      ToleranceType.SAMPLE_TO_SAMPLE);
 
   public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
@@ -53,13 +55,23 @@ public class PathAlignerParameters extends SimpleParameterSet {
   public static final BooleanParameter SameIDRequired = new BooleanParameter("Require same ID",
       "If checked, only rows having same compound identities (or no identities) can be aligned");
 
-  public static final OptionalModuleParameter compareIsotopePattern =
-      new OptionalModuleParameter("Compare isotope pattern",
-          "If both peaks represent an isotope pattern, add isotope pattern score to match score",
-          new IsotopePatternScoreParameters());
+  public static final OptionalModuleParameter compareIsotopePattern = new OptionalModuleParameter(
+      "Compare isotope pattern",
+      "If both peaks represent an isotope pattern, add isotope pattern score to match score",
+      new IsotopePatternScoreParameters());
 
   public PathAlignerParameters() {
-    super(new Parameter[] {peakLists, peakListName, MZTolerance, RTTolerance, SameChargeRequired,
-        SameIDRequired, compareIsotopePattern});
+    super(peakLists, peakListName, MZTolerance, RTTolerance, SameChargeRequired, SameIDRequired,
+        compareIsotopePattern);
+  }
+
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", MZTolerance);
+    return nameParameterMap;
   }
 }

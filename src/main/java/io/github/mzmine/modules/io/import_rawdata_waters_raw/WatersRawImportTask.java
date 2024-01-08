@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,6 +42,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.TextUtils;
 import io.github.mzmine.util.ZipUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -49,7 +50,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.file.Files;
 import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -119,7 +119,8 @@ public class WatersRawImportTask extends AbstractTask {
       // In case the folder already exists, unzip to a different folder
       if (watersRawFileParserFolder.exists()) {
         logger.finest("Folder " + watersRawFileParserFolder + " exists, creating a new one");
-        watersRawFileParserFolder = Files.createTempDirectory("mzmine_waters_raw_parser").toFile();
+        watersRawFileParserFolder = FileAndPathUtil.createTempDirectory("mzmine_waters_raw_parser")
+            .toFile();
       }
 
       logger.finest("Unpacking Waters RawFileParser to folder " + watersRawFileParserFolder);

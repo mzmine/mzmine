@@ -41,6 +41,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.util.converter.DoubleStringConverter;
 import javafx.util.converter.IntegerStringConverter;
+import org.jetbrains.annotations.Nullable;
 
 public class MzToChargeComponent extends BorderPane {
 
@@ -157,8 +158,11 @@ public class MzToChargeComponent extends BorderPane {
     return value;
   }
 
-  public void setValue(RangeMap<Double, Integer> value) {
+  public void setValue(@Nullable RangeMap<Double, Integer> value) {
     table.getItems().clear();
+    if (value == null) {
+      return;
+    }
     value.asMapOfRanges().entrySet().forEach(entry -> table.getItems().add(
         new MzRangeToCharge(entry.getKey().lowerEndpoint(), entry.getKey().upperEndpoint(),
             entry.getValue())));

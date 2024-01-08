@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes;
 
 import io.github.msdk.MSDKRuntimeException;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
@@ -44,29 +45,29 @@ public class SumformulaParameter extends StringParameter {
   private final IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
 
   public SumformulaParameter(String name, String description) {
-    this(name, description, null);
+    this(name, description, "");
   }
 
   public SumformulaParameter(String name, String description, int inputsize) {
     super(name, description, inputsize);
   }
 
-  public SumformulaParameter(String name, String description, String defaultValue) {
+  public SumformulaParameter(String name, String description, @NotNull String defaultValue) {
     super(name, description, defaultValue);
   }
 
-  public SumformulaParameter(String name, String description, String defaultValue,
+  public SumformulaParameter(String name, String description, @NotNull String defaultValue,
       boolean valueRequired) {
     super(name, description, defaultValue, valueRequired);
   }
 
   @Override
-  public String getValue() {
+  public @NotNull String getValue() {
     return getNameWithoutCharge();
   }
 
   public String getNameWithoutCharge() {
-    if (value == null || value.isEmpty()) {
+    if (value.isBlank()) {
       return "";
     }
 
@@ -80,7 +81,6 @@ public class SumformulaParameter extends StringParameter {
 
   /**
    * Full name with charge
-   *
    */
   public String getFullName() {
     return name;
@@ -88,7 +88,7 @@ public class SumformulaParameter extends StringParameter {
 
 
   public int getCharge() {
-    if (value == null || value.isEmpty()) {
+    if (value.isBlank()) {
       return 0;
     }
     // cutoff first -
@@ -114,16 +114,16 @@ public class SumformulaParameter extends StringParameter {
 
   /**
    * Monoisotopic mass of sum formula (not mass to charge!). Mass of electrons is subtracted/added
-   *
    */
   public double getMonoisotopicMass() {
-    if (value != null && !value.isEmpty()) {
-        double mz = MolecularFormulaManipulator.getMass(getFormula(), MolecularFormulaManipulator.MonoIsotopic);
-        mz -= getCharge() * ELECTRON_MASS;
-        if (value.startsWith("-")) {
-          mz = -mz;
-        }
-        return mz;
+    if (!value.isBlank()) {
+      double mz = MolecularFormulaManipulator.getMass(getFormula(),
+          MolecularFormulaManipulator.MonoIsotopic);
+      mz -= getCharge() * ELECTRON_MASS;
+      if (value.startsWith("-")) {
+        mz = -mz;
+      }
+      return mz;
     } else if (valueRequired) {
       throw new IllegalArgumentException("Could not set up formula. Invalid input.");
     }
@@ -131,31 +131,32 @@ public class SumformulaParameter extends StringParameter {
   }
 
   public IMolecularFormula getFormula() {
-    if (value != null && !value.isEmpty()) {
-      try {
-        String formString = this.value;
-        // cutoff first - (negative mz)
-        if (formString.startsWith("-")) {
-          formString = formString.substring(1);
-        }
-
-        //
-        int l = Math.max(formString.lastIndexOf('+'), formString.lastIndexOf('-'));
-        if (l == -1) {
-          return MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formString, builder);
-        } else {
-          String f = formString.substring(0, l);
-          String charge = formString.substring(l);
-          return MolecularFormulaManipulator.getMajorIsotopeMolecularFormula("[" + f + "]" + charge,
-              builder);
-        }
-      } catch (Exception e) {
+    if (value.isBlank()) {
+      if (valueRequired) {
         throw new MSDKRuntimeException("Could not set up formula. Invalid input.");
       }
-    } else if (valueRequired) {
+      return null;
+    }
+    try {
+      String formString = this.value;
+      // cutoff first - (negative mz)
+      if (formString.startsWith("-")) {
+        formString = formString.substring(1);
+      }
+
+      //
+      int l = Math.max(formString.lastIndexOf('+'), formString.lastIndexOf('-'));
+      if (l == -1) {
+        return MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formString, builder);
+      } else {
+        String f = formString.substring(0, l);
+        String charge = formString.substring(l);
+        return MolecularFormulaManipulator.getMajorIsotopeMolecularFormula("[" + f + "]" + charge,
+            builder);
+      }
+    } catch (Exception e) {
       throw new MSDKRuntimeException("Could not set up formula. Invalid input.");
     }
-    return null;
   }
 
   public boolean checkValue() {
@@ -167,7 +168,7 @@ public class SumformulaParameter extends StringParameter {
     if (!valueRequired) {
       return true;
     }
-    if ((value == null) || (value.trim().isEmpty())) {
+    if (value.isBlank()) {
       if (errorMessages != null) {
         errorMessages.add(name + " is not set properly");
       }

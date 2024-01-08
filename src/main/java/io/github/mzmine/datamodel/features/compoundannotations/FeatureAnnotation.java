@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -39,15 +40,14 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Describes a common feature annotation. Future implementations should also extend the
- * {@link io.github.mzmine.util.FeatureUtils#getBestFeatureAnnotation(ModularDataModel)}
- * method.
+ * {@link io.github.mzmine.util.FeatureUtils#getBestFeatureAnnotation(ModularDataModel)} method.
  */
 public interface FeatureAnnotation {
 
-  public static final String XML_ELEMENT = "feature_annotation";
-  public static final String XML_TYPE_ATTR = "annotation_type";
+  String XML_ELEMENT = "feature_annotation";
+  String XML_TYPE_ATTR = "annotation_type";
 
-  public static FeatureAnnotation loadFromXML(XMLStreamReader reader, MZmineProject project,
+  static FeatureAnnotation loadFromXML(XMLStreamReader reader, MZmineProject project,
       ModularFeatureList flist, ModularFeatureListRow row) throws XMLStreamException {
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       throw new IllegalStateException("Current element is not a feature annotation element");
@@ -55,19 +55,23 @@ public interface FeatureAnnotation {
 
     return switch (reader.getAttributeValue(null, XML_TYPE_ATTR)) {
       case SpectralDBAnnotation.XML_ATTR ->
-          SpectralDBAnnotation.loadFromXML(reader, project.getCurrentRawDataFiles());
+          SpectralDBAnnotation.loadFromXML(reader, project, project.getCurrentRawDataFiles());
       case SimpleCompoundDBAnnotation.XML_ATTR ->
           SimpleCompoundDBAnnotation.loadFromXML(reader, project, flist, row);
       default -> null;
     };
   }
 
-  public void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
+  void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
 
   @Nullable Double getPrecursorMZ();
 
   @Nullable String getSmiles();
+
+  @Nullable String getInChI();
+
+  @Nullable String getInChIKey();
 
   @Nullable String getCompoundName();
 
@@ -83,7 +87,25 @@ public interface FeatureAnnotation {
 
   @Nullable Float getScore();
 
+  @Nullable
+  default String getScoreString() {
+    var score = getScore();
+    if (score == null) {
+      return null;
+    }
+    return MZmineCore.getConfiguration().getScoreFormat().format(score);
+  }
+
   @Nullable String getDatabase();
+
+  /**
+   * Keep stable as its exported to tools. often the xml key but not always
+   *
+   * @return defining the annotation method
+   */
+  default @NotNull String getAnnotationMethodUniqueId() {
+    return getXmlAttributeKey();
+  }
 
   /**
    * @return A unique identifier for saving any sub-class of this interface to XML.
@@ -101,7 +123,7 @@ public interface FeatureAnnotation {
    *
    * @param writer The writer
    */
-  public default void writeOpeningTag(XMLStreamWriter writer) throws XMLStreamException {
+  default void writeOpeningTag(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(FeatureAnnotation.XML_ELEMENT);
     writer.writeAttribute(FeatureAnnotation.XML_TYPE_ATTR, getXmlAttributeKey());
   }
@@ -110,7 +132,7 @@ public interface FeatureAnnotation {
    * Convenience method to supply developers with a closing method for
    * {@link FeatureAnnotation#writeOpeningTag(XMLStreamWriter)}.
    */
-  public default void writeClosingTag(XMLStreamWriter writer) throws XMLStreamException {
+  default void writeClosingTag(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeEndElement();
   }
 }

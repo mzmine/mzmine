@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,12 +33,10 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -50,7 +48,6 @@ import javafx.scene.control.TreeTableColumn;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.stream.events.XMLEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -97,51 +94,24 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
     if (!(value instanceof ManualAnnotation manual)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-              + value.getClass());
+          + value.getClass());
     }
-
-    for (int i = 0; i < subTypes.size(); i++) {
-      DataType sub = subTypes.get(i);
-      Object subValue = getSubColValue(sub, manual);
-      if (subValue != null) {
-        writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
-        writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, sub.getUniqueID());
-
-        try { // catch here, so we can easily debug and don't destroy the flist while saving in case an unexpected exception happens
-          sub.saveToXML(writer, subValue, flist, row, feature, file);
-        } catch (XMLStreamException e) {
-          final Object finalVal = subValue;
-          logger.warning(() -> "Error while writing data type " + sub.getClass().getSimpleName()
-              + " with value " + finalVal + " to xml.");
-          e.printStackTrace();
-        }
-
-        writer.writeEndElement();
-      }
-    }
+    saveSubColumnsToXML(writer, flist, row, feature, file, value);
   }
 
   @Override
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull MZmineProject project,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    ManualAnnotation manual = null;
-    while (reader.hasNext()) {
-      int next = reader.next();
 
-      if (next == XMLEvent.END_ELEMENT && reader.getLocalName()
-          .equals(CONST.XML_DATA_TYPE_ELEMENT)) {
-        break;
-      }
-      if (reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
-        DataType type = DataTypes.getTypeForId(
-            reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
-        Object o = type.loadFromXML(reader, project, flist, row, feature, file);
-        if (manual == null) {
-          manual = new ManualAnnotation();
-        }
-        manual.set(type, o);
-      }
+    var model = loadSubColumnsFromXML(reader, project, flist, row, feature, file);
+    if (model.getMap().isEmpty()) {
+      return null;
+    }
+
+    final ManualAnnotation manual = new ManualAnnotation();
+    for (DataType type : model.getTypes()) {
+      manual.set(type, model.get(type));
     }
     return manual;
   }
@@ -161,7 +131,7 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
     // create column per name
     for (int index = 0; index < getNumberOfSubColumns(); index++) {
       DataType type = subTypes.get(index);
-      if (this.getClass().isInstance(type)) {
+      if (this.equals(type)) {
         // create a special column for this type that actually represents the list of data
         cols.add(DataType.createStandardColumn(type, raw, this, index));
       } else {

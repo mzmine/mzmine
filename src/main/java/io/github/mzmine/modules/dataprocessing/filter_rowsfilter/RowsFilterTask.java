@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -50,6 +50,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -579,7 +580,7 @@ public class RowsFilterTask extends AbstractTask {
     if (!removeRedundantIsotopeRows || pattern == null) {
       return false;
     }
-    final int featureDpIndex = pattern.binarySearch(row.getAverageMZ(), true);
+    final int featureDpIndex = pattern.binarySearch(row.getAverageMZ(), DefaultTo.CLOSEST_VALUE);
 
     return featureDpIndex != 0 && featureDpIndex != Objects.requireNonNullElse(
         pattern.getBasePeakIndex(), -1);

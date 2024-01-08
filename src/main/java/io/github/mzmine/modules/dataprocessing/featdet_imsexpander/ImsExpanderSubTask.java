@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -89,6 +89,7 @@ public class ImsExpanderSubTask extends AbstractTask {
         expandingTraces.get(expandingTraces.size() - 1).getMzRange().upperEndpoint())
         : Range.singleton(0d);
 
+    totalFrames = frames.size();
     desc = flist.getName() + ": expanding traces for frame " + processedFrames.get() + "/"
         + totalFrames + " m/z range: " + RangeUtils.formatRange(traceMzRange,
         MZmineCore.getConfiguration().getMZFormat());
@@ -108,7 +109,7 @@ public class ImsExpanderSubTask extends AbstractTask {
       return 1.0d;
     }
     return (processedFrames.get() / (double) totalFrames) * 0.5
-        + createdRows / (double) expandingTraces.size();
+        + createdRows / (double) expandingTraces.size() * 0.5;
   }
 
   @Override
@@ -116,9 +117,8 @@ public class ImsExpanderSubTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.finest("Initialising data access for file " + imsFile.getName());
     final MobilityScanDataAccess access = new MobilityScanDataAccess(imsFile,
-        useRawData ? MobilityScanDataType.RAW : MobilityScanDataType.CENTROID, frames);
+        useRawData ? MobilityScanDataType.RAW : MobilityScanDataType.MASS_LIST, frames);
 
-    totalFrames = access.getNumberOfScans();
     final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
     final int numTraces = expandingTraces.size();

@@ -38,6 +38,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.util.converter.NumberStringConverter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Component will show OPTION OPERATOR VALUE, e.g., EXCLUDE > 1000
@@ -104,8 +105,13 @@ public class OptionForValuesComponent extends HBox {
     }
   }
 
-  public void setValue(OptionForValues value) {
+  public void setValue(@Nullable OptionForValues value) {
     if (value == null) {
+      if (comboOperator != null) {
+        comboOperator.getSelectionModel().select(null);
+      }
+      comboOption.getSelectionModel().select(null);
+      txtValue.setText("");
       return;
     }
 

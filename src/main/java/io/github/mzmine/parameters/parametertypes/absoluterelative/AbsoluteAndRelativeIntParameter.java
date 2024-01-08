@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.parametertypes.absoluterelative;
 
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -88,7 +89,7 @@ public class AbsoluteAndRelativeIntParameter implements
 
   @Override
   public void setValueToComponent(AbsoluteAndRelativeIntComponent component,
-      AbsoluteAndRelativeInt newValue) {
+      @Nullable AbsoluteAndRelativeInt newValue) {
     component.setValue(newValue);
   }
 

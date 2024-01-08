@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,7 +40,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchTask;
-import io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
@@ -48,6 +49,8 @@ import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
+import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule;
+import io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
@@ -57,7 +60,9 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
@@ -72,6 +77,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -115,6 +121,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -128,7 +135,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.NotificationPane;
 import org.controlsfx.control.StatusBar;
 import org.jetbrains.annotations.NotNull;
@@ -153,10 +159,6 @@ public class MainWindowController {
   public MenuItem rawDataGroupMenuItem;
   @FXML
   public MenuItem rawDataRemoveMenuItem;
-  @FXML
-  public MenuItem rawDataRenameMenuItem;
-  @FXML
-  public MenuItem rawDataRemoveExtensionMenuItem;
   @FXML
   public Menu rawDataSetColorMenu;
   @FXML
@@ -255,6 +257,13 @@ public class MainWindowController {
   @FXML
   public void initialize() {
 
+    // do not switch panes by arrows
+    mainTabPane.addEventFilter(KeyEvent.ANY, event -> {
+      if (event.getCode().isArrowKey() && event.getTarget() == mainTabPane) {
+        event.consume();
+      }
+    });
+
     rawDataList.setEditable(false);
     rawDataList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
@@ -273,6 +282,9 @@ public class MainWindowController {
     initTasksViewToTab();
     initMiniTaskView();
     selectTab(MZmineIntroductionTab.TITLE);
+
+    memoryBar.setOnMouseClicked(event -> handleMemoryBarClick(event));
+    memoryBar.setTooltip(new Tooltip("Free memory (is done automatically)"));
 
     // Setup the Timeline to update the memory indicator periodically
     final Timeline memoryUpdater = new Timeline();
@@ -338,7 +350,8 @@ public class MainWindowController {
       MZmineCore.runLater(() -> {
         change.next();
         for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
-          if (tab instanceof MZmineTab && tab.isSelected() && ((MZmineTab) tab).isUpdateOnSelection() && !(CollectionUtils.isEqualCollection(
+          if (tab instanceof MZmineTab && tab.isSelected()
+              && ((MZmineTab) tab).isUpdateOnSelection() && !(CollectionUtils.isEqualCollection(
               ((MZmineTab) tab).getFeatureLists(), change.getList()))) {
             ((MZmineTab) tab).onFeatureListSelectionChanged(change.getList());
           }
@@ -346,34 +359,36 @@ public class MainWindowController {
       });
     });
 
-    featureListsList.getSelectionModel().getSelectedItems().addListener((ListChangeListener<GroupableListViewEntity>) change -> {
-      while (change.next()) {
-        if (change.getList() == null) {
-          return;
-        }
+    featureListsList.getSelectionModel().getSelectedItems()
+        .addListener((ListChangeListener<GroupableListViewEntity>) change -> {
+          while (change.next()) {
+            if (change.getList() == null) {
+              return;
+            }
 
-        if (featureListsList.getSelectedValues().size() == 1) {
-          openFeatureListMenuItem.setText("Open feature list");
-          showFeatureListSummaryMenuItem.setText("Show feature list summary");
-          featureListsRemoveMenuItem.setText("Remove feature list");
-        } else {
-          openFeatureListMenuItem.setText("Open feature lists");
-          showFeatureListSummaryMenuItem.setText("Show feature lists summary");
-          featureListsRemoveMenuItem.setText("Remove feature lists");
-        }
+            if (featureListsList.getSelectedValues().size() == 1) {
+              openFeatureListMenuItem.setText("Open feature list");
+              showFeatureListSummaryMenuItem.setText("Show feature list summary");
+              featureListsRemoveMenuItem.setText("Remove feature list");
+            } else {
+              openFeatureListMenuItem.setText("Open feature lists");
+              showFeatureListSummaryMenuItem.setText("Show feature lists summary");
+              featureListsRemoveMenuItem.setText("Remove feature lists");
+            }
 
-        if (featureListsList.getSelectionModel().getSelectedItems().size() == 1) {
-          featureListsRenameMenuItem.setDisable(false);
-          if (featureListsList.getSelectionModel().getSelectedItems().get(0) instanceof GroupEntity) {
-            featureListsRenameMenuItem.setText("Rename group");
-          } else {
-            featureListsRenameMenuItem.setText("Rename feature list");
+            if (featureListsList.getSelectionModel().getSelectedItems().size() == 1) {
+              featureListsRenameMenuItem.setDisable(false);
+              if (featureListsList.getSelectionModel().getSelectedItems()
+                  .get(0) instanceof GroupEntity) {
+                featureListsRenameMenuItem.setText("Rename group");
+              } else {
+                featureListsRenameMenuItem.setText("Rename feature list");
+              }
+            } else {
+              featureListsRenameMenuItem.setDisable(true);
+            }
           }
-        } else {
-          featureListsRenameMenuItem.setDisable(true);
-        }
-      }
-    });
+        });
   }
 
   private void initRawDataList() {
@@ -394,8 +409,6 @@ public class MainWindowController {
 
             RawDataFile rawDataFile = ((ValueEntity<RawDataFile>) item).getValue();
             setText(rawDataFile.getName());
-            rawDataFile.nameProperty()
-                .addListener((observable, oldValue, newValue) -> setText(newValue));
             setGraphic(getRawGraphic(rawDataFile));
 
             rawDataFile.colorProperty().addListener((observable, oldColor, newColor) -> {
@@ -413,9 +426,6 @@ public class MainWindowController {
             if (item instanceof GroupEntity) {
               return;
             }
-
-            RawDataFileRenameModule.renameFile(((ValueEntity<RawDataFile>) item).getValue(),
-                getText());
           }
         });
 
@@ -424,6 +434,15 @@ public class MainWindowController {
       if (event.getClickCount() == 2) {
         RawDataFile clickedFile = MZmineGUI.getSelectedRawDataFiles().get(0);
         if (clickedFile instanceof IMSRawDataFile) {
+          if (clickedFile instanceof ImagingRawDataFile) {
+            if (MZmineCore.getDesktop().displayConfirmation(
+                "Warning!\n" + "You are trying to open an IMS MS imaging file.\n"
+                    + "The amount of information may crash MZmine.\n"
+                    + "Would you like to open the overview anyway?", ButtonType.YES, ButtonType.NO)
+                == ButtonType.NO) {
+              return;
+            }
+          }
           handleShowIMSDataOverview(event);
         } else if (clickedFile instanceof ImagingRawDataFile) {
           handleShowImage(event);
@@ -480,26 +499,6 @@ public class MainWindowController {
 
             // Setting color should be enabled only if files are selected
             rawDataSetColorMenu.setDisable(rawDataList.getSelectedValues().size() <= 0);
-
-            if (rawDataList.getSelectedValues().size() == 1) {
-              rawDataRemoveMenuItem.setText("Remove file");
-              rawDataRemoveExtensionMenuItem.setText("Remove file extension");
-            } else {
-              rawDataRemoveMenuItem.setText("Remove files");
-              rawDataRemoveExtensionMenuItem.setText("Remove files' extensions");
-            }
-
-            if (rawDataList.getSelectionModel().getSelectedItems().size() == 1) {
-              rawDataRenameMenuItem.setDisable(false);
-              if (rawDataList.getSelectionModel().getSelectedItems()
-                  .get(0) instanceof GroupEntity) {
-                rawDataRenameMenuItem.setText("Rename group");
-              } else {
-                rawDataRenameMenuItem.setText("Rename file");
-              }
-            } else {
-              rawDataRenameMenuItem.setDisable(true);
-            }
           }
         });
 
@@ -610,6 +609,16 @@ public class MainWindowController {
     return taskView;
   }
 
+  public void handleLibraryToFeatureList(final ActionEvent actionEvent) {
+    logger.finest("Libraries to feature lists");
+    var libraries = Collections.unmodifiableList(MZmineGUI.getSelectedSpectralLibraryList());
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(SpectralLibraryToFeatureListModule.class);
+    parameters.getParameter(SpectralLibraryToFeatureListParameters.libraries)
+        .setValue(new SpectralLibrarySelection(libraries));
+    MZmineCore.runMZmineModule(SpectralLibraryToFeatureListModule.class, parameters);
+  }
+
   public void handleShowChromatogram(Event event) {
     logger.finest("Activated Show chromatogram menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
@@ -633,6 +642,15 @@ public class MainWindowController {
         .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
             selectedFiles.toArray(new RawDataFile[0]));
     MZmineCore.runMZmineModule(RawDataOverviewModule.class, parameters);
+  }
+
+  public void handleShowRawDataSummary(final ActionEvent actionEvent) {
+    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(RawDataSummaryModule.class);
+    parameters.getParameter(RawDataSummaryParameters.dataFiles)
+        .setValue(new RawDataFilesSelection(selectedFiles.toArray(new RawDataFile[0])));
+    MZmineCore.setupAndRunModule(RawDataSummaryModule.class);
   }
 
   public void handleShowIMSDataOverview(Event event) {
@@ -736,28 +754,7 @@ public class MainWindowController {
     featureListsList.sortSelectedItems();
   }
 
-  public void handleRemoveFileExtension(Event event) {
-    for (RawDataFile file : rawDataList.getSelectedValues()) {
-      RawDataFileRenameModule.renameFile(file, FilenameUtils.removeExtension(file.getName()));
-    }
-    rawDataList.refresh();
-  }
-
   public void handleExportFile(Event event) {
-  }
-
-  public void handleRenameRawData(Event event) {
-    if (rawDataList.getSelectionModel() == null) {
-      return;
-    }
-
-    // Only one file must be selected
-    if (rawDataList.getSelectionModel().getSelectedIndices().size() != 1) {
-      return;
-    }
-
-    rawDataList.setEditable(true);
-    rawDataList.edit(rawDataList.getSelectionModel().getSelectedIndex());
   }
 
   @SuppressWarnings("unchecked")
@@ -1038,4 +1035,5 @@ public class MainWindowController {
   public NotificationPane getNotificationPane() {
     return notificationPane;
   }
+
 }

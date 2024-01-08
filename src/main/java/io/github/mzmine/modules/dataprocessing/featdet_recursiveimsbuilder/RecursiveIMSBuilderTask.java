@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -163,7 +163,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     final MobilityScanDataAccess access = EfficientDataAccess
-        .of(file, MobilityScanDataType.CENTROID, scanSelection);
+        .of(file, MobilityScanDataType.MASS_LIST, scanSelection);
 
     logger.finest(() -> "Extracting data points from mobility scans and building mobilograms...");
     stepProcessed.set(0);

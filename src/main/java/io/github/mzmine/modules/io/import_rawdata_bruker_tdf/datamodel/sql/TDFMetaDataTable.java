@@ -74,8 +74,8 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
       return false;
     }
     String version =
-        valueCol.get(keyList.indexOf(Keys.SchemaVersionMajor.name())) + "."
-            + valueCol.get(keyList.indexOf(Keys.SchemaVersionMinor.name()));
+        valueCol.get(keyList.indexOf(Keys.SchemaVersionMajor.name())) + "." + valueCol.get(
+            keyList.indexOf(Keys.SchemaVersionMinor.name()));
 
     if (!allowedFileVersions.contains(version)) {
       MZmineCore.getDesktop().displayMessage(
@@ -163,7 +163,8 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
     SchemaType, SchemaVersionMajor, SchemaVersionMinor, MzAcqRangeLower, MzAcqRangeUpper,
     OneOverK0AcqRangeLower, OneOverK0AcqRangeUpper, AcquisitionSoftwareVersion, InstrumentName,
     Description, SampleName, MethodName, HasProfileSpectra, HasLineSpectra, ImagingAreaMinXIndexPos,
-    ImagingAreaMaxXIndexPos, ImagingAreaMinYIndexPos, ImagingAreaMaxYIndexPos, AcquisitionDateTime;
+    Geometry, ImagingAreaMaxXIndexPos, ImagingAreaMinYIndexPos, ImagingAreaMaxYIndexPos,
+    AcquisitionDateTime;
   }
 
   public String getValueForKey(Keys key) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,15 +25,21 @@
 
 package io.github.mzmine.datamodel;
 
+import static java.util.Objects.requireNonNullElse;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
@@ -48,23 +54,29 @@ public interface RawDataFile {
   @NotNull String getName();
 
   /**
-   * Change the name of this data file.
-   * <p></p>
-   * Setting the name of a file via this function is not reproducible in MZmine projects if the name
-   * is not predetermined in by a parameter. In that case,
-   * {@link
-   * io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule#renameFile(RawDataFile,
-   * String)} should be used.
-   *
-   * @return the actually set name after checking restricted symbols and for duplicate names
-   */
-  String setName(@NotNull String name);
-
-  /**
    * @return The absolute path this file was loaded from. Null if the file does not exist on the
    * file space or was created as a dummy file by mzTab-m import.
    */
   @Nullable String getAbsolutePath();
+
+  /**
+   * @return The absolute path this file was loaded from. or a file of getName() if no path was
+   * provided
+   */
+  default @NotNull File getAbsoluteFilePath() {
+    return new File(requireNonNullElse(getAbsolutePath(), getName()));
+  }
+
+  /**
+   * Uses the absolute file path first, if null then use the name which might have been changed by
+   * the user
+   *
+   * @return usually the file.extension as in File.getName()
+   */
+  default String getFileName() {
+    var path = getAbsolutePath();
+    return path != null ? new File(path).getName() : getName();
+  }
 
   int getNumOfScans();
 
@@ -77,7 +89,10 @@ public interface RawDataFile {
    *
    * @return max number of data points in all masslists (centroid) of all scans
    */
-  int getMaxCentroidDataPoints();
+  default int getMaxCentroidDataPoints() {
+    return stream().map(Scan::getMassList).filter(Objects::nonNull)
+        .mapToInt(MassList::getNumberOfDataPoints).max().orElse(0);
+  }
 
 
   /**
@@ -90,7 +105,9 @@ public interface RawDataFile {
   /**
    * Returns sorted array of all MS levels in this file
    */
-  @NotNull int[] getMSLevels();
+  default @NotNull int[] getMSLevels() {
+    return stream().mapToInt(Scan::getMSLevel).distinct().sorted().toArray();
+  }
 
   /**
    * Returns sorted array of all scan numbers in given MS level
@@ -98,7 +115,9 @@ public interface RawDataFile {
    * @param msLevel MS level
    * @return Sorted array of scan numbers, never returns null
    */
-  @NotNull List<Scan> getScanNumbers(int msLevel);
+  default @NotNull List<Scan> getScanNumbers(int msLevel) {
+    return stream().filter(s -> s.getMSLevel() == msLevel).collect(Collectors.toList());
+  }
 
   /**
    * Returns sorted array of all scan numbers in given MS level and retention time range
@@ -107,7 +126,11 @@ public interface RawDataFile {
    * @param rtRange Retention time range
    * @return Sorted array of scan numbers, never returns null
    */
-  @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange);
+  default @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange) {
+    return stream()
+        .filter(s -> s.getMSLevel() == msLevel && rtRange.contains(s.getRetentionTime()))
+        .toArray(Scan[]::new);
+  }
 
   /**
    * Uses binary search
@@ -115,7 +138,15 @@ public interface RawDataFile {
    * @param rt The rt
    * @return the closest scan or null if no scans avaialble
    */
-  @Nullable Scan binarySearchClosestScan(float rt, int mslevel);
+  default @Nullable Scan binarySearchClosestScan(float rt, int mslevel) {
+    // scans are sorted by rt ascending
+    // closest index will be negative direct hit is positive
+    int indexClosestScan = binarySearchClosestScanIndex(rt, mslevel);
+    if (indexClosestScan < getNumOfScans() && indexClosestScan >= 0) {
+      return getScan(indexClosestScan);
+    }
+    return null;
+  }
 
   /**
    * Uses binary search
@@ -123,7 +154,15 @@ public interface RawDataFile {
    * @param rt The rt
    * @return the closest scan or null if no scans avaialble
    */
-  @Nullable Scan binarySearchClosestScan(float rt);
+  default @Nullable Scan binarySearchClosestScan(float rt) {
+    // scans are sorted by rt ascending
+    // closest index will be negative direct hit is positive
+    int indexClosestScan = binarySearchClosestScanIndex(rt);
+    if (indexClosestScan < getNumOfScans() && indexClosestScan >= 0) {
+      return getScan(indexClosestScan);
+    }
+    return null;
+  }
 
   /**
    * binary search the closest scan
@@ -131,7 +170,14 @@ public interface RawDataFile {
    * @param rt search retention time
    * @return closest index or -1 if no scan was found
    */
-  int binarySearchClosestScanIndex(float rt);
+  default int binarySearchClosestScanIndex(float rt) {
+    // scans are sorted by rt ascending
+    // closest index will be negative direct hit is positive
+    int closestIndex = Math.abs(
+        BinarySearch.binarySearch(rt, DefaultTo.CLOSEST_VALUE, getNumOfScans(),
+        index -> getScan(index).getRetentionTime()));
+    return closestIndex >= getNumOfScans() ? -1 : closestIndex;
+  }
 
   /**
    * binary search the closest scan
@@ -139,7 +185,46 @@ public interface RawDataFile {
    * @param rt search retention time
    * @return closest index or -1 if no scan was found
    */
-  int binarySearchClosestScanIndex(float rt, int mslevel);
+  default int binarySearchClosestScanIndex(float rt, int mslevel) {
+    // scans are sorted by rt ascending
+    // closest index will be negative direct hit is positive
+    int indexClosestScan = binarySearchClosestScanIndex(rt);
+    if (indexClosestScan == -1) {
+      return -1;
+    }
+    //matches ms level
+    if (getScan(indexClosestScan).getMSLevel() == mslevel) {
+      return indexClosestScan;
+    }
+
+    // find the closest scan with msLevel around the found scan (might be other level)
+    int before = -1;
+    int after = -1;
+    for (int i = indexClosestScan; i < getNumOfScans(); i++) {
+      if (getScan(i).getMSLevel() == mslevel) {
+        after = i;
+        break;
+      }
+    }
+    for (int i = indexClosestScan - 1; i > 0; i--) {
+      if (getScan(i).getMSLevel() == mslevel) {
+        before = i;
+        break;
+      }
+    }
+    if (after != -1 && before != -1) {
+      if (Math.abs(getScan(after).getRetentionTime() - rt) < Math.abs(
+          getScan(before).getRetentionTime() - rt)) {
+        return after;
+      } else {
+        return before;
+      }
+    } else if (after != -1) {
+      return after;
+    } else {
+      return before;
+    }
+  }
 
   @NotNull Range<Double> getDataMZRange();
 
@@ -211,9 +296,6 @@ public interface RawDataFile {
 
   void addScan(Scan newScan) throws IOException;
 
-
-  String setNameNoChecks(@NotNull String name);
-
   @NotNull ObservableList<Scan> getScans();
 
   default @NotNull Stream<Scan> stream() {
@@ -253,11 +335,6 @@ public interface RawDataFile {
   @NotNull ObservableList<FeatureListAppliedMethod> getAppliedMethods();
 
   /**
-   * JavaFX safe copy of the name
-   */
-  StringProperty nameProperty();
-
-  /**
    * Get the start time stamp of the sample.
    *
    * @return a datetime stamp (or null in case if it wasn't mentioned in the RawDataFile)
@@ -272,4 +349,5 @@ public interface RawDataFile {
    */
   default void setStartTimeStamp(@Nullable LocalDateTime localDateTime) {
   }
+
 }

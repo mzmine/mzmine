@@ -30,6 +30,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -49,7 +50,11 @@ public class PercentComponent extends FlowPane {
 
   }
 
-  public void setValue(double value) {
+  public void setValue(@Nullable Double value) {
+    if (value == null) {
+      percentField.setText("");
+      return;
+    }
     String stringValue = String.valueOf(value * 100);
     percentField.setText(stringValue);
   }

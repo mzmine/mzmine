@@ -28,13 +28,13 @@ package io.github.mzmine.parameters.parametertypes.combonested;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * Nested combo parameter
@@ -106,7 +106,12 @@ public class NestedComboParameter implements UserParameter<NestedCombo, NestedCo
   }
 
   @Override
-  public void setValueToComponent(NestedComboboxComponent component, NestedCombo newValue) {
+  public void setValueToComponent(NestedComboboxComponent component, @Nullable NestedCombo newValue) {
+    if (newValue == null) {
+      component.setCurrentChoice(null);
+      return;
+    }
+
     component.setCurrentChoice(newValue.currentChoice);
     for (String choice : component.choices.keySet()) {
       for (Parameter p : choices.get(choice).getParameters())

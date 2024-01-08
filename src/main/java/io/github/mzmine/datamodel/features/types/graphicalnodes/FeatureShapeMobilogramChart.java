@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,21 +44,20 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
 import java.util.LinkedHashSet;
+import java.util.NoSuchElementException;
 import java.util.Set;
-import javafx.application.Platform;
-import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.data.Range;
 
-public class FeatureShapeMobilogramChart extends StackPane {
+public class FeatureShapeMobilogramChart extends BufferedChartNode {
 
   public FeatureShapeMobilogramChart(@NotNull ModularFeatureListRow row, AtomicDouble progress) {
-
+    super(true);
     UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
 
     final IMSRawDataFile imsFile = (IMSRawDataFile) row.getRawDataFiles().stream()
         .filter(file -> file instanceof IMSRawDataFile).findAny().orElse(null);
-    if(imsFile == null) {
+    if (imsFile == null) {
       return;
     }
     final MobilityType mt = imsFile.getMobilityType();
@@ -101,14 +100,15 @@ public class FeatureShapeMobilogramChart extends StackPane {
       defaultRange = new Range(0, 1);
     }
 
-    final var finalRange = defaultRange;
+    chart.addDatasets(datasets);
+    try {
+      chart.getXYPlot().getDomainAxis().setRange(defaultRange);
+      chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
+    } catch (NoSuchElementException e) {
+      System.out.println("Exception for row " + row.getID());
+    }
 
-    setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    Platform.runLater(() -> {
-      getChildren().add(chart);
-      chart.addDatasets(datasets);
-      chart.getXYPlot().getDomainAxis().setDefaultAutoRange(finalRange);
-      chart.getXYPlot().getDomainAxis().setRange(finalRange);
-    });
+    setChartCreateImage(chart, GraphicalColumType.DEFAULT_GRAPHICAL_CELL_WIDTH,
+        GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
   }
 }

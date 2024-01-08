@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,13 @@ public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWiza
       "Export for GNPS GC-EI FBMN", "Export to Feature-based Molecular Networking (FBMN) on GNPS",
       true);
 
+  public static final BooleanParameter exportMsp = new BooleanParameter("Export for MSP",
+      "Export to MSP", true);
+
+  public static final BooleanParameter exportAnnotationGraphics = new BooleanParameter(
+      "Export annotation graphics", "Exports annotations to png and pdf images.", false);
+
+
   public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
       new FileNameParameter("Export path",
           "If checked, export results for different tools, e.g., GNPS, SIRIUS, ...",
@@ -45,18 +52,20 @@ public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWiza
 
 
   public WorkflowGcElectronImpactWizardParameters() {
-    super(WorkflowWizardParameterFactory.GC_EI_DECONVOLUTION,
+    super(WorkflowWizardParameterFactory.DECONVOLUTION,
         // actual parameters
-        exportPath, exportGnps);
+        exportPath, exportGnps, exportMsp, exportAnnotationGraphics);
   }
 
 
   public WorkflowGcElectronImpactWizardParameters(final boolean exportActive,
-      final File exportBasePath, final boolean exportGnpsActive) {
+      final File exportBasePath, final boolean exportGnpsActive, final boolean exportMspActive, final boolean exportAnnotationGraphicsActive) {
     this();
     setParameter(exportPath, exportActive);
     getParameter(exportPath).getEmbeddedParameter().setValue(exportBasePath);
     setParameter(exportGnps, exportGnpsActive);
+    setParameter(exportMsp, exportMspActive);
+    setParameter(exportAnnotationGraphics, exportAnnotationGraphicsActive);
   }
 
 }

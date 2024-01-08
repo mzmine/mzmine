@@ -46,7 +46,6 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -73,8 +72,8 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
       "Feature intensity", "Intensity in the quantification table (csv).",
       AbundanceMeasure.values(), AbundanceMeasure.Area);
 
-  public static final OptionalModuleParameter<GnpsGcSubmitParameters> SUBMIT = new OptionalModuleParameter<>(
-      "Submit to GNPS GC-MS", "Directly submits a GNPS-GC job", new GnpsGcSubmitParameters());
+//  public static final OptionalModuleParameter<GnpsGcSubmitParameters> SUBMIT = new OptionalModuleParameter<>(
+//      "Submit to GNPS GC-MS", "Directly submits a GNPS-GC job", new GnpsGcSubmitParameters());
 
   public static final BooleanParameter OPEN_FOLDER = new BooleanParameter("Open folder",
       "Opens the export folder", false);
@@ -90,21 +89,16 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     String message = "<html><strong>Export/Submit to GNPS-GC:</strong>"
-        + "<p>The GNPS Export module was designed for the <strong>GC</strong> workflow on GNPS <a href=\"http://gnps.ucsd.edu\">http://gnps.ucsd.edu</a>.<br>"
-        + "See the <a href=\"https://ccms-ucsd.github.io/GNPSDocumentation/gc-ms-documentation/\"><strong>GNPS-GC-MS documentation here</strong></a> and <strong>please cite</strong>:<br>"
-        + "<ul>"
-        + "<li>the preprint <strong>GC-MS</strong> on GNPS: Aksenov et al.: <a href=\"https://www.biorxiv.org/content/10.1101/812404v1\">bioRxiv 812404 (2019)</a>.</li>"
-        + "<li>the <strong>GNPS</strong> paper: Wang et al.:<a href=\"https://www.nature.com/nbt/journal/v34/n8/full/nbt.3597.html\">Nature Biotechnology 34.8 (2016): 828-837</a></li>"
-        + "<li>and the <strong>MZmine</strong> paper: Pluskal et al.: <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">BMC Bioinformatics, 11, 395 (2010)</a></li>"
-        + "</ul></p>";
+                     + "<p>The GNPS Export module was designed for the <strong>GC</strong> workflow on GNPS <a href=\"http://gnps.ucsd.edu\">http://gnps.ucsd.edu</a>.<br>"
+                     + "See the <a href=\"https://ccms-ucsd.github.io/GNPSDocumentation/gc-ms-documentation/\"><strong>GNPS-GC-MS documentation here</strong></a> and <strong>please cite</strong>:<br>"
+                     + "<ul>"
+                     + "<li>the preprint <strong>GC-MS</strong> on GNPS: Aksenov et al.: <a href=\"https://www.biorxiv.org/content/10.1101/812404v1\">bioRxiv 812404 (2019)</a>.</li>"
+                     + "<li>the <strong>GNPS</strong> paper: Wang et al.:<a href=\"https://www.nature.com/nbt/journal/v34/n8/full/nbt.3597.html\">Nature Biotechnology 34.8 (2016): 828-837</a></li>"
+                     + "<li>and the <strong>MZmine</strong> paper: Pluskal et al.: <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">BMC Bioinformatics, 11, 395 (2010)</a></li>"
+                     + "</ul></p>";
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
 
-
-  @Override
-  public int getVersion() {
-    return 2;
-  }
 }

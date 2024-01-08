@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,6 +42,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.io.File;
 import java.io.FileReader;
 import java.time.Instant;
@@ -143,7 +144,7 @@ public class CsvImportTask extends AbstractTask {
         final Scan s_no = rawDataFile.binarySearchClosestScan(feature_rt, 1);
         if (s_no != null && finalRTRange.contains(s_no.getRetentionTime())) {
           representativeScan = s_no;
-          final int peakIndex = s_no.binarySearch(feature_mz, true);
+          final int peakIndex = s_no.binarySearch(feature_mz, DefaultTo.CLOSEST_VALUE);
           if (finalMZRange.contains(s_no.getMzValue(peakIndex))) {
             finalDataPoint[0] = new SimpleDataPoint(feature_mz, s_no.getIntensityValue(peakIndex));
           }

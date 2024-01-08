@@ -34,6 +34,8 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
@@ -77,7 +79,8 @@ import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
+public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
+    Comparable<CompoundDBAnnotation> {
 
   Logger logger = Logger.getLogger(CompoundDBAnnotation.class.getName());
 
@@ -97,7 +100,8 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
       try {
         annotations.add(neutralAnnotation.ionize(adduct));
       } catch (IllegalStateException e) {
-        logger.log(Level.WARNING, e.getMessage(), e);
+        // do not log the full stack trace as this is expected in many cases
+        logger.log(Level.WARNING, e.getMessage());
       }
     }
 
@@ -115,11 +119,11 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
   static boolean isBaseAnnotationValid(CompoundDBAnnotation baseAnnotation, boolean useIonLibrary) {
     if (baseAnnotation.getPrecursorMZ() != null && !useIonLibrary) {
       return true;
-    } else if (useIonLibrary && (baseAnnotation.get(NeutralMassType.class) != null
-        || baseAnnotation.getFormula() != null || baseAnnotation.getSmiles() != null)) {
-      return true;
+    } else {
+      return useIonLibrary && (baseAnnotation.get(NeutralMassType.class) != null
+                               || baseAnnotation.getFormula() != null
+                               || baseAnnotation.getSmiles() != null);
     }
-    return false;
   }
 
   /**
@@ -153,7 +157,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
    *
    * @return The neutral mass or null.
    */
-  public static Double calcNeutralMass(CompoundDBAnnotation annotation) {
+  static Double calcNeutralMass(CompoundDBAnnotation annotation) {
     final IonType currentAdduct = annotation.get(IonTypeType.class);
     if (currentAdduct != null && annotation.getPrecursorMZ() != null) {
       return currentAdduct.getMass(annotation.getPrecursorMZ());
@@ -184,6 +188,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     final double mz = clone.calcMzForAdduct(adduct);
     clone.put(PrecursorMZType.class, mz);
     clone.put(IonTypeType.class, adduct);
+    // TODO add ion formula
     return clone;
   }
 
@@ -229,7 +234,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     return get(key);
   }
 
-  Set<DataType<?>> getTypes();
+  Set<DataType> getTypes();
 
   void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
@@ -254,6 +259,16 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
   @Nullable
   default String getSmiles() {
     return get(SmilesStructureType.class);
+  }
+
+  @Nullable
+  default String getInChI() {
+    return get(InChIStructureType.class);
+  }
+
+  @Nullable
+  default String getInChIKey() {
+    return get(InChIKeyStructureType.class);
   }
 
   @Override
@@ -372,13 +387,18 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     clone.put(MzPpmDifferenceType.class,
         (float) MathUtils.getPpmDiff(Objects.requireNonNullElse(clone.getPrecursorMZ(), 0d),
             row.getAverageMZ()));
-    if (get(CCSType.class) != null && row.getAverageCCS() != null) {
+
+    // if the compound entry contained <=0 for RT or mobility
+    // do not check. This is defined as wildcard in the documentation and outside valid values
+    var compCcs = get(CCSType.class);
+    if (compCcs != null && compCcs > 0 && row.getAverageCCS() != null) {
       clone.put(CCSRelativeErrorType.class,
-          PercentTolerance.getPercentError(get(CCSType.class), row.getAverageCCS()));
+          PercentTolerance.getPercentError(compCcs, row.getAverageCCS()));
     }
-    if (get(RTType.class) != null && row.getAverageRT() != null) {
+    var compRt = get(RTType.class);
+    if (compRt != null && compRt > 0 && row.getAverageRT() != null) {
       clone.put(RtRelativeErrorType.class,
-          PercentTolerance.getPercentError(get(RTType.class), row.getAverageRT()));
+          PercentTolerance.getPercentError(compRt, row.getAverageRT()));
     }
 
     return clone;
@@ -426,12 +446,54 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     return get(IsotopePatternType.class);
   }
 
-  Map<DataType<?>, Object> getReadOnlyMap();
+  Map<DataType, Object> getReadOnlyMap();
 
   CompoundDBAnnotation clone();
 
-  default String toStringComplete() {
-    return getReadOnlyMap().entrySet().stream()
-        .map(e -> e.getKey().getUniqueID() + ": " + e.getValue()).collect(Collectors.joining(", "));
+  default String toFullString() {
+    return getReadOnlyMap().keySet().stream()
+        .map(key -> key.getUniqueID() + ": " + getFormattedString(key))
+        .collect(Collectors.joining("; "));
+  }
+
+  /**
+   * A formatted string representation of the value - internally in MZmine GUI
+   *
+   * @return the formatted representation of the value (or an empty String)
+   */
+  @NotNull
+  default String getFormattedString(DataType key) {
+    return key.getFormattedString(get(key));
+  }
+
+  /**
+   * A formatted string representation of the value either for export or internally in MZmine GUI
+   *
+   * @return the formatted representation of the value, or the {@link DataType#getDefaultValue()}
+   * for null values, (or an empty String if default is also null)
+   */
+  @NotNull
+  default String getFormattedString(DataType key, boolean export) {
+    return key.getFormattedString(get(key), export);
+  }
+
+
+  /**
+   * highest score first
+   *
+   * @param o the object to be compared.
+   */
+  @Override
+  default int compareTo(@NotNull CompoundDBAnnotation o) {
+    var sc = this.getScore();
+    var sc2 = o.getScore();
+    if (sc == null && sc2 == null) {
+      return 0;
+    } else if (sc == null) {
+      return -1;
+    } else if (sc2 == null) {
+      return 1;
+    }
+    return -Float.compare(sc, sc2);
   }
 }

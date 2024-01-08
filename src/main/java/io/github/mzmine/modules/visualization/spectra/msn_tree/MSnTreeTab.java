@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.visualization.spectra.msn_tree;
 
+import static io.github.mzmine.modules.visualization.spectra.msn_tree.IndividualScansOrMerged.INDIVIDUAL_SCANS;
+
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PrecursorIonTree;
@@ -49,6 +51,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.La
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.FxColorUtil;
@@ -73,6 +76,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -83,6 +87,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
@@ -118,6 +123,7 @@ public class MSnTreeTab extends SimpleTab {
   private final CheckBox cbRelative;
   private final CheckBox cbDenoise;
   private final List<SpectraPlot> spectraPlots = new ArrayList<>(10);
+  private final ComboBox<IndividualScansOrMerged> comboScanSelection;
   public Ellipse2D circle = new Ellipse2D.Double(-2.5d, 0, 5, 5);
   private final Spinner<Integer> sizeSpinner;
   private final ChartGroup chartGroup;
@@ -194,8 +200,7 @@ public class MSnTreeTab extends SimpleTab {
     // create spectra grid
     spectraPane = new GridPane();
     spectraPane.getColumnConstraints()
-        .addAll(new ColumnConstraints(200, 350, -1, Priority.ALWAYS, HPos.LEFT, true),
-            new ColumnConstraints(200, 350, -1, Priority.ALWAYS, HPos.LEFT, true));
+        .addAll(new ColumnConstraints(200, 350, -1, Priority.ALWAYS, HPos.LEFT, true));
     spectraPane.setGridLinesVisible(true);
     spectraPane.getRowConstraints()
         .add(new RowConstraints(100, -1, -1, Priority.ALWAYS, VPos.CENTER, true));
@@ -232,10 +237,18 @@ public class MSnTreeTab extends SimpleTab {
 
     legendEnergies = new Label("");
 
+    var options = FXCollections.observableArrayList(IndividualScansOrMerged.values());
+    comboScanSelection = new ComboBox<>(options);
+    comboScanSelection.getSelectionModel().select(INDIVIDUAL_SCANS);
+    var selectedScansProperty = comboScanSelection.getSelectionModel().selectedItemProperty();
+    selectedScansProperty.addListener((obs, ov, nv) -> updateCurrentSpectra());
+
+    legendEnergies.visibleProperty().bind(selectedScansProperty.isEqualTo(INDIVIDUAL_SCANS));
+
     // menu
     spectraMenu.getChildren().addAll( // menu
         createButton("Auto range", this::autoRange), //
-        cbRelative, cbDenoise, new Label("Size"), sizeSpinner, legendEnergies);
+        comboScanSelection, cbRelative, cbDenoise, new Label("Size"), sizeSpinner, legendEnergies);
 
     SplitPane splitPane = new SplitPane(left, center);
     splitPane.setDividerPositions(0.22);
@@ -430,6 +443,26 @@ public class MSnTreeTab extends SimpleTab {
     currentRoot = any.getRoot();
     boolean rootHasChanged = !Objects.equals(prevRoot, currentRoot);
 
+    switch (comboScanSelection.getSelectionModel().getSelectedItem()) {
+      case INDIVIDUAL_SCANS -> showIndividualScans(currentRoot);
+      case MERGED -> showMergedSpectra(currentRoot);
+    }
+
+    if (rootHasChanged) {
+      chartGroup.applyAutoRange(true);
+    }
+
+    // update chart
+    for (var spectraPlot : spectraPlots) {
+      spectraPlot.setNotifyChange(true);
+      spectraPlot.fireChangeEvent();
+    }
+  }
+
+  private void showIndividualScans(final PrecursorIonTreeNode currentRoot) {
+    if (currentRoot == null) {
+      return;
+    }
     SpectraPlot previousPlot = null;
     // distribute collision energies in three categories low, med, high
     final List<Float> collisionEnergies = currentRoot.getAllFragmentScans().stream()
@@ -447,14 +480,12 @@ public class MSnTreeTab extends SimpleTab {
       if (minEnergy != maxEnergy) {
         if (minEnergy != medEnergy && maxEnergy != medEnergy) {
           legendEnergies.setText(
-              String.format("Activation: ▽≈%.0f △≈%.0f ◇≈%.0f ○ merged spectra", minEnergy,
-                  medEnergy, maxEnergy));
+              String.format("Activation: ▽≈%.0f △≈%.0f ◇≈%.0f", minEnergy, medEnergy, maxEnergy));
         } else {
-          legendEnergies.setText(
-              String.format("Activation: ▽≈%.0f ◇≈%.0f ○ merged spectra", minEnergy, maxEnergy));
+          legendEnergies.setText(String.format("Activation: ▽≈%.0f ◇≈%.0f", minEnergy, maxEnergy));
         }
       } else {
-        legendEnergies.setText(String.format("Activation: ◇≈%.0f ○ merged spectra", maxEnergy));
+        legendEnergies.setText(String.format("Activation: ◇≈%.0f", maxEnergy));
       }
     }
     // relative intensities? and denoise?
@@ -521,19 +552,6 @@ public class MSnTreeTab extends SimpleTab {
       levelPrecursors = currentRoot.getPrecursors(levelFromRoot);
 
     } while (!levelPrecursors.isEmpty());
-
-    // show merged spectra
-    showMergedSpectra(currentRoot);
-
-    if (rootHasChanged) {
-      chartGroup.applyAutoRange(true);
-    }
-
-    // update chart
-    for (var spectraPlot : spectraPlots) {
-      spectraPlot.setNotifyChange(true);
-      spectraPlot.fireChangeEvent();
-    }
   }
 
   private void showMergedSpectra(final PrecursorIonTreeNode any) {
@@ -546,7 +564,7 @@ public class MSnTreeTab extends SimpleTab {
     var root = any.getRoot();
     // only get the merged spectrum on each level
     FragmentScanSelection selection = new FragmentScanSelection(mzTol, false,
-        IncludeInputSpectra.NONE, IntensityMergingType.MAXIMUM);
+        IncludeInputSpectra.NONE, IntensityMergingType.MAXIMUM, MsLevelFilter.ALL_LEVELS);
     List<Scan> mergedSpectra = selection.getAllFragmentSpectra(root);
 
     // MS2 has two spectra - the merged MS2 and the spectrum of all MSn merged into it
@@ -593,7 +611,9 @@ public class MSnTreeTab extends SimpleTab {
       }
       // add
       spectraPlot.getXYPlot().getDomainAxis().setVisible(true);
-      spectraPane.add(new BorderPane(spectraPlot), 1, rowIndex);
+      spectraPane.getRowConstraints()
+          .add(new RowConstraints(100, -1, -1, Priority.ALWAYS, VPos.CENTER, true));
+      spectraPane.add(new BorderPane(spectraPlot), 0, rowIndex);
       previousPlot = spectraPlot;
       rowIndex++;
     }
@@ -607,12 +627,12 @@ public class MSnTreeTab extends SimpleTab {
     // create one spectra plot for each MS level
     if (numberUsedSpectraPlots >= spectraPlots.size()) {
       final SpectraPlot plot = new SpectraPlot();
-      plot.getXYPlot().getRangeAxis().setLabel(String.format("MS%d intensity", msLevel));
       spectraPlots.add(plot);
       chartGroup.add(new ChartViewWrapper(plot));
     }
     SpectraPlot spectraPlot = spectraPlots.get(numberUsedSpectraPlots);
     spectraPlot.setNotifyChange(false);
+    spectraPlot.getXYPlot().getRangeAxis().setLabel(String.format("MS%d intensity", msLevel));
     numberUsedSpectraPlots++;
     return spectraPlot;
   }

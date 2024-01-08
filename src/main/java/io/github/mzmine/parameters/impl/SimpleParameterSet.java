@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -54,7 +55,6 @@ import javafx.scene.control.ButtonType;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 /**
  * Simple storage for the parameters. A typical MZmine module will inherit this class and define the
@@ -62,15 +62,14 @@ import org.w3c.dom.NodeList;
  */
 public class SimpleParameterSet implements ParameterSet {
 
-  private static final String parameterElement = "parameter";
+  public static final String parameterElement = "parameter";
   private static final String nameAttribute = "name";
-
-  private String moduleNameAttribute;
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
   private final BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
   protected Parameter<?>[] parameters;
-  private boolean skipSensitiveParameters = false;
   protected String helpUrl = null;
+  private String moduleNameAttribute;
+  private boolean skipSensitiveParameters = false;
 
   public SimpleParameterSet() {
     this(new Parameter<?>[0], null);
@@ -78,6 +77,11 @@ public class SimpleParameterSet implements ParameterSet {
 
   public SimpleParameterSet(Parameter<?>... parameters) {
     this(parameters, null);
+  }
+
+  public SimpleParameterSet(String onlineHelpUrl, Parameter<?>... parameters) {
+    this.helpUrl = onlineHelpUrl;
+    this.parameters = parameters;
   }
 
   public SimpleParameterSet(Parameter<?>[] parameters, String onlineHelpUrl) {
@@ -102,18 +106,34 @@ public class SimpleParameterSet implements ParameterSet {
 
   @Override
   public void loadValuesFromXML(Element xmlElement) {
-    NodeList list = xmlElement.getElementsByTagName(parameterElement);
-    for (int i = 0; i < list.getLength(); i++) {
-      Element nextElement = (Element) list.item(i);
+    var nameParameterMap = getNameParameterMap();
+    // cannot use getElementsByTagName, this goes recursively through all levels
+    // finding nested ParameterSets
+//    NodeList list = xmlElement.getElementsByTagName(parameterElement);
+
+    var childNodes = xmlElement.getChildNodes();
+    for (int i = 0; i < childNodes.getLength(); i++) {
+      if (!(childNodes.item(i) instanceof Element nextElement) || !parameterElement.equals(
+          nextElement.getTagName())) {
+        continue;
+      }
+
       String paramName = nextElement.getAttribute(nameAttribute);
-      for (Parameter<?> param : parameters) {
-        if (param.getName().equals(paramName)) {
-          try {
-            param.loadValueFromXML(nextElement);
-          } catch (Exception e) {
-            logger.log(Level.WARNING, "Error while loading parameter values for " + param.getName(),
-                e);
-          }
+      Parameter<?> param = nameParameterMap.get(paramName);
+      if (param != null) {
+        try {
+          param.loadValueFromXML(nextElement);
+        } catch (Exception e) {
+          logger.log(Level.WARNING, "Error while loading parameter values for " + param.getName(),
+              e);
+        }
+      } else {
+        // load config reads the EncryptionKeyParameter in a second go
+        if (nameParameterMap.values().stream()
+            .noneMatch(p -> p instanceof EncryptionKeyParameter)) {
+          logger.warning(
+              "Cannot find parameter of name %s in ParameterSet %s. This might indicate changes of the parameterset and parameter types".formatted(
+                  paramName, getClass().getName()));
         }
       }
     }
@@ -199,6 +219,7 @@ public class SimpleParameterSet implements ParameterSet {
 
       return newSet;
     } catch (Throwable e) {
+      logger.log(Level.WARNING, "While cloning parameters: " + e.getMessage(), e);
       e.printStackTrace();
       return null;
     }
@@ -228,9 +249,16 @@ public class SimpleParameterSet implements ParameterSet {
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      final boolean skipRawDataAndFeatureListParameters) {
     boolean allParametersOK = true;
     for (Parameter<?> p : parameters) {
+      // this is done in batch mode where no data is loaded when the parameters are checked
+      if (skipRawDataAndFeatureListParameters && (p instanceof RawDataFilesParameter
+                                                  || p instanceof FeatureListsParameter)) {
+        continue;
+      }
+
       boolean pOK = p.checkValue(errorMessages);
       if (!pOK) {
         allParametersOK = false;
@@ -282,21 +310,24 @@ public class SimpleParameterSet implements ParameterSet {
           "This module has not been tested with ion mobility data files. This could lead to unexpected results.");
       if (showMsg) {
         return MZmineCore.getDesktop()
-            .createAlertWithOptOut("Compatibility warning", "Untested compatibility",
-                "This module has not been tested with ion mobility data files. This could lead "
-                    + "to unexpected results. Do you want to continue anyway?", "Do not show again",
-                optOut -> showMsgMap.put(this.getClass().getName(), !optOut)) == ButtonType.YES;
+                   .createAlertWithOptOut("Compatibility warning", "Untested compatibility",
+                       "This module has not been tested with ion mobility data files. This could lead "
+                       + "to unexpected results. Do you want to continue anyway?",
+                       "Do not show again",
+                       optOut -> showMsgMap.put(this.getClass().getName(), !optOut))
+               == ButtonType.YES;
       }
       return true;
     } else if (containsImsFile && getIonMobilitySupport() == IonMobilitySupport.RESTRICTED) {
       logger.warning(
           "This module has certain restrictions when processing ion mobility data files. This"
-              + " could lead to unexpected results");
+          + " could lead to unexpected results");
       if (showMsg) {
         return MZmineCore.getDesktop()
-            .createAlertWithOptOut("Compatibility warning", "Restricted compatibility",
-                getRestrictedIonMobilitySupportMessage(), "Do not show again",
-                optOut -> showMsgMap.put(this.getClass().getName(), !optOut)) == ButtonType.YES;
+                   .createAlertWithOptOut("Compatibility warning", "Restricted compatibility",
+                       getRestrictedIonMobilitySupportMessage(), "Do not show again",
+                       optOut -> showMsgMap.put(this.getClass().getName(), !optOut))
+               == ButtonType.YES;
       }
     } else if (!onlyImsFiles && getIonMobilitySupport() == IonMobilitySupport.ONLY) {
       logger.warning(
@@ -311,8 +342,8 @@ public class SimpleParameterSet implements ParameterSet {
 
       boolean returnVal = MZmineCore.getDesktop().displayConfirmation(
           "This module does not support ion mobility data. This will lead to unexpected "
-              + "results. Do you want to continue anyway?", ButtonType.YES, ButtonType.NO)
-          == ButtonType.YES;
+          + "results. Do you want to continue anyway?", ButtonType.YES, ButtonType.NO)
+                          == ButtonType.YES;
       if (!returnVal) {
         errorMessages.addAll(nonImsFilesList);
       }
@@ -331,7 +362,7 @@ public class SimpleParameterSet implements ParameterSet {
    */
   public String getRestrictedIonMobilitySupportMessage() {
     return "This module has certain restrictions when processing ion mobility data files. This "
-        + "could lead to unexpected results. Do you want to continue anyway?";
+           + "could lead to unexpected results. Do you want to continue anyway?";
   }
 
   /**

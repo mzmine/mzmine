@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -34,7 +35,9 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.util.ExitCode;
+import java.util.Map;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,8 +47,8 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
 
   public static final ElementsParameter elements = new ElementsParameter("Chemical elements",
       "Chemical elements which isotopes will be considered");
-  public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter(0.0005,
-      10);
+  public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter(
+      ToleranceType.FEATURE_TO_SCAN, 0.0005, 10);
   public static final IntegerParameter maxCharge = new IntegerParameter(
       "Maximum charge of isotope m/z",
       "Maximum possible charge of isotope distribution m/z's. All present m/z values obtained by dividing "
@@ -89,5 +92,14 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", isotopeMzTolerance);
+    return nameParameterMap;
   }
 }

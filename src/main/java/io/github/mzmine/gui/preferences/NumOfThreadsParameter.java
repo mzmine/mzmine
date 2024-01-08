@@ -25,14 +25,16 @@
 
 package io.github.mzmine.gui.preferences;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
  * Simple Parameter implementation
- * 
- * 
+ *
  */
 public class NumOfThreadsParameter implements UserParameter<Integer, NumOfThreadsEditor> {
 
@@ -47,17 +49,11 @@ public class NumOfThreadsParameter implements UserParameter<Integer, NumOfThread
     this.automatic = true;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
   @Override
   public String getName() {
     return name;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
   @Override
   public String getDescription() {
     return description;
@@ -79,10 +75,15 @@ public class NumOfThreadsParameter implements UserParameter<Integer, NumOfThread
     return automatic;
   }
 
+  public void setAutomatic(final boolean automatic) {
+    this.automatic = automatic;
+  }
+
   @Override
   public void setValue(Integer value) {
     assert value != null;
     this.value = value;
+    automatic = false;
   }
 
   @Override
@@ -105,15 +106,15 @@ public class NumOfThreadsParameter implements UserParameter<Integer, NumOfThread
   }
 
   @Override
-  public void setValueToComponent(NumOfThreadsEditor component, Integer newValue) {
-    component.setValue(automatic, newValue);
+  public void setValueToComponent(NumOfThreadsEditor component, @Nullable Integer newValue) {
+    component.setValue(automatic, requireNonNullElse(newValue, 0));
   }
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
     String attrValue = xmlElement.getAttribute("isautomatic");
     if (attrValue.length() > 0) {
-      this.automatic = Boolean.valueOf(attrValue);
+      this.automatic = Boolean.parseBoolean(attrValue);
     }
 
     String textContent = xmlElement.getTextContent();

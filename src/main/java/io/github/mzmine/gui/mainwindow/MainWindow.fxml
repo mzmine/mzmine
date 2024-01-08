@@ -70,8 +70,7 @@
               maxWidth="300" minWidth="250" alignment="CENTER_RIGHT" hgap="5"/>
                 <StackPane scaleShape="true">
                   <Label alignment="CENTER"
-                    minWidth="150" onMouseClicked="#handleMemoryBarClick"
-                    prefWidth="150" fx:id="memoryBarLabel">
+                    minWidth="150" prefWidth="150" fx:id="memoryBarLabel">
                     <tooltip>
                       <Tooltip text="Free/total Java heap size"/>
                     </tooltip>
@@ -102,6 +101,8 @@
                             <items>
                               <MenuItem onAction="#handleShowRawDataOverview"
                                 text="Show raw data overview"/>
+                              <MenuItem onAction="#handleShowRawDataSummary"
+                                text="Show raw data summary"/>
                               <MenuItem onAction="#handleShowIMSDataOverview"
                                 text="Show ion mobility raw data overview"/>
                               <MenuItem onAction="#handleShowImageViewer"
@@ -120,9 +121,6 @@
                               <SeparatorMenuItem/>
                               <MenuItem onAction="#handleRawDataSort"
                                 text="Sort alphabetically"/>
-                              <MenuItem onAction="#handleRemoveFileExtension"
-                                text="Remove file extension"
-                                fx:id="rawDataRemoveExtensionMenuItem"/>
                               <MenuItem onAction="#handleShowFileSummary"
                                 text="Show file summary"/>
 
@@ -135,8 +133,6 @@
                                   text="Export scans mgf, txt, msp and mzML"
                                   userData="io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule"/>
                               </Menu>
-                              <MenuItem onAction="#handleRenameRawData"
-                                text="Rename" fx:id="rawDataRenameMenuItem"/>
                               <MenuItem onAction="#handleRemoveRawData"
                                 text="Remove file" fx:id="rawDataRemoveMenuItem"/>
                               <MenuItem onAction="#handleGroupRawDataFiles"
@@ -194,6 +190,8 @@
                         <contextMenu>
                           <ContextMenu fx:id="spectralLibraryContextMenu">
                             <items>
+                              <MenuItem onAction="#handleLibraryToFeatureList"
+                                text="Libraries to feature lists"/>
                               <MenuItem onAction="#handleSpectralLibrarySort"
                                 text="Sort alphabetically"/>
                               <MenuItem onAction="#handleSpectralLibraryRemove"

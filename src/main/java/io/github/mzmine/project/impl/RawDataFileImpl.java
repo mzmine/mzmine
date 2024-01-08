@@ -27,7 +27,6 @@ package io.github.mzmine.project.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -36,7 +35,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
@@ -45,14 +43,11 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
@@ -77,7 +72,6 @@ public class RawDataFileImpl implements RawDataFile {
   protected final ObservableList<Scan> scans;
   protected final ObservableList<FeatureListAppliedMethod> appliedMethods = FXCollections.observableArrayList();
   // for ease of use we have a javafx safe copy of name
-  private final StringProperty nameProperty = new SimpleStringProperty("");
   private final Map<Integer, Range<Double>> dataMZRange = new HashMap<>();
   private final Map<Integer, Range<Float>> dataRTRange = new HashMap<>();
   private final Int2DoubleOpenHashMap dataMaxBasePeakIntensity = new Int2DoubleOpenHashMap(2);
@@ -88,7 +82,7 @@ public class RawDataFileImpl implements RawDataFile {
   // maximum number of data points and centroid data points in all scans
   protected int maxRawDataPoints = -1;
   // Name of this raw data file - may be changed by the user
-  private String name = "";
+  private final String name;
   // track if file contains zero intensity as this might originate from wrong conversion
   // msconvert needs to have the peak picker as first step / not even title maker before that
   private boolean containsZeroIntensity;
@@ -107,7 +101,7 @@ public class RawDataFileImpl implements RawDataFile {
 
   public RawDataFileImpl(@NotNull final String dataFileName, @Nullable final String absolutePath,
       @Nullable final MemoryMapStorage storage, @NotNull Color color) {
-    setName(dataFileName);
+    this.name = dataFileName;
     this.storageMemoryMap = storage;
     this.absolutePath = absolutePath;
 
@@ -127,12 +121,6 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  public int getMaxCentroidDataPoints() {
-    return scans.stream().map(Scan::getMassList).filter(Objects::nonNull)
-        .mapToInt(MassList::getNumberOfDataPoints).max().orElse(0);
-  }
-
-  @Override
   public int getMaxRawDataPoints() {
     return maxRawDataPoints;
   }
@@ -140,100 +128,6 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   public int getNumOfScans() {
     return scans.size();
-  }
-
-  @Override
-  public int binarySearchClosestScanIndex(final float rt) {
-    // scans are sorted by rt ascending
-    // closest index will be negative direct hit is positive
-    int closestIndex = Math.abs(BinarySearch.binarySearch(rt, true, getNumOfScans(),
-        index -> getScan(index).getRetentionTime()));
-    return closestIndex >= getNumOfScans() ? -1 : closestIndex;
-  }
-
-  @Override
-  public int binarySearchClosestScanIndex(float rt, int mslevel) {
-    // scans are sorted by rt ascending
-    // closest index will be negative direct hit is positive
-    int indexClosestScan = binarySearchClosestScanIndex(rt);
-    if (indexClosestScan == -1) {
-      return -1;
-    }
-    //matches ms level
-    if (getScan(indexClosestScan).getMSLevel() == mslevel) {
-      return indexClosestScan;
-    }
-
-    // find the closest scan with msLevel around the found scan (might be other level)
-    int before = -1;
-    int after = -1;
-    for (int i = indexClosestScan; i < getNumOfScans(); i++) {
-      if (getScan(i).getMSLevel() == mslevel) {
-        after = i;
-        break;
-      }
-    }
-    for (int i = indexClosestScan - 1; i > 0; i--) {
-      if (getScan(i).getMSLevel() == mslevel) {
-        before = i;
-        break;
-      }
-    }
-    if (after != -1 && before != -1) {
-      if (Math.abs(getScan(after).getRetentionTime() - rt) < Math.abs(
-          getScan(before).getRetentionTime() - rt)) {
-        return after;
-      } else {
-        return before;
-      }
-    } else if (after != -1) {
-      return after;
-    } else {
-      return before;
-    }
-  }
-
-  @Override
-  @Nullable
-  public Scan binarySearchClosestScan(float rt) {
-    // scans are sorted by rt ascending
-    // closest index will be negative direct hit is positive
-    int indexClosestScan = binarySearchClosestScanIndex(rt);
-    if (indexClosestScan < getNumOfScans() && indexClosestScan >= 0) {
-      return getScan(indexClosestScan);
-    }
-    return null;
-  }
-
-  @Override
-  @Nullable
-  public Scan binarySearchClosestScan(float rt, int mslevel) {
-    // scans are sorted by rt ascending
-    // closest index will be negative direct hit is positive
-    int indexClosestScan = binarySearchClosestScanIndex(rt, mslevel);
-    if (indexClosestScan < getNumOfScans() && indexClosestScan >= 0) {
-      return getScan(indexClosestScan);
-    }
-    return null;
-  }
-
-  @Override
-  @NotNull
-  public List<Scan> getScanNumbers(int msLevel) {
-    return scans.stream().filter(s -> s.getMSLevel() == msLevel).collect(Collectors.toList());
-  }
-
-  @Override
-  public @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange) {
-    return scans.stream()
-        .filter(s -> s.getMSLevel() == msLevel && rtRange.contains(s.getRetentionTime()))
-        .toArray(Scan[]::new);
-  }
-
-  @Override
-  @NotNull
-  public int[] getMSLevels() {
-    return scans.stream().mapToInt(Scan::getMSLevel).distinct().sorted().toArray();
   }
 
   @Override
@@ -477,42 +371,9 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  public String setName(@NotNull String name) {
-    if (name.isBlank() || name.equals(getName())) {
-      // keep old name
-      return getName();
-    }
-
-    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
-
-    if (project != null) {
-      project.setUniqueDataFileName(this, name);
-    } else {
-      // path safe encode
-      setNameNoChecks(FileAndPathUtil.safePathEncode(name));
-    }
-
-    return this.name;
-  }
-
-
-  @Override
-  public String setNameNoChecks(@NotNull String name) {
-    this.name = name;
-
-    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
-    if (project != null) {
-      project.fireDataFilesChangeEvent(List.of(this), ProjectChangeEvent.Type.RENAMED);
-    }
-    MZmineCore.runLater(() -> nameProperty.set(this.name));
-    return name;
-  }
-
-  @Override
   public String toString() {
     return name;
   }
-
 
   @Override
   public @NotNull ObservableList<Scan> getScans() {
@@ -523,11 +384,6 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   public ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
     return appliedMethods;
-  }
-
-  @Override
-  public StringProperty nameProperty() {
-    return nameProperty;
   }
 
   @Override

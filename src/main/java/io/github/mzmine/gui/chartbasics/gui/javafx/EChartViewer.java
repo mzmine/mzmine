@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx;
 
+import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportModule;
@@ -168,10 +169,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
     // Add chart and configure
     if (chart != null) {
       setChart(chart);
-
-      getChart().getXYPlot().getDomainAxis().setUpperMargin(0.05);
-      getChart().getXYPlot().getRangeAxis().setUpperMargin(0.05);
-      getChart().getXYPlot().getRangeAxis().setLowerMargin(0.05);
+      ChartLogicsFX.setAxesMargins(getChart(), 0.05);
     }
 
     exportMenu = (Menu) getContextMenu().getItems().get(0);
@@ -292,7 +290,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
       Plot p = getChart().getPlot();
       if (addZoomHistory && p instanceof XYPlot && !(p instanceof CombinedDomainXYPlot
-          || p instanceof CombinedRangeXYPlot)) {
+                                                     || p instanceof CombinedRangeXYPlot)) {
         // zoom history
         zoomHistory = new ZoomHistory(this, 20);
 
@@ -330,12 +328,13 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       }
 
       // mouse adapter for scrolling and zooming
-      mouseAdapter = new ChartGestureMouseAdapterFX("gestures", this);
-      addMouseHandler(mouseAdapter);
-
-      // add gestures
-      if (standardGestures) {
-        addStandardGestures();
+      if (mouseAdapter == null) {
+        mouseAdapter = new ChartGestureMouseAdapterFX("gestures", this);
+        addMouseHandler(mouseAdapter);
+        // add gestures
+        if (standardGestures) {
+          addStandardGestures();
+        }
       }
       //      mouseAdapter.addDebugHandler();
     }

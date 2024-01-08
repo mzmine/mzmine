@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Objects;
 import javafx.scene.layout.Priority;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -42,7 +43,8 @@ import org.w3c.dom.Element;
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
 public class AdvancedParametersParameter<T extends ParameterSet> implements
-    UserParameter<Boolean, AdvancedParametersComponent>, ParameterContainer, EmbeddedParameterSet {
+    UserParameter<Boolean, AdvancedParametersComponent>, ParameterContainer,
+    EmbeddedParameterSet<T, Boolean> {
 
   private final String name;
   private final String description;
@@ -131,7 +133,7 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
   }
 
   @Override
-  public void setValueToComponent(AdvancedParametersComponent component, Boolean newValue) {
+  public void setValueToComponent(AdvancedParametersComponent component, @Nullable Boolean newValue) {
     component.setSelected(Objects.requireNonNullElse(newValue, false));
     component.setValue(embeddedParameters);
   }
@@ -158,7 +160,7 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
       return false;
     }
     if (value) {
-      return embeddedParameters.checkParameterValues(errorMessages);
+      return checkEmbeddedValues(errorMessages);
     }
     return true;
   }
@@ -181,5 +183,21 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
 
     return ParameterUtils.equalValues(getEmbeddedParameters(), thatOpt.getEmbeddedParameters(),
         false, false);
+  }
+
+  public <V> V getValueOrDefault(Parameter parameter, V defaultValue) {
+    if (!this.getValue()) {
+      return defaultValue;
+    }
+
+    if (parameter instanceof OptionalParameter<?> optional) {
+      if (!optional.getValue()) {
+        return defaultValue;
+      } else {
+        return (V) optional.getEmbeddedParameter().getValue();
+      }
+    } else {
+      return (V) getEmbeddedParameters().getParameter(parameter).getValue();
+    }
   }
 }

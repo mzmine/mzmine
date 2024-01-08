@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -68,7 +68,7 @@ public class ImsExpanderTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(ImsExpanderTask.class.getName());
   private static final int NUM_THREADS = MZmineCore.getConfiguration().getPreferences()
       .getParameter(MZminePreferences.numOfThreads).getValue();
-  private static final String SUFFIX = " expanded ";
+  private static final String SUFFIX = " expanded";
   protected final ParameterSet parameters;
   protected final ModularFeatureList flist;
   final List<AbstractTask> tasks = new ArrayList<>();
@@ -78,6 +78,7 @@ public class ImsExpanderTask extends AbstractTask {
   private final AtomicInteger processedRows = new AtomicInteger(0);
   private final int binWidth;
   private final int maxNumTraces;
+  private final OriginalFeatureListOption handleOriginal;
   private String desc = "Mobility expanding.";
   private long totalRows = 1;
   private long createdRows = 0;
@@ -100,6 +101,7 @@ public class ImsExpanderTask extends AbstractTask {
         ? parameters.getParameter(ImsExpanderParameters.mobilogramBinWidth).getEmbeddedParameter()
         .getValue() : BinningMobilogramDataAccess.getRecommendedBinWidth(
         (IMSRawDataFile) flist.getRawDataFile(0));
+    handleOriginal = this.parameters.getParameter(ImsExpanderParameters.handleOriginal).getValue();
   }
 
   @Override
@@ -150,13 +152,24 @@ public class ImsExpanderTask extends AbstractTask {
             useMzToleranceRange ? mzTolerance.getToleranceRange(row.getAverageMZ())
                 : row.getFeature(imsFile).getRawDataPointsMZRange())).toList());
 
+    if (expandingTraces.isEmpty()) {
+      newFlist.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(ImsExpanderModule.class, parameters,
+              getModuleCallDate()));
+      handleOriginal.reflectNewFeatureListToProject(SUFFIX, project, newFlist, flist);
+      setStatus(TaskStatus.FINISHED);
+      desc = "No traces in feature list " + flist.getName();
+      return;
+    }
+
     final List<Frame> frames = (List<Frame>) flist.getSeletedScans(flist.getRawDataFile(0));
     assert frames != null;
 
     // we partition the traces (sorted by rt) so we can start and end at specific frames. By splitting
     // the traces and not frames, we can also directly store the raw data on the SSD/HDD as soon as
     // a thread finishes. Thereby we can reduce the memory consumption, especially in images.
-    final int tracesPerList = Math.min(expandingTraces.size() / NUM_THREADS, maxNumTraces);
+    final int tracesPerList = Math.max(1,
+        Math.min(expandingTraces.size() / NUM_THREADS, maxNumTraces));
     expandingTraces.sort(
         (a, b) -> Float.compare(a.getRtRange().lowerEndpoint(), b.getRtRange().lowerEndpoint()));
     final List<List<ExpandingTrace>> subLists = Lists.partition(expandingTraces, tracesPerList);
@@ -239,9 +252,6 @@ public class ImsExpanderTask extends AbstractTask {
     newFlist.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(ImsExpanderModule.class, parameters,
             getModuleCallDate()));
-    final OriginalFeatureListOption handleOriginal = parameters.getParameter(
-        ImsExpanderParameters.handleOriginal).getValue();
-    // add new list / remove old if requested
     handleOriginal.reflectNewFeatureListToProject(SUFFIX, project, newFlist, flist);
     setStatus(TaskStatus.FINISHED);
   }

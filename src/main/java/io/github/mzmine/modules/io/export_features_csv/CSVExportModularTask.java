@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
@@ -76,6 +77,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   private final String headerSeparator = ":";
   private final FeatureListRowsFilter rowFilter;
   private final boolean removeEmptyCols;
+  private final ParameterSet parameters;
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
   private int processedTypes = 0, totalTypes = 0;
@@ -89,6 +91,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     idSeparator = parameters.getParameter(CSVExportModularParameters.idSeparator).getValue();
     this.rowFilter = parameters.getParameter(CSVExportModularParameters.filter).getValue();
     removeEmptyCols = parameters.getValue(CSVExportModularParameters.omitEmptyColumns);
+    this.parameters = parameters;
   }
 
   /**
@@ -112,6 +115,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     this.idSeparator = idSeparator;
     this.rowFilter = rowFilter;
     this.removeEmptyCols = removeEmptyCols;
+    parameters = null;
   }
 
   @Override
@@ -194,6 +198,13 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
       }
 
       checkConcurrentModification(featureList, numRows, numFeatures, numMS2);
+
+      if (parameters != null) { // if this is null, the external constructor was used.
+        featureList.getAppliedMethods().add(
+            new SimpleFeatureListAppliedMethod(CSVExportModularModule.class, parameters,
+                getModuleCallDate()));
+      }
+
       // If feature list substitution pattern wasn't found,
       // treat one feature list only
       if (!substitute) {
@@ -213,11 +224,11 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
         .sorted(FeatureListRowSorter.DEFAULT_ID).toList();
     List<RawDataFile> rawDataFiles = flist.getRawDataFiles();
 
-    List<DataType> rowTypes = flist.getRowTypes().values().stream().filter(this::filterType)
+    List<DataType> rowTypes = flist.getRowTypes().stream().filter(this::filterType)
         .filter(type -> !removeEmptyCols || typeContainData(type, rows, false, -1))
         .collect(Collectors.toList());
 
-    List<DataType> featureTypes = flist.getFeatureTypes().values().stream().filter(this::filterType)
+    List<DataType> featureTypes = flist.getFeatureTypes().stream().filter(this::filterType)
         .filter(type -> !removeEmptyCols || typeContainData(type, rows, true, -1))
         .collect(Collectors.toList());
 

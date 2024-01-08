@@ -47,6 +47,7 @@ import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
@@ -127,9 +128,8 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
             // Add new peaklist to the project.
             project.addFeatureList(newPeakList);
-
             // Remove the original peaklist if requested.
-            if (parameters.getParameter(ADAP3DecompositionV2Parameters.AUTO_REMOVE).getValue()) {
+            if (parameters.getParameter(ADAP3DecompositionV2Parameters.HANDLE_ORIGINAL).getValue() == OriginalFeatureListOption.REMOVE) {
               project.removeFeatureList(originalLists.chromatograms);
               project.removeFeatureList(originalLists.peaks);
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
@@ -200,6 +201,8 @@ public interface FeatureListRow extends ModularDataModel {
   @ScheduledForRemoval
   void removeFeatureIdentity(FeatureIdentity identity);
 
+  @Nullable ManualAnnotation getManualAnnotation();
+
   /**
    * Returns all candidates for this feature's identity
    *
@@ -267,7 +270,7 @@ public interface FeatureListRow extends ModularDataModel {
   Scan getMostIntenseFragmentScan();
 
   /**
-   * Returns all fragmentation scans of this row
+   * Returns all fragmentation scans of this row - a new ArrayList
    */
   @NotNull List<Scan> getAllFragmentScans();
 
@@ -287,16 +290,16 @@ public interface FeatureListRow extends ModularDataModel {
   @NotNull List<CompoundDBAnnotation> getCompoundAnnotations();
 
   /**
+   * @param annotations sets all compound annotations.
+   */
+  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
+
+  /**
    * Appends a compound annotation.
    *
    * @param id
    */
   void addCompoundAnnotation(CompoundDBAnnotation id);
-
-  /**
-   * @param annotations sets all compound annotations.
-   */
-  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
 
   void addSpectralLibraryMatch(SpectralDBAnnotation id);
 
@@ -451,8 +454,8 @@ public interface FeatureListRow extends ModularDataModel {
    */
   default double getSumIntensity() {
     return this.getFeatures().stream().filter(Objects::nonNull)
-        .filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN).mapToDouble(Feature::getHeight)
-        .sum();
+        .filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN).map(Feature::getHeight)
+        .filter(Objects::nonNull).mapToDouble(Float::doubleValue).sum();
   }
 
   /**
@@ -490,12 +493,28 @@ public interface FeatureListRow extends ModularDataModel {
    */
   boolean hasIsotopePattern();
 
-  Object getPreferredAnnotation();
+  /**
+   * Uses {@link FeatureAnnotationPriority} to find the best annotation from different methods
+   *
+   * @return the preferred annotation or null
+   */
+  @Nullable Object getPreferredAnnotation();
+
+
+  @NotNull
+  default Stream<Object> streamAllFeatureAnnotations() {
+    return new FeatureAnnotationIterator(this).stream();
+  }
+
+  @NotNull
+  default List<Object> getAllFeatureAnnotations() {
+    return streamAllFeatureAnnotations().toList();
+  }
 
   /**
    * Uses {@link #getPreferredAnnotation()}
    *
    * @return preferred compound name
    */
-  String getPreferredAnnotationName();
+  @Nullable String getPreferredAnnotationName();
 }

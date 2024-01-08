@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -210,7 +210,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
   private void processFile(RawDataFile file, List<Gap> gaps) {
     if (file instanceof IMSRawDataFile imsFile && peakList.hasFeatureType(MobilityType.class)) {
       final MobilityScanDataAccess access = new MobilityScanDataAccess(imsFile,
-          MobilityScanDataType.CENTROID, (List<Frame>) peakList.getSeletedScans(file));
+          MobilityScanDataType.MASS_LIST, (List<Frame>) peakList.getSeletedScans(file));
       List<ImsGap> imsGaps = (List<ImsGap>) (List<? extends Gap>) gaps;
 
       while (access.hasNextFrame()) {
@@ -229,7 +229,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
     } else {
       // no IMS dimension
 
-      final ScanDataAccess scanAccess = EfficientDataAccess.of(file, ScanDataType.CENTROID,
+      final ScanDataAccess scanAccess = EfficientDataAccess.of(file, ScanDataType.MASS_LIST,
           peakList.getSeletedScans(file));
       while (scanAccess.hasNextScan()) {
         if (isCanceled()) {

@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.maths.MathOperator;
 import java.text.NumberFormat;
 import java.util.Collection;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -100,7 +101,7 @@ public class OptionForValuesParameter implements
   }
 
   @Override
-  public void setValueToComponent(OptionForValuesComponent component, OptionForValues newValue) {
+  public void setValueToComponent(OptionForValuesComponent component, @Nullable OptionForValues newValue) {
     component.setValue(newValue);
   }
 

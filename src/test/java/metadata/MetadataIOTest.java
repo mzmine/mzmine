@@ -29,29 +29,25 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.io.WideTableIOUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.File;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class MetadataIOTest {
 
-  @Mock
-  RawDataFile rawA;
-  @Mock
-  RawDataFile rawB;
+  RawDataFile rawA = new RawDataFileImpl("a.mzML", null, null);
+  RawDataFile rawB = new RawDataFileImpl("b.mzML", null, null);
 
   @BeforeEach
   public void init() {
     //    logger.info("Running MZmine");
     //    MZmineCore.main(new String[]{"-r", "-m", "all"});
     var project = MZmineCore.getProjectManager().getCurrentProject();
-    rawA.setName("a.mzML");
-    rawB.setName("b.mzML");
     project.addFile(rawA);
     project.addFile(rawB);
   }

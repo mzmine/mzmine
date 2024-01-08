@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,26 +25,21 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.AreaBarChart;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
-import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
 import java.util.Map;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
-import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class AreaBarType extends DataType<Map<RawDataFile, ModularFeature>>
-    implements GraphicalColumType<Map<RawDataFile, ModularFeature>> {
+public class AreaBarType extends DataType<Map<RawDataFile, ModularFeature>> implements
+    GraphicalColumType<Map<RawDataFile, ModularFeature>> {
 
   @NotNull
   @Override
@@ -70,33 +65,21 @@ public class AreaBarType extends DataType<Map<RawDataFile, ModularFeature>>
   }
 
   @Override
-  public Node getCellNode(
-      TreeTableCell<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> cell,
-      TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> coll,
-      Map<RawDataFile, ModularFeature> cellData, RawDataFile raw) {
-    ModularFeatureListRow row = cell.getTreeTableRow().getItem();
-    if (row == null) {
-      return null;
-    }
-
-    // get existing buffered node from row (for column name)
-    // TODO listen to changes in features data
-    Node node = row.getBufferedColChart(coll.getText());
-    if (node != null) {
-      return node;
-    }
-
-    StackPane pane = new StackPane();
-
-    // TODO stop task if new task is started
-    Task task = new FeaturesGraphicalNodeTask(AreaBarChart.class, pane, row, coll.getText());
-    MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
-
-    return pane;
+  public double getColumnWidth() {
+    return 150;
   }
 
   @Override
-  public double getColumnWidth() {
-    return 205;
+  public @Nullable Node createCellContent(ModularFeatureListRow row,
+      Map<RawDataFile, ModularFeature> cellData, RawDataFile raw, AtomicDouble progress) {
+
+    if(row.get(AreaBarType.class) != null) {
+      return null;
+    }
+
+    if(row.getNumberOfFeatures() > 1) {
+      return new AreaBarChart(row, progress);
+    };
+    return null;
   }
 }

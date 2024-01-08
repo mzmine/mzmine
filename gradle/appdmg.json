@@ -1,0 +1,11 @@
+{
+  "title": "MZmine installer",
+  "background": "mac_installer_background.svg",
+  "window": {
+    "size": {"width": 520, "height": 330}
+  },
+  "contents": [
+    { "x": 400, "y": 200, "type": "link", "path": "/Applications" },
+    { "x": 100, "y": 200, "type": "file", "path": "../build/jpackage/MZmine.app" }
+  ]
+}

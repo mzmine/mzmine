@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
@@ -42,12 +43,13 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.scene.control.ButtonType;
@@ -108,7 +110,12 @@ public class MassDetectionParameters extends SimpleParameterSet {
   public boolean checkParameterValues(Collection<String> errorMessages) {
     final boolean superCheck = super.checkParameterValues(errorMessages);
     // Check the selected mass detector
-    String massDetectorName = getParameter(massDetector).getValue().toString();
+    MZmineProcessingStep<MassDetector> detector = getValue(massDetector);
+    if (detector == null) {
+      errorMessages.add("No mass detector selected");
+      return false;
+    }
+    String massDetectorName = detector.toString();
 
     // check if denormalize was selected that it matches to the mass detection algorithm
     boolean denorm = getValue(denormalizeMSnScans);
@@ -116,7 +123,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
         denorm && !(massDetectorName.startsWith("Factor"));
     if (illegalDenormalizeMassDetectorCombo) {
       errorMessages.add("Spectral denormalization is currently only supported by the "
-          + "Factor of the lowest mass detector; selected:" + massDetectorName);
+                        + "Factor of the lowest mass detector; selected:" + massDetectorName);
       return false;
     }
 
@@ -158,7 +165,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
     // Check the selected mass detector
     if (!massDetectorName.contains("Auto")) {
       if (mostlyCentroided && !(massDetectorName.startsWith("Centroid")
-          || massDetectorName.startsWith("Factor"))) {
+                                || massDetectorName.startsWith("Factor"))) {
         String msg = """
             MZmine thinks you are running the profile mode mass detector on (mostly) centroided scans.
             This will likely produce wrong results. Try the Centroid mass detector or Factor of lowest signal mass detector instead.
@@ -170,7 +177,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
       }
 
       if ((!mostlyCentroided) && (massDetectorName.startsWith("Centroid")
-          || massDetectorName.startsWith("Factor"))) {
+                                  || massDetectorName.startsWith("Factor"))) {
         String msg = """
             MZmine thinks you are running the centroid or factor mass detector on (mostly) profile scans.
             This will likely produce wrong results.
@@ -197,6 +204,15 @@ public class MassDetectionParameters extends SimpleParameterSet {
     }
 
     return superCheck;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("Scans", scanSelection);
+    return nameParameterMap;
   }
 
   @NotNull

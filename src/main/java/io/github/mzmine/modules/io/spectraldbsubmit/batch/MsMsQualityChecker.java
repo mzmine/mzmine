@@ -26,23 +26,21 @@
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.modules.tools.msmsscore.MSMSIntensityScoreCalculator;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
+import io.github.mzmine.modules.tools.msmsscore.MSMSScore.Result;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.FormulaWithExactMz;
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSignals,
                                  Double minExplainedIntensity, MZTolerance msmsFormulaTolerance,
@@ -50,76 +48,79 @@ public record MsMsQualityChecker(Integer minNumSignals, Double minExplainedSigna
                                  boolean exportFlistNameMatchOnly) {
 
   /**
+   * Checks if feature list contains the name from {@link FeatureAnnotation#getCompoundName()}
+   *
+   * @param annotation name provider
+   * @param flist      feature list name
+   * @return true if annotation name is contained in feature list
+   */
+  public boolean matchesName(final FeatureAnnotation annotation, FeatureList flist) {
+    return !exportFlistNameMatchOnly || (annotation.getCompoundName() != null && flist.getName()
+        .contains(FileAndPathUtil.safePathEncode(
+            annotation.getCompoundName()))); // in case the name contained unsage characters, it was replaced for the feature lsit name.
+  }
+
+  /**
    * @param msmsScan   The msms scan to evaluate
    * @param annotation The annotation to base the evaluation on
-   * @return The list of explained signals. Null if this spectrum did not match the quality
-   * parameters. Empty list if formula parameters are disabled but the number of signals matched the
-   * requirements.
+   * @return MSMSScore or constants for failed or limited success. FAILED_FILTERS (failed).
+   * SUCCESS_WITHOUT_FORMULA describes the case where all filters that do not rely on the formula
+   * were successful
    */
-  public List<DataPoint> matchAndGetExplainedSignals(final Scan msmsScan,
-      final FeatureAnnotation annotation, FeatureListRow f) {
+  public @NotNull MSMSScore match(final Scan msmsScan, final FeatureAnnotation annotation) {
+    IMolecularFormula formula = FormulaUtils.getIonizedFormula(annotation);
+    FormulaWithExactMz[] formulasMzSorted =
+        formula == null ? null : FormulaUtils.getAllFormulas(formula, 1, 15);
+    return match(msmsScan, annotation, formulasMzSorted);
+  }
 
-    if (minNumSignals != null && msmsScan.getNumberOfDataPoints() < minNumSignals) {
-      return null;
+  public @NotNull MSMSScore match(final Scan msmsScan, final FeatureAnnotation annotation,
+      final FormulaWithExactMz[] formulasMzSorted) {
+
+    MassList massList = msmsScan.getMassList();
+    if (massList == null) {
+      throw new MissingMassListException(msmsScan);
     }
 
-    final String formula = annotation != null ? annotation.getFormula() : null;
-    if (formula == null || annotation.getCompoundName() == null) {
-      return null;
+    if (minNumSignals != null && massList.getNumberOfDataPoints() < minNumSignals) {
+      return new MSMSScore(Result.FAILED_MIN_SIGNALS);
     }
 
-    if (exportFlistNameMatchOnly && !f.getFeatureList().getName()
-        // annotations may have unsafe characters, flists not
-        .contains(FileAndPathUtil.safePathEncode(annotation.getCompoundName()))) {
-      return null;
+    if (formulasMzSorted == null || formulasMzSorted.length == 0) {
+      return new MSMSScore(Result.SUCCESS_WITHOUT_FORMULA);
     }
 
-    final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
-        formula, SilentChemObjectBuilder.getInstance());
-    final List<DataPoint> explainedSignals = new ArrayList<>();
+    // precursor mz is not really needed here as we are matching signals directly now. not neutral losses
+    final DataPoint[] dataPoints = ScanUtils.extractDataPoints(msmsScan, true);
+    MSMSScore score = MSMSScoreCalculator.evaluateMsMsMzSignalsFast(msmsFormulaTolerance,
+        formulasMzSorted, dataPoints);
 
-    try {
-      FormulaUtils.replaceAllIsotopesWithoutExactMass(molecularFormula);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    if (score == null) {
+      return new MSMSScore(Result.FAILED);
     }
-
-    final IonType adductType = annotation.getAdductType();
-    if (adductType.getCDKFormula() != null) {
-      molecularFormula.add(adductType.getCDKFormula());
-    }
-
-    final DataPoint[] dataPoints = ScanUtils.extractDataPoints(msmsScan);
 
     if (minExplainedIntensity != null) {
-      MSMSScore intensityFormulaScore = MSMSIntensityScoreCalculator.evaluateMSMS(
-          msmsFormulaTolerance, molecularFormula, dataPoints, msmsScan.getPrecursorMz(),
-          msmsScan.getPrecursorCharge(), dataPoints.length);
-      if (intensityFormulaScore == null
-          || intensityFormulaScore.getScore() < minExplainedIntensity.floatValue()) {
-        return null;
+      if (score.explainedIntensity() < minExplainedIntensity) {
+        return new MSMSScore(Result.FAILED_MIN_EXPLAINED_INTENSITY);
       }
-      explainedSignals.addAll(intensityFormulaScore.getAnnotation().keySet());
     }
 
     if (minExplainedSignals != null) {
-      MSMSScore peakFormulaScore = MSMSScoreCalculator.evaluateMSMS(msmsFormulaTolerance,
-          molecularFormula, dataPoints, msmsScan.getPrecursorMz(), msmsScan.getPrecursorCharge(),
-          dataPoints.length);
-      if (peakFormulaScore == null
-          || peakFormulaScore.getScore() < minExplainedSignals.floatValue()) {
-        return null;
+      if (score.explainedSignals() < minExplainedSignals) {
+        return new MSMSScore(Result.FAILED_MIN_EXPLAINED_SIGNALS);
       }
-      explainedSignals.clear(); // clear if we have previous annotations, they are the same
-      explainedSignals.addAll(peakFormulaScore.getAnnotation().keySet());
     }
 
     // double check if we still match the minimum peaks if we export explained only
-    if (minNumSignals != null && exportExplainedSignalsOnly
-        && explainedSignals.size() < minNumSignals) {
-      return null;
+    if (exportExplainedSignalsOnly) {
+      int explainedSignals = score.annotation().keySet().size();
+      if (minNumSignals != null && explainedSignals < minNumSignals) {
+        return new MSMSScore(Result.FAILED_MIN_EXPLAINED_SIGNALS);
+      } else {
+        return score;
+      }
     }
 
-    return explainedSignals;
+    return score;
   }
 }

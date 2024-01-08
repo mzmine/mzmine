@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,9 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowLibraryGenerationWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
 
 /**
@@ -35,15 +37,36 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardPa
  * toString method
  */
 public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
-  DDA, GC_EI_DECONVOLUTION, LIBRARY_GENERATION, MS1_ONLY;
+  /**
+   * Options for GNPS, molecular networking, SIRIUS,
+   */
+  DDA,
+  DIA,
+  /**
+   * Currently only used in GC-EI; maybe in the future for all ion fragmentation (DIA)
+   */
+  DECONVOLUTION,
+  /**
+   * uses annotations to build spectral libraries
+   */
+  LIBRARY_GENERATION,
+  /**
+   * Nothing special just avoids all MS2 specific steps
+   */
+  MS1_ONLY,
+  /**
+   * imaging analysis
+   */
+  IMAGING;
 
   @Override
   public String toString() {
     return switch (this) {
-      case DDA -> super.toString();
+      case DDA, DIA -> super.toString();
       case MS1_ONLY -> "MS1 only";
-      case GC_EI_DECONVOLUTION -> "GC-EI deconvolution";
+      case DECONVOLUTION -> "Spectral deconvolution";
       case LIBRARY_GENERATION -> "Library generation";
+      case IMAGING -> "Imaging";
     };
   }
 
@@ -56,11 +79,14 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
   public WizardStepParameters create() {
     return switch (this) {
       // EMPTY parameter set
-      case MS1_ONLY, LIBRARY_GENERATION -> new WorkflowWizardParameters(this);
+      case MS1_ONLY, IMAGING -> new WorkflowWizardParameters(this);
       // specialized parameters
-      case DDA -> new WorkflowDdaWizardParameters(true, null, true, true);
-      case GC_EI_DECONVOLUTION -> new WorkflowGcElectronImpactWizardParameters(true, null, true);
+      case LIBRARY_GENERATION ->
+          new WorkflowLibraryGenerationWizardParameters(null, true, true, false);
+      case DDA -> new WorkflowDdaWizardParameters(true, true, null, true, true, false);
+      case DECONVOLUTION ->
+          new WorkflowGcElectronImpactWizardParameters(true, null, true, true, false);
+      case DIA -> new WorkflowDiaWizardParameters(0.8, 5, true, null, true, true, false);
     };
   }
-
 }

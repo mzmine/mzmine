@@ -59,9 +59,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
       "Suffix to be added to feature list name", "filtered");
 
   public static final OptionalParameter<MinimumSamplesParameter> MIN_FEATURE_COUNT = new OptionalParameter<>(
-      new MinimumSamplesParameter("Minimum features in a row",
-          "Minimum number of feature detections required per row. The value will be rounded down to the nearest whole number."),
-      false);
+      new MinimumSamplesParameter(), false);
 
   public static final OptionalParameter<IntegerParameter> MIN_ISOTOPE_PATTERN_COUNT = new OptionalParameter<>(
       new IntegerParameter("Minimum features in an isotope pattern",

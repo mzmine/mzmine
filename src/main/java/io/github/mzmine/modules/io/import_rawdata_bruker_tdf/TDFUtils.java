@@ -57,6 +57,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -73,11 +74,14 @@ public class TDFUtils {
   public static final int SCAN_PACKAGE_SIZE = 50;
   public static final int BUFFER_SIZE_INCREMENT = 100_000; // 100 kb increase each time we fail
   private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
-  private static int DEFAULT_NUMTHREADS = MZmineCore.getConfiguration().getPreferences()
-      .getParameter(MZminePreferences.numOfThreads).getValue();
+  private static int DEFAULT_NUMTHREADS = (int) Math.max(
+      MZmineCore.getConfiguration().getPreferences().getParameter(MZminePreferences.numOfThreads)
+          .getValue() * 0.8f, 1);
+  private final NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
   private final int numThreads;
   public int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private TDFLibrary tdfLib = null;
+
 
   /**
    * the handle of the currently opened file
@@ -219,15 +223,32 @@ public class TDFUtils {
           + "library could not be initialised.");
       return 0L;
     }
+
+    final Boolean applyPressureComp = false;
+    // currently disabled as it's not working as expected ~SteffenHeu
+    /*final Boolean applyPressureComp = MZmineCore.getConfiguration().getPreferences()
+        .getValue(MZminePreferences.applyTimsPressureCompensation)*/
+    int pressureCompensation = applyPressureComp == null || !applyPressureComp ? 0 : 2;
+
     if (path.isFile()) {
       logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
-      handle = tdfLib.tims_open(path.getParentFile().getAbsolutePath(), useRecalibratedState);
+      handle = tdfLib.tims_open_v2(path.getParentFile().getAbsolutePath(), useRecalibratedState,
+          pressureCompensation);
+      if (handle == 0) {
+        printLastError(0);
+        throw new RuntimeException("Error opening tdf file.");
+      }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
       return handle;
     } else {
       logger.finest(() -> "Opening tdf path " + path.getAbsolutePath());
-      handle = tdfLib.tims_open(path.getAbsolutePath(), useRecalibratedState);
+      handle = tdfLib.tims_open_v2(path.getAbsolutePath(), useRecalibratedState,
+          pressureCompensation);
+      if (handle == 0) {
+        printLastError(0);
+        throw new RuntimeException("Error opening tdf file.");
+      }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
       return handle;
@@ -436,13 +457,15 @@ public class TDFUtils {
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
 
-    final String scanDefinition =
-        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
-            frameTable.getScanModeColumn().get(frameIndex).intValue());
-    final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
-        frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
+    final float rt = (float) (frameTable.getTimeColumn().get(frameIndex) / 60); // to minutes
     final PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
+    final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
+        frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
+    final String scanDefinition =
+        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
+            frameTable.getScanModeColumn().get(frameIndex).intValue()) + " Frame #" + frameId
+            + " RT: " + rtFormat.format(rt);
     final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
         .floatValue();
 
@@ -461,14 +484,13 @@ public class TDFUtils {
 
     SimpleFrame frame;
     if (maldiFrameInfoTable == null || maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
-      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
-          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-          data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
-          MobilityType.TIMS, null, accumulationTime);
+      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0], data[1],
+          MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange, MobilityType.TIMS, null,
+          accumulationTime);
     } else {
-      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel,
-          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-          data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
+      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0],
+          data[1], MassSpectrumType.CENTROIDED, polarity,
+          scanDefinition + " " + maldiFrameInfoTable.getSpotNameColumn().get(frameIndex), mzRange,
           MobilityType.TIMS, null, accumulationTime);
       Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
           maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
@@ -510,13 +532,16 @@ public class TDFUtils {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
-    final String scanDefinition =
-        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
-            frameTable.getScanModeColumn().get(frameIndex).intValue());
-    final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
-        frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
+
+    final float rt = (float) (frameTable.getTimeColumn().get(frameIndex) / 60); // to minutes
     final PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
+    final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
+        frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
+    final String scanDefinition =
+        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
+            frameTable.getScanModeColumn().get(frameIndex).intValue()) + " Frame #" + frameId
+            + " RT: " + rtFormat.format(rt);
     final Range<Double> mzRange = metaDataTable.getMzRange();
     final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
         .floatValue();
@@ -556,14 +581,12 @@ public class TDFUtils {
 
     SimpleFrame frame;
     if (maldiFrameInfoTable == null || maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
-      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
-          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-          data[0], data[1], massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE,
-          polarity, scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
+      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0], data[1],
+          massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE, polarity,
+          scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
     } else {
-      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel,
-          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-          data[0], data[1], massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE,
+      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0],
+          data[1], massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE,
           polarity, scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
       Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
           maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
@@ -669,7 +692,6 @@ public class TDFUtils {
     } else {
       return false;
     }
-
   }
 
   public void setNumThreads(int numThreads) {
