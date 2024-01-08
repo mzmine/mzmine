@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;

@@ -566,7 +566,7 @@ public class LipidAnnotationOverviewPaneController {
     //init a dataset
     KendrickMassPlotParameters kendrickMassPlotParameters = new KendrickMassPlotParameters();
     kendrickMassPlotParameters.setParameter(KendrickMassPlotParameters.xAxisValues,
-        KendrickPlotDataTypes.M_OVER_Z);
+        KendrickPlotDataTypes.MZ);
     kendrickMassPlotParameters.setParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase,
         "CH2");
     kendrickMassPlotParameters.setParameter(KendrickMassPlotParameters.yAxisValues,

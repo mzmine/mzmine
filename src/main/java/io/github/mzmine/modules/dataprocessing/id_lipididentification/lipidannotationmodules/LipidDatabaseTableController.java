@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules;
 
-import io.github.mzmine.gui.chartbasics.chartutils.XYCirclePixelSizeRenderer;
+import io.github.mzmine.gui.chartbasics.chartutils.ColoredBubbleDatasetRenderer;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClassDescription;
@@ -266,7 +266,7 @@ public class LipidDatabaseTableController {
     range.setRange(0, 1);
 
     // set renderer
-    XYCirclePixelSizeRenderer renderer = new XYCirclePixelSizeRenderer();
+    ColoredBubbleDatasetRenderer renderer = new ColoredBubbleDatasetRenderer();
     plot.setRenderer(renderer);
 
     return chart;
