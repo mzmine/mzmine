@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
@@ -102,21 +103,21 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "Matches predicted and detected isotope pattern. Make sure to run isotope finder before on the feature list.",
       (IsotopePatternMatcherParameters) new IsotopePatternMatcherParameters().cloneParameterSet());
   private static final List<ImportType> importTypes = List.of(
-      new ImportType(true, "neutral_mass", new NeutralMassType()),
-      new ImportType(true, "mz", new PrecursorMZType()), //
-      new ImportType(true, "rt", new RTType()), //
-      new ImportType(true, "formula", new FormulaType()), //
-      new ImportType(true, "smiles", new SmilesStructureType()),
-      new ImportType(true, "isomeric_smiles", new IsomericSmilesStructureType()),
-      new ImportType(false, "inchi", new InChIStructureType()),
-      new ImportType(false, "inchi_key", new InChIKeyStructureType()),
-      new ImportType(false, "name", new CompoundNameType()),
-      new ImportType(false, "CCS", new CCSType()),
-      new ImportType(false, "mobility", new MobilityType()),
-      new ImportType(true, "comment", new CommentType()),
-      new ImportType(false, "adduct", new IonAdductType()),
-      new ImportType(false, "pubchem_cid", new PubChemIdType()), //
-      new ImportType(false, "molecular_class", new MolecularClassType()) //
+      new ImportType(true, "neutral_mass", DataTypes.get(NeutralMassType.class)),
+      new ImportType(true, "mz", DataTypes.get(PrecursorMZType.class)), //
+      new ImportType(true, "rt", DataTypes.get(RTType.class)), //
+      new ImportType(true, "formula", DataTypes.get(FormulaType.class)), //
+      new ImportType(true, "smiles", DataTypes.get(SmilesStructureType.class)),
+      new ImportType(true, "isomeric_smiles", DataTypes.get(IsomericSmilesStructureType.class)),
+      new ImportType(false, "inchi", DataTypes.get(InChIStructureType.class)),
+      new ImportType(false, "inchi_key", DataTypes.get(InChIKeyStructureType.class)),
+      new ImportType(false, "name", DataTypes.get(CompoundNameType.class)),
+      new ImportType(false, "CCS", DataTypes.get(CCSType.class)),
+      new ImportType(false, "mobility", DataTypes.get(MobilityType.class)),
+      new ImportType(true, "comment", DataTypes.get(CommentType.class)),
+      new ImportType(false, "adduct", DataTypes.get(IonAdductType.class)),
+      new ImportType(false, "pubchem_cid", DataTypes.get(PubChemIdType.class)), //
+      new ImportType(false, "molecular_class", DataTypes.get(MolecularClassType.class)) //
   );
 
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
@@ -138,21 +139,23 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
         .filter(ImportType::isSelected).toList();
 
     boolean compoundNameSelected = true;
-    if (!importTypeListContainsType(selectedTypes, new CompoundNameType())) {
+    if (!importTypeListContainsType(selectedTypes, DataTypes.get(CompoundNameType.class))) {
       compoundNameSelected = false;
-      errorMessages.add(new CompoundNameType().getHeaderString() + " must be selected.");
+      errorMessages.add(
+          DataTypes.get(CompoundNameType.class).getHeaderString() + " must be selected.");
     }
 
     boolean canDetermineMz = false;
-    if (importTypeListContainsType(selectedTypes, new NeutralMassType()) && getValue(ionLibrary)) {
-      canDetermineMz = true;
-    } else if (importTypeListContainsType(selectedTypes, new PrecursorMZType())) {
-      canDetermineMz = true;
-    } else if (importTypeListContainsType(selectedTypes, new FormulaType()) && getValue(
+    if (importTypeListContainsType(selectedTypes, DataTypes.get(NeutralMassType.class)) && getValue(
         ionLibrary)) {
       canDetermineMz = true;
-    } else if (importTypeListContainsType(selectedTypes, new SmilesStructureType()) && getValue(
-        ionLibrary)) {
+    } else if (importTypeListContainsType(selectedTypes, DataTypes.get(PrecursorMZType.class))) {
+      canDetermineMz = true;
+    } else if (importTypeListContainsType(selectedTypes, DataTypes.get(FormulaType.class))
+               && getValue(ionLibrary)) {
+      canDetermineMz = true;
+    } else if (importTypeListContainsType(selectedTypes, DataTypes.get(SmilesStructureType.class))
+               && getValue(ionLibrary)) {
       canDetermineMz = true;
     }
 
