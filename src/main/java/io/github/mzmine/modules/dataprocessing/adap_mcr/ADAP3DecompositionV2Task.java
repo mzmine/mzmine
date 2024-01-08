@@ -227,9 +227,8 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
       dataPoints.sort(Comparator.comparingDouble(DataPoint::getMZ));
 
       // todo: keep for legacy, should be removed if no other modules rely on this
-      refPeak.setIsotopePattern(
-          new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[0]), -1,
-              IsotopePattern.IsotopePatternStatus.PREDICTED, "Spectrum"));
+      refPeak.setIsotopePattern(new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[0]), -1,
+          IsotopePattern.IsotopePatternStatus.PREDICTED, "EI Pseudo MS1 Spectrum"));
 
       PseudoSpectrum pseudoMs1 = new SimplePseudoSpectrum(dataFile, 1,
           refPeak.getRT(), null,

@@ -234,7 +234,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
 
       refPeak.setIsotopePattern(
           new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[dataPoints.size()]), -1,
-              IsotopePattern.IsotopePatternStatus.PREDICTED, "Spectrum"));
+              IsotopePattern.IsotopePatternStatus.PREDICTED, "EI Pseudo MS1 Spectrum"));
 
       row.addFeature(dataFile, refPeak);
 
