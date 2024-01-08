@@ -77,6 +77,7 @@ import io.github.mzmine.modules.visualization.image_allmsms.ImageAllMsMsTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
+import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFlavor;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
 import io.github.mzmine.modules.visualization.pseudospectrumvisualizer.PseudoSpectrumVisualizerPane;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
@@ -122,6 +123,7 @@ import org.jetbrains.annotations.Nullable;
  * otherwise.
  */
 public class FeatureTableContextMenu extends ContextMenu {
+
   private static final Logger logger = Logger.getLogger(FeatureTableContextMenu.class.getName());
   final Menu showMenu;
   final Menu searchMenu;
@@ -327,9 +329,14 @@ public class FeatureTableContextMenu extends ContextMenu {
 
   private void initShowMenu() {
 
-    final MenuItem showNetworkVisualizerItem = new ConditionalMenuItem("Feature overview (network)",
-        () -> hasMs2(selectedRows));
-    showNetworkVisualizerItem.setOnAction(e -> showNetworkVisualizer());
+    final MenuItem showNetworkVisualizerItem = new ConditionalMenuItem(
+        "Feature overview (IIMN network)", () -> !selectedRows.isEmpty());
+    showNetworkVisualizerItem.setOnAction(e -> showNetworkVisualizer(NetworkOverviewFlavor.IIMN));
+
+    final MenuItem showNetworkVisualizerItemFull = new ConditionalMenuItem(
+        "Feature overview (full network)", () -> !selectedRows.isEmpty());
+    showNetworkVisualizerItemFull.setOnAction(
+        e -> showNetworkVisualizer(NetworkOverviewFlavor.FULL_NETWORKS));
 
     final MenuItem showXICItem = new ConditionalMenuItem("XIC (quick)",
         () -> !selectedRows.isEmpty());
@@ -512,12 +519,12 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,
-            new SeparatorMenuItem(), showNetworkVisualizerItem, show2DItem, show3DItem,
-            showIntensityPlotItem, showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem,
-            new SeparatorMenuItem(), showSpectrumItem, showFeatureFWHMMs1Item,
-            showBestMobilityScanItem, extractSumSpectrumFromMobScans, showMSMSItem,
-            showMSMSMirrorItem, showAllMSMSItem, showPseudoSpectrumItem, showDiaMirror,
-            new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
+            new SeparatorMenuItem(), showNetworkVisualizerItemFull, showNetworkVisualizerItem,
+            show2DItem, show3DItem, showIntensityPlotItem, showInIMSRawDataOverviewItem,
+            showInMobilityMzVisualizerItem, new SeparatorMenuItem(), showSpectrumItem,
+            showFeatureFWHMMs1Item, showBestMobilityScanItem, extractSumSpectrumFromMobScans,
+            showMSMSItem, showMSMSMirrorItem, showAllMSMSItem, showPseudoSpectrumItem,
+            showDiaMirror, new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
             showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
             showPeakRowSummaryItem);
   }
@@ -529,12 +536,13 @@ public class FeatureTableContextMenu extends ContextMenu {
   /**
    * Open molecular network and center on node
    */
-  private void showNetworkVisualizer() {
+  private void showNetworkVisualizer(NetworkOverviewFlavor flavor) {
     var featureList = table.getFeatureList();
     if (selectedRows.isEmpty() || featureList == null) {
       return;
     }
-    NetworkOverviewWindow networks = new NetworkOverviewWindow(featureList, table, selectedRows);
+    NetworkOverviewWindow networks = new NetworkOverviewWindow(featureList, table, selectedRows,
+        flavor);
     networks.show();
   }
 

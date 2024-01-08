@@ -25,6 +25,8 @@
 
 package io.github.mzmine.gui.chartbasics.chartutils;
 
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
+import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYDataset;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -52,16 +54,15 @@ import org.jfree.data.Range;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
-import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYDataset;
-import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYZDataset;
 
 /**
  * A renderer that represents data from an {@link XYZDataset} by drawing a circle at each (x,
  */
-public class XYCirclePixelSizeRenderer extends AbstractXYItemRenderer
-    implements XYItemRenderer, Cloneable, PublicCloneable, Serializable {
+public class ColoredBubbleDatasetRenderer extends AbstractXYItemRenderer implements XYItemRenderer,
+    Cloneable, PublicCloneable, Serializable {
+
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
@@ -94,7 +95,7 @@ public class XYCirclePixelSizeRenderer extends AbstractXYItemRenderer
   /**
    * Creates a new {@code XYCircleRenderer} instance with default attributes.
    */
-  public XYCirclePixelSizeRenderer() {
+  public ColoredBubbleDatasetRenderer() {
     updateOffsets();
     this.paintScale = new LookupPaintScale();
   }
@@ -332,13 +333,13 @@ public class XYCirclePixelSizeRenderer extends AbstractXYItemRenderer
         specificDatasetColor = ((KendrickMassPlotXYDataset) dataset).getColor();
       }
     }
-    if (dataset instanceof KendrickMassPlotXYZDataset) {
-      z = ((KendrickMassPlotXYZDataset) dataset).getZValue(series, item);
-      double[] bubbleSizeValues = ((KendrickMassPlotXYZDataset) dataset).getBubbleSizeValues();
+    if (dataset instanceof XYZBubbleDataset bubbleDataset) {
+      z = bubbleDataset.getZValue(series, item);
+      double[] bubbleSizeValues = bubbleDataset.getBubbleSizeValues();
       minBubbleSize = Arrays.stream(bubbleSizeValues).min().getAsDouble();
       maxBubbleSize = Arrays.stream(bubbleSizeValues).max().getAsDouble();
       bubbleSize = scaleBubbeSize(minBubbleSize, maxBubbleSize,
-          ((KendrickMassPlotXYZDataset) dataset).getBubbleSize(series, item));
+          bubbleDataset.getBubbleSizeValue(series, item));
     }
 
     // create new color with alpha
@@ -399,10 +400,10 @@ public class XYCirclePixelSizeRenderer extends AbstractXYItemRenderer
     if (obj == this) {
       return true;
     }
-    if (!(obj instanceof XYCirclePixelSizeRenderer)) {
+    if (!(obj instanceof ColoredBubbleDatasetRenderer)) {
       return false;
     }
-    XYCirclePixelSizeRenderer that = (XYCirclePixelSizeRenderer) obj;
+    ColoredBubbleDatasetRenderer that = (ColoredBubbleDatasetRenderer) obj;
     if (this.circleHeight != that.circleHeight) {
       return false;
     }
@@ -427,7 +428,7 @@ public class XYCirclePixelSizeRenderer extends AbstractXYItemRenderer
    */
   @Override
   public Object clone() throws CloneNotSupportedException {
-    XYCirclePixelSizeRenderer clone = (XYCirclePixelSizeRenderer) super.clone();
+    ColoredBubbleDatasetRenderer clone = (ColoredBubbleDatasetRenderer) super.clone();
     if (this.paintScale instanceof PublicCloneable) {
       PublicCloneable pc = (PublicCloneable) this.paintScale;
       clone.paintScale = (PaintScale) pc.clone();

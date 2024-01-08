@@ -27,7 +27,7 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 public enum KendrickPlotDataTypes {
 
-  M_OVER_Z("m/z", "m/z"),//
+  MZ("m/z", "m/z"),//
   KENDRICK_MASS("Kendrick Mass", "KM"),//
   KENDRICK_MASS_DEFECT("Kendrick Mass Defect", "KMD"),//
   REMAINDER_OF_KENDRICK_MASS("Remainder of Kendrick Mass", "RKM"),//
