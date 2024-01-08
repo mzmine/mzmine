@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -73,9 +74,12 @@ public class BioTransformerParameters extends SimpleParameterSet {
       All = All of the above.
       """, SmilesSource.values(), SmilesSource.ALL);
 
+  public static final AdvancedParametersParameter<RtClusterFilterParameters> advanced = new AdvancedParametersParameter<>(
+      new RtClusterFilterParameters());
+
   public BioTransformerParameters() {
     super(flists, bioPath, transformationType, steps, mzTol, ionLibrary, filterParam, smilesSource
-        /*, cmdOptions*/);
+        /*, cmdOptions*/, advanced);
   }
 
   public BioTransformerParameters(boolean singleRow) {
@@ -100,6 +104,11 @@ public class BioTransformerParameters extends SimpleParameterSet {
         """);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
   }
 
   public enum TransformationTypes {
