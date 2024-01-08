@@ -87,12 +87,9 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
     // Imaging workflow parameters
     params = steps.get(WizardPart.WORKFLOW);
     applyImageCorrelataion = getValue(params, WorkflowImagingWizardParameters.CORRELATE_IMAGES);
-    applyMedianFilter = getValue(params,
-        WorkflowImagingWizardParameters.USE_MEDIAN_FILTER.cloneParameter());
-    applyQuantileFilter = getValue(params,
-        WorkflowImagingWizardParameters.USE_QUANTILE_FILTER.cloneParameter());
-    applyHotspotRemoval = getValue(params,
-        WorkflowImagingWizardParameters.REMOVE_HOTSPOTS.cloneParameter());
+    applyMedianFilter = true;
+    applyQuantileFilter = true;
+    applyHotspotRemoval = true;
   }
 
   @Override
