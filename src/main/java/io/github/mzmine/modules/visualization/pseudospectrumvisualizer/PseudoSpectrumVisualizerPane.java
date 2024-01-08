@@ -88,11 +88,11 @@ public class PseudoSpectrumVisualizerPane extends SplitPane {
     FeatureDataSetCalculationTask task = new FeatureDataSetCalculationTask(rawDataFile, ticPlot,
         pseudoScan, selectedFeature, mzTolerance);
     MZmineCore.getTaskController().addTask(task);
+    BorderPane pnWrapSpectrum = new BorderPane();
+    BorderPane pnWrapChrom = new BorderPane();
     task.addTaskStatusListener((task1, newStatus, oldStatus) -> {
       if (newStatus.equals(TaskStatus.FINISHED)) {
         MZmineCore.runLater(() -> {
-          BorderPane pnWrapSpectrum = new BorderPane();
-          BorderPane pnWrapChrom = new BorderPane();
           pnWrapChrom.setCenter(ticPlot);
           pnWrapSpectrum.setCenter(spectraPlot);
           getItems().addAll(pnWrapSpectrum, pnWrapChrom);
