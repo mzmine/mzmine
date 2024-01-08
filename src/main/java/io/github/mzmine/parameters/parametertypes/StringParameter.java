@@ -98,8 +98,8 @@ public class StringParameter implements UserParameter<String, TextField> {
   }
 
   @Override
-  public void setValue(@NotNull String value) {
-    this.value = value;
+  public void setValue(String value) {
+    this.value = requireNonNullElse(value, "");
   }
 
   @Override
