@@ -67,7 +67,7 @@ public class FeatureDataSetCalculationTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Calc feature datasets";
+    return "Calculate feature datasets";
   }
 
   @Override
