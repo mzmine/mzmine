@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.export_features_metaboanalyst;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -33,6 +34,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -61,6 +63,7 @@ class MetaboAnalystExportTask extends AbstractTask {
   private final @NotNull MetadataTable metadata;
   private final MetadataColumn<?> metadataColumn;
   private final String grouping;
+  private final AbundanceMeasure FEATURE_INTENSITY;
   private int processedRows = 0, totalRows = 0;
 
   // parameter values
@@ -73,6 +76,7 @@ class MetaboAnalystExportTask extends AbstractTask {
         .getMatchingFeatureLists();
 
     fileName = parameters.getValue(MetaboAnalystExportParameters.filename);
+    FEATURE_INTENSITY=parameters.getValue(MetaboAnalystExportParameters.FEATURE_INTENSITY);
 //    statsFormat = parameters.getValue(MetaboAnalystExportParameters.format);
     grouping = parameters.getValue(MetaboAnalystExportParameters.grouping);
     metadata = MZmineCore.getProjectMetadata();
@@ -217,8 +221,14 @@ class MetaboAnalystExportTask extends AbstractTask {
 
         Feature feature = featureListRow.getFeature(dataFile);
         if (feature != null) {
-          final double area = feature.getArea();
-          writer.append(String.valueOf(area));
+          if(FEATURE_INTENSITY==AbundanceMeasure.Area){
+            final double area = feature.getArea();
+            writer.append(String.valueOf(area));
+          }else{
+            final double height = feature.getHeight();
+            writer.append(String.valueOf(height));
+          }
+
         }
       }
 

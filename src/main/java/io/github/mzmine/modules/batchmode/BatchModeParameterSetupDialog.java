@@ -38,6 +38,8 @@ public class BatchModeParameterSetupDialog extends ParameterSetupDialog {
 
     BatchComponentController controller = batchQueue.getController();
     controller.setLastFiles(lastFiles.getValue());
+
+    super.addCheckParametersButton();
   }
 
 }

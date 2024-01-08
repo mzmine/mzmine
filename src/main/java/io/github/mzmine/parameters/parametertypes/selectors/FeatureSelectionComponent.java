@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,6 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-import io.github.mzmine.util.RangeUtils;
-import java.awt.event.ActionEvent;
-import java.util.List;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.parameters.Parameter;
@@ -37,6 +34,9 @@ import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.RangeUtils;
+import java.awt.event.ActionEvent;
+import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
@@ -46,6 +46,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureSelectionComponent extends BorderPane {
 
@@ -70,8 +71,8 @@ public class FeatureSelectionComponent extends BorderPane {
           new IntRangeParameter("ID", "Range of included peak IDs", false, null);
       final MZRangeParameter mzParameter = new MZRangeParameter(false);
       final RTRangeParameter rtParameter = new RTRangeParameter(false);
-      final StringParameter nameParameter =
-          new StringParameter("Name", "Peak identity name", null, false);
+      final StringParameter nameParameter = new StringParameter("Name", "Peak identity name", "",
+          false);
       SimpleParameterSet paramSet = new SimpleParameterSet(
           new Parameter[] {idParameter, mzParameter, rtParameter, nameParameter});
       ExitCode exitCode = paramSet.showSetupDialog(true);
@@ -108,8 +109,11 @@ public class FeatureSelectionComponent extends BorderPane {
     setRight(buttonPanel);
   }
 
-  void setValue(List<FeatureSelection> newValue) {
+  void setValue(@Nullable List<FeatureSelection> newValue) {
     selection.clear();
+    if (newValue == null) {
+      return;
+    }
     selection.addAll(newValue);
   }
 

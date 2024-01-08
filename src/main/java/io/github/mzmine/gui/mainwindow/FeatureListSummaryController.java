@@ -48,13 +48,10 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.util.ExitCode;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
@@ -65,7 +62,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,6 +85,32 @@ public class FeatureListSummaryController {
   @FXML
   public Button exportfeature;
 
+  public static String parameterToString(Parameter<?> parameter) {
+    String name = parameter.getName();
+    Object value = parameter.getValue();
+    StringBuilder sb = new StringBuilder(name);
+    sb.append(":\t");
+    if (value == null) {
+      sb.append("<not set>");
+    } else if (value.getClass().isArray()) {
+      sb.append(Arrays.toString((Object[]) value));
+    } else {
+      sb.append(value.toString());
+    }
+    if (parameter instanceof EmbeddedParameterSet embedded) {
+      ParameterSet parameterSet = embedded.getEmbeddedParameters();
+      for (Parameter<?> parameter1 : parameterSet.getParameters()) {
+        sb.append("\n\t");
+        sb.append(parameterToString(parameter1));
+      }
+    }
+    if (parameter instanceof OptionalParameter) {
+      sb.append("\t(");
+      sb.append(((OptionalParameter<?>) parameter).getEmbeddedParameter().getValue());
+      sb.append(")");
+    }
+    return sb.toString();
+  }
 
   @FXML
   public void initialize() {
@@ -143,31 +165,6 @@ public class FeatureListSummaryController {
     tvParameterValues.setText("");
   }
 
-  private String parameterToString(Parameter<?> parameter) {
-    String name = parameter.getName();
-    Object value = parameter.getValue();
-    StringBuilder sb = new StringBuilder(name);
-    sb.append(":\t");
-    if (value.getClass().isArray()) {
-      sb.append(Arrays.toString((Object[]) value));
-    } else {
-      sb.append(value.toString());
-    }
-    if (parameter instanceof EmbeddedParameterSet embedded) {
-      ParameterSet parameterSet = embedded.getEmbeddedParameters();
-      for (Parameter<?> parameter1 : parameterSet.getParameters()) {
-        sb.append("\n\t");
-        sb.append(parameterToString(parameter1));
-      }
-    }
-    if (parameter instanceof OptionalParameter) {
-      sb.append("\t(");
-      sb.append(((OptionalParameter<?>) parameter).getEmbeddedParameter().getValue());
-      sb.append(")");
-    }
-    return sb.toString();
-  }
-
   @FXML
   void setAsBatchQueue() {
 
@@ -182,6 +179,10 @@ public class FeatureListSummaryController {
     BatchQueue queue = new BatchQueue();
 
     for (FeatureListAppliedMethod item : lvAppliedMethods.getItems()) {
+      if (item == null) {
+        logger.info("Skipping module ???, cannot find module class. Was it renamed?");
+        continue;
+      }
       if (item.getModule() instanceof MZmineProcessingModule) {
         ParameterSet parameterSet = item.getParameters().cloneParameterSet();
         setSelectionToLastBatchStep(parameterSet);
@@ -218,7 +219,7 @@ public class FeatureListSummaryController {
   }
 
   @FXML
-  //Export Record
+    //Export Record
   void exportRecord() throws IOException {
     ButtonType btn = MZmineCore.getDesktop()
         .displayConfirmation("Export Feature Summary List\nDo you wish to continue?",

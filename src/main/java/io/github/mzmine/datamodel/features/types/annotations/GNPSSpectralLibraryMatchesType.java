@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,9 +34,8 @@ import io.github.mzmine.datamodel.features.types.numbers.scores.CosineScoreType;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This type has multiple sub columns
@@ -48,40 +47,33 @@ public class GNPSSpectralLibraryMatchesType extends ListWithSubsType<GNPSLibrary
 
   // Unmodifiable list of all subtypes
   private static final List<DataType> subTypes = List.of(new GNPSSpectralLibraryMatchesType(),
-      new CompoundNameType(), new IonAdductType(),
-      new SmilesStructureType(), new InChIStructureType(),
-      new CosineScoreType(), new MatchingSignalsType(), new GNPSLibraryUrlType(),
-      new GNPSClusterUrlType(), new GNPSNetworkUrlType());
+      new CompoundNameType(), new IonAdductType(), new SmilesStructureType(),
+      new InChIStructureType(), new CosineScoreType(), new MatchingSignalsType(),
+      new GNPSLibraryUrlType(), new GNPSClusterUrlType(), new GNPSNetworkUrlType());
 
-  private static final Map<Class<? extends DataType>, Function<GNPSLibraryMatch, Object>> mapper =
-      Map.ofEntries(
-          createEntry(GNPSSpectralLibraryMatchesType.class, match -> match),
-          createEntry(CompoundNameType.class,
-              match -> match.getResultOr(ATT.COMPOUND_NAME, "NONAME")),
-          createEntry(IonAdductType.class, match -> match.getResultOr(ATT.ADDUCT, "")),
-          createEntry(SmilesStructureType.class, match -> match.getResultOr(ATT.SMILES, "")),
-          createEntry(InChIStructureType.class, match -> match.getResultOr(ATT.INCHI, "")),
-          createEntry(CosineScoreType.class,
-              match -> match.getResultOr(ATT.LIBRARY_MATCH_SCORE, null)),
-          createEntry(MatchingSignalsType.class,
-              match -> match.getResultOr(ATT.SHARED_SIGNALS, null)),
-          createEntry(GNPSLibraryUrlType.class,
-              match -> match.getResultOr(ATT.GNPS_LIBRARY_URL, null)),
-          createEntry(GNPSClusterUrlType.class,
-              match -> match.getResultOr(ATT.GNPS_CLUSTER_URL, null)),
-          createEntry(GNPSNetworkUrlType.class,
-              match -> match.getResultOr(ATT.GNPS_NETWORK_URL, null))
-      );
-
-  @Override
-  protected Map<Class<? extends DataType>, Function<GNPSLibraryMatch, Object>> getMapper() {
-    return mapper;
-  }
 
   @NotNull
   @Override
   public List<DataType> getSubDataTypes() {
     return subTypes;
+  }
+
+  @Override
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType, final GNPSLibraryMatch match) {
+    return (K) switch (subType) {
+      case GNPSSpectralLibraryMatchesType __ -> match;
+      case CompoundNameType __ -> match.getResultOr(ATT.COMPOUND_NAME, "NONAME");
+      case IonAdductType __ -> match.getResultOr(ATT.ADDUCT, "");
+      case SmilesStructureType __ -> match.getResultOr(ATT.SMILES, "");
+      case InChIStructureType __ -> match.getResultOr(ATT.INCHI, "");
+      case CosineScoreType __ -> match.getResultOr(ATT.LIBRARY_MATCH_SCORE, null);
+      case MatchingSignalsType __ -> match.getResultOr(ATT.SHARED_SIGNALS, null);
+      case GNPSLibraryUrlType __ -> match.getResultOr(ATT.GNPS_LIBRARY_URL, null);
+      case GNPSClusterUrlType __ -> match.getResultOr(ATT.GNPS_CLUSTER_URL, null);
+      case GNPSNetworkUrlType __ -> match.getResultOr(ATT.GNPS_NETWORK_URL, null);
+      default -> throw new UnsupportedOperationException(
+          "DataType %s is not covered in map".formatted(subType.toString()));
+    };
   }
 
 

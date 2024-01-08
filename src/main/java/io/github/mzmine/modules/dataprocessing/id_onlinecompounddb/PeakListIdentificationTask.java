@@ -53,6 +53,11 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
+/**
+ * @deprecated because of old API usage. Hard to maintain. This was removed from the interfaces and
+ * is only here as reference point
+ */
+@Deprecated
 public class PeakListIdentificationTask extends AbstractTask {
 
   // Logger.
@@ -102,12 +107,12 @@ public class PeakListIdentificationTask extends AbstractTask {
     ionType = parameters.getParameter(PeakListIdentificationParameters.ionizationType).getValue();
     this.parameters = parameters;
 
-    final ParameterSet isoParam = parameters
-        .getParameter(SingleRowIdentificationParameters.ISOTOPE_FILTER).getEmbeddedParameters();
+    final ParameterSet isoParam = parameters.getParameter(
+        SingleRowIdentificationParameters.ISOTOPE_FILTER).getEmbeddedParameters();
 
     if (isotopeFilter) {
-      minIsotopeScore = isoParam
-          .getValue(IsotopePatternScoreParameters.isotopePatternScoreThreshold);
+      minIsotopeScore = isoParam.getValue(
+          IsotopePatternScoreParameters.isotopePatternScoreThreshold);
       isotopeNoiseLevel = isoParam.getValue(IsotopePatternScoreParameters.isotopeNoiseLevel);
       isotopeMZTolerance = isoParam.getValue(IsotopePatternScoreParameters.mzTolerance);
     } else {
@@ -128,7 +133,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
     return "Identification of peaks in " + peakList + (currentRow == null ? " using " + db
         : " (" + MZmineCore.getConfiguration().getMZFormat().format(currentRow.getAverageMZ())
-          + " m/z) using " + db);
+            + " m/z) using " + db);
   }
 
   @Override
@@ -200,12 +205,13 @@ public class PeakListIdentificationTask extends AbstractTask {
     final IsotopePattern rowIsotopePattern = bestPeak.getIsotopePattern();
 
     // Process each one of the result ID's.
-    final String[] findCompounds = gateway
-        .findCompounds(massValue, mzTolerance, numOfResults, db.getParameterSet());
+    final String[] findCompounds = gateway.findCompounds(massValue, mzTolerance, numOfResults,
+        db.getParameterSet());
 
     for (int i = 0; !isCanceled() && i < findCompounds.length; i++) {
 
-      final CompoundDBAnnotation compound = gateway.getCompound(findCompounds[i], db.getParameterSet());
+      final CompoundDBAnnotation compound = gateway.getCompound(findCompounds[i],
+          db.getParameterSet());
 
       // In case we failed to retrieve data, skip this compound
       if (compound == null) {
@@ -222,16 +228,15 @@ public class PeakListIdentificationTask extends AbstractTask {
 
         logger.finest(
             "Calculating isotope pattern for compound formula " + formula + " adjusted to "
-            + ionizedFormula);
+                + ionizedFormula);
 
         // Generate IsotopePattern for this compound
-        final IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
-            .calculateIsotopePattern(ionizedFormula, MIN_ABUNDANCE, charge, ionType.getPolarity());
+        final IsotopePattern compoundIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(
+            ionizedFormula, MIN_ABUNDANCE, charge, ionType.getPolarity());
 
         // Check isotope pattern match
-        boolean check = IsotopePatternScoreCalculator
-            .checkMatch(rowIsotopePattern, compoundIsotopePattern, isotopeMZTolerance,
-                isotopeNoiseLevel, minIsotopeScore);
+        boolean check = IsotopePatternScoreCalculator.checkMatch(rowIsotopePattern,
+            compoundIsotopePattern, isotopeMZTolerance, isotopeNoiseLevel, minIsotopeScore);
 
         if (!check) {
           continue;

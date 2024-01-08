@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class MetaboAnalystExportModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Export to statistics file (MetaboAnalyst)";
+  private static final String MODULE_NAME = "Export for statistics (MetaboAnalyst)";
   private static final String MODULE_DESCRIPTION = "This method exports the feature list contents into a CSV (comma-separated values) file that is formatted for easy processing by the MetaboAnalyst service (http://www.metaboanalyst.ca).";
 
   @Override

@@ -28,14 +28,16 @@ package io.github.mzmine.modules.io.projectsave;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import java.io.File;
@@ -60,7 +62,6 @@ public class RawDataSavingUtils {
   private static final Logger logger = Logger.getLogger(RawDataSavingUtils.class.getName());
 
   /**
-   *
    * @param files The raw data files to create a batch queue for.
    * @return A single batch queue to process all files in the same order.
    */
@@ -73,8 +74,8 @@ public class RawDataSavingUtils {
     // group applied methods by date
     final Map<Instant, List<FeatureListAppliedMethod>> methodMap = new TreeMap<>();
     for (FeatureListAppliedMethod method : appliedMethods) {
-      final List<FeatureListAppliedMethod> value = methodMap
-          .computeIfAbsent(method.getModuleCallDate(), d -> new ArrayList<>());
+      final List<FeatureListAppliedMethod> value = methodMap.computeIfAbsent(
+          method.getModuleCallDate(), d -> new ArrayList<>());
       value.add(method);
     }
     logger.finest(
@@ -91,9 +92,10 @@ public class RawDataSavingUtils {
       }
 
       // add a new queue step, replace raw file parameters to SPECIFIC
-      queue.add(new MZmineProcessingStepImpl<>(procModule, RawDataSavingUtils
-          .replaceAndMergeFileAndRawParameters(
-              methodList.stream().map(FeatureListAppliedMethod::getParameters).toList())));
+      queue.add(new MZmineProcessingStepImpl<>(procModule,
+          RawDataSavingUtils.replaceAndMergeFileAndRawParameters(
+              methodList.stream().map(FeatureListAppliedMethod::getParameters).toList(),
+              procModule)));
       logger.finest(() -> "Added module " + module.getName() + " to raw file batch queue.");
     }
 
@@ -142,7 +144,7 @@ public class RawDataSavingUtils {
     if (!queuesEqual(q1, q2, mergeSubsets, mergeSubsets, mergeSubsets)) {
       return null;
     }
-
+    // newest version
     final BatchQueue mergedQueue = new BatchQueue();
     var longerQueue = (q1.size() > q2.size()) ? q1 : q2;
     var shorterQueue = (q1.size() < q2.size()) ? q1 : q2;
@@ -154,7 +156,7 @@ public class RawDataSavingUtils {
       final var parameterSet2 = step2.getParameterSet();
 
       final ParameterSet mergedParameterSet = replaceAndMergeFileAndRawParameters(parameterSet1,
-          parameterSet2);
+          parameterSet2, step1.getModule());
 
       mergedQueue.add(new MZmineProcessingStepImpl<>(q1.get(i).getModule(), mergedParameterSet));
     }
@@ -168,20 +170,21 @@ public class RawDataSavingUtils {
   }
 
   /**
-   * @see this#replaceAndMergeFileAndRawParameters(ParameterSet, ParameterSet)
+   * @see this#replaceAndMergeFileAndRawParameters(ParameterSet, ParameterSet,
+   * MZmineProcessingModule)
    */
   public static ParameterSet replaceAndMergeFileAndRawParameters(
-      Collection<ParameterSet> parameterSets) {
+      Collection<ParameterSet> parameterSets, MZmineProcessingModule module) {
     final Iterator<ParameterSet> iterator = parameterSets.iterator();
     ParameterSet merged = iterator.next();
 
     if (parameterSets.size() == 1) {
       // dirty hack to replace the raw file selection if we only have one parameter set
-      return replaceAndMergeFileAndRawParameters(merged, merged);
+      return replaceAndMergeFileAndRawParameters(merged, merged, module);
     }
 
     while (iterator.hasNext()) {
-      merged = replaceAndMergeFileAndRawParameters(merged, iterator.next());
+      merged = replaceAndMergeFileAndRawParameters(merged, iterator.next(), module);
     }
 
     return merged;
@@ -190,8 +193,8 @@ public class RawDataSavingUtils {
   /**
    * Combines the contents of {@link RawDataFilesParameter} and {@link FileNamesParameter} for the
    * given parameter sets. Files will not be duplicated if their {@link Object#hashCode()} method
-   * returns the same value. The {@link RawDataFilesSelectionType} of the {@link
-   * RawDataFilesParameter} will be set to {@link RawDataFilesSelectionType#SPECIFIC_FILES}.
+   * returns the same value. The {@link RawDataFilesSelectionType} of the
+   * {@link RawDataFilesParameter} will be set to {@link RawDataFilesSelectionType#SPECIFIC_FILES}.
    *
    * @param parameterSet1 The first parameter set.
    * @param parameterSet2 The second paramete set.
@@ -199,9 +202,10 @@ public class RawDataSavingUtils {
    */
   @NotNull
   public static ParameterSet replaceAndMergeFileAndRawParameters(
-      @NotNull final ParameterSet parameterSet1, @NotNull final ParameterSet parameterSet2) {
+      @NotNull final ParameterSet parameterSet1, @NotNull final ParameterSet parameterSet2,
+      MZmineProcessingModule module) {
 
-    if (!parameterSetsEqual(parameterSet1, parameterSet2, true, true)) {
+    if (!ParameterUtils.equalValues(parameterSet1, parameterSet2, true, true)) {
       throw new IllegalArgumentException("Parameter sets differ in more than raw/file parameters.");
     }
 
@@ -215,8 +219,18 @@ public class RawDataSavingUtils {
       // merge file names and selected raw data files
       if (mergedParam instanceof FileNamesParameter fnp) {
         Set<File> files = new LinkedHashSet<>(); // set so we don't have to bother with duplicates
-        Collections.addAll(files, ((FileNamesParameter) param1).getValue());
-        Collections.addAll(files, ((FileNamesParameter) param2).getValue());
+        if (module.getModuleCategory() == MZmineModuleCategory.RAWDATAIMPORT) {
+          // check if the files still exist in the project
+          files.addAll(Arrays.stream(((FileNamesParameter) param1).getValue()).filter(
+              f -> new RawDataFilePlaceholder(f.getName(), f.getAbsolutePath()).getMatchingFile()
+                  != null).toList());
+          files.addAll(Arrays.stream(((FileNamesParameter) param2).getValue()).filter(
+              f -> new RawDataFilePlaceholder(f.getName(), f.getAbsolutePath()).getMatchingFile()
+                  != null).toList());
+        } else {
+          Collections.addAll(files, ((FileNamesParameter) param1).getValue());
+          Collections.addAll(files, ((FileNamesParameter) param2).getValue());
+        }
         logger.finest(() -> "Combined FileNamesParameter to " + Arrays.toString(files.toArray()));
         fnp.setValue(files.toArray(new File[0]));
       } else if (mergedParam instanceof RawDataFilesParameter rfp
@@ -224,21 +238,31 @@ public class RawDataSavingUtils {
           && param2 instanceof RawDataFilesParameter rfp2) {
         final Set<RawDataFile> files = new LinkedHashSet<>(); // set so we don't have to bother with duplicates
         if (rfp1.getValue().getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES) {
-          Collections.addAll(files, rfp1.getValue().getSpecificFilesPlaceholders());
+          files.addAll(getRemainingProjectFiles(rfp1.getValue().getSpecificFilesPlaceholders()));
         } else {
-          Arrays.stream(rfp1.getValue().getEvaluationResult()).forEach(files::add);
+          files.addAll(getRemainingProjectFiles(rfp1.getValue().getEvaluationResult()));
         }
         if (rfp2.getValue().getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES) {
-          Collections.addAll(files, rfp2.getValue().getSpecificFilesPlaceholders());
+          files.addAll(getRemainingProjectFiles(rfp2.getValue().getSpecificFilesPlaceholders()));
         } else {
-          Arrays.stream(rfp2.getValue().getEvaluationResult()).forEach(files::add);
+          files.addAll(getRemainingProjectFiles(rfp2.getValue().getEvaluationResult()));
         }
-        logger
-            .finest(() -> "Combined RawDataFilesParameter to " + Arrays.toString(files.toArray()));
+        logger.finest(
+            () -> "Combined RawDataFilesParameter to " + Arrays.toString(files.toArray()));
         rfp.setValue(RawDataFilesSelectionType.SPECIFIC_FILES, files.toArray(new RawDataFile[0]));
       }
     }
     return mergedParameterSet;
+  }
+
+  @NotNull
+  private static List<RawDataFile> getRemainingProjectFiles(RawDataFilePlaceholder[] files) {
+    return Arrays.stream(files).<RawDataFile>mapMulti((ph, c) -> {
+      final RawDataFile file = ph.getMatchingFile();
+      if (file != null) {
+        c.accept(file);
+      }
+    }).toList();
   }
 
   /**
@@ -275,16 +299,15 @@ public class RawDataSavingUtils {
       boolean skipRawDataFileParameters) {
 
     if (!step1.getModule().equals(step2.getModule())) {
-      logger.finest(
-          "Modules " + step1.getModule().getClass().getName() + " is not equal to " + step2
-              .getModule().getClass().getName());
+      logger.finest("Modules " + step1.getModule().getClass().getName() + " is not equal to "
+          + step2.getModule().getClass().getName());
       return false;
     }
 
     final var parameterSet1 = step1.getParameterSet();
     final var parameterSet2 = step2.getParameterSet();
 
-    if (!parameterSetsEqual(parameterSet1, parameterSet2, skipFileParameters,
+    if (!ParameterUtils.equalValues(parameterSet1, parameterSet2, skipFileParameters,
         skipRawDataFileParameters)) {
       logger.finest(
           "Queues are not equal. Parameter sets of step " + step1.getModule() + " are not equal.");
@@ -293,62 +316,4 @@ public class RawDataSavingUtils {
     return true;
   }
 
-  /**
-   * @param skipFileParameters        If true, contents of {@link FileNamesParameter} are not
-   *                                  compared.
-   * @param skipRawDataFileParameters If true, values of {@link RawDataFilesParameter}s and {@link
-   *                                  FileNamesParameter}s will be skipped.
-   */
-  public static boolean parameterSetsEqual(ParameterSet parameterSet1, ParameterSet parameterSet2,
-      boolean skipFileParameters, boolean skipRawDataFileParameters) {
-    if (parameterSet1 == null || parameterSet2 == null || parameterSet1.getClass() != parameterSet2
-        .getClass()) {
-      logger.info(() -> "Cannot compare parameters. Either null or not the same class.");
-      return false;
-    }
-
-    if (parameterSet1.getParameters().length != parameterSet2.getParameters().length) {
-      return false;
-    }
-
-    for (int j = 0;
-        j < parameterSet1.getParameters().length && j < parameterSet2.getParameters().length; j++) {
-      final Parameter<?> param1 = parameterSet1.getParameters()[j];
-      final Parameter<?> param2 = parameterSet2.getParameters()[j];
-
-      if (param1.getClass() != param2.getClass()) {
-        logger.finest(
-            () -> "Parameters " + param1.getName() + "(" + param1.getClass().getName() + ") and "
-                + param2.getName() + " (" + param2.getClass().getName()
-                + ") are not of the same class.");
-        return false;
-      }
-
-      if ((param1 instanceof FileNamesParameter && skipFileParameters)
-          || (param1 instanceof RawDataFilesParameter) && skipRawDataFileParameters) {
-        // it does not matter if the file or raw data selection was different, we need to know
-        // if the other values were the same if we want to merge the steps.
-        logger.finest(
-            () -> "Skipping parameter " + param1.getName() + " of class " + param1.getClass()
-                .getName() + ".");
-        continue;
-      }
-
-      if (param1 instanceof EmbeddedParameterSet embedded1
-          && param2 instanceof EmbeddedParameterSet embedded2 && !parameterSetsEqual(
-          embedded1.getEmbeddedParameters(), embedded2.getEmbeddedParameters(), skipFileParameters,
-          skipRawDataFileParameters)) {
-        return false;
-      }
-
-      if (!param1.valueEquals(param2)) {
-        logger.finest(
-            () -> "Parameter \"" + param1.getName() + "\" of parameter set " + parameterSet1
-                .getClass().getName() + " has different values: " + param1.getValue() + " and "
-                + param2.getValue());
-        return false;
-      }
-    }
-    return true;
-  }
 }

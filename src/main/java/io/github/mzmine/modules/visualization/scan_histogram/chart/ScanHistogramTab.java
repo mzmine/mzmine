@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.visualization.scan_histogram.chart;
 
 import com.google.common.collect.Range;
-import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -71,9 +70,8 @@ public class ScanHistogramTab extends MZmineTab {
   private final double binWidth;
   private final ScanHistogramType valueType;
   private final Range<Double> intensityRange;
-  private final Boolean useIntensityRange;
   private final MassDefectFilter massDefectFilter;
-  private final Boolean useMassDefect;
+  private final ScanDataType scanDataType;
   protected HistogramPanel histo;
   private RawDataFile[] dataFiles;
   // scan counter
@@ -91,16 +89,16 @@ public class ScanHistogramTab extends MZmineTab {
 
     this.dataFiles = dataFile;
     scanSelection = parameters.getValue(ScanHistogramParameters.scanSelection);
-    mzRange = parameters.getValue(ScanHistogramParameters.mzRange);
+    mzRange = parameters.getEmbeddedParameterValueIfSelectedOrElse(ScanHistogramParameters.mzRange,
+        Range.all());
     binWidth = parameters.getValue(ScanHistogramParameters.binWidth);
     useMobilityScans = parameters.getValue(ScanHistogramParameters.useMobilityScans);
-    useIntensityRange = parameters.getValue(ScanHistogramParameters.heightRange);
-    intensityRange = parameters.getParameter(ScanHistogramParameters.heightRange)
-        .getEmbeddedParameter().getValue();
-    useMassDefect = parameters.getValue(ScanHistogramParameters.massDefect);
-    massDefectFilter = parameters.getParameter(ScanHistogramParameters.massDefect)
-        .getEmbeddedParameter().getValue();
+    intensityRange = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        ScanHistogramParameters.heightRange, Range.all());
+    massDefectFilter = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        ScanHistogramParameters.massDefect, MassDefectFilter.ALL);
     valueType = parameters.getValue(ScanHistogramParameters.type);
+    scanDataType = parameters.getValue(ScanHistogramParameters.scanDataType);
 
     data = buildHistogramData(dataFile);
 
@@ -112,6 +110,11 @@ public class ScanHistogramTab extends MZmineTab {
     //    .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
 
     histo = new HistogramPanel(valueType.toString(), data, binWidth);
+
+    var chartPanel = histo.getChartPanel();
+    if (chartPanel != null && chartPanel.getChart() != null && chartPanel.getChart().getLegend() != null) {
+      chartPanel.getChart().getLegend().setVisible(false);
+    }
 
     //setMinWidth(1050);
     //setMinHeight(700);
@@ -125,6 +128,13 @@ public class ScanHistogramTab extends MZmineTab {
     //addKeyBindings();
   }
 
+  /**
+   * The main pane that contains all the controls and the histogram
+   */
+  public BorderPane getMainPane() {
+    return mainPane;
+  }
+
   private HistogramData buildHistogramData(RawDataFile... dataFiles) {
     logger.info("Starting to build mz distribution histogram for " + Arrays.stream(dataFiles)
         .map(Object::toString).collect(Collectors.joining(",")));
@@ -135,7 +145,7 @@ public class ScanHistogramTab extends MZmineTab {
     for (RawDataFile dataFile : dataFiles) {
       if (dataFile instanceof IMSRawDataFile ims && useMobilityScans) {
         MobilityScanDataAccess scanAccess = EfficientDataAccess.of(ims,
-            MobilityScanDataType.CENTROID, scanSelection);
+            MobilityScanDataType.MASS_LIST, scanSelection);
         totalScans = scanAccess.getNumberOfScans();
         while (scanAccess.nextFrame() != null) {
           while (scanAccess.nextMobilityScan() != null) {
@@ -143,8 +153,7 @@ public class ScanHistogramTab extends MZmineTab {
           }
         }
       } else {
-        ScanDataAccess scanAccess = EfficientDataAccess.of(dataFile, ScanDataType.CENTROID,
-            scanSelection);
+        ScanDataAccess scanAccess = EfficientDataAccess.of(dataFile, scanDataType, scanSelection);
         totalScans = scanAccess.getNumberOfScans();
         while (scanAccess.nextScan() != null) {
           addAllDataPoints(scanAccess, data);
@@ -153,12 +162,12 @@ public class ScanHistogramTab extends MZmineTab {
       }
     }
 
-    if (!data.isEmpty()) {
-      // to array
-      return new HistogramData(data.toDoubleArray());
-    } else {
-      throw new MSDKRuntimeException("Data was empty. Review your selected filters.");
-    }
+    return new HistogramData(data.toDoubleArray());
+//    if (!data.isEmpty()) {
+    // to array
+//    } else {
+//      throw new MSDKRuntimeException("Data was empty. Review your selected filters.");
+//    }
   }
 
   private void addAllDataPoints(Scan scan, DoubleArrayList data) {
@@ -167,8 +176,8 @@ public class ScanHistogramTab extends MZmineTab {
     for (int i = 0; i < n; i++) {
       double mz = scan.getMzValue(i);
       double intensity = scan.getIntensityValue(i);
-      if (mzRange.contains(mz) && (!useIntensityRange || intensityRange.contains(intensity)) && (
-          !useMassDefect || massDefectFilter.contains(mz))) {
+      if (mzRange.contains(mz) && intensityRange.contains(intensity) && massDefectFilter.contains(
+          mz)) {
         double val = switch (valueType) {
           case MZ -> mz;
           case INTENSITY -> intensity;
@@ -225,16 +234,19 @@ public class ScanHistogramTab extends MZmineTab {
   }
 
   @Override
-  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-    if (rawDataFiles == null || rawDataFiles.isEmpty() || CollectionUtils.isEqualCollection(
-        rawDataFiles, getRawDataFiles())) {
+  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> dataFiles) {
+    setDataFiles(dataFiles);
+  }
+
+  public void setDataFiles(final Collection<? extends RawDataFile> dataFiles) {
+    if (dataFiles == null || dataFiles.isEmpty() || CollectionUtils.isEqualCollection(dataFiles,
+        getRawDataFiles())) {
       return;
     }
-
-    RawDataFile[] newFiles = rawDataFiles.toArray(RawDataFile[]::new);
+    RawDataFile[] newFiles = dataFiles.toArray(RawDataFile[]::new);
     HistogramData newData = buildHistogramData(newFiles);
-    histo.setData(newData, binWidth);
-    dataFiles = newFiles;
+    histo.setData(newData);
+    this.dataFiles = newFiles;
 
     data = newData;
   }

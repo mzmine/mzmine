@@ -25,28 +25,19 @@
 
 package io.github.mzmine.modules.dataprocessing.align_append_rows;
 
-import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerSpectraSimilarityScoreParameters;
-import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
-import java.text.DecimalFormat;
+import org.jetbrains.annotations.NotNull;
 
 public class MergeAlignerParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final StringParameter peakListName =
-      new StringParameter("Feature list name", "Feature list name", "Merged feature list");
+  public static final StringParameter peakListName = new StringParameter("Feature list name",
+      "Feature list name", "Merged feature list");
 
   public MergeAlignerParameters() {
     super(new Parameter[]{featureLists, peakListName},
@@ -54,7 +45,7 @@ public class MergeAlignerParameters extends SimpleParameterSet {
   }
 
   @Override
-  public IonMobilitySupport getIonMobilitySupport() {
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
   }
 }

@@ -71,6 +71,7 @@ public class FeatureTableTab extends MZmineTab {
     }
 
     controller = loader.getController();
+
     controller.setFeatureList(flist);
 
     // TODO: if there would be only selectColumnsButton in the toolbar, then remove toolbar and
@@ -97,8 +98,20 @@ public class FeatureTableTab extends MZmineTab {
     });
   }
 
+  public FeatureTableFXMLTabAnchorPaneController getController() {
+    return controller;
+  }
+
+  public BorderPane getMainPane() {
+    return mainPane;
+  }
+
   public FeatureList getFeatureList() {
     return controller.getFeatureList();
+  }
+
+  public FeatureTableFX getFeatureTable() {
+    return controller.getFeatureTable();
   }
 
   @NotNull

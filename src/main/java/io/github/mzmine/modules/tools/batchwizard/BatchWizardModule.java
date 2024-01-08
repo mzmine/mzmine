@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,35 +39,35 @@ import org.jetbrains.annotations.Nullable;
 
 public class BatchWizardModule implements MZmineRunnableModule {
 
+  public static final String NAME = "Processing wizard";
+  public static final String DESCRIPTION = "Default workflows";
+
+
   @Override
   public @NotNull String getName() {
-    return "Processing wizard";
+    return NAME;
   }
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return BatchWizardParameters.class;
-  }
-
-  @Override
-  public @NotNull String getDescription() {
-    return "Creates processing batches with a reduced set of parameters.";
-  }
-
-  @Override
-  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
-      @NotNull Instant moduleCallDate) {
-    if (MZmineCore.isHeadLessMode()) {
-      return ExitCode.OK;
-    }
-
-    showTab();
-    return ExitCode.OK;
+    return null;
   }
 
   public void showTab() {
     MZmineCore.runLater(() -> MZmineCore.getDesktop().addTab(new BatchWizardTab()));
+  }
+
+  @Override
+  public @NotNull String getDescription() {
+    return DESCRIPTION;
+  }
+
+  @Override
+  public @NotNull ExitCode runModule(@NotNull final MZmineProject project,
+      @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
+      @NotNull final Instant moduleCallDate) {
+    showTab();
+    return ExitCode.OK;
   }
 
   @Override

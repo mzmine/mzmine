@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,8 +41,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -52,23 +50,6 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implements AnnotationType {
-
-  private static final Map<Class<? extends DataType>, Function<MatchedLipid, Object>> mapper =
-      Map.ofEntries(
-          createEntry(LipidMatchListType.class, match -> match),
-          createEntry(IonAdductType.class, match -> match.getIonizationType().getAdductName()),
-          createEntry(FormulaType.class, match -> MolecularFormulaManipulator
-              .getString(match.getLipidAnnotation().getMolecularFormula())),
-          createEntry(CommentType.class,
-              match -> match.getComment() != null ? match.getComment() : ""),
-          createEntry(LipidAnnotationMsMsScoreType.class, l -> l.getMsMsScore().floatValue()),
-          createEntry(LipidSpectrumType.class, match -> true),
-          createEntry(MzPpmDifferenceType.class, match -> {
-            // calc ppm error?
-            double exactMass = getExactMass(match);
-            return (float)((exactMass - match.getAccurateMz()) / exactMass) * 1000000;
-          })
-      );
 
   private static final List<DataType> subTypes = List.of(//
       new LipidMatchListType(), //
@@ -84,11 +65,6 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
         AtomContainerManipulator.MonoIsotopic) + match.getIonizationType().getAddedMass();
   }
 
-  @Override
-  protected Map<Class<? extends DataType>, Function<MatchedLipid, Object>> getMapper() {
-    return mapper;
-  }
-
   @NotNull
   @Override
   public final String getUniqueID() {
@@ -97,14 +73,32 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
   }
 
   @Override
-  public @NotNull
-  List<DataType> getSubDataTypes() {
+  public @NotNull List<DataType> getSubDataTypes() {
     return subTypes;
   }
 
   @Override
-  public @NotNull
-  String getHeaderString() {
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType, final MatchedLipid match) {
+    return (K) switch (subType) {
+      case LipidMatchListType __ -> match;
+      case IonAdductType __ -> match.getIonizationType().getAdductName();
+      case FormulaType __ ->
+          MolecularFormulaManipulator.getString(match.getLipidAnnotation().getMolecularFormula());
+      case CommentType __ -> match.getComment() != null ? match.getComment() : "";
+      case LipidAnnotationMsMsScoreType __ -> match.getMsMsScore().floatValue();
+      case LipidSpectrumType __ -> true;
+      case MzPpmDifferenceType __ -> {
+        // calc ppm error?
+        double exactMass = getExactMass(match);
+        yield (float) ((exactMass - match.getAccurateMz()) / exactMass) * 1000000;
+      }
+      default -> throw new UnsupportedOperationException(
+          "DataType %s is not covered in map".formatted(subType.toString()));
+    };
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
     return "Lipid Annotation";
   }
 
@@ -116,9 +110,9 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
       return;
     }
     if (!(value instanceof List<?> list)) {
-      throw new IllegalArgumentException("Wrong value type for data type: "
-                                         + this.getClass().getName() + " value class: " + value
-                                             .getClass());
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+          + value.getClass());
     }
 
     for (Object o : list) {
@@ -136,7 +130,7 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
 
     if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
-        && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
+          && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
       throw new IllegalStateException("Wrong element");
     }
 

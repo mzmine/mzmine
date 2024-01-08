@@ -34,13 +34,14 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.util.converter.NumberStringConverter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
  */
-public class RTToleranceComponent extends BorderPane {
+public class RTToleranceComponent extends HBox {
 
   // the same order that the unit enum in RTTolerance is defined in
   private static final ObservableList<String> toleranceTypes = FXCollections.observableArrayList(
@@ -52,19 +53,16 @@ public class RTToleranceComponent extends BorderPane {
   private final ComboBox<String> toleranceType;
 
   public RTToleranceComponent() {
-
-    // setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
+    setSpacing(5);
 
     toleranceField = new TextField();
     toleranceField.setPrefColumnCount(6);
     toleranceField.setTextFormatter(textFormatter);
 
-    toleranceType = new ComboBox<String>(toleranceTypes);
+    toleranceType = new ComboBox<>(toleranceTypes);
     toleranceType.getSelectionModel().select(0);
 
-    setCenter(toleranceField);
-    setRight(toleranceType);
-
+    getChildren().addAll(toleranceField, toleranceType);
   }
 
   public RTTolerance getValue() {
@@ -92,7 +90,14 @@ public class RTToleranceComponent extends BorderPane {
 
   }
 
-  public void setValue(RTTolerance value) {
+  public void setValue(@Nullable RTTolerance value) {
+    if (value == null) {
+      toleranceField.setText("");
+      // set to default value
+      toleranceType.getSelectionModel().select(toleranceTypes.get(0));
+      return;
+    }
+
     double tolerance = value.getTolerance();
     int choiceIndex = value.getUnit().ordinal();
 

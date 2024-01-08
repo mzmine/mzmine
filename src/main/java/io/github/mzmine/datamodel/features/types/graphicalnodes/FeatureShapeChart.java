@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,17 +42,15 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
 import java.util.LinkedHashSet;
+import java.util.NoSuchElementException;
 import java.util.Set;
-import javafx.application.Platform;
-import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.data.Range;
 
-public class FeatureShapeChart extends StackPane {
-
+public class FeatureShapeChart extends BufferedChartNode {
 
   public FeatureShapeChart(@NotNull ModularFeatureListRow row, AtomicDouble progress) {
-
+    super(true);
     UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
 
     SimpleXYChart<IonTimeSeriesToXYProvider> chart = new SimpleXYChart<>(
@@ -64,7 +62,7 @@ public class FeatureShapeChart extends StackPane {
     Set<ColoredXYDataset> datasets = new LinkedHashSet<>();
     int size = row.getFilesFeatures().size();
     for (Feature f : row.getFeatures()) {
-      if(f.getRawDataFile() instanceof ImagingRawDataFile) {
+      if (f.getRawDataFile() instanceof ImagingRawDataFile) {
         continue;
       }
       IonTimeSeries<? extends Scan> dpSeries = ((ModularFeature) f).getFeatureData();
@@ -86,30 +84,38 @@ public class FeatureShapeChart extends StackPane {
     if (bestFeature != null) {
       final Float rt = bestFeature.getRT();
 
-      if (bestFeature.getFWHM() != null && !Float.isNaN(bestFeature.getFWHM())
-          && bestFeature.getFWHM() > 0f) {
-        final Float fwhm = bestFeature.getFWHM();
-        defaultRange = new org.jfree.data.Range(Math.max(rt - 5 * fwhm, 0),
-            Math.min(rt + 5 * fwhm, bestFeature.getRawDataFile().getDataRTRange().upperEndpoint()));
-
+      var fwhm = bestFeature.getFWHM();
+      var fullWidth = RangeUtils.rangeLength(bestFeature.getRawDataPointsRTRange());
+      var dataRTRange = bestFeature.getRawDataFile().getDataRTRange();
+      var rawMinRt = dataRTRange.lowerEndpoint();
+      var rawMaxRt = dataRTRange.upperEndpoint();
+      // FWHM defines most of the feature / chromatogram
+      if (fwhm != null && !Float.isNaN(fwhm) && fwhm > 0f && fwhm / fullWidth > 0.4) {
+        // zoom on feature
+        var window = 5 * fwhm;
+        defaultRange = new org.jfree.data.Range(Math.max(rt - window, rawMinRt),
+            Math.min(rt + window, rawMaxRt));
       } else {
-        final Float length = Math.max(RangeUtils.rangeLength(bestFeature.getRawDataPointsRTRange()),
-            0.001f);
-        defaultRange = new org.jfree.data.Range(Math.max(rt - 3 * length, 0),
-            Math.min(rt + 3 * length,
-                bestFeature.getRawDataFile().getDataRTRange().upperEndpoint()));
+        // show full RT range
+        final float length = Math.max(fullWidth, 0.001f);
+        defaultRange = new org.jfree.data.Range(Math.max(rt - length * 1.05, rawMinRt),
+            Math.min(rt + length * 1.05, rawMaxRt));
       }
     } else {
       defaultRange = new Range(0, 1);
     }
 
-    setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    Platform.runLater(() -> {
-      getChildren().add(chart);
-      chart.addDatasets(datasets);
-
+    chart.addDatasets(datasets);
+    try {
       chart.getXYPlot().getDomainAxis().setRange(defaultRange);
       chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
-    });
+    } catch (NoSuchElementException ex) {
+      // error in jfreechart draw method
+    }
+
+    var width = GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH;
+    var height = GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT;
+    // set the chart to create a buffered image
+    setChartCreateImage(chart, width, height);
   }
 }

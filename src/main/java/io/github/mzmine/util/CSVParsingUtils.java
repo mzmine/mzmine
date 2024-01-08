@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,9 +36,11 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.exceptions.MissingColumnException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -46,8 +48,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
@@ -57,6 +62,42 @@ import org.jetbrains.annotations.NotNull;
 public class CSVParsingUtils {
 
   private static final Logger logger = Logger.getLogger(CSVParsingUtils.class.getName());
+
+
+  /**
+   * Find indices of all columns
+   *
+   * @param titleLine titleLine
+   * @return map of column and index
+   */
+  @NotNull
+  public static Map<String, Integer> extractColumnIndices(final String[] columns,
+      final String[] titleLine) {
+    List<String> lowerLine = Arrays.stream(titleLine).map(String::toLowerCase).toList();
+    Map<String, Integer> map = Arrays.stream(columns).map(String::toLowerCase)
+        .collect(Collectors.toMap(key -> key, lowerLine::indexOf));
+    return map;
+  }
+
+  /**
+   * Find indices of all columns or throw exception if some are missing
+   *
+   * @param titleLine titleLine
+   * @return map of column and index
+   */
+  @NotNull
+  public static Map<String, Integer> extractColumnIndicesStrict(final String[] columns,
+      final String[] titleLine) throws MissingColumnException {
+    Map<String, Integer> map = extractColumnIndices(columns, titleLine);
+
+    List<String> missingColumns = map.entrySet().stream().filter(e -> e.getValue() == -1)
+        .map(Entry::getKey).toList();
+    if (!missingColumns.isEmpty()) {
+      throw new MissingColumnException(missingColumns);
+    }
+    return map;
+  }
+
 
   /**
    * Searches an array of strings for a specified list of import types. Returns all selected import
@@ -123,8 +164,8 @@ public class CSVParsingUtils {
           case IntegerType it -> annotation.put(it, Integer.parseInt(line[columnIndex]));
           case DoubleType dt -> annotation.put(dt, Double.parseDouble(line[columnIndex]));
           case IonAdductType ignored -> {
-            final IonType ionType = IonType.parseFromString(line[columnIndex]);
-            annotation.put(IonTypeType.class, ionType);
+            final IonType ionType = IonTypeParser.parse(line[columnIndex]);
+            annotation.putIfNotNull(IonTypeType.class, ionType);
           }
           case StringType st -> annotation.put(st, line[columnIndex]);
           default -> throw new RuntimeException(

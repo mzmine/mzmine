@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx;
 
+import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportModule;
@@ -92,7 +93,7 @@ import org.jfree.data.xy.XYZDataset;
 public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
   private static final Logger logger = Logger.getLogger(EChartViewer.class.getName());
-
+  private final Menu exportMenu;
   // one history for each plot/subplot
   protected ZoomHistory zoomHistory;
   protected List<AxesRangeChangedListener> axesRangeListener;
@@ -102,7 +103,6 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
   // only for XYData (not for categoryPlots)
   protected boolean addZoomHistory = true;
   private ChartGestureMouseAdapterFX mouseAdapter;
-  private final Menu exportMenu;
 
   /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
@@ -169,6 +169,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
     // Add chart and configure
     if (chart != null) {
       setChart(chart);
+      ChartLogicsFX.setAxesMargins(getChart(), 0.05);
     }
 
     exportMenu = (Menu) getContextMenu().getItems().get(0);
@@ -289,7 +290,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
       Plot p = getChart().getPlot();
       if (addZoomHistory && p instanceof XYPlot && !(p instanceof CombinedDomainXYPlot
-          || p instanceof CombinedRangeXYPlot)) {
+                                                     || p instanceof CombinedRangeXYPlot)) {
         // zoom history
         zoomHistory = new ZoomHistory(this, 20);
 
@@ -327,12 +328,13 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       }
 
       // mouse adapter for scrolling and zooming
-      mouseAdapter = new ChartGestureMouseAdapterFX("gestures", this);
-      addMouseHandler(mouseAdapter);
-
-      // add gestures
-      if (standardGestures) {
-        addStandardGestures();
+      if (mouseAdapter == null) {
+        mouseAdapter = new ChartGestureMouseAdapterFX("gestures", this);
+        addMouseHandler(mouseAdapter);
+        // add gestures
+        if (standardGestures) {
+          addStandardGestures();
+        }
       }
       //      mouseAdapter.addDebugHandler();
     }

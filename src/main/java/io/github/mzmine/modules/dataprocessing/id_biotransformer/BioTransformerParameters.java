@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,14 +28,15 @@ package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import javafx.application.Platform;
@@ -73,11 +74,12 @@ public class BioTransformerParameters extends SimpleParameterSet {
       All = All of the above.
       """, SmilesSource.values(), SmilesSource.ALL);
 
+  public static final AdvancedParametersParameter<RtClusterFilterParameters> advanced = new AdvancedParametersParameter<>(
+      new RtClusterFilterParameters());
+
   public BioTransformerParameters() {
-    super(
-        new Parameter[]{flists, bioPath, transformationType, steps, mzTol, ionLibrary, filterParam,
-            smilesSource
-            /*, cmdOptions*/});
+    super(flists, bioPath, transformationType, steps, mzTol, ionLibrary, filterParam, smilesSource
+        /*, cmdOptions*/, advanced);
   }
 
   public BioTransformerParameters(boolean singleRow) {
@@ -102,6 +104,11 @@ public class BioTransformerParameters extends SimpleParameterSet {
         """);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
   }
 
   public enum TransformationTypes {

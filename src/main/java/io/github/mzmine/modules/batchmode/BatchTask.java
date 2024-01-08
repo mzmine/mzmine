@@ -39,7 +39,6 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -148,10 +147,19 @@ public class BatchTask extends AbstractTask {
 
         if (allFiles.length != 0) {
           // set files to import
-          setImportFiles(allFiles);
-
+          if (!queue.setImportFiles(allFiles, null)) {
+            if (skipOnError) {
+              processedSteps += stepsPerDataset;
+              continue;
+            } else {
+              setStatus(TaskStatus.ERROR);
+              setErrorMessage("Could not set data files in advanced batch mode. Will cancel all jobs. " + datasetName);
+              return;
+            }
+          }
           // set files to output
           setOutputFiles(parentDir, createResultsDir, datasetName);
+
         } else {
           errorDataset++;
           logger.info("No data files found in directory: " + datasetName);
@@ -198,7 +206,7 @@ public class BatchTask extends AbstractTask {
       // only change for export modules
       if (currentStep.getModule() instanceof MZmineRunnableModule mod && (
           mod.getModuleCategory() == MZmineModuleCategory.FEATURELISTEXPORT
-              || mod.getModuleCategory() == MZmineModuleCategory.RAWDATAEXPORT)) {
+          || mod.getModuleCategory() == MZmineModuleCategory.RAWDATAEXPORT)) {
         ParameterSet params = currentStep.getParameterSet();
         for (final Parameter<?> p : params.getParameters()) {
           if (p instanceof FileNameParameter fnp) {
@@ -230,19 +238,6 @@ public class BatchTask extends AbstractTask {
     }
   }
 
-  private void setImportFiles(final File[] allFiles) {
-    MZmineProcessingStep<?> currentStep = queue.get(0);
-    ParameterSet importParameters = currentStep.getParameterSet();
-    FileNamesParameter importParam = importParameters.getParameter(
-        AllSpectralDataImportParameters.fileNames);
-    if (importParam == null) {
-      logger.warning(
-          "When running advanced batch, the first step in the batch needs to be the all spectral data import module.");
-      throw new IllegalStateException(
-          "When running advanced batch, the first step in the batch needs to be the all spectral data import module");
-    }
-    importParam.setValue(allFiles);
-  }
 
   private void processQueueStep(int stepNumber) {
 
@@ -274,7 +269,7 @@ public class BatchTask extends AbstractTask {
         if (selectedFiles == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-              + "Missing parameter value for " + p.getName());
+                          + "Missing parameter value for " + p.getName());
           return;
         }
         selectedFiles.setBatchLastFiles(createdFiles);
@@ -312,6 +307,13 @@ public class BatchTask extends AbstractTask {
 
     // If current step didn't produce any tasks, continue with next step
     if (currentStepTasks.isEmpty()) {
+      // this might be the case for AllSpectralDataImportModule if all files are already loaded
+      // special option to skip already imported files in the AllSpectralDataImportParameters
+      // add skipped files
+      setLastFilesIfAllDataImportStep(batchStepParameters);
+      if (getStatus() == TaskStatus.ERROR) {
+        return;
+      }
       return;
     }
 
@@ -381,6 +383,14 @@ public class BatchTask extends AbstractTask {
     createdFeatureLists = new ArrayList<>(project.getCurrentFeatureLists());
     createdDataFiles.removeAll(beforeDataFiles);
     createdFeatureLists.removeAll(beforeFeatureLists);
+
+    // special option to skip already imported files in the AllSpectralDataImportParameters
+    // add skipped files
+    setLastFilesIfAllDataImportStep(batchStepParameters);
+    if (getStatus() == TaskStatus.ERROR) {
+      return;
+    }
+
     // Clear the saved data files and feature lists. Save them to the
     // "previous" lists, in case the next step does not produce any new data
     if (!createdDataFiles.isEmpty()) {
@@ -388,6 +398,25 @@ public class BatchTask extends AbstractTask {
     }
     if (!createdFeatureLists.isEmpty()) {
       previousCreatedFeatureLists = createdFeatureLists;
+    }
+  }
+
+  private void setLastFilesIfAllDataImportStep(final ParameterSet batchStepParameters) {
+    if (AllSpectralDataImportParameters.isParameterSetClass(batchStepParameters)) {
+      var loadedRawDataFiles = AllSpectralDataImportParameters.getLoadedRawDataFiles(
+          MZmineCore.getProject(), batchStepParameters);
+
+      // loaded should always be >= created as we are at most skipping files
+      if (loadedRawDataFiles.size() >= createdDataFiles.size()) {
+        createdDataFiles = loadedRawDataFiles;
+        previousCreatedDataFiles = createdDataFiles;
+      } else {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage(
+            "Wanted to set the last batch files from raw data import but failed because less data files were imported than expected.\n"
+            + "expected %d  but loaded %d".formatted(loadedRawDataFiles.size(),
+                createdDataFiles.size()));
+      }
     }
   }
 
@@ -408,7 +437,7 @@ public class BatchTask extends AbstractTask {
         if (selectedFeatureLists == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-              + "Missing parameter value for " + p.getName());
+                          + "Missing parameter value for " + p.getName());
           return false;
         }
         selectedFeatureLists.setBatchLastFeatureLists(createdFlists);
@@ -442,10 +471,12 @@ public class BatchTask extends AbstractTask {
         return "Batch mode";
       } else {
         return String.format("Batch step %d/%d of dataset %d/%d",
-            processedSteps % stepsPerDataset + 1, stepsPerDataset, currentDataset + 1, datasets);
+            Math.min(processedSteps % stepsPerDataset + 1, totalSteps), stepsPerDataset,
+            currentDataset + 1, datasets);
       }
     } else {
-      return String.format("Batch step %d/%d", processedSteps + 1, totalSteps);
+      return String.format("Batch step %d/%d", Math.min(processedSteps + 1, totalSteps),
+          totalSteps);
     }
   }
 

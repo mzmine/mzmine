@@ -35,11 +35,13 @@ import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
+import io.github.mzmine.datamodel.features.types.fx.DataTypeGraphicalCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.EditComboCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.EditableDataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.AddElementDialog;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
+import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -64,7 +66,7 @@ import org.jetbrains.annotations.Nullable;
  * @param <T>
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public abstract class DataType<T> {
+public abstract class DataType<T> implements Comparable<DataType> {
 
   private static final Logger logger = Logger.getLogger(DataType.class.getName());
 
@@ -134,7 +136,10 @@ public abstract class DataType<T> {
         }
         event.getTreeTableView().refresh();
       });
-    } else {
+    } else if(type instanceof GraphicalColumType<?>){
+      col.setCellFactory(new DataTypeGraphicalCellFactory<>(raw, type, parentType, subColumnIndex));
+    }
+    else {
       col.setCellFactory(new DataTypeCellFactory(raw, type, parentType, subColumnIndex));
     }
     return col;
@@ -295,12 +300,17 @@ public abstract class DataType<T> {
   // TODO dirty hack to make this a "singleton"
   @Override
   public boolean equals(Object obj) {
-    return obj != null && obj.getClass().equals(this.getClass());
+    return obj instanceof DataType dt && dt.getUniqueID().equals(this.getUniqueID());
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return getUniqueID().hashCode();
+  }
+
+  @Override
+  public int compareTo(@NotNull final DataType o) {
+    return getUniqueID().compareTo(o.getUniqueID());
   }
 
   /**

@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2004-2022 The MZmine Development Team
- *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -25,10 +24,12 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
 
 public class FeatureTableFXParameters extends SimpleParameterSet {
@@ -41,6 +42,28 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
       "Feature type columns",
       "Specify which data type columns shall be displayed in the feature list table");
 
+  public static final ComboParameter<AbundanceMeasure> defaultAbundanceMeasure = new ComboParameter<>(
+      "Default feature intensity", "Used in the compact table", AbundanceMeasure.values(),
+      AbundanceMeasure.Height);
+
+  public static final BooleanParameter defaultVisibilityOfImsFeature = new BooleanParameter(
+      "Default visibility (IMS feature charts)",
+      "This parameter is applied when opening a new feature table. Only used for single sample feature lists.",
+      true);
+
+  public static final BooleanParameter defaultVisibilityOfImages = new BooleanParameter(
+      "Default visibility (images)",
+      "This parameter is applied when opening a new feature table.  Only used for single sample feature lists.",
+      true);
+
+  public static final BooleanParameter defaultVisibilityOfShapes = new BooleanParameter(
+      "Default visibility (shapes)", "This parameter is applied when opening a new feature table",
+      true);
+
+  public static final IntegerParameter deactivateShapesGreaterNSamples = new IntegerParameter(
+      "Deactivate shapes >N samples", "Deactivate shapes for better performance above N samples.",
+      12);
+
   public static final BooleanParameter lockImagesToAspectRatio = new BooleanParameter(
       "Lock images to aspect ratio",
       "If enabled, the width of the column will be determined by the lateral width of "
@@ -51,8 +74,9 @@ public class FeatureTableFXParameters extends SimpleParameterSet {
       "If ticked, the axes of image plots will be hidden.", false);
 
   public FeatureTableFXParameters() {
-    super(new Parameter[]{showRowTypeColumns, showFeatureTypeColumns, lockImagesToAspectRatio,
-        hideImageAxes});
+    super(showRowTypeColumns, showFeatureTypeColumns, defaultAbundanceMeasure,
+        defaultVisibilityOfImsFeature, defaultVisibilityOfImages, defaultVisibilityOfShapes,
+        deactivateShapesGreaterNSamples, lockImagesToAspectRatio, hideImageAxes);
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,8 +27,10 @@ package io.github.mzmine.util.spectraldb.entry;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
@@ -59,6 +61,7 @@ import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -163,12 +166,16 @@ public interface SpectralLibraryEntry extends MassList {
     return precursors.stream().map(extractor).filter(Objects::nonNull).toList();
   }
 
-  static SpectralLibraryEntry loadFromXML(XMLStreamReader reader) throws XMLStreamException {
-    return SpectralDBEntry.loadFromXML(reader);
+  static SpectralLibraryEntry loadFromXML(XMLStreamReader reader, MZmineProject project)
+      throws XMLStreamException {
+    return SpectralDBEntry.loadFromXML(reader, project);
   }
 
   void putAll(Map<DBEntryField, Object> fields);
 
+  /**
+   * @return True if the value was not null and the value was placed in the field.
+   */
   boolean putIfNotNull(DBEntryField field, Object value);
 
   Double getPrecursorMZ();
@@ -180,4 +187,104 @@ public interface SpectralLibraryEntry extends MassList {
   Map<DBEntryField, Object> getFields();
 
   void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
+
+  default boolean setCharge(@Nullable Integer charge) {
+    return setCharge(charge, PolarityType.fromInt(charge));
+  }
+
+  /**
+   * Sets the charge and the polarity of this entry. The polarity overrides any +/- in the charge
+   * integer.
+   *
+   * @return {@link #putIfNotNull(DBEntryField, Object)}
+   */
+  default boolean setCharge(@Nullable Integer charge, @Nullable PolarityType polarity) {
+    if (charge == null) {
+      return false;
+    }
+    return putIfNotNull(DBEntryField.CHARGE,
+        Math.abs(charge) + Objects.requireNonNullElse(polarity, PolarityType.POSITIVE)
+            .asSingleChar());
+  }
+
+  /**
+   * Extract MS level from scan
+   */
+  @NotNull
+  default Optional<Integer> getMsLevel() {
+    return getAsInteger(DBEntryField.MS_LEVEL);
+  }
+
+  /**
+   * Extract MS level from scan
+   *
+   * @return null if none provided
+   */
+  @Nullable
+  default Double getPrecursorMz() {
+    return getAsDouble(DBEntryField.PRECURSOR_MZ).orElse(null);
+  }
+
+  @NotNull
+  default PolarityType getPolarity() {
+    return getField(DBEntryField.POLARITY).map(Object::toString).map(PolarityType::parseFromString)
+        .orElse(PolarityType.UNKNOWN);
+  }
+
+  default Optional<Float> getAsFloat(DBEntryField field) {
+    try {
+      return getField(field).map(this::toFloat);
+    } catch (Exception ex) {
+      logger.finest("Cannot convert to float " + field.toString() + " value: " + getField(field));
+      return Optional.empty();
+    }
+  }
+
+  default Float toFloat(Object v) {
+    return switch (v) {
+      case Number n -> n.floatValue();
+      case String s -> Float.parseFloat(s);
+      default -> null;
+    };
+  }
+
+  default Optional<Double> getAsDouble(DBEntryField field) {
+    try {
+      return getField(field).map(this::toDouble);
+    } catch (Exception ex) {
+      logger.finest("Cannot convert to double " + field.toString() + " value: " + getField(field));
+      return Optional.empty();
+    }
+  }
+
+  default Double toDouble(Object v) {
+    return switch (v) {
+      case Number n -> n.doubleValue();
+      case String s -> Double.parseDouble(s);
+      default -> null;
+    };
+  }
+
+  default Optional<Integer> getAsInteger(DBEntryField field) {
+    try {
+      return getField(field).map(this::toInteger);
+    } catch (Exception ex) {
+      logger.finest("Cannot convert to integer " + field.toString() + " value: " + getField(field));
+      return Optional.empty();
+    }
+  }
+
+  default Integer toInteger(Object v) {
+    return switch (v) {
+      case Number n -> n.intValue();
+      case String s -> Integer.parseInt(s);
+      default -> null;
+    };
+  }
+
+  @Nullable SpectralLibrary getLibrary();
+
+  void setLibrary(@Nullable SpectralLibrary library);
+
+  @Nullable String getLibraryName();
 }

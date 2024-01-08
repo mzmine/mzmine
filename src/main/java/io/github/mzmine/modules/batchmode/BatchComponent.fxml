@@ -24,97 +24,94 @@
   ~ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
   ~ OTHER DEALINGS IN THE SOFTWARE.
   -->
-<?import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton?>
 
+<?import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Accordion?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.TitledPane?>
-<?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import io.github.mzmine.modules.batchmode.BatchModuleTreePane?>
+<?import org.kordamp.ikonli.javafx.FontIcon?><AnchorPane fx:id="root" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="io.github.mzmine.modules.batchmode.BatchComponentController">
+  <GridPane hgap="5.0" prefHeight="600.0" prefWidth="708.0" vgap="5.0" AnchorPane.bottomAnchor="0.0"
+    AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+    <FlowPane alignment="TOP_CENTER" GridPane.columnIndex="2">
+      <Label styleClass="title-label" text="Batch queue"/>
+    </FlowPane>
+    <FlowPane alignment="TOP_CENTER" hgap="5" prefHeight="200.0" prefWidth="200.0"
+      GridPane.columnIndex="2" GridPane.rowIndex="2">
+      <Button fx:id="btnSetParameters" mnemonicParsing="false" onAction="#setParametersPressed"
+        text="Set parameters"/>
+      <Button fx:id="btnClear" mnemonicParsing="false" onAction="#clearPressed" text="Clear"/>
+      <GridPane.margin>
+        <Insets/>
+      </GridPane.margin>
+      <opaqueInsets>
+        <Insets/>
+      </opaqueInsets>
+      <padding>
+        <Insets top="5.0"/>
+      </padding>
+    </FlowPane>
+    <FlowPane alignment="TOP_CENTER" hgap="5.0" prefHeight="200.0" prefWidth="200.0" vgap="5.0"
+      GridPane.columnIndex="2" GridPane.rowIndex="3">
+      <Button fx:id="btnLoad" mnemonicParsing="false" onAction="#onLoadPressed" text="Load"/>
+      <Button fx:id="btnSave" mnemonicParsing="false" onAction="#onSavePressed" text="Save"/>
+      <LastFilesButton mnemonicParsing="false" text="Load last..." fx:id="btnLoadLast"/>
+      <opaqueInsets>
+        <Insets/>
+      </opaqueInsets>
+    </FlowPane>
+    <FlowPane alignment="TOP_CENTER">
+      <Label styleClass="title-label" text="Modules"/>
+    </FlowPane>
+    <ListView fx:id="currentStepsList" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2"
+      GridPane.rowIndex="1"/>
 
-<AnchorPane fx:id="root" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.batchmode.BatchComponentController">
-   <GridPane hgap="5.0" prefHeight="600.0" prefWidth="708.0" vgap="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-      <BorderPane GridPane.rowIndex="2">
-         <GridPane.margin>
-            <Insets />
-         </GridPane.margin>
-         <center>
-            <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-               <BorderPane.margin>
-                  <Insets />
-               </BorderPane.margin>
-               <TextField fx:id="searchField" prefHeight="30.0" prefWidth="209.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-               <padding>
-                  <Insets left="5.0" />
-               </padding>
-            </AnchorPane>
-         </center>
-         <left>
-            <Label text="Search" BorderPane.alignment="CENTER" />
-         </left>
-         <opaqueInsets>
-            <Insets />
-         </opaqueInsets>
-      </BorderPane>
-      <FlowPane alignment="TOP_CENTER" GridPane.columnIndex="2">
-         <Label styleClass="title-label" text="Batch queue" />
-      </FlowPane>
-      <FlowPane alignment="TOP_CENTER" hgap="5" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="2">
-         <Button fx:id="btnSetParameters" mnemonicParsing="false" onAction="#setParametersPressed" text="Set parameters" />
-         <Button fx:id="btnClear" mnemonicParsing="false" onAction="#clearPressed" text="Clear" />
-         <GridPane.margin>
-            <Insets />
-         </GridPane.margin>
-         <opaqueInsets>
-            <Insets />
-         </opaqueInsets>
-         <padding>
-            <Insets top="5.0" />
-         </padding>
-      </FlowPane>
-      <FlowPane alignment="TOP_CENTER" hgap="5.0" prefHeight="200.0" prefWidth="200.0" vgap="5.0" GridPane.columnIndex="2" GridPane.rowIndex="3">
-         <Button fx:id="btnLoad" mnemonicParsing="false" onAction="#onLoadPressed" text="Load" />
-         <Button fx:id="btnSave" mnemonicParsing="false" onAction="#onSavePressed" text="Save" />
-         <LastFilesButton mnemonicParsing="false" text="Load last..." fx:id="btnLoadLast"/>
-         <opaqueInsets>
-            <Insets />
-         </opaqueInsets>
-      </FlowPane>
-      <FlowPane alignment="TOP_CENTER">
-         <Label styleClass="title-label" text="Modules" />
-      </FlowPane>
-      <ListView fx:id="currentStepsList" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-      <TreeView fx:id="tvModules" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" />
-      <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
-         <Button fx:id="btnAddModule" mnemonicParsing="false" onAction="#onAddModulePressed" text="&gt;&gt;" />
-         <Button fx:id="btnRemoveModule" mnemonicParsing="false" onAction="#onRemoveModulePressed" text="&lt;&lt;" />
-         <GridPane.margin>
-            <Insets />
-         </GridPane.margin>
-         <padding>
-            <Insets top="5.0" />
-         </padding>
-      </VBox>
-      <columnConstraints>
-         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-         <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0" />
-         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-      </columnConstraints>
-      <rowConstraints>
-         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
-         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
-      </rowConstraints>
-   </GridPane>
+    <BatchModuleTreePane includeTools="false" fx:id="tvModules" prefWidth="200.0" GridPane.rowIndex="1" GridPane.rowSpan="2"/>
+    <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0"
+      GridPane.columnIndex="1" GridPane.rowIndex="1">
+      <Button fx:id="btnAddModule" mnemonicParsing="false" onAction="#onAddModulePressed">
+        <graphic>
+          <FontIcon iconLiteral="bi-chevron-double-right" />
+        </graphic>
+      </Button>
+      <Button fx:id="btnRemoveModule" mnemonicParsing="false" onAction="#onRemoveModulePressed">
+        <graphic>
+          <FontIcon iconLiteral="bi-chevron-double-left" />
+        </graphic>
+      </Button>
+      <GridPane.margin>
+        <Insets/>
+      </GridPane.margin>
+      <padding>
+        <Insets top="5.0"/>
+      </padding>
+    </VBox>
+    <FlowPane alignment="BOTTOM_CENTER" columnHalignment="CENTER" hgap="5.0" GridPane.columnSpan="3" GridPane.columnIndex="0" GridPane.rowIndex="4">
+      <Label alignment="CENTER" text="Intermediate feature lists"/>
+      <ComboBox fx:id="cmbHandleFlists"/>
+      <Button mnemonicParsing="false" onAction="#onHandleIntermediateFlistsPressed" text="Apply to batch"/>
+    </FlowPane>
+    <columnConstraints>
+      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+      <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0"/>
+      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+    </columnConstraints>
+    <rowConstraints>
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS"/>
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+<!--  make this row higher so that there is a gap to the option apply to intermediate feature lists   -->
+      <RowConstraints minHeight="10.0" prefHeight="45.0" vgrow="NEVER"/>
+    </rowConstraints>
+  </GridPane>
 </AnchorPane>

@@ -129,6 +129,9 @@ public class CombinedIonModification extends IonModification {
     int counter = 0;
     for (int i = 0; i < mods.length; i++) {
       String cs = mods[i].getName();
+      if("e".equals(cs)){
+        continue;
+      }
       if (s == null) {
         s = cs;
         counter = 1;
@@ -142,18 +145,18 @@ public class CombinedIonModification extends IonModification {
         counter = 1;
       }
     }
-    String sign = (mods[mods.length - 1].getMass() < 0 ? "-" : "+");
-    String counterS = counter > 1 ? String.valueOf(counter) : "";
-    nname.append(sign).append(counterS).append(s);
+    if(s!=null) {
+      String sign = (mods[mods.length - 1].getMass() < 0 ? "-" : "+");
+      String counterS = counter > 1 ? String.valueOf(counter) : "";
+      nname.append(sign).append(counterS).append(s);
+    }
     return nname.toString();
   }
 
   @Override
   public IonModification remove(IonModification type) {
     List<IonModification> newList = new ArrayList<>();
-    for (IonModification m : this.getModifications()) {
-      newList.add(m);
-    }
+    Collections.addAll(newList, this.getModifications());
 
     for (IonModification m : type.getModifications()) {
       newList.remove(m);
@@ -204,5 +207,10 @@ public class CombinedIonModification extends IonModification {
     map.put("Formula",
         streamModifications().map(IonModification::getMolFormula).collect(Collectors.joining(";")));
     return map;
+  }
+
+  @Override
+  public IonModification withCharge(final int newCharge) {
+    return new CombinedIonModification(mods, type, mass, newCharge);
   }
 }

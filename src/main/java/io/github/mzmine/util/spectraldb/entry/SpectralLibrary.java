@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,10 +31,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedHashMap;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.stream.Stream;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,8 +53,7 @@ public class SpectralLibrary {
   // internals
   @Nullable
   private final MemoryMapStorage storage;
-  private final ObservableMap<Class<? extends DataType>, DataType> types = FXCollections.observableMap(
-      new LinkedHashMap<>());
+  private final ObservableSet<DataType> types = FXCollections.observableSet(new LinkedHashSet<>());
 
   public SpectralLibrary(@Nullable MemoryMapStorage storage, @NotNull File path) {
     this(storage, path.getName(), path);
@@ -67,7 +68,16 @@ public class SpectralLibrary {
 
   @NotNull
   public List<SpectralLibraryEntry> getEntries() {
-    return entries;
+    return Collections.unmodifiableList(entries);
+  }
+
+  public void addEntry(SpectralLibraryEntry entry) {
+    entry.setLibrary(this);
+    entries.add(entry);
+  }
+
+  public void addEntries(Collection<SpectralLibraryEntry> entries) {
+    entries.forEach(this::addEntry);
   }
 
   @NotNull
@@ -89,18 +99,12 @@ public class SpectralLibrary {
     return getName();
   }
 
-  public MemoryMapStorage getStorage() {
+  public @Nullable MemoryMapStorage getStorage() {
     return storage;
   }
 
   public void addType(Collection<DataType> newTypes) {
-    for (DataType<?> type : newTypes) {
-      if (!types.containsKey(type.getClass())) {
-        // add row type - all rows will automatically generate a default property for this type in
-        // their data map
-        types.put(type.getClass(), type);
-      }
-    }
+    types.addAll(newTypes);
   }
 
   public void addType(@NotNull DataType<?>... types) {
@@ -115,5 +119,13 @@ public class SpectralLibrary {
    */
   public boolean equalSources(SpectralLibrary lib) {
     return lib != null && lib.getPath().equals(this.getPath());
+  }
+
+  public int getNumEntries() {
+    return getEntries().size();
+  }
+
+  public Stream<SpectralLibraryEntry> stream() {
+    return getEntries().stream();
   }
 }

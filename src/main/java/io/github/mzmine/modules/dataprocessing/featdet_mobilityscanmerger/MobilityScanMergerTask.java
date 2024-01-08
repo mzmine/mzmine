@@ -46,7 +46,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
-public class MobilityScanMergerTask extends AbstractTask {
+public class  MobilityScanMergerTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(MobilityScanMergerTask.class.getName());
 

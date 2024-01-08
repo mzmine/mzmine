@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -47,6 +47,7 @@ import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameter
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
@@ -124,35 +125,26 @@ public class NistMsSearchTask extends AbstractTask {
 
   // Polling period for the search results file.
   private static final long POLL_RESULTS = 1000L;
-
+  // Import Options.
+  private static ImportOption importOption;
   // The mass-list and peak-list.
   private final FeatureList peakList;
-
   // The feature list row to search for (null => all).
   private final FeatureListRow peakListRow;
-
-  // Progress counters.
-  private int progress;
-  private int progressMax;
-
   // Dot Product cut-offs.
   private final Double minDotProduct;
-
   // MS Level.
   private final int msLevel;
-
   // Optional params.
   private final MsMsSpectraMergeParameters mergeParameters;
   private final IntegerMode integerMZ;
-
-  // Import Options.
-  private static ImportOption importOption;
-
   // NIST MS Search directory and executable.
   private final File nistMsSearchDir;
   private final File nistMsSearchExe;
-
   private final ParameterSet parameterSet;
+  // Progress counters.
+  private int progress;
+  private int progressMax;
 
   /**
    * Create the task.
@@ -203,6 +195,28 @@ public class NistMsSearchTask extends AbstractTask {
     }
 
     this.parameterSet = params;
+  }
+
+  /**
+   * Writes the secondary locator file.
+   *
+   * @param locatorFile the locator file.
+   * @param spectraFile the spectra file.
+   * @throws IOException if an i/o problem occurs.
+   */
+  private static void writeSecondaryLocatorFile(final File locatorFile, final File spectraFile)
+      throws IOException {
+
+    // Write the spectra file name to the secondary locator file.
+    final BufferedWriter writer = new BufferedWriter(new FileWriter(locatorFile));
+    try {
+
+      writer.write(spectraFile.getCanonicalPath() + " " + importOption.toString());
+      writer.newLine();
+    } finally {
+
+      writer.close();
+    }
   }
 
   @Override
@@ -561,7 +575,8 @@ public class NistMsSearchTask extends AbstractTask {
   private File writeSpectraFile(final FeatureListRow peakRow, final DataPoint[] dataPoint,
       final String comment) throws IOException {
 
-    final File spectraFile = File.createTempFile(SPECTRA_FILE_PREFIX, SPECTRA_FILE_SUFFIX);
+    final File spectraFile = FileAndPathUtil.createTempFile(SPECTRA_FILE_PREFIX,
+        SPECTRA_FILE_SUFFIX);
     spectraFile.deleteOnExit();
     final BufferedWriter writer = new BufferedWriter(new FileWriter(spectraFile));
     try {
@@ -613,28 +628,6 @@ public class NistMsSearchTask extends AbstractTask {
       writer.close();
     }
     return spectraFile;
-  }
-
-  /**
-   * Writes the secondary locator file.
-   *
-   * @param locatorFile the locator file.
-   * @param spectraFile the spectra file.
-   * @throws IOException if an i/o problem occurs.
-   */
-  private static void writeSecondaryLocatorFile(final File locatorFile, final File spectraFile)
-      throws IOException {
-
-    // Write the spectra file name to the secondary locator file.
-    final BufferedWriter writer = new BufferedWriter(new FileWriter(locatorFile));
-    try {
-
-      writer.write(spectraFile.getCanonicalPath() + " " + importOption.toString());
-      writer.newLine();
-    } finally {
-
-      writer.close();
-    }
   }
 
   /**

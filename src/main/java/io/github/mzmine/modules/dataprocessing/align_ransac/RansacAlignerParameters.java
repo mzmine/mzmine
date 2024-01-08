@@ -35,7 +35,9 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.util.ExitCode;
+import java.util.Map;
 
 public class RansacAlignerParameters extends SimpleParameterSet {
 
@@ -44,7 +46,8 @@ public class RansacAlignerParameters extends SimpleParameterSet {
   public static final StringParameter peakListName =
       new StringParameter("Feature list name", "Feature list name", "Aligned feature list");
 
-  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter(
+      ToleranceType.SAMPLE_TO_SAMPLE);
 
   public static final RTToleranceParameter RTToleranceBefore = new RTToleranceParameter(
       "RT tolerance",
@@ -80,8 +83,18 @@ public class RansacAlignerParameters extends SimpleParameterSet {
   }
 
   public RansacAlignerParameters() {
-    super(new Parameter[] {peakLists, peakListName, MZTolerance, RTToleranceBefore,
-        RTToleranceAfter, Iterations, NMinPoints, Margin, Linear, SameChargeRequired},
+    super(new Parameter[]{peakLists, peakListName, MZTolerance, RTToleranceBefore, RTToleranceAfter,
+            Iterations, NMinPoints, Margin, Linear, SameChargeRequired},
         "https://mzmine.github.io/mzmine_documentation/module_docs/align_ransac/align_ransac.html");
+  }
+
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    // parameters were renamed but stayed the same type
+    var nameParameterMap = super.getNameParameterMap();
+    // we use the same parameters here so no need to increment the version. Loading will work fine
+    nameParameterMap.put("m/z tolerance", MZTolerance);
+    return nameParameterMap;
   }
 }

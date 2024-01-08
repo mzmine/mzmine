@@ -72,6 +72,10 @@ public class ADAPChromatogram {
    */
   public boolean matchesMinContinuousDataPoints(Scan[] allScans, double intensityThresh,
       int minimumScanSpan, double minHeight) {
+    if (minimumScanSpan <= 1 && getNumberOfDataPoints() > 0) {
+      return true;
+    }
+
     int connectedScans = 0;
     double maxCurrentHeight = 0d;
     for (Scan scan : allScans) {
@@ -91,6 +95,13 @@ public class ADAPChromatogram {
       }
     }
     return false;
+  }
+
+  /**
+   * Number of detected data points
+   */
+  public int getNumberOfDataPoints() {
+    return dataPointsMap.size();
   }
 
   /**
@@ -179,8 +190,7 @@ public class ADAPChromatogram {
           // add trailing zeros after last detected
           if (currentGap > 0 && nextDetectedScanInAllIndex >= 0) {
             for (int i = 1; i <= zeros && i <= currentGap
-                            && (nextDetectedScanInAllIndex + i) < allChromatogramScans.length;
-                i++) {
+                && (nextDetectedScanInAllIndex + i) < allChromatogramScans.length; i++) {
               // add zero data points after
               dataPointsToAdd.put(allChromatogramScans[nextDetectedScanInAllIndex + i],
                   zeroDataPoint);
@@ -212,8 +222,7 @@ public class ADAPChromatogram {
           // add trailing zeros after last detected
           if (currentGap > 0 && nextDetectedScanInAllIndex >= 0) {
             for (int i = 1; i <= zeros && i <= currentGap
-                            && (nextDetectedScanInAllIndex + i) < allChromatogramScans.length;
-                i++) {
+                && (nextDetectedScanInAllIndex + i) < allChromatogramScans.length; i++) {
               // add zero data points after
               dataPointsToAdd.put(allChromatogramScans[nextDetectedScanInAllIndex + i],
                   zeroDataPoint);

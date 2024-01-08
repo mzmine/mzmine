@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util;
 
+import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
 import io.github.mzmine.util.maths.ArithmeticUtils;
 import java.math.BigDecimal;
@@ -90,6 +91,9 @@ public class RangeUtils {
    * @return Converted Float range
    */
   public static <N extends Number & Comparable<N>> Range<Float> toFloatRange(Range<N> range) {
+    if (!(range.hasLowerBound() && range.hasUpperBound())) {
+      return Range.all();
+    }
     return Range.closed(range.lowerEndpoint().floatValue(), range.upperEndpoint().floatValue());
   }
 
@@ -261,8 +265,33 @@ public class RangeUtils {
     return range;
   }
 
+  /**
+   * This style is used mostly in mzmine
+   *
+   * @return lower - upper
+   */
   public static String formatRange(Range<? extends Number> range, NumberFormat format) {
-    return format.format(range.lowerEndpoint()) + " - " + format.format(range.upperEndpoint());
+    return formatRange(range, format, false, false);
+  }
+
+  public static String formatRange(Range<? extends Number> range, NumberFormat format,
+      boolean guavaStyle, boolean addBounds) {
+    String connector = guavaStyle ? ".." : " - ";
+    String values =
+        format.format(range.lowerEndpoint()) + connector + format.format(range.upperEndpoint());
+    if (!addBounds) {
+      return values;
+    }
+    // this style is used for exact range string
+    return getBoundString(range, true) + values + getBoundString(range, false);
+  }
+
+  @NotNull
+  private static String getBoundString(final Range<? extends Number> range, final boolean isLower) {
+    if (isLower) {
+      return range.lowerBoundType() == BoundType.CLOSED ? "[" : "(";
+    }
+    return range.upperBoundType() == BoundType.CLOSED ? "]" : ")";
   }
 
   /**

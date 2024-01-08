@@ -60,7 +60,12 @@ public class ColorSwatch extends GridPane {
     getStylesheets().add(getClass().getResource("ColorSwatch.css").toExternalForm());
     getStyleClass().add("color-grid");
 
-    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+    SimpleColorPalette palette = null;
+    try {
+     palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+    } catch (Exception e) {
+
+    }
     List<Color> colors = palette != null ? palette : BASIC_COLORS;
 
     nColumns = colors.size();

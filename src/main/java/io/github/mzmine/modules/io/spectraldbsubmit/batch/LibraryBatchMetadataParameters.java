@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,6 +37,7 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.batch;
 
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.CompoundSource;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Instrument;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.IonSource;
@@ -63,6 +64,9 @@ public class LibraryBatchMetadataParameters extends SimpleParameterSet {
       new ComboParameter<>("IONMODE",
           "Exchange all polarities with this value in case its not provided.", Polarity.values(),
           Polarity.Positive), false);
+  public static final ComboParameter<MobilityType> ION_MOBILITY = new ComboParameter<>(
+      "Ion mobility", "", MobilityType.values(), MobilityType.NONE);
+
   public static final ComboParameter<Instrument> INSTRUMENT = new ComboParameter<>("INSTRUMENT", "",
       Instrument.values(), Instrument.Orbitrap);
   public static final ComboParameter<IonSource> ION_SOURCE = new ComboParameter<>("IONSOURCE", "",
@@ -83,22 +87,24 @@ public class LibraryBatchMetadataParameters extends SimpleParameterSet {
       "MassIVE, MetaboLights, MetabolomicsWorkbench ID", "", false);
 
   public LibraryBatchMetadataParameters() {
-    super(new Parameter[]{DESCRIPTION, DATASET_ID, INSTRUMENT_NAME, INSTRUMENT, ION_SOURCE,
-        ACQUISITION, PI, DATA_COLLECTOR, IONMODE});
+    super(new Parameter[]{DESCRIPTION, DATASET_ID, INSTRUMENT_NAME, INSTRUMENT, ION_MOBILITY,
+        ION_SOURCE, ACQUISITION, PI, DATA_COLLECTOR, IONMODE});
   }
 
   public Map<DBEntryField, Object> asMap() {
     HashMap<DBEntryField, Object> map = new HashMap<>();
     putIfNotEmpty(map, DATASET_ID, DBEntryField.DATASET_ID);
     putIfNotEmpty(map, DESCRIPTION, DBEntryField.DESCRIPTION);
+    putIfNotEmpty(map, ION_MOBILITY, DBEntryField.IMS_TYPE);
     putIfNotEmpty(map, INSTRUMENT, DBEntryField.INSTRUMENT_TYPE);
     putIfNotEmpty(map, INSTRUMENT_NAME, DBEntryField.INSTRUMENT);
     putIfNotEmpty(map, ION_SOURCE, DBEntryField.ION_SOURCE);
     putIfNotEmpty(map, ACQUISITION, DBEntryField.ACQUISITION);
     putIfNotEmpty(map, PI, DBEntryField.PRINCIPAL_INVESTIGATOR);
     putIfNotEmpty(map, DATA_COLLECTOR, DBEntryField.DATA_COLLECTOR);
-    if (IONMODE.getValue()) {
-      putIfNotEmpty(map, IONMODE.getEmbeddedParameter(), DBEntryField.POLARITY);
+    // only overwrite value if optional was activated
+    if (getValue(IONMODE)) {
+      map.put(DBEntryField.POLARITY, getEmbeddedParameterValue(IONMODE));
     }
     return map;
   }

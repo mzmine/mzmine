@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -200,7 +200,7 @@ public class InjectTimeAnalysisTask extends AbstractTask {
     for (RawDataFile dataFile : dataFiles) {
       if (dataFile instanceof IMSRawDataFile ims && useMobilityScans) {
         MobilityScanDataAccess scanAccess = EfficientDataAccess.of(ims,
-            MobilityScanDataType.CENTROID, scanSelection);
+            MobilityScanDataType.MASS_LIST, scanSelection);
         totalScans = scanAccess.getNumberOfScans();
         while (scanAccess.nextFrame() != null) {
           while ((realScan = scanAccess.nextMobilityScan()) != null) {
@@ -208,7 +208,7 @@ public class InjectTimeAnalysisTask extends AbstractTask {
           }
         }
       } else {
-        ScanDataAccess scanAccess = EfficientDataAccess.of(dataFile, ScanDataType.CENTROID,
+        ScanDataAccess scanAccess = EfficientDataAccess.of(dataFile, ScanDataType.MASS_LIST,
             scanSelection);
         totalScans = scanAccess.getNumberOfScans();
         while ((realScan = scanAccess.nextScan()) != null) {

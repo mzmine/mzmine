@@ -100,7 +100,8 @@ public class BuildSelectedRanges implements Runnable {
       binning.setMobilogram(mobilograms);
       final SummedIntensityMobilitySeries summed = binning.toSummedMobilogram(null);
       SummedMobilogramXYProvider provider = new SummedMobilogramXYProvider(summed,
-          new SimpleObjectProperty<>(FxColorUtil.awtColorToFX(color)), seriesKey, true);
+          new SimpleObjectProperty<>(FxColorUtil.awtColorToFX(color)), seriesKey, false, true,
+          null);
       dataset = new ColoredXYDataset(provider, RunOption.THIS_THREAD);
       mobilogramConsumer.accept(dataset);
     }
@@ -108,10 +109,10 @@ public class BuildSelectedRanges implements Runnable {
     if (chromatogramConsumer != null) {
       ScanSelection scanSel = new ScanSelection(scanSelection.getScanNumberRange(),
           scanSelection.getBaseFilteringInteger(),
-          Range.closed(frame.getRetentionTime() - rtWidth / 2,
-              frame.getRetentionTime() + rtWidth / 2), scanSelection.getScanMobilityRange(),
-          scanSelection.getPolarity(), scanSelection.getSpectrumType(), scanSelection.getMsLevel(),
-          scanSelection.getScanDefinition());
+          Range.closed(frame.getRetentionTime() - rtWidth / 2d,
+              frame.getRetentionTime() + rtWidth / 2d), scanSelection.getScanMobilityRange(),
+          scanSelection.getPolarity(), scanSelection.getSpectrumType(),
+          scanSelection.getMsLevelFilter(), scanSelection.getScanDefinition());
       TICDataSet ticDataSet = new TICDataSet(file, scanSel.getMatchingScans(file), mzRange, null);
       ticDataSet.setCustomSeriesKey(seriesKey);
       chromatogramConsumer.accept(ticDataSet);

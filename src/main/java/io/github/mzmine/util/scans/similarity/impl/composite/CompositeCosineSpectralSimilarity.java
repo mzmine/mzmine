@@ -25,11 +25,6 @@
 
 package io.github.mzmine.util.scans.similarity.impl.composite;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -39,7 +34,12 @@ import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.similarity.Weights;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Similar to NIST search algorithm for GC-MS data with lots of signals (more an identity check than
@@ -55,13 +55,18 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
   @Override
   public SpectralSimilarity getSimilarity(ParameterSet parameters, MZTolerance mzTol, int minMatch,
       DataPoint[] library, DataPoint[] query) {
-    Weights weights =
-        parameters.getParameter(CompositeCosineSpectralSimilarityParameters.weight).getValue();
-    double minCos =
-        parameters.getParameter(CompositeCosineSpectralSimilarityParameters.minCosine).getValue();
-    HandleUnmatchedSignalOptions handleUnmatched = parameters
-        .getParameter(CompositeCosineSpectralSimilarityParameters.handleUnmatched)
+    Weights weights = parameters.getParameter(CompositeCosineSpectralSimilarityParameters.weight)
         .getValue();
+    double minCos = parameters.getParameter(CompositeCosineSpectralSimilarityParameters.minCosine)
+        .getValue();
+    HandleUnmatchedSignalOptions handleUnmatched = parameters.getParameter(
+        CompositeCosineSpectralSimilarityParameters.handleUnmatched).getValue();
+    return getSimilarity(weights, minCos, handleUnmatched, mzTol, minMatch, library, query);
+  }
+
+  public SpectralSimilarity getSimilarity(Weights weights, double minCos,
+      HandleUnmatchedSignalOptions handleUnmatched, MZTolerance mzTol, int minMatch,
+      DataPoint[] library, DataPoint[] query) {
 
     // align
     List<DataPoint[]> aligned = alignDataPoints(mzTol, library, query);
@@ -76,8 +81,8 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
       double relativeFactor = calcRelativeNeighbourFactor(aligned);
 
       // weighted cosine
-      double[][] diffArray =
-          ScanAlignment.toIntensityMatrixWeighted(aligned, weights.getIntensity(), weights.getMz());
+      double[][] diffArray = ScanAlignment.toIntensityMatrixWeighted(aligned,
+          weights.getIntensity(), weights.getMz());
       double diffCosine = Similarity.COSINE.calc(diffArray);
 
       // composite dot product identity score
@@ -145,7 +150,7 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
   @Override
   @NotNull
   public String getName() {
-    return "Composite dot -product identity (similar to NIST search)";
+    return "Composite cosine identity (e.g., GC-EI-MS; similar to NIST search)";
   }
 
   @Override

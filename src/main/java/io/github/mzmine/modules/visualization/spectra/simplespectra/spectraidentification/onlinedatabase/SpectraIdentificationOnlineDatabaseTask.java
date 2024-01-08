@@ -65,22 +65,25 @@ import org.jfree.chart.ui.TextAnchor;
  * Task for identifying peaks by searching on-line databases.
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ * @deprecated because of old API usage. Hard to maintain. This was removed from the interfaces and
+ * is only here as reference point
  */
+@Deprecated
 public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
   private int finishedItems = 0, numItems;
 
-  private MZmineProcessingStep<OnlineDatabases> db;
+  private final MZmineProcessingStep<OnlineDatabases> db;
   private double searchedMass;
-  private double noiseLevel;
-  private MZTolerance mzTolerance;
-  private Scan currentScan;
-  private SpectraPlot spectraPlot;
-  private IonizationType ionType;
+  private final double noiseLevel;
+  private final MZTolerance mzTolerance;
+  private final Scan currentScan;
+  private final SpectraPlot spectraPlot;
+  private final IonizationType ionType;
   private DBGateway gateway;
 
   /**
@@ -115,8 +118,9 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (numItems == 0)
+    if (numItems == 0) {
       return 0;
+    }
     return ((double) finishedItems) / numItems;
   }
 
@@ -164,18 +168,20 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
       searchedMass = massList[0][i] - ionType.getAddedMass();
       try {
         // find candidate compounds
-        String compoundIDs[] =
-            gateway.findCompounds(searchedMass, mzTolerance, 1, db.getParameterSet());
+        String[] compoundIDs = gateway.findCompounds(searchedMass, mzTolerance, 1,
+            db.getParameterSet());
         // Combine strings
         String annotation = "";
         // max number of compounds to top three for visualization
         int counter = 0;
         for (int j = 0; !isCanceled() && j < compoundIDs.length; j++) {
-          final CompoundDBAnnotation compound = gateway.getCompound(compoundIDs[j], db.getParameterSet());
+          final CompoundDBAnnotation compound = gateway.getCompound(compoundIDs[j],
+              db.getParameterSet());
 
           // In case we failed to retrieve data, skip this compound
-          if (compound == null)
+          if (compound == null) {
             continue;
+          }
           if (counter < 3) {
             int number = counter + 1;
             annotation = annotation + " " + number + ". " + compound.getCompoundName();
@@ -201,16 +207,17 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
     massListAnnotated.toArray(annotatedMassList);
     String[] annotations = new String[annotatedMassList.length];
     allCompoundIDs.toArray(annotations);
-    DataPointsDataSet detectedCompoundsDataset =
-        new DataPointsDataSet("Detected compounds", annotatedMassList);
+    DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet("Detected compounds",
+        annotatedMassList);
     // Add label generator for the dataset
-    SpectraDatabaseSearchLabelGenerator labelGenerator =
-        new SpectraDatabaseSearchLabelGenerator(annotations, spectraPlot);
+    SpectraDatabaseSearchLabelGenerator labelGenerator = new SpectraDatabaseSearchLabelGenerator(
+        annotations, spectraPlot);
     spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true, labelGenerator, true);
     spectraPlot.getXYPlot().getRenderer()
         .setSeriesItemLabelGenerator(spectraPlot.getXYPlot().getSeriesCount(), labelGenerator);
-    spectraPlot.getXYPlot().getRenderer().setDefaultPositiveItemLabelPosition(new ItemLabelPosition(
-        ItemLabelAnchor.CENTER, TextAnchor.TOP_LEFT, TextAnchor.BOTTOM_CENTER, 0.0), true);
+    spectraPlot.getXYPlot().getRenderer().setDefaultPositiveItemLabelPosition(
+        new ItemLabelPosition(ItemLabelAnchor.CENTER, TextAnchor.TOP_LEFT, TextAnchor.BOTTOM_CENTER,
+            0.0), true);
     setStatus(TaskStatus.FINISHED);
 
   }

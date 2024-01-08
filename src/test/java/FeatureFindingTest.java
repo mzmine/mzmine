@@ -54,6 +54,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.Ce
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayParameters;
+import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Parameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
@@ -64,6 +65,8 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.parameters.parametertypes.combowithinput.FeatureLimitOptions;
+import io.github.mzmine.parameters.parametertypes.combowithinput.RtLimitsFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -232,7 +235,7 @@ public class FeatureFindingTest {
     paramChrom.getParameter(ADAPChromatogramBuilderParameters.dataFiles)
         .setValue(RawDataFilesSelectionType.ALL_FILES);
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.scanSelection, new ScanSelection(1));
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan, 4);
+    paramChrom.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans, 4);
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.mzTolerance,
         new MZTolerance(0.002, 10));
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, 3E5);
@@ -417,13 +420,15 @@ public class FeatureFindingTest {
 
     // group ms2
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);
-    GroupMS2SubParameters groupMS2SubParameters = generalParam.getParameter(
+    GroupMS2SubParameters groupMs2Params = generalParam.getParameter(
         MinimumSearchFeatureResolverParameters.groupMS2Parameters).getEmbeddedParameters();
-    groupMS2SubParameters.setParameter(GroupMS2SubParameters.limitRTByFeature, false);
-    groupMS2SubParameters.setParameter(GroupMS2SubParameters.mzTol, new MZTolerance(0.05, 10));
-    groupMS2SubParameters.setParameter(GroupMS2SubParameters.rtTol,
-        new RTTolerance(0.15f, Unit.MINUTES));
+    groupMs2Params.setParameter(GroupMS2Parameters.rtFilter,
+        new RtLimitsFilter(FeatureLimitOptions.USE_TOLERANCE,
+            new RTTolerance(0.15f, Unit.MINUTES)));
 
+    groupMs2Params.setParameter(GroupMS2Parameters.minimumRelativeFeatureHeight, false);
+    groupMs2Params.setParameter(GroupMS2Parameters.minRequiredSignals, false);
+    groupMs2Params.setParameter(GroupMS2Parameters.mzTol, new MZTolerance(0.05, 10));
     logger.info("Testing chromatogram deconvolution");
     TaskResult finished = MZmineTestUtil.callModuleWithTimeout(45,
         MinimumSearchFeatureResolverModule.class, generalParam);

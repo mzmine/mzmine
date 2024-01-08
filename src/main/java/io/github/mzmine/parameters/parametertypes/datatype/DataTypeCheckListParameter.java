@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -75,7 +76,7 @@ public class DataTypeCheckListParameter implements
    */
   public void addDataType(ColumnID dt, Boolean b) {
     final String key = getKey(dt);
-    if (value.keySet().contains(key)) {
+    if (value.containsKey(key)) {
       logger.info("Already contains data type " + dt + ". Overwriting...");
     }
 
@@ -158,7 +159,7 @@ public class DataTypeCheckListParameter implements
 
   @Override
   public void setValueToComponent(DataTypeCheckListComponent dataTypeCheckListComponent,
-      Map<String, Boolean> newValue) {
+      @Nullable Map<String, Boolean> newValue) {
     assert dataTypeCheckListComponent == comp;
     if (!(newValue instanceof HashMap)) {
       return;

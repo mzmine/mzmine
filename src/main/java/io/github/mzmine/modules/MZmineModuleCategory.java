@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,8 +48,10 @@ public enum MZmineModuleCategory {
   ANNOTATION("Annotation"), //
   FEATURELISTEXPORT("Feature list export"), //
   FEATURELISTIMPORT("Feature list import"), //
+  SPECLIBEXPORT("Spectral library export"), //
   VISUALIZATIONRAWDATA("Visualization"), //
   VISUALIZATIONFEATURELIST("Visualization feature list"), //
+  VISUALIZATION_RAW_AND_FEATURE("Visualization data"), //
   DATAANALYSIS("Data analysis"), //
   HELPSYSTEM("Help"), //
   TOOLS("Tools"); //
@@ -69,11 +71,15 @@ public enum MZmineModuleCategory {
     return switch (this) {
       case PROJECT, PROJECTIO, PROJECTMETADATA -> MainCategory.PROJECT;
       case RAWDATAIMPORT, RAWDATAEXPORT, RAWDATA, RAWDATAFILTERING -> MainCategory.SPECTRAL_DATA;
-      case EIC_DETECTION, FEATURE_RESOLVING, GAPFILLING, ALIGNMENT, FEATURELIST -> MainCategory.FEATURE_DETECTION;
+      case EIC_DETECTION, FEATURE_RESOLVING, GAPFILLING, ALIGNMENT, FEATURELIST ->
+          MainCategory.FEATURE_DETECTION;
       case ISOTOPES, SPECTRALDECONVOLUTION, FEATURELISTFILTERING -> MainCategory.FEATURE_FILTERING;
-      case NORMALIZATION, ANNOTATION, DATAANALYSIS, FEATURE_GROUPING, ION_IDENTITY_NETWORKS -> MainCategory.FEATURE_PROCESSING;
+      case NORMALIZATION, ANNOTATION, DATAANALYSIS, FEATURE_GROUPING, ION_IDENTITY_NETWORKS ->
+          MainCategory.FEATURE_PROCESSING;
       case FEATURELISTEXPORT, FEATURELISTIMPORT -> MainCategory.FEATURE_IO;
-      case VISUALIZATIONRAWDATA, VISUALIZATIONFEATURELIST -> MainCategory.VISUALIZATION;
+      case VISUALIZATIONRAWDATA, VISUALIZATIONFEATURELIST, VISUALIZATION_RAW_AND_FEATURE ->
+          MainCategory.VISUALIZATION;
+      case SPECLIBEXPORT -> MainCategory.SPECTRAL_LIBRARY;
       // no main category
       case HELPSYSTEM, TOOLS -> MainCategory.OTHER;
       // no default so that the compiler marks missing cases
@@ -83,6 +89,7 @@ public enum MZmineModuleCategory {
   public enum MainCategory {
     PROJECT("Project"), //
     SPECTRAL_DATA("Spectral data"), //
+    SPECTRAL_LIBRARY("Spectral library"), //
     FEATURE_DETECTION("Feature detection"), //
     FEATURE_FILTERING("Feature filtering"), //
     FEATURE_PROCESSING("Feature processing"), //

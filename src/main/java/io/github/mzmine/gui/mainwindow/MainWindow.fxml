@@ -25,8 +25,11 @@
   ~ OTHER DEALINGS IN THE SOFTWARE.
   -->
 
-<?import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem?>
+<!--<?import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem?>-->
+
+<?import io.github.mzmine.gui.mainwindow.tasksview.TasksView?>
 <?import io.github.mzmine.util.javafx.groupablelistview.GroupableListView?>
+<?import io.github.mzmine.util.javafx.MiniTaskView?>
 <?import java.net.URL?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Label?>
@@ -37,12 +40,12 @@
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.Scene?>
@@ -50,209 +53,177 @@
 <?import org.controlsfx.control.NotificationPane?>
 <?import org.controlsfx.control.StatusBar?>
 <Scene xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
-  fx:id="mainScene"
-  fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
-  <stylesheets>
-    <URL value="@/themes/MZmine_default.css"/>
-  </stylesheets>
-  <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="400" minWidth="600"
-    prefWidth="${screen.visualBounds.width*0.9}"
+  fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController"
+  fx:id="mainScene">
+  <BorderPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="400"
+    minWidth="600"
     prefHeight="${screen.visualBounds.height*0.9}"
-    xmlns="http://javafx.com/javafx/14.0.1"
-    xmlns:fx="http://javafx.com/fxml/1">
-    <top>
-      <fx:include source="MainMenu.fxml"/>
-    </top>
+    prefWidth="${screen.visualBounds.width*0.9}"
+    xmlns="http://javafx.com/javafx/14.0.1">
+    <bottom>
+      <VBox fx:id="bottomBox" maxHeight="130">
+        <TasksView fx:id="taskView"/>
+        <StatusBar maxHeight="30" minHeight="30" fx:id="statusBar">
+          <rightItems>
+            <HBox spacing="5">
+              <MiniTaskView fx:id="miniTaskView" progressBarOpacity="0.3" prefWidth="250"
+              maxWidth="300" minWidth="250" alignment="CENTER_RIGHT" hgap="5"/>
+                <StackPane scaleShape="true">
+                  <Label alignment="CENTER"
+                    minWidth="150" prefWidth="150" fx:id="memoryBarLabel">
+                    <tooltip>
+                      <Tooltip text="Free/total Java heap size"/>
+                    </tooltip>
+                  </Label>
+                  <ProgressBar minWidth="150" opacity="0.3"
+                    prefWidth="150" fx:id="memoryBar"/>
+                </StackPane>
+              </HBox>
+          </rightItems>
+        </StatusBar>
+      </VBox>
+    </bottom>
     <center>
       <SplitPane BorderPane.alignment="CENTER" dividerPositions="0.22">
         <items>
-          <SplitPane orientation="VERTICAL" SplitPane.resizableWithParent="false">
-            <items>
-              <!--              Left side-->
-              <TabPane tabClosingPolicy="UNAVAILABLE">
-                <tabs>
-                  <Tab closable="false" text="MS data files">
-                    <content>
-                      <AnchorPane minHeight="0.0" minWidth="0.0">
-                        <children>
-                          <GroupableListView fx:id="rawDataList" editable="true"
-                            AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                            AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                            <contextMenu>
-                              <ContextMenu fx:id="rawDataContextMenu">
-                                <items>
-                                  <MenuItem text="Show raw data overview" onAction="#handleShowRawDataOverview"/>
-                                  <MenuItem text="Show ion mobility raw data overview" onAction="#handleShowIMSDataOverview"/>
-                                  <MenuItem text="Show image viewer" onAction="#handleShowImageViewer" />
+          <!--              Left side-->
+          <TabPane tabClosingPolicy="UNAVAILABLE">
+            <tabs>
+              <Tab closable="false" text="MS data files">
+                <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0">
+                    <children>
+                      <GroupableListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                        AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"
+                        editable="true" fx:id="rawDataList">
+                        <contextMenu>
+                          <ContextMenu fx:id="rawDataContextMenu">
+                            <items>
+                              <MenuItem onAction="#handleShowRawDataOverview"
+                                text="Show raw data overview"/>
+                              <MenuItem onAction="#handleShowRawDataSummary"
+                                text="Show raw data summary"/>
+                              <MenuItem onAction="#handleShowIMSDataOverview"
+                                text="Show ion mobility raw data overview"/>
+                              <MenuItem onAction="#handleShowImageViewer"
+                                text="Show image viewer"/>
 
-                                  <SeparatorMenuItem/>
-                                  <MenuItem onAction="#handleShowChromatogram"
-                                    text="Show chromatogram"/>
-                                  <MenuItem onAction="#handleShowMsSpectrum"
-                                    text="Show mass spectrum"/>
-                                  <MenuItem onAction="#handleShow2DPlot" text="Show 2D plot"/>
-                                  <MenuItem onAction="#handleShow3DPlot" text="Show 3D plot"/>
-                                  <MenuItem onAction="#handleShowMsMsPlot"
-                                    text="Show MS/MS scatter plot"/>
+                              <SeparatorMenuItem/>
+                              <MenuItem onAction="#handleShowChromatogram"
+                                text="Show chromatogram"/>
+                              <MenuItem onAction="#handleShowMsSpectrum"
+                                text="Show mass spectrum"/>
+                              <MenuItem onAction="#handleShow2DPlot" text="Show 2D plot"/>
+                              <MenuItem onAction="#handleShow3DPlot" text="Show 3D plot"/>
+                              <MenuItem onAction="#handleShowMsMsPlot"
+                                text="Show MS/MS scatter plot"/>
 
-                                  <SeparatorMenuItem/>
-                                  <MenuItem onAction="#handleRawDataSort" text="Sort alphabetically"/>
-                                  <MenuItem fx:id="rawDataRemoveExtensionMenuItem"
-                                    onAction="#handleRemoveFileExtension"
-                                    text="Remove file extension"/>
-                                  <MenuItem onAction="#handleShowFileSummary" text="Show file summary"/>
+                              <SeparatorMenuItem/>
+                              <MenuItem onAction="#handleRawDataSort"
+                                text="Sort alphabetically"/>
+                              <MenuItem onAction="#handleShowFileSummary"
+                                text="Show file summary"/>
 
-                                  <SeparatorMenuItem/>
-                                  <Menu text="Raw data export">
-                                    <MenuItem text="Export raw data file to mzML"
-                                      onAction="#runModule"
-                                      userData="io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule" />
-                                    <MenuItem text="Export scans mgf, txt, msp and mzML"
-                                      onAction="#runModule"
-                                      userData="io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule" />
-                                  </Menu>
-                                  <MenuItem fx:id="rawDataRenameMenuItem"
-                                    onAction="#handleRenameRawData" text="Rename"/>
-                                  <MenuItem fx:id="rawDataRemoveMenuItem"
-                                    onAction="#handleRemoveRawData" text="Remove file"/>
-                                  <MenuItem fx:id="rawDataGroupMenuItem"
-                                    onAction="#handleGroupRawDataFiles" text="Group/Ungroup files"/>
+                              <SeparatorMenuItem/>
+                              <Menu text="Raw data export">
+                                <MenuItem onAction="#runModule"
+                                  text="Export raw data file to mzML"
+                                  userData="io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule"/>
+                                <MenuItem onAction="#runModule"
+                                  text="Export scans mgf, txt, msp and mzML"
+                                  userData="io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule"/>
+                              </Menu>
+                              <MenuItem onAction="#handleRemoveRawData"
+                                text="Remove file" fx:id="rawDataRemoveMenuItem"/>
+                              <MenuItem onAction="#handleGroupRawDataFiles"
+                                text="Group/Ungroup files" fx:id="rawDataGroupMenuItem"/>
 
-                                  <SeparatorMenuItem/>
-                                  <Menu text="Set color" fx:id="rawDataSetColorMenu">
-                                    <ColorPickerMenuItem fx:id="rawDataFileColorPicker" />
-                                  </Menu>
-                                </items>
-                              </ContextMenu>
-                            </contextMenu>
-                          </GroupableListView>
-                        </children>
-                      </AnchorPane>
-                    </content>
-                  </Tab>
-                  <Tab closable="false" text="Feature lists">
-                    <content>
-                      <AnchorPane minHeight="0.0" minWidth="0.0">
-                        <children>
-                          <GroupableListView fx:id="featureListsList" editable="true"
-                            AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                            AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                            <contextMenu>
-                              <ContextMenu fx:id="featureListContextMenu">
-                                <items>
-                                  <MenuItem fx:id="openFeatureListMenuItem"
-                                    text="Open feature list" onAction="#handleOpenFeatureList"/>
-                                  <MenuItem fx:id="showFeatureListSummaryMenuItem"
-                                    text="Show feature list summary" onAction="#handleShowFeatureListSummary"/>
-                                  <MenuItem text="Show scatter plot"
-                                    onAction="#handleShowScatterPlot"/>
-
-                                  <SeparatorMenuItem/>
-                                  <MenuItem text="Sort alphabetically"
-                                    onAction="#handleFeatureListsSort"/>
-                                  <MenuItem fx:id="featureListsRenameMenuItem"
-                                    text="Rename" onAction="#handleRenameFeatureList"/>
-                                  <MenuItem fx:id="featureListsRemoveMenuItem"
-                                    text="Remove feature list" onAction="#handleRemoveFeatureList"/>
-                                </items>
-                              </ContextMenu>
-                            </contextMenu>
-                          </GroupableListView>
-                        </children>
-                      </AnchorPane>
-                    </content>
-                  </Tab>
-                  <Tab closable="false" text="Libraries">
-                    <content>
-                      <AnchorPane minHeight="0.0" minWidth="0.0">
-                        <children>
-                          <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                            AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"
-                            editable="true" fx:id="spectralLibraryList">
-                            <contextMenu>
-                              <ContextMenu fx:id="spectralLibraryContextMenu">
-                                <items>
-                                  <MenuItem onAction="#handleSpectralLibrarySort"
-                                    text="Sort alphabetically"/>
-                                  <MenuItem onAction="#handleSpectralLibraryRemove"
-                                    text="Remove library" fx:id="spectralLibraryRemoveMenuItem"/>
-                                </items>
-                              </ContextMenu>
-                            </contextMenu>
-                          </ListView>
-                        </children>
-                      </AnchorPane>
-                    </content>
-                  </Tab>
-                </tabs>
-              </TabPane>
-            </items>
-          </SplitPane>
-
+                              <SeparatorMenuItem/>
+                              <Menu text="Set color" fx:id="rawDataSetColorMenu"/>
+                            </items>
+                          </ContextMenu>
+                        </contextMenu>
+                      </GroupableListView>
+                    </children>
+                  </AnchorPane>
+                </content>
+              </Tab>
+              <Tab closable="false" text="Feature lists">
+                <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0">
+                    <children>
+                      <GroupableListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                        AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"
+                        editable="true" fx:id="featureListsList">
+                        <contextMenu>
+                          <ContextMenu fx:id="featureListContextMenu">
+                            <items>
+                              <MenuItem onAction="#handleOpenFeatureList"
+                                text="Open feature list" fx:id="openFeatureListMenuItem"/>
+                              <MenuItem onAction="#handleShowFeatureListSummary"
+                                text="Show feature list summary"
+                                fx:id="showFeatureListSummaryMenuItem"/>
+                              <MenuItem onAction="#handleShowScatterPlot"
+                                text="Show scatter plot"/>
+                              <SeparatorMenuItem/>
+                              <MenuItem onAction="#handleFeatureListsSort"
+                                text="Sort alphabetically"/>
+                              <MenuItem onAction="#handleRenameFeatureList"
+                                text="Rename feature list" fx:id="featureListsRenameMenuItem"/>
+                              <MenuItem onAction="#handleRemoveFeatureList"
+                                text="Remove feature list" fx:id="featureListsRemoveMenuItem"/>
+                            </items>
+                          </ContextMenu>
+                        </contextMenu>
+                      </GroupableListView>
+                    </children>
+                  </AnchorPane>
+                </content>
+              </Tab>
+              <Tab closable="false" text="Libraries">
+                <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0">
+                    <children>
+                      <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                        AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"
+                        editable="true" fx:id="spectralLibraryList">
+                        <contextMenu>
+                          <ContextMenu fx:id="spectralLibraryContextMenu">
+                            <items>
+                              <MenuItem onAction="#handleLibraryToFeatureList"
+                                text="Libraries to feature lists"/>
+                              <MenuItem onAction="#handleSpectralLibrarySort"
+                                text="Sort alphabetically"/>
+                              <MenuItem onAction="#handleSpectralLibraryRemove"
+                                text="Remove library" fx:id="spectralLibraryRemoveMenuItem"/>
+                            </items>
+                          </ContextMenu>
+                        </contextMenu>
+                      </ListView>
+                    </children>
+                  </AnchorPane>
+                </content>
+              </Tab>
+            </tabs>
+          </TabPane>
           <!--          Right side, main panel -->
-
           <NotificationPane fx:id="notificationPane">
             <content>
-              <TabPane fx:id="mainTabPane" tabClosingPolicy="ALL_TABS">
+              <TabPane tabClosingPolicy="ALL_TABS" fx:id="mainTabPane">
               </TabPane>
             </content>
           </NotificationPane>
         </items>
       </SplitPane>
     </center>
-    <bottom>
-      <VBox fx:id="bottomBox">
-        <TableView fx:id="tasksView" minHeight="100" prefHeight="100.0">
-          <columnResizePolicy>
-            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-          </columnResizePolicy>
-          <placeholder>
-            <Label text="No running tasks"/>
-          </placeholder>
-          <columns>
-            <TableColumn fx:id="taskNameColumn" minWidth="300" reorderable="false" sortable="false"
-              text="Task"/>
-            <TableColumn fx:id="taskPriorityColumn" maxWidth="100" minWidth="100"
-              reorderable="false"
-              sortable="false" text="Priority"/>
-            <TableColumn fx:id="taskStatusColumn" maxWidth="100" minWidth="100" reorderable="false"
-              sortable="false" text="Status"/>
-            <TableColumn fx:id="taskProgressColumn" maxWidth="400" minWidth="100"
-              reorderable="false"
-              sortable="false" text="\% done"/>
-          </columns>
-          <contextMenu>
-            <ContextMenu>
-              <items>
-                <Menu text="Set priority">
-                  <MenuItem onAction="#handleSetHighPriority" text="High"/>
-                  <MenuItem onAction="#handleSetNormalPriority" text="Normal"/>
-                </Menu>
-                <MenuItem onAction="#handleCancelTask" text="Cancel task"/>
-                <MenuItem onAction="#handleCancelAllTasks" text="Cancel all tasks"/>
-              </items>
-            </ContextMenu>
-          </contextMenu>
-        </TableView>
-        <StatusBar fx:id="statusBar" minHeight="30" maxHeight="30">
-          <rightItems>
-            <StackPane scaleShape="true">
-              <ProgressBar fx:id="memoryBar" opacity="0.3"
-                prefWidth="150" minWidth="150"/>
-              <Label fx:id="memoryBarLabel"
-                onMouseClicked="#handleMemoryBarClick" prefWidth="150"
-                minWidth="150" alignment="CENTER">
-                <tooltip>
-                  <Tooltip text="Free/total Java heap size"/>
-                </tooltip>
-              </Label>
-            </StackPane>
-          </rightItems>
-        </StatusBar>
-      </VBox>
-    </bottom>
     <fx:define>
       <Screen fx:factory="getPrimary" fx:id="screen"/>
     </fx:define>
+    <top>
+      <fx:include source="MainMenu.fxml"/>
+    </top>
   </BorderPane>
+  <stylesheets>
+    <URL value="@/themes/MZmine_default.css"/>
+  </stylesheets>
 </Scene>

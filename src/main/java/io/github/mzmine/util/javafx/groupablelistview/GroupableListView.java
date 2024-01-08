@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -72,23 +73,20 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
             return;
           }
           var items = change.getList();
-          selectedValues.clear();
-          selectedGroups.clear();
-          for (GroupableListViewEntity item : items) {
-            if (item == null) {
-              continue;
-            }
 
-            if (item instanceof GroupEntity) {
-              selectedGroups.add((GroupEntity) item);
-              selectedValues.addAll(listGroups.get(item).stream().map(ValueEntity::getValue)
-                  .collect(Collectors.toList()));
-            } else {
-              if (!selectedValues.contains(((ValueEntity<T>) item).getValue())) {
-                selectedValues.add(((ValueEntity<T>) item).getValue());
-              }
-            }
-          }
+          // set all new selections at once to trigger only one event on ObservableList
+          selectedGroups.setAll(
+              items.stream().filter(Objects::nonNull).filter(item -> item instanceof GroupEntity)
+                  .map(item -> (GroupEntity) item).toList());
+          // if group is selected, select all internal data files
+          selectedValues.setAll(items.stream().filter(Objects::nonNull).<T>mapMulti((item, consumer) -> {
+                if (item instanceof GroupEntity ge) {
+                  listGroups.get(ge).stream().map(ValueEntity::getValue).filter(Objects::nonNull)
+                      .forEach(consumer::accept);
+                } else {
+                  consumer.accept(((ValueEntity<T>) item).getValue());
+                }
+              }).toList());
         }
       }
     });

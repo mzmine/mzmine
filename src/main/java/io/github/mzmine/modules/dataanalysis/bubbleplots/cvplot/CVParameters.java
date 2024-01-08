@@ -25,39 +25,37 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots.cvplot;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.FeatureMeasurementType;
 
 public class CVParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1, 1);
 
-  public static final MultiChoiceParameter<RawDataFile> dataFiles =
-      new MultiChoiceParameter<RawDataFile>("Data files", "Samples for CV analysis",
-          new RawDataFile[0], null, 2);
+  public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
+      "Data files", "Samples for CV analysis", new RawDataFile[0], null, 2);
 
-  public static final ComboParameter<FeatureMeasurementType> measurementType =
-      new ComboParameter<FeatureMeasurementType>("Peak measurement type",
-          "Determines whether peak's area or height is used in computations.",
-          FeatureMeasurementType.values());
+  public static final ComboParameter<AbundanceMeasure> measurementType = new ComboParameter<AbundanceMeasure>(
+      "Peak measurement type", "Determines whether peak's area or height is used in computations.",
+      AbundanceMeasure.values());
 
   public CVParameters() {
-    super(new Parameter[] {featureLists, dataFiles, measurementType});
+    super(featureLists, dataFiles, measurementType);
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    FeatureList selectedPeakLists[] = getParameter(featureLists).getValue().getMatchingFeatureLists();
+    FeatureList[] selectedPeakLists = getParameter(featureLists).getValue()
+        .getMatchingFeatureLists();
     if (selectedPeakLists.length > 0) {
-      RawDataFile plDataFiles[] =
-          selectedPeakLists[0].getRawDataFiles().toArray(RawDataFile[]::new);
+      RawDataFile[] plDataFiles = selectedPeakLists[0].getRawDataFiles()
+          .toArray(RawDataFile[]::new);
       getParameter(dataFiles).setChoices(plDataFiles);
     }
     return super.showSetupDialog(valueCheckRequired);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -125,7 +125,8 @@ public class DiaMs2CorrTask extends AbstractTask {
     adapFiles.setSpecificFiles(flist.getRawDataFiles().toArray(new RawDataFile[0]));
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.dataFiles, adapFiles);
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.scanSelection, ms2ScanSelection);
-    adapParameters.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan, minCorrPoints);
+    adapParameters.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans,
+        minCorrPoints);
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzTolerance);
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.suffix, "chroms");
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity,
@@ -142,7 +143,7 @@ public class DiaMs2CorrTask extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
     return (adapTask != null ? adapTask.getFinishedPercentage() * 0.5 : 0)
-        + (currentRow / (double) numRows) * 0.5d;
+           + (currentRow / (double) numRows) * 0.5d;
   }
 
   @Override
@@ -156,7 +157,7 @@ public class DiaMs2CorrTask extends AbstractTask {
 
     final RawDataFile file = flist.getRawDataFile(0);
     final List<Scan> ms2Scans = List.of(ms2ScanSelection.getMatchingScans(file));
-    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.CENTROID,
+    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.MASS_LIST,
         ms2ScanSelection);
 
     // build chromatograms
@@ -241,7 +242,7 @@ public class DiaMs2CorrTask extends AbstractTask {
             .filter(m -> mobilityRange.contains((float) m.getMobility())).toList();
         if (!mobilityScans.isEmpty()) {
           mergedMobilityScan = SpectraMerging.mergeSpectra(mobilityScans, mzTolerance,
-              MergingType.ALL, null);
+              MergingType.ALL_ENERGIES, null);
         } else {
           continue; // if we have ims data, and there are no mobility scans to be merged, something is fishy.
         }
@@ -355,8 +356,10 @@ public class DiaMs2CorrTask extends AbstractTask {
   }
 
   private ModularFeatureList buildChromatograms(MZmineProject dummyProject, RawDataFile file) {
-    adapTask = new ModularADAPChromatogramBuilderTask(dummyProject, file, adapParameters,
+    // currently the consecutive scans are used
+    adapTask = ModularADAPChromatogramBuilderTask.forChromatography(dummyProject, file,adapParameters,
         getMemoryMapStorage(), getModuleCallDate(), DiaMs2CorrModule.class);
+
     adapTask.run();
     adapTask = new FinishedTask(adapTask);
     currentTaksIndex++;

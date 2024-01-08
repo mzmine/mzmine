@@ -129,7 +129,7 @@ public class MirrorChartFactory {
     double rtA = scan.getRetentionTime();
 
     Double precursorMZB = db.getEntry().getPrecursorMZ();
-    Double rtB = ((Float) db.getEntry().getField(DBEntryField.RT).orElse(0f)).doubleValue();
+    Double rtB = db.getEntry().getField(DBEntryField.RT).map(v -> v instanceof Number n? n.doubleValue() : 0d).orElse(0d);
 
     // create without data
     EChartViewer mirrorSpecrumPlot = createMirrorChartViewer("Query: " + scan.getScanDefinition(),
@@ -397,7 +397,7 @@ public class MirrorChartFactory {
     return legend;
   }
 
-  private static boolean notInSubsequentMassList(DataPoint dp, DataPoint[][] query, int current) {
+  private static boolean notInSubsequentMassList(DataPoint dp, DataPoint[][]query, int current) {
     for (int i = current + 1; i < query.length; i++) {
       for (DataPoint b : query[i]) {
         if (Double.compare(dp.getMZ(), b.getMZ()) == 0
@@ -415,7 +415,7 @@ public class MirrorChartFactory {
       boolean useBestForMissingRaw) {
     Scan scan = null;
     if (alwaysShowBest || raw == null) {
-      scan = row.getMostIntenseFragmentScan();
+      scan = row.getAllFragmentScans().stream().findFirst().orElse(null);
     } else if (raw != null) {
       Feature peak = row.getFeature(raw);
       if (peak != null) {
@@ -423,7 +423,7 @@ public class MirrorChartFactory {
       }
     }
     if (scan == null && useBestForMissingRaw) {
-      scan = row.getMostIntenseFragmentScan();
+      scan = row.getAllFragmentScans().stream().findFirst().orElse(null);
     }
     return scan;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 
@@ -75,5 +76,45 @@ public enum MobilityType {
   @Override
   public String toString() {
     return name;
+  }
+
+  /**
+   * Check if the mobility type of feature matches this type. Only if this feature is actually an
+   * IMS feature so usually after IMS expanding
+   *
+   * @param f the tested feature
+   * @return true if the types match and the feature is an IMS feature
+   */
+  public boolean isTypeOf(final Feature f) {
+    return f.getMobilityUnit() == this;
+  }
+
+  /**
+   * Check if the mobility type of raw data file matches this type
+   *
+   * @param raw the tested file
+   * @return true if the types match
+   */
+  public boolean isTypeOf(final RawDataFile raw) {
+    return raw instanceof IMSRawDataFile imsfile && imsfile.getMobilityType() == this;
+  }
+
+  /**
+   * Check if the mobility type of feature or its raw data file matches this type
+   *
+   * @param f the tested feature and its raw data file
+   * @return true if the types match in the feature or the underlying {@link RawDataFile}
+   */
+  public boolean isTypeOfBackingRawData(final Feature f) {
+    return isTypeOf(f) || isTypeOf(f.getRawDataFile());
+  }
+
+  public String getCcsBaseEntryString() {
+    return switch (this) {
+      case NONE, FAIMS, OTHER, MIXED -> null;
+      case TIMS -> "TIMS";
+      case DRIFT_TUBE -> "DT";
+      case TRAVELING_WAVE -> "TW";
+    };
   }
 }

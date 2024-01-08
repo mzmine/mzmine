@@ -263,7 +263,6 @@ public class TaskControllerImpl implements TaskController, Runnable {
     if ((desktop != null) && (!(desktop instanceof HeadLessDesktop))) {
       desktop.getTasksView().refresh();
     }
-
   }
 
   @Override
