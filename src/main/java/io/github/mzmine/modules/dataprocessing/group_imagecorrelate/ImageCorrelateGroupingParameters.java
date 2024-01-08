@@ -73,7 +73,7 @@ public class ImageCorrelateGroupingParameters extends SimpleParameterSet {
   public static final ComboParameter<SimilarityMeasure> MEASURE = new ComboParameter<>("Measure",
       "Similarity measure", SimilarityMeasure.values(), SimilarityMeasure.PEARSON);
 
-  public static final PercentParameter MIN_R = new PercentParameter("Min image correlation",
+  public static final PercentParameter MIN_R = new PercentParameter("Min image Pearson r",
       "Minimum percentage for image correlation in one raw file.", 0.85, 0d, 1d);
 
 
