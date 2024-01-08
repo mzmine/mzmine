@@ -44,6 +44,7 @@ public class RTTolerance {
   }
 
   // old constructor for compatibility with other mzmine branches and pull requests
+  @Deprecated
   public RTTolerance(final boolean isAbsolute, final float rtTolerance) {
     this(rtTolerance, isAbsolute ? Unit.MINUTES : Unit.PERCENT);
   }
@@ -63,19 +64,11 @@ public class RTTolerance {
 
   public Range<Float> getToleranceRange(final float rtValue) {
     // rtValue is given in minutes
-    float absoluteTolerance;
-    switch (unit) {
-      case SECONDS:
-        absoluteTolerance = tolerance / 60;
-        break;
-      case PERCENT:
-        absoluteTolerance = rtValue * (tolerance / 100);
-        break;
-      case MINUTES:
-      default:
-        absoluteTolerance = tolerance;
-        break;
-    }
+    float absoluteTolerance = switch (unit) {
+      case SECONDS -> tolerance / 60;
+      case PERCENT -> rtValue * (tolerance / 100);
+      default -> tolerance;
+    };
     return Range.closed(rtValue - absoluteTolerance, rtValue + absoluteTolerance);
   }
 
@@ -107,16 +100,11 @@ public class RTTolerance {
 
     @Override
     public String toString() {
-      switch (this) {
-        case SECONDS:
-          return "seconds";
-        case MINUTES:
-          return "minutes";
-        case PERCENT:
-          return "%";
-        default:
-          throw new IllegalArgumentException();
-      }
+      return switch (this) {
+        case SECONDS -> "seconds";
+        case MINUTES -> "minutes";
+        case PERCENT -> "%";
+      };
     }
   }
 

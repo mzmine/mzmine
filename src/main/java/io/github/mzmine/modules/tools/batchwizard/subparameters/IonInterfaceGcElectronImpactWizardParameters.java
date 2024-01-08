@@ -36,28 +36,32 @@ import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import javafx.collections.FXCollections;
 
 public final class IonInterfaceGcElectronImpactWizardParameters extends
     IonInterfaceWizardParameters {
 
   public static final RTRangeParameter cropRtRange = new RTRangeParameter("Crop retention time",
       "Crops the RT range of chromatograms. Used to exclude time before the flow time\n"
-      + "and after the separation, where in many runs cleaning and re-equilibration starts.", true,
-      Range.closed(0.5, 30d));
+          + "and after the separation, where in many runs cleaning and re-equilibration starts.",
+      true, Range.closed(0.5, 30d));
   public static final RTToleranceParameter approximateChromatographicFWHM = new RTToleranceParameter(
       "Approximate feature FWHM",
       "The approximate feature width (chromatograpic peak width) in retention time (full-width-at-half-maximum, FWHM). ",
-      new RTTolerance(0.05f, Unit.MINUTES));
+      new RTTolerance(0.05f, Unit.MINUTES),
+      FXCollections.observableArrayList(Unit.MINUTES, Unit.SECONDS));
   public static final RTToleranceParameter intraSampleRTTolerance = new RTToleranceParameter(
       "RT tolerance (intra-sample)",
       "Retention time tolerance for multiple signals of the same compound in the same "
-      + "sample.\nUsed to detect isotopes or multimers/adducts of the same compound.",
-      new RTTolerance(0.04f, Unit.MINUTES));
+          + "sample.\nUsed to detect isotopes or multimers/adducts of the same compound.",
+      new RTTolerance(0.04f, Unit.MINUTES),
+      FXCollections.observableArrayList(Unit.MINUTES, Unit.SECONDS));
   public static final RTToleranceParameter interSampleRTTolerance = new RTToleranceParameter(
       "RT tolerance (sample-to-sample)",
       "Retention time tolerance for the same compound in different samples.\n"
-      + "Used to align multiple measurements of the same sample or a batch run.",
-      new RTTolerance(0.1f, Unit.MINUTES));
+          + "Used to align multiple measurements of the same sample or a batch run.",
+      new RTTolerance(0.1f, Unit.MINUTES),
+      FXCollections.observableArrayList(Unit.MINUTES, Unit.SECONDS));
   public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
       "Minimum consecutive scans",
       "Minimum number of consecutive scans with detected data points as used in chromatogram building and feature resolving.",
