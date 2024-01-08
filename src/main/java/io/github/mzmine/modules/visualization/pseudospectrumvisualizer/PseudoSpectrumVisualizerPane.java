@@ -107,7 +107,6 @@ public class PseudoSpectrumVisualizerPane extends SplitPane {
     try {
       ObservableList<FeatureListAppliedMethod> appliedMethods = Objects.requireNonNull(
           selectedFeature.getFeatureList()).getAppliedMethods();
-      if (appliedMethods != null) {
         if (pseudoScan.getMSLevel() > 1) {
 
           // for DIA correlation
@@ -135,7 +134,6 @@ public class PseudoSpectrumVisualizerPane extends SplitPane {
                 .getParameters().getParameter(ADAPChromatogramBuilderParameters.mzTolerance)
                 .cloneParameter().getValue();
           }
-        }
       }
     } catch (Exception e) {
       LOGGER.log(Level.WARNING,
