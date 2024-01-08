@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,27 +26,29 @@
 package io.github.mzmine.modules.visualization.pseudospectrumvisualizer;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureConvertors;
-import io.github.mzmine.util.ManualFeatureUtils;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class FeatureDataSetCalculationTask extends AbstractTask {
+class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
 
   private final RawDataFile rawDataFile;
   private final List<FeatureDataSet> features;
@@ -56,8 +58,8 @@ public class FeatureDataSetCalculationTask extends AbstractTask {
   private final MZTolerance mzTolerance;
   private final AtomicInteger processedFeatures = new AtomicInteger(0);
 
-  public FeatureDataSetCalculationTask(RawDataFile rawDataFile, TICPlot chromPlot, Scan pseudoScan,
-      ModularFeature feature, MZTolerance mzTolerance) {
+  PseudoSpectrumFeatureDataSetCalculationTask(RawDataFile rawDataFile, TICPlot chromPlot,
+      Scan pseudoScan, ModularFeature feature, MZTolerance mzTolerance) {
     super(null, Instant.now());
     this.rawDataFile = rawDataFile;
     this.chromPlot = chromPlot;
@@ -91,18 +93,17 @@ public class FeatureDataSetCalculationTask extends AbstractTask {
 
     Range<Float> dataRTRange = Range.closed(feature.getRawDataPointsRTRange().lowerEndpoint(),
         feature.getRawDataPointsRTRange().upperEndpoint());
-    List<Double> mzValues = Arrays.stream(pseudoScan.getMzValues(new double[0])).boxed()
-        .sorted(Comparator.reverseOrder()).toList();
-    for (Double mzValue : mzValues) {
-      ManualFeature feature = ManualFeatureUtils.pickFeatureManually(rawDataFile, dataRTRange,
-          mzTolerance.getToleranceRange(mzValue), pseudoScan.getMSLevel());
-      if (feature != null && feature.getScanNumbers() != null
-          && feature.getScanNumbers().length > 0) {
-        feature.setFeatureList(newFeatureList);
-        ModularFeature modularFeature = FeatureConvertors.ManualFeatureToModularFeature(
-            newFeatureList, feature);
-        features.add(new FeatureDataSet(modularFeature));
-      }
+
+    final ScanSelection selection = new ScanSelection(pseudoScan.getMSLevel(),
+        feature.getRawDataPointsRTRange());
+    final ScanDataAccess access = EfficientDataAccess.of(rawDataFile, ScanDataType.MASS_LIST,
+        selection);
+    for (int i = 0; i < pseudoScan.getNumberOfDataPoints(); i++) {
+      final IonTimeSeries<Scan> series = IonTimeSeriesUtils.extractIonTimeSeries(access,
+          mzTolerance.getToleranceRange(pseudoScan.getMzValue(i)), dataRTRange, null);
+      final ModularFeature f = new ModularFeature(newFeatureList, rawDataFile, series,
+          FeatureStatus.DETECTED);
+      features.add(new FeatureDataSet(f));
       processedFeatures.getAndIncrement();
     }
 
