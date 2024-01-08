@@ -417,13 +417,13 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
   public synchronized int addFeatureDataSetRandomColor(final FeatureDataSet dataSet) {
     final FeatureTICRenderer renderer = new FeatureTICRenderer();
-    renderer.setSeriesPaint(0,
-        MZmineCore.getConfiguration().getDefaultColorPalette().getNextColorAWT());
-    renderer.setSeriesFillPaint(0,
-        MZmineCore.getConfiguration().getDefaultColorPalette().getNextColorAWT());
+    Color nextColorAWT = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColorAWT();
+    renderer.setSeriesPaint(0, nextColorAWT);
+    renderer.setSeriesFillPaint(0, nextColorAWT);
     renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
     return addDataSetAndRenderer(dataSet, renderer);
   }
+
 
   public synchronized void addFeatureDataSets(Collection<FeatureDataSet> dataSets) {
     final boolean oldNotify = plot.isNotify();
