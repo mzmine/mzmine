@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.features.correlation.CorrelationRowGroup;
 import io.github.mzmine.datamodel.features.correlation.R2RCorrelationData;
-import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,8 +72,8 @@ public class CorrelationGroupingUtils {
     logger.log(Level.INFO, "Corr: Creating correlation groups for {0}", flist.getName());
 
     try {
-      R2RMap<RowsRelationship> corrMap = flist.getMs1CorrelationMap();
-      if (corrMap == null) {
+      var corrMap = flist.getMs1CorrelationMap();
+      if (corrMap.isEmpty()) {
         logger.log(Level.INFO,
             "Feature list ({0}) contains no grouped rows. First run a grouping module",
             flist.getName());
@@ -87,7 +86,7 @@ public class CorrelationGroupingUtils {
       int c = 0;
       ObservableList<RawDataFile> raw = flist.getRawDataFiles();
       // add all connections
-      for (Entry<Integer, RowsRelationship> e : corrMap.entrySet()) {
+      for (Entry<Integer, RowsRelationship> e : corrMap.get().entrySet()) {
         RowsRelationship r2r = e.getValue();
         FeatureListRow rowA = r2r.getRowA();
         FeatureListRow rowB = r2r.getRowB();

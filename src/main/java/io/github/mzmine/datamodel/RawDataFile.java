@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -172,7 +173,8 @@ public interface RawDataFile {
   default int binarySearchClosestScanIndex(float rt) {
     // scans are sorted by rt ascending
     // closest index will be negative direct hit is positive
-    int closestIndex = Math.abs(BinarySearch.binarySearch(rt, true, getNumOfScans(),
+    int closestIndex = Math.abs(
+        BinarySearch.binarySearch(rt, DefaultTo.CLOSEST_VALUE, getNumOfScans(),
         index -> getScan(index).getRetentionTime()));
     return closestIndex >= getNumOfScans() ? -1 : closestIndex;
   }

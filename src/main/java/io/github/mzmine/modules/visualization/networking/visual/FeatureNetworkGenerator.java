@@ -29,8 +29,8 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.SpectralDBAnnotation;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
-import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
@@ -55,7 +55,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -64,6 +63,7 @@ import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
+import org.jetbrains.annotations.NotNull;
 
 public class FeatureNetworkGenerator {
 
@@ -92,7 +92,7 @@ public class FeatureNetworkGenerator {
   }
 
   public MultiGraph createNewGraph(List<FeatureListRow> rows, boolean useIonIdentity,
-      boolean onlyBestIonIdentityNet, Map<Type, R2RMap<RowsRelationship>> relationsMaps,
+      boolean onlyBestIonIdentityNet, @NotNull R2RNetworkingMaps relationsMaps,
       boolean ms1FeatureShapeEdges) {
     return createNewGraph("molnet", rows, useIonIdentity, onlyBestIonIdentityNet, relationsMaps,
         ms1FeatureShapeEdges);
@@ -100,7 +100,7 @@ public class FeatureNetworkGenerator {
 
   public MultiGraph createNewGraph(String graphName, List<FeatureListRow> rows,
       boolean useIonIdentity, boolean onlyBestIonIdentityNet,
-      Map<Type, R2RMap<RowsRelationship>> relationsMaps, boolean ms1FeatureShapeEdges) {
+      @NotNull R2RNetworkingMaps relationsMaps, boolean ms1FeatureShapeEdges) {
     this.graph = new MultiGraph(graphName);
     this.ms1FeatureShapeEdges = ms1FeatureShapeEdges;
     logger.info("Adding all annotations to a network");
@@ -203,6 +203,7 @@ public class FeatureNetworkGenerator {
         for (ConsensusEdge e : consensusEdges) {
           Edge edge = addNewEdge(e.getA(), e.getB(), e.getType(), e.getAnnotation(), false);
           edge.setAttribute(EdgeAtt.SCORE.toString(), scoreForm.format(e.getScore()));
+          edge.setAttribute(EdgeAtt.TYPE_STRING.toString(), e.getTypeString());
         }
         // set network as finalized
         finalizedNetworks.add(net);
@@ -298,19 +299,19 @@ public class FeatureNetworkGenerator {
   /**
    * Add all row-2-row relationship edges. (e.g., MS2 cosine similarity edges)
    */
-  private void addRelationshipEdges(Map<Type, R2RMap<RowsRelationship>> relationsMaps) {
+  private void addRelationshipEdges(R2RNetworkingMaps relationsMaps) {
     if (relationsMaps == null || relationsMaps.isEmpty()) {
       return;
     }
-    for (Entry<Type, R2RMap<RowsRelationship>> entry : relationsMaps.entrySet()) {
+    for (Entry<String, R2RMap<RowsRelationship>> entry : relationsMaps.getRowsMaps().entrySet()) {
       R2RMap<RowsRelationship> r2rMap = entry.getValue();
       // do not add MS1 correlation
-      if (r2rMap != null && (ms1FeatureShapeEdges || !entry.getKey()
-          .equals(Type.MS1_FEATURE_CORR))) {
-        for (RowsRelationship rel : r2rMap.values()) {
-          if (rel != null) {
-            addMS2SimEdges(rel.getRowA(), rel.getRowB(), rel);
-          }
+      if (r2rMap == null) {
+        continue;
+      }
+      for (RowsRelationship rel : r2rMap.values()) {
+        if (rel != null) {
+          addMS2SimEdges(rel.getRowA(), rel.getRowB(), rel);
         }
       }
     }
@@ -328,13 +329,15 @@ public class FeatureNetworkGenerator {
     Edge edge = addNewEdge(a, b, type, sim.getAnnotation(), false, dmz);
     edge.setAttribute(EdgeAtt.LABEL.toString(), sim.getAnnotation());
     edge.setAttribute(EdgeAtt.SCORE.toString(), scoreForm.format(score));
+    // replace type here with the string to also capture external types
+    edge.setAttribute(EdgeAtt.TYPE_STRING.toString(), sim.getType());
     // weight for layout
     setEdgeWeightQuadraticScore(edge, score);
 
     switch (type) {
-      case MODIFIED_COSINE, GNPS_MODIFIED_COSINE ->
+      case MS2_MODIFIED_COSINE, GNPS_MODIFIED_COSINE ->
           edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
-      case FEATURE_CORRELATION ->
+      case FEATURE_SHAPE_CORRELATION ->
           edge.setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
     }
   }
@@ -573,6 +576,7 @@ public class FeatureNetworkGenerator {
     String uiClass = type.getUiClass().orElse(null);
     Edge e = addNewEdge(node1, node2, type.toString(), label, directed, uiClass);
     e.setAttribute(EdgeAtt.TYPE.toString(), type);
+    e.setAttribute(EdgeAtt.TYPE_STRING.toString(), type.toString());
     e.setAttribute(EdgeAtt.DELTA_MZ.toString(), mzForm.format(dmz));
     if (type == EdgeType.ION_IDENTITY) {
       setEdgeWeight(e, 0.25);
@@ -593,6 +597,7 @@ public class FeatureNetworkGenerator {
     String uiClass = type.getUiClass().orElse(null);
     Edge e = addNewEdge(node1, node2, type.toString(), label, directed, uiClass);
     e.setAttribute(EdgeAtt.TYPE.toString(), type);
+    e.setAttribute(EdgeAtt.TYPE_STRING.toString(), type.toString());
     return e;
   }
 

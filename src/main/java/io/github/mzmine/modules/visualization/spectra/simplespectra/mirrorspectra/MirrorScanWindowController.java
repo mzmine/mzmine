@@ -248,8 +248,8 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
     String precursorString = MessageFormat.format(": m/z {0}↔{1}; top↔bottom",
         mzFormat.format(precursorMZA) + labelA, mzFormat.format(precursorMZB) + labelB);
 
-    pnMirror.getChildren().clear();
-    pnNLMirror.getChildren().clear();
+    pnMirror.setCenter(null);
+    pnNLMirror.setCenter(null);
 
     final MZTolerance mzTol = getMzTolerance();
 
@@ -393,8 +393,8 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
   public void clearScans() {
     tableMirror.getItems().clear();
     tableNLMIrror.getItems().clear();
-    pnMirror.getChildren().clear();
-    pnNLMirror.getChildren().clear();
+    pnMirror.setCenter(null);
+    pnNLMirror.setCenter(null);
   }
 
   public void setScans(Scan scan, Scan mirror, String labelA, String labelB) {
@@ -424,8 +424,8 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
    * @param db
    */
   public void setScans(SpectralDBAnnotation db) {
-    pnMirror.getChildren().clear();
-    pnNLMirror.getChildren().clear();
+    pnMirror.setCenter(null);
+    pnNLMirror.setCenter(null);
     mirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromSpectralDBPeakIdentity(db);
     pnMirror.setCenter(mirrorSpecrumPlot);
   }

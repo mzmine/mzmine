@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,9 +33,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Spectral similarity computed in MZmine.
  */
-public class R2RSpectralSimilarityList extends AbstractRowsRelationship {
+public class R2RSpectralSimilarityList extends InternalTypedRowsRelationship {
 
-  private final Type type;
   private final List<SpectralSimilarity> spectralSim = new ArrayList<>();
 
   /**
@@ -44,8 +43,7 @@ public class R2RSpectralSimilarityList extends AbstractRowsRelationship {
    * @param type the similarity type
    */
   public R2RSpectralSimilarityList(FeatureListRow a, FeatureListRow b, Type type) {
-    super(a, b);
-    this.type = type;
+    super(a, b, type);
   }
 
   public synchronized void addSpectralSim(SpectralSimilarity sim) {
@@ -95,9 +93,4 @@ public class R2RSpectralSimilarityList extends AbstractRowsRelationship {
     return "cos=" + getScoreFormatted();
   }
 
-  @NotNull
-  @Override
-  public Type getType() {
-    return type;
-  }
 }

@@ -47,10 +47,9 @@ import io.github.mzmine.datamodel.features.types.numbers.scores.CosineScoreType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -65,36 +64,11 @@ import org.jetbrains.annotations.Nullable;
 public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnotation> implements
     AnnotationType {
 
-  private static final Map<Class<? extends DataType>, Function<SpectralDBAnnotation, Object>> mapper = Map.ofEntries(
-      createEntry(SpectralLibraryMatchesType.class, match -> match),
-      createEntry(CompoundNameType.class,
-          match -> match.getEntry().getField(DBEntryField.NAME).orElse("").toString()),
-      createEntry(FormulaType.class,
-          match -> match.getEntry().getField(DBEntryField.FORMULA).orElse("").toString()),
-      createEntry(IonAdductType.class,
-          match -> match.getEntry().getField(DBEntryField.ION_TYPE).orElse("").toString()),
-      createEntry(SmilesStructureType.class,
-          match -> match.getEntry().getField(DBEntryField.SMILES).orElse("").toString()),
-      createEntry(InChIStructureType.class,
-          match -> match.getEntry().getField(DBEntryField.INCHI).orElse("").toString()),
-      createEntry(CosineScoreType.class, match -> (float) match.getSimilarity().getScore()),
-      createEntry(MatchingSignalsType.class, match -> match.getSimilarity().getOverlap()),
-      createEntry(PrecursorMZType.class,
-          match -> match.getEntry().getField(DBEntryField.PRECURSOR_MZ).orElse(null)),
-      createEntry(NeutralMassType.class,
-          match -> match.getEntry().getField(DBEntryField.EXACT_MASS).orElse(null)),
-      createEntry(CCSType.class, match -> match.getEntry().getOrElse(DBEntryField.CCS, null)),
-      createEntry(CCSRelativeErrorType.class, SpectralDBAnnotation::getCCSError));
   // Unmodifiable list of all subtypes
   private static final List<DataType> subTypes = List.of(new SpectralLibraryMatchesType(),
       new CompoundNameType(), new IonAdductType(), new FormulaType(), new SmilesStructureType(),
       new InChIStructureType(), new PrecursorMZType(), new NeutralMassType(), new CosineScoreType(),
       new MatchingSignalsType(), new CCSType(), new CCSRelativeErrorType());
-
-  @Override
-  protected Map<Class<? extends DataType>, Function<SpectralDBAnnotation, Object>> getMapper() {
-    return mapper;
-  }
 
   @NotNull
   @Override
@@ -107,6 +81,28 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
   @Override
   public List<DataType> getSubDataTypes() {
     return subTypes;
+  }
+
+  @Override
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType,
+      final SpectralDBAnnotation match) {
+    final SpectralLibraryEntry entry = match.getEntry();
+    return (K) switch (subType) {
+      case SpectralLibraryMatchesType __ -> match;
+      case CompoundNameType __ -> entry.getField(DBEntryField.NAME).orElse("").toString();
+      case FormulaType __ -> entry.getField(DBEntryField.FORMULA).orElse("").toString();
+      case IonAdductType __ -> entry.getField(DBEntryField.ION_TYPE).orElse("").toString();
+      case SmilesStructureType __ -> entry.getField(DBEntryField.SMILES).orElse("").toString();
+      case InChIStructureType __ -> entry.getField(DBEntryField.INCHI).orElse("").toString();
+      case CosineScoreType __ -> (float) match.getSimilarity().getScore();
+      case MatchingSignalsType __ -> match.getSimilarity().getOverlap();
+      case PrecursorMZType __ -> entry.getField(DBEntryField.PRECURSOR_MZ).orElse(null);
+      case NeutralMassType __ -> entry.getField(DBEntryField.EXACT_MASS).orElse(null);
+      case CCSType __ -> entry.getOrElse(DBEntryField.CCS, null);
+      case CCSRelativeErrorType __ -> match.getCCSError();
+      default -> throw new UnsupportedOperationException(
+          "DataType %s is not covered in map".formatted(subType.toString()));
+    };
   }
 
   @NotNull

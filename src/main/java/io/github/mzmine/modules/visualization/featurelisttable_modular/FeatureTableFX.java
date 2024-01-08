@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -116,6 +116,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
@@ -179,11 +180,22 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
     final KeyCodeCombination keyCodeCopy = new KeyCodeCombination(KeyCode.C,
         KeyCombination.CONTROL_ANY);
+
     setOnKeyPressed(event -> {
       if (keyCodeCopy.match(event)) {
         copySelectionToClipboard(this);
+        event.consume();
       }
     });
+
+    this.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+      if (event.isControlDown() && event.getCode() == KeyCode.A) {
+        // selecting everything causes feature table to freeze
+        event.consume();
+      }
+    });
+
+
   }
 
   /**
@@ -495,7 +507,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     rowCol.setGraphic(headerLabel);
 
     // add row types
-    featureList.getRowTypes().values().stream().filter(t -> !(t instanceof FeaturesType))
+    featureList.getRowTypes().stream().filter(t -> !(t instanceof FeaturesType))
         .forEach(dataType -> addColumn(rowCol, dataType));
 
     sortColumn(rowCol);
@@ -504,8 +516,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     this.getColumns().add(rowCol);
 
     // add features
-    if (featureList.getRowTypes().containsKey(FeaturesType.class)) {
-      addColumn(rowCol, featureList.getRowTypes().get(FeaturesType.class));
+    if (featureList.hasRowType(FeaturesType.class)) {
+      addColumn(rowCol, DataTypes.get(FeaturesType.class));
     }
 
   }
@@ -566,9 +578,10 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
   private Entry<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> getMainColumnEntry(
       Class<? extends DataType> dtClass) {
+    DataType type = DataTypes.get(dtClass);
     for (var col : newColumnMap.entrySet()) {
       var colID = col.getValue();
-      if (colID.getDataType().getClass().equals(dtClass) && colID.getSubColIndex() == -1
+      if (type.equals(colID.getDataType()) && colID.getSubColIndex() == -1
           && colID.getType() == ColumnType.ROW_TYPE) {
         return col;
       }
@@ -731,7 +744,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       sampleCol.setGraphic(headerLabel);
 
       // Add sub columns of feature
-      for (DataType ftype : getFeatureList().getFeatureTypes().values()) {
+      for (DataType ftype : getFeatureList().getFeatureTypes()) {
         if (ftype instanceof ImageType && !(dataFile instanceof ImagingRawDataFile)) {
           // non-imaging files don't need a image column
           continue;
@@ -821,8 +834,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
             cellValue));
         if (runnable != null) {
           MZmineCore.getTaskController().addTask(
-              new FeatureTableDoubleClickTask(runnable, getFeatureList(),
-                  (DataType<?>) userData));
+              new FeatureTableDoubleClickTask(runnable, getFeatureList(), (DataType<?>) userData));
         }
       }
     }
@@ -1033,8 +1045,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       return;
     }
     flist.getRows().removeListener(this);
-    flist.modularStream().forEach(ModularFeatureListRow::clearBufferedColCharts);
-    flist.streamFeatures().forEach(ModularFeature::clearBufferedColCharts);
+    flist.onFeatureTableFxClosed();
   }
 
   public DataTypeCheckListParameter getRowTypesParameter() {
