@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,8 +42,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
@@ -58,13 +56,6 @@ public class DatabaseMatchInfoType extends ListWithSubsType<DatabaseMatchInfo> {
 
   public static final List<DataType> subTypes = List.of(new DatabaseMatchInfoType(), new IDType(),
       new DatabaseNameType());
-
-  private static final Map<Class<? extends DataType>, Function<DatabaseMatchInfo, Object>> mapper = Map.ofEntries(
-      //
-      createEntry(DatabaseMatchInfoType.class, info -> info),
-      createEntry(IDType.class, DatabaseMatchInfo::id), //
-      createEntry(DatabaseNameType.class, DatabaseMatchInfo::database));
-
 
   @Override
   public @NotNull String getUniqueID() {
@@ -163,7 +154,13 @@ public class DatabaseMatchInfoType extends ListWithSubsType<DatabaseMatchInfo> {
   }
 
   @Override
-  protected Map<Class<? extends DataType>, Function<DatabaseMatchInfo, Object>> getMapper() {
-    return mapper;
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType, final DatabaseMatchInfo item) {
+    return (K) switch (subType) {
+      case DatabaseMatchInfoType __ -> item;
+      case IDType __ -> item.id();
+      case DatabaseNameType __ -> item.database();
+      default -> null;
+    };
   }
+
 }
