@@ -52,6 +52,7 @@
                   <FlowPane hgap="4.0" vgap="4.0">
                      <children>
                         <ToggleSwitch fx:id="cbCollapseIons" contentDisplay="RIGHT" graphicTextGap="0.0" nodeOrientation="RIGHT_TO_LEFT" selected="false" text="Collapse ions" />
+                        <CheckComboBox fx:id="cbComboVisibleEdgeTypes" />
 <!--                        <CheckComboBox fx:id="cbComboVisibleEdgeTypes" />-->
                         <Spinner fx:id="spinnerNodeNeighbors" prefHeight="26.0" prefWidth="71.0">
                         </Spinner>

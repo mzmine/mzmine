@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -583,7 +583,7 @@ public class MSMSLibrarySubmissionWindow extends Stage {
           .setValue(precursorMZ == 0d ? null : precursorMZ);
     } else {
       // MS1
-      ionParam.getParameter(LibrarySubmitIonParameters.ADDUCT).setValue(null);
+      ionParam.getParameter(LibrarySubmitIonParameters.ADDUCT).setValue("");
       ionParam.getParameter(LibrarySubmitIonParameters.CHARGE).setValue(null);
       ionParam.getParameter(LibrarySubmitIonParameters.MZ).setValue(null);
     }

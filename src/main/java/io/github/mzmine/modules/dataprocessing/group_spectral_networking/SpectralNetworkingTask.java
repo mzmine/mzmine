@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.R2RSpectralSimilarity;
 import io.github.mzmine.datamodel.features.correlation.R2RSpectralSimilarityList;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
@@ -68,7 +69,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -370,8 +370,9 @@ public class SpectralNetworkingTask extends AbstractTask {
           mapCosineSim.size(), mapNeutralLoss.size()));
 
       if (featureList != null) {
-        featureList.addRowsRelationships(mapCosineSim, Type.MS2_COSINE_SIM);
-        featureList.addRowsRelationships(mapNeutralLoss, Type.MS2_NEUTRAL_LOSS_SIM);
+        R2RNetworkingMaps rowMaps = featureList.getRowMaps();
+        rowMaps.addAllRowsRelationships(mapCosineSim, Type.MS2_COSINE_SIM);
+        rowMaps.addAllRowsRelationships(mapNeutralLoss, Type.MS2_NEUTRAL_LOSS_SIM);
 
         addNetworkStatisticsToRows();
       }
@@ -402,9 +403,10 @@ public class SpectralNetworkingTask extends AbstractTask {
     // create graph from Type.MS2_COSINE_SIM
     // set community and cluster_index
     FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
-    var fullCosineMap = Map.of(Type.MS2_COSINE_SIM,
-        Objects.requireNonNull(featureList.getRowMap(Type.MS2_COSINE_SIM)));
-    var graph = generator.createNewGraph(featureList.getRows(), false, true, fullCosineMap, false);
+    R2RNetworkingMaps onlyCosineMap = new R2RNetworkingMaps();
+    onlyCosineMap.addAllRowsRelationships(featureList.getMs2SimilarityMap().get(),
+        Type.MS2_COSINE_SIM);
+    var graph = generator.createNewGraph(featureList.getRows(), false, true, onlyCosineMap, false);
     GraphStreamUtils.detectCommunities(graph);
 
     Object2IntMap<Object> communitySizes = GraphStreamUtils.getCommunitySizes(graph);

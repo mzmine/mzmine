@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,12 +41,12 @@ import io.github.mzmine.datamodel.features.types.numbers.SizeType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CombinedScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.MsMsScoreType;
+import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -54,8 +54,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A modular annotation type displaying all subtypes for the first element in a list of {@link
- * IonIdentity} stored in {@link SimpleIonIdentityListType}
+ * A modular annotation type displaying all subtypes for the first element in a list of
+ * {@link IonIdentity} stored in {@link SimpleIonIdentityListType}
  */
 public class IonIdentityListType extends ListWithSubsType<IonIdentity> implements AnnotationType {
 
@@ -75,58 +75,9 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
       new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(), new IsotopePatternScoreType(),
       new MsMsScoreType(), new CombinedScoreType());
 
-  private static final Map<Class<? extends DataType>, Function<IonIdentity, Object>> mapper = Map.ofEntries(
-      createEntry(IonIdentityListType.class, (ion -> ion)), createEntry(IonNetworkIDType.class,
-          (ion -> ion.getNetwork() != null ? ion.getNetID() : null)), createEntry(SizeType.class,
-          (ion -> ion.getNetwork() != null ? ion.getNetwork().size() : null)),
-      createEntry(NeutralMassType.class,
-          (ion -> ion.getNetwork() != null ? ion.getNetwork().getNeutralMass() : null)),
-      createEntry(PartnerIdsType.class, (ion -> ion.getPartnerRowsString(";"))),
-      createEntry(MsMsMultimerVerifiedType.class, (ion -> {
-        int msmsMultimerCount = ion.getMSMSMultimerCount();
-        return msmsMultimerCount == -1 ? null : msmsMultimerCount > 0;
-      })),
-      // list of relationships has no order
-      createEntry(IINRelationshipsType.class, (ion -> ion.getNetwork() != null ? new ArrayList<>(
-          ion.getNetwork().getRelations().entrySet()) : null)),
-      createEntry(IINRelationshipsSummaryType.class,
-          (ion -> ion.getNetwork() != null && ion.getNetwork().getRelations() != null
-              ? ion.getNetwork().getRelations().entrySet().stream()
-              .map(entry -> entry.getValue().getName(entry.getKey()))
-              .collect(Collectors.joining(";")) : null)),
-      //
-      createEntry(ConsensusFormulaListType.class,
-          (ion -> ion.getNetwork() != null ? ion.getNetwork().getMolFormulas() : null)),
-      createEntry(SimpleFormulaListType.class, (ion -> ion.getMolFormulas())),
-      createEntry(FormulaMassType.class, (ion -> {
-        ResultFormula f = getMolFormula(ion);
-        return f == null ? null : f.getExactMass();
-      })), createEntry(RdbeType.class, (ion -> {
-        ResultFormula f = getMolFormula(ion);
-        return f == null ? null : f.getRDBE();
-      })), createEntry(MZType.class, (ion -> {
-        ResultFormula f = getMolFormula(ion);
-        return f == null ? null : ion.getIonType().getMZ(f.getExactMass());
-      })), createEntry(MzPpmDifferenceType.class, (ion -> {
-        ResultFormula f = getMolFormula(ion);
-        return f == null ? null : f.getPpmDiff();
-      })), createEntry(MzAbsoluteDifferenceType.class, (ion -> {
-        ResultFormula f = getMolFormula(ion);
-        return f == null ? null : f.getAbsoluteMzDiff();
-      })), createEntry(IsotopePatternScoreType.class, (ion -> {
-        ResultFormula f = getMolFormula(ion);
-        return f == null || f.getIsotopeScore() == null ? null : f.getIsotopeScore();
-      })), createEntry(MsMsScoreType.class, (ion -> {
-        ResultFormula f = getMolFormula(ion);
-        return f == null || f.getMSMSScore() == null ? null : f.getMSMSScore();
-      })), createEntry(CombinedScoreType.class, (ion -> {
-        ResultFormula f = getMolFormula(ion);
-        return f == null ? null : f.getScore(10, 3, 1);
-      })));
-
   private static @Nullable ResultFormula getMolFormula(@NotNull IonIdentity ion) {
     List<ResultFormula> formulas = ion.getMolFormulas();
-    return formulas == null || formulas.isEmpty() ? null : formulas.get(0);
+    return formulas.isEmpty() ? null : formulas.get(0);
   }
 
   @Override
@@ -135,8 +86,47 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
   }
 
   @Override
-  public Map<Class<? extends DataType>, Function<IonIdentity, Object>> getMapper() {
-    return mapper;
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType, final IonIdentity ion) {
+    final IonNetwork net = ion.getNetwork();
+    return (K) switch (subType) {
+      case IonIdentityListType __ -> ion;
+      case IonNetworkIDType __ -> net != null ? ion.getNetID() : null;
+      case SizeType __ -> net != null ? net.size() : null;
+      case NeutralMassType __ -> net != null ? net.getNeutralMass() : null;
+      case PartnerIdsType __ -> ion.getPartnerRowsString(";");
+      case MsMsMultimerVerifiedType __ -> {
+        int msmsMultimerCount = ion.getMSMSMultimerCount();
+        yield msmsMultimerCount == -1 ? null : msmsMultimerCount > 0;
+      }
+      // list of relationships has no order
+      case IINRelationshipsType __ ->
+          net != null ? new ArrayList<>(net.getRelations().entrySet()) : null;
+      case IINRelationshipsSummaryType __ ->
+          net != null && net.getRelations() != null ? net.getRelations().entrySet().stream()
+              .map(entry -> entry.getValue().getName(entry.getKey()))
+              .collect(Collectors.joining(";")) : null;
+      //
+      case ConsensusFormulaListType __ -> net != null ? net.getMolFormulas() : null;
+      case SimpleFormulaListType __ -> ion.getMolFormulas();
+      case FormulaMassType __ ->
+          ion.getBestMolFormula().map(MolecularFormulaIdentity::getExactMass).orElse(null);
+      case RdbeType __ ->
+          ion.getBestMolFormula().map(MolecularFormulaIdentity::getRDBE).orElse(null);
+      case MZType __ ->
+          ion.getBestMolFormula().map(MolecularFormulaIdentity::getExactMass).orElse(null);
+      case MzPpmDifferenceType __ ->
+          ion.getBestMolFormula().map(ResultFormula::getPpmDiff).orElse(null);
+      case MzAbsoluteDifferenceType __ ->
+          ion.getBestMolFormula().map(ResultFormula::getAbsoluteMzDiff).orElse(null);
+      case IsotopePatternScoreType __ ->
+          ion.getBestMolFormula().map(ResultFormula::getIsotopeScore).orElse(null);
+      case MsMsScoreType __ ->
+          ion.getBestMolFormula().map(ResultFormula::getMSMSScore).orElse(null);
+      case CombinedScoreType __ ->
+          ion.getBestMolFormula().map(f -> f.getScore(10, 3, 1)).orElse(null);
+      default -> throw new UnsupportedOperationException(
+          "DataType %s is not covered in map".formatted(subType.toString()));
+    };
   }
 
   @NotNull

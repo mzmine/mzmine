@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -94,11 +94,11 @@ public class LcImageAlignerTask extends AbstractTask {
 
     // checked in setup dialog
     imageLists = Arrays.stream(matchingFeatureLists)
-        .filter(flist -> flist.getFeatureTypes().containsValue(new ImageType()))
+        .filter(flist -> flist.hasFeatureType(ImageType.class))
         .map(list -> (FeatureList) list).toList();
 
     final List<FeatureList> featureLists = Arrays.stream(matchingFeatureLists)
-        .filter(flist -> !flist.getFeatureTypes().containsValue(new ImageType()))
+        .filter(flist -> !flist.hasFeatureType(ImageType.class))
         .map(list -> (FeatureList) list).toList();
     if (featureLists.size() > 1) {
       logger.warning(

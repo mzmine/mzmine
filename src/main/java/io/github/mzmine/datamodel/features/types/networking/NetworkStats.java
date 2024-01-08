@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,7 +48,7 @@ public record NetworkStats(int clusterId, int communityId, int edges, int cluste
 
   @SuppressWarnings("rawtypes")
   public static List<DataType> getSubTypes() {
-    return DataTypes.getList(MolNetClusterIdType.class, MolNetCommunityIdType.class,
+    return DataTypes.getAll(MolNetClusterIdType.class, MolNetCommunityIdType.class,
         MolNetNumEdgesType.class, MolNetClusterSizeType.class, MolNetCommunitySizeType.class);
   }
 

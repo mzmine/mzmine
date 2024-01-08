@@ -2,7 +2,7 @@ name: PR Test Build
 
 on:
   pull_request:
-    branches: [ "master", "jdk20" ]
+    branches: [ "master" ]
 
 jobs:
   gradle_build:
@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '20.0.1'
+          java-version: '21.0.1'
           cache: 'gradle'
 
       - name: Setup Gradle
@@ -94,7 +94,7 @@ jobs:
       - name: Pack macOS .app to .dmg
         if: runner.os == 'macOS'
         run: |
-          npm install -g appdmg
+          npm install --python=python3.11 -g appdmg
           appdmg gradle/appdmg.json build/jpackage/MZmine_macOS_installer.dmg
 
       - name: Upload macOS installer
