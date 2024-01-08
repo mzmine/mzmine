@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
@@ -107,6 +108,6 @@ public class IonTypeType extends DataType<IonType> {
     if(str == null) {
       return null;
     }
-    return IonType.parseFromString(str);
+    return IonTypeParser.parse(str);
   }
 }

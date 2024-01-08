@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -102,7 +102,7 @@ public class SiriusExportTask extends AbstractTask {
   private final AtomicInteger processedRows = new AtomicInteger(0);
 
 
-  protected SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
 
     this.parameters = parameters;

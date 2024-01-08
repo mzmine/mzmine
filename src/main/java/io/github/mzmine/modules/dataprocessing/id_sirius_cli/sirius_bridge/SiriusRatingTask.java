@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2023 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataprocessing.id_sirius_cli.sirius_bridge;
 
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -16,6 +41,9 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -25,10 +53,9 @@ import org.jetbrains.annotations.Nullable;
 public class SiriusRatingTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(SiriusRatingTask.class.getName());
-
+  private final ParameterSet parameters;
   private String desc = "Sirius";
   private double progress = 0;
-  private final ParameterSet parameters;
 
   public SiriusRatingTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       ParameterSet parameters) {
@@ -134,23 +161,24 @@ public class SiriusRatingTask extends AbstractTask {
         siriusExportParameters.getValue(SiriusExportParameters.EXCLUDE_MULTICHARGE));
     exportParam.setParameter(SiriusExportParameters.NEED_ANNOTATION,
         siriusExportParameters.getValue(SiriusExportParameters.NEED_ANNOTATION));
-    exportParam.setParameter(SiriusExportParameters.EXCLUDE_EMPTY_MSMS,
-        siriusExportParameters.getValue(SiriusExportParameters.EXCLUDE_EMPTY_MSMS));
     exportParam.setParameter(SiriusExportParameters.EXCLUDE_MULTIMERS,
         siriusExportParameters.getValue(SiriusExportParameters.EXCLUDE_MULTIMERS));
 
     exportParam.setParameter(SiriusExportParameters.FEATURE_LISTS,
         new FeatureListsSelection((ModularFeatureList) flist));
     exportParam.setParameter(SiriusExportParameters.FILENAME, mgfFile);
-    exportParam.setParameter(SiriusExportParameters.RENUMBER_ID, false);
 
     desc = "Exporting eligible rows to mgf.";
     final SiriusExportTask export = new SiriusExportTask(exportParam, Instant.now());
-    for (final FeatureListRow row : flist.getRows()) {
-      if (row.getCompoundAnnotations().isEmpty() || !row.hasMs2Fragmentation()) {
-        continue;
+    try (var writer = Files.newBufferedWriter(mgfFile.toPath(), StandardOpenOption.WRITE)) {
+      for (final FeatureListRow row : flist.getRows()) {
+        if (row.getCompoundAnnotations().isEmpty() || !row.hasMs2Fragmentation()) {
+          continue;
+        }
+        export.exportRow(writer, row);
       }
-      export.runSingleRow(row);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 

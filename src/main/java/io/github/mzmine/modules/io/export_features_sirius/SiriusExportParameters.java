@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,8 +58,8 @@ public class SiriusExportParameters extends SimpleParameterSet {
 
   public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>(
       "Merge MS/MS",
-          "Merge high qualitative MS/MS into one spectrum instead of exporting all MS/MS separately.",
-          new MsMsSpectraMergeParameters(), true);
+      "Merge high qualitative MS/MS into one spectrum instead of exporting all MS/MS separately.",
+      new MsMsSpectraMergeParameters(), true);
   /**
    * MZTolerance to exclude duplicates in correlated spectrum
    */
@@ -67,7 +67,7 @@ public class SiriusExportParameters extends SimpleParameterSet {
       "m/z tolerance to exclude duplicates in correlated spectrum", 0.003, 5);
   public static final BooleanParameter NEED_ANNOTATION = new BooleanParameter(
       "Only rows with annotation",
-          "Only export rows with an annotation (run MS annotate or metaMSEcorrelate)", false);
+      "Only export rows with an annotation (run MS annotate or metaMSEcorrelate)", false);
   public static final BooleanParameter EXCLUDE_MULTICHARGE = new BooleanParameter(
       "Exclude multiple charge", "Do not export multiply charged rows", false);
   public static final BooleanParameter EXCLUDE_MULTIMERS = new BooleanParameter("Exclude multimers",
@@ -95,11 +95,11 @@ public class SiriusExportParameters extends SimpleParameterSet {
 
   private static Parameter[] getParameters(boolean isSubParameterSet) {
     if (isSubParameterSet) {
-      return new Parameter[]{MERGE_PARAMETER, MZ_TOL, NEED_ANNOTATION, EXCLUDE_EMPTY_MSMS,
-          EXCLUDE_MULTICHARGE, EXCLUDE_MULTIMERS};
+      return new Parameter[]{MERGE_PARAMETER, MZ_TOL, NEED_ANNOTATION, EXCLUDE_MULTICHARGE,
+          EXCLUDE_MULTIMERS};
     }
     return new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, MZ_TOL, NEED_ANNOTATION,
-        EXCLUDE_EMPTY_MSMS, EXCLUDE_MULTICHARGE, EXCLUDE_MULTIMERS};
+        EXCLUDE_MULTICHARGE, EXCLUDE_MULTIMERS};
   }
 
   // public static final BooleanParameter FRACTIONAL_MZ = new
