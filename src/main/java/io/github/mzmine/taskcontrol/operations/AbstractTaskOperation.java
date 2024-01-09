@@ -40,6 +40,7 @@ public abstract class AbstractTaskOperation implements TaskOperation {
     this.parentTask = parentTask;
   }
 
+  @Nullable
   public AbstractTask getParentTask() {
     return parentTask;
   }

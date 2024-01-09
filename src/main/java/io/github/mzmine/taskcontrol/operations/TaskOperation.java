@@ -36,7 +36,7 @@ public interface TaskOperation {
 
   double getFinishedPercentage();
 
-  AbstractTask getParentTask();
+  @Nullable AbstractTask getParentTask();
 
   void setParentTask(final @Nullable AbstractTask parentTask);
 
