@@ -28,14 +28,12 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries.IntensityMode;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import java.time.Instant;
-import java.util.Comparator;
+import io.github.mzmine.taskcontrol.operations.AbstractTaskFunction;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -44,27 +42,27 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Task to extrat {@link BuildingIonSeries} that can be turned into IonTimeSeries etc.
  */
-public class ExtractMzRangesIonSeriesTask extends AbstractTask {
+public class ExtractMzRangesIonSeriesFunction extends AbstractTaskFunction<BuildingIonSeries[]> {
 
   private static final Logger logger = Logger.getLogger(
-      ExtractMzRangesIonSeriesTask.class.getName());
+      ExtractMzRangesIonSeriesFunction.class.getName());
   private final RawDataFile dataFile;
   private final ScanSelection scanSelection;
-  private final MZTolerance mzTol;
-  private final List<Range<Double>> mzRanges;
+  private final List<Range<Double>> mzRangesSorted;
   private final AbstractTask parentTask;
   private int processedScans, totalScans;
-  private BuildingIonSeries[] ionSeries;
 
-  public ExtractMzRangesIonSeriesTask(@NotNull RawDataFile dataFile,
-      @NotNull ScanSelection scanSelection, @NotNull MZTolerance mzTol,
-      @NotNull List<Range<Double>> mzRanges, @Nullable AbstractTask parentTask) {
-    super(null, Instant.now());
+  /**
+   * @param mzRangesSorted sorted by mz ascending
+   */
+  public ExtractMzRangesIonSeriesFunction(@NotNull RawDataFile dataFile,
+      @NotNull ScanSelection scanSelection, @NotNull List<Range<Double>> mzRangesSorted,
+      @Nullable AbstractTask parentTask) {
+    super(parentTask);
 
     this.dataFile = dataFile;
     this.scanSelection = scanSelection;
-    this.mzTol = mzTol;
-    this.mzRanges = mzRanges;
+    this.mzRangesSorted = mzRangesSorted;
     this.parentTask = parentTask;
   }
 
@@ -73,55 +71,24 @@ public class ExtractMzRangesIonSeriesTask extends AbstractTask {
     return totalScans == 0 ? 0 : (double) processedScans / totalScans;
   }
 
-  @Override
-  public String getTaskDescription() {
-    return "Extracting mz ranges";
-  }
-
-  @Override
-  public void run() {
-    setStatus(TaskStatus.PROCESSING);
-    if (mzRanges.isEmpty()) {
-      setStatus(TaskStatus.FINISHED);
-      logger.info("No mz ranges selected to extract");
-      return;
-    }
-
-    var scans = List.of(scanSelection.getMatchingScans(dataFile));
-
-    totalScans = scans.size();
-
-    // No scans in selection range.
-    if (totalScans == 0) {
-      setStatus(TaskStatus.ERROR);
-      final String msg = "No scans detected in scan selection for " + dataFile.getName();
-      setErrorMessage(msg);
-      return;
-    }
-
-    mzRanges.sort(Comparator.comparingDouble(Range::lowerEndpoint));
-
-    ionSeries = extractIonSeries();
-
-    setStatus(TaskStatus.FINISHED);
-  }
-
   /**
-   * Will call the run on this thread if the task was still waiting
+   * Extract all mz ranges. Will listen to parentTask and will update
+   * {@link #getFinishedPercentage()}
    *
-   * @return
+   * @return {@link BuildingIonSeries} can be converted to other IonSeries like
+   * {@link IonTimeSeries}
    */
-  public BuildingIonSeries[] getResultingIonSeries() {
-    if (getStatus() == TaskStatus.WAITING) {
-      run();
+  @Override
+  @Nullable
+  public BuildingIonSeries[] calculate() {
+    if (mzRangesSorted.isEmpty()) {
+      return new BuildingIonSeries[0];
     }
-    return ionSeries;
-  }
 
-  public BuildingIonSeries[] extractIonSeries() {
     var dataAccess = EfficientDataAccess.of(dataFile, ScanDataType.MASS_LIST, scanSelection);
+    totalScans = dataAccess.getNumberOfScans();
     // store data points for each range
-    BuildingIonSeries[] chromatograms = new BuildingIonSeries[mzRanges.size()];
+    BuildingIonSeries[] chromatograms = new BuildingIonSeries[mzRangesSorted.size()];
     for (int i = 0; i < chromatograms.length; i++) {
       chromatograms[i] = new BuildingIonSeries(dataAccess.getNumberOfScans(),
           IntensityMode.HIGHEST);
@@ -134,7 +101,7 @@ public class ExtractMzRangesIonSeriesTask extends AbstractTask {
       processedScans++;
 
       // Canceled?
-      if (isCanceled() || (parentTask != null && parentTask.isCanceled())) {
+      if (isCanceled()) {
         return null;
       }
       // check value for tree and for all next trees in range
@@ -142,11 +109,11 @@ public class ExtractMzRangesIonSeriesTask extends AbstractTask {
       for (int dp = 0; dp < nDataPoints; dp++) {
         double mz = dataAccess.getMzValue(dp);
         // all next trees
-        for (int t = currentTree; t < mzRanges.size(); t++) {
-          if (mz > mzRanges.get(t).upperEndpoint()) {
+        for (int t = currentTree; t < mzRangesSorted.size(); t++) {
+          if (mz > mzRangesSorted.get(t).upperEndpoint()) {
             // out of bounds for current tree
             currentTree++;
-          } else if (mz < mzRanges.get(t).lowerEndpoint()) {
+          } else if (mz < mzRangesSorted.get(t).lowerEndpoint()) {
             break;
           } else {
             // found match
@@ -155,7 +122,7 @@ public class ExtractMzRangesIonSeriesTask extends AbstractTask {
           }
         }
         // all trees done
-        if (currentTree >= mzRanges.size()) {
+        if (currentTree >= mzRangesSorted.size()) {
           break;
         }
       }

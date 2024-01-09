@@ -29,14 +29,12 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
-import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
-import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries.IntensityMode;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -63,7 +61,7 @@ public class MsnTreeFeatureDetectionTask extends AbstractTask {
   private final MZTolerance mzTol;
   private final ParameterSet parameterSet;
   private final ModularFeatureList newFeatureList;
-  private int processedScans, totalScans;
+  private ExtractMzRangesIonSeriesFunction extractorFunction;
 
   public MsnTreeFeatureDetectionTask(MZmineProject project, RawDataFile dataFile,
       ParameterSet parameters, @Nullable MemoryMapStorage storage,
@@ -87,62 +85,12 @@ public class MsnTreeFeatureDetectionTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    if (totalScans == 0) {
-      return 0f;
-    }
-    return (double) processedScans / totalScans;
+    return extractorFunction == null ? 0 : extractorFunction.getFinishedPercentage();
   }
 
   @Override
   public String getTaskDescription() {
     return "Building MSn trees from " + dataFile;
-  }
-
-  public static BuildingIonSeries[] extractIonSeries(final RawDataFile dataFile,
-      final List<Range<Double>> mzRanges, final ScanSelection scanSelection,
-      final AbstractTask parentTask) {
-    var dataAccess = EfficientDataAccess.of(dataFile, ScanDataType.MASS_LIST, scanSelection);
-    // store data points for each range
-    BuildingIonSeries[] chromatograms = new BuildingIonSeries[mzRanges.size()];
-    for (int i = 0; i < chromatograms.length; i++) {
-      chromatograms[i] = new BuildingIonSeries(dataAccess.getNumberOfScans(),
-          IntensityMode.HIGHEST);
-    }
-
-    int currentScan = -1;
-    while (dataAccess.nextScan() != null) {
-      int currentTree = 0;
-      currentScan++;
-      processedScans++;
-
-      // Canceled?
-      if (parentTask != null && parentTask.isCanceled()) {
-        return null;
-      }
-      // check value for tree and for all next trees in range
-      int nDataPoints = dataAccess.getNumberOfDataPoints();
-      for (int dp = 0; dp < nDataPoints; dp++) {
-        double mz = dataAccess.getMzValue(dp);
-        // all next trees
-        for (int t = currentTree; t < mzRanges.size(); t++) {
-          if (mz > mzRanges.get(t).upperEndpoint()) {
-            // out of bounds for current tree
-            currentTree++;
-          } else if (mz < mzRanges.get(t).lowerEndpoint()) {
-            break;
-          } else {
-            // found match
-            double intensity = dataAccess.getIntensityValue(dp);
-            chromatograms[t].addValue(currentScan, mz, intensity);
-          }
-        }
-        // all trees done
-        if (currentTree >= mzRanges.size()) {
-          break;
-        }
-      }
-    }
-    return chromatograms;
   }
 
   @Override
@@ -151,10 +99,8 @@ public class MsnTreeFeatureDetectionTask extends AbstractTask {
 
     var scans = List.of(scanSelection.getMatchingScans(dataFile));
 
-    totalScans = scans.size();
-
     // No scans in selection range.
-    if (totalScans == 0) {
+    if (scans.isEmpty()) {
       setStatus(TaskStatus.ERROR);
       final String msg = "No scans detected in scan selection for " + dataFile.getName();
       setErrorMessage(msg);
@@ -165,11 +111,14 @@ public class MsnTreeFeatureDetectionTask extends AbstractTask {
     final List<PrecursorIonTree> trees = new ArrayList<>(
         ScanUtils.getMSnFragmentTrees(dataFile, mzTol));
     trees.sort(Comparator.comparingDouble(PrecursorIonTree::getPrecursorMz));
-    List<Range<Double>> mzRanges = trees.stream().mapToDouble(PrecursorIonTree::getPrecursorMz)
+    List<Range<Double>> mzRangesSorted = trees.stream()
+        .mapToDouble(PrecursorIonTree::getPrecursorMz)
         .mapToObj(mzTol::getToleranceRange).toList();
 
-    BuildingIonSeries[] chromatograms = extractIonSeries(dataFile, mzRanges, scanSelection,
-        this);
+    extractorFunction = new ExtractMzRangesIonSeriesFunction(dataFile, scanSelection,
+        mzRangesSorted, this);
+    BuildingIonSeries[] chromatograms = extractorFunction.calculate();
+
     if (isCanceled()) {
       return;
     }
