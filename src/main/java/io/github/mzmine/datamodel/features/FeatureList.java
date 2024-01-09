@@ -35,6 +35,8 @@ import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.MZmineModule;
@@ -47,7 +49,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -91,7 +93,7 @@ public interface FeatureList {
    */
   void applyRowBindings(FeatureListRow row);
 
-  ObservableMap<Class<? extends DataType>, DataType> getFeatureTypes();
+  ObservableSet<DataType> getFeatureTypes();
 
   void addFeatureType(Collection<DataType> types);
 
@@ -101,11 +103,48 @@ public interface FeatureList {
 
   void addRowType(@NotNull DataType<?>... types);
 
-  ObservableMap<Class<? extends DataType>, DataType> getRowTypes();
+  ObservableSet<DataType> getRowTypes();
 
-  boolean hasFeatureType(Class typeClass);
 
-  boolean hasRowType(Class typeClass);
+  /**
+   * Checks if typeClass was added as a FeatureType
+   *
+   * @param typeClass class of a DataType
+   * @return true if feature type is available
+   */
+  default boolean hasFeatureType(Class<? extends DataType> typeClass) {
+    return hasFeatureType(DataTypes.get(typeClass));
+  }
+
+  /**
+   * Checks if typeClass was added as a FeatureType
+   *
+   * @param type DataType
+   * @return true if feature type is available
+   */
+  default boolean hasFeatureType(DataType type) {
+    return getFeatureTypes().contains(type);
+  }
+
+  /**
+   * Checks if typeClass was added as a row type
+   *
+   * @param typeClass class of a DataType
+   * @return true if row type is available
+   */
+  default boolean hasRowType(Class<? extends DataType> typeClass) {
+    return hasRowType(DataTypes.get(typeClass));
+  }
+
+  /**
+   * Checks if typeClass was added as a row type
+   *
+   * @param type DataType
+   * @return true if row type is available
+   */
+  default boolean hasRowType(DataType type) {
+    return getRowTypes().contains(type);
+  }
 
   /**
    * Returns number of raw data files participating in the feature list

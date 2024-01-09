@@ -224,11 +224,11 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
         .sorted(FeatureListRowSorter.DEFAULT_ID).toList();
     List<RawDataFile> rawDataFiles = flist.getRawDataFiles();
 
-    List<DataType> rowTypes = flist.getRowTypes().values().stream().filter(this::filterType)
+    List<DataType> rowTypes = flist.getRowTypes().stream().filter(this::filterType)
         .filter(type -> !removeEmptyCols || typeContainData(type, rows, false, -1))
         .collect(Collectors.toList());
 
-    List<DataType> featureTypes = flist.getFeatureTypes().values().stream().filter(this::filterType)
+    List<DataType> featureTypes = flist.getFeatureTypes().stream().filter(this::filterType)
         .filter(type -> !removeEmptyCols || typeContainData(type, rows, true, -1))
         .collect(Collectors.toList());
 

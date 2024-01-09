@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,7 +44,6 @@ import io.github.mzmine.main.MZmineCore;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TreeTableColumn;
@@ -245,11 +244,6 @@ public abstract class SimpleStatisticsType extends NumberType<SimpleStatistics> 
     return new SimpleStatistics(model.getNonNullElse(MinimumType.class, 0d),
         model.getNonNullElse(MeanType.class, 0d), model.getNonNullElse(MaximumType.class, 0d),
         model.getNonNullElse(ClassificationType.class, ""));
-  }
-
-  private static <T> T getOrDefault(final Map<Class<? extends DataType>, Object> values,
-      T defaultValue) {
-    return (T) values.getOrDefault(MinimumType.class, defaultValue);
   }
 
 }

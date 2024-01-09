@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,11 +30,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.TreeTableColumn;
@@ -48,11 +45,6 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements Sub
     EditableColumnType {
 
   private static final Logger logger = Logger.getLogger(ListWithSubsType.class.getName());
-
-  protected static <T> SimpleEntry<Class<? extends DataType>, Function<T, Object>> createEntry(
-      Class<? extends DataType> clazz, Function<T, Object> function) {
-    return new SimpleEntry<>(clazz, function);
-  }
 
   /**
    * The unmodifiable list of sub data types. Order reflects the initial order of columns.
@@ -73,7 +65,7 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements Sub
     // create column per name
     for (int index = 0; index < getNumberOfSubColumns(); index++) {
       DataType type = subTypes.get(index);
-      if (this.getClass().isInstance(type)) {
+      if (this.equals(type)) {
         // create a special column for this type that actually represents the list of data
         cols.add(DataType.createStandardColumn(type, raw, this, index));
       } else {
@@ -186,15 +178,17 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements Sub
     if (list == null || list.isEmpty()) {
       return subType.getDefaultValue();
     } else {
-      if (this.getClass().isInstance(subType)) {
+      if (this.equals(subType)) {
         // all ions
         return (K) list;
       } else {
         // get value for first ion
-        return (K) getMapper().get(subType.getClass()).apply(list.get(0));
+        return (K) map(subType, list.get(0));
       }
     }
   }
+
+  protected abstract <K> @Nullable K map(@NotNull DataType<K> subType, T item);
 
   @Override
   public @Nullable Object getSubColValue(@NotNull final DataType sub, final Object value) {
@@ -203,13 +197,6 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements Sub
     }
     return null;
   }
-
-  /**
-   * Mapper from first list element to sub column value
-   *
-   * @return
-   */
-  protected abstract Map<Class<? extends DataType>, Function<T, Object>> getMapper();
 
   @Override
   public boolean getDefaultVisibility() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,6 @@ package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
@@ -38,14 +37,6 @@ import javafx.collections.ObservableMap;
 public class SimpleModularDataModel implements ModularDataModel {
 
   private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
-
-  private final ObservableMap<Class<? extends DataType>, DataType> types = FXCollections.observableMap(
-      new LinkedHashMap<>());
-
-  @Override
-  public ObservableMap<Class<? extends DataType>, DataType> getTypes() {
-    return types;
-  }
 
   @Override
   public ObservableMap<DataType, Object> getMap() {

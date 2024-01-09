@@ -29,7 +29,6 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -43,8 +42,8 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter("Features", 1,
       Integer.MAX_VALUE);
 
-  public static final OptionalParameter<FeatureListsParameter> CHROMATOGRAM_LISTS = new OptionalParameter<>(
-      new FeatureListsParameter("Chromatograms", 0, Integer.MAX_VALUE), false);
+  public static final FeatureListsParameter CHROMATOGRAM_LISTS =
+      new FeatureListsParameter("Chromatograms", 0, Integer.MAX_VALUE);
 
   // ------------------------------------------------------------------------
   // ----- First-phase parameters -------------------------------------------

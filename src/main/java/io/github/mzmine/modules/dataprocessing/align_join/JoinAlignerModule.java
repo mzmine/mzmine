@@ -41,7 +41,7 @@ public class JoinAlignerModule implements MZmineProcessingModule {
   private static final String MODULE_NAME = "Join aligner";
   private static final String MODULE_DESCRIPTION =
       "This method aligns detected peaks using a match score. This score is calculated based on"
-          + " the mass and retention time of each peak using preset tolerance.";
+          + " the mass and retention time of each feature using preset tolerance.";
 
   @Override
   public @NotNull String getName() {

@@ -60,6 +60,7 @@ import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumCha
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ColocatedImagePane;
@@ -73,9 +74,6 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
-import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
-import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
-import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
@@ -89,6 +87,7 @@ import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPl
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFlavor;
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
+import io.github.mzmine.modules.visualization.pseudospectrumvisualizer.PseudoSpectrumVisualizerPane;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
@@ -507,16 +506,16 @@ public class FeatureTableContextMenu extends ContextMenu {
       }
     });
 
-    final MenuItem showDiaIons = new ConditionalMenuItem("Show DIA ion shapes",
+    final MenuItem showPseudoSpectrumItem = new ConditionalMenuItem("Show Pseudo Spectrum",
         () -> selectedFeature != null
-              && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
-    showDiaIons.setOnAction(e -> showDiaMsMsIons());
+            && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
+    showPseudoSpectrumItem.setOnAction(e -> showPseudoSpectrum());
 
     final MenuItem showDiaMirror = new ConditionalMenuItem(
         "DIA spectral mirror: Correlated-to-all signals",
         () -> selectedFeature != null && selectedFeature.getRawDataFile() instanceof IMSRawDataFile
-              && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries
-              && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
+            && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries
+            && selectedFeature.getMostIntenseFragmentScan() instanceof PseudoSpectrum);
     showDiaMirror.setOnAction(e -> showDiaMirror());
 
     final MenuItem showMSMSMirrorItem = new ConditionalMenuItem("Mirror MS/MS (2 rows)",
@@ -566,15 +565,15 @@ public class FeatureTableContextMenu extends ContextMenu {
         /* !selectedRows.isEmpty() */ false); // todo, not implemented yet
 
     showMenu.getItems()
-        .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,showCorrelatedImageFeaturesItem,
-            new SeparatorMenuItem(), showNetworkVisualizerItem, show2DItem, show3DItem,
-            showIntensityPlotItem, showInIMSRawDataOverviewItem,  showNetworkVisualizerItemFull, showNetworkVisualizerItem,
-            new SeparatorMenuItem(), showSpectrumItem, showFeatureFWHMMs1Item,
-            showBestMobilityScanItem, extractSumSpectrumFromMobScans, showMSMSItem,
-            showMSMSMirrorItem, showAllMSMSItem, showDiaIons, showDiaMirror,
-            new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
+        .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,
+            new SeparatorMenuItem(), showNetworkVisualizerItemFull, showNetworkVisualizerItem,
+            show2DItem, show3DItem, showIntensityPlotItem, showInIMSRawDataOverviewItem,
+            showInMobilityMzVisualizerItem, new SeparatorMenuItem(), showSpectrumItem,
+            showFeatureFWHMMs1Item, showBestMobilityScanItem, extractSumSpectrumFromMobScans,
+            showMSMSItem, showMSMSMirrorItem, showAllMSMSItem, showPseudoSpectrumItem,
+            showDiaMirror, new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
             showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
-            showPeakRowSummaryItem);
+            showPeakRowSummaryItem, showCorrelatedImageFeaturesItem);
   }
 
   private boolean hasMs2(final List<ModularFeatureListRow> selectedRows) {
@@ -723,6 +722,16 @@ public class FeatureTableContextMenu extends ContextMenu {
     return features.stream().filter(f -> f.getRawDataFile() == file).collect(Collectors.toList());
   }
 
+  private void showPseudoSpectrum() {
+    if (selectedFeature != null) {
+      PseudoSpectrumVisualizerPane pseudoSpectrumVisualizerPane = new PseudoSpectrumVisualizerPane(
+          selectedFeature);
+      SimpleTab simpleTab = new SimpleTab("Pseudo Spectrum of " + selectedFeature.toString(),
+          pseudoSpectrumVisualizerPane);
+      MZmineCore.getDesktop().addTab(simpleTab);
+    }
+  }
+
   private void showCorrelatedImageFeatures() {
     R2RMap<RowsRelationship> rowsRelationshipR2RMap = Objects.requireNonNull(
         selectedRow.getFeatureList()).getRowMap(Type.MS1_FEATURE_CORR);
@@ -819,8 +828,6 @@ public class FeatureTableContextMenu extends ContextMenu {
           ColorUtils.getContrastPaletteColorAWT(file.getColor(),
               MZmineCore.getConfiguration().getDefaultColorPalette()));
     }
-
-    MZmineCore.getDesktop().addTab(window);
   }
 
   private void showDiaMirror() {
