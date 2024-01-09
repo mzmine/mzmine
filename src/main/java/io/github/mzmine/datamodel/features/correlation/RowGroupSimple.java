@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,10 +26,14 @@
 package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.RowGroup;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This rowgroup only contains necessary data. It should be used when memory is an issue (so usually
+ * prefererred). {@link RowGroupFull} keeps all correlation data for further visualization modules
+ * and analysis options.
+ */
 public class RowGroupSimple implements RowGroup {
 
   // running index of groups

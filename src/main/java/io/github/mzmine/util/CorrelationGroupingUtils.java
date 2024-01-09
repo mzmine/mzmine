@@ -28,9 +28,9 @@ package io.github.mzmine.util;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.features.correlation.CorrelationRowGroup;
 import io.github.mzmine.datamodel.features.correlation.R2RCorrelationData;
+import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.correlation.RowGroupSimple;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import java.util.ArrayList;
@@ -67,10 +67,11 @@ public class CorrelationGroupingUtils {
    * Create list of correlated rows
    *
    * @param flist      feature list
-   * @param saveMemory
+   * @param keepExtendedStats keep extended statistics otherwise create simplified object
    * @return a list of all groups within the feature list
    */
-  public static List<RowGroup> createCorrGroups(FeatureList flist, final boolean saveMemory) {
+  public static List<RowGroup> createCorrGroups(FeatureList flist,
+      final boolean keepExtendedStats) {
     logger.log(Level.INFO, "Corr: Creating correlation groups for {0}", flist.getName());
 
     try {
@@ -108,10 +109,10 @@ public class CorrelationGroupingUtils {
             groups.remove(group2);
           } else if (group == null && group2 == null) {
             // create new group with both rows
-            if (saveMemory) {
-              group = new RowGroupSimple(groups.size(), corrMap);
-            } else {
+            if (keepExtendedStats) {
               group = new CorrelationRowGroup(raw, groups.size());
+            } else {
+              group = new RowGroupSimple(groups.size(), corrMap);
             }
             group.addAll(rowA, rowB);
             groups.add(group);

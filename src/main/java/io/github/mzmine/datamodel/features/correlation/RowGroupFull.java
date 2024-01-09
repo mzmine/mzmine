@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,10 +23,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features;
+package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +39,10 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * This rowgroup holds all correlation data and keeps it for further visualization modules and
+ * analysis options. Rather use {@link RowGroupSimple} to save memory.
+ */
 public class RowGroupFull implements RowGroup {
 
   // raw files used for Feature list creation
@@ -90,9 +96,6 @@ public class RowGroupFull implements RowGroup {
     }
   }
 
-  /**
-   * Insert sort by ascending avg mz
-   */
   public synchronized boolean add(FeatureListRow e) {
     for (int i = 0; i < rtSum.length; i++) {
       Feature f = e.getFeature(raw.get(i));

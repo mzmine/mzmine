@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,13 +33,13 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.CachedFeatureDataAccess;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.CorrelationRowGroup;
 import io.github.mzmine.datamodel.features.correlation.R2RCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RFullCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RSimpleCorrelationData;
+import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureCorrelationUtil;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureShapeCorrelationParameters;
@@ -69,7 +69,7 @@ public class CorrelateGroupingTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(CorrelateGroupingTask.class.getName());
 
   private final AtomicDouble stageProgress = new AtomicDouble(0);
-  private final boolean saveMemory;
+  private final boolean keepExtendedStats;
   private final int simplifyLargeDatasets;
   protected ParameterSet parameters;
   protected MZmineProject project;
@@ -179,12 +179,14 @@ public class CorrelateGroupingTask extends AbstractTask {
     }
 
     // advanced
-    boolean advanced = parameters.getValue(CorrelateGroupingParameters.advanced);
-    saveMemory = advanced ? parameters.getParameter(CorrelateGroupingParameters.advanced)
-        .getEmbeddedParameters().getValue(AdvancedCorrelateGroupingParameters.saveMemory) : true;
-    simplifyLargeDatasets = advanced ? parameters.getParameter(CorrelateGroupingParameters.advanced)
-        .getEmbeddedParameters().getValue(AdvancedCorrelateGroupingParameters.simplifyLargeDatasets)
-        : 20000;
+    boolean isAdvanced = parameters.getValue(CorrelateGroupingParameters.advanced);
+    var advanced = parameters.getEmbeddedParameterValue(CorrelateGroupingParameters.advanced);
+    keepExtendedStats =
+        isAdvanced ? advanced.getValue(AdvancedCorrelateGroupingParameters.keepExtendedStats)
+            : false;
+    simplifyLargeDatasets =
+        isAdvanced ? advanced.getValue(AdvancedCorrelateGroupingParameters.simplifyLargeDatasets)
+            : 20000;
 
   }
 
@@ -229,7 +231,7 @@ public class CorrelateGroupingTask extends AbstractTask {
       r2rNetworkingMaps.addAllRowsRelationships(corrMap, Type.MS1_FEATURE_CORR);
 
       logger.fine("Corr: Starting to group by correlation");
-      groups = CorrelationGroupingUtils.createCorrGroups(groupedPKL, saveMemory);
+      groups = CorrelationGroupingUtils.createCorrGroups(groupedPKL, keepExtendedStats);
 
       if (isCanceled()) {
         return;
@@ -334,11 +336,11 @@ public class CorrelateGroupingTask extends AbstractTask {
                 // add to map
                 // can be because of any combination of
                 // retention time, shape correlation, non-negative height correlation
-                if (saveMemory) {
+                if (keepExtendedStats) {
+                  map.add(row, row2, corr);
+                } else {
                   // save simplified object
                   map.add(row, row2, new R2RSimpleCorrelationData(corr));
-                } else {
-                  map.add(row, row2, corr);
                 }
                 addedCorrelations++;
               }

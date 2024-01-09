@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,19 +32,21 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
 public class AdvancedCorrelateGroupingParameters extends SimpleParameterSet {
 
-  public static final BooleanParameter saveMemory = new BooleanParameter("Clear memory", """
-      Conserves memory by removing additional information that is usually saved with every correlation result.
-      This information is only needed in some visualization modules.""", true);
+  public static final BooleanParameter keepExtendedStats = new BooleanParameter(
+      "Keep extended stats", """
+      Default conserves memory by removing additional information that is usually saved with every correlation result.
+      This information is only needed in some visualization modules that depend on correlation grouping.""",
+      false);
 
   public static final IntegerParameter simplifyLargeDatasets = new IntegerParameter(
       "Simplify for ≥ samples", """
       Simplify some steps for large datasets with ≥samples.
-      This will skip the feature overlap function """, 250);
+      This will skip the feature overlap function "Min intensity % overlap".""", 250);
 
 
   // Constructor
   public AdvancedCorrelateGroupingParameters() {
-    super(saveMemory, simplifyLargeDatasets);
+    super(keepExtendedStats, simplifyLargeDatasets);
   }
 
 }
