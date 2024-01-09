@@ -34,8 +34,8 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannot
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.List;
 
-public class GlyceroAndGlyceroPhospholipidFragmentFactory extends
-    AbstractLipidFragmentFactory implements ILipidFragmentFactory {
+public class GlyceroAndGlyceroPhospholipidFragmentFactory extends LipidFragmentFactory implements
+    ILipidFragmentFactory {
 
   public GlyceroAndGlyceroPhospholipidFragmentFactory(MZTolerance mzToleranceMS2,
       ILipidAnnotation lipidAnnotation, IonizationType ionizationType,

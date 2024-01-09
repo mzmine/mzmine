@@ -35,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FattyAcylFragmentFactory extends AbstractLipidFragmentFactory implements
+public class FattyAcylFragmentFactory extends LipidFragmentFactory implements
     ILipidFragmentFactory {
 
   public FattyAcylFragmentFactory(MZTolerance mzToleranceMS2, ILipidAnnotation lipidAnnotation,

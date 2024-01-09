@@ -34,7 +34,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannot
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.List;
 
-public class SterollipidFragmentFactory extends AbstractLipidFragmentFactory implements
+public class SterollipidFragmentFactory extends LipidFragmentFactory implements
     ILipidFragmentFactory {
 
   public SterollipidFragmentFactory(MZTolerance mzToleranceMS2, ILipidAnnotation lipidAnnotation,
