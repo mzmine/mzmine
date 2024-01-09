@@ -32,6 +32,8 @@
 <?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.shape.SVGPath?>
+<?import io.github.mzmine.controller.CustomSVGPath?>
 <MenuBar useSystemMenuBar="true"
          xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
          fx:controller="io.github.mzmine.gui.mainwindow.MainMenuController">
@@ -194,49 +196,55 @@
       <MenuItem onAction="#runModule" text="mzML"
                 userData="io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportModule">
         <graphic>
-          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
-            <Image url="@/icons/rawdatamethods/rawdataimport/mzML.png"/>
-          </ImageView>
+<!--          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">-->
+<!--            <Image url="@/icons/rawdatamethods/rawdataimport/mzML.png"/>-->
+<!--          </ImageView>-->
+          <CustomSVGPath scaleX="0.6" scaleY="0.6" svgPathFile="@/icons/rawdatamethods/rawdataimport/mzML.svg" />
         </graphic>
       </MenuItem>
       <MenuItem onAction="#runModule" text="imzML"
                 userData="io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportModule">
         <graphic>
-          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
-            <Image url="@/icons/rawdatamethods/rawdataimport/imzML.png"/>
-          </ImageView>
+<!--          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">-->
+<!--            <Image url="@/icons/rawdatamethods/rawdataimport/imzML.png"/>-->
+<!--          </ImageView>-->
+          <CustomSVGPath scaleX="0.6" scaleY="0.6" svgPathFile="@/icons/rawdatamethods/rawdataimport/imzML.svg" />
         </graphic>
       </MenuItem>
       <MenuItem onAction="#runModule" text="netCDF"
                 userData="io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportModule">
         <graphic>
-          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
-            <Image url="@/icons/rawdatamethods/rawdataimport/netCDF.png"/>
-          </ImageView>
+<!--          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">-->
+<!--            <Image url="@/icons/rawdatamethods/rawdataimport/netCDF.png"/>-->
+<!--          </ImageView>-->
+          <CustomSVGPath scaleX="0.6" scaleY="0.6" svgPathFile="@/icons/rawdatamethods/rawdataimport/netCDF.svg" />
         </graphic>
       </MenuItem>
       <MenuItem onAction="#runModule" text="mzXML"
                 userData="io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportModule">
         <graphic>
-          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
-            <Image url="@/icons/rawdatamethods/rawdataimport/mzXML.png"/>
-          </ImageView>
+<!--          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">-->
+<!--            <Image url="@/icons/rawdatamethods/rawdataimport/mzXML.png"/>-->
+<!--          </ImageView>-->
+          <CustomSVGPath scaleX="0.6" scaleY="0.6" svgPathFile="@/icons/rawdatamethods/rawdataimport/mzXML.svg" />
         </graphic>
       </MenuItem>
       <MenuItem onAction="#runModule" text="mzData"
                 userData="io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportModule">
         <graphic>
-          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
-            <Image url="@/icons/rawdatamethods/rawdataimport/mzData.png"/>
-          </ImageView>
+<!--          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">-->
+<!--            <Image url="@/icons/rawdatamethods/rawdataimport/mzData.png"/>-->
+<!--          </ImageView>-->
+          <CustomSVGPath scaleX="0.6" scaleY="0.6" svgPathFile="@/icons/rawdatamethods/rawdataimport/mzData.svg" />
         </graphic>
       </MenuItem>
       <MenuItem onAction="#runModule" text="aird"
                 userData="io.github.mzmine.modules.io.import_rawdata_aird.AirdImportModule">
         <graphic>
-          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
-            <Image url="@/icons/rawdatamethods/rawdataimport/aird.png"/>
-          </ImageView>
+<!--          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">-->
+<!--            <Image url="@/icons/rawdatamethods/rawdataimport/aird.png"/>-->
+<!--          </ImageView>-->
+          <CustomSVGPath scaleX="0.6" scaleY="0.6" svgPathFile="@/icons/rawdatamethods/rawdataimport/aird.svg" />
         </graphic>
       </MenuItem>
       <SeparatorMenuItem/>
@@ -244,41 +252,46 @@
       <MenuItem onAction="#runModule" text="Thermo RAW"
                 userData="io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportModule">
         <graphic>
-          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
-            <Image url="@/icons/rawdatamethods/rawdataimport/Thermo RAW.png"/>
-          </ImageView>
+<!--          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">-->
+<!--            <Image url="@/icons/rawdatamethods/rawdataimport/Thermo RAW.png"/>-->
+<!--          </ImageView>-->
+          <CustomSVGPath scaleX="0.6" scaleY="0.6" svgPathFile="@/icons/rawdatamethods/rawdataimport/Thermo RAW.svg" />
         </graphic>
       </MenuItem>
       <MenuItem onAction="#runModule" text="Waters RAW"
                 userData="io.github.mzmine.modules.io.import_rawdata_waters_raw.WatersRawImportModule">
         <graphic>
-          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
-            <Image url="@/icons/rawdatamethods/rawdataimport/Waters RAW.png"/>
-          </ImageView>
+<!--          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">-->
+<!--            <Image url="@/icons/rawdatamethods/rawdataimport/Waters RAW.png"/>-->
+<!--          </ImageView>-->
+          <CustomSVGPath scaleX="0.6" scaleY="0.6" svgPathFile="@/icons/rawdatamethods/rawdataimport/Waters RAW.svg" />
         </graphic>
       </MenuItem>
       <MenuItem onAction="#runModule" text="Bruker TDF"
                 userData="io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule">
         <graphic>
-          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
-            <Image url="@/icons/rawdatamethods/rawdataimport/Bruker TDF.png"/>
-          </ImageView>
+<!--          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">-->
+<!--            <Image url="@/icons/rawdatamethods/rawdataimport/Bruker TDF.png"/>-->
+<!--          </ImageView>-->
+          <CustomSVGPath scaleX="0.6" scaleY="0.6" svgPathFile="@/icons/rawdatamethods/rawdataimport/Bruker TDF.svg" />
         </graphic>
       </MenuItem>
       <MenuItem onAction="#runModule" text="Bruker TSF"
                 userData="io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFImportModule">
         <graphic>
-          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
-            <Image url="@/icons/rawdatamethods/rawdataimport/Bruker TSF.png"/>
-          </ImageView>
+<!--          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">-->
+<!--            <Image url="@/icons/rawdatamethods/rawdataimport/Bruker TSF.png"/>-->
+<!--          </ImageView>-->
+          <CustomSVGPath scaleX="0.6" scaleY="0.6" svgPathFile="@/icons/rawdatamethods/rawdataimport/Bruker TSF.svg" />
         </graphic>
       </MenuItem>
       <MenuItem onAction="#runModule" text="ZIP / gzip"
                 userData="io.github.mzmine.modules.io.import_rawdata_zip.ZipImportModule">
         <graphic>
-          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
-            <Image url="@/icons/rawdatamethods/rawdataimport/ZIP,gzip.png"/>
-          </ImageView>
+<!--          <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">-->
+<!--            <Image url="@/icons/rawdatamethods/rawdataimport/ZIP,gzip.png"/>-->
+<!--          </ImageView>-->
+          <CustomSVGPath scaleX="0.6" scaleY="0.6" svgPathFile="@/icons/rawdatamethods/rawdataimport/ZIP,gzip.svg" />
         </graphic>
       </MenuItem>
       <MenuItem onAction="#runModule" text="Import spectral libraries"
@@ -734,6 +747,11 @@
     </MenuItem>
     <MenuItem text="IMS frame visualizer" onAction="#runModule"
               userData="io.github.mzmine.modules.visualization.frames.FrameVisualizerModule">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/visualization/IMS frame visualizer.png"/>
+        </ImageView>
+      </graphic>
     </MenuItem>
     <MenuItem text="Chromatogram plot" onAction="#runModule"
               userData="io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule">
@@ -760,6 +778,11 @@
       </graphic>
     </MenuItem>
     <Menu text="Massvoltammogram">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/visualization/Massvoltammogram.png"/>
+        </ImageView>
+      </graphic>
       <MenuItem text="From Raw Data File" onAction="#runModule"
                 userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule"/>
       <MenuItem text="From Feature List" onAction="#runModule"
@@ -813,7 +836,13 @@
     <SeparatorMenuItem/>
 
     <MenuItem text="Raw data summary" onAction="#runModule"
-              userData="io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule"/>
+              userData="io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule">
+      <graphic>
+        <ImageView fitWidth="15" fitHeight="15" preserveRatio="true" smooth="true">
+          <Image url="@/icons/visualization/Raw data summary.png"/>
+        </ImageView>
+      </graphic>
+    </MenuItem>
 
     <MenuItem text="Scan histogram" onAction="#runModule"
               userData="io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule">
