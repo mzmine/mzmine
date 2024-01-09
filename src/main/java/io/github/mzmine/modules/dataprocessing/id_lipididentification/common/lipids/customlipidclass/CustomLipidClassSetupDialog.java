@@ -96,10 +96,10 @@ public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
   private final ReentrantLock lock = new ReentrantLock();
   private boolean isUpdateFromPreset = false;
 
-  private static final RawDataFile DUMMY_FILE = new RawDataFileImpl("testfile", null, null,
+  private final RawDataFile dummyFile = new RawDataFileImpl("testfile", null, null,
       javafx.scene.paint.Color.BLACK);
-  private static final Scan SIMPLE_SCAN = new SimpleScan(DUMMY_FILE, -1, 2, 0.1F, null,
-      new double[]{500}, new double[]{100}, MassSpectrumType.ANY, PolarityType.ANY, "Pseudo", null);
+  private final Scan simpleScan = new SimpleScan(dummyFile, -1, 2, 0.1F, null, new double[]{500},
+      new double[]{100}, MassSpectrumType.ANY, PolarityType.ANY, "Pseudo", null);
 
   private static final MassList MASS_LIST = SimpleMassList.create(null,
       new SimpleDataPoint[]{new SimpleDataPoint(500, 100)});
@@ -161,7 +161,11 @@ public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
     numberOfCAtomsList.clear();
     numberOfDbesList.clear();
     for (LipidChainType lipidChain : lipidChainTypes) {
-      numberOfCAtomsList.add(random.nextInt(9) + 14);
+      int lowerBound = 14;
+      int upperBound = 21;
+      int carbons =
+          2 * random.nextInt((upperBound / 2) - (lowerBound / 2) + 1) + (lowerBound / 2) * 2;
+      numberOfCAtomsList.add(carbons);
       numberOfDbesList.add(random.nextInt(4));
     }
   }
@@ -225,7 +229,11 @@ public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
     numberOfCAtomsList.clear();
     numberOfDbesList.clear();
     for (int i = 0; i < lipidChainTypes.length; i++) {
-      numberOfCAtomsList.add(random.nextInt(9) + 14);
+      int lowerBound = 14;
+      int upperBound = 21;
+      int carbons =
+          2 * random.nextInt((upperBound / 2) - (lowerBound / 2) + 1) + (lowerBound / 2) * 2;
+      numberOfCAtomsList.add(carbons);
       numberOfDbesList.add(random.nextInt(4));
     }
   }
@@ -399,7 +407,7 @@ public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
     Label inSilicoFragments = new Label("In-silico fragments (random intensities)");
     inSilicoFragments.getStyleClass().add("bold-title-label");
     gridPane.add(inSilicoFragments, 0, 0);
-    SIMPLE_SCAN.addMassList(MASS_LIST);
+    simpleScan.addMassList(MASS_LIST);
     Set<IonizationType> ionizationTypeList = new HashSet<>();
 
     for (LipidFragmentationRule fragmentationRule : lipidFragmentationRules) {
@@ -414,7 +422,7 @@ public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
             .equals(LipidAnnotationLevel.SPECIES_LEVEL)) {
           ILipidFragmentFactory lipidFragmentFactory = new LipidFragmentFactory(
               new MZTolerance(10000, 1), speciesLevelAnnotation, ionizationType,
-              new LipidFragmentationRule[]{fragmentationRule}, SIMPLE_SCAN,
+              new LipidFragmentationRule[]{fragmentationRule}, simpleScan,
               makeLipidAnnotationParameterSet(speciesLevelAnnotation, numberOfCAtomsList.get(0),
                   numberOfDbesList.get(0)).getParameter(
                   LipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters());
@@ -423,7 +431,7 @@ public class CustomLipidClassSetupDialog extends ParameterSetupDialog {
           for (int j = 0; j < numberOfCAtomsList.size(); j++) {
             ILipidFragmentFactory lipidFragmentFactory = new LipidFragmentFactory(
                 new MZTolerance(10000, 1), speciesLevelAnnotation, ionizationType,
-                new LipidFragmentationRule[]{fragmentationRule}, SIMPLE_SCAN,
+                new LipidFragmentationRule[]{fragmentationRule}, simpleScan,
                 makeLipidAnnotationParameterSet(speciesLevelAnnotation, numberOfCAtomsList.get(j),
                     numberOfDbesList.get(j)).getParameter(
                     LipidAnnotationParameters.lipidChainParameters).getEmbeddedParameters());
