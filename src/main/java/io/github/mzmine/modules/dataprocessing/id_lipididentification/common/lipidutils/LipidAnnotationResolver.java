@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2024 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils;
 
 import com.google.common.collect.ComparisonChain;
@@ -28,8 +53,7 @@ public class LipidAnnotationResolver {
   private int maximumIdNumber;
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
 
-  public LipidAnnotationResolver(boolean keepIsobars, boolean keepIsomers,
-      boolean addMissingSpeciesLevelAnnotation) {
+  public LipidAnnotationResolver(boolean keepIsobars, boolean keepIsomers, boolean addMissingSpeciesLevelAnnotation) {
     this.keepIsobars = keepIsobars;
     this.keepIsomers = keepIsomers;
     this.addMissingSpeciesLevelAnnotation = addMissingSpeciesLevelAnnotation;
@@ -37,14 +61,12 @@ public class LipidAnnotationResolver {
 
   }
 
-  public LipidAnnotationResolver(boolean keepIsobars, boolean keepIsomers,
-      boolean addMissingSpeciesLevelAnnotation, int maximumIdNumber) {
+  public LipidAnnotationResolver(boolean keepIsobars, boolean keepIsomers, boolean addMissingSpeciesLevelAnnotation, int maximumIdNumber) {
     this(keepIsobars, keepIsomers, addMissingSpeciesLevelAnnotation);
     this.maximumIdNumber = maximumIdNumber;
   }
 
-  public List<MatchedLipid> resolveFeatureListRowMatchedLipids(FeatureListRow featureListRow,
-      Set<MatchedLipid> matchedLipids) {
+  public List<MatchedLipid> resolveFeatureListRowMatchedLipids(FeatureListRow featureListRow, Set<MatchedLipid> matchedLipids) {
     List<MatchedLipid> resolvedMatchedLipidsList = removeDuplicates(matchedLipids);
     sortByMsMsScore(resolvedMatchedLipidsList);
     if (addMissingSpeciesLevelAnnotation) {
@@ -62,30 +84,24 @@ public class LipidAnnotationResolver {
   }
 
   private List<MatchedLipid> removeDuplicates(Set<MatchedLipid> resolvedMatchedLipids) {
-    return resolvedMatchedLipids.stream().collect(Collectors.collectingAndThen(
-        Collectors.toCollection(() -> new TreeSet<>(comparatorMatchedLipids())), ArrayList::new));
+    return resolvedMatchedLipids.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(comparatorMatchedLipids())), ArrayList::new));
   }
 
-  private void estimateMissingSpeciesLevelAnnotations(
-      List<MatchedLipid> resolvedMatchedLipidsList) {
+  private void estimateMissingSpeciesLevelAnnotations(List<MatchedLipid> resolvedMatchedLipidsList) {
     if (resolvedMatchedLipidsList.stream().noneMatch(
-        matchedLipid -> matchedLipid.getLipidAnnotation().getLipidAnnotationLevel()
-            .equals(LipidAnnotationLevel.SPECIES_LEVEL))) {
+        matchedLipid -> matchedLipid.getLipidAnnotation().getLipidAnnotationLevel().equals(LipidAnnotationLevel.SPECIES_LEVEL))) {
       Set<MatchedLipid> estimatedSpeciesLevelMatchedLipids = new HashSet<>();
       for (MatchedLipid lipid : resolvedMatchedLipidsList) {
         ILipidAnnotation estimatedSpeciesLevelAnnotation = convertMolecularSpeciesLevelToSpeciesLevel(
             (MolecularSpeciesLevelAnnotation) lipid.getLipidAnnotation());
         if (resolvedMatchedLipidsList.stream().noneMatch(
-            matchedLipid -> matchedLipid.getLipidAnnotation().getAnnotation()
-                .equals(estimatedSpeciesLevelAnnotation.getAnnotation()))) {
-          if ((estimatedSpeciesLevelAnnotation != null
-              && estimatedSpeciesLevelMatchedLipids.isEmpty()) || (
+            matchedLipid -> matchedLipid.getLipidAnnotation().getAnnotation().equals(estimatedSpeciesLevelAnnotation.getAnnotation()))) {
+          if ((estimatedSpeciesLevelAnnotation != null && estimatedSpeciesLevelMatchedLipids.isEmpty()) || (
               estimatedSpeciesLevelAnnotation != null && estimatedSpeciesLevelMatchedLipids.stream()
                   .anyMatch(matchedLipid -> !Objects.equals(
                       matchedLipid.getLipidAnnotation().getAnnotation(),
                       estimatedSpeciesLevelAnnotation.getAnnotation())))) {
-            MatchedLipid matchedLipidSpeciesLevel = new MatchedLipid(
-                estimatedSpeciesLevelAnnotation, lipid.getAccurateMz(), lipid.getIonizationType(),
+            MatchedLipid matchedLipidSpeciesLevel = new MatchedLipid(estimatedSpeciesLevelAnnotation, lipid.getAccurateMz(), lipid.getIonizationType(),
                 new HashSet<>(lipid.getMatchedFragments()), 0.0, MatchedLipidStatus.ESTIMATED);
             matchedLipidSpeciesLevel.setComment(
                 "Estimated annotation based on molecular species level fragments");
@@ -101,10 +117,8 @@ public class LipidAnnotationResolver {
 
   private SpeciesLevelAnnotation convertMolecularSpeciesLevelToSpeciesLevel(
       MolecularSpeciesLevelAnnotation lipidAnnotation) {
-    int numberOfCarbons = lipidAnnotation.getLipidChains().stream()
-        .mapToInt(ILipidChain::getNumberOfCarbons).sum();
-    int numberOfDBEs = lipidAnnotation.getLipidChains().stream()
-        .mapToInt(ILipidChain::getNumberOfDBEs).sum();
+    int numberOfCarbons = lipidAnnotation.getLipidChains().stream().mapToInt(ILipidChain::getNumberOfCarbons).sum();
+    int numberOfDBEs = lipidAnnotation.getLipidChains().stream().mapToInt(ILipidChain::getNumberOfDBEs).sum();
     return LIPID_FACTORY.buildSpeciesLevelLipid(lipidAnnotation.getLipidClass(), numberOfCarbons,
         numberOfDBEs, 0);
   }
@@ -120,10 +134,8 @@ public class LipidAnnotationResolver {
   }
 
   private static Comparator<MatchedLipid> comparatorMatchedLipids() {
-    return (lipid1, lipid2) -> ComparisonChain.start()
-        .compare(lipid1.getLipidAnnotation().getAnnotation(),
-            lipid2.getLipidAnnotation().getAnnotation())
-        .compare(lipid1.getMsMsScore(), lipid2.getMsMsScore())
+    return (lipid1, lipid2) -> ComparisonChain.start().compare(lipid1.getLipidAnnotation().getAnnotation(),
+            lipid2.getLipidAnnotation().getAnnotation()).compare(lipid1.getMsMsScore(), lipid2.getMsMsScore())
         .compare(lipid1.getAccurateMz(), lipid2.getAccurateMz()).result();
   }
 
