@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,10 +58,10 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -489,7 +489,7 @@ public class FeatureUtils {
   public static List<CompoundDBAnnotation> extractAllCompoundAnnotations(
       FeatureListRow selectedRow) {
     final List<CompoundDBAnnotation> compoundAnnotations = new ArrayList<>();
-    final Collection<DataType> dataTypes = selectedRow.getTypes().values();
+    final Set<DataType> dataTypes = selectedRow.getTypes();
     for (DataType dataType : dataTypes) {
       if (dataType instanceof ListWithSubsType<?> listType && dataType instanceof AnnotationType) {
         final List<?> list = selectedRow.get(listType);
@@ -564,7 +564,7 @@ public class FeatureUtils {
     final Map<K, V> result = new HashMap<>();
 
     // get ALL DataTypes from the feature list
-    final Collection<DataType> dataTypes = featureListRow.getTypes().values();
+    final Set<DataType> dataTypes = featureListRow.getTypes();
 
     for (DataType<?> type : dataTypes) {
 

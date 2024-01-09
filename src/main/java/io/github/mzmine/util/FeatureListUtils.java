@@ -460,11 +460,8 @@ public class FeatureListUtils {
   public static void transferRowTypes(FeatureList targetFlist,
       Collection<FeatureList> sourceFlists) {
     for (FeatureList sourceFlist : sourceFlists) {
-      for (Class<? extends DataType> value : sourceFlist.getRowTypes().keySet()) {
-        if (!targetFlist.hasRowType(value)) {
-          targetFlist.addRowType(sourceFlist.getRowTypes().get(value));
-        }
-      }
+      // uses a set so okay to use addAll
+      targetFlist.addRowType(sourceFlist.getRowTypes());
     }
   }
 

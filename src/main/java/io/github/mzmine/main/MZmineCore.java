@@ -63,7 +63,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -91,7 +91,7 @@ public final class MZmineCore {
   private final Desktop defaultHeadlessDesktop = new HeadLessDesktop();
   private final List<MemoryMapStorage> storageList = Collections.synchronizedList(
       new ArrayList<>());
-  private final Map<Class<?>, MZmineModule> initializedModules = new Hashtable<>();
+  private final Map<String, MZmineModule> initializedModules = new HashMap<>();
   private TaskControllerImpl taskController;
   private MZmineConfiguration configuration;
   private Desktop desktop;
@@ -336,8 +336,11 @@ public final class MZmineCore {
   @SuppressWarnings("unchecked")
   public synchronized static <ModuleType extends MZmineModule> ModuleType getModuleInstance(
       Class<ModuleType> moduleClass) {
+    if (moduleClass == null) {
+      return null;
+    }
 
-    ModuleType module = (ModuleType) getInstance().initializedModules.get(moduleClass);
+    ModuleType module = (ModuleType) getInstance().initializedModules.get(moduleClass.getName());
 
     if (module == null) {
 
@@ -349,7 +352,7 @@ public final class MZmineCore {
         module = moduleClass.getDeclaredConstructor().newInstance();
 
         // Add to the module list
-        getInstance().initializedModules.put(moduleClass, module);
+        getInstance().initializedModules.put(moduleClass.getName(), module);
 
       } catch (Throwable e) {
         logger.log(Level.SEVERE, "Could not start module " + moduleClass, e);

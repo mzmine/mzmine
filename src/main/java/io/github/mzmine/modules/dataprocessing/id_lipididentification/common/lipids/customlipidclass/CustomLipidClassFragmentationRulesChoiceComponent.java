@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -279,7 +279,7 @@ public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPan
 
     public static final StringParameter formula = new StringParameter("Molecular formula",
         "Enter a molecular formula, if it is involved in the fragmentation rule. E.g. a head group fragment needs to be specified by its molecular formula.",
-        null, false, false);
+        "", false, false);
 
     public AddLipidFragmentationRuleParameters() {
       super(polarity, ionizationMethod, lipidFragmentationRuleType,

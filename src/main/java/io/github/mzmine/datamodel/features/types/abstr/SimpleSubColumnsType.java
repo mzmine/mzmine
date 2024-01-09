@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -116,7 +116,7 @@ public abstract class SimpleSubColumnsType<T extends ModularDataRecord> extends
     // create column per name
     for (int index = 0; index < subTypes.size(); index++) {
       DataType type = subTypes.get(index);
-      if (this.getClass().isInstance(type)) {
+      if (this.equals(type)) {
         // create a special column for this type that actually represents the list of data
         cols.add(DataType.createStandardColumn(type, raw, this, index));
       } else {

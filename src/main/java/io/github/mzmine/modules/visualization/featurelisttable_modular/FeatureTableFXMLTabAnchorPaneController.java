@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -124,7 +124,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
 
     typeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> filterRows());
     featureTable.featureListProperty().addListener(((observable, oldValue, newValue) -> {
-      typeComboBox.setItems(FXCollections.observableArrayList(newValue.getRowTypes().values()));
+      typeComboBox.setItems(FXCollections.observableArrayList(newValue.getRowTypes()));
       if (!typeComboBox.getItems().isEmpty()) {
         typeComboBox.setValue(typeComboBox.getItems().get(0));
       }

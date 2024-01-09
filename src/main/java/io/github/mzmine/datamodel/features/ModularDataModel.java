@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.beans.property.Property;
 import javafx.collections.ObservableMap;
@@ -42,12 +44,16 @@ import org.jetbrains.annotations.Nullable;
 
 public interface ModularDataModel {
 
+  Logger logger = Logger.getLogger(ModularDataModel.class.getName());
+
   /**
-   * All types (columns) of this DataModel
+   * A read only view of all types (columns) of this DataModel.
    *
-   * @return
+   * @return types that are covered by the model
    */
-  ObservableMap<Class<? extends DataType>, DataType> getTypes();
+  default Set<DataType> getTypes() {
+    return getMap().keySet();
+  }
 
   /**
    * The map containing all mappings to the types defined in getTypes
@@ -60,17 +66,6 @@ public interface ModularDataModel {
   default boolean isEmpty() {
     return getMap().isEmpty();
   }
-  /**
-   * Get DataType column of this DataModel
-   *
-   * @param <T>
-   * @param tclass
-   * @return
-   */
-  default <T> DataType<T> getTypeColumn(Class<? extends DataType<T>> tclass) {
-    DataType<T> type = getTypes().get(tclass);
-    return type;
-  }
 
   /**
    * has DataType column of this DataModel
@@ -79,9 +74,8 @@ public interface ModularDataModel {
    * @param tclass
    * @return
    */
-  default <T extends Object> boolean hasTypeColumn(Class<? extends DataType<T>> tclass) {
-    DataType<T> type = getTypes().get(tclass);
-    return type != null;
+  default <T> boolean hasTypeColumn(Class<? extends DataType<T>> tclass) {
+    return getTypes().contains(DataTypes.get(tclass));
   }
 
   /**
@@ -103,7 +97,7 @@ public interface ModularDataModel {
    * @return
    */
   default <T> Entry<DataType<T>, T> getEntry(Class<? extends DataType<T>> tclass) {
-    DataType<T> type = getTypeColumn(tclass);
+    DataType<T> type = DataTypes.get(tclass);
     return getEntry(type);
   }
 
@@ -115,7 +109,7 @@ public interface ModularDataModel {
    * @return
    */
   default <T> T get(Class<? extends DataType<T>> tclass) {
-    DataType<T> type = getTypeColumn(tclass);
+    DataType<T> type = DataTypes.get(tclass);
     return get(type);
   }
 
@@ -141,7 +135,7 @@ public interface ModularDataModel {
    */
   @Nullable
   default <T> T getOrDefault(Class<? extends DataType<T>> tclass, T defaultValue) {
-    DataType<T> type = getTypeColumn(tclass);
+    DataType<T> type = DataTypes.get(tclass);
     return getOrDefault(type, defaultValue);
   }
 
@@ -163,7 +157,7 @@ public interface ModularDataModel {
    */
   @NotNull
   default <T> T getNonNullElse(Class<? extends DataType<T>> tclass, @NotNull T defaultValue) {
-    DataType<T> type = getTypeColumn(tclass);
+    DataType<T> type = DataTypes.get(tclass);
     return getNonNullElse(type, defaultValue);
   }
 
@@ -215,7 +209,7 @@ public interface ModularDataModel {
    * @return
    */
   default <T extends Property<?>> String getFormattedString(Class<? extends DataType<T>> tclass) {
-    DataType<T> type = getTypeColumn(tclass);
+    DataType<T> type = DataTypes.get(tclass);
     return getFormattedString(type);
   }
 
@@ -228,7 +222,18 @@ public interface ModularDataModel {
    * @return true if the new value is different than the old
    */
   default <T> boolean set(DataType<T> type, T value) {
-    return set((Class) type.getClass(), value);
+    Object old = getMap().put(type, value);
+    // send changes to all listeners for this data type
+    List<DataTypeValueChangeListener<?>> listeners = getValueChangeListeners().get(type);
+    if (!Objects.equals(old, value)) {
+      if (listeners != null) {
+        for (DataTypeValueChangeListener listener : listeners) {
+          listener.valueChanged(this, type, old, value);
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -241,21 +246,8 @@ public interface ModularDataModel {
    */
   default <T> boolean set(Class<? extends DataType<T>> tclass, T value) {
     // automatically add columns if new
-    getTypes().computeIfAbsent(tclass, key -> DataTypes.get(tclass));
-
-    DataType<T> realType = getTypeColumn(tclass);
-    Object old = getMap().put(realType, value);
-    // send changes to all listeners for this data type
-    List<DataTypeValueChangeListener<?>> listeners = getValueChangeListeners().get(realType);
-    if (!Objects.equals(old, value)) {
-      if (listeners != null) {
-        for (DataTypeValueChangeListener listener : listeners) {
-          listener.valueChanged(this, realType, old, value);
-        }
-      }
-      return true;
-    }
-    return false;
+    DataType<T> type = DataTypes.get(tclass);
+    return set(type, value);
   }
 
   /**
@@ -264,7 +256,16 @@ public interface ModularDataModel {
    * @param tclass the data type class to be removed
    */
   default <T> void remove(Class<? extends DataType<T>> tclass) {
-    DataType type = getTypeColumn(tclass);
+    DataType type = DataTypes.get(tclass);
+    remove(type);
+  }
+
+  /**
+   * Should only be called whenever a DataType column is removed from this model.
+   *
+   * @param type the data type to be removed
+   */
+  default <T> void remove(DataType<T> type) {
     if (type != null) {
       Object old = getMap().remove(type);
       if (old != null) {
@@ -288,7 +289,6 @@ public interface ModularDataModel {
   /**
    * Stream all map.entries
    *
-   * @return
    */
   default Stream<Entry<DataType, Object>> stream() {
     return getMap().entrySet().stream();
