@@ -91,33 +91,29 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
     noiseLevel = parameters.getParameter(ImageCorrelateGroupingParameters.NOISE_LEVEL).getValue();
     minimumNumberOfCorrelatedPixels = parameters.getParameter(
         ImageCorrelateGroupingParameters.MIN_NUMBER_OF_PIXELS).getValue();
-    useMedianFilter = parameters.getParameter(ImageCorrelateGroupingParameters.MEDIAN_FILTER_WINDOW)
-        .getValue();
+    useMedianFilter = parameters.getValue(ImageCorrelateGroupingParameters.MEDIAN_FILTER_WINDOW);
     if (useMedianFilter) {
-      medianFilter = parameters.getParameter(ImageCorrelateGroupingParameters.MEDIAN_FILTER_WINDOW)
-          .getEmbeddedParameter().getValue();
+      medianFilter = parameters.getEmbeddedParameterValue(
+          ImageCorrelateGroupingParameters.MEDIAN_FILTER_WINDOW);
     } else {
       medianFilter = 0;
     }
-    useQuantileThreshold = parameters.getParameter(
-        ImageCorrelateGroupingParameters.QUANTILE_THRESHOLD).getValue();
+    useQuantileThreshold = parameters.getValue(ImageCorrelateGroupingParameters.QUANTILE_THRESHOLD);
     if (useQuantileThreshold) {
-      quantileThreshold = parameters.getParameter(
-          ImageCorrelateGroupingParameters.QUANTILE_THRESHOLD).getEmbeddedParameter().getValue();
+      quantileThreshold = parameters.getEmbeddedParameterValue(
+          ImageCorrelateGroupingParameters.QUANTILE_THRESHOLD);
     } else {
       quantileThreshold = 0.0;
     }
-    useHotspotRemoval = parameters.getParameter(ImageCorrelateGroupingParameters.HOTSPOT_REMOVAL)
-        .getValue();
+    useHotspotRemoval = parameters.getValue(ImageCorrelateGroupingParameters.HOTSPOT_REMOVAL);
     if (useHotspotRemoval) {
-      hotspotRemovalThreshold = parameters.getParameter(
-          ImageCorrelateGroupingParameters.HOTSPOT_REMOVAL).getEmbeddedParameter().getValue();
+      hotspotRemovalThreshold = parameters.getEmbeddedParameterValue(
+          ImageCorrelateGroupingParameters.HOTSPOT_REMOVAL);
     } else {
       hotspotRemovalThreshold = 0.0;
     }
-    similarityMeasure = parameters.getParameter(ImageCorrelateGroupingParameters.MEASURE)
-        .getValue();
-    minR = parameters.getParameter(ImageCorrelateGroupingParameters.MIN_R).getValue();
+    similarityMeasure = parameters.getValue(ImageCorrelateGroupingParameters.MEASURE);
+    minR = parameters.getValue(ImageCorrelateGroupingParameters.MIN_R);
   }
 
   @Override
