@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,8 +31,8 @@ import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRule;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.GlyceroAndGlyceroPhospholipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.ILipidFragmentFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.LipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
@@ -307,7 +307,7 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
     LipidFragmentationRule[] rules = lipid.getLipidClass().getFragmentationRules();
     if (rules.length > 0) {
       //TODO this needs to be reworked to allow searching for all lipid categories
-      ILipidFragmentFactory glyceroAndGlyceroPhospholipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(
+      ILipidFragmentFactory glyceroAndGlyceroPhospholipidFragmentFactory = new LipidFragmentFactory(
           mzTolerance, lipid, ionization, rules, currentScan,
           parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
               .getEmbeddedParameters());

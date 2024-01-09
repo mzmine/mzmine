@@ -34,11 +34,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.MSMSLipidTools;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.FattyAcylFragmentFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.GlyceroAndGlyceroPhospholipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.ILipidFragmentFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.SphingolipidFragmentFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.SterollipidFragmentFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.LipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.IMolecularSpeciesLevelMatchedLipidFactory;
@@ -202,8 +199,10 @@ public class LipidAnnotationUtils {
         massList = MSMSLipidTools.deisotopeMassList(massList, mzToleranceMS2);
         Set<LipidFragment> annotatedFragments = new HashSet<>();
         if (rules != null && rules.length > 0) {
-          ILipidFragmentFactory lipidFragmentFactory = getLipidFragmentFactory(ionization, lipid,
-              parameters, msmsScan, rules, mzToleranceMS2, lipidCategory);
+          ILipidFragmentFactory lipidFragmentFactory = new LipidFragmentFactory(mzToleranceMS2,
+              lipid, ionization, rules, msmsScan,
+              parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
+                  .getEmbeddedParameters());
           List<LipidFragment> annotatedFragmentsForDataPoint = lipidFragmentFactory.findLipidFragments();
           if (annotatedFragmentsForDataPoint != null && !annotatedFragmentsForDataPoint.isEmpty()) {
             annotatedFragments.addAll(annotatedFragmentsForDataPoint);
@@ -320,49 +319,6 @@ public class LipidAnnotationUtils {
     }
     return new GlyceroAndGlycerophosphoSpeciesLevelMatchedLipidFactory();
 
-  }
-
-  @NotNull
-  public static ILipidFragmentFactory getLipidFragmentFactory(IonizationType ionization,
-      ILipidAnnotation lipid, ParameterSet parameters, Scan msmsScan,
-      LipidFragmentationRule[] rules, MZTolerance mzTolRangeMSMS, LipidCategories lipidCategory) {
-    switch (lipidCategory) {
-
-      case FATTYACYLS -> {
-        return new FattyAcylFragmentFactory(mzTolRangeMSMS, lipid, ionization, rules, msmsScan,
-            parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
-                .getEmbeddedParameters());
-      }
-      case GLYCEROLIPIDS -> {
-        return new GlyceroAndGlyceroPhospholipidFragmentFactory(mzTolRangeMSMS, lipid, ionization,
-            rules, msmsScan, parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
-            .getEmbeddedParameters());
-      }
-      case GLYCEROPHOSPHOLIPIDS -> {
-        return new GlyceroAndGlyceroPhospholipidFragmentFactory(mzTolRangeMSMS, lipid, ionization,
-            rules, msmsScan, parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
-            .getEmbeddedParameters());
-      }
-      case SPHINGOLIPIDS -> {
-        return new SphingolipidFragmentFactory(mzTolRangeMSMS, lipid, ionization, rules, msmsScan,
-            parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
-                .getEmbeddedParameters());
-      }
-      case STEROLLIPIDS -> {
-        return new SterollipidFragmentFactory(mzTolRangeMSMS, lipid, ionization, rules, msmsScan,
-            parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
-                .getEmbeddedParameters());
-      }
-      case PRENOLLIPIDS -> {
-      }
-      case SACCHAROLIPIDS -> {
-      }
-      case POLYKETIDES -> {
-      }
-    }
-    return new GlyceroAndGlyceroPhospholipidFragmentFactory(mzTolRangeMSMS, lipid, ionization,
-        rules, msmsScan, parameters.getParameter(LipidAnnotationParameters.lipidChainParameters)
-        .getEmbeddedParameters());
   }
 
   private static void onlyKeepBestAnnotations(Set<MatchedLipid> matchedLipids) {

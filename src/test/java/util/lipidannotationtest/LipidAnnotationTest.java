@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,11 +35,8 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRule;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.FattyAcylFragmentFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.GlyceroAndGlyceroPhospholipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.ILipidFragmentFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.SphingolipidFragmentFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.SterollipidFragmentFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.LipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.FattyAcylMolecularSpeciesLevelMatchedLipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory;
@@ -576,27 +573,10 @@ class LipidAnnotationTest {
     SIMPLE_SCAN.addMassList(massList);
     MZTolerance mzTolerance = new MZTolerance(0.01, 5);
     if (rules != null && rules.length > 0) {
-      ILipidFragmentFactory lipidFragmentFactory = null;
-      switch (speciesLevelAnnotation.getLipidClass().getMainClass().getLipidCategory()) {
-        case FATTYACYLS ->
-            lipidFragmentFactory = new FattyAcylFragmentFactory(mzTolerance, speciesLevelAnnotation,
-                testSpectrum.getIonizationType(), rules, SIMPLE_SCAN,
-                LIPID_CHAIN_PARAMETERS_GLYCERO_AND_GLYCEROPHOSPHOLIPIDS.getEmbeddedParameters());
-        case GLYCEROLIPIDS ->
-            lipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(mzTolerance,
-                speciesLevelAnnotation, testSpectrum.getIonizationType(), rules, SIMPLE_SCAN,
-                LIPID_CHAIN_PARAMETERS_GLYCERO_AND_GLYCEROPHOSPHOLIPIDS.getEmbeddedParameters());
-        case GLYCEROPHOSPHOLIPIDS ->
-            lipidFragmentFactory = new GlyceroAndGlyceroPhospholipidFragmentFactory(mzTolerance,
-                speciesLevelAnnotation, testSpectrum.getIonizationType(), rules, SIMPLE_SCAN,
-                LIPID_CHAIN_PARAMETERS_GLYCERO_AND_GLYCEROPHOSPHOLIPIDS.getEmbeddedParameters());
-        case SPHINGOLIPIDS -> lipidFragmentFactory = new SphingolipidFragmentFactory(mzTolerance,
-            speciesLevelAnnotation, testSpectrum.getIonizationType(), rules, SIMPLE_SCAN,
-            LIPID_CHAIN_PARAMETERS_SPHINGOLIPIDS.getEmbeddedParameters());
-        case STEROLLIPIDS -> lipidFragmentFactory = new SterollipidFragmentFactory(mzTolerance,
-            speciesLevelAnnotation, testSpectrum.getIonizationType(), rules, SIMPLE_SCAN,
-            LIPID_CHAIN_PARAMETERS_SPHINGOLIPIDS.getEmbeddedParameters());
-      }
+      ILipidFragmentFactory lipidFragmentFactory = new LipidFragmentFactory(mzTolerance,
+          speciesLevelAnnotation, testSpectrum.getIonizationType(), rules, SIMPLE_SCAN,
+          LIPID_CHAIN_PARAMETERS_GLYCERO_AND_GLYCEROPHOSPHOLIPIDS.getEmbeddedParameters());
+
       List<LipidFragment> annotatedFragmentsForDataPoint = lipidFragmentFactory.findLipidFragments();
       if (annotatedFragmentsForDataPoint != null && !annotatedFragmentsForDataPoint.isEmpty()) {
         annotatedFragments.addAll(annotatedFragmentsForDataPoint);
