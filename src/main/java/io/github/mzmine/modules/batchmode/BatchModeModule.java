@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -92,8 +92,9 @@ public class BatchModeModule implements MZmineProcessingModule {
       Document parsedBatchXML = docBuilder.parse(batchFile);
 
       List<String> errorMessages = new ArrayList<>();
+      // fail on missing modules - here its usually run from the command line - fail it
       BatchQueue newQueue = BatchQueue.loadFromXml(parsedBatchXML.getDocumentElement(),
-          errorMessages);
+          errorMessages, false);
 
       // versions might have changed
       if (!errorMessages.isEmpty()) {
