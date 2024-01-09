@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -73,12 +73,13 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
    */
   public static BatchQueue loadFromXml(final Element xmlElement,
       @NotNull final List<String> errorMessages, boolean skipUnkownModules) {
-    final Semver mzmineVersion;
+    Semver batchMzmineVersion = null;
     final String mzmineVersionError;
+    Semver mzmineVersion = MZmineCore.getMZmineVersion();
     if (xmlElement.hasAttribute(XML_MZMINE_VERSION_ATTR)) {
-      mzmineVersion = new Semver(xmlElement.getAttribute(XML_MZMINE_VERSION_ATTR));
+      batchMzmineVersion = new Semver(xmlElement.getAttribute(XML_MZMINE_VERSION_ATTR));
 
-      int versionCompare = mzmineVersion.compareTo(MZmineCore.getMZmineVersion());
+      int versionCompare = batchMzmineVersion.compareTo(mzmineVersion);
       String vstring = switch (versionCompare) {
         case -1 -> "an older";
         case 1 -> "a newer";
@@ -86,7 +87,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
         default -> "";
       };
       String msg = "The batch file was created with %s version of MZmine%s (this version is %s).".formatted(
-          vstring, mzmineVersion, MZmineCore.getMZmineVersion());
+          vstring, batchMzmineVersion, mzmineVersion);
       logger.info(msg);
       //
       if (versionCompare != 0) {
@@ -97,7 +98,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       }
     } else {
       mzmineVersionError = "Batch was created with an older version of MZmine prior to MZmine 3.4.0 (this version is %s).".formatted(
-          MZmineCore.getMZmineVersion());
+          mzmineVersion);
       logger.warning(mzmineVersionError);
     }
 
@@ -141,8 +142,14 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
           moduleFound = MZmineCore.getModuleInstance(
               (Class<MZmineModule>) Class.forName(methodName));
         } catch (ClassNotFoundException e) {
-          String warning =
-              "Module not found for class " + methodName + " (maybe recreate the batch file)";
+          String batchVersionStr =
+              batchMzmineVersion == null ? "of unspecified version" : batchMzmineVersion.toString();
+
+          String warning = """
+              Module not found for class %s (maybe recreate the batch file).
+              Current MZmine version: %s (batch was created with MZmine %s.""".formatted(methodName,
+              mzmineVersion, batchVersionStr);
+
           errorMessages.add(warning);
           logger.warning(warning);
           if (!skipUnkownModules) {
