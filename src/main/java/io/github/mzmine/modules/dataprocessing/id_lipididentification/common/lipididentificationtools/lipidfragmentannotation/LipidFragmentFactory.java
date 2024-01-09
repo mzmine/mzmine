@@ -209,18 +209,8 @@ public class LipidFragmentFactory implements ILipidFragmentFactory {
       for (ILipidChain lipidChain : fattyAcylChains) {
         IMolecularFormula lipidChainFormula = lipidChain.getChainMolecularFormula();
         IonizationType.NEGATIVE_HYDROGEN.ionizeFormula(lipidChainFormula);
-        Double mzExact = FormulaUtils.calculateMzRatio(lipidChainFormula);
-        BestDataPoint bestDataPoint = getBestDataPoint(mzExact);
-        if (bestDataPoint.fragmentMatched()) {
-          int chainLength = lipidChain.getNumberOfCarbons();
-          int numberOfDoubleBonds = lipidChain.getNumberOfDBEs();
-          matchedFragments.add(new LipidFragment(rule.getLipidFragmentationRuleType(),
-              rule.getLipidFragmentInformationLevelType(), rule.getLipidFragmentationRuleRating(),
-              mzExact, MolecularFormulaManipulator.getString(lipidChainFormula),
-              new SimpleDataPoint(bestDataPoint.mzValue(), bestDataPoint.intensity()),
-              lipidAnnotation.getLipidClass(), chainLength, numberOfDoubleBonds,
-              lipidChain.getNumberOfOxygens(), LipidChainType.ACYL_CHAIN, msMsScan));
-        }
+        addMatchedChainFragment(rule, lipidAnnotation, msMsScan, matchedFragments, lipidChain,
+            lipidChainFormula);
       }
       return matchedFragments;
     }
