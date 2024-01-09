@@ -147,7 +147,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
 
           String warning = """
               Module not found for class %s (maybe recreate the batch file).
-              Current MZmine version: %s (batch was created with MZmine %s.""".formatted(methodName,
+              Current MZmine version: %s (batch was created with MZmine %s)""".formatted(methodName,
               mzmineVersion, batchVersionStr);
 
           errorMessages.add(warning);
