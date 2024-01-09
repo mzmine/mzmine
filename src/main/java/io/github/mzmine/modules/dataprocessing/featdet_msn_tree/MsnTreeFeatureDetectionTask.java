@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,11 +31,12 @@ import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
+import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
+import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries.IntensityMode;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.SimpleFullChromatogram.IntensityMode;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -97,79 +98,14 @@ public class MsnTreeFeatureDetectionTask extends AbstractTask {
     return "Building MSn trees from " + dataFile;
   }
 
-  @Override
-  public void run() {
-    setStatus(TaskStatus.PROCESSING);
-
-    var scans = List.of(scanSelection.getMatchingScans(dataFile));
-
-    totalScans = scans.size();
-
-    // No scans in selection range.
-    if (totalScans == 0) {
-      setStatus(TaskStatus.ERROR);
-      final String msg = "No scans detected in scan selection for " + dataFile.getName();
-      setErrorMessage(msg);
-      return;
-    }
-
-    // get trees sorted ascending
-    final List<PrecursorIonTree> trees = new ArrayList<>(
-        ScanUtils.getMSnFragmentTrees(dataFile, mzTol));
-    trees.sort(Comparator.comparingDouble(PrecursorIonTree::getPrecursorMz));
-    List<Range<Double>> mzRanges = trees.stream().mapToDouble(PrecursorIonTree::getPrecursorMz)
-        .mapToObj(mzTol::getToleranceRange).toList();
-
-    SimpleFullChromatogram[] chromatograms = extractChromatograms(dataFile, mzRanges, scanSelection,
-        this);
-    if (isCanceled()) {
-      return;
-    }
-    if (chromatograms == null) {
-      setErrorMessage("No MSn tree EIC found in file " + dataFile.getName());
-      setStatus(TaskStatus.ERROR);
-      return;
-    }
-
-    int id = 0;
-    for (int i = 0; i < chromatograms.length; i++) {
-      var mstree = trees.get(i);
-      final SimpleFullChromatogram eic = chromatograms[i];
-      var hasData = eic.hasNonZeroData();
-      var featureData = hasData ? eic.toIonTimeSeries(storage, scans) : null;
-      var f = new ModularFeature(newFeatureList, dataFile, featureData, FeatureStatus.DETECTED);
-      // need to set mz if data was empty
-      if (!hasData) {
-        f.setMZ(mstree.getPrecursorMz());
-      }
-      f.setAllMS2FragmentScans(mstree.getAllFragmentScans());
-      ModularFeatureListRow row = new ModularFeatureListRow(newFeatureList, id, f);
-      newFeatureList.addRow(row);
-      id++;
-    }
-
-    newFeatureList.setSelectedScans(dataFile, scans);
-    newFeatureList.getAppliedMethods().addAll(dataFile.getAppliedMethods());
-    newFeatureList.getAppliedMethods().add(
-        new SimpleFeatureListAppliedMethod(MsnTreeFeatureDetectionModule.class, parameterSet,
-            getModuleCallDate()));
-
-    // Add new feature list to the project
-    project.addFeatureList(newFeatureList);
-
-    logger.info("Finished MSn Tree feature builder on " + dataFile);
-
-    setStatus(TaskStatus.FINISHED);
-  }
-
-  public SimpleFullChromatogram[] extractChromatograms(final RawDataFile dataFile,
+  public static BuildingIonSeries[] extractIonSeries(final RawDataFile dataFile,
       final List<Range<Double>> mzRanges, final ScanSelection scanSelection,
       final AbstractTask parentTask) {
     var dataAccess = EfficientDataAccess.of(dataFile, ScanDataType.MASS_LIST, scanSelection);
     // store data points for each range
-    SimpleFullChromatogram[] chromatograms = new SimpleFullChromatogram[mzRanges.size()];
+    BuildingIonSeries[] chromatograms = new BuildingIonSeries[mzRanges.size()];
     for (int i = 0; i < chromatograms.length; i++) {
-      chromatograms[i] = new SimpleFullChromatogram(dataAccess.getNumberOfScans(),
+      chromatograms[i] = new BuildingIonSeries(dataAccess.getNumberOfScans(),
           IntensityMode.HIGHEST);
     }
 
@@ -207,6 +143,72 @@ public class MsnTreeFeatureDetectionTask extends AbstractTask {
       }
     }
     return chromatograms;
+  }
+
+  @Override
+  public void run() {
+    setStatus(TaskStatus.PROCESSING);
+
+    var scans = List.of(scanSelection.getMatchingScans(dataFile));
+
+    totalScans = scans.size();
+
+    // No scans in selection range.
+    if (totalScans == 0) {
+      setStatus(TaskStatus.ERROR);
+      final String msg = "No scans detected in scan selection for " + dataFile.getName();
+      setErrorMessage(msg);
+      return;
+    }
+
+    // get trees sorted ascending
+    final List<PrecursorIonTree> trees = new ArrayList<>(
+        ScanUtils.getMSnFragmentTrees(dataFile, mzTol));
+    trees.sort(Comparator.comparingDouble(PrecursorIonTree::getPrecursorMz));
+    List<Range<Double>> mzRanges = trees.stream().mapToDouble(PrecursorIonTree::getPrecursorMz)
+        .mapToObj(mzTol::getToleranceRange).toList();
+
+    BuildingIonSeries[] chromatograms = extractIonSeries(dataFile, mzRanges, scanSelection,
+        this);
+    if (isCanceled()) {
+      return;
+    }
+    if (chromatograms == null) {
+      setErrorMessage("No MSn tree EIC found in file " + dataFile.getName());
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+
+    int id = 0;
+    for (int i = 0; i < chromatograms.length; i++) {
+      var mstree = trees.get(i);
+      final BuildingIonSeries eic = chromatograms[i];
+      var hasData = eic.hasNonZeroData();
+      var featureData =
+          hasData ? eic.toIonTimeSeriesWithLeadingAndTrailingZero(storage, scans) : null;
+      var f = new ModularFeature(newFeatureList, dataFile, featureData, FeatureStatus.DETECTED);
+      // need to set mz if data was empty
+      if (!hasData) {
+        f.setMZ(mstree.getPrecursorMz());
+      }
+      f.setAllMS2FragmentScans(mstree.getAllFragmentScans());
+      ModularFeatureListRow row = new ModularFeatureListRow(newFeatureList, id, f);
+      newFeatureList.addRow(row);
+      id++;
+    }
+
+    newFeatureList.setSelectedScans(dataFile, scans);
+    newFeatureList.getAppliedMethods().addAll(dataFile.getAppliedMethods());
+    newFeatureList.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(MsnTreeFeatureDetectionModule.class, parameterSet,
+            getModuleCallDate()));
+
+    // Add new feature list to the project
+    project.addFeatureList(newFeatureList);
+
+    logger.info("Finished MSn Tree feature builder on " + dataFile);
+
+    setStatus(TaskStatus.FINISHED);
   }
 
 }
