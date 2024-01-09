@@ -138,7 +138,7 @@ public class BuildingIonSeries implements IonSeries {
    * @return an ion time series that spans all scans
    */
   public IonTimeSeries<? extends Scan> toFullIonTimeSeries(@Nullable MemoryMapStorage storage,
-      final List<Scan> scans) {
+      final List<? extends Scan> scans) {
     return new SimpleIonTimeSeries(storage, mzs, intensities, scans);
   }
 

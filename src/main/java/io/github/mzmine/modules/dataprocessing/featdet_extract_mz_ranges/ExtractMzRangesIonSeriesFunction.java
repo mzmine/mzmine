@@ -26,8 +26,10 @@ package io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries.IntensityMode;
@@ -46,10 +48,9 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskFunction<Build
 
   private static final Logger logger = Logger.getLogger(
       ExtractMzRangesIonSeriesFunction.class.getName());
-  private final RawDataFile dataFile;
-  private final ScanSelection scanSelection;
   private final List<Range<Double>> mzRangesSorted;
   private final AbstractTask parentTask;
+  private final ScanDataAccess dataAccess;
   private int processedScans, totalScans;
 
   /**
@@ -60,8 +61,19 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskFunction<Build
       @Nullable AbstractTask parentTask) {
     super(parentTask);
 
-    this.dataFile = dataFile;
-    this.scanSelection = scanSelection;
+    dataAccess = EfficientDataAccess.of(dataFile, ScanDataType.MASS_LIST, scanSelection);
+    this.mzRangesSorted = mzRangesSorted;
+    this.parentTask = parentTask;
+  }
+
+  /**
+   * @param mzRangesSorted sorted by mz ascending
+   */
+  public ExtractMzRangesIonSeriesFunction(@NotNull RawDataFile dataFile, List<? extends Scan> scans,
+      @NotNull List<Range<Double>> mzRangesSorted, @Nullable AbstractTask parentTask) {
+    super(parentTask);
+
+    dataAccess = EfficientDataAccess.of(dataFile, ScanDataType.MASS_LIST, scans);
     this.mzRangesSorted = mzRangesSorted;
     this.parentTask = parentTask;
   }
@@ -79,13 +91,12 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskFunction<Build
    * {@link IonTimeSeries}
    */
   @Override
-  @Nullable
+  @NotNull
   public BuildingIonSeries[] calculate() {
     if (mzRangesSorted.isEmpty()) {
       return new BuildingIonSeries[0];
     }
 
-    var dataAccess = EfficientDataAccess.of(dataFile, ScanDataType.MASS_LIST, scanSelection);
     totalScans = dataAccess.getNumberOfScans();
     // store data points for each range
     BuildingIonSeries[] chromatograms = new BuildingIonSeries[mzRangesSorted.size()];
@@ -102,7 +113,7 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskFunction<Build
 
       // Canceled?
       if (isCanceled()) {
-        return null;
+        return new BuildingIonSeries[0];
       }
       // check value for tree and for all next trees in range
       int nDataPoints = dataAccess.getNumberOfDataPoints();
