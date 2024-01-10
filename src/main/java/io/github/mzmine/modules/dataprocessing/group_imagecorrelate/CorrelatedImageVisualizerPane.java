@@ -137,14 +137,16 @@ public class CorrelatedImageVisualizerPane extends AbstractFeatureListRowsPane {
     final List<RowsRelationship> sortedRelationships = rowsRelationshipR2RMap.streamAllCorrelatedRows(
             selectedRow, flist.getRows())
         .sorted(Comparator.comparingDouble(RowsRelationship::getScore).reversed()).toList();
-    updateMainImageAndPseudoSpectrum(selectedRow, bestFeature, sortedRelationships);
 
     if (sortedRelationships.isEmpty()) {
       colocatedImagePane.updateContent(null, null, null);
-      return;
+    } else {
+      colocatedImagePane.updateContent(sortedRelationships, selectedRow,
+          bestFeature.getRawDataFile());
     }
-    colocatedImagePane.updateContent(sortedRelationships, selectedRow,
-        bestFeature.getRawDataFile());
+    // main pane must be updated afterwards, so that the main image and the correlated images are
+    // in the same chart group.
+    updateMainImageAndPseudoSpectrum(selectedRow, bestFeature, sortedRelationships);
   }
 
   private void updateMainImageAndPseudoSpectrum(FeatureListRow selectedRow,
