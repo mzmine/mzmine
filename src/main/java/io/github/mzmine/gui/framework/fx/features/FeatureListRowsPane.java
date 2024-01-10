@@ -67,10 +67,9 @@ public interface FeatureListRowsPane {
    *             {@link FeatureTableFX} that are used in {@link SpectraIdentificationResultsPane} or
    *             the selected nodes in {@link FeatureNetworkPane}.
    */
-  default void onRowsChanged(ObservableList<? extends FeatureListRow> rows) {
+  default void onRowsChanged(@NotNull List<? extends FeatureListRow> rows) {
     getChildFeaturePanes().forEach(child -> child.onRowsChanged(rows));
   }
-
 
   /**
    * The selected rows have changed.
@@ -80,10 +79,9 @@ public interface FeatureListRowsPane {
    *                     {@link SpectraIdentificationResultsPane} or the selected nodes in
    *                     {@link FeatureNetworkPane}.
    */
-  default void onSelectedRowsChanged(ObservableList<? extends FeatureListRow> selectedRows) {
+  default void onSelectedRowsChanged(@NotNull List<? extends FeatureListRow> selectedRows) {
     getChildFeaturePanes().forEach(child -> child.onSelectedRowsChanged(selectedRows));
   }
-
 
   /**
    * Dispose listeners

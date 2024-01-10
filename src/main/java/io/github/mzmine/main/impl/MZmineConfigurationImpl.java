@@ -27,6 +27,7 @@ package io.github.mzmine.main.impl;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
@@ -482,5 +483,12 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     final ImageNormalization normalization = preferences.getParameter(
         MZminePreferences.imageNormalization).getValue();
     return normalization != null ? normalization : ImageNormalization.NO_NORMALIZATION;
+  }
+
+  @Override
+  public PaintScaleTransform getImageTransformation() {
+    final PaintScaleTransform transformation = preferences.getParameter(
+        MZminePreferences.imageTransformation).getValue();
+    return transformation != null ? transformation : PaintScaleTransform.LINEAR;
   }
 }

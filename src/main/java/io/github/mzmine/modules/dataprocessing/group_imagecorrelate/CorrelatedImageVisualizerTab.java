@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,20 +23,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.batchwizard.subparameters;
+package io.github.mzmine.modules.dataprocessing.group_imagecorrelate;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
-import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.gui.framework.fx.features.SimpleFeatureListTab;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 
-public sealed class WorkflowWizardParameters extends WizardStepParameters permits
-    WorkflowDdaWizardParameters, WorkflowGcElectronImpactWizardParameters,
-    WorkflowImagingWizardParameters, WorkflowLibraryGenerationWizardParameters,
-    WorkflowDiaWizardParameters {
+public class CorrelatedImageVisualizerTab extends SimpleFeatureListTab {
 
-  public WorkflowWizardParameters(final WorkflowWizardParameterFactory preset,
-      final Parameter<?>... parameters) {
-    super(WizardPart.WORKFLOW, preset, parameters);
+  public CorrelatedImageVisualizerTab(String title, FeatureTableFX table) {
+    super(title, table);
+
+    final CorrelatedImageVisualizerPane pane = new CorrelatedImageVisualizerPane(
+        getParentGroup());
+    setContent(pane);
   }
-
 }

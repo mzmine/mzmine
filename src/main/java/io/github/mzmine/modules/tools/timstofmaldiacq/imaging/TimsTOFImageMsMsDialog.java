@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
+import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImagingPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
@@ -61,7 +62,8 @@ import org.jfree.chart.annotations.XYPointerAnnotation;
 public class TimsTOFImageMsMsDialog extends ParameterSetupDialogWithPreview {
 
   private final ImagingPlot imageChart = new ImagingPlot(
-      MZmineCore.getConfiguration().getModuleParameters(ImageVisualizerModule.class));
+      (ImageVisualizerParameters) MZmineCore.getConfiguration()
+          .getModuleParameters(ImageVisualizerModule.class));
   private SimsefImagingSchedulerTask currentTask;
 
   private PauseTransition delay = new PauseTransition(Duration.millis(500));

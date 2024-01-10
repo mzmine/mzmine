@@ -29,6 +29,7 @@ import static io.github.mzmine.util.FeatureListRowSorter.MZ_ASCENDING;
 import static io.github.mzmine.util.RangeUtils.rangeLength;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -426,6 +427,23 @@ public class FeatureListUtils {
   }
 
   /**
+   * Sort feature list by default based on raw data type Sort feature list by mz if imaging data
+   * else sort feature list by retention time
+   *
+   * @param featureList target list
+   */
+  public static void sortByDefault(FeatureList featureList, boolean renumberIDs) {
+    RawDataFile rawDataFile = featureList.getRawDataFiles().get(0);
+    if (rawDataFile != null) {
+      if (!(rawDataFile instanceof ImagingRawDataFile)) {
+        FeatureListUtils.sortByDefaultRT(featureList, renumberIDs);
+      } else {
+        FeatureListUtils.sortByDefaultMZ(featureList, renumberIDs);
+      }
+    }
+  }
+
+  /**
    * Sort feature list by retention time (default)
    *
    * @param featureList target list
@@ -433,6 +451,35 @@ public class FeatureListUtils {
   public static void sortByDefaultRT(FeatureList featureList) {
     // sort rows by rt
     featureList.getRows().sort(FeatureListRowSorter.DEFAULT_RT);
+  }
+
+  /**
+   * Sort feature list by mz and reset IDs starting with 1
+   *
+   * @param featureList target list
+   * @param renumberIDs renumber rows
+   */
+  public static void sortByDefaultMZ(FeatureList featureList, boolean renumberIDs) {
+    sortByDefaultMZ(featureList);
+    if (!renumberIDs) {
+      return;
+    }
+    // reset IDs
+    int newRowID = 1;
+    for (var row : featureList.getRows()) {
+      row.set(IDType.class, newRowID);
+      newRowID++;
+    }
+  }
+
+  /**
+   * Sort feature list by mz (default)
+   *
+   * @param featureList target list
+   */
+  public static void sortByDefaultMZ(FeatureList featureList) {
+    // sort rows by mz
+    featureList.getRows().sort(MZ_ASCENDING);
   }
 
   /**

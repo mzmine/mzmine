@@ -121,7 +121,7 @@ public class SpectraIdentificationResultsPane extends AbstractFeatureListRowsPan
   }
 
   @Override
-  public void onRowsChanged(final ObservableList<? extends FeatureListRow> rows) {
+  public void onRowsChanged(final @NotNull List<? extends FeatureListRow> rows) {
     super.onRowsChanged(rows);  // required for children
     // this is all rows in the feature table
     // this pane does currently not make use of all rows.
@@ -129,7 +129,7 @@ public class SpectraIdentificationResultsPane extends AbstractFeatureListRowsPan
   }
 
   @Override
-  public void onSelectedRowsChanged(final ObservableList<? extends FeatureListRow> selectedRows) {
+  public void onSelectedRowsChanged(final @NotNull List<? extends FeatureListRow> selectedRows) {
     super.onSelectedRowsChanged(selectedRows); // required for children
 
     var allMatches = selectedRows.stream().map(FeatureListRow::getSpectralLibraryMatches)

@@ -1,0 +1,86 @@
+/*
+ * Copyright (c) 2004-2023 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package io.github.mzmine.datamodel.features.correlation;
+
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleList;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Image similarity computed in MZmine.
+ */
+public class R2RImageSimilarityList extends AbstractRowsRelationship {
+
+  private final Type type;
+  private final DoubleList similarities = new DoubleArrayList();
+
+  /**
+   * @param a    row a
+   * @param b    row b
+   * @param type the similarity type
+   */
+  public R2RImageSimilarityList(FeatureListRow a, FeatureListRow b, Type type) {
+    super(a, b);
+    this.type = type;
+  }
+
+  public synchronized void addSimilarity(double sim) {
+    similarities.add(sim);
+  }
+
+  public int size() {
+    return similarities.size();
+  }
+
+  public List<Double> getSimilarities() {
+    return similarities;
+  }
+
+  public double getMaxSimilarity() {
+    return similarities.doubleStream().max().orElse(0.0);
+  }
+
+  public double getMinSimilarity() {
+    return similarities.doubleStream().min().orElse(0.0);
+  }
+
+  @Override
+  public double getScore() {
+    return getMaxSimilarity();
+  }
+
+  @Override
+  public @NotNull String getType() {
+    return type.toString();
+  }
+
+  @Override
+  public @NotNull String getAnnotation() {
+    return "sim=" + getScoreFormatted();
+  }
+}

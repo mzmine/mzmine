@@ -138,7 +138,9 @@ public class SpectraVisualizerTab extends MZmineTab {
 
   private SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
 
-  public SpectraVisualizerTab(RawDataFile dataFile, Scan scanNumber, boolean enableProcessing) {
+
+  public SpectraVisualizerTab(RawDataFile dataFile, Scan scanNumber, boolean enableProcessing,
+      boolean hideSettingsPanel) {
     super("Spectra visualizer", true, false);
     // setTitle("Spectrum loading...");
     this.dataFile = dataFile;
@@ -236,10 +238,11 @@ public class SpectraVisualizerTab extends MZmineTab {
             dbSpectraButton, sumFormulaButton);
 
     mainPane.setRight(toolBar);
-
     bottomPanel = new SpectraBottomPanel(this, dataFile);
-    Accordion bottomAccordion = new Accordion(new TitledPane("Spectrum options", bottomPanel));
-    mainPane.setBottom(bottomAccordion);
+    if (!hideSettingsPanel) {
+      Accordion bottomAccordion = new Accordion(new TitledPane("Spectrum options", bottomPanel));
+      mainPane.setBottom(bottomAccordion);
+    }
     setContent(mainPane);
 
     // get parameters
@@ -250,6 +253,10 @@ public class SpectraVisualizerTab extends MZmineTab {
     setMzTolerance(mzTolerance);
     mzToleranceProperty.bindBidirectional(spectrumPlot.mzToleranceProperty());
 
+  }
+
+  public SpectraVisualizerTab(RawDataFile dataFile, Scan scanNumber, boolean enableProcessing) {
+    this(dataFile, scanNumber, enableProcessing, false);
   }
 
   public SpectraVisualizerTab(RawDataFile dataFile) {
