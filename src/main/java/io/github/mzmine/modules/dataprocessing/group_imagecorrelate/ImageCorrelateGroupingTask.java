@@ -138,8 +138,8 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
 
     if (featureList != null) {
       //remove old similarities of same type
-      featureList.getRowMaps().remove(Type.MS1_FEATURE_CORR);
-      featureList.addRowsRelationships(mapImageSim, Type.MS1_FEATURE_CORR);
+      featureList.getRowMaps().removeAllRowRelationships(Type.MS1_FEATURE_CORR);
+      featureList.getRowMaps().addAllRowsRelationships(mapImageSim, Type.MS1_FEATURE_CORR);
     }
 
     if (featureList != null) {

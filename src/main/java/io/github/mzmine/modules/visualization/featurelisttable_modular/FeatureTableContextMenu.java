@@ -44,6 +44,7 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
@@ -97,28 +98,26 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Sca
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStackVisualizerModule;
-import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
+import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralIdentificationResultsTab;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.components.ConditionalMenuItem;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
-import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -370,7 +369,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem showIMSFeatureItem = new ConditionalMenuItem("Ion mobility trace",
         () -> !selectedRows.isEmpty() && selectedFeature != null
-              && selectedFeature.getRawDataFile() instanceof IMSRawDataFile);
+            && selectedFeature.getRawDataFile() instanceof IMSRawDataFile);
     showIMSFeatureItem.setOnAction(
         e -> MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(selectedFeature)));
 
@@ -390,24 +389,27 @@ public class FeatureTableContextMenu extends ContextMenu {
     //TODO find better solution to check if single feature list row has co-located images
     final MenuItem showCorrelatedImageFeaturesItem = new ConditionalMenuItem("Co-located images",
         () -> {
-          if (selectedFeature == null) {
+          if (selectedFeature == null
+              && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile) {
             return false;
           }
-          R2RMap<RowsRelationship> rowsRelationshipR2RMap = Objects.requireNonNull(
-              selectedRow.getFeatureList()).getRowMap(Type.MS1_FEATURE_CORR);
+          final Optional<R2RMap<RowsRelationship>> rowMapOptional = selectedRow.getFeatureList()
+              .getRowMap(Type.MS1_FEATURE_CORR);
+          if (rowMapOptional.isEmpty()) {
+            return false;
+          }
+          R2RMap<RowsRelationship> rowsRelationshipR2RMap = rowMapOptional.get();
+
           List<FeatureListRow> allRows = selectedRow.getFeatureList().getRows();
-          Map<FeatureListRow, Double> correlatedRows = new HashMap<>();
           for (FeatureListRow row : allRows) {
-            if (rowsRelationshipR2RMap != null && row != selectedRow
-                && rowsRelationshipR2RMap.get(selectedRow, row) != null) {
+            if (row != selectedRow && rowsRelationshipR2RMap.get(selectedRow, row) != null) {
               if (rowsRelationshipR2RMap.get(selectedRow, row).getScore() > 0) {
-                correlatedRows.put(row, rowsRelationshipR2RMap.get(selectedRow, row).getScore());
+                return true;
               }
             }
           }
 
-          return (rowsRelationshipR2RMap != null && !correlatedRows.isEmpty()
-              && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
+          return false;
         });
     showCorrelatedImageFeaturesItem.setOnAction(e -> {
       showCorrelatedImageFeatures();
@@ -436,7 +438,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showInIMSRawDataOverviewItem = new ConditionalMenuItem(
         "Show m/z ranges in IMS raw data overview",
         () -> selectedFeature != null && selectedFeature.getRawDataFile() instanceof IMSRawDataFile
-              && !selectedFeatures.isEmpty());
+            && !selectedFeatures.isEmpty());
     showInIMSRawDataOverviewItem.setOnAction(
         e -> IMSRawDataOverviewModule.openIMSVisualizerTabWithFeatures(
             getFeaturesFromSelectedRaw(selectedFeatures)));
@@ -471,13 +473,13 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem showBestMobilityScanItem = new ConditionalMenuItem("Best mobility scan",
         () -> selectedFeature != null && selectedFeature.getRepresentativeScan() instanceof Frame
-              && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
+            && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
     showBestMobilityScanItem.setOnAction(e -> SpectraVisualizerModule.addNewSpectrumTab(
         IonMobilityUtils.getBestMobilityScan(selectedFeature)));
 
     final MenuItem extractSumSpectrumFromMobScans = new ConditionalMenuItem(
         "Extract spectrum from mobility FWHM", () -> selectedFeature != null
-                                                     && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
+        && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
     extractSumSpectrumFromMobScans.setOnAction(e -> {
       Range<Float> fwhm = IonMobilityUtils.getMobilityFWHM(
           ((IonMobilogramTimeSeries) selectedFeature.getFeatureData()).getSummedMobilogram());
@@ -494,7 +496,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showMSMSItem = new ConditionalMenuItem("Most intense MS/MS",
         () -> (selectedRow != null && getNumberOfFeaturesWithFragmentScans(selectedRow) >= 1) || (
             selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null) || (
-                  selectedRows.size() > 1 && getNumberOfRowsWithFragmentScans(selectedRows) > 1));
+            selectedRows.size() > 1 && getNumberOfRowsWithFragmentScans(selectedRows) > 1));
     showMSMSItem.setOnAction(e -> {
       if (selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null) {
         SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getMostIntenseFragmentScan());
@@ -618,8 +620,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     }
     // get best isotope pattern feature
     return selectedRow.streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
-                                                    && f.getFeatureStatus()
-                                                       != FeatureStatus.UNKNOWN)
+            && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
         .max(Comparator.comparingDouble(ModularFeature::getHeight));
   }
 
@@ -733,25 +734,31 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void showCorrelatedImageFeatures() {
-    R2RMap<RowsRelationship> rowsRelationshipR2RMap = Objects.requireNonNull(
-        selectedRow.getFeatureList()).getRowMap(Type.MS1_FEATURE_CORR);
-    List<FeatureListRow> allRows = selectedRow.getFeatureList().getRows();
-    Map<FeatureListRow, Double> correlatedRows = new HashMap<>();
-    for (FeatureListRow row : allRows) {
-      if (rowsRelationshipR2RMap != null && row != selectedRow
-          && rowsRelationshipR2RMap.get(selectedRow, row) != null) {
-        if (rowsRelationshipR2RMap.get(selectedRow, row).getScore() > 0) {
-          correlatedRows.put(row, rowsRelationshipR2RMap.get(selectedRow, row).getScore());
-        }
-      }
-    }
 
-    if (correlatedRows.isEmpty()) {
-      MZmineCore.getDesktop().displayErrorMessage("No co-located images found for selected image");
+    final ModularFeatureList flist = selectedRow.getFeatureList();
+    var opt = flist.getRowMap(Type.MS1_FEATURE_CORR);
+    if (opt.isEmpty()) {
       return;
     }
 
-    List<Map.Entry<FeatureListRow, Double>> entryList = new ArrayList<>(correlatedRows.entrySet());
+    R2RMap<RowsRelationship> rowsRelationshipR2RMap = opt.get();
+
+    final List<RowsRelationship> sortedRelationships = rowsRelationshipR2RMap.streamAllCorrelatedRows(selectedRow,
+            flist.getRows()).sorted(Comparator.comparingDouble(RowsRelationship::getScore).reversed())
+        .toList();
+    if (sortedRelationships.isEmpty()) {
+      MZmineCore.getDesktop().displayMessage("No co-located images found for selected image");
+      return;
+    }
+
+    final List<DataPoint> dataPoints = sortedRelationships.stream()
+        .map(r -> (DataPoint) new SimpleDataPoint(r.getAverageMZ(), r.getAverageHeight()))
+        .sorted(DataPointSorter.DEFAULT_MZ_ASCENDING).toList();
+    final List<FeatureListRow> correlatedRows = correlatedRowToScoreMap.entrySet().stream()
+        .sorted((a, b) -> Double.compare(b.getValue(), a.getValue())).map(Entry::getKey).toList();
+
+    List<Map.Entry<FeatureListRow, Double>> entryList = new ArrayList<>(
+        correlatedRowToScoreMap.entrySet());
     entryList.sort(Map.Entry.comparingByValue());
     Collections.reverse(entryList);
     List<FeatureListRow> correlatedRowsSortedByMz = new ArrayList<>();
@@ -761,18 +768,14 @@ public class FeatureTableContextMenu extends ContextMenu {
       correlatedRowsSortedByMz.add(entry.getKey());
     }
 
-    List<DataPoint> dataPoints = new ArrayList<>();
-    for (FeatureListRow row : correlatedRowsSortedByMz) {
-      dataPoints.add(new SimpleDataPoint(row.getAverageMZ(), row.getAverageHeight()));
-    }
-    SplitPane splitPaneH = new SplitPane();
-    splitPaneH.setOrientation(Orientation.HORIZONTAL);
+    SplitPane imageSpectrumPane = new SplitPane();
+    imageSpectrumPane.setOrientation(Orientation.HORIZONTAL);
     assert selectedRow != null;
     ColocatedImagePane colocatedImagePane = new ColocatedImagePane(sortedCorrelatedRows);
-    splitPaneH.getItems().add(colocatedImagePane.createImagePlotForRow(selectedRow, 1.0));
-    ScrollPane scrollPane = new ScrollPane(colocatedImagePane);
-    scrollPane.setFitToWidth(true);
-    scrollPane.setFitToHeight(true);
+    imageSpectrumPane.getItems().add(colocatedImagePane.createImagePlotForRow(selectedRow, 1.0));
+    ScrollPane colocatedScroll = new ScrollPane(colocatedImagePane);
+    colocatedScroll.setFitToWidth(true);
+    colocatedScroll.setFitToHeight(true);
     dataPoints.sort(Comparator.comparingDouble(DataPoint::getMZ));
     Feature feature;
     if (selectedFeature != null) {
@@ -797,36 +800,13 @@ public class FeatureTableContextMenu extends ContextMenu {
           PseudoSpectrumType.MALDI_IMAGING);
       spectraVisualizerTab.addDataSet(new ScanDataSet(pseudoMSSelectedFeature),
           MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), false);
-      SplitPane splitPane = new SplitPane();
-      splitPane.setOrientation(Orientation.VERTICAL);
-      splitPaneH.getItems().add(spectraVisualizerTab.getMainPane());
-      splitPane.getItems().add(splitPaneH);
-      splitPane.getItems().add(scrollPane);
-      spectraVisualizerTab.setContent(splitPane);
+      SplitPane mainPane = new SplitPane();
+      mainPane.setOrientation(Orientation.VERTICAL);
+      imageSpectrumPane.getItems().add(spectraVisualizerTab.getMainPane());
+      mainPane.getItems().add(imageSpectrumPane);
+      mainPane.getItems().add(colocatedScroll);
+      spectraVisualizerTab.setContent(mainPane);
       MZmineCore.getDesktop().addTab(spectraVisualizerTab);
-    }
-  }
-
-  private void showDiaMsMsIons() {
-    final Scan msms = selectedFeature.getMostIntenseFragmentScan();
-    final RawDataFile file = selectedFeature.getRawDataFile();
-    ScanSelection selection = new ScanSelection(
-        Range.closed(selectedFeature.getRawDataPointsRTRange().lowerEndpoint() - 1d,
-            selectedFeature.getRawDataPointsRTRange().upperEndpoint() + 1d), 2);
-    final List<Scan> matchingScans = selection.getMatchingScans(file.getScans());
-    MZTolerance tol = new MZTolerance(0.005, 15);
-
-    TICVisualizerTab window = new TICVisualizerTab(new RawDataFile[]{file}, TICPlotType.BASEPEAK,
-        new ScanSelection(1), tol.getToleranceRange(selectedFeature.getMZ()), null, null);
-
-    final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    for (int i = 0; i < msms.getNumberOfDataPoints(); i++) {
-      TICDataSet dataSet = new TICDataSet(file, matchingScans,
-          tol.getToleranceRange(msms.getMzValue(i)), null, TICPlotType.BASEPEAK);
-      dataSet.setCustomSeriesKey(String.format("m/z %s", mzFormat.format(msms.getMzValue(i))));
-      window.getTICPlot().addTICDataSet(dataSet,
-          ColorUtils.getContrastPaletteColorAWT(file.getColor(),
-              MZmineCore.getConfiguration().getDefaultColorPalette()));
     }
   }
 

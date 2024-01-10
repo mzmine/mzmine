@@ -54,6 +54,9 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
+/**
+ * Displays all correlated images in a grid
+ */
 public class ColocatedImagePane extends GridPane {
 
   private static final Logger logger = Logger.getLogger(ColocatedImagePane.class.getName());
@@ -70,22 +73,28 @@ public class ColocatedImagePane extends GridPane {
     this.setHgap(10);
     this.setVgap(10);
     chartGroup = new ChartGroup(false, false, true, true);
-    MZmineCore.runLater(() -> {
-      int i = 0;
-      for (Entry<FeatureListRow, Double> entry : sortedCorrelatedRows.entrySet()) {
-        FeatureListRow row = entry.getKey();
-        Node imagePlot = createImagePlotForRow(row, entry.getValue());
-        int rowPosition = i / 4;
-        int colPosition = i % 4;
-        this.add(imagePlot, colPosition, rowPosition);
-        if (i > 100) {
-          logger.log(Level.WARNING, "Only show first 100 correlations");
-          break;
-        }
-        i++;
-      }
-    });
+    updateContent(sortedCorrelatedRows);
+  }
 
+  public void updateContent(Map<FeatureListRow, Double> sortedCorrelatedRows) {
+    this.getChildren().clear();
+    if(sortedCorrelatedRows == null || sortedCorrelatedRows.isEmpty()) {
+      return;
+    }
+
+    int i = 0;
+    for (Entry<FeatureListRow, Double> entry : sortedCorrelatedRows.entrySet()) {
+      FeatureListRow row = entry.getKey();
+      Node imagePlot = createImagePlotForRow(row, entry.getValue());
+      int rowPosition = i / 4;
+      int colPosition = i % 4;
+      this.add(imagePlot, colPosition, rowPosition);
+      if (i > 100) {
+        logger.log(Level.WARNING, "Only show first 100 correlations");
+        break;
+      }
+      i++;
+    }
   }
 
   public Node createImagePlotForRow(FeatureListRow row, Double score) {
