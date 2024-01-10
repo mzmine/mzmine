@@ -26,37 +26,43 @@
 package io.github.mzmine.modules.visualization.pseudospectrumvisualizer;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
 import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.RangeUtils;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
 
-  private final RawDataFile rawDataFile;
+  private final RawDataFile dataFile;
   private final TICPlot chromPlot;
   private final Scan pseudoScan;
   private final ModularFeature feature;
   private final MZTolerance mzTolerance;
   private ExtractMzRangesIonSeriesFunction extractFunction;
 
-  PseudoSpectrumFeatureDataSetCalculationTask(RawDataFile rawDataFile, TICPlot chromPlot,
+  PseudoSpectrumFeatureDataSetCalculationTask(RawDataFile dataFile, TICPlot chromPlot,
       Scan pseudoScan, ModularFeature feature, MZTolerance mzTolerance) {
     super(null, Instant.now());
-    this.rawDataFile = rawDataFile;
+    this.dataFile = dataFile;
     this.chromPlot = chromPlot;
     this.pseudoScan = pseudoScan;
     this.feature = feature;
@@ -79,33 +85,31 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     ModularFeatureList newFeatureList = new ModularFeatureList("Feature list " + this.hashCode(),
-        null, rawDataFile);
+        null, dataFile);
 
     if (getStatus() == TaskStatus.CANCELED) {
       return;
     }
 
     Range<Float> featureRtRange = feature.getRawDataPointsRTRange();
+    final ScanSelection selection = new ScanSelection(pseudoScan.getMSLevel(), featureRtRange);
 
     // use scans from feature list
-    final List<? extends Scan> allScans = feature.getFeatureList().getSeletedScans(rawDataFile);
-    if (allScans == null) {
-      setErrorMessage("Selected scans were not set for pseudo scan in dataset caluclation task");
+    List<Scan> scans = selection.streamMatchingScans(dataFile).toList();
+    if (scans.isEmpty()) {
+      setErrorMessage(
+          "scans were empty in the given RT range of feature " + FeatureUtils.featureToString(
+              feature));
       setStatus(TaskStatus.ERROR);
       return;
     }
-
-    // filter scans within RT range of feature
-    List<? extends Scan> scans = BinarySearch.indexRange(featureRtRange.lowerEndpoint(),
-        featureRtRange.upperEndpoint(), allScans.size(),
-        index -> allScans.get(index).getRetentionTime()).sublist(allScans);
 
     // get all mz ranges
     List<Range<Double>> mzRangesSorted = Arrays.stream(pseudoScan.getMzValues(new double[0]))
         .sorted().mapToObj(mzTolerance::getToleranceRange).toList();
 
     // extract all IonSeries at once
-    extractFunction = new ExtractMzRangesIonSeriesFunction(rawDataFile, scans, mzRangesSorted,
+    extractFunction = new ExtractMzRangesIonSeriesFunction(dataFile, scans, mzRangesSorted,
         this);
 
     BuildingIonSeries[] ionSeries = extractFunction.calculate();
@@ -114,21 +118,30 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
       return;
     }
 
-    // create feature datasets
-    final List<FeatureDataSet> features = Arrays.stream(ionSeries)
-        .map(series -> series.toFullIonTimeSeries(null, scans)) //
-        .map(series -> new ModularFeature(newFeatureList, rawDataFile, series,
-            FeatureStatus.DETECTED)) //
-        .map(FeatureDataSet::new) //
-        .toList();
+    var format = MZmineCore.getConfiguration().getGuiFormats();
+
+    List<ColoredXYDataset> datasets = new ArrayList<>();
+
+    for (int i = 0; i < ionSeries.length; i++) {
+      var builder = ionSeries[i];
+      double mz = RangeUtils.rangeCenter(mzRangesSorted.get(i));
+      var nextColorAWT = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
+
+      IonTimeSeries<? extends Scan> series = builder.toFullIonTimeSeries(null, scans);
+      datasets.add(
+          new ColoredXYDataset(new IonTimeSeriesToXYProvider(series, format.mz(mz), nextColorAWT),
+              RunOption.THIS_THREAD));
+    }
 
     MZmineCore.runLater(() -> {
       if (getStatus() == TaskStatus.CANCELED) {
         return;
       }
       chromPlot.removeAllFeatureDataSets(false);
-      for (FeatureDataSet featureDataSet : features) {
-        chromPlot.addFeatureDataSetRandomColor(featureDataSet);
+      chromPlot.addFeatureDataSetRandomColor(new FeatureDataSet(feature));
+
+      for (var dataset : datasets) {
+        chromPlot.addDataSet(dataset);
       }
     });
 

@@ -49,7 +49,6 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskFunction<Build
   private static final Logger logger = Logger.getLogger(
       ExtractMzRangesIonSeriesFunction.class.getName());
   private final List<Range<Double>> mzRangesSorted;
-  private final AbstractTask parentTask;
   private final ScanDataAccess dataAccess;
   private int processedScans, totalScans;
 
@@ -63,7 +62,6 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskFunction<Build
 
     dataAccess = EfficientDataAccess.of(dataFile, ScanDataType.MASS_LIST, scanSelection);
     this.mzRangesSorted = mzRangesSorted;
-    this.parentTask = parentTask;
   }
 
   /**
@@ -75,7 +73,6 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskFunction<Build
 
     dataAccess = EfficientDataAccess.of(dataFile, ScanDataType.MASS_LIST, scans);
     this.mzRangesSorted = mzRangesSorted;
-    this.parentTask = parentTask;
   }
 
   @Override
