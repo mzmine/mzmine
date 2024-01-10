@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -55,8 +56,8 @@ public class ImageVisualizerParameters extends SimpleParameterSet {
       new MobilityRangeParameter());
 
   public static final ComboParameter<PaintScaleTransform> imageTransformation = new ComboParameter<>(
-      "Transform paint scale", "", PaintScaleTransform.values(),
-      MZmineCore.getConfiguration().getImageTransformation());
+      "Image paint scale transformation", "Transforms the paint scale for images.",
+      PaintScaleTransform.values(), MZmineCore.getConfiguration().getImageTransformation());
 
   public static final ComboParameter<ImageNormalization> imageNormalization = new ComboParameter<>(
       "Normalize images",

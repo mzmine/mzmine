@@ -37,6 +37,4 @@ public class CorrelatedImageVisualizerTab extends SimpleFeatureListTab {
         getParentGroup());
     setContent(pane);
   }
-
-
 }

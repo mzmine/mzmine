@@ -176,7 +176,8 @@ public class MZminePreferences extends SimpleParameterSet {
       ImageNormalization.NO_NORMALIZATION);
 
   public static final ComboParameter<PaintScaleTransform> imageTransformation = new ComboParameter<>(
-      "Transform paint scale", "", PaintScaleTransform.values(), PaintScaleTransform.LINEAR);
+      "Image paint scale transformation", "Transforms the paint scale for images.",
+      PaintScaleTransform.values(), PaintScaleTransform.LINEAR);
 
   private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
       new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),

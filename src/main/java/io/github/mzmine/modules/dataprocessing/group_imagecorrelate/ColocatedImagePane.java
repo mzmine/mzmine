@@ -25,20 +25,24 @@
 
 package io.github.mzmine.modules.dataprocessing.group_imagecorrelate;
 
+import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
+import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerTab;
+import io.github.mzmine.modules.visualization.image.ImagingPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.color.ColorScaleUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.Insets;
@@ -51,44 +55,60 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Displays all correlated images in a grid
  */
-public class ColocatedImagePane extends GridPane {
+public class ColocatedImagePane extends StackPane {
 
-  private static final Logger logger = Logger.getLogger(ColocatedImagePane.class.getName());
   public static final Color MAX_COS_COLOR = MZmineCore.getConfiguration().getDefaultColorPalette()
       .getPositiveColor();
   public static final Color MIN_COS_COLOR = MZmineCore.getConfiguration().getDefaultColorPalette()
       .getNegativeColor();
   public static final double MIN_COS_COLOR_VALUE = 0.5;
   public static final double MAX_COS_COLOR_VALUE = 1.0;
-  private final ChartGroup chartGroup;
+  private static final Logger logger = Logger.getLogger(ColocatedImagePane.class.getName());
+  private final GridPane contentGrid = new GridPane();
+  private final Label noContentLabel = new Label("Selected feature has no correlated images.");
+  private ChartGroup chartGroup = null;
 
-  public ColocatedImagePane(Map<FeatureListRow, Double> sortedCorrelatedRows) {
+
+  public ColocatedImagePane(@Nullable List<RowsRelationship> sortedRelationships,
+      @Nullable FeatureListRow selectedRow, @Nullable RawDataFile file) {
     super();
-    this.setHgap(10);
-    this.setVgap(10);
+    this.getChildren().add(contentGrid);
+    contentGrid.setHgap(10);
+    contentGrid.setVgap(10);
     chartGroup = new ChartGroup(false, false, true, true);
-    updateContent(sortedCorrelatedRows);
+    updateContent(sortedRelationships, selectedRow, file);
   }
 
-  public void updateContent(Map<FeatureListRow, Double> sortedCorrelatedRows) {
-    this.getChildren().clear();
-    if(sortedCorrelatedRows == null || sortedCorrelatedRows.isEmpty()) {
+  public void updateContent(List<RowsRelationship> sortedRelationships, FeatureListRow selectedRow,
+      RawDataFile file) {
+    getChildren().remove(noContentLabel);
+    contentGrid.getChildren().clear();
+    chartGroup = new ChartGroup(false, false, true, true);
+
+    if (sortedRelationships == null || sortedRelationships.isEmpty() || selectedRow == null
+        || !(file instanceof ImagingRawDataFile imgFile)) {
+      getChildren().add(noContentLabel);
       return;
     }
 
     int i = 0;
-    for (Entry<FeatureListRow, Double> entry : sortedCorrelatedRows.entrySet()) {
-      FeatureListRow row = entry.getKey();
-      Node imagePlot = createImagePlotForRow(row, entry.getValue());
-      int rowPosition = i / 4;
-      int colPosition = i % 4;
-      this.add(imagePlot, colPosition, rowPosition);
+    for (var relationship : sortedRelationships) {
+      final Node imagePlot = createImagePlotForRelatedRow(relationship, selectedRow, imgFile);
+      if (imagePlot == null) {
+        continue;
+      }
+      final int rowPosition = i / 4;
+      final int colPosition = i % 4;
+      contentGrid.add(imagePlot, colPosition, rowPosition);
       if (i > 100) {
         logger.log(Level.WARNING, "Only show first 100 correlations");
         break;
@@ -97,7 +117,29 @@ public class ColocatedImagePane extends GridPane {
     }
   }
 
-  public Node createImagePlotForRow(FeatureListRow row, Double score) {
+  @Nullable
+  private BorderPane createImagePlotForRelatedRow(RowsRelationship relationship,
+      FeatureListRow selectedRow, ImagingRawDataFile file) {
+
+    final FeatureListRow relatedRow = relationship.getOtherRow(selectedRow);
+    if (relatedRow == null) {
+      return null;
+    }
+    final Feature relatedFeature = relatedRow.getFeature(file);
+    if (relatedFeature == null) {
+      return null;
+    }
+    final double score = relationship.getScore();
+
+    return createImagePane(relatedRow, (ModularFeature) relatedFeature, score);
+  }
+
+  /**
+   * Creates an image plot that whose zoom is bound to all images in this
+   * {@link ColocatedImagePane}.
+   */
+  @NotNull
+  public BorderPane createImagePane(FeatureListRow row, ModularFeature feature, double score) {
     BorderPane borderPane = new BorderPane();
     ParameterSet params = MZmineCore.getConfiguration()
         .getModuleParameters(ImageVisualizerModule.class).cloneParameterSet();
@@ -105,9 +147,11 @@ public class ColocatedImagePane extends GridPane {
         MZmineCore.getConfiguration().getImageNormalization()); // same as in the feature table.
     params.setParameter(ImageVisualizerParameters.imageTransformation,
         MZmineCore.getConfiguration().getImageTransformation());
-    ImageVisualizerTab imageVisualizerTab = new ImageVisualizerTab(
-        (ModularFeature) row.getBestFeature(), params);
-    EChartViewer chart = imageVisualizerTab.getImagingPlot().getChart();
+
+    var imagePlot = new ImagingPlot((ImageVisualizerParameters) params);
+    imagePlot.setData(feature);
+
+    EChartViewer chart = imagePlot.getChart();
     chart.setMinSize(200, 200);
     chart.getChart().getXYPlot().setBackgroundPaint(java.awt.Color.BLACK);
     chartGroup.add(new ChartViewWrapper(chart));
@@ -117,7 +161,6 @@ public class ColocatedImagePane extends GridPane {
     borderPane.setTop(createTitlePane(row, score));
     GridPane.setHgrow(borderPane, Priority.ALWAYS);
     GridPane.setVgrow(borderPane, Priority.ALWAYS);
-
     return borderPane;
   }
 
@@ -133,9 +176,9 @@ public class ColocatedImagePane extends GridPane {
     String name = extractName(row);
     Label lblHit = createLabel(name, "white-larger-label");
     String simScoreTooltip =
-        "Similarity with selected image: " + MZmineCore.getConfiguration().getScoreFormat()
-            .format(score);
-    Label lblScore = createLabel(MZmineCore.getConfiguration().getScoreFormat().format(score),
+        "Similarity with selected image: " + MZmineCore.getConfiguration().getGuiFormats()
+            .score(score);
+    Label lblScore = createLabel(MZmineCore.getConfiguration().getGuiFormats().score(score),
         simScoreTooltip, "white-score-label");
     var scoreBox = new HBox(5, featureInfo, lblScore);
     scoreBox.setPadding(new Insets(0, 5, 0, 10));
@@ -148,12 +191,12 @@ public class ColocatedImagePane extends GridPane {
   }
 
   private String extractName(FeatureListRow row) {
-    String mz = "m/z " + MZmineCore.getConfiguration().getMZFormat().format(row.getAverageMZ());
+    String mz = "m/z " + MZmineCore.getConfiguration().getGuiFormats().mz(row.getAverageMZ());
     if (row.getPreferredAnnotationName() != null) {
       return row.getPreferredAnnotationName() + " " + mz;
     } else if (row.getBestIonIdentity() != null) {
       return row.getBestIonIdentity().getAdduct() + " " + row.getBestIonIdentity()
-          .getBestMolFormula().getFormulaAsString() + " " + mz;
+          .getBestMolFormula().map(MolecularFormulaIdentity::getFormulaAsString) + " " + mz;
     } else {
       return mz;
     }

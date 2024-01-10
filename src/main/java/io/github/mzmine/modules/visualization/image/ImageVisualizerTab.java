@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,22 +63,24 @@ import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.XYPlot;
 
 /**
- * Combines the ImagingPlot with a spectrum
+ * Combines the ImagingPlot with a spectrum.
+ * <p>
+ * Todo: refactor logic to pane
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de), Robin Schmid <a
  * href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
 public class ImageVisualizerTab extends MZmineTab {
 
-  private ParameterSet parameters;
   private final ImageVisualizerPaneController controller;
+  private ParameterSet parameters;
   private ImagingPlot imagingPlot;
   private EChartViewer imageHeatMapPlot;
   private SpectraVisualizerTab spectraTab;
   private ImagingRawDataFile rawDataFile;
   private ParameterSetupPane parameterSetupPane;
 
-  public ImageVisualizerTab(ParameterSet parameters) {
+  public ImageVisualizerTab(ImageVisualizerParameters parameters) {
     super("Image viewer", false, false);
     this.parameters = MZmineCore.getConfiguration().getModuleParameters(ImageVisualizerModule.class)
         .cloneParameterSet();
@@ -92,7 +94,7 @@ public class ImageVisualizerTab extends MZmineTab {
       logger.log(Level.WARNING, e.getMessage(), e);
     }
 
-    ParameterSet finalParameters = parameters;
+    ImageVisualizerParameters finalParameters = parameters;
     parameterSetupPane = new ParameterSetupPane(true, true, finalParameters) {
       @Override
       protected void callOkButton() {
@@ -106,7 +108,7 @@ public class ImageVisualizerTab extends MZmineTab {
         refreshAllPlots(finalParameters);
       }
     };
-    parameters = parameterSetupPane.getParameterSet();
+    parameters = (ImageVisualizerParameters) parameterSetupPane.getParameterSet();
     Map<String, Node> parametersAndComponents = parameterSetupPane.getParametersAndComponents();
     for (Entry<String, Node> entry : parametersAndComponents.entrySet()) {
       if (entry.getKey().equals("Raw data files")) {
@@ -119,7 +121,7 @@ public class ImageVisualizerTab extends MZmineTab {
     Accordion plotSettingsAccordion = new Accordion(new TitledPane("Settings", parameterSetupPane));
     controller.getSettingsBorderPane().setBottom(plotSettingsAccordion);
     // add empty image chart
-    imagingPlot = new ImagingPlot(parameters);
+    imagingPlot = new ImagingPlot((ImageVisualizerParameters) parameters);
     controller.getPlotPane().setCenter(imagingPlot);
     imageHeatMapPlot = imagingPlot.getChart();
     MZmineCore.getConfiguration().getDefaultChartTheme().apply(imageHeatMapPlot);
@@ -128,7 +130,24 @@ public class ImageVisualizerTab extends MZmineTab {
     setContent(mainPane);
   }
 
-  private void refreshAllPlots(ParameterSet finalParameters) {
+  public ImageVisualizerTab(ModularFeature feature, ImageVisualizerParameters parameters) {
+    this(parameters);
+
+    setData(feature);
+  }
+
+  public ImageVisualizerTab(List<ModularFeature> features, ImageVisualizerParameters parameters) {
+    this(parameters);
+
+    setData(features);
+  }
+
+  public ImageVisualizerTab(ImagingRawDataFile rawDataFile, ImageVisualizerParameters parameters) {
+    this(parameters);
+    setData(rawDataFile, true);
+  }
+
+  private void refreshAllPlots(ImageVisualizerParameters finalParameters) {
     cleanGridPane(controller.getRawDataInfoGridPane());
     cleanGridPane(controller.getImagingParameterInfoGridPane());
     imagingPlot = new ImagingPlot(finalParameters);
@@ -148,24 +167,6 @@ public class ImageVisualizerTab extends MZmineTab {
         }
       }
     }
-  }
-
-  public ImageVisualizerTab(ModularFeature feature, ParameterSet parameters) {
-    this(parameters);
-
-    setData(feature);
-  }
-
-  public ImageVisualizerTab(List<ModularFeature> features, ParameterSet parameters) {
-    this(parameters);
-
-    setData(features);
-  }
-
-  public ImageVisualizerTab(ImagingRawDataFile rawDataFile, ParameterSet parameters) {
-    this(parameters);
-
-    setData(rawDataFile, true);
   }
 
   public synchronized void setData(ImagingRawDataFile rawDataFile, boolean createImage) {
