@@ -112,7 +112,7 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
     extractFunction = new ExtractMzRangesIonSeriesFunction(dataFile, scans, mzRangesSorted,
         this);
 
-    BuildingIonSeries[] ionSeries = extractFunction.calculate();
+    BuildingIonSeries[] ionSeries = extractFunction.get();
 
     if (isCanceled()) {
       return;

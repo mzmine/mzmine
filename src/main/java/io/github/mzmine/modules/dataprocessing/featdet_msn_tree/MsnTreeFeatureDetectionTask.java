@@ -117,7 +117,7 @@ public class MsnTreeFeatureDetectionTask extends AbstractTask {
 
     extractorFunction = new ExtractMzRangesIonSeriesFunction(dataFile, scanSelection,
         mzRangesSorted, this);
-    BuildingIonSeries[] chromatograms = extractorFunction.calculate();
+    BuildingIonSeries[] chromatograms = extractorFunction.get();
 
     if (isCanceled()) {
       return;

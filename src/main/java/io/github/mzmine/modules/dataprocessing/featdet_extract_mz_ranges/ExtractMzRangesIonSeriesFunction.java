@@ -35,7 +35,7 @@ import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries.IntensityMode;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.operations.AbstractTaskFunction;
+import io.github.mzmine.taskcontrol.operations.AbstractTaskSubSupplier;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -44,13 +44,14 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Task to extrat {@link BuildingIonSeries} that can be turned into IonTimeSeries etc.
  */
-public class ExtractMzRangesIonSeriesFunction extends AbstractTaskFunction<BuildingIonSeries[]> {
+public class ExtractMzRangesIonSeriesFunction extends AbstractTaskSubSupplier<BuildingIonSeries[]> {
 
   private static final Logger logger = Logger.getLogger(
       ExtractMzRangesIonSeriesFunction.class.getName());
   private final List<Range<Double>> mzRangesSorted;
   private final ScanDataAccess dataAccess;
   private int processedScans, totalScans;
+  private String description;
 
   /**
    * @param mzRangesSorted sorted by mz ascending
@@ -62,6 +63,8 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskFunction<Build
 
     dataAccess = EfficientDataAccess.of(dataFile, ScanDataType.MASS_LIST, scanSelection);
     this.mzRangesSorted = mzRangesSorted;
+    description = "Extracting %d ion series from data file %s".formatted(mzRangesSorted.size(),
+        dataFile.getName());
   }
 
   /**
@@ -73,6 +76,11 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskFunction<Build
 
     dataAccess = EfficientDataAccess.of(dataFile, ScanDataType.MASS_LIST, scans);
     this.mzRangesSorted = mzRangesSorted;
+  }
+
+  @Override
+  public @NotNull String getTaskDescription() {
+    return description;
   }
 
   @Override
@@ -89,7 +97,7 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskFunction<Build
    */
   @Override
   @NotNull
-  public BuildingIonSeries[] calculate() {
+  public BuildingIonSeries[] get() {
     if (mzRangesSorted.isEmpty()) {
       return new BuildingIonSeries[0];
     }
