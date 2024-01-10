@@ -27,10 +27,10 @@ package io.github.mzmine.taskcontrol.operations;
 
 /**
  * Task operations are sub tasks that can react to a parent task being canceled. It also updates the
- * finished percentage progress.
+ * finished percentage progress. A processor just processes items without return type
  */
-public interface TaskFunction<T> extends TaskOperation {
+public non-sealed interface TaskSubProcessor extends TaskSubOperation {
 
-  T calculate();
+  void process();
 
 }

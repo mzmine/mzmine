@@ -26,27 +26,16 @@
 package io.github.mzmine.taskcontrol.operations;
 
 import io.github.mzmine.taskcontrol.AbstractTask;
-import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractTaskOperation implements TaskOperation {
+public abstract class AbstractTaskSubFunction<T, R> extends AbstractParentTaskDependent implements
+    TaskSubFunction<T, R> {
 
-  private AbstractTask parentTask;
-
-  public AbstractTaskOperation() {
+  public AbstractTaskSubFunction() {
     this(null);
   }
 
-  public AbstractTaskOperation(final AbstractTask parentTask) {
-    this.parentTask = parentTask;
+  public AbstractTaskSubFunction(final AbstractTask parentTask) {
+    super(parentTask);
   }
 
-  @Nullable
-  public AbstractTask getParentTask() {
-    return parentTask;
-  }
-
-  @Override
-  public void setParentTask(final @Nullable AbstractTask parentTask) {
-    this.parentTask = parentTask;
-  }
 }

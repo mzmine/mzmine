@@ -25,22 +25,12 @@
 
 package io.github.mzmine.taskcontrol.operations;
 
-import io.github.mzmine.taskcontrol.AbstractTask;
-import org.jetbrains.annotations.Nullable;
+import java.util.function.Function;
 
-public abstract class AbstractTaskFunction<T> extends AbstractTaskOperation implements
-    TaskFunction<T> {
+/**
+ * Task operations are sub tasks that can react to a parent task being canceled. It also updates the
+ * finished percentage progress. The function processes items and returns new types.
+ */
+public non-sealed interface TaskSubFunction<T, R> extends TaskSubOperation, Function<T, R> {
 
-  public AbstractTaskFunction() {
-    this(null);
-  }
-
-  public AbstractTaskFunction(final AbstractTask parentTask) {
-    super(parentTask);
-  }
-
-  @Override
-  public void setParentTask(final @Nullable AbstractTask parentTask) {
-
-  }
 }
