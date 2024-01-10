@@ -30,10 +30,10 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.Database;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.RangeUtils;
@@ -139,7 +139,7 @@ public class ChemSpiderGateway implements DBGateway {
         formula = FORMULA_PATTERN.matcher(formula).replaceAll("");
 
       // Create and return the compound record.
-      return new SimpleCompoundDBAnnotation(OnlineDatabases.CHEMSPIDER, ID, name, formula,
+      return new SimpleCompoundDBAnnotation(Database.CHEM_SPIDER, ID, name, formula,
           new URL(STRUCTURE_URL_PATTERN.replaceFirst("CSID", ID)),
           new URL(STRUCTURE2D_URL_PATTERN.replaceFirst("CSID", ID)),
           new URL(STRUCTURE3D_URL_PATTERN.replaceFirst("CSID", ID)));

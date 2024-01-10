@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.SpectralDBAnnotation;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
@@ -43,7 +44,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
@@ -114,8 +114,8 @@ public class BioTransformerTask extends AbstractTask {
     final boolean enableAdvancedFilters = parameters.getValue(BioTransformerParameters.advanced);
     final ParameterSet filterParams = parameters.getEmbeddedParameterValue(
         BioTransformerParameters.advanced);
-    rowCorrelationFilter =
-        enableAdvancedFilters && filterParams.getValue(RtClusterFilterParameters.rowCorrelationFilter);
+    rowCorrelationFilter = enableAdvancedFilters && filterParams.getValue(
+        RtClusterFilterParameters.rowCorrelationFilter);
     rtTolerance = enableAdvancedFilters ? filterParams.getEmbeddedParameterValueIfSelectedOrElse(
         RtClusterFilterParameters.rtTolerance, null) : null;
 
@@ -275,7 +275,7 @@ public class BioTransformerTask extends AbstractTask {
           });
         }
         description = "Annotated " + numAnnotations + " rows for as transformations of "
-            + bestAnnotation.getCompoundName();
+                      + bestAnnotation.getCompoundName();
         predictions++;
       }
 
@@ -287,7 +287,7 @@ public class BioTransformerTask extends AbstractTask {
     } catch (IOException e) {
       logger.log(Level.WARNING, e.getMessage(), e);
       setErrorMessage("Error reading/writing temporary files during BioTransformer prediction.\n"
-          + e.getMessage());
+                      + e.getMessage());
       setStatus(TaskStatus.ERROR);
     }
   }
@@ -301,13 +301,13 @@ public class BioTransformerTask extends AbstractTask {
 
     final List<SpectralDBAnnotation> spectralLibraryMatches = row.getSpectralLibraryMatches();
     if (!spectralLibraryMatches.isEmpty() && (smilesSource == SmilesSource.ALL
-        || smilesSource == SmilesSource.SPECTRAL_LIBRARY)) {
+                                              || smilesSource == SmilesSource.SPECTRAL_LIBRARY)) {
       return spectralLibraryMatches.get(0);
     }
 
     final List<CompoundDBAnnotation> compoundAnnotations = row.getCompoundAnnotations();
     if (!compoundAnnotations.isEmpty() && (smilesSource == SmilesSource.ALL
-        || smilesSource == SmilesSource.COMPOUND_DB)) {
+                                           || smilesSource == SmilesSource.COMPOUND_DB)) {
       return compoundAnnotations.get(0);
     }
 

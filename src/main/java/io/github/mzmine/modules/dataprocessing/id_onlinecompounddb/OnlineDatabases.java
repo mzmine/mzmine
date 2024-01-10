@@ -75,6 +75,19 @@ public enum OnlineDatabases implements MZmineModule {
     this(name, gatewayClass, SimpleParameterSet.class);
   }
 
+  @Nullable
+  public static String getCompoundUrl(final String databaseName, final String id) {
+    if (databaseName == null || id == null) {
+      return null;
+    }
+    try {
+      OnlineDatabases db = valueOf(databaseName);
+      return db.getCompoundUrl(id);
+    } catch (IllegalArgumentException e) {
+      return null;
+    }
+  }
+
   public Class<? extends DBGateway> getGatewayClass() {
     return gatewayClass;
   }

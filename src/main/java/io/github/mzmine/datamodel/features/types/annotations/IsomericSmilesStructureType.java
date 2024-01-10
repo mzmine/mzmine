@@ -23,31 +23,41 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
+package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
-import java.util.logging.Logger;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
+import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
+import javafx.util.StringConverter;
+import javafx.util.converter.DefaultStringConverter;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Package private id type, so that pubchem ids can be read from a csv, but appear in the feature
- * table as the general {@link DatabaseMatchInfoType}.
- */
-public class PubChemIdType extends StringType {
+public class IsomericSmilesStructureType extends StringType implements EditableColumnType,
+    StringParser<String>, AnnotationType {
 
-  private static final Logger logger = Logger.getLogger(PubChemIdType.class.getName());
+  private final StringConverter<String> converter = new DefaultStringConverter();
 
-  public PubChemIdType() {
-  }
-
+  @NotNull
   @Override
-  public @NotNull String getUniqueID() {
-    return "pubchem_cid";
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "isomeric_smiles";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "PubChemCID";
+    return "Isomeric SMILES";
   }
+
+  @Override
+  public String fromString(String s) {
+    return s;
+  }
+
+  @Override
+  public StringConverter<String> getStringConverter() {
+    return converter;
+  }
+
 }

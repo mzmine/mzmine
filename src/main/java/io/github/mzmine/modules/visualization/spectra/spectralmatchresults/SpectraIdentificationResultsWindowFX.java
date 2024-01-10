@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.SpectralDBAnnotation;
 import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
@@ -34,7 +35,6 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.TableViewUtils;
 import io.github.mzmine.util.javafx.WeakAdapter;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

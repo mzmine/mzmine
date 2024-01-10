@@ -26,6 +26,7 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspect
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.compoundannotations.SpectralDBAnnotation;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.main.MZmineCore;
@@ -35,7 +36,6 @@ import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.util.Arrays;

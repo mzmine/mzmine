@@ -27,9 +27,9 @@ package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.Database;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.io.IOException;
@@ -194,7 +194,7 @@ public class PubChemGateway implements DBGateway {
       URL structure2DURL = new URL(pubchem2DStructureAddress + CID);
       URL structure3DURL = new URL(pubchem3DStructureAddress + CID);
 
-      CompoundDBAnnotation newCompound = new SimpleCompoundDBAnnotation(OnlineDatabases.PubChem, CID, compoundName,
+      CompoundDBAnnotation newCompound = new SimpleCompoundDBAnnotation(Database.PUBCHEM, CID, compoundName,
           compoundFormula, entryURL, structure2DURL, structure3DURL);
 
       return newCompound;

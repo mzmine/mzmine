@@ -1,0 +1,224 @@
+id	name	formula	rt	pubchem.cid	pubchem.smiles.isomeric	pubchem.smiles.canonical	pubchem.inchi	pubchem.inchikey	id.chebi	id.hmdb	id.lipidmaps	id.kegg	comment
+id	name	formula	rt	pubchem.cid	pubchem.smiles.isomeric	pubchem.smiles.canonical	pubchem.inchi	pubchem.inchikey	id.chebi	id.hmdb	id.lipidmaps	id.kegg	comment
+MYID_000000	XMD-17-51 (Trifluoroacetate)	C23H25F3N8O3	0.6933			O=C1N(C)C2=CN=C(NC3=CN(C4CCNCC4)N=C3)N=C2N(C)C5=CC=CC=C15.FC(C(O)=O)(F)F							compound annotation
+MYID_000001	OSU-T315	C30H30F3N5O	0.6933			O=C(NC)CCC1=CC(C2=CC=C(C3=CC=C(C(F)(F)F)C=C3)C=C2)=NN1C4=CC=C(N5CCNCC5)C=C4							compound annotation
+MYID_000002	Oncrasin-1	C16H12ClNO	1.8776			O=CC1=CN(CC(C=C2)=CC=C2Cl)C3=CC=CC=C31							compound annotation
+MYID_000003	Oncrasin-1	C16H12ClNO	1.8776			O=CC1=CN(CC(C=C2)=CC=C2Cl)C3=CC=CC=C31							compound annotation
+MYID_000004	Mevociclib	C31H35ClN8O2	1.8776			O=C(C1=NC=C(NC(/C=C/CN(C)C)=O)C=C1)N[C@@]2(C)CCC[C@@H](NC3=NC=C(Cl)C(C4=CNC5=C4C=CC=C5)=N3)C2							compound annotation
+MYID_000005	Etifoxine	C17H17ClN2O	1.3512			ClC1=CC=C2C(C(C3=CC=CC=C3)(C)OC(NCC)=N2)=C1							compound annotation
+MYID_000006	Etifoxine	C17H17ClN2O	1.3512			ClC1=CC=C2C(C(C3=CC=CC=C3)(C)OC(NCC)=N2)=C1							compound annotation
+MYID_000007	SP-420	C16H21NO6S	1.0279			O=C([C@]1(C)N=C(C2=CC=C(OCCOCCOC)C=C2O)SC1)O							compound annotation
+MYID_000008	SP-420	C16H21NO6S	1.0279			O=C([C@]1(C)N=C(C2=CC=C(OCCOCCOC)C=C2O)SC1)O							compound annotation
+MYID_000009	APNEA	C18H22N6O4	1.0279			OC[C@@H]1[C@H]([C@H]([C@H](N2C=NC3=C2N=CN=C3NCCC4=CC=C(N)C=C4)O1)O)O							compound annotation
+MYID_000010	APNEA	C18H22N6O4	1.0279			OC[C@@H]1[C@H]([C@H]([C@H](N2C=NC3=C2N=CN=C3NCCC4=CC=C(N)C=C4)O1)O)O							compound annotation
+MYID_000011	XMD-17-51 (Trifluoroacetate)	C23H25F3N8O3	1.3512			O=C1N(C)C2=CN=C(NC3=CN(C4CCNCC4)N=C3)N=C2N(C)C5=CC=CC=C15.FC(C(O)=O)(F)F							compound annotation
+MYID_000012	XMD-17-51 (Trifluoroacetate)	C23H25F3N8O3	1.3512			O=C1N(C)C2=CN=C(NC3=CN(C4CCNCC4)N=C3)N=C2N(C)C5=CC=CC=C15.FC(C(O)=O)(F)F							compound annotation
+MYID_000013	ICA-121431	C23H19N3O3S2	1.8776			O=C(NC1=CC=C(S(NC2=NC=CS2)(=O)=O)C=C1)C(C3=CC=CC=C3)C4=CC=CC=C4							compound annotation
+MYID_000014	ICA-121431	C23H19N3O3S2	1.8776			O=C(NC1=CC=C(S(NC2=NC=CS2)(=O)=O)C=C1)C(C3=CC=CC=C3)C4=CC=CC=C4							compound annotation
+MYID_000015	OSU-T315	C30H30F3N5O	1.8776			O=C(NC)CCC1=CC(C2=CC=C(C3=CC=C(C(F)(F)F)C=C3)C=C2)=NN1C4=CC=C(N5CCNCC5)C=C4							compound annotation
+MYID_000016	OSU-T315	C30H30F3N5O	1.8776			O=C(NC)CCC1=CC(C2=CC=C(C3=CC=C(C(F)(F)F)C=C3)C=C2)=NN1C4=CC=C(N5CCNCC5)C=C4							compound annotation
+MYID_000017	Mevociclib	C31H35ClN8O2	1.8776			O=C(C1=NC=C(NC(/C=C/CN(C)C)=O)C=C1)N[C@@]2(C)CCC[C@@H](NC3=NC=C(Cl)C(C4=CNC5=C4C=CC=C5)=N3)C2							compound annotation
+MYID_000018	Mevociclib	C31H35ClN8O2	1.8776			O=C(C1=NC=C(NC(/C=C/CN(C)C)=O)C=C1)N[C@@]2(C)CCC[C@@H](NC3=NC=C(Cl)C(C4=CNC5=C4C=CC=C5)=N3)C2							compound annotation
+id	name	formula	rt	pubchem.cid	pubchem.smiles.isomeric	pubchem.smiles.canonical	pubchem.inchi	pubchem.inchikey	id.chebi	id.hmdb	id.lipidmaps	id.kegg	comment
+MYID_000019	Pifithrin-β (hydrobromide)	C16H17BrN2S	1.1638			CC1=CC=C(C2=CN3C(SC4=C3CCCC4)=N2)C=C1.Br							compound annotation
+MYID_000020	Pifithrin-β (hydrobromide)	C16H17BrN2S	1.1638			CC1=CC=C(C2=CN3C(SC4=C3CCCC4)=N2)C=C1.Br							compound annotation
+MYID_000021	Belizatinib	C33H44FN5O3	0.7204			O=C(NC1=NC2=CC=C(CN3CCC(C(C)(O)C)CC3)C=C2N1[C@H]4CC[C@@H](C(NC(C)C)=O)CC4)C5=CC=C(F)C=C5							compound annotation
+MYID_000022	Nodinitib-1	C14H13N3O2S	1.1638			NC1=NC2=CC=CC=C2N1S(=O)(C3=CC=C(C)C=C3)=O							compound annotation
+MYID_000023	Nodinitib-1	C14H13N3O2S	1.1638			NC1=NC2=CC=CC=C2N1S(=O)(C3=CC=C(C)C=C3)=O							compound annotation
+MYID_000024	RO8994	C31H31Cl2FN4O4	1.1638			O=C([C@H](N[C@H]1CC(C)(C)C)[C@H](C2=CC=CC(Cl)=C2F)[C@@]31C(NC4=C3C=CC(Cl)=C4)=O)NC5=CC=C(C(N)=O)C=C5OC							compound annotation
+MYID_000025	Belizatinib	C33H44FN5O3	0.7204			O=C(NC1=NC2=CC=C(CN3CCC(C(C)(O)C)CC3)C=C2N1[C@H]4CC[C@@H](C(NC(C)C)=O)CC4)C5=CC=C(F)C=C5							compound annotation
+MYID_000026	EPZ011989 (trifluoroacetate)	C37H52F3N5O6	0.7204			O=C(NCC1=C(C)C=C(C)NC1=O)C2=CC(C#CCN3CCOCC3)=CC(N(CC)[C@H]4CC[C@H](N(CCOC)C)CC4)=C2C.O=C(O)C(F)(F)F							compound annotation
+MYID_000027	Nexturastat A	C19H23N3O3	1.1638			O=C(NO)C1=CC=C(CN(CCCC)C(NC2=CC=CC=C2)=O)C=C1							compound annotation
+MYID_000028	Nexturastat A	C19H23N3O3	1.1638			O=C(NO)C1=CC=C(CN(CCCC)C(NC2=CC=CC=C2)=O)C=C1							compound annotation
+MYID_000029	Ombrabulin (hydrochloride)	C21H27ClN2O6	1.1638			O=C(NC1=CC(/C=C\C2=CC(OC)=C(OC)C(OC)=C2)=CC=C1OC)[C@@H](N)CO.[H]Cl							compound annotation
+MYID_000030	Ombrabulin (hydrochloride)	C21H27ClN2O6	1.1638			O=C(NC1=CC(/C=C\C2=CC(OC)=C(OC)C(OC)=C2)=CC=C1OC)[C@@H](N)CO.[H]Cl							compound annotation
+MYID_000031	Belizatinib	C33H44FN5O3	1.1638			O=C(NC1=NC2=CC=C(CN3CCC(C(C)(O)C)CC3)C=C2N1[C@H]4CC[C@@H](C(NC(C)C)=O)CC4)C5=CC=C(F)C=C5							compound annotation
+MYID_000032	Belizatinib	C33H44FN5O3	1.1638			O=C(NC1=NC2=CC=C(CN3CCC(C(C)(O)C)CC3)C=C2N1[C@H]4CC[C@@H](C(NC(C)C)=O)CC4)C5=CC=C(F)C=C5							compound annotation
+MYID_000033	EPZ011989 (trifluoroacetate)	C37H52F3N5O6	1.1638			O=C(NCC1=C(C)C=C(C)NC1=O)C2=CC(C#CCN3CCOCC3)=CC(N(CC)[C@H]4CC[C@H](N(CCOC)C)CC4)=C2C.O=C(O)C(F)(F)F							compound annotation
+MYID_000034	EPZ011989 (trifluoroacetate)	C37H52F3N5O6	1.1638			O=C(NCC1=C(C)C=C(C)NC1=O)C2=CC(C#CCN3CCOCC3)=CC(N(CC)[C@H]4CC[C@H](N(CCOC)C)CC4)=C2C.O=C(O)C(F)(F)F							compound annotation
+MYID_000035	RO8994	C31H31Cl2FN4O4	1.8211			O=C([C@H](N[C@H]1CC(C)(C)C)[C@H](C2=CC=CC(Cl)=C2F)[C@@]31C(NC4=C3C=CC(Cl)=C4)=O)NC5=CC=C(C(N)=O)C=C5OC							compound annotation
+MYID_000036	RO8994	C31H31Cl2FN4O4	1.8211			O=C([C@H](N[C@H]1CC(C)(C)C)[C@H](C2=CC=CC(Cl)=C2F)[C@@]31C(NC4=C3C=CC(Cl)=C4)=O)NC5=CC=C(C(N)=O)C=C5OC							compound annotation
+id	name	formula	rt	pubchem.cid	pubchem.smiles.isomeric	pubchem.smiles.canonical	pubchem.inchi	pubchem.inchikey	id.chebi	id.hmdb	id.lipidmaps	id.kegg	comment
+MYID_000037	WZ811	C18H18N4	1.2298			C1(CNC2=NC=CC=C2)=CC=C(CNC3=NC=CC=C3)C=C1							compound annotation
+MYID_000038	Radafaxine (hydrochloride)	C13H19Cl2NO2	1.0486			O[C@]1(C2=CC=CC(Cl)=C2)[C@H](C)NC(C)(C)CO1.[H]Cl							compound annotation
+MYID_000039	Radafaxine (hydrochloride)	C13H19Cl2NO2	1.0486			O[C@]1(C2=CC=CC(Cl)=C2)[C@H](C)NC(C)(C)CO1.[H]Cl							compound annotation
+MYID_000040	Radafaxine (hydrochloride)	C13H19Cl2NO2	1.2298			O[C@]1(C2=CC=CC(Cl)=C2)[C@H](C)NC(C)(C)CO1.[H]Cl							compound annotation
+MYID_000041	Radafaxine (hydrochloride)	C13H19Cl2NO2	1.2298			O[C@]1(C2=CC=CC(Cl)=C2)[C@H](C)NC(C)(C)CO1.[H]Cl							compound annotation
+MYID_000042	AZD3514	C25H32F3N7O2	0.6812			CC(N1CCN(CCOC2=CC=C(C3CCN(C4=NN5C(CC4)=NN=C5C(F)(F)F)CC3)C=C2)CC1)=O							compound annotation
+MYID_000043	SMER18	C16H14ClNO2	1.8223			C/C(NC1=CC=CC(O)=C1)=C/C(C2=CC=C(Cl)C=C2)=O							compound annotation
+MYID_000044	SMER18	C16H14ClNO2	1.8223			C/C(NC1=CC=CC(O)=C1)=C/C(C2=CC=C(Cl)C=C2)=O							compound annotation
+MYID_000045	WZ811	C18H18N4	1.2298			C1(CNC2=NC=CC=C2)=CC=C(CNC3=NC=CC=C3)C=C1							compound annotation
+MYID_000046	WZ811	C18H18N4	1.2298			C1(CNC2=NC=CC=C2)=CC=C(CNC3=NC=CC=C3)C=C1							compound annotation
+MYID_000047	BAM7	C21H19N5O2S	2.0676			CCOC1=CC=CC=C1N/N=C2C(C)=NN(C3=NC(C4=CC=CC=C4)=CS3)C\2=O							compound annotation
+MYID_000048	BAM7	C21H19N5O2S	2.0676			CCOC1=CC=CC=C1N/N=C2C(C)=NN(C3=NC(C4=CC=CC=C4)=CS3)C\2=O							compound annotation
+MYID_000049	L-778123 (hydrochloride)	C22H21Cl2N5O	1.0486			N#CC1=CC=C(CN2C(CN3CC(N(C4=CC=CC(Cl)=C4)CC3)=O)=CN=C2)C=C1.[H]Cl							compound annotation
+MYID_000050	L-778123 (hydrochloride)	C22H21Cl2N5O	1.0486			N#CC1=CC=C(CN2C(CN3CC(N(C4=CC=CC(Cl)=C4)CC3)=O)=CN=C2)C=C1.[H]Cl							compound annotation
+MYID_000051	W-54011	C30H37ClN2O2	1.8223			O=C(C1CCCC2=C1C=C(OC)C=C2)N(CC3=CC=C(N(C)C)C=C3)C4=CC=C(C(C)C)C=C4.[H]Cl							compound annotation
+MYID_000052	W-54011	C30H37ClN2O2	1.8223			O=C(C1CCCC2=C1C=C(OC)C=C2)N(CC3=CC=C(N(C)C)C=C3)C4=CC=C(C(C)C)C=C4.[H]Cl							compound annotation
+MYID_000053	ABX-1431	C20H22F9N3O2	1.2298			O=C(N1CCN(CC2=CC=C(C(F)(F)F)C=C2N3CCCC3)CC1)OC(C(F)(F)F)C(F)(F)F							compound annotation
+MYID_000054	ABX-1431	C20H22F9N3O2	1.2298			O=C(N1CCN(CC2=CC=C(C(F)(F)F)C=C2N3CCCC3)CC1)OC(C(F)(F)F)C(F)(F)F							compound annotation
+MYID_000055	AZD3514	C25H32F3N7O2	1.0486			CC(N1CCN(CCOC2=CC=C(C3CCN(C4=NN5C(CC4)=NN=C5C(F)(F)F)CC3)C=C2)CC1)=O							compound annotation
+MYID_000056	AZD3514	C25H32F3N7O2	1.0486			CC(N1CCN(CCOC2=CC=C(C3CCN(C4=NN5C(CC4)=NN=C5C(F)(F)F)CC3)C=C2)CC1)=O							compound annotation
+id	name	formula	rt	pubchem.cid	pubchem.smiles.isomeric	pubchem.smiles.canonical	pubchem.inchi	pubchem.inchikey	id.chebi	id.hmdb	id.lipidmaps	id.kegg	comment
+MYID_000057	SC66	C18H16N2O	0.7341			O=C1/C(CCC/C1=C\C2=CC=NC=C2)=C/C3=CC=NC=C3							compound annotation
+MYID_000058	AS601245	C20H16N6S	1.8856			N#CC(C1=CC=NC(NCCC2=CC=CN=C2)=N1)C3=NC4=CC=CC=C4S3							compound annotation
+MYID_000059	DSR-6434	C19H28N8O2	1.0557			O=C1N(C2=NC(NCCCC)=NC(N)=C2N1)CC3=CN=C(OCCN(C)C)C=C3							compound annotation
+MYID_000060	GSK503	C31H38N6O2	0.7341			O=C(C1=CC(C2=CC=C(N3CCN(C)CC3)N=C2)=CC4=C1C(C)=CN4C(C)C)NCC5=C(C)C=C(C)NC5=O							compound annotation
+MYID_000061	SC66	C18H16N2O	1.0557			O=C1/C(CCC/C1=C\C2=CC=NC=C2)=C/C3=CC=NC=C3							compound annotation
+MYID_000062	SC66	C18H16N2O	1.0557			O=C1/C(CCC/C1=C\C2=CC=NC=C2)=C/C3=CC=NC=C3							compound annotation
+MYID_000063	Vadimezan	C17H14O4	1.8856			O=C(O)CC1=CC=CC(C2=O)=C1OC3=C2C=CC(C)=C3C							compound annotation
+MYID_000064	Vadimezan	C17H14O4	1.8856			O=C(O)CC1=CC=CC(C2=O)=C1OC3=C2C=CC(C)=C3C							compound annotation
+MYID_000065	Bafetinib	C30H31F3N8O	1.8856			O=C(C1=CC=C(C(C(F)(F)F)=C1)CN2C[C@@H](N(C)C)CC2)NC3=CC=C(C)C(NC4=NC=CC(C5=CN=CN=C5)=N4)=C3							compound annotation
+MYID_000066	AS601245	C20H16N6S	1.8856			N#CC(C1=CC=NC(NCCC2=CC=CN=C2)=N1)C3=NC4=CC=CC=C4S3							compound annotation
+MYID_000067	AS601245	C20H16N6S	1.8856			N#CC(C1=CC=NC(NCCC2=CC=CN=C2)=N1)C3=NC4=CC=CC=C4S3							compound annotation
+MYID_000068	DSR-6434	C19H28N8O2	1.0557			O=C1N(C2=NC(NCCCC)=NC(N)=C2N1)CC3=CN=C(OCCN(C)C)C=C3							compound annotation
+MYID_000069	DSR-6434	C19H28N8O2	1.0557			O=C1N(C2=NC(NCCCC)=NC(N)=C2N1)CC3=CN=C(OCCN(C)C)C=C3							compound annotation
+MYID_000070	NSC117079	C20H15N3O7S2	1.8856			O=S(C(C(N)=C1C2=O)=CC(NC3=CC=CC(S(=O)(N)=O)=C3)=C1C(C4=C2C=CC=C4)=O)(O)=O							compound annotation
+MYID_000071	NSC117079	C20H15N3O7S2	1.8856			O=S(C(C(N)=C1C2=O)=CC(NC3=CC=CC(S(=O)(N)=O)=C3)=C1C(C4=C2C=CC=C4)=O)(O)=O							compound annotation
+MYID_000072	GSK503	C31H38N6O2	1.0557			O=C(C1=CC(C2=CC=C(N3CCN(C)CC3)N=C2)=CC4=C1C(C)=CN4C(C)C)NCC5=C(C)C=C(C)NC5=O							compound annotation
+MYID_000073	GSK503	C31H38N6O2	1.0557			O=C(C1=CC(C2=CC=C(N3CCN(C)CC3)N=C2)=CC4=C1C(C)=CN4C(C)C)NCC5=C(C)C=C(C)NC5=O							compound annotation
+MYID_000074	Bafetinib	C30H31F3N8O	1.8856			O=C(C1=CC=C(C(C(F)(F)F)=C1)CN2C[C@@H](N(C)C)CC2)NC3=CC=C(C)C(NC4=NC=CC(C5=CN=CN=C5)=N4)=C3							compound annotation
+MYID_000075	Bafetinib	C30H31F3N8O	1.8856			O=C(C1=CC=C(C(C(F)(F)F)=C1)CN2C[C@@H](N(C)C)CC2)NC3=CC=C(C)C(NC4=NC=CC(C5=CN=CN=C5)=N4)=C3							compound annotation
+id	name	formula	rt	pubchem.cid	pubchem.smiles.isomeric	pubchem.smiles.canonical	pubchem.inchi	pubchem.inchikey	id.chebi	id.hmdb	id.lipidmaps	id.kegg	comment
+MYID_000076	TG003	C13H15NO2S	1.3044			CC(/C=C1SC2=CC=C(C=C2N\1CC)OC)=O.[Z]							compound annotation
+MYID_000077	TG003	C13H15NO2S	1.3044			CC(/C=C1SC2=CC=C(C=C2N\1CC)OC)=O.[Z]							compound annotation
+MYID_000078	CCT007093	C15H12OS2	1.9094			O=C1/C(CC/C1=C\C2=CC=CS2)=C/C3=CC=CS3							compound annotation
+MYID_000079	CCT007093	C15H12OS2	1.9094			O=C1/C(CC/C1=C\C2=CC=CS2)=C/C3=CC=CS3							compound annotation
+MYID_000080	CH5132799	C15H19N7O3S	1.3044			NC1=NC=C(C2=C3C(N(S(=O)(C)=O)CC3)=NC(N4CCOCC4)=N2)C=N1							compound annotation
+MYID_000081	CH5132799	C15H19N7O3S	1.3044			NC1=NC=C(C2=C3C(N(S(=O)(C)=O)CC3)=NC(N4CCOCC4)=N2)C=N1							compound annotation
+MYID_000082	IPSU	C23H27N5O2	1.3044			COC1=CC=NC(N(CC2)CCC2(C3=O)CCCN3CC4=CNC5=CC=CC=C54)=N1							compound annotation
+MYID_000083	IPSU	C23H27N5O2	1.3044			COC1=CC=NC(N(CC2)CCC2(C3=O)CCCN3CC4=CNC5=CC=CC=C54)=N1							compound annotation
+MYID_000084	PF-04691502	C22H27N5O4	1.3044			OCCO[C@@H]1CC[C@@H](N2C(N=C(N)N=C3C)=C3C=C(C4=CC=C(OC)N=C4)C2=O)CC1							compound annotation
+MYID_000085	PF-04691502	C22H27N5O4	1.3044			OCCO[C@@H]1CC[C@@H](N2C(N=C(N)N=C3C)=C3C=C(C4=CC=C(OC)N=C4)C2=O)CC1							compound annotation
+MYID_000086	(Z)-4EGI-1	C18H12Cl2N4O4S	1.9094			O=C(O)/C(CC1=CC=CC=C1[N+]([O-])=O)=N/NC2=NC(C3=CC=C(Cl)C(Cl)=C3)=CS2.[(Z)]							compound annotation
+MYID_000087	(Z)-4EGI-1	C18H12Cl2N4O4S	1.9094			O=C(O)/C(CC1=CC=CC=C1[N+]([O-])=O)=N/NC2=NC(C3=CC=C(Cl)C(Cl)=C3)=CS2.[(Z)]							compound annotation
+id	name	formula	rt	pubchem.cid	pubchem.smiles.isomeric	pubchem.smiles.canonical	pubchem.inchi	pubchem.inchikey	id.chebi	id.hmdb	id.lipidmaps	id.kegg	comment
+MYID_000088	BIBF0775	C31H34N4O2	1.9597			O=C(C1=CC(NC/2=O)=C(C=C1)C2=C(C3=CC=CC=C3)\NC4=CC=C(CN5CCCCC5)C=C4)N(CC)C							compound annotation
+MYID_000089	SPHINX31	C27H24F3N5O2	1.1789			O=C(NC1=C(N2CCN(CC3=CC=CC=N3)CC2)C=CC(C(F)(F)F)=C1)C4=CC=C(O4)C5=CC=NC=C5							compound annotation
+MYID_000090	RR6	C16H23NO4	1.1789			CC(C)(CO)[C@@H](O)C(NCCC(CC1=CC=CC=C1)=O)=O							compound annotation
+MYID_000091	RR6	C16H23NO4	1.1789			CC(C)(CO)[C@@H](O)C(NCCC(CC1=CC=CC=C1)=O)=O							compound annotation
+MYID_000092	Tolterodine (tartrate)	C26H37NO7	1.1789			OC1=CC=C(C=C1[C@H](CCN(C(C)C)C(C)C)C2=CC=CC=C2)C.O=C([C@@H]([C@H](C(O)=O)O)O)O							compound annotation
+MYID_000093	Tolterodine (tartrate)	C26H37NO7	1.1789			OC1=CC=C(C=C1[C@H](CCN(C(C)C)C(C)C)C2=CC=CC=C2)C.O=C([C@@H]([C@H](C(O)=O)O)O)O							compound annotation
+MYID_000094	CGP60474	C18H18ClN5O	1.1789			ClC1=CC(NC2=NC=CC(C3=CC=NC(NCCCO)=C3)=N2)=CC=C1							compound annotation
+MYID_000095	CGP60474	C18H18ClN5O	1.1789			ClC1=CC(NC2=NC=CC(C3=CC=NC(NCCCO)=C3)=N2)=CC=C1							compound annotation
+MYID_000096	I-191	C23H26FN5O2	1.1789			O=C1NCCN(C(C2=CN3N=C(C4=CC=C(F)C=C4)C=C(C(C)(C)C)C3=N2)=O)C1(C)C							compound annotation
+MYID_000097	I-191	C23H26FN5O2	1.1789			O=C1NCCN(C(C2=CN3N=C(C4=CC=C(F)C=C4)C=C(C(C)(C)C)C3=N2)=O)C1(C)C							compound annotation
+MYID_000098	ARN272	C27H20N4O2	1.1789			OC(C=C1)=CC=C1C2=NN=C(C3=C2C=CC=C3)NC4=CC=C(C(NC5=CC=CC=C5)=O)C=C4							compound annotation
+MYID_000099	ARN272	C27H20N4O2	1.1789			OC(C=C1)=CC=C1C2=NN=C(C3=C2C=CC=C3)NC4=CC=C(C(NC5=CC=CC=C5)=O)C=C4							compound annotation
+MYID_000100	THPP-1	C23H21ClN6O3	1.4300			O=C(C1=C2C=CC=CN2C=N1)N3CCC4=NC(C5=CC=C(N=C5)Cl)=NC(OCCOC)=C4C3							compound annotation
+MYID_000101	THPP-1	C23H21ClN6O3	1.4300			O=C(C1=C2C=CC=CN2C=N1)N3CCC4=NC(C5=CC=C(N=C5)Cl)=NC(OCCOC)=C4C3							compound annotation
+MYID_000102	BIBF0775	C31H34N4O2	1.1789			O=C(C1=CC(NC/2=O)=C(C=C1)C2=C(C3=CC=CC=C3)\NC4=CC=C(CN5CCCCC5)C=C4)N(CC)C							compound annotation
+MYID_000103	BIBF0775	C31H34N4O2	1.1789			O=C(C1=CC(NC/2=O)=C(C=C1)C2=C(C3=CC=CC=C3)\NC4=CC=C(CN5CCCCC5)C=C4)N(CC)C							compound annotation
+MYID_000104	SPHINX31	C27H24F3N5O2	1.1789			O=C(NC1=C(N2CCN(CC3=CC=CC=N3)CC2)C=CC(C(F)(F)F)=C1)C4=CC=C(O4)C5=CC=NC=C5							compound annotation
+MYID_000105	SPHINX31	C27H24F3N5O2	1.1789			O=C(NC1=C(N2CCN(CC3=CC=CC=N3)CC2)C=CC(C(F)(F)F)=C1)C4=CC=C(O4)C5=CC=NC=C5							compound annotation
+id	name	formula	rt	pubchem.cid	pubchem.smiles.isomeric	pubchem.smiles.canonical	pubchem.inchi	pubchem.inchikey	id.chebi	id.hmdb	id.lipidmaps	id.kegg	comment
+MYID_000106	Udenafil	C25H36N6O4S	0.6253			O=S(C1=CC=C(OCCC)C(C2=NC3=C(N(C)N=C3CCC)C(N2)=O)=C1)(NCCC4N(C)CCC4)=O							compound annotation
+MYID_000107	CNX-2006	C26H27F4N7O2	1.0394			C=CC(NC1=CC=CC(NC2=NC(NC3=CC=C(NC4CN(CCF)C4)C=C3OC)=NC=C2C(F)(F)F)=C1)=O							compound annotation
+MYID_000108	ICI 118,551 (hydrochloride)	C17H28ClNO2	1.3286			CC1=C(CCC2)C2=C(OC[C@H](O)[C@@H](C)NC(C)C)C=C1.[H]Cl							compound annotation
+MYID_000109	ICI 118,551 (hydrochloride)	C17H28ClNO2	1.3286			CC1=C(CCC2)C2=C(OC[C@H](O)[C@@H](C)NC(C)C)C=C1.[H]Cl							compound annotation
+MYID_000110	CPDA	C20H15ClF2N2O2	1.3286			O=C(NC1=NC=CC(OCC2=CC=C(Cl)C=C2)=C1)CC3=C(F)C=CC=C3F							compound annotation
+MYID_000111	CPDA	C20H15ClF2N2O2	1.3286			O=C(NC1=NC=CC(OCC2=CC=C(Cl)C=C2)=C1)CC3=C(F)C=CC=C3F							compound annotation
+MYID_000112	CC-223	C21H27N5O3	1.0394			O=C1CNC2=NC=C(C3=CC=C(C(C)(O)C)N=C3)N=C2N1[C@H]4CC[C@H](OC)CC4							compound annotation
+MYID_000113	CC-223	C21H27N5O3	1.0394			O=C1CNC2=NC=C(C3=CC=C(C(C)(O)C)N=C3)N=C2N1[C@H]4CC[C@H](OC)CC4							compound annotation
+MYID_000114	Tirofiban (hydrochloride monohydrate)	C22H39ClN2O6S	1.3286			O=S(N[C@H](C(O)=O)CC1=CC=C(OCCCCC2CCNCC2)C=C1)(CCCC)=O.[H]Cl.[H]O[H]							compound annotation
+MYID_000115	Tirofiban (hydrochloride monohydrate)	C22H39ClN2O6S	1.3286			O=S(N[C@H](C(O)=O)CC1=CC=C(OCCCCC2CCNCC2)C=C1)(CCCC)=O.[H]Cl.[H]O[H]							compound annotation
+MYID_000116	PND-1186	C25H26F3N5O3	1.3286			O=C(NC)C1=CC=CC=C1NC2=CC(NC3=CC=C(N4CCOCC4)C=C3OC)=NC=C2C(F)(F)F							compound annotation
+MYID_000117	PND-1186	C25H26F3N5O3	1.3286			O=C(NC)C1=CC=CC=C1NC2=CC(NC3=CC=C(N4CCOCC4)C=C3OC)=NC=C2C(F)(F)F							compound annotation
+MYID_000118	Udenafil	C25H36N6O4S	1.3286			O=S(C1=CC=C(OCCC)C(C2=NC3=C(N(C)N=C3CCC)C(N2)=O)=C1)(NCCC4N(C)CCC4)=O							compound annotation
+MYID_000119	Udenafil	C25H36N6O4S	1.3286			O=S(C1=CC=C(OCCC)C(C2=NC3=C(N(C)N=C3CCC)C(N2)=O)=C1)(NCCC4N(C)CCC4)=O							compound annotation
+MYID_000120	Retapamulin	C30H47NO4S	1.3286			C[C@@H]1[C@]23[C@](C(CC3)=O)([H])[C@]([C@H](OC(CS[C@@H]4C[C@@H]5N(C)[C@@H](CC5)C4)=O)C[C@](C=C)(C)[C@H]1O)([C@H](C)CC2)C							compound annotation
+MYID_000121	Retapamulin	C30H47NO4S	1.3286			C[C@@H]1[C@]23[C@](C(CC3)=O)([H])[C@]([C@H](OC(CS[C@@H]4C[C@@H]5N(C)[C@@H](CC5)C4)=O)C[C@](C=C)(C)[C@H]1O)([C@H](C)CC2)C							compound annotation
+MYID_000122	CNX-2006	C26H27F4N7O2	1.3286			C=CC(NC1=CC=CC(NC2=NC(NC3=CC=C(NC4CN(CCF)C4)C=C3OC)=NC=C2C(F)(F)F)=C1)=O							compound annotation
+MYID_000123	CNX-2006	C26H27F4N7O2	1.3286			C=CC(NC1=CC=CC(NC2=NC(NC3=CC=C(NC4CN(CCF)C4)C=C3OC)=NC=C2C(F)(F)F)=C1)=O							compound annotation
+id	name	formula	rt	pubchem.cid	pubchem.smiles.isomeric	pubchem.smiles.canonical	pubchem.inchi	pubchem.inchikey	id.chebi	id.hmdb	id.lipidmaps	id.kegg	comment
+MYID_000124	Mofegiline (hydrochloride)	C11H14ClF2N	1.3214			FC1=CC=C(CC/C(CN)=C(F)/[H])C=C1.[H]Cl							compound annotation
+MYID_000125	Mofegiline (hydrochloride)	C11H14ClF2N	1.3214			FC1=CC=C(CC/C(CN)=C(F)/[H])C=C1.[H]Cl							compound annotation
+MYID_000126	ARN2966	C12H12N2O	1.3214			OC1=CC=CC=C1NCC2=NC=CC=C2							compound annotation
+MYID_000127	ARN2966	C12H12N2O	1.3214			OC1=CC=CC=C1NCC2=NC=CC=C2							compound annotation
+MYID_000128	SN 2	C17H21NO	1.3214			CC(C=C(C)C=C1C)=C1C2=NOC3C2C4CC3CC4							compound annotation
+MYID_000129	SN 2	C17H21NO	1.3214			CC(C=C(C)C=C1C)=C1C2=NOC3C2C4CC3CC4							compound annotation
+MYID_000130	Atomoxetine (hydrochloride)	C17H22ClNO	1.3214			CC1=CC=CC=C1O[C@@H](C2=CC=CC=C2)CCNC.[H]Cl							compound annotation
+MYID_000131	Atomoxetine (hydrochloride)	C17H22ClNO	1.3214			CC1=CC=CC=C1O[C@@H](C2=CC=CC=C2)CCNC.[H]Cl							compound annotation
+MYID_000132	NU6300	C20H23N5O3S	1.8506			O=S(C(C=C1)=CC=C1NC2=NC(OCC3CCCCC3)=C4C(NC=N4)=N2)(C=C)=O							compound annotation
+MYID_000133	NU6300	C20H23N5O3S	1.8506			O=S(C(C=C1)=CC=C1NC2=NC(OCC3CCCCC3)=C4C(NC=N4)=N2)(C=C)=O							compound annotation
+MYID_000134	Ilorasertib (hydrochloride)	C25H22ClFN6O2S	1.8506			O=C(NC1=CC=CC(F)=C1)NC2=CC=C(C3=CSC4=C3C(N)=NC=C4C5=CN(CCO)N=C5)C=C2.[H]Cl							compound annotation
+MYID_000135	Ilorasertib (hydrochloride)	C25H22ClFN6O2S	1.8506			O=C(NC1=CC=CC(F)=C1)NC2=CC=C(C3=CSC4=C3C(N)=NC=C4C5=CN(CCO)N=C5)C=C2.[H]Cl							compound annotation
+MYID_000136	PLX7904	C24H22F2N6O3S	1.8506			O=S(NC1=CC=C(F)C(C(C2=CNC3=NC=C(C4=CN=C(C5CC5)N=C4)C=C32)=O)=C1F)(N(CC)C)=O							compound annotation
+MYID_000137	PLX7904	C24H22F2N6O3S	1.8506			O=S(NC1=CC=C(F)C(C(C2=CNC3=NC=C(C4=CN=C(C5CC5)N=C4)C=C32)=O)=C1F)(N(CC)C)=O							compound annotation
+MYID_000138	Alarelin (Acetate)	C60H86N16O16	1.8506			O=C(N[C@@H](CO)C(N[C@@H](CC1=CC=C(O)C=C1)C(N[C@H](C)C(N[C@@H](CC(C)C)C(N[C@@H](CCCNC(N)=N)C(N2CCC[C@H]2C(NCC)=O)=O)=O)=O)=O)=O)[C@@H](NC([C@@H](NC([C@@H](N3)CCC3=O)=O)CC4=CN=CN4)=O)CC5=CNC6=CC=CC=C65.CC(O)=O.CC(O)=O							compound annotation
+MYID_000139	BV6	C70H96N10O8	1.8506			O=C(NCCCCCCNC([C@@H](NC([C@H](CCC1)N1C([C@H](C2CCCCC2)NC([C@H](C)NC)=O)=O)=O)C(C3=CC=CC=C3)C4=CC=CC=C4)=O)[C@@H](NC([C@H](CCC5)N5C([C@H](C6CCCCC6)NC([C@H](C)NC)=O)=O)=O)C(C7=CC=CC=C7)C8=CC=CC=C8							compound annotation
+MYID_000140	BV6	C70H96N10O8	1.3214			O=C(NCCCCCCNC([C@@H](NC([C@H](CCC1)N1C([C@H](C2CCCCC2)NC([C@H](C)NC)=O)=O)=O)C(C3=CC=CC=C3)C4=CC=CC=C4)=O)[C@@H](NC([C@H](CCC5)N5C([C@H](C6CCCCC6)NC([C@H](C)NC)=O)=O)=O)C(C7=CC=CC=C7)C8=CC=CC=C8							compound annotation
+MYID_000141	BV6	C70H96N10O8	1.3214			O=C(NCCCCCCNC([C@@H](NC([C@H](CCC1)N1C([C@H](C2CCCCC2)NC([C@H](C)NC)=O)=O)=O)C(C3=CC=CC=C3)C4=CC=CC=C4)=O)[C@@H](NC([C@H](CCC5)N5C([C@H](C6CCCCC6)NC([C@H](C)NC)=O)=O)=O)C(C7=CC=CC=C7)C8=CC=CC=C8							compound annotation
+id	name	formula	rt	pubchem.cid	pubchem.smiles.isomeric	pubchem.smiles.canonical	pubchem.inchi	pubchem.inchikey	id.chebi	id.hmdb	id.lipidmaps	id.kegg	comment
+MYID_000142	MK2-IN-1 (hydrochloride)	C27H26Cl2N4O2	1.8000			O=C(C1=CC=C(C2=CC=C(Cl)C=C2)O1)N(C3=CC=C(N4CCNCC4)C=C3)CC5=NC=CC=C5.[H]Cl							compound annotation
+MYID_000143	KPLH1130	C15H13N3O3	0.7104			OC1=CC=C(C2=NNC(N2C3=CC=C(C)C=C3)=O)C(O)=C1							compound annotation
+MYID_000144	KPLH1130	C15H13N3O3	0.7104			OC1=CC=C(C2=NNC(N2C3=CC=C(C)C=C3)=O)C(O)=C1							compound annotation
+MYID_000145	SCH900776	C15H18BrN7	1.2139			NC1=C(Br)C([C@H]2CNCCC2)=NC3=C(C4=CN(C)N=C4)C=NN13							compound annotation
+MYID_000146	SCH900776	C15H18BrN7	1.2139			NC1=C(Br)C([C@H]2CNCCC2)=NC3=C(C4=CN(C)N=C4)C=NN13							compound annotation
+MYID_000147	BRL-15572 (dihydrochloride)	C25H29Cl3N2O	1.2139			OC(CN1CCN(C2=CC(Cl)=CC=C2)CC1)C(C3=CC=CC=C3)C4=CC=CC=C4.[H]Cl.[H]Cl							compound annotation
+MYID_000148	BRL-15572 (dihydrochloride)	C25H29Cl3N2O	1.2139			OC(CN1CCN(C2=CC(Cl)=CC=C2)CC1)C(C3=CC=CC=C3)C4=CC=CC=C4.[H]Cl.[H]Cl							compound annotation
+MYID_000149	MK2-IN-1 (hydrochloride)	C27H26Cl2N4O2	1.2139			O=C(C1=CC=C(C2=CC=C(Cl)C=C2)O1)N(C3=CC=C(N4CCNCC4)C=C3)CC5=NC=CC=C5.[H]Cl							compound annotation
+MYID_000150	MK2-IN-1 (hydrochloride)	C27H26Cl2N4O2	1.2139			O=C(C1=CC=C(C2=CC=C(Cl)C=C2)O1)N(C3=CC=C(N4CCNCC4)C=C3)CC5=NC=CC=C5.[H]Cl							compound annotation
+MYID_000151	DMAT	C9H7Br4N3	1.8000			CN(C)C1=NC2=C(Br)C(Br)=C(Br)C(Br)=C2N1							compound annotation
+MYID_000152	DMAT	C9H7Br4N3	1.8000			CN(C)C1=NC2=C(Br)C(Br)=C(Br)C(Br)=C2N1							compound annotation
+MYID_000153	LY 3000328	C25H29FN4O5	1.2139			O=C(C1=CC=C(F)C=C1)N[C@@H]2[C@@H](OC(NC)=O)COC3=CC=C(N4CCN(C5COC5)CC4)C=C32							compound annotation
+MYID_000154	LY 3000328	C25H29FN4O5	1.2139			O=C(C1=CC=C(F)C=C1)N[C@@H]2[C@@H](OC(NC)=O)COC3=CC=C(N4CCN(C5COC5)CC4)C=C32							compound annotation
+MYID_000155	GW7647	C29H46N2O3S	1.8000			CC(C)(SC1=CC=C(CCN(C(NC2CCCCC2)=O)CCCCC3CCCCC3)C=C1)C(O)=O							compound annotation
+MYID_000156	GW7647	C29H46N2O3S	1.8000			CC(C)(SC1=CC=C(CCN(C(NC2CCCCC2)=O)CCCCC3CCCCC3)C=C1)C(O)=O							compound annotation
+id	name	formula	rt	pubchem.cid	pubchem.smiles.isomeric	pubchem.smiles.canonical	pubchem.inchi	pubchem.inchikey	id.chebi	id.hmdb	id.lipidmaps	id.kegg	comment
+MYID_000157	Agomelatine (L(+)-Tartaric acid)	C19H23NO8	1.0602			CC(NCCC1=C2C=C(OC)C=CC2=CC=C1)=O.O=C(O)[C@H](O)[C@@H](O)C(O)=O							compound annotation
+MYID_000158	Agomelatine (L(+)-Tartaric acid)	C19H23NO8	1.0602			CC(NCCC1=C2C=C(OC)C=CC2=CC=C1)=O.O=C(O)[C@H](O)[C@@H](O)C(O)=O							compound annotation
+MYID_000159	PP1	C16H19N5	1.0602			NC1=C2C(N(C(C)(C)C)N=C2C3=CC=C(C)C=C3)=NC=N1							compound annotation
+MYID_000160	PP1	C16H19N5	1.0602			NC1=C2C(N(C(C)(C)C)N=C2C3=CC=C(C)C=C3)=NC=N1							compound annotation
+MYID_000161	ZM 306416	C16H13ClFN3O2	1.0602			COC1=CC2=NC=NC(NC3=C(F)C=C(Cl)C=C3)=C2C=C1OC							compound annotation
+MYID_000162	ZM 306416	C16H13ClFN3O2	1.0602			COC1=CC2=NC=NC(NC3=C(F)C=C(Cl)C=C3)=C2C=C1OC							compound annotation
+MYID_000163	Methiothepin mesylate	C21H28N2O3S3	1.3694			CN1CCN(C2CC3=CC=CC=C3SC4=CC=C(SC)C=C24)CC1.CS(=O)(O)=O							compound annotation
+MYID_000164	Methiothepin mesylate	C21H28N2O3S3	1.3694			CN1CCN(C2CC3=CC=CC=C3SC4=CC=C(SC)C=C24)CC1.CS(=O)(O)=O							compound annotation
+MYID_000165	Emapunil	C23H23N5O2	1.3694			O=C(N(CC)CC1=CC=CC=C1)CN2C(N(C)C3=CN=C(C4=CC=CC=C4)N=C23)=O							compound annotation
+MYID_000166	Emapunil	C23H23N5O2	1.3694			O=C(N(CC)CC1=CC=CC=C1)CN2C(N(C)C3=CN=C(C4=CC=CC=C4)N=C23)=O							compound annotation
+MYID_000167	Terutroban	C20H22ClNO4S	0.7329			O=C(O)CCC1=C2CC[C@@H](NS(=O)(C3=CC=C(Cl)C=C3)=O)CC2=CC=C1C							compound annotation
+MYID_000168	Terutroban	C20H22ClNO4S	0.7329			O=C(O)CCC1=C2CC[C@@H](NS(=O)(C3=CC=C(Cl)C=C3)=O)CC2=CC=C1C							compound annotation
+MYID_000169	PK68	C22H24N4O3S	1.3694			O=C(OC1CCCCC1)NC2=CC(C3=CC=C4N=C(NC(C)=O)SC4=C3)=CN=C2C							compound annotation
+MYID_000170	PK68	C22H24N4O3S	1.3694			O=C(OC1CCCCC1)NC2=CC(C3=CC=C4N=C(NC(C)=O)SC4=C3)=CN=C2C							compound annotation
+MYID_000171	TAS4464	C21H23FN6O6S	1.3694			NC1=NC=NC2=C1C(C#CC3=C(F)C=CC=C3OCC)=CN2[C@@H]4O[C@H](CNS(=O)(N)=O)[C@@H](O)[C@H]4O							compound annotation
+MYID_000172	TAS4464	C21H23FN6O6S	1.3694			NC1=NC=NC2=C1C(C#CC3=C(F)C=CC=C3OCC)=CN2[C@@H]4O[C@H](CNS(=O)(N)=O)[C@@H](O)[C@H]4O							compound annotation
+MYID_000173	CCT196969	C27H24FN7O3	1.3694			O=C1NC2=NC=CC(OC3=CC=C(NC(NC4=CC(C(C)(C)C)=NN4C5=CC=CC=C5)=O)C(F)=C3)=C2N=C1							compound annotation
+MYID_000174	CCT196969	C27H24FN7O3	1.3694			O=C1NC2=NC=CC(OC3=CC=C(NC(NC4=CC(C(C)(C)C)=NN4C5=CC=CC=C5)=O)C(F)=C3)=C2N=C1							compound annotation
+id	name	formula	rt	pubchem.cid	pubchem.smiles.isomeric	pubchem.smiles.canonical	pubchem.inchi	pubchem.inchikey	id.chebi	id.hmdb	id.lipidmaps	id.kegg	comment
+MYID_000175	AS601245	C20H16N6S	1.9502			N#CC(C1=CC=NC(NCCC2=CC=CN=C2)=N1)C3=NC4=CC=CC=C4S3							compound annotation
+MYID_000176	DSR-6434	C19H28N8O2	0.9313			O=C1N(C2=NC(NCCCC)=NC(N)=C2N1)CC3=CN=C(OCCN(C)C)C=C3							compound annotation
+MYID_000177	GSK503	C31H38N6O2	0.9313			O=C(C1=CC(C2=CC=C(N3CCN(C)CC3)N=C2)=CC4=C1C(C)=CN4C(C)C)NCC5=C(C)C=C(C)NC5=O							compound annotation
+MYID_000178	SC66	C18H16N2O	0.9277			O=C1/C(CCC/C1=C\C2=CC=NC=C2)=C/C3=CC=NC=C3							compound annotation
+MYID_000179	SC66	C18H16N2O	0.9277			O=C1/C(CCC/C1=C\C2=CC=NC=C2)=C/C3=CC=NC=C3							compound annotation
+MYID_000180	Vadimezan	C17H14O4	0.9277			O=C(O)CC1=CC=CC(C2=O)=C1OC3=C2C=CC(C)=C3C							compound annotation
+MYID_000181	Vadimezan	C17H14O4	0.9277			O=C(O)CC1=CC=CC(C2=O)=C1OC3=C2C=CC(C)=C3C							compound annotation
+MYID_000182	Bafetinib	C30H31F3N8O	0.9277			O=C(C1=CC=C(C(C(F)(F)F)=C1)CN2C[C@@H](N(C)C)CC2)NC3=CC=C(C)C(NC4=NC=CC(C5=CN=CN=C5)=N4)=C3							compound annotation
+MYID_000183	AS601245	C20H16N6S	1.3942			N#CC(C1=CC=NC(NCCC2=CC=CN=C2)=N1)C3=NC4=CC=CC=C4S3							compound annotation
+MYID_000184	AS601245	C20H16N6S	1.3942			N#CC(C1=CC=NC(NCCC2=CC=CN=C2)=N1)C3=NC4=CC=CC=C4S3							compound annotation
+MYID_000185	DSR-6434	C19H28N8O2	0.9277			O=C1N(C2=NC(NCCCC)=NC(N)=C2N1)CC3=CN=C(OCCN(C)C)C=C3							compound annotation
+MYID_000186	DSR-6434	C19H28N8O2	0.9277			O=C1N(C2=NC(NCCCC)=NC(N)=C2N1)CC3=CN=C(OCCN(C)C)C=C3							compound annotation
+MYID_000187	NSC117079	C20H15N3O7S2	1.9502			O=S(C(C(N)=C1C2=O)=CC(NC3=CC=CC(S(=O)(N)=O)=C3)=C1C(C4=C2C=CC=C4)=O)(O)=O							compound annotation
+MYID_000188	NSC117079	C20H15N3O7S2	1.9502			O=S(C(C(N)=C1C2=O)=CC(NC3=CC=CC(S(=O)(N)=O)=C3)=C1C(C4=C2C=CC=C4)=O)(O)=O							compound annotation
+MYID_000189	GSK503	C31H38N6O2	0.9277			O=C(C1=CC(C2=CC=C(N3CCN(C)CC3)N=C2)=CC4=C1C(C)=CN4C(C)C)NCC5=C(C)C=C(C)NC5=O							compound annotation
+MYID_000190	GSK503	C31H38N6O2	0.9277			O=C(C1=CC(C2=CC=C(N3CCN(C)CC3)N=C2)=CC4=C1C(C)=CN4C(C)C)NCC5=C(C)C=C(C)NC5=O							compound annotation
+MYID_000191	Bafetinib	C30H31F3N8O	0.9277			O=C(C1=CC=C(C(C(F)(F)F)=C1)CN2C[C@@H](N(C)C)CC2)NC3=CC=C(C)C(NC4=NC=CC(C5=CN=CN=C5)=N4)=C3							compound annotation
+MYID_000192	Bafetinib	C30H31F3N8O	0.9277			O=C(C1=CC=C(C(C(F)(F)F)=C1)CN2C[C@@H](N(C)C)CC2)NC3=CC=C(C)C(NC4=NC=CC(C5=CN=CN=C5)=N4)=C3							compound annotation
+id	name	formula	rt	pubchem.cid	pubchem.smiles.isomeric	pubchem.smiles.canonical	pubchem.inchi	pubchem.inchikey	id.chebi	id.hmdb	id.lipidmaps	id.kegg	comment
+MYID_000193	WZ811	C18H18N4	1.1839			C1(CNC2=NC=CC=C2)=CC=C(CNC3=NC=CC=C3)C=C1							compound annotation
+MYID_000194	Radafaxine (hydrochloride)	C13H19Cl2NO2	1.1839			O[C@]1(C2=CC=CC(Cl)=C2)[C@H](C)NC(C)(C)CO1.[H]Cl							compound annotation
+MYID_000195	Radafaxine (hydrochloride)	C13H19Cl2NO2	1.1839			O[C@]1(C2=CC=CC(Cl)=C2)[C@H](C)NC(C)(C)CO1.[H]Cl							compound annotation
+MYID_000196	Radafaxine (hydrochloride)	C13H19Cl2NO2	1.1839			O[C@]1(C2=CC=CC(Cl)=C2)[C@H](C)NC(C)(C)CO1.[H]Cl							compound annotation
+MYID_000197	Radafaxine (hydrochloride)	C13H19Cl2NO2	1.1839			O[C@]1(C2=CC=CC(Cl)=C2)[C@H](C)NC(C)(C)CO1.[H]Cl							compound annotation
+MYID_000198	AZD3514	C25H32F3N7O2	0.6340			CC(N1CCN(CCOC2=CC=C(C3CCN(C4=NN5C(CC4)=NN=C5C(F)(F)F)CC3)C=C2)CC1)=O							compound annotation
+MYID_000199	SMER18	C16H14ClNO2	1.8860			C/C(NC1=CC=CC(O)=C1)=C/C(C2=CC=C(Cl)C=C2)=O							compound annotation
+MYID_000200	SMER18	C16H14ClNO2	1.8860			C/C(NC1=CC=CC(O)=C1)=C/C(C2=CC=C(Cl)C=C2)=O							compound annotation
+MYID_000201	WZ811	C18H18N4	1.1839			C1(CNC2=NC=CC=C2)=CC=C(CNC3=NC=CC=C3)C=C1							compound annotation
+MYID_000202	WZ811	C18H18N4	1.1839			C1(CNC2=NC=CC=C2)=CC=C(CNC3=NC=CC=C3)C=C1							compound annotation
+MYID_000203	L-778123 (hydrochloride)	C22H21Cl2N5O	1.1839			N#CC1=CC=C(CN2C(CN3CC(N(C4=CC=CC(Cl)=C4)CC3)=O)=CN=C2)C=C1.[H]Cl							compound annotation
+MYID_000204	L-778123 (hydrochloride)	C22H21Cl2N5O	1.1839			N#CC1=CC=C(CN2C(CN3CC(N(C4=CC=CC(Cl)=C4)CC3)=O)=CN=C2)C=C1.[H]Cl							compound annotation
+MYID_000205	W-54011	C30H37ClN2O2	1.1839			O=C(C1CCCC2=C1C=C(OC)C=C2)N(CC3=CC=C(N(C)C)C=C3)C4=CC=C(C(C)C)C=C4.[H]Cl							compound annotation
+MYID_000206	W-54011	C30H37ClN2O2	1.1839			O=C(C1CCCC2=C1C=C(OC)C=C2)N(CC3=CC=C(N(C)C)C=C3)C4=CC=C(C(C)C)C=C4.[H]Cl							compound annotation
+MYID_000207	ABX-1431	C20H22F9N3O2	1.1839			O=C(N1CCN(CC2=CC=C(C(F)(F)F)C=C2N3CCCC3)CC1)OC(C(F)(F)F)C(F)(F)F							compound annotation
+MYID_000208	ABX-1431	C20H22F9N3O2	1.1839			O=C(N1CCN(CC2=CC=C(C(F)(F)F)C=C2N3CCCC3)CC1)OC(C(F)(F)F)C(F)(F)F							compound annotation
+MYID_000209	AZD3514	C25H32F3N7O2	1.1839			CC(N1CCN(CCOC2=CC=C(C3CCN(C4=NN5C(CC4)=NN=C5C(F)(F)F)CC3)C=C2)CC1)=O							compound annotation
+MYID_000210	AZD3514	C25H32F3N7O2	1.1839			CC(N1CCN(CCOC2=CC=C(C3CCN(C4=NN5C(CC4)=NN=C5C(F)(F)F)CC3)C=C2)CC1)=O							compound annotation

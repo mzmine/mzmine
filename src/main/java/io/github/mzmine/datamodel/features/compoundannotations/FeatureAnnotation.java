@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
+import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
  * Describes a common feature annotation. Future implementations should also extend the
  * {@link io.github.mzmine.util.FeatureUtils#getBestFeatureAnnotation(ModularDataModel)} method.
  */
-public interface FeatureAnnotation {
+public sealed interface FeatureAnnotation permits CompoundDBAnnotation, SpectralDBAnnotation {
 
   String XML_ELEMENT = "feature_annotation";
   String XML_TYPE_ATTR = "annotation_type";
@@ -65,9 +65,13 @@ public interface FeatureAnnotation {
   void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
 
+  @NotNull List<DatabaseMatchInfo> getDatabaseMatchInfo();
+
   @Nullable Double getPrecursorMZ();
 
   @Nullable String getSmiles();
+
+  @Nullable String getIsomericSmiles();
 
   @Nullable String getInChI();
 
@@ -97,6 +101,7 @@ public interface FeatureAnnotation {
   }
 
   @Nullable String getDatabase();
+
 
   /**
    * Keep stable as its exported to tools. often the xml key but not always
@@ -135,4 +140,6 @@ public interface FeatureAnnotation {
   default void writeClosingTag(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeEndElement();
   }
+
+  String createComment();
 }
