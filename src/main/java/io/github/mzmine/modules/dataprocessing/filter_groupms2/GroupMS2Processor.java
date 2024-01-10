@@ -143,6 +143,9 @@ public class GroupMS2Processor extends AbstractTaskSubProcessor {
 
   @Override
   public @NotNull String getTaskDescription() {
+    if (refineTask != null) {
+      return refineTask.getTaskDescription();
+    }
     return description;
   }
 

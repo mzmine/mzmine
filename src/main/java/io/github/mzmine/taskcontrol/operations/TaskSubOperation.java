@@ -27,7 +27,6 @@ package io.github.mzmine.taskcontrol.operations;
 
 import io.github.mzmine.taskcontrol.AbstractTask;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Task operations are sub tasks that can react to a parent task being canceled. It also updates the
@@ -43,12 +42,10 @@ public sealed interface TaskSubOperation extends ParentTaskDependent permits Tas
 
   double getFinishedPercentage();
 
-  @Nullable AbstractTask getParentTask();
-
-  void setParentTask(final @Nullable AbstractTask parentTask);
 
   default boolean isCanceled() {
     AbstractTask parentTask = getParentTask();
     return parentTask != null && parentTask.isCanceled();
   }
+
 }
