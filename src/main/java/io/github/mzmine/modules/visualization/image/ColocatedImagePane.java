@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_imagecorrelate;
+package io.github.mzmine.modules.visualization.image;
 
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -36,9 +36,6 @@ import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
-import io.github.mzmine.modules.visualization.image.ImagingPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.color.ColorScaleUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;

@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_imagecorrelate;
+package io.github.mzmine.modules.visualization.image;
 
 import io.github.mzmine.gui.framework.fx.features.SimpleFeatureListTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
