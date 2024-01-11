@@ -27,9 +27,8 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidanno
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import java.text.DecimalFormat;
 
 public class LipidAnnotationMSMSParameters extends SimpleParameterSet {
 
@@ -37,9 +36,8 @@ public class LipidAnnotationMSMSParameters extends SimpleParameterSet {
       "m/z tolerance MS2 level:",
       "Enter m/z tolerance for exact mass database matching on MS2 level", 0.005, 10);
 
-  public static final DoubleParameter minimumMsMsScore = new DoubleParameter("Minimum MS/MS score:",
-      "Explained intensity [%] of all signals in MS/MS spectrum", new DecimalFormat("#.0"), 60.0,
-      0.0, 100.0);
+  public static final PercentParameter minimumMsMsScore = new PercentParameter(
+      "Minimum MS/MS score:", "Explained intensity [%] of all signals in MS/MS spectrum", 0.6);
 
   public static final BooleanParameter keepUnconfirmedAnnotations = new BooleanParameter(
       "Keep unconfirmed annotations",
