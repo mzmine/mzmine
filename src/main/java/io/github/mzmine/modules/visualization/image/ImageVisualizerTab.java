@@ -119,13 +119,11 @@ public class ImageVisualizerTab extends MZmineTab {
     // Get controller
     controller = loader.getController();
     Accordion plotSettingsAccordion = new Accordion(new TitledPane("Settings", parameterSetupPane));
-    controller.getSettingsBorderPane().setBottom(plotSettingsAccordion);
+    controller.getPlotPane().setTop(plotSettingsAccordion);
     // add empty image chart
-    imagingPlot = new ImagingPlot((ImageVisualizerParameters) parameters);
+    imagingPlot = new ImagingPlot(parameters);
     controller.getPlotPane().setCenter(imagingPlot);
     imageHeatMapPlot = imagingPlot.getChart();
-    MZmineCore.getConfiguration().getDefaultChartTheme().apply(imageHeatMapPlot);
-    imageHeatMapPlot.getChart().getXYPlot().setBackgroundPaint(java.awt.Color.BLACK);
     addListenerToImage();
 
     setContent(mainPane);
@@ -153,7 +151,6 @@ public class ImageVisualizerTab extends MZmineTab {
     cleanGridPane(controller.getImagingParameterInfoGridPane());
     imagingPlot = new ImagingPlot(finalParameters);
     imageHeatMapPlot = imagingPlot.getChart();
-    MZmineCore.getConfiguration().getDefaultChartTheme().apply(imageHeatMapPlot);
     controller.getPlotPane().setCenter(imagingPlot);
     addListenerToImage();
     setData(rawDataFile, true);
