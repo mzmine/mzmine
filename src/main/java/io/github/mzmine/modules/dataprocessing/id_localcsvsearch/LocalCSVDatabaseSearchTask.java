@@ -313,8 +313,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   }
 
   private void refineAnnotationsByIsotopes(FeatureList flist) {
-    DatabaseIsotopeRefinerScanBased.refineAnnotationsByIsotopes(flist.getRows(), isotopeMzTolerance,
-        minRelativeIsotopeIntensity, minIsotopeScore);
+      DatabaseIsotopeRefinerScanBased.refineAnnotationsByIsotopesDifferentResolutions(flist.getRows(), isotopeMzTolerance,
+          minRelativeIsotopeIntensity, minIsotopeScore);
   }
 
   /**

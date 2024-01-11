@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,11 +52,26 @@ public class ImagingPlot extends BorderPane {
   public static final double[] DEFAULT_IMAGING_QUANTILES = new double[]{0.50, 0.98};
   private static final Logger logger = Logger.getLogger(ImagingPlot.class.getName());
   private final SimpleXYZScatterPlot<FeatureImageProvider> chart;
-  private ParameterSet parameters;
+  private ImageVisualizerParameters parameters;
 
-  public ImagingPlot(ParameterSet parameters) {
+  /**
+   * Creates an imaging plot with specific paramters.
+   *
+   * @param parameters An instance of {@link ImageVisualizerParameters}
+   */
+  public ImagingPlot(ImageVisualizerParameters parameters) {
     super();
     this.parameters = parameters;
+    chart = createChart();
+  }
+
+  /**
+   * Creates an imaging plot with default parameters.
+   */
+  public ImagingPlot() {
+    super();
+    this.parameters = (ImageVisualizerParameters) MZmineCore.getConfiguration()
+        .getModuleParameters(ImageVisualizerModule.class);
     chart = createChart();
   }
 
@@ -64,7 +79,7 @@ public class ImagingPlot extends BorderPane {
     return parameters;
   }
 
-  public void setParameters(ParameterSet parameters) {
+  public void setParameters(ImageVisualizerParameters parameters) {
     this.parameters = parameters;
   }
 
@@ -119,6 +134,7 @@ public class ImagingPlot extends BorderPane {
     final boolean lockOnAspectRatio = MZmineCore.getConfiguration()
         .getModuleParameters(FeatureTableFXModule.class)
         .getParameter(FeatureTableFXParameters.lockImagesToAspectRatio).getValue();
+    MZmineCore.getConfiguration().getDefaultChartTheme().apply(chart);
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
 
     setCenter(chart);

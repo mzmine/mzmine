@@ -80,6 +80,7 @@ public class RawImageProvider implements PlotXYZDataProvider {
   private final Range<Double> mobilityRange;
   private final boolean useMobility;
   private final ImageNormalization normalize;
+  private final PaintScaleTransform transformation;
   private final double width;
   private final double height;
   protected PaintScale paintScale;
@@ -94,6 +95,7 @@ public class RawImageProvider implements PlotXYZDataProvider {
     width = imagingParam.getLateralWidth() / imagingParam.getMaxNumberOfPixelX();
 
     this.normalize = parameters.getValue(ImageVisualizerParameters.imageNormalization);
+    this.transformation = parameters.getValue(ImageVisualizerParameters.imageTransformation);
     this.scanSelection = parameters.getValue(ImageVisualizerParameters.scanSelection);
     this.mzRange = parameters.getValue(ImageVisualizerParameters.mzRange);
     this.useMobility = parameters.getValue(ImageVisualizerParameters.mobilityRange);
@@ -194,7 +196,7 @@ public class RawImageProvider implements PlotXYZDataProvider {
     final double[] quantiles = MathUtils.calcQuantile(intensities,
         ImagingPlot.DEFAULT_IMAGING_QUANTILES);
     paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
-        .toPaintScale(PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
+        .toPaintScale(transformation, Range.closed(quantiles[0], quantiles[1]));
   }
 
   @NotNull

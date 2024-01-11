@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,7 +38,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -51,14 +50,13 @@ public class MergeAlignerTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(MergeAlignerTask.class.getName());
 
   private final MZmineProject project;
-  private ModularFeatureList[] featureLists;
-  private ModularFeatureList alignedFeatureList;
+  private final ModularFeatureList[] featureLists;
 
   // Processed rows counter
   private int processedRows, totalRows;
 
-  private String featureListName;
-  private ParameterSet parameters;
+  private final String featureListName;
+  private final ParameterSet parameters;
 
   public MergeAlignerTask(MZmineProject project, ParameterSet parameters,
       @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
@@ -67,8 +65,7 @@ public class MergeAlignerTask extends AbstractTask {
     this.project = project;
     this.parameters = parameters;
 
-    featureLists = parameters.getParameter(
-        MergeAlignerParameters.featureLists).getValue()
+    featureLists = parameters.getParameter(MergeAlignerParameters.featureLists).getValue()
         .getMatchingFeatureLists();
 
     featureListName = parameters.getParameter(
@@ -111,8 +108,8 @@ public class MergeAlignerTask extends AbstractTask {
         .flatMap(flist -> flist.getRawDataFiles().stream()).distinct().collect(Collectors.toList());
 
     // create copy of first feature list as base and renumber IDs
-    alignedFeatureList = featureLists[0]
-        .createCopy(featureListName, getMemoryMapStorage(), allDataFiles, true);
+    ModularFeatureList alignedFeatureList = featureLists[0].createCopy(featureListName,
+        getMemoryMapStorage(), allDataFiles, true);
 
     // next row will have this id
     int newRowID = alignedFeatureList.getNumberOfRows() + 1;
@@ -123,9 +120,8 @@ public class MergeAlignerTask extends AbstractTask {
       ModularFeatureList featureList = featureLists[i];
 
       // copy all types
-      featureList.getRowTypes().values().forEach(type -> alignedFeatureList.addRowType(type));
-      featureList.getFeatureTypes().values()
-          .forEach(type -> alignedFeatureList.addFeatureType(type));
+      alignedFeatureList.addRowType(featureList.getRowTypes());
+      alignedFeatureList.addFeatureType(featureList.getFeatureTypes());
 
       // selected scans during chromatogram creation needs to be the same list for the same data file
       for (RawDataFile file : featureList.getRawDataFiles()) {

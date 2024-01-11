@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramParameters;
+import io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.util.Collection;
@@ -70,7 +70,7 @@ public class MzDeltaCorrelationHistogramTab extends MZmineTab {
     super(title, true, false);
 
     this.flist = flist;
-    binWidth = parameters.getParameter(ScanHistogramParameters.binWidth).getValue();
+    binWidth = parameters.getParameter(CorrelatedFeaturesMzHistogramParameters.binWidth).getValue();
     data = new HistogramData(deltaMZList.toDoubleArray());
     dataDeltaNeutralMass = new HistogramData(deltaMZToNeutralMassList.toDoubleArray());
 

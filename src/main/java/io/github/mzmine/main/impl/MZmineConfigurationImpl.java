@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.main.impl;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
@@ -80,12 +81,15 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
   private final EncryptionKeyParameter globalEncrypter;
 
-  private final Map<Class<? extends MZmineModule>, ParameterSet> moduleParameters;
+  /**
+   * class.getName is used as keys. Classes should not be used as keys in maps
+   */
+  private final Map<String, ParameterSet> moduleParameters;
 
   private final EStandardChartTheme standardChartTheme;
 
   public MZmineConfigurationImpl() {
-    moduleParameters = new Hashtable<Class<? extends MZmineModule>, ParameterSet>();
+    moduleParameters = new Hashtable<>();
     preferences = new MZminePreferences();
     lastProjects = new FileNameListSilentParameter("Last projects");
     globalEncrypter = new EncryptionKeyParameter();
@@ -105,7 +109,11 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
    */
   @Override
   public @Nullable ParameterSet getModuleParameters(Class<? extends MZmineModule> moduleClass) {
-    ParameterSet parameters = moduleParameters.get(moduleClass);
+    if (moduleClass == null) {
+      return null;
+    }
+
+    ParameterSet parameters = moduleParameters.get(moduleClass.getName());
     if (parameters == null) {
       // Create an instance of parameter set
       try {
@@ -125,21 +133,21 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
         try {
           parameters = parameterSetClass.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
-          e.printStackTrace();
           logger.log(Level.SEVERE,
-              "Could not create an instance of parameter set class " + parameterSetClass, e);
+              "Could not create an instance of parameter set class " + parameterSetClass + " "
+              + e.getMessage(), e);
           return null;
         }
       } catch (NoClassDefFoundError | Exception e) {
-        e.printStackTrace();
         logger.log(Level.WARNING,
-            "Could not find the module or parameter class " + moduleClass.toString(), e);
+            "Could not find the module or parameter class " + moduleClass.toString() + " "
+            + e.getMessage(), e);
         return null;
       }
 
       // Add the parameter set to the configuration
       parameters.setModuleNameAttribute(MZmineCore.getModuleInstance(moduleClass).getName());
-      moduleParameters.put(moduleClass, parameters);
+      moduleParameters.put(moduleClass.getName(), parameters);
 
     }
     return parameters;
@@ -160,7 +168,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
           "Given parameter set is an instance of " + parameters.getClass() + " instead of "
           + parametersClass);
     }
-    moduleParameters.put(moduleClass, parameters);
+    moduleParameters.put(moduleClass.getName(), parameters);
 
   }
 
@@ -475,5 +483,12 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     final ImageNormalization normalization = preferences.getParameter(
         MZminePreferences.imageNormalization).getValue();
     return normalization != null ? normalization : ImageNormalization.NO_NORMALIZATION;
+  }
+
+  @Override
+  public PaintScaleTransform getImageTransformation() {
+    final PaintScaleTransform transformation = preferences.getParameter(
+        MZminePreferences.imageTransformation).getValue();
+    return transformation != null ? transformation : PaintScaleTransform.LINEAR;
   }
 }

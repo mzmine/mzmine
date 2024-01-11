@@ -30,42 +30,42 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.IonInterfaceWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
-import java.text.NumberFormat;
+import javafx.collections.FXCollections;
 
 public final class IonInterfaceGcElectronImpactWizardParameters extends
     IonInterfaceWizardParameters {
 
   public static final RTRangeParameter cropRtRange = new RTRangeParameter("Crop retention time",
       "Crops the RT range of chromatograms. Used to exclude time before the flow time\n"
-      + "and after the separation, where in many runs cleaning and re-equilibration starts.", true,
-      Range.closed(0.5, 30d));
+          + "and after the separation, where in many runs cleaning and re-equilibration starts.",
+      true, Range.closed(0.5, 30d));
   public static final RTToleranceParameter approximateChromatographicFWHM = new RTToleranceParameter(
       "Approximate feature FWHM",
       "The approximate feature width (chromatograpic peak width) in retention time (full-width-at-half-maximum, FWHM). ",
-      new RTTolerance(0.05f, Unit.MINUTES));
+      new RTTolerance(0.05f, Unit.MINUTES),
+      FXCollections.observableArrayList(Unit.MINUTES, Unit.SECONDS));
   public static final RTToleranceParameter intraSampleRTTolerance = new RTToleranceParameter(
       "RT tolerance (intra-sample)",
       "Retention time tolerance for multiple signals of the same compound in the same "
-      + "sample.\nUsed to detect isotopes or multimers/adducts of the same compound.",
-      new RTTolerance(0.04f, Unit.MINUTES));
+          + "sample.\nUsed to detect isotopes or multimers/adducts of the same compound.",
+      new RTTolerance(0.04f, Unit.MINUTES),
+      FXCollections.observableArrayList(Unit.MINUTES, Unit.SECONDS));
   public static final RTToleranceParameter interSampleRTTolerance = new RTToleranceParameter(
       "RT tolerance (sample-to-sample)",
       "Retention time tolerance for the same compound in different samples.\n"
-      + "Used to align multiple measurements of the same sample or a batch run.",
-      new RTTolerance(0.1f, Unit.MINUTES));
+          + "Used to align multiple measurements of the same sample or a batch run.",
+      new RTTolerance(0.1f, Unit.MINUTES),
+      FXCollections.observableArrayList(Unit.MINUTES, Unit.SECONDS));
   public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
       "Minimum consecutive scans",
       "Minimum number of consecutive scans with detected data points as used in chromatogram building and feature resolving.",
       4, 1, Integer.MAX_VALUE);
-  public static final DoubleParameter SN_THRESHOLD = new DoubleParameter("Signal/noise threshold",
-      "Signal to noise ratio threshold", NumberFormat.getNumberInstance(), 5d, 0.0, null);
   public static final DoubleRangeParameter RT_FOR_CWT_SCALES_DURATION = new DoubleRangeParameter(
       "Min/max feature width",
       "Upper and lower bounds of retention times to be used for setting the wavelet scales. Choose a range that that simmilar to the range of peak widths expected to be found from the data.",
@@ -74,32 +74,38 @@ public final class IonInterfaceGcElectronImpactWizardParameters extends
   public static final BooleanParameter smoothing = new BooleanParameter("Smoothing",
       "Apply smoothing in the retention time dimension, usually only needed if the peak shapes are spiky.",
       false);
+  public static final BooleanParameter RECALIBRATE_RETENTION_TIMES = new BooleanParameter(
+      "Recalibrate retention times",
+      "Searches for common features in all samples and recalibrates the retention times.",
+      false);
 
   public IonInterfaceGcElectronImpactWizardParameters(
       final IonInterfaceWizardParameterFactory preset) {
     super(WizardPart.ION_INTERFACE, preset,
         // actual parameters
-        smoothing, cropRtRange, minNumberOfDataPoints, SN_THRESHOLD, RT_FOR_CWT_SCALES_DURATION,
+        smoothing, RECALIBRATE_RETENTION_TIMES, cropRtRange, minNumberOfDataPoints,
+        RT_FOR_CWT_SCALES_DURATION,
         // tolerances
         approximateChromatographicFWHM, intraSampleRTTolerance, interSampleRTTolerance);
   }
 
   public IonInterfaceGcElectronImpactWizardParameters(
       final IonInterfaceWizardParameterFactory preset, final boolean smoothingActive,
+      final boolean recalibrateRetentionTime,
       final Range<Double> cropRt, final RTTolerance fwhm, final RTTolerance intraSampleTolerance,
-      final RTTolerance interSampleTolerance, final int minDataPoints, final Double snThreshold,
+      final RTTolerance interSampleTolerance, final int minDataPoints,
       final Range<Double> rtforCWT) {
 
     this(preset);
 
     // defaults - others override those values
     setParameter(smoothing, smoothingActive);
+    setParameter(RECALIBRATE_RETENTION_TIMES, recalibrateRetentionTime);
     setParameter(cropRtRange, cropRt);
     setParameter(approximateChromatographicFWHM, fwhm);
     setParameter(intraSampleRTTolerance, intraSampleTolerance);
     setParameter(interSampleRTTolerance, interSampleTolerance);
     setParameter(minNumberOfDataPoints, minDataPoints);
-    setParameter(SN_THRESHOLD, snThreshold);
     setParameter(RT_FOR_CWT_SCALES_DURATION, rtforCWT);
   }
 

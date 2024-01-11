@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -401,8 +402,8 @@ public class IonIdentity implements Comparable<IonIdentity> {
    *
    * @return
    */
-  public ResultFormula getBestMolFormula() {
-    return molFormulas == null || molFormulas.isEmpty() ? null : molFormulas.get(0);
+  public Optional<ResultFormula> getBestMolFormula() {
+    return molFormulas.isEmpty() ? Optional.empty() : Optional.of(molFormulas.get(0));
   }
 
 

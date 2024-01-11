@@ -25,8 +25,6 @@
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -43,18 +41,17 @@ import org.jetbrains.annotations.Nullable;
  */
 public class RTToleranceComponent extends HBox {
 
-  // the same order that the unit enum in RTTolerance is defined in
-  private static final ObservableList<String> toleranceTypes = FXCollections.observableArrayList(
-      "absolute (min)", "absolute (sec)", "relative (%)");
-  private final NumberFormat format = new DecimalFormat("0.000");
+  private final ObservableList<RTTolerance.Unit> toleranceTypes;
+  private final NumberFormat format = MZmineCore.getConfiguration().getRTFormat();
   private final TextFormatter<Number> textFormatter = new TextFormatter<>(
       new NumberStringConverter(format));
   private final TextField toleranceField;
-  private final ComboBox<String> toleranceType;
+  private final ComboBox<RTTolerance.Unit> toleranceType;
 
-  public RTToleranceComponent() {
+  public RTToleranceComponent(ObservableList<RTTolerance.Unit> rtToleranceTypes) {
+    this.toleranceTypes = FXCollections.observableArrayList(rtToleranceTypes);
+
     setSpacing(5);
-
     toleranceField = new TextField();
     toleranceField.setPrefColumnCount(6);
     toleranceField.setTextFormatter(textFormatter);
@@ -66,14 +63,12 @@ public class RTToleranceComponent extends HBox {
   }
 
   public RTTolerance getValue() {
-
-    int index = toleranceType.getSelectionModel().getSelectedIndex();
+    RTTolerance.Unit selectedUnit = toleranceType.getValue();
     String valueString = toleranceField.getText();
 
     float toleranceFloat;
-    Unit toleranceUnit = Unit.values()[index];
     try {
-      if (toleranceUnit == Unit.SECONDS || toleranceUnit == Unit.MINUTES) {
+      if (selectedUnit == RTTolerance.Unit.SECONDS || selectedUnit == RTTolerance.Unit.MINUTES) {
         toleranceFloat = MZmineCore.getConfiguration().getRTFormat().parse(valueString)
             .floatValue();
       } else {
@@ -84,24 +79,20 @@ public class RTToleranceComponent extends HBox {
       return null;
     }
 
-    RTTolerance value = new RTTolerance(toleranceFloat, toleranceUnit);
-
-    return value;
-
+    return new RTTolerance(toleranceFloat, selectedUnit);
   }
 
   public void setValue(@Nullable RTTolerance value) {
     if (value == null) {
       toleranceField.setText("");
-      // set to default value
-      toleranceType.getSelectionModel().select(toleranceTypes.get(0));
+      toleranceType.getSelectionModel().select(0);
       return;
     }
 
     double tolerance = value.getTolerance();
-    int choiceIndex = value.getUnit().ordinal();
+    RTTolerance.Unit selectedUnit = value.getUnit();
 
-    toleranceType.getSelectionModel().clearAndSelect(choiceIndex);
+    toleranceType.setValue(selectedUnit);
     String valueString = String.valueOf(tolerance);
     toleranceField.setText(valueString);
   }

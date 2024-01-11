@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -156,7 +156,8 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
   @Override
   public void loadValueFromXML(final Element xmlElement) {
     List<String> errorMessages = new ArrayList<>();
-    value = BatchQueue.loadFromXml(xmlElement, errorMessages);
+    // if modules are missing (false) fail it and do not set the parameters
+    value = BatchQueue.loadFromXml(xmlElement, errorMessages, false);
     // do not log warnings here it's called on startup of mzmine
   }
 

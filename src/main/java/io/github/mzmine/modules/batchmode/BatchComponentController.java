@@ -393,8 +393,9 @@ public class BatchComponentController implements LastFilesComponent {
   public void loadBatchSteps(final File file)
       throws ParserConfigurationException, IOException, SAXException {
     List<String> errorMessages = new ArrayList<>();
+    // allow missing modules but report them as error messages
     final BatchQueue queue = BatchQueue.loadFromXml(XMLUtils.load(file).getDocumentElement(),
-        errorMessages);
+        errorMessages, true);
     // check error messages and show dialog
     if (!errorMessages.isEmpty()) {
       DialogLoggerUtil.showMessageDialog("Check batch parameters carefully.",

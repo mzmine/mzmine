@@ -59,7 +59,7 @@ public class CompoundDatabaseMatchTab extends SimpleTab implements FeatureRowInt
     scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
     setContent(scrollPane);
 
-    weak.addListChangeListener(table.getSelectionModel().getSelectedItems(),
+    weak.addListChangeListener(table, table.getSelectionModel().getSelectedItems(),
         c -> selectionChanged());
   }
 

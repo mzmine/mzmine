@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -24,7 +25,9 @@
 
 package io.github.mzmine.modules.visualization.image;
 
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.preferences.ImageNormalization;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -51,14 +54,20 @@ public class ImageVisualizerParameters extends SimpleParameterSet {
       "Select m/z range");
   public static final OptionalParameter<MobilityRangeParameter> mobilityRange = new OptionalParameter<>(
       new MobilityRangeParameter());
+
+  public static final ComboParameter<PaintScaleTransform> imageTransformation = new ComboParameter<>(
+      "Image paint scale transformation", "Transforms the paint scale for images.",
+      PaintScaleTransform.values(), MZmineCore.getConfiguration().getImageTransformation());
+
   public static final ComboParameter<ImageNormalization> imageNormalization = new ComboParameter<>(
       "Normalize images",
       "Specifies if displayed images shall be normalized to the average TIC or shown according to the raw data."
           + "only applies to newly generated plots.", ImageNormalization.values(),
-      ImageNormalization.NO_NORMALIZATION);
+      MZmineCore.getConfiguration().getImageNormalization());
 
   public ImageVisualizerParameters() {
-    super(new Parameter[]{rawDataFiles, scanSelection, mzRange, mobilityRange, imageNormalization},
+    super(new Parameter[]{rawDataFiles, scanSelection, mzRange, mobilityRange, imageTransformation,
+            imageNormalization},
         "https://mzmine.github.io/mzmine_documentation/visualization_modules/image_raw_data/image_viewer.html");
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,12 +26,16 @@
 package io.github.mzmine.parameters.parametertypes.tolerances;
 
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import java.util.Collection;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 public class RTToleranceParameter implements UserParameter<RTTolerance, RTToleranceComponent> {
 
+  private final ObservableList<Unit> toleranceTypes;
   private String name, description;
   private RTTolerance value;
 
@@ -41,14 +45,29 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
   }
 
   public RTToleranceParameter(String name, String description) {
+    this(name, description, FXCollections.observableArrayList(RTTolerance.Unit.values()));
+  }
+
+  public RTToleranceParameter(String name, String description,
+      ObservableList<Unit> toleranceTypes) {
     this.name = name;
     this.description = description;
+    this.toleranceTypes = toleranceTypes;
   }
 
   public RTToleranceParameter(String name, String description, RTTolerance defaultValue) {
     this.name = name;
     this.description = description;
     this.value = defaultValue;
+    this.toleranceTypes = FXCollections.observableArrayList(RTTolerance.Unit.values());
+  }
+
+  public RTToleranceParameter(String name, String description, RTTolerance defaultValue,
+      ObservableList<Unit> toleranceTypes) {
+    this.name = name;
+    this.description = description;
+    this.value = defaultValue;
+    this.toleranceTypes = toleranceTypes;
   }
 
   /**
@@ -69,12 +88,12 @@ public class RTToleranceParameter implements UserParameter<RTTolerance, RTTolera
 
   @Override
   public RTToleranceComponent createEditingComponent() {
-    return new RTToleranceComponent();
+    return new RTToleranceComponent(toleranceTypes);
   }
 
   @Override
   public RTToleranceParameter cloneParameter() {
-    RTToleranceParameter copy = new RTToleranceParameter(name, description);
+    RTToleranceParameter copy = new RTToleranceParameter(name, description, toleranceTypes);
     copy.setValue(this.getValue());
     return copy;
   }
