@@ -25,8 +25,9 @@
 
 package io.github.mzmine.datamodel;
 
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
+import org.jetbrains.annotations.Nullable;
 
 public interface ImagingScan extends Scan {
   /**
@@ -37,5 +38,13 @@ public interface ImagingScan extends Scan {
   Coordinates getCoordinates();
 
   void setCoordinates(@Nullable Coordinates coordinates);
+
+  /**
+   *
+   * @return The MALDI spot info if supplied in the raw data or null.
+   */
+  @Nullable MaldiSpotInfo getMaldiSpotInfo();
+
+  void setMaldiSpotInfo(@Nullable MaldiSpotInfo info);
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,10 +27,10 @@ package io.github.mzmine.modules.visualization.networking;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
-import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkTab;
+import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFlavor;
+import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -57,8 +57,8 @@ public class AnnotationNetworkModule implements MZmineRunnableModule {
   @Override
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    ModularFeatureList[] pkls = parameters.getParameter(AnnotationNetworkParameters.PEAK_LISTS)
-        .getValue().getMatchingFeatureLists();
+    ModularFeatureList[] featureLists = parameters.getParameter(
+        AnnotationNetworkParameters.PEAK_LISTS).getValue().getMatchingFeatureLists();
     boolean connectByNetRelations = parameters.getParameter(
         AnnotationNetworkParameters.CONNECT_BY_NET_RELATIONS).getValue();
     boolean onlyBest = parameters.getParameter(AnnotationNetworkParameters.ONLY_BEST_NETWORKS)
@@ -69,10 +69,11 @@ public class AnnotationNetworkModule implements MZmineRunnableModule {
         .getValue();
     boolean ms1FeatureShapeEdges = parameters.getParameter(
         AnnotationNetworkParameters.MS1_SIMILARITY_EDGES).getValue();
-    if (pkls != null && pkls.length > 0) {
-      FeatureNetworkTab f = new FeatureNetworkTab(pkls[0], collapseNodes, connectByNetRelations,
-          onlyBest, ms2SimEdges, ms1FeatureShapeEdges);
-      MZmineCore.getDesktop().addTab(f);
+    if (featureLists != null && featureLists.length > 0) {
+
+      NetworkOverviewWindow window = new NetworkOverviewWindow(featureLists[0], null, null,
+          NetworkOverviewFlavor.IIMN);
+      window.show();
       return ExitCode.OK;
     }
     return ExitCode.ERROR;

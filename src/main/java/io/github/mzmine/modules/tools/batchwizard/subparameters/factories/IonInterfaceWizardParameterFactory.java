@@ -101,11 +101,12 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
           new RTTolerance(0.1f, Unit.MINUTES));
       // different workflow for GC-EI
       case GC_EI ->
-          new IonInterfaceGcElectronImpactWizardParameters(this, false, Range.closed(0.3, 30d),
+          new IonInterfaceGcElectronImpactWizardParameters(this, false, true,
+              Range.closed(0.3, 30d),
               new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES),
-              new RTTolerance(0.1f, Unit.MINUTES), 4, 5.0, Range.closed(0.001, 0.06));
+              new RTTolerance(0.1f, Unit.MINUTES), 4, Range.closed(0.001, 0.06));
       // parameters for imaging
-      case MALDI, LDI, DESI, SIMS -> new IonInterfaceImagingWizardParameters(this, 25);
+      case MALDI, LDI, DESI, SIMS -> new IonInterfaceImagingWizardParameters(this, 25, false);
       //
       case DIRECT_INFUSION, FLOW_INJECT ->
           new IonInterfaceDirectAndFlowInjectWizardParameters(this, 5);
@@ -152,9 +153,13 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
    */
   public WorkflowWizardParameterFactory[] getMatchingWorkflowPresets() {
     return switch (this) {
-      case DIRECT_INFUSION, FLOW_INJECT, HPLC, UHPLC, HILIC, GC_CI ->
+      case DIRECT_INFUSION, FLOW_INJECT, GC_CI ->
           new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DDA,
               WorkflowWizardParameterFactory.LIBRARY_GENERATION};
+      case HPLC, UHPLC, HILIC ->
+          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DDA,
+              WorkflowWizardParameterFactory.LIBRARY_GENERATION,
+              WorkflowWizardParameterFactory.DIA};
       case GC_EI ->
           new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DECONVOLUTION};
       case MALDI, LDI, DESI, SIMS ->

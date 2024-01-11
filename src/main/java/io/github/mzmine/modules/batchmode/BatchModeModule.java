@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,13 +37,16 @@ import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 
 /**
@@ -63,7 +66,19 @@ public class BatchModeModule implements MZmineProcessingModule {
    */
   public static ExitCode runBatch(@NotNull MZmineProject project, File batchFile,
       @NotNull Instant moduleCallDate) {
+    return runBatch(project, batchFile, null, null, moduleCallDate);
+  }
 
+  /**
+   * Run from batch file (usually in headless mode)
+   *
+   * @param batchFile                    local file
+   * @param overrideDataFiles            change the data import to those files if not null
+   * @param overrideSpectralLibraryFiles change the spectral libraries imported
+   * @return exit code that reflects if the batch mode was started
+   */
+  public static ExitCode runBatch(@NotNull MZmineProject project, File batchFile,
+      @Nullable File[] overrideDataFiles, final File[] overrideSpectralLibraryFiles, @NotNull Instant moduleCallDate) {
     if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
       MZmineCore.getDesktop().displayErrorMessage(
           "Cannot run a second batch while the current batch is not finished.");
@@ -77,14 +92,34 @@ public class BatchModeModule implements MZmineProcessingModule {
       Document parsedBatchXML = docBuilder.parse(batchFile);
 
       List<String> errorMessages = new ArrayList<>();
+      // fail on missing modules - here its usually run from the command line - fail it
       BatchQueue newQueue = BatchQueue.loadFromXml(parsedBatchXML.getDocumentElement(),
-          errorMessages);
+          errorMessages, false);
 
       // versions might have changed
       if (!errorMessages.isEmpty()) {
         logger.log(Level.WARNING, "Warnings during batch file import:");
         for (final String errorMessage : errorMessages) {
           logger.log(Level.WARNING, errorMessage);
+        }
+      }
+
+      // change input files and spectral libraries, e.g., by command line arguments
+      if (overrideDataFiles != null || overrideSpectralLibraryFiles !=null) {
+        if (!newQueue.setImportFiles(overrideDataFiles, overrideSpectralLibraryFiles)) {
+          if (overrideDataFiles != null) {
+            logger.log(Level.SEVERE,
+                "Could not change the input files to " + Arrays.stream(overrideDataFiles)
+                    .map(file -> file != null ? file.getAbsolutePath() : "null")
+                    .collect(Collectors.joining("\n")));
+          }
+          if (overrideSpectralLibraryFiles != null) {
+            logger.log(Level.SEVERE,
+                "Could not change the import spectral library files to " + Arrays.stream(overrideSpectralLibraryFiles)
+                    .map(file -> file != null ? file.getAbsolutePath() : "null")
+                    .collect(Collectors.joining("\n")));
+          }
+          return ExitCode.ERROR;
         }
       }
 

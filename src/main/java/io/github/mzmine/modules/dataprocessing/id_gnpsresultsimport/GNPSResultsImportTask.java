@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -230,7 +230,7 @@ public class GNPSResultsImportTask extends AbstractTask {
       }
     });
     // add all edges to feature list
-    featureList.addRowsRelationships(gnpsEdges, Type.MS2_GNPS_COSINE_SIM);
+    featureList.getRowMaps().addAllRowsRelationships(gnpsEdges, Type.MS2_GNPS_COSINE_SIM);
   }
 
   /**

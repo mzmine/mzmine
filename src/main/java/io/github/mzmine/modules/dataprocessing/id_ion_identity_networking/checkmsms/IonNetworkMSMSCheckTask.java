@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,21 +34,20 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.RowGroup;
+import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.ms2.MSMSIonRelationIdentity;
 import io.github.mzmine.datamodel.identities.ms2.interf.MsMsIdentity;
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.MSMSLogic;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MSMSLogic;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.text.MessageFormat;
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;

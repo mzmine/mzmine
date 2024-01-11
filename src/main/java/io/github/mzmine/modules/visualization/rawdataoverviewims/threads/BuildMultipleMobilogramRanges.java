@@ -101,7 +101,8 @@ public class BuildMultipleMobilogramRanges extends AbstractTask {
         final SummedIntensityMobilitySeries summed = binning.toSummedMobilogram(null);
         if (summed.getNumberOfDataPoints() > 0) {
           SummedMobilogramXYProvider provider = new SummedMobilogramXYProvider(summed,
-              new SimpleObjectProperty<>(colors.get(mzRanges.indexOf(mzRange))), seriesKey, true);
+              new SimpleObjectProperty<>(colors.get(mzRanges.indexOf(mzRange))), seriesKey, true,
+              false, null);
           ColoredXYDataset dataset = new ColoredXYDataset(provider, RunOption.THIS_THREAD);
           mobilogramDataSets.add(dataset);
         }

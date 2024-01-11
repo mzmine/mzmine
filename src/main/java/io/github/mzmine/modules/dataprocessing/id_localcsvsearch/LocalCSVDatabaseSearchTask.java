@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,6 +42,7 @@ import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureTy
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.MolecularClassType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
@@ -110,6 +111,9 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final IonTypeType ionTypeType = (IonTypeType) DataTypes.get(IonTypeType.class);
   private final PubChemIdType pubchemIdType = (PubChemIdType) DataTypes.get(PubChemIdType.class);
 
+  private final MolecularClassType molecularClassType = (MolecularClassType) DataTypes.get(
+      MolecularClassType.class);
+
   // vars
   private final FeatureList[] featureLists;
   private final MobilityTolerance mobTolerance;
@@ -118,6 +122,10 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final String fieldSeparator;
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
+  private final IsotopePatternMatcherParameters isotopePatternMatcherParameters;
+  private final MZTolerance isotopeMzTolerance;
+  private final double minRelativeIsotopeIntensity;
+  private final double minIsotopeScore;
   private final ParameterSet parameters;
   private final List<ImportType> importTypes;
   private final IonLibraryParameterSet ionLibraryParameterSet;
@@ -153,12 +161,37 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     ionLibraryParameterSet = calcMz != null && calcMz ? parameters.getParameter(
         LocalCSVDatabaseSearchParameters.ionLibrary).getEmbeddedParameters() : null;
     filterSamples = parameters.getValue(LocalCSVDatabaseSearchParameters.filterSamples);
-    sampleHeader = parameters.getEmbeddedParameterValueIfSelectedOrElse(
-        LocalCSVDatabaseSearchParameters.filterSamples, null);
 
     // all raw data files for a name check if selected
     allRawDataFiles = Arrays.stream(featureLists).map(FeatureList::getRawDataFiles)
         .flatMap(Collection::stream).distinct().toList();
+    sampleHeader = parameters.getParameter(LocalCSVDatabaseSearchParameters.filterSamples)
+        .getEmbeddedParameter().getValue();
+
+    final boolean isotopePatternMatcher = parameters.getValue(
+        LocalCSVDatabaseSearchParameters.isotopePatternMatcher);
+    if (isotopePatternMatcher) {
+      isotopePatternMatcherParameters = parameters.getParameter(
+          LocalCSVDatabaseSearchParameters.isotopePatternMatcher).getEmbeddedParameters();
+      isotopeMzTolerance = isotopePatternMatcherParameters.getParameter(
+          IsotopePatternMatcherParameters.isotopeMzTolerance).getValue();
+      minRelativeIsotopeIntensity = isotopePatternMatcherParameters.getParameter(
+          IsotopePatternMatcherParameters.minIntensity).getValue();
+      minIsotopeScore = isotopePatternMatcherParameters.getParameter(
+          IsotopePatternMatcherParameters.minIsotopeScore).getValue();
+    } else {
+      isotopePatternMatcherParameters = null;
+      isotopeMzTolerance = null;
+      minRelativeIsotopeIntensity = 0d;
+      minIsotopeScore = 0d;
+    }
+  }
+
+  @Nullable
+  private static Float replaceWildcardLowerEq0WithNull(final DataType<Float> type,
+      final Map<DataType<?>, String> map) {
+    float value = Float.parseFloat(map.getOrDefault(type, "-1"));
+    return value > 0 ? value : null;
   }
 
   @Override
@@ -254,6 +287,12 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           row.setCompoundAnnotations(matches);
         }
       }
+      if (isotopePatternMatcherParameters != null) {
+        for (FeatureList flist : featureLists) {
+          refineAnnotationsByIsotopes(flist);
+        }
+      }
+
 
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
@@ -271,6 +310,11 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
     setStatus(TaskStatus.FINISHED);
 
+  }
+
+  private void refineAnnotationsByIsotopes(FeatureList flist) {
+      DatabaseIsotopeRefinerScanBased.refineAnnotationsByIsotopesDifferentResolutions(flist.getRows(), isotopeMzTolerance,
+          minRelativeIsotopeIntensity, minIsotopeScore);
   }
 
   /**
@@ -387,13 +431,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     }
   }
 
-  @Nullable
-  private static Float replaceWildcardLowerEq0WithNull(final DataType<Float> type,
-      final Map<DataType<?>, String> map) {
-    float value = Float.parseFloat(map.getOrDefault(type, "-1"));
-    return value > 0 ? value : null;
-  }
-
   @NotNull
   private CompoundDBAnnotation getCompoundFromLine(@NotNull String[] values,
       @NotNull List<ImportType> linesWithIndices, @NotNull final List<ImportType> commentFields) {
@@ -423,6 +460,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     final String inchi = entry.get(inchiType);
     final String inchiKey = entry.get(inchiKeyType);
     final String pubchemId = entry.get(pubchemIdType);
+    final String molecularClass = entry.get(molecularClassType);
 
     final String lineComment;
     if (!commentFields.isEmpty()) {
@@ -449,6 +487,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     a.putIfNotNull(ionTypeType, IonTypeParser.parse(lineAdduct));
     doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(),
         new DatabaseMatchInfo(OnlineDatabases.PubChem, pubchemId)));
+    doIfNotNull(molecularClass, () -> a.put(molecularClassType, molecularClass));
     return a;
   }
 

@@ -33,6 +33,8 @@ import dulab.adap.workflow.TwoStepDecompositionParameters;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.PseudoSpectrum;
+import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -45,9 +47,11 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.time.Instant;
@@ -58,6 +62,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -125,16 +130,14 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
 
           if (!isCanceled()) {
 
-            // Add new peaklist to the project.
-            project.addFeatureList(newPeakList);
-
             //// Add quality parameters to peaks
             //QualityParameters.calculateQualityParameters(newPeakList);
 
             // Remove the original peaklist if requested.
-            if (parameters.getParameter(ADAP3DecompositionV1_5Parameters.AUTO_REMOVE).getValue()) {
-              project.removeFeatureList(originalPeakList);
-            }
+            parameters.getParameter(ADAP3DecompositionV1_5Parameters.handleOriginal).getValue()
+                .reflectNewFeatureListToProject(
+                    parameters.getParameter(ADAP3DecompositionV1_5Parameters.SUFFIX).getValue(),
+                    project, newPeakList, originalPeakList);
 
             setStatus(TaskStatus.FINISHED);
             logger.info("Finished peak decomposition on " + originalPeakList);
@@ -218,10 +221,20 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
       for (Map.Entry<Double, Double> entry : component.getSpectrum().entrySet()) {
         dataPoints.add(new SimpleDataPoint(entry.getKey(), entry.getValue()));
       }
+      dataPoints.sort(Comparator.comparingDouble(DataPoint::getMZ));
+      var data = DataPointUtils.getDataPointsAsDoubleArray(dataPoints);
+      double[] mz = data[0];
+      double[] intensities = data[1];
+      PseudoSpectrum pseudoMs1 = new SimplePseudoSpectrum(originalPeakList.getRawDataFile(0), 1,
+          refPeak.getRT(), null, mz, intensities,
+          Objects.requireNonNull(refPeak.getRepresentativeScan()).getPolarity(), "Pseudo Spectrum",
+          PseudoSpectrumType.GC_EI);
+
+      refPeak.setAllMS2FragmentScans(new ArrayList<>(List.of(pseudoMs1)));
 
       refPeak.setIsotopePattern(
           new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[dataPoints.size()]), -1,
-              IsotopePattern.IsotopePatternStatus.PREDICTED, "Spectrum"));
+              IsotopePattern.IsotopePatternStatus.PREDICTED, "EI Pseudo MS1 Spectrum"));
 
       row.addFeature(dataFile, refPeak);
 

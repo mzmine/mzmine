@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.gui.preferences;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
@@ -34,6 +35,7 @@ import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.FontSpecs;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.OptOutParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
@@ -45,19 +47,18 @@ import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePalettePa
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.color.ColorUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Map;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.scene.control.ButtonType;
+import javafx.scene.paint.Color;
 import org.w3c.dom.Element;
 
 public class MZminePreferences extends SimpleParameterSet {
-
-  // public static final ComboParameter<Vision> colorPalettes = new ComboParameter<>(
-  // "Color palettes (color blindness mode)",
-  // "Some modules use the color blindness aware palettes for a higher contrast. Think about using
-  // this mode even with \"normal vision\" to reach everyone.",
-  // FXCollections.observableArrayList(Vision.values()), Vision.DEUTERANOPIA);
 
   public static final NumberFormatParameter mzFormat = new NumberFormatParameter("m/z value format",
       "Format of m/z values", false, new DecimalFormat("0.0000"));
@@ -98,7 +99,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final FileNameParameter rExecPath = new FileNameParameter("R executable path",
       "Full R executable file path (If left blank, MZmine will try to find out automatically). On Windows, this should point to your R.exe file.",
-      FileSelectionType.OPEN);
+      FileSelectionType.OPEN, true);
 
   public static final BooleanParameter sendStatistics = new BooleanParameter(
       "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
@@ -118,7 +119,7 @@ public class MZminePreferences extends SimpleParameterSet {
       "Default paint scale",
       "Defines the default paint scale used to create charts throughout MZmine");
 
-  public static final ParameterSetParameter chartParam = new ParameterSetParameter(
+  public static final ParameterSetParameter<ChartThemeParameters> chartParam = new ParameterSetParameter<>(
       "Chart parameters", "The default chart parameters to be used throughout MZmine",
       new ChartThemeParameters());
 
@@ -153,9 +154,17 @@ public class MZminePreferences extends SimpleParameterSet {
       KeepInMemory.ALL, KeepInMemory.MASSES_AND_FEATURES), KeepInMemory.values(),
       KeepInMemory.NONE);
 
+  /*public static final BooleanParameter applyTimsPressureCompensation = new BooleanParameter(
+      "Use MALDI-TIMS pressure compensation", """
+      Specifies if mobility values from Bruker timsTOF fleX MALDI raw data shall be recalibrated using a Bruker algorithm.
+      This compensation is applied during file import and cannot be applied afterwards.
+      Will cause additional memory consumption, because every pixel might have it's own mobility calibration (in theory).
+      In practical cases, this memory consumption is mostly negligible. 
+      """, false);*/
+
   public static final BooleanParameter showPrecursorWindow = new BooleanParameter(
       "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
-      false);
+      true);
 
   public static final BooleanParameter showTempFolderAlert = new BooleanParameter("Show temp alert",
       "Show temp folder alert", true);
@@ -166,17 +175,21 @@ public class MZminePreferences extends SimpleParameterSet {
           + "only applies to newly generated plots.", ImageNormalization.values(),
       ImageNormalization.NO_NORMALIZATION);
 
-  private final boolean isDarkMode = false;
-  private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
-      new DecimalFormat("0.###"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
-      new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.##"),
-      new DecimalFormat("0.##"), UnitFormat.DIVIDE);
+  public static final ComboParameter<PaintScaleTransform> imageTransformation = new ComboParameter<>(
+      "Image paint scale transformation", "Transforms the paint scale for images.",
+      PaintScaleTransform.values(), PaintScaleTransform.LINEAR);
 
+  private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
+      new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
+      new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.##"),
+      new DecimalFormat("0.###"), UnitFormat.DIVIDE);
+  private final boolean isDarkMode = false;
   private NumberFormats guiFormat = exportFormat; // default value
 
   public MZminePreferences() {
     super(// start with performance
         numOfThreads, memoryOption, tempDirectory, proxySettings, rExecPath, sendStatistics,
+        /*applyTimsPressureCompensation,*/
         // visuals
         // number formats
         mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat, scoreFormat,
@@ -185,7 +198,8 @@ public class MZminePreferences extends SimpleParameterSet {
         unitFormat,
         // other preferences
         defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
-        imageNormalization, showPrecursorWindow, imsModuleWarnings, windowSetttings, sendErrorEMail,
+        imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
+        windowSetttings, sendErrorEMail,
         // silent parameters without controls
         showTempFolderAlert);
   }
@@ -197,18 +211,19 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public ExitCode showSetupDialog(boolean valueCheckRequired, String filterParameters) {
     assert Platform.isFxApplicationThread();
+    final Themes previousTheme = getValue(MZminePreferences.theme);
     GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this);
 
     // add groups
     dialog.addParameterGroup("General",
         new Parameter[]{numOfThreads, memoryOption, tempDirectory, proxySettings, rExecPath,
-            sendStatistics});
+            sendStatistics/*, applyTimsPressureCompensation*/});
     dialog.addParameterGroup("Formats",
         new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,
             scoreFormat, unitFormat});
     dialog.addParameterGroup("Visuals",
         new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
-            showPrecursorWindow, imageNormalization});
+            showPrecursorWindow, imageTransformation, imageNormalization});
     dialog.addParameterGroup("Other", new Parameter[]{sendErrorEMail,
         // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
     });
@@ -230,6 +245,7 @@ public class MZminePreferences extends SimpleParameterSet {
     keepInMemory.enforceToMemoryMapping();
 
     final Themes theme = getValue(MZminePreferences.theme);
+    updateChartColorsToTheme(previousTheme, theme);
     theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
 
     Boolean presentation = MZmineCore.getConfiguration().getPreferences()
@@ -244,7 +260,95 @@ public class MZminePreferences extends SimpleParameterSet {
 
     updateGuiFormat();
 
+    final File tempDir = getValue(MZminePreferences.tempDirectory);
+    if (tempDir != null && tempDir.isDirectory()) {
+      if (!tempDir.exists()) {
+        tempDir.mkdirs();
+      }
+      FileAndPathUtil.setTempDir(tempDir);
+    }
+
     return retVal;
+  }
+
+  private void updateChartColorsToTheme(Themes previousTheme, Themes theme) {
+    if (previousTheme.isDark() != theme.isDark()) {
+      final ChartThemeParameters chartParams = getValue(MZminePreferences.chartParam);
+      final Color bgColor = chartParams.getValue(ChartThemeParameters.color);
+      final FontSpecs axisFont = chartParams.getValue(ChartThemeParameters.axisLabelFont);
+      final FontSpecs itemFont = chartParams.getValue(ChartThemeParameters.itemLabelFont);
+      final FontSpecs titleFont = chartParams.getValue(ChartThemeParameters.titleFont);
+      final FontSpecs subTitleFont = chartParams.getValue(ChartThemeParameters.subTitleFont);
+
+      boolean changeColors = false;
+      if (theme.isDark() && (ColorUtils.isDark(bgColor) || ColorUtils.isDark(axisFont.getColor())
+          || ColorUtils.isDark(itemFont.getColor()) || ColorUtils.isDark(titleFont.getColor())
+          || ColorUtils.isDark(subTitleFont.getColor()))) {
+        if (MZmineCore.getDesktop().displayConfirmation("""
+            MZmine detected that you changed the GUI theme.
+            The current chart theme colors might not be readable.
+            Would you like to adapt them?
+            """, ButtonType.YES, ButtonType.NO) == ButtonType.YES) {
+          changeColors = true;
+        }
+      } else if (!theme.isDark() && (ColorUtils.isLight(bgColor) || ColorUtils.isLight(
+          axisFont.getColor()) || ColorUtils.isLight(itemFont.getColor()) || ColorUtils.isLight(
+          titleFont.getColor()) || ColorUtils.isLight(subTitleFont.getColor()))) {
+        if (MZmineCore.getDesktop().displayConfirmation("""
+            MZmine detected that you changed the GUI theme.
+            The current chart theme colors might not be readable.
+            Would you like to adapt them?
+            """, ButtonType.YES, ButtonType.NO) == ButtonType.YES) {
+          changeColors = true;
+        }
+      }
+
+      if (!changeColors) {
+        return;
+      }
+
+      if (theme.isDark()) {
+        if (ColorUtils.isLight(bgColor)) {
+          chartParams.setParameter(ChartThemeParameters.color, Color.TRANSPARENT);
+        }
+        if (ColorUtils.isDark(axisFont.getColor())) {
+          chartParams.setParameter(ChartThemeParameters.axisLabelFont,
+              new FontSpecs(Color.WHITE, axisFont.getFont()));
+        }
+        if (ColorUtils.isDark(itemFont.getColor())) {
+          chartParams.setParameter(ChartThemeParameters.itemLabelFont,
+              new FontSpecs(Color.WHITE, itemFont.getFont()));
+        }
+        if (ColorUtils.isDark(titleFont.getColor())) {
+          chartParams.setParameter(ChartThemeParameters.titleFont,
+              new FontSpecs(Color.WHITE, titleFont.getFont()));
+        }
+        if (ColorUtils.isDark(subTitleFont.getColor())) {
+          chartParams.setParameter(ChartThemeParameters.subTitleFont,
+              new FontSpecs(Color.WHITE, subTitleFont.getFont()));
+        }
+      } else {
+        if (ColorUtils.isDark(bgColor)) {
+          chartParams.setParameter(ChartThemeParameters.color, Color.WHITE);
+        }
+        if (ColorUtils.isLight(axisFont.getColor())) {
+          chartParams.setParameter(ChartThemeParameters.axisLabelFont,
+              new FontSpecs(Color.BLACK, axisFont.getFont()));
+        }
+        if (ColorUtils.isLight(itemFont.getColor())) {
+          chartParams.setParameter(ChartThemeParameters.itemLabelFont,
+              new FontSpecs(Color.BLACK, itemFont.getFont()));
+        }
+        if (ColorUtils.isLight(titleFont.getColor())) {
+          chartParams.setParameter(ChartThemeParameters.titleFont,
+              new FontSpecs(Color.BLACK, titleFont.getFont()));
+        }
+        if (ColorUtils.isLight(subTitleFont.getColor())) {
+          chartParams.setParameter(ChartThemeParameters.subTitleFont,
+              new FontSpecs(Color.BLACK, subTitleFont.getFont()));
+        }
+      }
+    }
   }
 
   private void updateGuiFormat() {

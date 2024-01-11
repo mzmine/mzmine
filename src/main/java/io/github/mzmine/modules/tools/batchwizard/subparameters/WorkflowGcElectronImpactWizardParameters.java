@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
@@ -34,12 +35,20 @@ import java.io.File;
 
 public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWizardParameters {
 
+  public static final IntegerParameter MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA =
+      new IntegerParameter("Min number of signals in deconvoluted spectrum",
+          "Min number of signals in deconvoluted spectrum", 8, true);
+
   public static final BooleanParameter exportGnps = new BooleanParameter(
       "Export for GNPS GC-EI FBMN", "Export to Feature-based Molecular Networking (FBMN) on GNPS",
       true);
 
   public static final BooleanParameter exportMsp = new BooleanParameter("Export for MSP",
       "Export to MSP", true);
+
+  public static final BooleanParameter exportAnnotationGraphics = new BooleanParameter(
+      "Export annotation graphics", "Exports annotations to png and pdf images.", false);
+
 
   public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
       new FileNameParameter("Export path",
@@ -50,17 +59,19 @@ public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWiza
   public WorkflowGcElectronImpactWizardParameters() {
     super(WorkflowWizardParameterFactory.DECONVOLUTION,
         // actual parameters
-        exportPath, exportGnps, exportMsp);
+        MIN_NUMBER_OF_SIGNALS_IN_DECON_SPECTRA, exportPath, exportGnps, exportMsp,
+        exportAnnotationGraphics);
   }
 
 
   public WorkflowGcElectronImpactWizardParameters(final boolean exportActive,
-      final File exportBasePath, final boolean exportGnpsActive, final boolean exportMspActive) {
+      final File exportBasePath, final boolean exportGnpsActive, final boolean exportMspActive, final boolean exportAnnotationGraphicsActive) {
     this();
     setParameter(exportPath, exportActive);
     getParameter(exportPath).getEmbeddedParameter().setValue(exportBasePath);
     setParameter(exportGnps, exportGnpsActive);
     setParameter(exportMsp, exportMspActive);
+    setParameter(exportAnnotationGraphics, exportAnnotationGraphicsActive);
   }
 
 }

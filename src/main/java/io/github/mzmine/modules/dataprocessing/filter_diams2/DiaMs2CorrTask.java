@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -157,7 +157,7 @@ public class DiaMs2CorrTask extends AbstractTask {
 
     final RawDataFile file = flist.getRawDataFile(0);
     final List<Scan> ms2Scans = List.of(ms2ScanSelection.getMatchingScans(file));
-    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.CENTROID,
+    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.MASS_LIST,
         ms2ScanSelection);
 
     // build chromatograms

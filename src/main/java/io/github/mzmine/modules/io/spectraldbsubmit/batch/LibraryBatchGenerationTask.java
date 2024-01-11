@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,15 +40,16 @@ import static io.github.mzmine.util.scans.ScanUtils.extractDataPoints;
 import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.MergedMsMsSpectrum;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.modules.io.spectraldbsubmit.batch.HandleChimericMsMsParameters.ChimericMsOption;
+import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.ChimericPrecursorChecker;
+import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.ChimericPrecursorFlag;
+import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.ChimericPrecursorResults;
+import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters;
+import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.HandleChimericMsMsParameters.ChimericMsOption;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MSPEntryGenerator;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MZmineJsonGenerator;
@@ -62,12 +63,9 @@ import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
-import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
-import io.github.mzmine.util.scans.ScanUtils;
-import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
@@ -80,7 +78,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -103,6 +100,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final ModularFeatureList[] flists;
   private final File outFile;
   private final SpectralLibraryExportFormats format;
+  private final ParameterSet parameters;
   private final Map<DBEntryField, Object> metadataMap;
   private final boolean handleChimerics;
   private final FragmentScanSelection selection;
@@ -110,19 +108,20 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final MZTolerance mzTolMerging;
   private final boolean enableMsnMerge;
   private final MsLevelFilter postMergingMsLevelFilter;
-  private double allowedOtherSignalSum = 0d;
-  private MZTolerance mzTolChimericsMainIon;
-  private MZTolerance mzTolChimericsIsolation;
-  private ChimericMsOption handleChimericsOption;
   public long totalRows = 0;
   public AtomicInteger finishedRows = new AtomicInteger(0);
   public AtomicInteger exported = new AtomicInteger(0);
+  private double minimumPrecursorPurity = 0d;
+  private MZTolerance chimericsMainIonMzTol;
+  private MZTolerance chimericsIsolationMzTol;
+  private ChimericMsOption handleChimericsOption;
   private String description = "Batch exporting spectral library";
 
   public LibraryBatchGenerationTask(final ParameterSet parameters, final Instant moduleCallDate) {
     super(null, moduleCallDate);
     flists = parameters.getValue(LibraryBatchGenerationParameters.flists).getMatchingFeatureLists();
     format = parameters.getValue(LibraryBatchGenerationParameters.exportFormat);
+    this.parameters = parameters;
     String exportFormat = format.getExtension();
     File file = parameters.getValue(LibraryBatchGenerationParameters.file);
     outFile = FileAndPathUtil.getRealFilePath(file, exportFormat);
@@ -148,9 +147,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     if (handleChimerics) {
       HandleChimericMsMsParameters param = parameters.getParameter(
           LibraryBatchGenerationParameters.handleChimerics).getEmbeddedParameters();
-      allowedOtherSignalSum = param.getValue(HandleChimericMsMsParameters.allowedOtherSignals);
-      mzTolChimericsIsolation = param.getValue(HandleChimericMsMsParameters.isolationWindow);
-      mzTolChimericsMainIon = param.getValue(HandleChimericMsMsParameters.mainMassWindow);
+      minimumPrecursorPurity = param.getValue(HandleChimericMsMsParameters.minimumPrecursorPurity);
+      chimericsIsolationMzTol = param.getValue(HandleChimericMsMsParameters.isolationWindow);
+      chimericsMainIonMzTol = param.getValue(HandleChimericMsMsParameters.mainMassWindow);
       handleChimericsOption = param.getValue(HandleChimericMsMsParameters.option);
     }
 
@@ -178,6 +177,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
           processRow(writer, row);
           finishedRows.incrementAndGet();
         }
+        flist.getAppliedMethods().add(
+            new SimpleFeatureListAppliedMethod(LibraryBatchGenerationModule.class, parameters,
+                getModuleCallDate()));
       }
       //
       logger.info(String.format("Exported %d new library entries to file %s", exported.get(),
@@ -262,7 +264,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
    */
   private void exportAllMatches(final BufferedWriter writer, final FeatureListRow row,
       final List<Scan> scans, final List<CompoundDBAnnotation> filteredMatches,
-      final Map<Scan, ChimericPrecursorResult> chimericMap) throws IOException {
+      final Map<Scan, ChimericPrecursorResults> chimericMap) throws IOException {
     // filtered matches contain one match per compound name sorted by the least complex first
     // M+H better than 2M+H2+2
     for (final CompoundDBAnnotation match : filteredMatches) {
@@ -304,7 +306,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
    */
   @NotNull
   private SpectralLibraryEntry createEntry(final FeatureListRow row,
-      final CompoundDBAnnotation match, final Map<Scan, ChimericPrecursorResult> chimericMap,
+      final CompoundDBAnnotation match, final Map<Scan, ChimericPrecursorResults> chimericMap,
       final Scan msmsScan, final MSMSScore score, final DataPoint[] dps,
       final List<CompoundDBAnnotation> allMatchedCompounds) {
     // add instrument type etc by parameter
@@ -328,10 +330,11 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     }
     if (ChimericMsOption.FLAG.equals(handleChimericsOption)) {
       // default is passed
-      ChimericPrecursorResult chimeric = chimericMap.getOrDefault(msmsScan,
-          ChimericPrecursorResult.PASSED);
-      entry.putIfNotNull(DBEntryField.QUALITY_CHIMERIC, chimeric);
-      if (ChimericPrecursorResult.CHIMERIC.equals(chimeric)) {
+      ChimericPrecursorResults chimeric = chimericMap.getOrDefault(msmsScan,
+          ChimericPrecursorResults.PASSED);
+      entry.putIfNotNull(DBEntryField.QUALITY_PRECURSOR_PURITY, chimeric.purity());
+      entry.putIfNotNull(DBEntryField.QUALITY_CHIMERIC, chimeric.flag());
+      if (ChimericPrecursorFlag.CHIMERIC.equals(chimeric.flag())) {
         entry.putIfNotNull(DBEntryField.NAME,
             entry.getField(DBEntryField.NAME).orElse("") + " (Chimeric precursor selection)");
       }
@@ -355,64 +358,22 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     return entry;
   }
 
-
-  private Map<Scan, ChimericPrecursorResult> checkChimericPrecursorIsolation(
-      final FeatureListRow row, final List<Scan> scans) {
-    // all data files from fragment scans to score if is chimeric
-    Map<Scan, ChimericPrecursorResult> chimericMap = new HashMap<>();
-    for (Scan scan : scans) {
-      chimericMap.computeIfAbsent(scan, key -> scoreChimericIsolation(row, scan));
-    }
-    return chimericMap;
-  }
-
   /**
    * @param scans might be filtered if the chimeric handling is set to SKIP
    * @return a map that flags spectra as chimeric or passed - or an empty map if handeChimerics is
    * off
    */
-  private Map<Scan, ChimericPrecursorResult> handleChimericsAndFilterScansIfSelected(
+  private Map<Scan, ChimericPrecursorResults> handleChimericsAndFilterScansIfSelected(
       final FeatureListRow row, final List<Scan> scans) {
     if (handleChimerics) {
-      var chimericMap = checkChimericPrecursorIsolation(row, scans);
+      var chimericMap = ChimericPrecursorChecker.checkChimericPrecursorIsolation(row.getAverageMZ(),
+          scans, chimericsMainIonMzTol, chimericsIsolationMzTol, minimumPrecursorPurity);
       if (ChimericMsOption.SKIP.equals(handleChimericsOption)) {
-        scans.removeIf(scan -> ChimericPrecursorResult.PASSED != chimericMap.get(scan));
+        scans.removeIf(scan -> ChimericPrecursorFlag.PASSED != chimericMap.get(scan).flag());
       }
       return chimericMap;
     }
     return Map.of();
-  }
-
-  private ChimericPrecursorResult scoreChimericIsolation(final FeatureListRow row,
-      final Scan scan) {
-    RawDataFile raw = scan.getDataFile();
-    Feature feature = row.getFeature(raw);
-    if (feature == null) {
-      return ChimericPrecursorResult.PASSED;
-    }
-
-    // retrieve preceding ms1 scan
-    final Scan ms1;
-    if (scan instanceof MergedMsMsSpectrum msms) {
-      ms1 = ScanUtils.findPrecursorScanForMerged(msms, SpectraMerging.defaultMs1MergeTol);
-    } else {
-      ms1 = ScanUtils.findPrecursorScan(scan);
-    }
-
-    if (ms1 == null) {
-      // maybe there was no MS1 before that?
-      logger.finest(() -> String.format("Could not find MS1 before this scan: %s", scan));
-      return ChimericPrecursorResult.PASSED;
-    }
-
-    MassList massList = ms1.getMassList();
-    if (massList == null) {
-      throw new MissingMassListException(feature.getRepresentativeScan());
-    }
-
-    // check for signals in isolation range
-    return ChimericPrecursorResult.check(massList, row.getAverageMZ(), mzTolChimericsMainIon,
-        mzTolChimericsIsolation, allowedOtherSignalSum);
   }
 
   private void exportEntry(final BufferedWriter writer, final SpectralLibraryEntry entry)

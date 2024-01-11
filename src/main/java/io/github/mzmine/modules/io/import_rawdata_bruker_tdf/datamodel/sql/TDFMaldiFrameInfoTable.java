@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql;
 
 import java.util.Arrays;
+import org.jetbrains.annotations.Nullable;
 
 public class TDFMaldiFrameInfoTable extends TDFDataTable<Long> {
 
@@ -80,8 +81,8 @@ public class TDFMaldiFrameInfoTable extends TDFDataTable<Long> {
     motorPositionZColumn = new TDFDataColumn<>(MOTOR_POSITON_Z);
     laserInfoColumn = new TDFDataColumn<>(LASER_INFO);
 
-    columns.addAll(Arrays.asList(frameIdColumn, chipColumn, spotNameColumn, regionNumberColumn, xIndexPosColumn,
-        yIndexPosColumn, laserPowerColumn, numLaserShotsColumn, laserRepRateColumn,
+    columns.addAll(Arrays.asList(chipColumn, spotNameColumn, regionNumberColumn,
+        xIndexPosColumn, yIndexPosColumn, laserPowerColumn, numLaserShotsColumn, laserRepRateColumn,
         motorPositionXColumn, motorPositionYColumn, motorPositionZColumn, laserInfoColumn));
   }
 
@@ -149,5 +150,19 @@ public class TDFMaldiFrameInfoTable extends TDFDataTable<Long> {
 
   public int getTransformedYIndexPos(int index) {
     return getyIndexPosColumn().get(index).intValue() - minYIndex;
+  }
+
+  @Nullable
+  public MaldiSpotInfo getMaldiSpotInfo(int frameNum) {
+    int index = frameIdColumn.indexOf((long) frameNum);
+
+    if (index == -1) {
+      return null;
+    }
+
+    return new MaldiSpotInfo(frameNum, chipColumn.get(index).intValue(), spotNameColumn.get(index),
+        regionNumberColumn.get(index).intValue(), xIndexPosColumn.get(index).intValue(),
+        yIndexPosColumn.get(index).intValue(), motorPositionXColumn.get(index),
+        motorPositionYColumn.get(index), motorPositionZColumn.get(index));
   }
 }

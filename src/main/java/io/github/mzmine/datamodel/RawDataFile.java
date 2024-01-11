@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -39,7 +40,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
@@ -52,19 +52,6 @@ public interface RawDataFile {
    * file name)
    */
   @NotNull String getName();
-
-  /**
-   * Change the name of this data file.
-   * <p></p>
-   * Setting the name of a file via this function is not reproducible in MZmine projects if the name
-   * is not predetermined in by a parameter. In that case,
-   * {@link
-   * io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule#renameFile(RawDataFile,
-   * String)} should be used.
-   *
-   * @return the actually set name after checking restricted symbols and for duplicate names
-   */
-  String setName(@NotNull String name);
 
   /**
    * @return The absolute path this file was loaded from. Null if the file does not exist on the
@@ -186,7 +173,8 @@ public interface RawDataFile {
   default int binarySearchClosestScanIndex(float rt) {
     // scans are sorted by rt ascending
     // closest index will be negative direct hit is positive
-    int closestIndex = Math.abs(BinarySearch.binarySearch(rt, true, getNumOfScans(),
+    int closestIndex = Math.abs(
+        BinarySearch.binarySearch(rt, DefaultTo.CLOSEST_VALUE, getNumOfScans(),
         index -> getScan(index).getRetentionTime()));
     return closestIndex >= getNumOfScans() ? -1 : closestIndex;
   }
@@ -308,9 +296,6 @@ public interface RawDataFile {
 
   void addScan(Scan newScan) throws IOException;
 
-
-  String setNameNoChecks(@NotNull String name);
-
   @NotNull ObservableList<Scan> getScans();
 
   default @NotNull Stream<Scan> stream() {
@@ -348,11 +333,6 @@ public interface RawDataFile {
   }
 
   @NotNull ObservableList<FeatureListAppliedMethod> getAppliedMethods();
-
-  /**
-   * JavaFX safe copy of the name
-   */
-  StringProperty nameProperty();
 
   /**
    * Get the start time stamp of the sample.

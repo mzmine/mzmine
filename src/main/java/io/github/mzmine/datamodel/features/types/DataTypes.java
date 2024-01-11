@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -51,6 +51,7 @@ import io.github.mzmine.datamodel.features.types.annotations.formula.SimpleFormu
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
@@ -71,6 +72,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -84,13 +86,19 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
+@SuppressWarnings("rawtypes")
 public class DataTypes {
 
   private static final Logger logger = Logger.getLogger(DataTypes.class.getName());
 
-  // map class to instance
-  private static final HashMap<Class<? extends DataType>, DataType> TYPES = new HashMap<>();
-  // map unique ID to instance
+  /**
+   * map class.name to instance. Cannot use class as key as this leads to memory leaks trhough class
+   * loader
+   */
+  private static final HashMap<String, DataType> TYPES = new HashMap<>();
+  /**
+   * map unique ID to instance
+   */
   private static final HashMap<String, DataType<?>> map = new HashMap<>();
 
   static {
@@ -107,7 +115,7 @@ public class DataTypes {
                       "FATAL: Multiple data types with unique ID " + dt.getUniqueID() + "\n"
                       + value.getClass().getName() + "\n" + dt.getClass().getName());
                 }
-                TYPES.put(dt.getClass(), dt);
+                TYPES.put(dt.getClass().getName(), dt);
               }
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                      NoSuchMethodException e) {
@@ -128,12 +136,24 @@ public class DataTypes {
     return map.get(uniqueId);
   }
 
-  public static <T> DataType<T> get(DataType<T> instance) {
-    return get((Class) instance.getClass());
+  public static <T extends DataType<?>> T get(T instance) {
+    return (T) get(instance.getClass().getName());
   }
 
-  public static <T> DataType<T> get(Class<? extends DataType<T>> clazz) {
-    return TYPES.get(clazz);
+  public static <T extends DataType<?>> T get(Class<T> clazz) {
+    return (T) TYPES.get(clazz.getName());
+  }
+
+  public static DataType get(String className) {
+    return TYPES.get(className);
+  }
+
+  /**
+   * Get a list of the singleton datatypes, same order as input
+   */
+  @SafeVarargs
+  public static List<DataType> getAll(final Class<? extends DataType<?>>... classes) {
+    return Arrays.stream(classes).map(c -> TYPES.get(c.getName())).toList();
   }
 
   /**
@@ -143,7 +163,7 @@ public class DataTypes {
     return TYPES.values();
   }
 
-  public static Collection<Class<? extends DataType>> getClasses() {
+  public static Collection<String> getClasses() {
     return TYPES.keySet();
   }
 
@@ -169,9 +189,10 @@ public class DataTypes {
         MasstUrlType.class, GNPSLibraryUrlType.class, GNPSNetworkUrlType.class,
         GNPSClusterUrlType.class, CompoundDatabaseMatchesType.class, CommentType.class,
         // combined types with sub columns
-        AlignmentMainType.class, IonIdentityListType.class, SpectralLibraryMatchesType.class,
-        CompoundDatabaseMatchesType.class, LipidMatchListType.class, ConsensusFormulaListType.class,
-        SimpleFormulaListType.class, FormulaListType.class, ManualAnnotationType.class,
+        AlignmentMainType.class, NetworkStatsType.class, IonIdentityListType.class,
+        SpectralLibraryMatchesType.class, CompoundDatabaseMatchesType.class,
+        LipidMatchListType.class, ConsensusFormulaListType.class, SimpleFormulaListType.class,
+        FormulaListType.class, ManualAnnotationType.class,
         // graphical columns
         FeatureShapeType.class, FeatureShapeMobilogramType.class,
         FeatureShapeIonMobilityRetentionTimeHeatMapType.class, ImageType.class);
@@ -182,5 +203,20 @@ public class DataTypes {
       prioMap.put(DataTypes.get(aClass), i++);
     }
     return prioMap;
+  }
+
+  /**
+   * Check if type of clazz is contained in a collection of types
+   *
+   * @param types collection of types
+   * @param clazz type class
+   * @param <T>   data value type
+   * @return the data type if it is contained. otherwise null
+   */
+  @Nullable
+  public static <T> DataType<T> getOrNull(final Collection<? extends DataType> types,
+      final Class<? extends DataType<T>> clazz) {
+    DataType<T> type = DataTypes.get(clazz);
+    return types.contains(type) ? type : null;
   }
 }

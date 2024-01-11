@@ -63,7 +63,7 @@ public enum PolarityType {
     return switch (str.toLowerCase()) {
       case "+", "positive", "pos", "+1", "1+", "1" -> PolarityType.POSITIVE;
       case "-", "negative", "neg", "-1", "1-" -> PolarityType.NEGATIVE;
-      case default -> UNKNOWN;
+      default -> UNKNOWN;
     };
   }
 

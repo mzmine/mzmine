@@ -35,11 +35,13 @@ import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
+import io.github.mzmine.datamodel.features.types.fx.DataTypeGraphicalCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.EditComboCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.EditableDataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.AddElementDialog;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
+import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -134,7 +136,10 @@ public abstract class DataType<T> implements Comparable<DataType> {
         }
         event.getTreeTableView().refresh();
       });
-    } else {
+    } else if(type instanceof GraphicalColumType<?>){
+      col.setCellFactory(new DataTypeGraphicalCellFactory<>(raw, type, parentType, subColumnIndex));
+    }
+    else {
       col.setCellFactory(new DataTypeCellFactory(raw, type, parentType, subColumnIndex));
     }
     return col;

@@ -26,37 +26,35 @@
 package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
 
+import com.google.common.collect.Sets;
+import dulab.adap.datamodel.BetterComponent;
+import dulab.adap.datamodel.BetterPeak;
+import dulab.adap.workflow.decomposition.ComponentSelector;
+import dulab.adap.workflow.decomposition.RetTimeClusterer;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.util.RangeUtils;
-
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
-import javafx.scene.layout.*;
-import org.jetbrains.annotations.NotNull;
-import com.google.common.collect.Sets;
-import dulab.adap.datamodel.BetterComponent;
-import dulab.adap.datamodel.BetterPeak;
-import dulab.adap.workflow.decomposition.ComponentSelector;
-import dulab.adap.workflow.decomposition.RetTimeClusterer;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
-import javafx.geometry.Orientation;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Du-Lab Team <dulab.binf@gmail.com>
@@ -86,12 +84,12 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
   private BorderPane pnlUIElements;
   private VBox pnlComboBoxes;
   private VBox pnlPlots;
-  private CheckBox chkPreview;
-  private ComboBox<ChromatogramPeakPair> cboPeakLists;
-  private ComboBox<RetTimeClusterer.Cluster> cboClusters;
-  private Button btnRefresh;
-  private SimpleScatterPlot retTimeMZPlot;
-  private EICPlot retTimeIntensityPlot;
+  private final CheckBox chkPreview;
+  private final ComboBox<ChromatogramPeakPair> cboPeakLists;
+  private final ComboBox<RetTimeClusterer.Cluster> cboClusters;
+  private final Button btnRefresh;
+  private final SimpleScatterPlot retTimeMZPlot;
+  private final EICPlot retTimeIntensityPlot;
 
   /**
    * Current values of the parameters
@@ -262,10 +260,10 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
     if (chromatogramPeakPair == null)
       return;
 
-    FeatureList chromatogramList = chromatogramPeakPair.chromatograms;
-    FeatureList peakList = chromatogramPeakPair.peaks;
-    if (chromatogramList == null || peakList == null)
-      return;
+    FeatureList chromatogramList = chromatogramPeakPair.chromatograms();
+    FeatureList peakList = chromatogramPeakPair.peaks();
+//    if (chromatogramList == null)
+//      return;
 
     Double minDistance =
         parameterSet.getParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH).getValue();
@@ -314,10 +312,10 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
     if (chromatogramPeakPair == null)
       return;
 
-    FeatureList chromatogramList = chromatogramPeakPair.chromatograms;
-    FeatureList peakList = chromatogramPeakPair.peaks;
-    if (chromatogramList == null || peakList == null)
-      return;
+    FeatureList chromatogramList = chromatogramPeakPair.chromatograms();
+    FeatureList peakList = chromatogramPeakPair.peaks();
+//    if (chromatogramList == null)
+//      return;
 
     final RetTimeClusterer.Cluster cluster = cboClusters.getSelectionModel().getSelectedItem();
     if (cluster == null)
@@ -368,7 +366,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
       Object oldValue = currentParameters[i];
       Object newValue = newValues[i].getValue();
 
-      if (newValue != null && oldValue != null && oldValue.equals(newValue))
+      if (oldValue != null && oldValue.equals(newValue))
         continue;
 
       changedIndices.add(i);

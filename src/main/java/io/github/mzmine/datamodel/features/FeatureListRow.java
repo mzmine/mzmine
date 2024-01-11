@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
@@ -290,16 +291,16 @@ public interface FeatureListRow extends ModularDataModel {
   @NotNull List<CompoundDBAnnotation> getCompoundAnnotations();
 
   /**
+   * @param annotations sets all compound annotations.
+   */
+  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
+
+  /**
    * Appends a compound annotation.
    *
    * @param id
    */
   void addCompoundAnnotation(CompoundDBAnnotation id);
-
-  /**
-   * @param annotations sets all compound annotations.
-   */
-  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
 
   void addSpectralLibraryMatch(SpectralDBAnnotation id);
 
@@ -429,7 +430,7 @@ public interface FeatureListRow extends ModularDataModel {
    */
   default int getGroupID() {
     RowGroup g = getGroup();
-    return g == null ? -1 : g.groupID;
+    return g == null ? -1 : g.getGroupID();
   }
 
   List<ResultFormula> getFormulas();
@@ -454,8 +455,8 @@ public interface FeatureListRow extends ModularDataModel {
    */
   default double getSumIntensity() {
     return this.getFeatures().stream().filter(Objects::nonNull)
-        .filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN).mapToDouble(Feature::getHeight)
-        .sum();
+        .filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN).map(Feature::getHeight)
+        .filter(Objects::nonNull).mapToDouble(Float::doubleValue).sum();
   }
 
   /**

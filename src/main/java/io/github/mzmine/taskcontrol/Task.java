@@ -36,6 +36,28 @@ public interface Task extends Runnable {
 
   TaskStatus getStatus();
 
+
+  /**
+   * Convenience method for determining if this task has been canceled. Also returns true if the
+   * task encountered an error.
+   *
+   * @return true if this task has been canceled or stopped due to an error
+   */
+  default boolean isCanceled() {
+    TaskStatus status = getStatus();
+    return (status == TaskStatus.CANCELED) || (status == TaskStatus.ERROR);
+  }
+
+  /**
+   * Convenience method for determining if this task has been completed
+   *
+   * @return true if this task is finished
+   */
+  default boolean isFinished() {
+    TaskStatus status = getStatus();
+    return status == TaskStatus.FINISHED;
+  }
+
   String getErrorMessage();
 
   /**

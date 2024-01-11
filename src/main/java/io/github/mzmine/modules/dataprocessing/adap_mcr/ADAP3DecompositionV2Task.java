@@ -32,12 +32,13 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.PseudoSpectrum;
+import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -46,10 +47,12 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
@@ -57,6 +60,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -113,8 +117,9 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
       logger.info("Started ADAP Peak Decomposition on " + originalLists);
 
       // Check raw data files.
-      if (originalLists.chromatograms.getNumberOfRawDataFiles() > 1
-          && originalLists.peaks.getNumberOfRawDataFiles() > 1) {
+      @Nullable var chromatograms = originalLists.chromatograms();
+      @NotNull var peaks = originalLists.peaks();
+      if ((chromatograms!=null && chromatograms.getNumberOfRawDataFiles() > 1) || peaks.getNumberOfRawDataFiles() > 1) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
             "Peak Decomposition can only be performed on feature lists with a single raw data file");
@@ -130,8 +135,10 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
             project.addFeatureList(newPeakList);
             // Remove the original peaklist if requested.
             if (parameters.getParameter(ADAP3DecompositionV2Parameters.HANDLE_ORIGINAL).getValue() == OriginalFeatureListOption.REMOVE) {
-              project.removeFeatureList(originalLists.chromatograms);
-              project.removeFeatureList(originalLists.peaks);
+              project.removeFeatureList(peaks);
+              if (chromatograms != null) {
+                project.removeFeatureList(chromatograms);
+              }
             }
 
             setStatus(TaskStatus.FINISHED);
@@ -165,17 +172,17 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
   }
 
   private ModularFeatureList decomposePeaks(@NotNull ChromatogramPeakPair lists) {
-    RawDataFile dataFile = lists.chromatograms.getRawDataFile(0);
+    RawDataFile dataFile = lists.peaks().getRawDataFile(0);
 
     // Create new feature list.
     ModularFeatureList resolvedPeakList = new ModularFeatureList(dataFile + " " + suffix,
         getMemoryMapStorage(), dataFile);
     DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedPeakList);
 
-    resolvedPeakList.setSelectedScans(dataFile, lists.chromatograms.getSeletedScans(dataFile));
+    resolvedPeakList.setSelectedScans(dataFile, lists.peaks().getSeletedScans(dataFile));
 
     // Load previous applied methods.
-    for (final FeatureList.FeatureListAppliedMethod method : lists.peaks.getAppliedMethods()) {
+    for (var method : lists.peaks().getAppliedMethods()) {
       resolvedPeakList.addDescriptionOfAppliedTask(method);
     }
 
@@ -185,13 +192,14 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
             ADAPMultivariateCurveResolutionModule.class, parameters, getModuleCallDate()));
 
     // Collect peak information
-    List<BetterPeak> chromatograms = utils.getPeaks(lists.chromatograms);
-    List<BetterPeak> peaks = utils.getPeaks(lists.peaks);
+    var chromLists = lists.chromatograms();
+    List<BetterPeak> chromatograms = chromLists!=null? utils.getPeaks(chromLists) : List.of();
+    List<BetterPeak> peaks = utils.getPeaks(lists.peaks());
 
     // Find components (a.k.a. clusters of peaks with fragmentation spectra)
     List<BetterComponent> components = getComponents(chromatograms, peaks);
 
-    // Create PeakListRow for each components
+    // Create PeakListRow for each component
     List<FeatureListRow> newPeakListRows = new ArrayList<>();
 
     int rowID = 0;
@@ -217,11 +225,19 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
       if (dataPoints.size() < 5) {
         continue;
       }
+      dataPoints.sort(Comparator.comparingDouble(DataPoint::getMZ));
 
-      // todo: replace this with it's own data type?
-      refPeak.setIsotopePattern(
-          new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[dataPoints.size()]), -1,
-              IsotopePattern.IsotopePatternStatus.PREDICTED, "Spectrum"));
+      // todo: keep for legacy, should be removed if no other modules rely on this
+      refPeak.setIsotopePattern(new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[0]), -1,
+          IsotopePattern.IsotopePatternStatus.PREDICTED, "EI Pseudo MS1 Spectrum"));
+
+      var data = DataPointUtils.getDataPointsAsDoubleArray(dataPoints);
+      double[] mz = data[0];
+      double[] intensities = data[1];
+      PseudoSpectrum pseudoMs1 = new SimplePseudoSpectrum(dataFile, 1, refPeak.getRT(), null, mz,
+          intensities, Objects.requireNonNull(refPeak.getRepresentativeScan()).getPolarity(),
+          "Pseudo Spectrum", PseudoSpectrumType.GC_EI);
+      refPeak.setAllMS2FragmentScans(new ArrayList<>(List.of(pseudoMs1)));
 
       final ModularFeatureListRow row = new ModularFeatureListRow(resolvedPeakList, ++rowID);
 
@@ -295,7 +311,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         mzs, chromatogram.ys, scans);
 
     // calculations done in the constructor by FeatureDataUtils
-    return new ModularFeature(resolvedFeatureList, dataFile, series, FeatureStatus.MANUAL);
+    return new ModularFeature(resolvedFeatureList, dataFile, series, FeatureStatus.DETECTED);
   }
 
   @Override

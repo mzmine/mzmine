@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,7 +37,6 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.param;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.PasswordParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -49,11 +48,11 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
  */
 public class GnpsLibrarySubmitParameters extends SimpleParameterSet {
 
-  public static StringParameter user =
-      new StringParameter("Username", "GNPS username", null, true, true);
+  public static StringParameter user = new StringParameter("Username", "GNPS username", "", true,
+      true);
   public static PasswordParameter pass = new PasswordParameter("Password", "GNPS password");
 
   public GnpsLibrarySubmitParameters() {
-    super(new Parameter[] {user, pass});
+    super(user, pass);
   }
 }

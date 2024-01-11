@@ -123,46 +123,52 @@ public class MassvoltammogramUtils {
    *
    * @param scans The scans to be aligned.
    */
-  public static void alignScans(List<MassvoltammogramScan> scans,
-      Range<Double> extractedScansMzRange, Range<Double> userInputMzRange,
+  public static void alignScans(List<MassvoltammogramScan> scans, Range<Double> userInputMzRange,
       Range<Double> rawDataMzRange) {
 
     //Going over all MassvoltammogramScans in the massvoltammogram.
     for (MassvoltammogramScan scan : scans) {
 
-      //The user min mz is within the raw data mz range.
-      if (extractedScansMzRange.lowerEndpoint() > userInputMzRange.lowerEndpoint()
-          && userInputMzRange.lowerEndpoint() > rawDataMzRange.lowerEndpoint()) {
+      //Adding the datapoints to scans if they are empty.
+      if (scan.isEmpty()) {
+        if (userInputMzRange.lowerEndpoint() > rawDataMzRange.lowerEndpoint()) {
+          prependEmptyDataPoint(scan, userInputMzRange.lowerEndpoint());
 
-        scan.setMzs(
-            ArrayUtils.addAll(new double[]{userInputMzRange.lowerEndpoint()}, scan.getMzs()));
-        scan.setIntensities(ArrayUtils.addAll(new double[]{0d}, scan.getIntensities()));
+        } else if (userInputMzRange.lowerEndpoint() < rawDataMzRange.lowerEndpoint()) {
+          prependEmptyDataPoint(scan, rawDataMzRange.lowerEndpoint());
+        }
 
-        //The user min mz is below the raw data mz range.
-      } else if (extractedScansMzRange.lowerEndpoint() > userInputMzRange.lowerEndpoint()
-          && userInputMzRange.lowerEndpoint() < rawDataMzRange.lowerEndpoint()) {
+        if (userInputMzRange.upperEndpoint() < rawDataMzRange.upperEndpoint()) {
+          appendEmptyDataPoint(scan, userInputMzRange.upperEndpoint());
 
-        scan.setMzs(ArrayUtils.addAll(new double[]{rawDataMzRange.lowerEndpoint()}, scan.getMzs()));
-        scan.setIntensities(ArrayUtils.addAll(new double[]{0d}, scan.getIntensities()));
+        } else if (userInputMzRange.upperEndpoint() > rawDataMzRange.upperEndpoint()) {
+          appendEmptyDataPoint(scan, rawDataMzRange.upperEndpoint());
+        }
+
+        continue;
       }
 
-      //The user max mz is within the raw data mz range.
-      if (extractedScansMzRange.upperEndpoint() < userInputMzRange.upperEndpoint()
+      //Adds a datapoint with 0 intensity to the beginning of a scan, if no other datapoint is found.
+      if (scan.getMinMz() > userInputMzRange.lowerEndpoint()
+          && userInputMzRange.lowerEndpoint() > rawDataMzRange.lowerEndpoint()) {
+        prependEmptyDataPoint(scan, userInputMzRange.lowerEndpoint());
+
+      } else if (scan.getMinMz() > userInputMzRange.lowerEndpoint()
+          && userInputMzRange.lowerEndpoint() < rawDataMzRange.lowerEndpoint()) {
+        prependEmptyDataPoint(scan, rawDataMzRange.lowerEndpoint());
+      }
+
+      //Adds a datapoint with 0 intensity to the end of a scan, if no other datapoint is found.
+      if (scan.getMaxMz() < userInputMzRange.upperEndpoint()
           && userInputMzRange.upperEndpoint() < rawDataMzRange.upperEndpoint()) {
+        appendEmptyDataPoint(scan, userInputMzRange.upperEndpoint());
 
-        scan.setMzs(ArrayUtils.add(scan.getMzs(), userInputMzRange.upperEndpoint()));
-        scan.setIntensities(ArrayUtils.add(scan.getIntensities(), 0));
-
-        //The user max mz is above the raw data mz range.
-      } else if (extractedScansMzRange.upperEndpoint() < userInputMzRange.upperEndpoint()
+      } else if (scan.getMaxMz() < userInputMzRange.upperEndpoint()
           && userInputMzRange.upperEndpoint() > rawDataMzRange.upperEndpoint()) {
-
-        scan.setMzs(ArrayUtils.add(scan.getMzs(), rawDataMzRange.upperEndpoint()));
-        scan.setIntensities(ArrayUtils.add(scan.getIntensities(), 0));
+        appendEmptyDataPoint(scan, rawDataMzRange.upperEndpoint());
       }
     }
   }
-
 
   /**
    * Removes datapoints with low intensity values. Keeps datapoints with intensity of 0.
@@ -257,63 +263,26 @@ public class MassvoltammogramUtils {
   }
 
   /**
-   * Method to get the min m/z-value from a list of scans.
+   * Finds the maximal intensity in a set of MassvoltammogramScans.
    *
-   * @param scans The scans.
-   * @return Returns the minimal m/z-value.
+   * @param scans The list of MassvoltammogramScans the maximal intensity will be extracted from.
+   * @return Returns the maximal intensity over all MassvoltammogramScans.
    */
-  public static double getMinMZ(List<MassvoltammogramScan> scans) {
+  public static double getMaxIntensity(List<MassvoltammogramScan> scans) {
 
-    //Setting the absolute minimal m/z-value equal to the first scans minimal m/z-value.
-    double absoluteMinMz = scans.get(0).getMinMz();
+    //Setting the initial max intensity to 0.
+    double maxIntensity = 0;
 
-    //Checking all the other scans in the list weather there is an even smaller m/z-value.
-    for (int i = 1; i < scans.size(); i++) {
-
-      if (scans.get(i).getMinMz() < absoluteMinMz) {
-        absoluteMinMz = scans.get(i).getMinMz();
+    //Going over every datapoint in all the scans and comparing the intensity to the current max intensity.
+    for (MassvoltammogramScan scan : scans) {
+      for (int i = 0; i < scan.getNumberOfDatapoints(); i++) {
+        if (scan.getIntensity(i) > maxIntensity) {
+          maxIntensity = scan.getIntensity(i);
+        }
       }
     }
-
-    return absoluteMinMz;
+    return maxIntensity;
   }
-
-  /**
-   * Method to get the max m/z-value from a list of scans.
-   *
-   * @param scans The scans.
-   * @return Returns the maximal m/z-value.
-   */
-  public static double getMaxMZ(List<MassvoltammogramScan> scans) {
-
-    //Setting the absolute maximal m/z-value equal to the first scans maximal m/z-value.
-    double absoluteMaxMz = scans.get(0).getMaxMz();
-
-    //Checking all the other scans in the list weather there is a bigger m/z-value.
-    for (int i = 1; i < scans.size(); i++) {
-
-      if (scans.get(i).getMaxMz() > absoluteMaxMz) {
-        absoluteMaxMz = scans.get(i).getMaxMz();
-      }
-    }
-
-    return absoluteMaxMz;
-  }
-
-  /**
-   * Method to get the m/z-range of a list of MassvoltammogramScans.
-   *
-   * @param scans The list of MassvoltammogramScans whose m/z-range will be determined.
-   * @return Returns the m/z-range of the list of MassvoltammogramScans.
-   */
-  public static Range<Double> getMzRange(List<MassvoltammogramScan> scans) {
-
-    double minMz = MassvoltammogramUtils.getMinMZ(scans);
-    double maxMz = MassvoltammogramUtils.getMaxMZ(scans);
-
-    return Range.closed(minMz, maxMz);
-  }
-
 
   /**
    * @param superscript Integer that will be converted to superscript.
@@ -350,6 +319,30 @@ public class MassvoltammogramUtils {
       }
     }
     return output.toString();
+  }
+
+  /**
+   * Adds a datapoint with an intensity of 0 for the given mz at the beginning of the dataset.
+   *
+   * @param scan The scan the datapoint will be added to.
+   * @param mz   The datapoints mz-value
+   */
+  private static void prependEmptyDataPoint(MassvoltammogramScan scan, double mz) {
+
+    scan.setMzs(ArrayUtils.addAll(new double[]{mz}, scan.getMzs()));
+    scan.setIntensities(ArrayUtils.addAll(new double[]{0d}, scan.getIntensities()));
+  }
+
+  /**
+   * Adds a datapoint with an intensity of 0 for the given mz at the end of the dataset.
+   *
+   * @param scan The scan the datapoint will be added to.
+   * @param mz   The datapoints mz-value.
+   */
+  private static void appendEmptyDataPoint(MassvoltammogramScan scan, double mz) {
+
+    scan.setMzs(ArrayUtils.add(scan.getMzs(), mz));
+    scan.setIntensities(ArrayUtils.add(scan.getIntensities(), 0));
   }
 }
 

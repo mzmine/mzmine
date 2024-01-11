@@ -47,8 +47,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Stores data points of several {@link MobilityScan}s. Usually wrapped in a {@link
- * SimpleIonMobilogramTimeSeries} representing the same feature with mobility resolution.
+ * Stores data points of several {@link MobilityScan}s. Usually wrapped in a
+ * {@link SimpleIonMobilogramTimeSeries} representing the same feature with mobility resolution.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -115,10 +115,10 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
           scans = ParsingUtils.getSublistFromIndices(file.getFrame(frameindex).getMobilityScans(),
               indices);
         }
-        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(
-            reader.getElementText());
-        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils.stringToDoubleArray(
-            reader.getElementText());
+        case CONST.XML_MZ_VALUES_ELEMENT ->
+            mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT ->
+            intensities = ParsingUtils.stringToDoubleArray(reader.getElementText());
       }
     }
 

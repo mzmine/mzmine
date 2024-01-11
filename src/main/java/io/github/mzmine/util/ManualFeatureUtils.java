@@ -46,10 +46,15 @@ public class ManualFeatureUtils {
    */
   public static ManualFeature pickFeatureManually(RawDataFile dataFile, Range<Float> rtRange,
       Range<Double> mzRange) {
+    return pickFeatureManually(dataFile, rtRange, mzRange, 1);
+  }
+
+  public static ManualFeature pickFeatureManually(RawDataFile dataFile, Range<Float> rtRange,
+      Range<Double> mzRange, int msLevel) {
     ManualFeature newFeature = new ManualFeature(dataFile);
     boolean dataPointFound = false;
 
-    Scan[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
+    Scan[] scanNumbers = dataFile.getScanNumbers(msLevel, rtRange);
 
     for (Scan scan : scanNumbers) {
       // Find most intense m/z feature

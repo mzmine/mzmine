@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
@@ -69,23 +70,22 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.FragmentScanSorter;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javafx.scene.Node;
-import javafx.scene.layout.Pane;
+import javafx.collections.SetChangeListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -108,8 +108,6 @@ public class ModularFeatureListRow implements FeatureListRow {
    */
   private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
   private final Map<RawDataFile, ModularFeature> features;
-  // buffert col charts and nodes
-  private final Map<String, Node> buffertColCharts = new HashMap<>();
   @NotNull
   private ModularFeatureList flist;
 
@@ -123,16 +121,21 @@ public class ModularFeatureListRow implements FeatureListRow {
     this.flist = flist;
 
     // register listener to types map to automatically generate default properties for new DataTypes
-    flist.getRowTypes().addListener(
-        (MapChangeListener<? super Class<? extends DataType>, ? super DataType>) change -> {
-          if (change.wasAdded()) {
-            // do nothing for now
-          } else if (change.wasRemoved()) {
-            // remove type columns to maps
-            DataType type = change.getValueRemoved();
-            this.remove((Class) type.getClass());
-          }
-        });
+    flist.getRowTypes().addListener((SetChangeListener<? super DataType>) change -> {
+      if (change.wasAdded()) {
+        // do nothing for now
+      } else if (change.wasRemoved()) {
+        // remove type columns to maps
+        DataType type = change.getElementRemoved();
+        this.remove(type);
+      }
+    });
+    //
+    map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
+      if (change.wasAdded()) {
+        flist.addRowType(change.getKey());
+      }
+    });
 
     // features
     List<RawDataFile> raws = flist.getRawDataFiles();
@@ -202,7 +205,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public ObservableMap<Class<? extends DataType>, DataType> getTypes() {
+  public Set<DataType> getTypes() {
     return flist.getRowTypes();
   }
 
@@ -215,30 +218,6 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getValueChangeListeners() {
     return getFeatureList().getRowTypeChangeListeners();
-  }
-
-  @Override
-  public <T> boolean set(Class<? extends DataType<T>> tclass, T value) {
-    // type in defined columns?
-    if (!getTypes().containsKey(tclass)) {
-      try {
-        DataType newType = tclass.getConstructor().newInstance();
-        ModularFeatureList flist = getFeatureList();
-        flist.addRowType(newType);
-      } catch (NullPointerException | InstantiationException | NoSuchMethodException |
-               InvocationTargetException | IllegalAccessException e) {
-        e.printStackTrace();
-        return false;
-      }
-    }
-    // access default method
-    boolean changed = FeatureListRow.super.set(tclass, value);
-
-    //
-    if (changed && tclass.equals(FeaturesType.class)) {
-      // TODO new features set -> use bindings?
-    }
-    return changed;
   }
 
   @Override
@@ -276,7 +255,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     }
     if (!flist.equals(feature.getFeatureList())) {
       throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-          + "row. Create feature with the correct feature list as an argument.");
+                                         + "row. Create feature with the correct feature list as an argument.");
     }
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
@@ -382,24 +361,6 @@ public class ModularFeatureListRow implements FeatureListRow {
       return false;
     }
     return features.containsValue(feature);
-  }
-
-  public Node getBufferedColChart(String colname) {
-    return buffertColCharts.get(colname);
-  }
-
-  public void addBufferedColChart(String colname, Node node) {
-    buffertColCharts.put(colname, node);
-  }
-
-  public void clearBufferedColCharts() {
-    buffertColCharts.forEach((k, v) -> {
-      if (v instanceof Pane p && p.getParent() instanceof Pane pane) {
-        // remove the node from the parent so there is no more reference and it can be GC'ed
-        pane.getChildren().remove(v);
-      }
-    });
-    buffertColCharts.clear();
   }
 
   /**
@@ -721,17 +682,10 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Nullable
   @Override
   public IsotopePattern getBestIsotopePattern() {
-    ModularFeature[] features = getFilesFeatures().values().toArray(new ModularFeature[0]);
-    Arrays.sort(features, new FeatureSorter(SortingProperty.Height, SortingDirection.Descending));
-
-    for (ModularFeature feature : features) {
-      IsotopePattern ip = feature.getIsotopePattern();
-      if (ip != null) {
-        return ip;
-      }
-    }
-
-    return null;
+    return streamFeatures().filter(f -> f != null && f.getIsotopePattern() != null
+                                        && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
+        .max(Comparator.comparingDouble(ModularFeature::getHeight))
+        .map(ModularFeature::getIsotopePattern).orElse(null);
   }
 
 

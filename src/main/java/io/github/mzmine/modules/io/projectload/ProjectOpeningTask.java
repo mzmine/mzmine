@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.StreamCopy;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -184,7 +185,7 @@ public class ProjectOpeningTask extends AbstractTask {
           loadUserParameters(cis);
         } else if (entryName.equals(RawDataFileSaveHandler.RAW_DATA_IMPORT_BATCH_FILENAME)) {
           loadRawDataFiles(cis, zipFile);
-        } else if(entryName.equals(ProjectSavingTask.STANDALONE_FILENAME)) {
+        } else if (entryName.equals(ProjectSavingTask.STANDALONE_FILENAME)) {
           newProject.setStandalone(true);
         }
 
@@ -299,8 +300,8 @@ public class ProjectOpeningTask extends AbstractTask {
     // Check if project was saved with an old version
     if (projectMajorVersion < 3) {
       String message = new StringBuilder(
-          "The requested project was processed with an old version of MZmine ")
-          .append(projectVersionString).append(".\n It cannot be opened with MZmine ")
+          "The requested project was processed with an old version of MZmine ").append(
+              projectVersionString).append(".\n It cannot be opened with MZmine ")
           .append(mzmineVersionString).toString();
       MZmineCore.getDesktop().displayErrorMessage(message);
       setStatus(TaskStatus.FINISHED);
@@ -322,7 +323,8 @@ public class ProjectOpeningTask extends AbstractTask {
 //    peakListOpenHandler = new PeakListOpenHandler_3_0_old(dataFilesIDMap);
 //    userParameterOpenHandler = new UserParameterOpenHandler_3_0(newProject, dataFilesIDMap);
 
-    rawDataFileOpenHandler = RawDataFileOpenHandler.forVersion(projectVersionString,getModuleCallDate());
+    rawDataFileOpenHandler = RawDataFileOpenHandler.forVersion(projectVersionString,
+        getModuleCallDate());
   }
 
   /**
@@ -334,7 +336,7 @@ public class ProjectOpeningTask extends AbstractTask {
 
     currentLoadedObjectName = "Configuration";
 
-    File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
+    File tempConfigFile = FileAndPathUtil.createTempFile("mzmineconfig", ".tmp");
     FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
     copyMachine = new StreamCopy();
     copyMachine.copy(is, fileStream);
@@ -352,10 +354,11 @@ public class ProjectOpeningTask extends AbstractTask {
 
   private void loadFeatureList(ZipFile zipFile) {
 
-    FeatureListLoadTask task = new FeatureListLoadTask(MemoryMapStorage.forFeatureList(), newProject, zipFile);
+    FeatureListLoadTask task = new FeatureListLoadTask(MemoryMapStorage.forFeatureList(),
+        newProject, zipFile);
     MZmineCore.getTaskController().addTask(task);
     currentLoadedObjectName = "Feature lists";
-    while(task.getStatus() != TaskStatus.FINISHED && !task.isCanceled() && ! isCanceled()) {
+    while (task.getStatus() != TaskStatus.FINISHED && !task.isCanceled() && !isCanceled()) {
       try {
         Thread.sleep(50);
       } catch (InterruptedException e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,8 +36,8 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.correlation.RowGroup;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -291,7 +291,7 @@ public class SiriusExportTask extends AbstractTask {
           SpectralLibraryEntry.create(null, f.getMZ(), ScanUtils.extractDataPoints(scan, true));
       case SimpleMassSpectrum spec ->
           SpectralLibraryEntry.create(null, f.getMZ(), ScanUtils.extractDataPoints(spec));
-      case default -> throw new IllegalStateException(
+      default -> throw new IllegalStateException(
           "Cannot extract data points from spectrum class " + spectrum.getClass().getName());
     };
 
@@ -500,9 +500,9 @@ public class SiriusExportTask extends AbstractTask {
    * a correlated ion.
    *
    * @param sortedDp  data points sorted by mz.
-   * @param tolerance MZ tolerance to filter equal data points.
+   * @param mzTol MZ tolerance to filter equal data points.
    */
-  private void removeDuplicateDataPoints(List<DataPoint> sortedDp, MZTolerance tolerance) {
+  private void removeDuplicateDataPoints(List<DataPoint> sortedDp, MZTolerance mzTol) {
     for (int i = sortedDp.size() - 2; i >= 0; i--) {
       if (mzTol.checkWithinTolerance(sortedDp.get(i).getMZ(), sortedDp.get(i + 1).getMZ())) {
         if (sortedDp.get(i) instanceof AnnotatedDataPoint) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,9 @@
 
 package io.github.mzmine.modules.io.export_rawdata_netcdf;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 
@@ -34,11 +35,14 @@ public class NetCDFExportParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final DirectoryParameter fileName =
-      new DirectoryParameter("Folder", "Select a folder");
+  public static final DirectoryParameter fileName = new DirectoryParameter("Folder",
+      "Select a folder");
+
+  public static final OptionalParameter<StringParameter> suffix = new OptionalParameter<>(
+      new StringParameter("Suffix", "File name will be the raw data file name_suffix", ""), false);
 
   public NetCDFExportParameters() {
-    super(new Parameter[] {dataFiles, fileName});
+    super(dataFiles, fileName, suffix);
   }
 
 }

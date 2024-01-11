@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -116,7 +116,9 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
@@ -178,11 +180,22 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
     final KeyCodeCombination keyCodeCopy = new KeyCodeCombination(KeyCode.C,
         KeyCombination.CONTROL_ANY);
+
     setOnKeyPressed(event -> {
       if (keyCodeCopy.match(event)) {
         copySelectionToClipboard(this);
+        event.consume();
       }
     });
+
+    this.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+      if (event.isControlDown() && event.getCode() == KeyCode.A) {
+        // selecting everything causes feature table to freeze
+        event.consume();
+      }
+    });
+
+
   }
 
   /**
@@ -494,7 +507,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     rowCol.setGraphic(headerLabel);
 
     // add row types
-    featureList.getRowTypes().values().stream().filter(t -> !(t instanceof FeaturesType))
+    featureList.getRowTypes().stream().filter(t -> !(t instanceof FeaturesType))
         .forEach(dataType -> addColumn(rowCol, dataType));
 
     sortColumn(rowCol);
@@ -503,8 +516,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     this.getColumns().add(rowCol);
 
     // add features
-    if (featureList.getRowTypes().containsKey(FeaturesType.class)) {
-      addColumn(rowCol, featureList.getRowTypes().get(FeaturesType.class));
+    if (featureList.hasRowType(FeaturesType.class)) {
+      addColumn(rowCol, DataTypes.get(FeaturesType.class));
     }
 
   }
@@ -565,9 +578,10 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
   private Entry<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> getMainColumnEntry(
       Class<? extends DataType> dtClass) {
+    DataType type = DataTypes.get(dtClass);
     for (var col : newColumnMap.entrySet()) {
       var colID = col.getValue();
-      if (colID.getDataType().getClass().equals(dtClass) && colID.getSubColIndex() == -1
+      if (type.equals(colID.getDataType()) && colID.getSubColIndex() == -1
           && colID.getType() == ColumnType.ROW_TYPE) {
         return col;
       }
@@ -730,7 +744,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       sampleCol.setGraphic(headerLabel);
 
       // Add sub columns of feature
-      for (DataType ftype : getFeatureList().getFeatureTypes().values()) {
+      for (DataType ftype : getFeatureList().getFeatureTypes()) {
         if (ftype instanceof ImageType && !(dataFile instanceof ImagingRawDataFile)) {
           // non-imaging files don't need a image column
           continue;
@@ -762,56 +776,68 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
   private void initHandleDoubleClicks() {
     this.setOnMouseClicked(e -> {
-      if (e.getClickCount() >= 2 && e.getButton() == MouseButton.PRIMARY) {
-        if (getFeatureList() == null) {
+      TreeTablePosition<ModularFeatureListRow, ?> focusedCell = getFocusModel().getFocusedCell();
+      if (focusedCell == null) {
+        return;
+      }
+      TreeTableColumn<ModularFeatureListRow, ?> tableColumn = focusedCell.getTableColumn();
+      if (tableColumn == null) {
+        // double click on header (happens when sorting)
+        return;
+      }
+      handleClickOnCell(focusedCell, tableColumn, e);
+    });
+  }
+
+  private void handleClickOnCell(final TreeTablePosition<ModularFeatureListRow, ?> focusedCell,
+      final TreeTableColumn<ModularFeatureListRow, ?> tableColumn, final MouseEvent e) {
+    logger.fine("Handle click on table cell");
+
+    if (e.getClickCount() >= 2 && e.getButton() == MouseButton.PRIMARY) {
+      if (getFeatureList() == null) {
+        return;
+      }
+
+      e.consume();
+      logger.finest(() -> "Double click on " + e.getSource());
+
+      Object userData = tableColumn.getUserData();
+      final ObservableValue<?> observableValue = tableColumn.getCellObservableValue(
+          focusedCell.getTreeItem());
+      if (observableValue == null) {
+        return;
+      }
+      final Object cellValue = observableValue.getValue();
+
+      if (userData instanceof DataType<?> dataType) {
+        List<RawDataFile> files = new ArrayList<>();
+        ColumnID id = newColumnMap.get(tableColumn);
+        if (id == null) {
           return;
         }
-
-        e.consume();
-        logger.finest(() -> "Double click on " + e.getSource());
-
-        TreeTablePosition<ModularFeatureListRow, ?> focusedCell = getFocusModel().getFocusedCell();
-        TreeTableColumn<ModularFeatureListRow, ?> tableColumn = focusedCell.getTableColumn();
-        if (tableColumn == null) {
-          // double click on header (happens when sorting)
-          return;
+        if (id.getType() == ColumnType.ROW_TYPE) {
+          files.addAll(getFeatureList().getRawDataFiles());
+        } else {
+          RawDataFile file = id.getRaw();
+          if (file != null) {
+            files.add(file);
+          }
         }
-        Object userData = tableColumn.getUserData();
-        final ObservableValue<?> observableValue = tableColumn.getCellObservableValue(
-            focusedCell.getTreeItem());
-        final Object cellValue = observableValue.getValue();
 
-        if (userData instanceof DataType<?> dataType) {
-          List<RawDataFile> files = new ArrayList<>();
-          ColumnID id = newColumnMap.get(tableColumn);
-          if (id == null) {
-            return;
-          }
-          if (id.getType() == ColumnType.ROW_TYPE) {
-            files.addAll(getFeatureList().getRawDataFiles());
-          } else {
-            RawDataFile file = id.getRaw();
-            if (file != null) {
-              files.add(file);
-            }
-          }
+        // if the data type is equal to the super type, it's not a subcolumn. If it's not equal,
+        // it's a subcolumn.
+        final DataType<?> superDataType =
+            id.getDataType().equals(dataType) ? null : id.getDataType();
 
-          // if the data type is equal to the super type, it's not a subcolumn. If it's not equal,
-          // it's a subcolumn.
-          final DataType<?> superDataType =
-              id.getDataType().equals(dataType) ? null : id.getDataType();
-
-          final ModularFeatureListRow row = getSelectionModel().getSelectedItem().getValue();
-          final Runnable runnable = (dataType.getDoubleClickAction(row, files, superDataType,
-              cellValue));
-          if (runnable != null) {
-            MZmineCore.getTaskController().addTask(
-                new FeatureTableDoubleClickTask(runnable, getFeatureList(),
-                    (DataType<?>) userData));
-          }
+        final ModularFeatureListRow row = getSelectionModel().getSelectedItem().getValue();
+        final Runnable runnable = (dataType.getDoubleClickAction(row, files, superDataType,
+            cellValue));
+        if (runnable != null) {
+          MZmineCore.getTaskController().addTask(
+              new FeatureTableDoubleClickTask(runnable, getFeatureList(), (DataType<?>) userData));
         }
       }
-    });
+    }
   }
 
   public List<ModularFeatureListRow> getSelectedRows() {
@@ -1019,8 +1045,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       return;
     }
     flist.getRows().removeListener(this);
-    flist.modularStream().forEach(ModularFeatureListRow::clearBufferedColCharts);
-    flist.streamFeatures().forEach(ModularFeature::clearBufferedColCharts);
+    flist.onFeatureTableFxClosed();
   }
 
   public DataTypeCheckListParameter getRowTypesParameter() {
@@ -1107,4 +1132,5 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     }
     return columns;
   }
+
 }

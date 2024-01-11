@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -153,7 +152,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
         originalFeatureList.getName() + " " + suffix, getMemoryMapStorage(),
         keepBackgroundFeatures == BlankSubtractionOptions.KEEP
             ? originalFeatureList.getRawDataFiles() : nonBlankRaws);
-    originalFeatureList.getRowTypes().values()
+    originalFeatureList.getRowTypes()
         .forEach(notBackgroundAlignedFeaturesList::addRowType);
 
     // use all samples that are not defined as blanks
@@ -171,7 +170,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     final ModularFeatureList backgroundAlignedFeaturesList = new ModularFeatureList(
         originalFeatureList.getName() + " subtractedBackground", getMemoryMapStorage(),
         originalFeatureList.getRawDataFiles());
-    originalFeatureList.getRowTypes().values().forEach(backgroundAlignedFeaturesList::addRowType);
+    originalFeatureList.getRowTypes().forEach(backgroundAlignedFeaturesList::addRowType);
     originalFeatureList.getRawDataFiles().forEach(
         f -> backgroundAlignedFeaturesList.setSelectedScans(f,
             originalFeatureList.getSeletedScans(f)));
@@ -241,14 +240,15 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
           if (foundInNBlanks == 0) {
             sb.append(String.format(" found only in %3d / %3d (%4.1f%%) samples",
                 notBackgroundFeaturesOfCurrentRow.size(), nonBlankRaws.size(),
-                notBackgroundFeaturesOfCurrentRow.size() / nonBlankRaws.size() * 100.));
+                ((float) notBackgroundFeaturesOfCurrentRow.size()) / nonBlankRaws.size() * 100.));
             sb.append(String.format(" but not in any of the %3d blank samples", blankRaws.size()));
           } else {
             sb.append(String.format(" found in %3d / %3d (%4.1f%%) samples",
                 notBackgroundFeaturesOfCurrentRow.size(), nonBlankRaws.size(),
-                notBackgroundFeaturesOfCurrentRow.size() / nonBlankRaws.size() * 100.));
+                ((float) notBackgroundFeaturesOfCurrentRow.size()) / nonBlankRaws.size() * 100.));
             sb.append(String.format(" and in %3d / %3d (%4.1f%%) background samples (abundance %s)",
-                foundInNBlanks, blankRaws.size(), foundInNBlanks / blankRaws.size() * 100.,
+                foundInNBlanks, blankRaws.size(),
+                ((float) foundInNBlanks) / blankRaws.size() * 100.,
                 guiFormats.intensity(blankAbundance)));
           }
           featureListRow.set(BlankSubtractionAnnotationType.class, sb.toString());
@@ -270,7 +270,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
           final StringBuilder sb = new StringBuilder();
           sb.append(String.format(
               "Background: Found in %3d / %3d (%4.1f%%) background samples (abundance %s) but not in any samples with higher abundances",
-              foundInNBlanks, blankRaws.size(), foundInNBlanks / blankRaws.size() * 100.,
+              foundInNBlanks, blankRaws.size(), ((float) foundInNBlanks) / blankRaws.size() * 100.,
               guiFormats.intensity(blankAbundance)));
           featureListRow.set(BlankSubtractionAnnotationType.class, sb.toString());
         }

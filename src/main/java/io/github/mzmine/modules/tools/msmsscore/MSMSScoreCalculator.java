@@ -81,6 +81,7 @@ public class MSMSScoreCalculator {
    * @param maxSignals      if > 0; only use top n signals
    * @return
    */
+  @NotNull
   public static MSMSScore evaluateMSMS(MZTolerance msmsTolerance, IMolecularFormula parentFormula,
       DataPoint[] msmsIons, double precursorMZ, int precursorCharge, int maxSignals) {
     if (maxSignals <= 0) {
@@ -91,6 +92,7 @@ public class MSMSScoreCalculator {
     }
   }
 
+  @NotNull
   public static MSMSScore evaluateMSMS(MZTolerance msmsTolerance, IMolecularFormula parentFormula,
       DataPoint[] msmsIons, double precursorMZ, int precursorCharge) {
     MolecularFormulaRange msmsElementRange = new MolecularFormulaRange();
@@ -117,8 +119,7 @@ public class MSMSScoreCalculator {
         // If we have any MS/MS peak with 1 neutron mass smaller m/z
         // and higher intensity, it means the current peak is an
         // isotope and we should ignore it
-        if (isotopeCheckRange.contains(dpCheck.getMZ()) && (dpCheck.getIntensity()
-            > dp.getIntensity())) {
+        if (isotopeCheckRange.contains(dpCheck.getMZ()) && (dpCheck.getIntensity() > dp.getIntensity())) {
           continue msmsCycle;
         }
       }
@@ -135,8 +136,7 @@ public class MSMSScoreCalculator {
 
       Range<Double> msmsTargetRange = msmsTolerance.getToleranceRange(neutralLoss);
       IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-      MolecularFormulaGenerator msmsEngine = new MolecularFormulaGenerator(builder,
-          msmsTargetRange.lowerEndpoint(), msmsTargetRange.upperEndpoint(), msmsElementRange);
+      MolecularFormulaGenerator msmsEngine = new MolecularFormulaGenerator(builder, msmsTargetRange.lowerEndpoint(), msmsTargetRange.upperEndpoint(), msmsElementRange);
 
       IMolecularFormula formula = msmsEngine.getNextFormula();
       if (formula != null) {
@@ -149,9 +149,8 @@ public class MSMSScoreCalculator {
       totalIntensity += dp.getIntensity();
     }
 
-    // If we did not evaluate any MS/MS peaks, we cannot calculate a score
     if (totalMSMSpeaks == 0) {
-      return null;
+      return new MSMSScore(Result.FAILED, 0f, 0f, Map.of());
     }
 
     float msmsScore = interpretedMSMSpeaks / (float) totalMSMSpeaks;

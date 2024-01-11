@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,11 +30,13 @@ import com.google.common.primitives.Doubles;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.util.collections.BinarySearch;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.IntToDoubleFunction;
 
 public class DataPointUtils {
 
@@ -242,4 +244,68 @@ public class DataPointUtils {
     }
     return new double[][]{mzs, intensities};
   }
+
+
+  /**
+   * Apply intensityPercentage filter so that the returned array contains all data points that make
+   * X % of the total intensity. The result is further cropped to a maxNumSignals.
+   *
+   * @param intensitySorted           sorted by intensity descending
+   * @param targetIntensityPercentage intensity percentage,e.g., 0.99
+   * @param maxNumSignals             maximum signals to crop to
+   * @return filtered data points array that make either >=X% of intensity or have reached the
+   * maxNumSignals
+   */
+  public static DataPoint[] filterDataByIntensityPercent(final DataPoint[] intensitySorted,
+      double targetIntensityPercentage, int maxNumSignals) {
+    double total = 0;
+    for (final DataPoint dp : intensitySorted) {
+      total += dp.getIntensity();
+    }
+
+    double sum = 0;
+    for (int i = 0; i < intensitySorted.length; i++) {
+      if (i >= maxNumSignals - 1) {
+        // max signals reached
+        return Arrays.copyOf(intensitySorted, maxNumSignals);
+      }
+      sum += intensitySorted[i].getIntensity();
+      if (sum / total >= targetIntensityPercentage) {
+        // intensity percentage reached
+        return Arrays.copyOf(intensitySorted, Math.min(i + 1, maxNumSignals));
+      }
+    }
+    // percent not reached - should not happen
+    return intensitySorted.length > maxNumSignals ? Arrays.copyOf(intensitySorted, maxNumSignals)
+        : intensitySorted;
+  }
+
+  /**
+   * Remove all signals that fall within precursorMZ +- removePrecursorMz
+   *
+   * @param mzSorted          sorted by mz ascending
+   * @param precursorMz       center of the signals to be removed
+   * @param removePrecursorMz +-delta to remove signals
+   * @return the filtered list
+   */
+  public static DataPoint[] removePrecursorMz(final DataPoint[] mzSorted, final double precursorMz,
+      final double removePrecursorMz) {
+    if (mzSorted.length == 0) {
+      return mzSorted;
+    }
+
+    IntToDoubleFunction mzExtractor = index -> mzSorted[index].getMZ();
+    // might be higher or lower or -1
+    final double lowerMz = precursorMz - removePrecursorMz;
+    final double upperMzBound = precursorMz + removePrecursorMz;
+
+    var indexRange = BinarySearch.indexRange(lowerMz, upperMzBound, mzSorted.length, mzExtractor);
+
+    return indexRange.copyRemoveRange(mzSorted);
+  }
+
+  public static boolean inRange(final double tested, final double center, final double delta) {
+    return tested >= center - delta && tested <= center + delta;
+  }
+
 }

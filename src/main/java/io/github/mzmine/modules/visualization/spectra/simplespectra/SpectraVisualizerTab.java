@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_scans.ExportScansModule;
@@ -66,6 +67,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -80,6 +82,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.data.xy.XYDataset;
 
@@ -125,17 +128,20 @@ public class SpectraVisualizerTab extends MZmineTab {
   private final Button dataPointsButton;
   private final SpectraPlot spectrumPlot;
   private final SpectraBottomPanel bottomPanel;
+  private final ObjectProperty<MZTolerance> mzToleranceProperty = new SimpleObjectProperty<>();
   private RawDataFile dataFile;
   // Currently loaded scan
   private Scan currentScan;
   // Current scan data set
   private ScanDataSet spectrumDataSet;
-
   private MassListDataSet massListDataSet;
   private Color dataFileColor;
-  private final ObjectProperty<MZTolerance> mzToleranceProperty = new SimpleObjectProperty<>();
 
-  public SpectraVisualizerTab(RawDataFile dataFile, Scan scanNumber, boolean enableProcessing) {
+  private SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+
+
+  public SpectraVisualizerTab(RawDataFile dataFile, Scan scanNumber, boolean enableProcessing,
+      boolean hideSettingsPanel) {
     super("Spectra visualizer", true, false);
     // setTitle("Spectrum loading...");
     this.dataFile = dataFile;
@@ -239,10 +245,11 @@ public class SpectraVisualizerTab extends MZmineTab {
             dbLipidsButton, dbSpectraButton, sumFormulaButton);
 
     mainPane.setRight(toolBar);
-
     bottomPanel = new SpectraBottomPanel(this, dataFile);
-    Accordion bottomAccordion = new Accordion(new TitledPane("Spectrum options", bottomPanel));
-    mainPane.setBottom(bottomAccordion);
+    if (!hideSettingsPanel) {
+      Accordion bottomAccordion = new Accordion(new TitledPane("Spectrum options", bottomPanel));
+      mainPane.setBottom(bottomAccordion);
+    }
     setContent(mainPane);
 
     // get parameters
@@ -253,6 +260,10 @@ public class SpectraVisualizerTab extends MZmineTab {
     setMzTolerance(mzTolerance);
     mzToleranceProperty.bindBidirectional(spectrumPlot.mzToleranceProperty());
 
+  }
+
+  public SpectraVisualizerTab(RawDataFile dataFile, Scan scanNumber, boolean enableProcessing) {
+    this(dataFile, scanNumber, enableProcessing, false);
   }
 
   public SpectraVisualizerTab(RawDataFile dataFile) {
@@ -381,7 +392,7 @@ public class SpectraVisualizerTab extends MZmineTab {
       spectrumPlot.getXYPlot().getRenderer().setDefaultPaint(dataFileColor);
       // });
 
-      if (scan != null && scan.getMSLevel() > 1) {
+      if (scan.getMSLevel() > 1 && scan.getPrecursorMz() != null) {
         // add all precursors
         final Double prmz = scan.getPrecursorMz();
         if (prmz != null) {
@@ -430,37 +441,71 @@ public class SpectraVisualizerTab extends MZmineTab {
   public void loadIsotopes(IsotopePattern newPattern) {
     spectrumPlot.applyWithNotifyChanges(false, () -> {
 
-      // We need to find a normalization factor for the new isotope
-      // pattern, to show meaningful intensity range
-      Integer basePeak = newPattern.getBasePeakIndex();
-      if (basePeak == null) {
-        return;
-      }
-      double mz = newPattern.getBasePeakMz();
+      if (newPattern instanceof MultiChargeStateIsotopePattern multi) {
 
-      Range<Double> searchMZRange = Range.closed(mz - 0.5, mz + 0.5);
-      ScanDataSet scanDataSet = spectrumPlot.getMainScanDataSet();
-      double normalizationFactor = scanDataSet.getHighestIntensity(searchMZRange);
+        List<IsotopePattern> patterns = multi.getPatterns();
+        for (int i = 0; i < patterns.size(); i++) {
+          Color newColor;
+          if (newPattern.getStatus() == IsotopePatternStatus.DETECTED) {
+            newColor = palette.getNextColorAWT();
+          } else {
+            newColor = predictedIsotopesColor;
+          }
 
-      // If normalization factor is 0, it means there were no data points
-      // in given m/z range. In such case we use the max intensity of
-      // whole scan as normalization factor.
-      if (normalizationFactor == 0) {
-        searchMZRange = Range.atLeast(0.0);
-        normalizationFactor = scanDataSet.getHighestIntensity(searchMZRange);
-      }
+          IsotopePattern pattern = patterns.get(i);
+          final IsotopePattern normalizedPattern = normalizeIsotopePattern(pattern);
+          if (normalizedPattern == null) {
+            return;
+          }
 
-      IsotopePattern normalizedPattern = IsotopePatternCalculator.normalizeIsotopePattern(
-          newPattern, normalizationFactor);
-      Color newColor;
-      if (newPattern.getStatus() == IsotopePatternStatus.DETECTED) {
-        newColor = detectedIsotopesColor;
+          final IsotopesDataSet newDataSet = new IsotopesDataSet(normalizedPattern,
+              (i == 0 ? "Isotopes (%d, preferred)" : "Isotopes (%d)").formatted(
+                  pattern.getNumberOfDataPoints()));
+          spectrumPlot.addDataSet(newDataSet, newColor, true, false);
+        }
       } else {
-        newColor = predictedIsotopesColor;
+        Color newColor;
+        if (newPattern.getStatus() == IsotopePatternStatus.DETECTED) {
+          newColor = detectedIsotopesColor;
+        } else {
+          newColor = predictedIsotopesColor;
+        }
+        final IsotopePattern normalizedPattern = normalizeIsotopePattern(newPattern);
+        if (normalizedPattern == null) {
+          return;
+        }
+
+        IsotopesDataSet newDataSet = new IsotopesDataSet(normalizedPattern);
+        spectrumPlot.addDataSet(newDataSet, newColor, true, false);
       }
-      IsotopesDataSet newDataSet = new IsotopesDataSet(normalizedPattern);
-      spectrumPlot.addDataSet(newDataSet, newColor, true, false);
     });
+  }
+
+  @Nullable
+  private IsotopePattern normalizeIsotopePattern(IsotopePattern newPattern) {
+    // We need to find a normalization factor for the new isotope
+    // pattern, to show meaningful intensity range
+    Integer basePeak = newPattern.getBasePeakIndex();
+    if (basePeak == null) {
+      return null;
+    }
+    double mz = newPattern.getBasePeakMz();
+
+    Range<Double> searchMZRange = Range.closed(mz - 0.5, mz + 0.5);
+    ScanDataSet scanDataSet = spectrumPlot.getMainScanDataSet();
+    double normalizationFactor = scanDataSet.getHighestIntensity(searchMZRange);
+
+    // If normalization factor is 0, it means there were no data points
+    // in given m/z range. In such case we use the max intensity of
+    // whole scan as normalization factor.
+    if (normalizationFactor == 0) {
+      normalizationFactor = Objects.requireNonNullElse(scanDataSet.getScan().getBasePeakIntensity(),
+          1d);
+    }
+
+    IsotopePattern normalizedPattern = IsotopePatternCalculator.normalizeIsotopePattern(newPattern,
+        normalizationFactor);
+    return normalizedPattern;
   }
 
   public void loadSpectrum(IsotopePattern newPattern) {

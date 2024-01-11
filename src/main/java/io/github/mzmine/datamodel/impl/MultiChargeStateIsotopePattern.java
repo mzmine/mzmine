@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -48,9 +49,11 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
 
   public static final String XML_ELEMENT = "multi_charge_state_isotopepattern";
 
+  public static final Comparator<IsotopePattern> patternSizeComparator = Comparator.comparingInt(
+      IsotopePattern::getNumberOfDataPoints);
+
   @NotNull
   private final List<IsotopePattern> patterns = new ArrayList<>();
-
 
   public MultiChargeStateIsotopePattern(@NotNull IsotopePattern... patterns) {
     this(Arrays.asList(patterns));
@@ -61,6 +64,7 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
       throw new IllegalArgumentException("List of isotope patterns cannot be empty");
     }
     this.patterns.addAll(patterns);
+    evaluateIsotopePatterns();
   }
 
   public static IsotopePattern loadFromXML(XMLStreamReader reader) throws XMLStreamException {
@@ -108,10 +112,12 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
    * @param setPreferred true: start of list; false: end of list
    */
   public void addPattern(IsotopePattern pattern, boolean setPreferred) {
+    patterns.remove(pattern);
     if (setPreferred) {
       patterns.add(0, pattern);
     } else {
       patterns.add(pattern);
+      evaluateIsotopePatterns();
     }
   }
 
@@ -247,5 +253,12 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
   @Override
   public int hashCode() {
     return Objects.hash(patterns);
+  }
+
+  /**
+   * Sorts the isotope patterns by pattern size.
+   */
+  private void evaluateIsotopePatterns() {
+    patterns.sort(patternSizeComparator);
   }
 }

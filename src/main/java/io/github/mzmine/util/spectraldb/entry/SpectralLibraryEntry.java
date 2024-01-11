@@ -280,5 +280,11 @@ public interface SpectralLibraryEntry extends MassList {
     };
   }
 
+  @Nullable SpectralLibrary getLibrary();
+
+  void setLibrary(@Nullable SpectralLibrary library);
+
+  @Nullable String getLibraryName();
+
   public <T> T setField(DBEntryField field, T value);
 }

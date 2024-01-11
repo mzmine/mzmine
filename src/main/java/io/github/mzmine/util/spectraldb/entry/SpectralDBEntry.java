@@ -211,6 +211,19 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     return fields;
   }
 
+  public @Nullable SpectralLibrary getLibrary() {
+    return library;
+  }
+
+  public void setLibrary(@Nullable SpectralLibrary library) {
+    this.library = library;
+  }
+
+  @Nullable
+  public String getLibraryName() {
+    return library != null ? library.getName() : null;
+  }
+
   public <T> T setField(DBEntryField field, T value) {
     return (T) fields.put(field, value);
   }

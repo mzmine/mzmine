@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -302,7 +302,7 @@ public class ProjectSavingTask extends AbstractTask {
     zipStream.putNextEntry(new ZipEntry(CONFIG_FILENAME));
 
     try {
-      File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
+      File tempConfigFile = FileAndPathUtil.createTempFile("mzmineconfig", ".tmp");
       MZmineCore.getConfiguration().saveConfiguration(tempConfigFile);
       FileInputStream fileStream = new FileInputStream(tempConfigFile);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,22 +30,25 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.correlation.CorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RFullCorrelationData;
+import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.AdvancedCorrelateGroupingParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureCorrelationHistogramTask extends AbstractTask {
 
-  private static final Logger logger = Logger
-      .getLogger(FeatureCorrelationHistogramTask.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      FeatureCorrelationHistogramTask.class.getName());
   private final ModularFeatureList flist;
   private final double startBinWidth;
   private FeatureCorrelationHistogramTab tab;
@@ -78,12 +81,17 @@ public class FeatureCorrelationHistogramTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
+    Optional<R2RMap<RowsRelationship>> ms1CorrelationMap = flist.getMs1CorrelationMap();
+    if (ms1CorrelationMap.isEmpty()) {
+      logger.fine("Run correlation grouping before");
+      return;
+    }
 
     DoubleArrayList valuesUnidentified = new DoubleArrayList();
     DoubleArrayList valuesIdentified = new DoubleArrayList();
 
     int counter = 0;
-    for (RowsRelationship r2r : flist.getMs1CorrelationMap().values()) {
+    for (RowsRelationship r2r : ms1CorrelationMap.get().values()) {
       if (r2r instanceof R2RFullCorrelationData corr) {
         FeatureListRow a = corr.getRowA();
         FeatureListRow b = corr.getRowB();
@@ -102,6 +110,17 @@ public class FeatureCorrelationHistogramTask extends AbstractTask {
           }
           counter++;
         }
+      } else {
+        if (!MZmineCore.isHeadLessMode()) {
+          String msg = """
+              Extended correlation stats are missing. 
+              Rerun metaCorr correlation grouping with the advanced parameter %s active.""".formatted(
+              AdvancedCorrelateGroupingParameters.keepExtendedStats.getName());
+          MZmineCore.getDesktop().displayMessage(msg);
+        }
+
+        setStatus(TaskStatus.FINISHED);
+        return;
       }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,10 +28,10 @@ package io.github.mzmine.util;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.features.correlation.CorrelationRowGroup;
 import io.github.mzmine.datamodel.features.correlation.R2RCorrelationData;
-import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.RowGroup;
+import io.github.mzmine.datamodel.features.correlation.RowGroupSimple;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,23 +66,27 @@ public class CorrelationGroupingUtils {
   /**
    * Create list of correlated rows
    *
-   * @param flist feature list
+   * @param flist      feature list
+   * @param keepExtendedStats keep extended statistics otherwise create simplified object
    * @return a list of all groups within the feature list
    */
-  public static List<RowGroup> createCorrGroups(FeatureList flist) {
+  public static List<RowGroup> createCorrGroups(FeatureList flist,
+      final boolean keepExtendedStats) {
     logger.log(Level.INFO, "Corr: Creating correlation groups for {0}", flist.getName());
 
     try {
-      R2RMap<RowsRelationship> corrMap = flist.getMs1CorrelationMap();
-      if (corrMap == null) {
+      var opCorrMap = flist.getMs1CorrelationMap();
+      if (opCorrMap.isEmpty()) {
         logger.log(Level.INFO,
             "Feature list ({0}) contains no grouped rows. First run a grouping module",
             flist.getName());
         return List.of();
       }
+      logger.info("Creating groups for " + flist.getName());
+      var corrMap = opCorrMap.get();
 
       List<RowGroup> groups = new ArrayList<>();
-      HashMap<FeatureListRow, CorrelationRowGroup> used = new HashMap<>();
+      HashMap<FeatureListRow, RowGroup> used = new HashMap<>();
 
       int c = 0;
       ObservableList<RawDataFile> raw = flist.getRawDataFiles();
@@ -91,10 +95,10 @@ public class CorrelationGroupingUtils {
         RowsRelationship r2r = e.getValue();
         FeatureListRow rowA = r2r.getRowA();
         FeatureListRow rowB = r2r.getRowB();
-        if (r2r instanceof R2RCorrelationData data) {
+        if (r2r instanceof R2RCorrelationData) {
           // already added?
-          CorrelationRowGroup group = used.get(rowA);
-          CorrelationRowGroup group2 = used.get(rowB);
+          RowGroup group = used.get(rowA);
+          RowGroup group2 = used.get(rowB);
           // merge groups if both present
           if (group != null && group2 != null && group.getGroupID() != group2.getGroupID()) {
             // copy all to group1 and remove g2
@@ -105,7 +109,11 @@ public class CorrelationGroupingUtils {
             groups.remove(group2);
           } else if (group == null && group2 == null) {
             // create new group with both rows
-            group = new CorrelationRowGroup(raw, groups.size());
+            if (keepExtendedStats) {
+              group = new CorrelationRowGroup(raw, groups.size());
+            } else {
+              group = new RowGroupSimple(groups.size(), corrMap);
+            }
             group.addAll(rowA, rowB);
             groups.add(group);
             // mark as used

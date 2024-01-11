@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,6 +57,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.IsotopesUtils;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -152,7 +153,7 @@ class IsotopeFinderTask extends AbstractTask {
     RawDataFile raw = featureList.getRawDataFile(0);
 
     // Loop through all rows
-    final ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.CENTROID,
+    final ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.MASS_LIST,
         featureList.getSeletedScans(raw));
 
     final MobilityScanDataAccess mobScans = initMobilityScanDataAccess(raw);
@@ -304,7 +305,7 @@ class IsotopeFinderTask extends AbstractTask {
 
   private List<DataPoint> normalizeImsIntensities(List<DataPoint> candidates, Scan scan,
       SimpleDataPoint featureDp) {
-    final int i = scan.binarySearch(featureDp.getMZ(), true);
+    final int i = scan.binarySearch(featureDp.getMZ(), DefaultTo.CLOSEST_VALUE);
     if (i < 0) {
       // did not find the expected feature data point
       return candidates;
@@ -348,9 +349,10 @@ class IsotopeFinderTask extends AbstractTask {
 
   @Nullable
   private MobilityScanDataAccess initMobilityScanDataAccess(RawDataFile raw) {
-    return raw instanceof IMSRawDataFile imsFile && featureList.getFeatureTypes()
-        .containsKey(MobilityUnitType.class) ? new MobilityScanDataAccess(imsFile,
-        MobilityScanDataType.CENTROID, (List<Frame>) featureList.getSeletedScans(imsFile)) : null;
+    return
+        raw instanceof IMSRawDataFile imsFile && featureList.hasFeatureType(MobilityUnitType.class)
+            ? new MobilityScanDataAccess(imsFile, MobilityScanDataType.MASS_LIST,
+            (List<Frame>) featureList.getSeletedScans(imsFile)) : null;
   }
 
   private void checkCandidatesInScan(ScanDataAccess scans, List<MergedDataPoint> candidates,
@@ -379,5 +381,4 @@ class IsotopeFinderTask extends AbstractTask {
   private boolean checkRetentionTime(Scan scan, float maxRT, Float fwhmDiff) {
     return scan != null && Math.abs(scan.getRetentionTime() - maxRT) <= fwhmDiff;
   }
-
 }
