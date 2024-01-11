@@ -39,7 +39,6 @@ import io.github.mzmine.util.color.ColorScaleUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.text.DecimalFormat;
 import java.util.List;
-import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -74,12 +73,12 @@ public class LipidAnnotationMatchPane extends AbstractFeatureListRowsPane {
   }
 
   @Override
-  public void onRowsChanged(ObservableList<? extends FeatureListRow> rows) {
+  public void onRowsChanged(List<? extends FeatureListRow> rows) {
     super.onRowsChanged(rows);
   }
 
   @Override
-  public void onSelectedRowsChanged(ObservableList<? extends FeatureListRow> selectedRows) {
+  public void onSelectedRowsChanged(List<? extends FeatureListRow> selectedRows) {
     super.onSelectedRowsChanged(selectedRows);
     matches = 0;
     GridPane pane = new GridPane();
