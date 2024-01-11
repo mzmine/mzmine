@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,26 +25,28 @@
 
 package io.github.mzmine.modules.visualization.spectra.matchedlipid;
 
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidAnnotationLevel;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import java.util.List;
+import java.util.Map;
+import javafx.util.Pair;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
 
 public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
 
-  /*
-   * Number of screen pixels to reserve for each label, so that the labels do not overlap
-   */
- private static final int POINTS_RESERVE_X = 100;
-
+  public static final int POINTS_RESERVE_X = 100;
+  private final Map<XYDataset, List<Pair<Double, Double>>> datasetToLabelsCoords;
   private final ChartViewer plot;
   private final List<LipidFragment> fragments;
 
-  public MatchedLipidLabelGenerator(ChartViewer plot,List<LipidFragment> fragments) {
+  public MatchedLipidLabelGenerator(SpectraPlot plot, List<LipidFragment> fragments) {
     this.plot = plot;
     this.fragments = fragments;
+    this.datasetToLabelsCoords = plot.getDatasetToLabelsCoords();
   }
 
 
@@ -54,68 +56,59 @@ public class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
    */
   @Override
   public String generateLabel(XYDataset dataset, int series, int item) {
-
-    // X and Y values of current data point
-    double originalX = dataset.getX(series, item).doubleValue();
-    double originalY = dataset.getY(series, item).doubleValue();
-
-    // Calculate data size of 1 screen pixel
-    double xLength = plot.getChart().getXYPlot().getDomainAxis().getRange().getLength();
-    double pixelX = xLength / plot.getWidth();
-
-    // Size of data set
-    int itemCount = dataset.getItemCount(series);
-
-    // Search for data points higher than this one in the interval
-    // from limitLeft to limitRight
-    double limitLeft = originalX - ((POINTS_RESERVE_X / 2) * pixelX);
-    double limitRight = originalX + ((POINTS_RESERVE_X / 2) * pixelX);
-
-    // Iterate data points to the left and right
-    for (int i = 1; (item - i > 0) || (item + i < itemCount); i++) {
-
-      // If we get out of the limit we can stop searching
-      if ((item - i > 0) && (dataset.getXValue(series, item - i) < limitLeft)
-          && ((item + i >= itemCount) || (dataset.getXValue(series, item + i) > limitRight)))
-        break;
-
-      if ((item + i < itemCount) && (dataset.getXValue(series, item + i) > limitRight)
-          && ((item - i <= 0) || (dataset.getXValue(series, item - i) < limitLeft)))
-        break;
-
-      // If we find higher data point, bail out
-      if ((item - i > 0) && (originalY <= dataset.getYValue(series, item - i)))
-        return null;
-
-      if ((item + i < itemCount) && (originalY <= dataset.getYValue(series, item + i)))
-        return null;
-
-    }
-
-    // Create label
     String label = null;
-    if (dataset.getSeriesKey(1).equals("Matched Signals")) {
-      if (fragments != null) {
-        return buildFragmentAnnotation(fragments.get(item));
-      } else {
-        return null;
+    
+    //create label
+    if (plot.getCanvas().getWidth() >= 400 && plot.getCanvas().getHeight() >= 200) {
+      if (dataset.getSeriesKey(1).equals("Matched Signals")) {
+        if (fragments != null) {
+          label = buildFragmentAnnotation(fragments.get(item), true);
+        }
+      } else if (dataset.getSeriesKey(1).equals("In-silico fragments")) {
+        if (fragments != null) {
+          label = buildFragmentAnnotation(fragments.get(item), false);
+        }
       }
     }
-    return null;
-
+    return label;
   }
 
-  private String buildFragmentAnnotation(LipidFragment lipidFragment) {
+  private String buildFragmentAnnotation(LipidFragment lipidFragment, boolean showAccuracy) {
     StringBuilder sb = new StringBuilder();
     if (lipidFragment.getLipidFragmentInformationLevelType()
         .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
-      sb.append(lipidFragment.getLipidChainType().toString()).append(" ")
+      sb.append(lipidFragment.getLipidChainType().getName()).append(" ")
           .append(lipidFragment.getChainLength()).append(":")
           .append(lipidFragment.getNumberOfDBEs());
+
+      //add info about oxygens
+      if (lipidFragment.getNumberOfOxygens() != null && lipidFragment.getNumberOfOxygens() > 0) {
+        sb.append(";").append(lipidFragment.getNumberOfOxygens()).append("O");
+      }
+      sb.append("\n");
+
+      sb.append(lipidFragment.getIonFormula()).append("\n")
+          .append(MZmineCore.getConfiguration().getMZFormat().format(lipidFragment.getMzExact()))
+          .append("\n");
+      // accuracy
+      if (showAccuracy) {
+        float ppm = (float) ((lipidFragment.getMzExact() - lipidFragment.getDataPoint().getMZ())
+            / lipidFragment.getMzExact()) * 1000000;
+        sb.append("Δ ").append(MZmineCore.getConfiguration().getPPMFormat().format(ppm))
+            .append("ppm\n");
+      }
     } else {
-      sb.append(lipidFragment.getRuleType().toString()).append(" ").append(lipidFragment.getMzExact());
+      sb.append(lipidFragment.getRuleType().toString()).append("\n")
+          .append(lipidFragment.getIonFormula()).append("\n")
+          .append(MZmineCore.getConfiguration().getMZFormat().format(lipidFragment.getMzExact()));
+      // accuracy
+      if (showAccuracy) {
+        float ppm = (float) ((lipidFragment.getMzExact() - lipidFragment.getDataPoint().getMZ())
+            / lipidFragment.getMzExact()) * 1000000;
+        sb.append("Δ ").append(MZmineCore.getConfiguration().getPPMFormat().format(ppm))
+            .append("ppm\n");
+      }
     }
     return sb.toString();
   }
-
 }
