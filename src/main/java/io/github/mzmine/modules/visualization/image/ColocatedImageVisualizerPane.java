@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -60,7 +60,7 @@ import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CorrelatedImageVisualizerPane extends AbstractFeatureListRowsPane {
+public class ColocatedImageVisualizerPane extends AbstractFeatureListRowsPane {
 
   private final SplitPane mainPane = new SplitPane();
   private final SplitPane imageSpectrumPane = new SplitPane();
@@ -75,7 +75,7 @@ public class CorrelatedImageVisualizerPane extends AbstractFeatureListRowsPane {
   @Nullable
   private FeatureListRow row = null;
 
-  public CorrelatedImageVisualizerPane(ParentFeatureListPaneGroup parentGroup) {
+  public ColocatedImageVisualizerPane(ParentFeatureListPaneGroup parentGroup) {
     super(parentGroup);
 
     imageSpectrumPane.setOrientation(Orientation.HORIZONTAL);
