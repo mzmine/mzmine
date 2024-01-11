@@ -28,16 +28,16 @@ package io.github.mzmine.datamodel.features.correlation;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Image similarity computed in MZmine.
+ * Simple list of similarities
  */
 public class R2RSimpleSimilarityList extends AbstractRowsRelationship {
 
   private final Type type;
-  
+
+  // for multiple features
   private final DoubleList similarities = new DoubleArrayList();
 
   /**
@@ -58,7 +58,7 @@ public class R2RSimpleSimilarityList extends AbstractRowsRelationship {
     return similarities.size();
   }
 
-  public List<Double> getSimilarities() {
+  public DoubleList getSimilarities() {
     return similarities;
   }
 
@@ -68,6 +68,10 @@ public class R2RSimpleSimilarityList extends AbstractRowsRelationship {
 
   public double getMinSimilarity() {
     return similarities.doubleStream().min().orElse(0.0);
+  }
+
+  public double getAverageSimilarity() {
+    return similarities.doubleStream().average().orElse(0.0);
   }
 
   @Override
