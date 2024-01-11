@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_imagecorrelate;
+package io.github.mzmine.modules.visualization.image;
 
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -36,9 +36,6 @@ import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
-import io.github.mzmine.modules.visualization.image.ImagingPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.color.ColorScaleUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
@@ -153,7 +150,6 @@ public class ColocatedImagePane extends StackPane {
 
     EChartViewer chart = imagePlot.getChart();
     chart.setMinSize(200, 200);
-    chart.getChart().getXYPlot().setBackgroundPaint(java.awt.Color.BLACK);
     chartGroup.add(new ChartViewWrapper(chart));
     GridPane.setHgrow(chart, Priority.ALWAYS);
     GridPane.setVgrow(chart, Priority.ALWAYS);

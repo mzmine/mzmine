@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_imagecorrelate;
+package io.github.mzmine.modules.visualization.image;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
@@ -60,7 +60,7 @@ import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CorrelatedImageVisualizerPane extends AbstractFeatureListRowsPane {
+public class ColocatedImageVisualizerPane extends AbstractFeatureListRowsPane {
 
   private final SplitPane mainPane = new SplitPane();
   private final SplitPane imageSpectrumPane = new SplitPane();
@@ -75,7 +75,7 @@ public class CorrelatedImageVisualizerPane extends AbstractFeatureListRowsPane {
   @Nullable
   private FeatureListRow row = null;
 
-  public CorrelatedImageVisualizerPane(ParentFeatureListPaneGroup parentGroup) {
+  public ColocatedImageVisualizerPane(ParentFeatureListPaneGroup parentGroup) {
     super(parentGroup);
 
     imageSpectrumPane.setOrientation(Orientation.HORIZONTAL);
@@ -137,14 +137,16 @@ public class CorrelatedImageVisualizerPane extends AbstractFeatureListRowsPane {
     final List<RowsRelationship> sortedRelationships = rowsRelationshipR2RMap.streamAllCorrelatedRows(
             selectedRow, flist.getRows())
         .sorted(Comparator.comparingDouble(RowsRelationship::getScore).reversed()).toList();
-    updateMainImageAndPseudoSpectrum(selectedRow, bestFeature, sortedRelationships);
 
     if (sortedRelationships.isEmpty()) {
       colocatedImagePane.updateContent(null, null, null);
-      return;
+    } else {
+      colocatedImagePane.updateContent(sortedRelationships, selectedRow,
+          bestFeature.getRawDataFile());
     }
-    colocatedImagePane.updateContent(sortedRelationships, selectedRow,
-        bestFeature.getRawDataFile());
+    // main pane must be updated afterwards, so that the main image and the correlated images are
+    // in the same chart group.
+    updateMainImageAndPseudoSpectrum(selectedRow, bestFeature, sortedRelationships);
   }
 
   private void updateMainImageAndPseudoSpectrum(FeatureListRow selectedRow,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,61 +26,55 @@
 package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
-import it.unimi.dsi.fastutil.doubles.DoubleList;
+import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
 /**
- * Image similarity computed in MZmine.
+ * This rowgroup only contains necessary data. It should be used when memory is an issue (so usually
+ * prefererred). {@link RowGroupFull} keeps all correlation data for further visualization modules
+ * and analysis options.
  */
-public class R2RImageSimilarityList extends AbstractRowsRelationship {
+public class RowGroupSimple implements RowGroup {
 
-  private final Type type;
-  private final DoubleList similarities = new DoubleArrayList();
+  // running index of groups
+  private final R2RMap<RowsRelationship> map;
+  protected int groupID;
+  protected List<FeatureListRow> rows;
 
-  /**
-   * @param a    row a
-   * @param b    row b
-   * @param type the similarity type
-   */
-  public R2RImageSimilarityList(FeatureListRow a, FeatureListRow b, Type type) {
-    super(a, b);
-    this.type = type;
-  }
 
-  public synchronized void addSimilarity(double sim) {
-    similarities.add(sim);
-  }
-
-  public int size() {
-    return similarities.size();
-  }
-
-  public List<Double> getSimilarities() {
-    return similarities;
-  }
-
-  public double getMaxSimilarity() {
-    return similarities.doubleStream().max().orElse(0.0);
-  }
-
-  public double getMinSimilarity() {
-    return similarities.doubleStream().min().orElse(0.0);
+  public RowGroupSimple(final int groupID, R2RMap<RowsRelationship> map) {
+    this.groupID = groupID;
+    this.map = map;
+    rows = new ArrayList<>();
   }
 
   @Override
-  public double getScore() {
-    return getMaxSimilarity();
+  public List<FeatureListRow> getRows() {
+    return rows;
   }
 
   @Override
-  public @NotNull String getType() {
-    return type.toString();
+  public boolean add(final FeatureListRow e) {
+    return rows.add(e);
   }
 
   @Override
-  public @NotNull String getAnnotation() {
-    return "sim=" + getScoreFormatted();
+  public int getGroupID() {
+    return groupID;
+  }
+
+  @Override
+  public void setGroupID(final int groupID) {
+    this.groupID = groupID;
+  }
+
+  @Override
+  public boolean isCorrelated(final int i, final int k) {
+    return isCorrelated(get(i), get(k));
+  }
+
+  @Override
+  public boolean isCorrelated(final FeatureListRow a, final FeatureListRow b) {
+    return map.get(a, b) != null;
   }
 }

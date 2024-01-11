@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.group_imagecorrelate;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.FeatureDataType;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
@@ -33,8 +34,8 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.correlation.R2RImageSimilarityList;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.R2RSimpleSimilarityList;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.parameters.ParameterSet;
@@ -240,74 +241,81 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
   private void checkR2RAllFeaturesImageSimilarity(Map<Feature, FilteredRowData> mapFeatureData,
       FeatureListRow a, FeatureListRow b, final R2RMap<RowsRelationship> mapSimilarity) {
 
-    R2RImageSimilarityList imageSimilarities = new R2RImageSimilarityList(a, b,
+    R2RSimpleSimilarityList imageSimilarities = new R2RSimpleSimilarityList(a, b,
         Type.MS1_FEATURE_CORR);
     for (Feature fa : a.getFeatures()) {
+      double similarity = 0;
       double[] intensitiesA = mapFeatureData.get(fa).intensities;
       if (intensitiesA != null) {
 
-        for (Feature fb : b.getFeatures()) {
-          double[] intensitiesB = mapFeatureData.get(fb).intensities;
-          if (intensitiesB != null) {
-            List<IntensityPair> intensityPairs = new ArrayList<>();
+        RawDataFile dataFile = fa.getRawDataFile();
+        Feature fb = b.getFeature(dataFile);
+        if (fb == null) {
+          continue;
+        }
 
-            // Remove signals below noise level and create intensity pairs
-            for (int i = 0; i < intensitiesA.length; i++) {
-              if (intensitiesA[i] >= noiseLevel && intensitiesB[i] >= noiseLevel) {
-                intensityPairs.add(new IntensityPair(intensitiesA[i], intensitiesB[i]));
-              }
-            }
-
-            List<IntensityPair> filteredIntensityPairs;
-            if (useMedianFilter && intensitiesA.length >= minimumNumberOfCorrelatedPixels) {
-              filteredIntensityPairs = applyMedianFilter(intensityPairs, medianFilter);
-            } else {
-              filteredIntensityPairs = intensityPairs;
-            }
-
-            if (useQuantileThreshold
-                && filteredIntensityPairs.size() >= minimumNumberOfCorrelatedPixels) {
-              double quantileThresholdA = calculateQuantile(
-                  filteredIntensityPairs.stream().map(IntensityPair::intensityA)
-                      .collect(Collectors.toList()), quantileThreshold);
-              double quantileThresholdB = calculateQuantile(
-                  filteredIntensityPairs.stream().map(IntensityPair::intensityB)
-                      .collect(Collectors.toList()), quantileThreshold);
-              filteredIntensityPairs.removeIf(pair -> pair.intensityA() < quantileThresholdA
-                  || pair.intensityB() < quantileThresholdB);
-            }
-
-            if (useHotspotRemoval
-                && filteredIntensityPairs.size() >= minimumNumberOfCorrelatedPixels) {
-              double hotSpotThresholdA = calculateQuantile(
-                  filteredIntensityPairs.stream().map(IntensityPair::intensityA)
-                      .collect(Collectors.toList()), hotspotRemovalThreshold);
-              double hotSpotThresholdB = calculateQuantile(
-                  filteredIntensityPairs.stream().map(IntensityPair::intensityB)
-                      .collect(Collectors.toList()), hotspotRemovalThreshold);
-              filteredIntensityPairs.removeIf(pair -> pair.intensityA() > hotSpotThresholdA
-                  || pair.intensityB() > hotSpotThresholdB);
-            }
-
-            if (filteredIntensityPairs.size() >= minimumNumberOfCorrelatedPixels) {
-              double[][] correlationDataInput = new double[filteredIntensityPairs.size()][2];
-              for (int i = 0; i < filteredIntensityPairs.size(); i++) {
-                correlationDataInput[i][0] = filteredIntensityPairs.get(i).intensityA;
-                correlationDataInput[i][1] = filteredIntensityPairs.get(i).intensityB;
-              }
-
-              double similarity = similarityMeasure.calc(correlationDataInput);
-              if (similarity >= minR) {
-                imageSimilarities.addSimilarity(similarity);
-              }
-            }
-          }
+        double[] intensitiesB = mapFeatureData.get(fb).intensities;
+        if (intensitiesB != null) {
+          similarity = calculateSimilarity(intensitiesA, intensitiesB);
         }
       }
+      // always add value also 0 if no correlation
+      imageSimilarities.addSimilarity(similarity);
     }
-    if (imageSimilarities.size() > 0) {
+    if (imageSimilarities.getAverageSimilarity() >= minR) {
       mapSimilarity.add(a, b, imageSimilarities);
     }
+  }
+
+  private double calculateSimilarity(final double[] intensitiesA, final double[] intensitiesB) {
+    List<IntensityPair> intensityPairs = new ArrayList<>();
+
+    // Remove signals below noise level and create intensity pairs
+    for (int i = 0; i < intensitiesA.length; i++) {
+      if (intensitiesA[i] >= noiseLevel && intensitiesB[i] >= noiseLevel) {
+        intensityPairs.add(new IntensityPair(intensitiesA[i], intensitiesB[i]));
+      }
+    }
+
+    List<IntensityPair> filteredIntensityPairs;
+    if (useMedianFilter && intensitiesA.length >= minimumNumberOfCorrelatedPixels) {
+      filteredIntensityPairs = applyMedianFilter(intensityPairs, medianFilter);
+    } else {
+      filteredIntensityPairs = intensityPairs;
+    }
+
+    if (useQuantileThreshold && filteredIntensityPairs.size() >= minimumNumberOfCorrelatedPixels) {
+      double quantileThresholdA = calculateQuantile(
+          filteredIntensityPairs.stream().map(IntensityPair::intensityA)
+              .collect(Collectors.toList()), quantileThreshold);
+      double quantileThresholdB = calculateQuantile(
+          filteredIntensityPairs.stream().map(IntensityPair::intensityB)
+              .collect(Collectors.toList()), quantileThreshold);
+      filteredIntensityPairs.removeIf(
+          pair -> pair.intensityA() < quantileThresholdA || pair.intensityB() < quantileThresholdB);
+    }
+
+    if (useHotspotRemoval && filteredIntensityPairs.size() >= minimumNumberOfCorrelatedPixels) {
+      double hotSpotThresholdA = calculateQuantile(
+          filteredIntensityPairs.stream().map(IntensityPair::intensityA)
+              .collect(Collectors.toList()), hotspotRemovalThreshold);
+      double hotSpotThresholdB = calculateQuantile(
+          filteredIntensityPairs.stream().map(IntensityPair::intensityB)
+              .collect(Collectors.toList()), hotspotRemovalThreshold);
+      filteredIntensityPairs.removeIf(
+          pair -> pair.intensityA() > hotSpotThresholdA || pair.intensityB() > hotSpotThresholdB);
+    }
+
+    if (filteredIntensityPairs.size() >= minimumNumberOfCorrelatedPixels) {
+      double[][] correlationDataInput = new double[filteredIntensityPairs.size()][2];
+      for (int i = 0; i < filteredIntensityPairs.size(); i++) {
+        correlationDataInput[i][0] = filteredIntensityPairs.get(i).intensityA;
+        correlationDataInput[i][1] = filteredIntensityPairs.get(i).intensityB;
+      }
+
+      return similarityMeasure.calc(correlationDataInput);
+    }
+    return 0;
   }
 
   private List<IntensityPair> applyMedianFilter(List<IntensityPair> intensityPairs,

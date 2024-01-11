@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.AdvancedCorrelateGroupingParameters;
 import io.github.mzmine.modules.visualization.scan_histogram.chart.MzDeltaCorrelationHistogramTab;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -49,7 +50,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 
 public class CorrelatedFeaturesMzHistogramTask extends AbstractTask {
@@ -182,6 +182,17 @@ public class CorrelatedFeaturesMzHistogramTask extends AbstractTask {
             }
           }
         }
+      } else {
+        if (!MZmineCore.isHeadLessMode()) {
+          String msg = """
+              Extended correlation stats are missing. 
+              Rerun metaCorr correlation grouping with the advanced parameter %s active.""".formatted(
+              AdvancedCorrelateGroupingParameters.keepExtendedStats.getName());
+          MZmineCore.getDesktop().displayMessage(msg);
+        }
+
+        setStatus(TaskStatus.FINISHED);
+        return;
       }
     }
 
@@ -210,7 +221,7 @@ public class CorrelatedFeaturesMzHistogramTask extends AbstractTask {
     }
 
     // create histogram dialog
-    Platform.runLater(() -> {
+    MZmineCore.runLater(() -> {
       tab = new MzDeltaCorrelationHistogramTab(flist, deltaMZList, deltaMZToNeutralMassList,
           "m/z delta correlation histogram", "delta m/z", parameters);
       MZmineCore.getDesktop().addTab(tab);

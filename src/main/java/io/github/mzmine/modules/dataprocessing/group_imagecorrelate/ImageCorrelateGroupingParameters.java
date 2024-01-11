@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -70,10 +70,11 @@ public class ImageCorrelateGroupingParameters extends SimpleParameterSet {
           "Only consider values below the selected percentile, 0.99 is recommended",
           MZmineCore.getConfiguration().getRTFormat(), 0.99, 0.0, 1.0), true);
 
-  public static final ComboParameter<SimilarityMeasure> MEASURE = new ComboParameter<>("Measure",
-      "Similarity measure", SimilarityMeasure.values(), SimilarityMeasure.PEARSON);
+  public static final ComboParameter<SimilarityMeasure> MEASURE = new ComboParameter<>(
+      "Similarity measure", "Similarity measure", SimilarityMeasure.values(),
+      SimilarityMeasure.PEARSON);
 
-  public static final PercentParameter MIN_R = new PercentParameter("Min image Pearson r",
+  public static final PercentParameter MIN_R = new PercentParameter("Minimum similarity",
       "Minimum percentage for image correlation in one raw file.", 0.85, 0d, 1d);
 
 

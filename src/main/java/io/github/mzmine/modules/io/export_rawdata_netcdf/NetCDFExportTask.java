@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,64 +25,55 @@
 
 package io.github.mzmine.modules.io.export_rawdata_netcdf;
 
-import java.io.File;
-import java.time.Instant;
-import java.util.Date;
-import java.util.logging.Logger;
-
 import io.github.msdk.MSDKMethod;
 import io.github.msdk.io.mzml.MzMLFileExportMethod;
 import io.github.msdk.io.mzml.data.MzMLCompressionType;
 import io.github.msdk.io.netcdf.NetCDFFileExportMethod;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKRawDataFile;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.io.File;
+import java.time.Instant;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public class NetCDFExportTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(NetCDFExportTask.class.getName());
   private final RawDataFile dataFile;
-
-  // User parameters
-  private File outFilename;
-
+  private final File outFilename;
   private MSDKMethod<?> msdkMethod = null;
 
   /**
    * @param dataFile
    * @param parameters
    */
-  public NetCDFExportTask(RawDataFile dataFile, File outFilename, @NotNull Instant moduleCallDate) {
+  public NetCDFExportTask(RawDataFile dataFile, File outFilename,
+      final @NotNull ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.dataFile = dataFile;
     this.outFilename = outFilename;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
   public String getTaskDescription() {
     return "Exporting file " + dataFile + " to " + outFilename;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   public double getFinishedPercentage() {
-    if ((msdkMethod == null) || (msdkMethod.getFinishedPercentage() == null))
+    if ((msdkMethod == null) || (msdkMethod.getFinishedPercentage() == null)) {
       return 0;
+    }
     return msdkMethod.getFinishedPercentage().doubleValue();
   }
 
-  /**
-   * @see Runnable#run()
-   */
   public void run() {
-
     try {
-
+      if (isCanceled()) {
+        return;
+      }
       setStatus(TaskStatus.PROCESSING);
 
       logger.info("Started export of file " + dataFile + " to " + outFilename);
@@ -97,9 +88,6 @@ public class NetCDFExportTask extends AbstractTask {
       if (outFilename.getName().toLowerCase().endsWith("cdf")) {
         msdkMethod = new NetCDFFileExportMethod(msdkDataFile, outFilename);
       }
-
-      if (isCanceled())
-        return;
       msdkMethod.execute();
 
       setStatus(TaskStatus.FINISHED);
@@ -107,17 +95,17 @@ public class NetCDFExportTask extends AbstractTask {
       logger.info("Finished export of file " + dataFile + " to " + outFilename);
 
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, "Error in netcdf export", e);
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Error in file export: " + e.getMessage());
     }
-
   }
 
   @Override
   public void cancel() {
     super.cancel();
-    if (msdkMethod != null)
+    if (msdkMethod != null) {
       msdkMethod.cancel();
+    }
   }
 }

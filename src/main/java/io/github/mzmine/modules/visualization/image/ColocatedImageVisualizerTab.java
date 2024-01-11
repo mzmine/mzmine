@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,18 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_imagecorrelate;
+package io.github.mzmine.modules.visualization.image;
 
 import io.github.mzmine.gui.framework.fx.features.SimpleFeatureListTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 
-public class CorrelatedImageVisualizerTab extends SimpleFeatureListTab {
+public class ColocatedImageVisualizerTab extends SimpleFeatureListTab {
 
-  public CorrelatedImageVisualizerTab(String title, FeatureTableFX table) {
+  public ColocatedImageVisualizerTab(String title, FeatureTableFX table) {
     super(title, table);
 
-    final CorrelatedImageVisualizerPane pane = new CorrelatedImageVisualizerPane(
-        getParentGroup());
+    final ColocatedImageVisualizerPane pane = new ColocatedImageVisualizerPane(getParentGroup());
     setContent(pane);
   }
 }

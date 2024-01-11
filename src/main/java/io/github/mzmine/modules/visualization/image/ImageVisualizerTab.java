@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -119,12 +119,11 @@ public class ImageVisualizerTab extends MZmineTab {
     // Get controller
     controller = loader.getController();
     Accordion plotSettingsAccordion = new Accordion(new TitledPane("Settings", parameterSetupPane));
-    controller.getSettingsBorderPane().setBottom(plotSettingsAccordion);
+    controller.getPlotPane().setTop(plotSettingsAccordion);
     // add empty image chart
-    imagingPlot = new ImagingPlot((ImageVisualizerParameters) parameters);
+    imagingPlot = new ImagingPlot(parameters);
     controller.getPlotPane().setCenter(imagingPlot);
     imageHeatMapPlot = imagingPlot.getChart();
-    MZmineCore.getConfiguration().getDefaultChartTheme().apply(imageHeatMapPlot);
     addListenerToImage();
 
     setContent(mainPane);
@@ -152,7 +151,6 @@ public class ImageVisualizerTab extends MZmineTab {
     cleanGridPane(controller.getImagingParameterInfoGridPane());
     imagingPlot = new ImagingPlot(finalParameters);
     imageHeatMapPlot = imagingPlot.getChart();
-    MZmineCore.getConfiguration().getDefaultChartTheme().apply(imageHeatMapPlot);
     controller.getPlotPane().setCenter(imagingPlot);
     addListenerToImage();
     setData(rawDataFile, true);
