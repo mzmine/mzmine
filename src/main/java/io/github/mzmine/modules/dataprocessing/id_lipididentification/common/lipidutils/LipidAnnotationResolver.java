@@ -44,6 +44,16 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+/**
+ * The LipidAnnotationResolver class is responsible for resolving and processing matched lipid
+ * annotations associated with a feature list row. It provides methods to handle duplicate entries,
+ * estimate missing species-level annotations, and limit the maximum number of matched lipids to be
+ * retained. This class is designed to enhance the accuracy and usefulness of lipid annotations for
+ * a given feature.
+ * <p>
+ * The class resolves lipids from multiple annotation runs resulting from the same or different
+ * annotation parameters.
+ */
 public class LipidAnnotationResolver {
 
   private final boolean keepIsobars;
@@ -89,19 +99,23 @@ public class LipidAnnotationResolver {
 
   private void estimateMissingSpeciesLevelAnnotations(List<MatchedLipid> resolvedMatchedLipidsList) {
     if (resolvedMatchedLipidsList.stream().noneMatch(
-        matchedLipid -> matchedLipid.getLipidAnnotation().getLipidAnnotationLevel().equals(LipidAnnotationLevel.SPECIES_LEVEL))) {
+        matchedLipid -> matchedLipid.getLipidAnnotation().getLipidAnnotationLevel()
+            .equals(LipidAnnotationLevel.SPECIES_LEVEL))) {
       Set<MatchedLipid> estimatedSpeciesLevelMatchedLipids = new HashSet<>();
       for (MatchedLipid lipid : resolvedMatchedLipidsList) {
         ILipidAnnotation estimatedSpeciesLevelAnnotation = convertMolecularSpeciesLevelToSpeciesLevel(
             (MolecularSpeciesLevelAnnotation) lipid.getLipidAnnotation());
         if (resolvedMatchedLipidsList.stream().noneMatch(
-            matchedLipid -> matchedLipid.getLipidAnnotation().getAnnotation().equals(estimatedSpeciesLevelAnnotation.getAnnotation()))) {
-          if ((estimatedSpeciesLevelAnnotation != null && estimatedSpeciesLevelMatchedLipids.isEmpty()) || (
+            matchedLipid -> matchedLipid.getLipidAnnotation().getAnnotation()
+                .equals(estimatedSpeciesLevelAnnotation.getAnnotation()))) {
+          if ((estimatedSpeciesLevelAnnotation != null
+              && estimatedSpeciesLevelMatchedLipids.isEmpty()) || (
               estimatedSpeciesLevelAnnotation != null && estimatedSpeciesLevelMatchedLipids.stream()
                   .anyMatch(matchedLipid -> !Objects.equals(
                       matchedLipid.getLipidAnnotation().getAnnotation(),
                       estimatedSpeciesLevelAnnotation.getAnnotation())))) {
-            MatchedLipid matchedLipidSpeciesLevel = new MatchedLipid(estimatedSpeciesLevelAnnotation, lipid.getAccurateMz(), lipid.getIonizationType(),
+            MatchedLipid matchedLipidSpeciesLevel = new MatchedLipid(
+                estimatedSpeciesLevelAnnotation, lipid.getAccurateMz(), lipid.getIonizationType(),
                 new HashSet<>(lipid.getMatchedFragments()), 0.0, MatchedLipidStatus.ESTIMATED);
             matchedLipidSpeciesLevel.setComment(
                 "Estimated annotation based on molecular species level fragments");
