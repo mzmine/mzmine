@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -125,6 +125,7 @@ public class ImageVisualizerTab extends MZmineTab {
     controller.getPlotPane().setCenter(imagingPlot);
     imageHeatMapPlot = imagingPlot.getChart();
     MZmineCore.getConfiguration().getDefaultChartTheme().apply(imageHeatMapPlot);
+    imageHeatMapPlot.getChart().getXYPlot().setBackgroundPaint(java.awt.Color.BLACK);
     addListenerToImage();
 
     setContent(mainPane);

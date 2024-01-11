@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,6 @@ import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.color.ColorScaleUtil;
@@ -149,9 +148,9 @@ public class ColocatedImagePane extends StackPane {
     imagePlot.setData(feature);
 
     EChartViewer chart = imagePlot.getChart();
+    MZmineCore.getConfiguration().getDefaultChartTheme().apply(chart);
     chart.setMinSize(200, 200);
     chart.getChart().getXYPlot().setBackgroundPaint(java.awt.Color.BLACK);
-    chartGroup.add(new ChartViewWrapper(chart));
     GridPane.setHgrow(chart, Priority.ALWAYS);
     GridPane.setVgrow(chart, Priority.ALWAYS);
     borderPane.setCenter(chart);
