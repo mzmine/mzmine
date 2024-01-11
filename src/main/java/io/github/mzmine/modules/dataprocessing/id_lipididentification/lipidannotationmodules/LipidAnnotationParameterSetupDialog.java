@@ -33,17 +33,12 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidDatabaseCalculator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
@@ -113,40 +108,8 @@ public class LipidAnnotationParameterSetupDialog extends ParameterSetupDialog {
         } catch (IOException e) {
           e.printStackTrace();
         }
-
-        LipidDatabaseTableController finalController = controller;
-        Task task = new AbstractTask(null, Instant.now()) {
-          final double totalSteps = 100;
-          double finishedSteps = 0;
-          String taskDescription = "Open lipid database";
-
-          @Override
-          public String getTaskDescription() {
-            return taskDescription;
-          }
-
-          @Override
-          public double getFinishedPercentage() {
-            return (finishedSteps) / totalSteps;
-          }
-
-          @Override
-          public void run() {
-            setStatus(TaskStatus.PROCESSING);
-            tableData = lipidDatabaseCalculator.createTableData();
-            taskDescription = "Check interfering lipids";
-            finishedSteps = 50;
-            lipidDatabaseCalculator.checkInterferences();
-            finishedSteps = 100;
-            setStatus(TaskStatus.FINISHED);
-            Platform.runLater(() -> {
-              assert finalController != null;
-              finalController.initialize(tableData, lipidDatabaseCalculator.getMzTolerance());
-              showDatabaseTable.setDisable(false);
-            });
-
-          }
-        };
+        LipidAnnotationDatabaseCalculatorTask task = new LipidAnnotationDatabaseCalculatorTask(
+            tableData, controller, lipidDatabaseCalculator, showDatabaseTable);
         MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
 
       } catch (Exception t) {
