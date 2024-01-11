@@ -45,6 +45,7 @@ import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
+import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImagingPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
@@ -127,8 +128,8 @@ public class ImageAllMs2Pane extends BorderPane {
     msmsScroll.fitToHeightProperty().set(true);
     msmsContent.fillWidthProperty().set(true);
 
-    imagePlot = new ImagingPlot(
-        MZmineCore.getConfiguration().getModuleParameters(ImageVisualizerModule.class));
+    imagePlot = new ImagingPlot((ImageVisualizerParameters) MZmineCore.getConfiguration()
+        .getModuleParameters(ImageVisualizerModule.class));
     mainContent.setCenter(imagePlot);
 
     imagePlot.getChart().cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {

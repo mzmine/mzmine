@@ -26,6 +26,7 @@
 package io.github.mzmine.gui.preferences;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
+import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
@@ -173,6 +174,11 @@ public class MZminePreferences extends SimpleParameterSet {
       "Specifies if displayed images shall be normalized to the average TIC or shown according to the raw data."
           + "only applies to newly generated plots.", ImageNormalization.values(),
       ImageNormalization.NO_NORMALIZATION);
+
+  public static final ComboParameter<PaintScaleTransform> imageTransformation = new ComboParameter<>(
+      "Image paint scale transformation", "Transforms the paint scale for images.",
+      PaintScaleTransform.values(), PaintScaleTransform.LINEAR);
+
   private static final NumberFormats exportFormat = new NumberFormats(new DecimalFormat("0.#####"),
       new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
       new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.##"),
@@ -192,7 +198,8 @@ public class MZminePreferences extends SimpleParameterSet {
         unitFormat,
         // other preferences
         defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
-        imageNormalization, showPrecursorWindow, imsModuleWarnings, windowSetttings, sendErrorEMail,
+        imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
+        windowSetttings, sendErrorEMail,
         // silent parameters without controls
         showTempFolderAlert);
   }
@@ -216,7 +223,7 @@ public class MZminePreferences extends SimpleParameterSet {
             scoreFormat, unitFormat});
     dialog.addParameterGroup("Visuals",
         new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
-            showPrecursorWindow, imageNormalization});
+            showPrecursorWindow, imageTransformation, imageNormalization});
     dialog.addParameterGroup("Other", new Parameter[]{sendErrorEMail,
         // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
     });

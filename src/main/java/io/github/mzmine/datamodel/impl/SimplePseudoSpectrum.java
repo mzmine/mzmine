@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -56,43 +56,12 @@ public class SimplePseudoSpectrum extends SimpleScan implements PseudoSpectrum {
 
     super(dataFile, -1, msLevel, retentionTime, msMsInfo, mzValues, intensityValues,
         MassSpectrumType.CENTROIDED, polarity, scanDefinition,
-        Range.closed(mzValues[0], mzValues[mzValues.length - 1]));
+        mzValues.length > 0 ? Range.closed(mzValues[0], mzValues[mzValues.length - 1])
+            : Range.singleton(0d));
     // since this is a pseudo spectrum, directly add a mass list. Noise thresholding and every
     // other processing step before this spectrum's creation should have filtered the noise.
     addMassList(new ScanPointerMassList(this));
     this.pseudoSpectrumType = type;
-  }
-
-  @Override
-  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
-    writer.writeStartElement(Scan.XML_SCAN_ELEMENT);
-
-    writer.writeAttribute(Scan.XML_SCAN_TYPE_ATTR, XML_SCAN_TYPE);
-    writer.writeAttribute(CONST.XML_MSLEVEL_ATTR, String.valueOf(getMSLevel()));
-    writer.writeAttribute(CONST.XML_RT_ATTR, String.valueOf(getRetentionTime()));
-    writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getDataFile().getName());
-    writer.writeAttribute(CONST.XML_POLARITY_ATTR, getPolarity().name());
-    writer.writeAttribute(XML_PSEUDO_SPECTRUM_TYPE_ATTR, pseudoSpectrumType.name());
-    writer.writeAttribute(CONST.XML_SCAN_DEF_ATTR,
-        ParsingUtils.parseNullableString(getScanDefinition()));
-    if (getMsMsInfo() != null) {
-      getMsMsInfo().writeToXML(writer);
-    }
-
-    writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
-    writer.writeCharacters(ParsingUtils.doubleBufferToString(getMzValues()));
-    writer.writeEndElement();
-
-    writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
-    writer.writeCharacters(ParsingUtils.doubleBufferToString(getIntensityValues()));
-    writer.writeEndElement();
-
-    writer.writeEndElement();
-  }
-
-  @Override
-  public PseudoSpectrumType getPseudoSpectrumType() {
-    return pseudoSpectrumType;
   }
 
   public static PseudoSpectrum loadFromXML(XMLStreamReader reader, RawDataFile file)
@@ -135,6 +104,38 @@ public class SimplePseudoSpectrum extends SimpleScan implements PseudoSpectrum {
     assert mzs != null && intensities != null;
     return new SimplePseudoSpectrum(file, mslevel, rt, info, mzs, intensities, polarity, scanDef,
         type);
+  }
+
+  @Override
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(Scan.XML_SCAN_ELEMENT);
+
+    writer.writeAttribute(Scan.XML_SCAN_TYPE_ATTR, XML_SCAN_TYPE);
+    writer.writeAttribute(CONST.XML_MSLEVEL_ATTR, String.valueOf(getMSLevel()));
+    writer.writeAttribute(CONST.XML_RT_ATTR, String.valueOf(getRetentionTime()));
+    writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getDataFile().getName());
+    writer.writeAttribute(CONST.XML_POLARITY_ATTR, getPolarity().name());
+    writer.writeAttribute(XML_PSEUDO_SPECTRUM_TYPE_ATTR, pseudoSpectrumType.name());
+    writer.writeAttribute(CONST.XML_SCAN_DEF_ATTR,
+        ParsingUtils.parseNullableString(getScanDefinition()));
+    if (getMsMsInfo() != null) {
+      getMsMsInfo().writeToXML(writer);
+    }
+
+    writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
+    writer.writeCharacters(ParsingUtils.doubleBufferToString(getMzValues()));
+    writer.writeEndElement();
+
+    writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
+    writer.writeCharacters(ParsingUtils.doubleBufferToString(getIntensityValues()));
+    writer.writeEndElement();
+
+    writer.writeEndElement();
+  }
+
+  @Override
+  public PseudoSpectrumType getPseudoSpectrumType() {
+    return pseudoSpectrumType;
   }
 
 }

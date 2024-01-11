@@ -23,14 +23,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.image;
+package io.github.mzmine.modules.dataprocessing.group_imagecorrelate;
 
-import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -39,55 +37,43 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/*
- * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
- */
-public class ImageVisualizerModule implements MZmineRunnableModule {
+public class ImageCorrelateGroupingModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Image visualizer";
-  private static final String MODULE_DESCRIPTION = "Image visualizer";
+  private static final String NAME = "Image co-localization";
 
-  @NotNull
+  private static final String DESCRIPTION = "This method co-localizes and groups images based on lateral ion distribution ";
+
   @Override
-  public String getDescription() {
-    return MODULE_DESCRIPTION;
+  public @NotNull String getName() {
+    return NAME;
   }
 
-  @NotNull
   @Override
-  public String getName() {
-    return MODULE_NAME;
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return ImageCorrelateGroupingParameters.class;
   }
 
-  @NotNull
   @Override
-  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+  public @NotNull String getDescription() {
+    return DESCRIPTION;
+  }
 
-    RawDataFile[] files = parameters.getParameter(ImageVisualizerParameters.rawDataFiles).getValue()
-        .getMatchingRawDataFiles();
+  @Override
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Instant moduleCallDate) {
 
-    for (RawDataFile file : files) {
-      if (!(file instanceof ImagingRawDataFile imageRaw)) {
-        continue;
-      }
-
-      ImageVisualizerTab newTab = new ImageVisualizerTab(imageRaw,
-          (ImageVisualizerParameters) parameters);
-      MZmineCore.getDesktop().addTab(newTab);
+    ModularFeatureList[] featureLists = parameters.getValue(
+        ImageCorrelateGroupingParameters.FEATURE_LISTS).getMatchingFeatureLists();
+    for (ModularFeatureList pkl : featureLists) {
+      tasks.add(new ImageCorrelateGroupingTask(parameters, pkl, moduleCallDate));
     }
+
     return ExitCode.OK;
   }
 
-  @NotNull
   @Override
-  public MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.VISUALIZATIONRAWDATA;
-  }
-
-  @Nullable
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return ImageVisualizerParameters.class;
+  public @NotNull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.FEATURE_GROUPING;
   }
 }

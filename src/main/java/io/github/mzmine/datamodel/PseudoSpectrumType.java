@@ -25,5 +25,5 @@
 package io.github.mzmine.datamodel;
 
 public enum PseudoSpectrumType {
-  LC_DIA, GC_EI;
+  LC_DIA, GC_EI, MALDI_IMAGING;
 }
