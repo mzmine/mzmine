@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,8 @@ import static org.mockito.Mockito.when;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.RowGroup;
+import io.github.mzmine.datamodel.features.correlation.RowGroup;
+import io.github.mzmine.datamodel.features.correlation.RowGroupFull;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
@@ -93,28 +94,28 @@ public class IonIdentityTest {
       ModularFeatureListRow rowSodiated = new ModularFeatureListRow(flist, 2);
       // create spy instances to return mz and rt values
       double mz = 200;
-      rowProtonated = spy(rowProtonated);
-      rowSodiated = spy(rowSodiated);
-      // return some fixed mz and rt
-      doReturn(mz + hAdduct.getMassDifference()).when(rowProtonated).getAverageMZ();
-      doReturn(mz + naAdduct.getMassDifference()).when(rowSodiated).getAverageMZ();
+    rowProtonated = spy(rowProtonated);
+    rowSodiated = spy(rowSodiated);
+    // return some fixed mz and rt
+    doReturn(mz + hAdduct.getMassDifference()).when(rowProtonated).getAverageMZ();
+    doReturn(mz + naAdduct.getMassDifference()).when(rowSodiated).getAverageMZ();
 
-      // add rows
-      flist.addRow(rowProtonated);
-      flist.addRow(rowSodiated);
+    // add rows
+    flist.addRow(rowProtonated);
+    flist.addRow(rowSodiated);
 
-      List<RowGroup> groups = new ArrayList<>();
-      RowGroup group = new RowGroup(List.of(raw), 0);
-      groups.add(group);
-      group.add(rowProtonated);
-      group.add(rowSodiated);
-      flist.setGroups(groups);
+    List<RowGroup> groups = new ArrayList<>();
+    RowGroup group = new RowGroupFull(List.of(raw), 0);
+    groups.add(group);
+    group.add(rowProtonated);
+    group.add(rowSodiated);
+    flist.setGroups(groups);
 
-      // add ions to rows
-      IonIdentity.addAdductIdentityToRow(new MZTolerance(1, 10), rowProtonated,
-          hAdduct, rowSodiated, naAdduct);
+    // add ions to rows
+    IonIdentity.addAdductIdentityToRow(new MZTolerance(1, 10), rowProtonated, hAdduct, rowSodiated,
+        naAdduct);
 
-      assertNotNull(rowProtonated.get(new IonIdentityListType()));
+    assertNotNull(rowProtonated.get(new IonIdentityListType()));
       assertNotNull(rowProtonated.get(IonIdentityListType.class));
       assertNotNull(rowProtonated.getIonIdentities());
 

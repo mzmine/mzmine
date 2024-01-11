@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,8 +63,12 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
     this(name, description, embeddedParameters, false);
   }
 
+  public AdvancedParametersParameter(T embeddedParameters, boolean defaultVal) {
+    this("Advanced", "Advanced parameters", embeddedParameters, defaultVal);
+  }
+
   public AdvancedParametersParameter(T embeddedParameters) {
-    this("Advanced", "Advanced parameters", embeddedParameters, false);
+    this(embeddedParameters, false);
   }
 
   public T getEmbeddedParameters() {
@@ -133,7 +137,8 @@ public class AdvancedParametersParameter<T extends ParameterSet> implements
   }
 
   @Override
-  public void setValueToComponent(AdvancedParametersComponent component, @Nullable Boolean newValue) {
+  public void setValueToComponent(AdvancedParametersComponent component,
+      @Nullable Boolean newValue) {
     component.setSelected(Objects.requireNonNullElse(newValue, false));
     component.setValue(embeddedParameters);
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,11 +23,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features;
+package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,30 +40,26 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Group of row. Rows can be grouped by different criteria: Retention time, feature shape (intensity
- * profile), and intensity across samples. See {@link CorrelateGroupingModule}. IMPORTANT: Not all
- * FeatureListRows in this group are actually correlated. The actual structure is a network of
- * relationships where each row has at least one connection.
- *
- * @author Robin Schmid (https://github.com/robinschmid)
+ * This rowgroup holds all correlation data and keeps it for further visualization modules and
+ * analysis options. Rather use {@link RowGroupSimple} to save memory.
  */
-public class RowGroup implements Comparable<RowGroup> {
+public class RowGroupFull implements RowGroup {
 
   // raw files used for Feature list creation
   protected final List<RawDataFile> raw;
+  // center RT values for each sample
+  private final float[] rtSum;
+  private final int[] numberOfFeatures;
+  private final float[] rtMin;
+  private final float[] rtMax;
   // running index of groups
   protected int groupID;
   protected List<FeatureListRow> rows;
   // visualization
   private int lastViewedRowIndex = 0;
   private int lastViewedRawFileIndex = 0;
-  // center RT values for each sample
-  private final float[] rtSum;
-  private final int[] numberOfFeatures;
-  private final float[] rtMin;
-  private final float[] rtMax;
 
-  public RowGroup(final List<RawDataFile> raw, int groupID) {
+  public RowGroupFull(final List<RawDataFile> raw, int groupID) {
     super();
     rows = new ArrayList<>();
     this.raw = raw;
@@ -99,9 +96,6 @@ public class RowGroup implements Comparable<RowGroup> {
     }
   }
 
-  /**
-   * Insert sort by ascending avg mz
-   */
   public synchronized boolean add(FeatureListRow e) {
     for (int i = 0; i < rtSum.length; i++) {
       Feature f = e.getFeature(raw.get(i));
@@ -203,7 +197,8 @@ public class RowGroup implements Comparable<RowGroup> {
    */
   public boolean isInRtRange(int rawIndex, Feature f, RTTolerance tol) {
     return hasFeature(rawIndex) && ((f.getRT() >= rtMin[rawIndex] && f.getRT() <= rtMax[rawIndex])
-        || (tol.checkWithinTolerance(getCenterRT(rawIndex), f.getRT())));
+                                    || (tol.checkWithinTolerance(getCenterRT(rawIndex),
+        f.getRT())));
   }
 
   /**

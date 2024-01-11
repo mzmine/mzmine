@@ -23,43 +23,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+package io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping;
 
-package io.github.mzmine.datamodel.features.types;
 
-import io.github.mzmine.datamodel.features.correlation.RowGroup;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 
-/**
- * Level of feature grouping
- */
-public class FeatureGroupType extends DataType<RowGroup> {
+public class AdvancedCorrelateGroupingParameters extends SimpleParameterSet {
 
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "feature_group";
+  public static final BooleanParameter keepExtendedStats = new BooleanParameter(
+      "Keep extended stats", """
+      Default conserves memory by removing additional information that is usually saved with every correlation result.
+      This information is only needed in some visualization modules that depend on correlation grouping.""",
+      false);
+
+  public static final IntegerParameter simplifyLargeDatasets = new IntegerParameter(
+      "Simplify for ≥ samples", """
+      Simplify some steps for large datasets with ≥samples.
+      This will skip the feature overlap function "Min intensity % overlap".""", 250);
+
+
+  // Constructor
+  public AdvancedCorrelateGroupingParameters() {
+    super(keepExtendedStats, simplifyLargeDatasets);
   }
 
-  @Override
-  @NotNull
-  public String getHeaderString() {
-    return "Group";
-  }
-
-  @Override
-  public ObjectProperty<RowGroup> createProperty() {
-    return new SimpleObjectProperty<>();
-  }
-
-  @Override
-  public Class<RowGroup> getValueClass() {
-    return RowGroup.class;
-  }
-
-  public enum GroupType {
-    CORRELATED, ISOTOPES, ION_ADDUCTS
-  }
 }
