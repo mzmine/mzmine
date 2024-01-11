@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,8 +33,8 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.correlation.R2RImageSimilarityList;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.R2RSimpleSimilarityList;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.parameters.ParameterSet;
@@ -240,7 +240,7 @@ public class ImageCorrelateGroupingTask extends AbstractTask {
   private void checkR2RAllFeaturesImageSimilarity(Map<Feature, FilteredRowData> mapFeatureData,
       FeatureListRow a, FeatureListRow b, final R2RMap<RowsRelationship> mapSimilarity) {
 
-    R2RImageSimilarityList imageSimilarities = new R2RImageSimilarityList(a, b,
+    R2RSimpleSimilarityList imageSimilarities = new R2RSimpleSimilarityList(a, b,
         Type.MS1_FEATURE_CORR);
     for (Feature fa : a.getFeatures()) {
       double[] intensitiesA = mapFeatureData.get(fa).intensities;

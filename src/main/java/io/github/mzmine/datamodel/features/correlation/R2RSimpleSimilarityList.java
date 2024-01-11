@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,9 +34,10 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Image similarity computed in MZmine.
  */
-public class R2RImageSimilarityList extends AbstractRowsRelationship {
+public class R2RSimpleSimilarityList extends AbstractRowsRelationship {
 
   private final Type type;
+  
   private final DoubleList similarities = new DoubleArrayList();
 
   /**
@@ -44,7 +45,7 @@ public class R2RImageSimilarityList extends AbstractRowsRelationship {
    * @param b    row b
    * @param type the similarity type
    */
-  public R2RImageSimilarityList(FeatureListRow a, FeatureListRow b, Type type) {
+  public R2RSimpleSimilarityList(FeatureListRow a, FeatureListRow b, Type type) {
     super(a, b);
     this.type = type;
   }
