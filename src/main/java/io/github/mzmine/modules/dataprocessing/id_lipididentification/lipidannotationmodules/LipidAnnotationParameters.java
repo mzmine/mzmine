@@ -64,7 +64,7 @@ public class LipidAnnotationParameters extends SimpleParameterSet {
   public static final OptionalModuleParameter<LipidAnnotationMSMSParameters> searchForMSMSFragments = new OptionalModuleParameter<>(
       "Search for lipid class specific fragments in MS/MS spectra",
       "Search for lipid class specific fragments in MS/MS spectra",
-      new LipidAnnotationMSMSParameters());
+      new LipidAnnotationMSMSParameters(), true);
 
   public static final OptionalModuleParameter<CustomLipidClassParameters> customLipidClasses = new OptionalModuleParameter<>(
       "Search for custom lipid class",
