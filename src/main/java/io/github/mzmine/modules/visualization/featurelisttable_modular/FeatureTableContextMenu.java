@@ -378,11 +378,9 @@ public class FeatureTableContextMenu extends ContextMenu {
     //TODO find better solution to check if single feature list row has co-located images
     final MenuItem showCorrelatedImageFeaturesItem = new ConditionalMenuItem("Co-located images",
         () -> {
-          if (selectedFeature == null
-              && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile) {
-            return false;
-          }
-          return selectedRowHasCorrelationData();
+          return (!selectedRows.isEmpty() && selectedFeature != null
+              && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile
+              && selectedRowHasCorrelationData());
         });
     showCorrelatedImageFeaturesItem.setOnAction(e -> {
       showCorrelatedImageFeatures();
