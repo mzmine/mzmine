@@ -25,11 +25,7 @@
 
 package io.github.mzmine.util.spectraldb.entry;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.*;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointSorter;
@@ -37,17 +33,18 @@ import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
+import org.jetbrains.annotations.ApiStatus.ScheduledForRemoval;
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
-import org.jetbrains.annotations.ApiStatus.ScheduledForRemoval;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * To be replaced by {@link SpectralDBAnnotation}.
@@ -111,7 +108,7 @@ public class SpectralDBFeatureIdentity extends SimpleFeatureIdentity {
 
       switch (reader.getLocalName()) {
         case SpectralLibraryEntry.XML_ELEMENT_ENTRY ->
-            entry = SpectralLibraryEntry.loadFromXML(reader, project);
+            entry = SpectralLibraryEntry.loadFromXML(reader);
         case SpectralSimilarity.XML_ELEMENT -> similarity = SpectralSimilarity.loadFromXML(reader);
         case SimpleFeatureIdentity.XML_PROPERTIES_ELEMENT ->
             map = SimpleFeatureIdentity.readPropertyValues(reader);

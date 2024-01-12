@@ -29,38 +29,51 @@ import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEntry {
 
   public static final String XML_DB_FIELD_LIST_ELEMENT = "databasefieldslist";
+  public static final String XML_LIBRARY_FILE_NAME_ATTR = "library_file";
   private static final String XML_DB_FIELD_ELEMENT = "entry";
   private static final String XML_FIELD_NAME_ATTR = "name";
 
   private final Map<DBEntryField, Object> fields;
 
+  @Nullable
+  private SpectralLibrary library;
+
   public SpectralDBEntry(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
-      @NotNull double[] intensityValues, Map<DBEntryField, Object> fields) {
+      @NotNull double[] intensityValues, @Nullable Map<DBEntryField, Object> fields,
+      @Nullable SpectralLibrary library) {
     super(storage, mzValues, intensityValues);
     this.fields = new HashMap<>();
     if (fields != null) {
       this.fields.putAll(fields);
     }
+    this.library = library;
+  }
+
+  public SpectralDBEntry(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
+      @NotNull double[] intensityValues, @Nullable Map<DBEntryField, Object> fields) {
+    this(storage, mzValues, intensityValues, fields, null);
+  }
+
+  public SpectralDBEntry(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
+      @NotNull double[] intensityValues, SpectralLibrary library) {
+    this(storage, mzValues, intensityValues, null, library);
   }
 
   public SpectralDBEntry(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
       @NotNull double[] intensityValues) {
-    this(storage, mzValues, intensityValues, null);
+    this(storage, mzValues, intensityValues, null, null);
   }
 
   public static SpectralLibraryEntry loadFromXML(XMLStreamReader reader) throws XMLStreamException {

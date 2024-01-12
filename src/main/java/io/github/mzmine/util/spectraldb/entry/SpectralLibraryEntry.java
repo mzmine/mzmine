@@ -26,17 +26,9 @@
 package io.github.mzmine.util.spectraldb.entry;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.MergedMassSpectrum;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.*;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.datamodel.features.types.annotations.CommentType;
-import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
-import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.*;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
@@ -49,19 +41,16 @@ import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import java.util.*;
+import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Spectral library entry is a mass spectrum that can be memory mapped (memory map defined in
@@ -240,9 +229,9 @@ public interface SpectralLibraryEntry extends MassList {
 
   default Float toFloat(Object v) {
     return switch (v) {
-      case null, default -> null;
       case Number n -> n.floatValue();
       case String s -> Float.parseFloat(s);
+      default -> null;
     };
   }
 
@@ -257,9 +246,9 @@ public interface SpectralLibraryEntry extends MassList {
 
   default Double toDouble(Object v) {
     return switch (v) {
-      case null, default -> null;
       case Number n -> n.doubleValue();
       case String s -> Double.parseDouble(s);
+      default -> null;
     };
   }
 
@@ -274,9 +263,9 @@ public interface SpectralLibraryEntry extends MassList {
 
   default Integer toInteger(Object v) {
     return switch (v) {
-      case null, default -> null;
       case Number n -> n.intValue();
       case String s -> Integer.parseInt(s);
+      default -> null;
     };
   }
 

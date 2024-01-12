@@ -26,21 +26,9 @@
 package io.github.mzmine.modules.io.export_features_mztabm;
 
 import com.google.common.collect.Range;
+import de.isas.mztab2.io.MzTabNonValidatingWriter;
 import de.isas.mztab2.io.MzTabValidatingWriter;
-import de.isas.mztab2.model.Assay;
-import de.isas.mztab2.model.CV;
-import de.isas.mztab2.model.Database;
-import de.isas.mztab2.model.Metadata;
-import de.isas.mztab2.model.MsRun;
-import de.isas.mztab2.model.MzTab;
-import de.isas.mztab2.model.OptColumnMapping;
-import de.isas.mztab2.model.Parameter;
-import de.isas.mztab2.model.SmallMoleculeEvidence;
-import de.isas.mztab2.model.SmallMoleculeFeature;
-import de.isas.mztab2.model.SmallMoleculeSummary;
-import de.isas.mztab2.model.Software;
-import de.isas.mztab2.model.SpectraRef;
-import de.isas.mztab2.model.StudyVariable;
+import de.isas.mztab2.model.*;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -57,26 +45,20 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.io.File;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.ac.ebi.pride.jmztab2.model.IOptColumnMappingBuilder;
 import uk.ac.ebi.pride.jmztab2.model.OptColumnMappingBuilder;
 import uk.ac.ebi.pride.jmztab2.model.OptColumnMappingBuilder.GlobalOptColumnMappingBuilder;
+
+import java.io.File;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.time.Instant;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class MZTabmExportTask extends AbstractTask {
 
@@ -227,8 +209,8 @@ public class MZTabmExportTask extends AbstractTask {
           }
           sm.setReliability("2");
 
-          final Collection<DataType> dataTypes = featureListRow.getTypes()
-              .values(); //values() returns raw data type
+          final Collection<DataType> dataTypes = featureListRow.getTypes();
+//              .values(); //values() returns raw data type
 
           List<GlobalOptColumnMappingBuilder> globalOptColumns = new ArrayList<>();
 
@@ -454,6 +436,8 @@ public class MZTabmExportTask extends AbstractTask {
         mzTabFile.metadata(mtd);
         MzTabValidatingWriter validatingWriter = new MzTabValidatingWriter();
         validatingWriter.write(curFile.toPath(), mzTabFile);
+//        MzTabNonValidatingWriter nonValidatingWriter = new MzTabNonValidatingWriter();
+//        nonValidatingWriter.write(curFile.toPath(), mzTabFile);
       } catch (Exception e) {
         e.printStackTrace();
         setStatus(TaskStatus.ERROR);
