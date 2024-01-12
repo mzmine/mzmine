@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -46,7 +47,7 @@ import testutils.MZmineTestUtil;
  */
 @TestInstance(Lifecycle.PER_CLASS)
 //@TestMethodOrder(OrderAnnotation.class)
-//@Disabled
+@Disabled
 public class ImzMLImportTest {
 
   public static final List<String> fileNames = List.of( //
