@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -65,10 +65,17 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
 
   public AbstractStorableSpectrum(@Nullable DoubleBuffer mzValues,
       @Nullable DoubleBuffer intensityValues) {
-    this.mzValues = mzValues;
-    this.intensityValues = intensityValues;
-    //todo transfer checks
-    onDataChangedEvent();
+    if (mzValues == null ^ intensityValues == null) {
+      // one is null the other not
+      throw new IllegalArgumentException(
+          "%s is null and the other not".formatted(mzValues == null ? "mzs" : "intensities"));
+    } else if (mzValues != null) {
+      assert mzValues.limit() == intensityValues.limit();
+      this.mzValues = mzValues;
+      this.intensityValues = intensityValues;
+      //todo transfer checks
+      onDataChangedEvent();
+    }
   }
 
   protected synchronized void setDataPoints(@Nullable MemoryMapStorage storage,

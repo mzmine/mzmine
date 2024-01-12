@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -84,25 +84,6 @@ public abstract class MetadataOnlyScan implements Scan {
 
   @Override
   public @Nullable Integer getBasePeakIndex() {
-    throw new UnsupportedOperationException(
-        "This scan contains no data, only metadata and is only used to build a scan while reading data.");
-  }
-
-  @Override
-  public int binarySearch(final double mz, final boolean defaultToClosestMz) {
-    throw new UnsupportedOperationException(
-        "This scan contains no data, only metadata and is only used to build a scan while reading data.");
-  }
-
-  @Override
-  public int binarySearch(final double mz, final boolean defaultToClosestMz, final int fromIndex,
-      final int toIndex) {
-    throw new UnsupportedOperationException(
-        "This scan contains no data, only metadata and is only used to build a scan while reading data.");
-  }
-
-  @Override
-  public int indexOf(final double mz, final boolean defaultToClosestMz) {
     throw new UnsupportedOperationException(
         "This scan contains no data, only metadata and is only used to build a scan while reading data.");
   }

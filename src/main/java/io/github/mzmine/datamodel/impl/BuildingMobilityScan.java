@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,17 +26,22 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.Iterator;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * During raw data import, we need to cache the m/z and intensity values of mobility scans, so we
@@ -134,13 +139,13 @@ public class BuildingMobilityScan implements MobilityScan {
   }
 
   @Override
-  public double[] getMzValues(@NotNull double[] dst) {
+  public double[] getMzValues(double @NotNull [] dst) {
     System.arraycopy(mzValues, 0, dst, 0, mzValues.length);
     return dst;
   }
 
   @Override
-  public double[] getIntensityValues(@NotNull double[] dst) {
+  public double[] getIntensityValues(double @NotNull [] dst) {
     System.arraycopy(intensityValues, 0, dst, 0, intensityValues.length);
     return dst;
   }

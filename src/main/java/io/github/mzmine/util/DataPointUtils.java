@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SimpleSpectralArrays;
-import io.github.mzmine.util.collections.BinarySearch; //todo check if this import is needed
+import io.github.mzmine.util.collections.BinarySearch;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -225,14 +225,6 @@ public class DataPointUtils {
   public static double[][] sort(double[] mzs, double[] intensities, DataPointSorter sorter) {
     assert mzs.length == intensities.length;
     DataPoint[] dps = DataPointUtils.getDataPoints(mzs, intensities);
-    Arrays.sort(dps, sorter);
-    return getDataPointsAsDoubleArray(dps);
-  }
-
-  public static double[][] sort(DoubleBuffer mzs, DoubleBuffer intensities,
-      DataPointSorter sorter) {
-    assert mzs.array().length == intensities.array().length;
-    DataPoint[] dps = DataPointUtils.getDataPoints(mzs.array(), intensities.array());
     Arrays.sort(dps, sorter);
     return getDataPointsAsDoubleArray(dps);
   }

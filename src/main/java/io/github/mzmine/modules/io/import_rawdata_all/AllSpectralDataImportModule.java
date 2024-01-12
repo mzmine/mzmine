@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -47,13 +45,13 @@ import io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportTask;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.CropMzMsProcessor;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.DenormalizeInjectTimeMsProcessor;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MassDetectorMsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessorList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.ScanImportProcessorConfig;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SortByMzMsProcessor;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.processors.CropMzMsProcessor;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.processors.DenormalizeInjectTimeMsProcessor;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.processors.MassDetectorMsProcessor;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.processors.SortByMzMsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
@@ -62,7 +60,6 @@ import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportTask;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportTask;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -127,6 +124,98 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   }
 
 
+  /**
+   * Define filters and processors for scans
+   */
+  public static @NotNull ScanImportProcessorConfig createSpectralProcessors(
+      @Nullable final ParameterSet advanced) {
+    if (advanced == null) {
+      return ScanImportProcessorConfig.createDefault();
+    }
+
+    List<MsProcessor> processors = new ArrayList<>();
+    processors.add(new SortByMzMsProcessor());
+
+    // read parameters
+    MZmineProcessingStep<MassDetector> ms1Detector = advanced.getEmbeddedParameterValueIfSelectedOrElse(
+        AdvancedSpectraImportParameters.msMassDetection, null);
+    MZmineProcessingStep<MassDetector> ms2Detector = advanced.getEmbeddedParameterValueIfSelectedOrElse(
+        AdvancedSpectraImportParameters.ms2MassDetection, null);
+
+    boolean applyMassDetection = ms1Detector != null || ms2Detector != null;
+
+    boolean denormalizeMsn = advanced.getValue(AdvancedSpectraImportParameters.denormalizeMSnScans);
+    Range<Double> cropMzRange = advanced.getEmbeddedParameterValueIfSelectedOrElse(
+        AdvancedSpectraImportParameters.mzRange, null);
+
+    // create more steps
+    if (cropMzRange != null) {
+      processors.add(
+          new CropMzMsProcessor(cropMzRange.lowerEndpoint(), cropMzRange.upperEndpoint()));
+    }
+    if (applyMassDetection) {
+      processors.add(new MassDetectorMsProcessor(advanced));
+    }
+    if (denormalizeMsn) {
+      processors.add(new DenormalizeInjectTimeMsProcessor());
+    }
+
+    var scanFilter = advanced.getValue(AdvancedSpectraImportParameters.scanFilter);
+    var conf = new ScanImportProcessorConfig(scanFilter, new MsProcessorList(processors),
+        applyMassDetection);
+    logger.info("Data import uses advanced direct data processing with these settings:\n" + conf);
+    return conf;
+  }
+
+  /**
+   * Checks if the file and its parent both start with .d
+   *
+   * @param f file to validate
+   * @return the valid bruker file path for bruker .d files or the input file
+   */
+  public static File validateBrukerPath(File f) {
+    if (f.getParent().endsWith(".d") && (f.getName().endsWith(".d") || f.getName().endsWith(".tdf")
+                                         || f.getName().endsWith(".tsf"))) {
+      return f.getParentFile();
+    } else {
+      return f;
+    }
+  }
+
+
+  /**
+   * @return true if duplciates found in import list and already loaded files
+   */
+  private static boolean checkDuplicateFilesInImportListAndProject(
+      final @NotNull MZmineProject project, final File[] fileNames) {
+    // check that files were not loaded before
+    File[] currentAndLoadFiles = Stream.concat(
+        project.getCurrentRawDataFiles().stream().map(RawDataFile::getFileName).map(File::new),
+        Arrays.stream(fileNames)).toArray(File[]::new);
+    return containsDuplicateFiles(currentAndLoadFiles,
+        "raw data file names in the import list that collide with already loaded data");
+  }
+
+  /**
+   * @param context libraries or raw data
+   * @return true if file names are duplicates
+   */
+  @Nullable
+  private static boolean containsDuplicateFiles(final File[] fileNames, String context) {
+    List<String> duplicates = CollectionUtils.streamDuplicates(
+        Arrays.stream(fileNames).map(File::getName)).toList();
+    if (!duplicates.isEmpty()) {
+      String msg = """
+          Stopped import as there were duplicate %s.
+          Make sure to use unique names as MZmine and many downstream tools depend on this. Duplicates are:
+          %s""".formatted(context, String.join("\n", duplicates));
+      logger.warning(msg);
+      MZmineCore.getDesktop().displayErrorMessage(msg);
+      return true;
+    }
+    return false;
+  }
+
   @NotNull
   @Override
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
@@ -156,11 +245,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       return ExitCode.ERROR;
     }
 
-    boolean useAdvancedOptions = parameters.getParameter(
-        AllSpectralDataImportParameters.advancedImport).getValue();
-    AdvancedSpectraImportParameters advancedParam =
-        useAdvancedOptions ? parameters.getParameter(AllSpectralDataImportParameters.advancedImport)
-            .getEmbeddedParameters() : null;
+    AdvancedSpectraImportParameters advancedParam = parameters.getEmbeddedParametersIfSelectedOrElse(
+        AllSpectralDataImportParameters.advancedImport, null);
 
     ScanImportProcessorConfig scanProcessorConfig = createSpectralProcessors(advancedParam);
 
@@ -211,11 +297,13 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         .count();
     if (numTdf > 0) {
       TDFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.numOfThreads).getValue() / numTdf));
+                                               .getParameter(MZminePreferences.numOfThreads)
+                                               .getValue() / numTdf));
     }
     if (numTsf > 0) {
       TSFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.numOfThreads).getValue() / numTsf));
+                                               .getParameter(MZminePreferences.numOfThreads)
+                                               .getValue() / numTsf));
     }
 
     for (int i = 0; i < fileNames.length; i++) {
@@ -234,12 +322,15 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         RawDataFile newMZmineFile = createDataFile(fileType, fileName.getAbsolutePath(),
             fileName.getName(), storage);
 
-        final AbstractTask newTask = useAdvancedOptions && advancedParam != null ? //
-            createAdvancedTask(fileType, project, fileName, newMZmineFile, scanProcessorConfig,
-                AllSpectralDataImportModule.class, parameters, moduleCallDate, storage,
-                advancedParam)
-            : createTask(fileType, project, fileName, newMZmineFile, scanProcessorConfig,
-                AllSpectralDataImportModule.class, parameters, moduleCallDate, storage);
+        final AbstractTask newTask;//
+        if (advancedParam != null) {
+          newTask = createAdvancedTask(fileType, project, fileName, newMZmineFile,
+              scanProcessorConfig, AllSpectralDataImportModule.class, parameters, moduleCallDate,
+              storage, advancedParam);
+        } else {
+          newTask = createTask(fileType, project, fileName, newMZmineFile, scanProcessorConfig,
+              AllSpectralDataImportModule.class, parameters, moduleCallDate, storage);
+        }
 
         // add task to list
         if (newTask != null) {
@@ -270,98 +361,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   }
 
   /**
-   * Define filters and processors for scans
-   */
-  public static @NotNull ScanImportProcessorConfig createSpectralProcessors(
-      final ParameterSet advanced) {
-    List<MsProcessor> processors = new ArrayList<>();
-    processors.add(new SortByMzMsProcessor());
-
-    ScanSelection scanFilter = ScanSelection.ALL_SCANS;
-    boolean applyMassDetection = false;
-    if (advanced != null) {
-      MZmineProcessingStep<MassDetector> ms1Detector = advanced.getEmbeddedParameterValueIfSelectedOrElse(
-          AdvancedSpectraImportParameters.msMassDetection, null);
-      MZmineProcessingStep<MassDetector> ms2Detector = advanced.getEmbeddedParameterValueIfSelectedOrElse(
-          AdvancedSpectraImportParameters.ms2MassDetection, null);
-
-      applyMassDetection = ms1Detector != null || ms2Detector != null;
-
-      boolean denormalizeMsn = advanced.getValue(
-          AdvancedSpectraImportParameters.denormalizeMSnScans);
-      Range<Double> cropMzRange = advanced.getEmbeddedParameterValueIfSelectedOrElse(
-          AdvancedSpectraImportParameters.mzRange, null);
-      // create more steps
-      if (cropMzRange != null) {
-        processors.add(
-            new CropMzMsProcessor(cropMzRange.lowerEndpoint(), cropMzRange.upperEndpoint()));
-      }
-      if (applyMassDetection) {
-        processors.add(new MassDetectorMsProcessor(advanced));
-      }
-      if (denormalizeMsn) {
-        processors.add(new DenormalizeInjectTimeMsProcessor());
-      }
-
-      scanFilter = advanced.getValue(AdvancedSpectraImportParameters.scanFilter);
-    }
-    var conf = new ScanImportProcessorConfig(scanFilter, new MsProcessorList(processors),
-        applyMassDetection);
-    logger.info("Data import uses advanced direct data processing with these settings:\n" + conf);
-    return conf;
-  }
-
-
-  /**
-   * @return true if duplciates found in import list and already loaded files
-   */
-  @Nullable
-  private static boolean checkDuplicateFilesInImportListAndProject(
-      final @NotNull MZmineProject project, final File[] fileNames) {
-    // check that files were not loaded before
-    File[] currentAndLoadFiles = Stream.concat(
-        project.getCurrentRawDataFiles().stream().map(RawDataFile::getFileName).map(File::new),
-        Arrays.stream(fileNames)).toArray(File[]::new);
-    return containsDuplicateFiles(currentAndLoadFiles,
-        "raw data file names in the import list that collide with already loaded data");
-  }
-
-  /**
-   * @param context libraries or raw data
-   * @return true if file names are duplicates
-   */
-  @Nullable
-  private static boolean containsDuplicateFiles(final File[] fileNames, String context) {
-    List<String> duplicates = CollectionUtils.streamDuplicates(
-        Arrays.stream(fileNames).map(File::getName)).toList();
-    if (!duplicates.isEmpty()) {
-      String msg = """
-          Stopped import as there were duplicate %s.
-          Make sure to use unique names as MZmine and many downstream tools depend on this. Duplicates are:
-          %s""".formatted(context, String.join("\n", duplicates));
-      logger.warning(msg);
-      MZmineCore.getDesktop().displayErrorMessage(msg);
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Checks if the file and its parent both start with .d
-   *
-   * @param f file to validate
-   * @return the valid bruker file path for bruker .d files or the input file
-   */
-  public static File validateBrukerPath(File f) {
-    if (f.getParent().endsWith(".d") && (f.getName().endsWith(".d") || f.getName().endsWith(".tdf")
-        || f.getName().endsWith(".tsf"))) {
-      return f.getParentFile();
-    } else {
-      return f;
-    }
-  }
-
-  /**
    * @param newMZmineFile       null for mzml files, can be ims or non ims. must be determined in
    *                            import task.
    * @param scanProcessorConfig
@@ -387,7 +386,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new MSDKmzMLImportTask(project, file, scanProcessorConfig, module, parameters,
               moduleCallDate, storage);
       case MZXML ->
-          new MzXMLImportTask(project, file, newMZmineFile, scanProcessorConfig, module, parameters, moduleCallDate);
+          new MzXMLImportTask(project, file, newMZmineFile, scanProcessorConfig, module, parameters,
+              moduleCallDate);
       case MZDATA ->
           new MzDataImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
       case NETCDF ->
@@ -410,7 +410,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    * yet
    *
    * @param scanProcessorConfig the advanced parameters
-   * @param advancedParams
+   * @param advancedParams TODO remove and use config
    * @return the task or null if the data format is not supported for direct mass detection
    */
   private AbstractTask createAdvancedTask(RawDataFileType fileType, MZmineProject project,
@@ -428,6 +428,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new MzXMLImportTask(project, file, newMZmineFile, scanProcessorConfig, module, parameters,
               moduleCallDate);
       case BRUKER_TDF ->
+        // TODO use scanProcessorConfig
           new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile, advancedParams, module,
               parameters, moduleCallDate);
       case THERMO_RAW ->
@@ -447,7 +448,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
     // log
     logger.warning("Advanced processing is not available for MS data type: " + fileType.toString()
-        + " and file " + file.getAbsolutePath());
+                   + " and file " + file.getAbsolutePath());
     // create wrapped task to apply import and mass detection
     return new MsDataImportAndMassDetectWrapperTask(getMassListStorage(), newMZmineFile,
         createTask(fileType, project, file, newMZmineFile, scanProcessorConfig, module, parameters,

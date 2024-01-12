@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -100,7 +100,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
       @NotNull ScanImportProcessorConfig scanProcessorConfig,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
       @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
-    this(project, fileToOpen, null, scanProcessorConfig, module, parameters, moduleCallDate, storage);
+    this(project, fileToOpen, null, scanProcessorConfig, module, parameters, moduleCallDate,
+        storage);
   }
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, InputStream fisToOpen,
@@ -154,7 +155,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
       totalScans = msdkTaskRes.getScans().size();
 
       var startTimeStamp = DateTimeUtils.parseOrElse(msdkTaskRes.getStartTimeStamp(), null);
-      final boolean isIms = msdkTaskRes.getScans().stream()
+      final boolean isIms = msdkTaskRes.getScans().stream() //
+          .limit(50) // first 50 scans should have at least one with mobility
           .anyMatch(s -> s instanceof BuildingMzMLMsScan scan && scan.getMobility() != null);
 
       final RawDataFileImpl newMZmineFile;
@@ -214,18 +216,29 @@ public class MSDKmzMLImportTask extends AbstractTask {
 //          newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan, mzIntensities[0],
 //              mzIntensities[1], MassSpectrumType.CENTROIDED);
 //
-      Scan newScan = ConversionUtils.mzmlScanToSimpleScan(newMZmineFile, mzMLScan,
-          MassSpectrumType.CENTROIDED);
-      ScanPointerMassList newMassList = new ScanPointerMassList(newScan);
-      newScan.addMassList(newMassList);
 
+      Scan newScan = convertScan(mzMLScan, newMZmineFile);
       newMZmineFile.addScan(newScan);
+
       parsedScans++;
       description =
           "Importing " + this.file.getName() + ", parsed " + parsedScans + "/" + totalScans
           + " scans";
     }
     return newMZmineFile;
+  }
+
+  @NotNull
+  private Scan convertScan(final BuildingMzMLMsScan mzMLScan, final RawDataFileImpl newMZmineFile) {
+    // might not be centroided if mass detection was off
+    if (scanProcessorConfig.applyMassDetection()) {
+      Scan scan = ConversionUtils.mzmlScanToSimpleScan(newMZmineFile, mzMLScan,
+          MassSpectrumType.CENTROIDED);
+      scan.addMassList(new ScanPointerMassList(scan));
+      return scan;
+    } else {
+      return ConversionUtils.mzmlScanToSimpleScan(newMZmineFile, mzMLScan);
+    }
   }
 
   public IMSRawDataFileImpl buildIonMobilityFile(MzMLRawDataFile file) throws IOException {
