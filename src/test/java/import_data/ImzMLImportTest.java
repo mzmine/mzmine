@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -47,7 +46,7 @@ import testutils.MZmineTestUtil;
  */
 @TestInstance(Lifecycle.PER_CLASS)
 //@TestMethodOrder(OrderAnnotation.class)
-@Disabled
+//@Disabled
 public class ImzMLImportTest {
 
   public static final List<String> fileNames = List.of( //
@@ -66,14 +65,16 @@ public class ImzMLImportTest {
             List.of("CENTROIDED", "CENTROIDED"), List.of(152.9166717529297, 153.0833282470703),
             List.of(1, 2), List.of("[100.08333587646484..799.9166870117188]",
             "[100.08333587646484..799.9166870117188]"), List.of(), List.of(1, 1), List.of("-", "-"),
-            List.of(), List.of(), List.of(0.0f, 0.0f), List.of(), List.of(), List.of(), List.of()));
+            List.of(), List.of(), List.of(0.0f, 0.0f), List.of(), List.of(), List.of(), List.of(),
+            List.of("0,0", "1,0")));
     stats.put("Example_Processed.imzML",
         new import_data.DataFileStats("Example_Processed.imzML", 9, 9, 0, 8399, 0,
             List.of(8399, 8399), List.of(121.85039039868471, 182.31835420101888),
             List.of("CENTROIDED", "CENTROIDED"), List.of(152.9166717529297, 153.0833282470703),
             List.of(1, 2), List.of("[100.08333587646484..799.9166870117188]",
             "[100.08333587646484..799.9166870117188]"), List.of(), List.of(1, 1), List.of("-", "-"),
-            List.of(), List.of(), List.of(0.0f, 0.0f), List.of(), List.of(), List.of(), List.of()));
+            List.of(), List.of(), List.of(0.0f, 0.0f), List.of(), List.of(), List.of(), List.of(),
+            List.of("0,0", "1,0")));
     stats.put("image-centroid.imzML",
         new import_data.DataFileStats("image-centroid.imzML", 19430, 19430, 0, 607, 0,
             List.of(131, 157, 136, 131, 148, 116, 118, 111, 106, 111, 112, 115, 247),
@@ -103,7 +104,9 @@ public class ImzMLImportTest {
             List.of("-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"), List.of(),
             List.of(),
             List.of(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f),
-            List.of(), List.of(), List.of(), List.of()));
+            List.of(), List.of(), List.of(), List.of(),
+            List.of("0,0", "1,0", "10,0", "25,0", "50,0", "16,1", "66,1", "132,2", "64,4", "130,5",
+                "62,7", "128,8", "26,11")));
   }
 
   /**

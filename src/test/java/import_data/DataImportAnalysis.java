@@ -29,42 +29,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
 import testutils.MZmineTestUtil;
 
-/**
- * {@link Lifecycle#PER_CLASS} creates only one test instance of this class and executes everything
- * in sequence. As we are using data import, chromatogram building, ... Only with this option the
- * init (@BeforeAll) and tearDown method are not static.
- *
- * @author Robin Schmid (https://github.com/robinschmid)
- */
-@TestInstance(Lifecycle.PER_CLASS)
-//@TestMethodOrder(OrderAnnotation.class)
-//@Disabled("Only used manually to generate list of files")
-public class DataImportAnalysisTest {
+public class DataImportAnalysis {
 
-  private static final Logger logger = Logger.getLogger(DataImportAnalysisTest.class.getName());
-
-  /**
-   * Init MZmine core in headless mode with the options -r (keep running) and -m (keep in memory)
-   */
-  @BeforeAll
-  public static void init() {
-    logger.info("Getting project");
-  }
-
-
-  @AfterAll
-  public static void tearDown() {
-    //clean the project after this integration test
-    MZmineTestUtil.cleanProject();
-  }
+  private static final Logger logger = Logger.getLogger(DataImportAnalysis.class.getName());
 
   public static void printDatasetStats(final List<String> fileNames) {
     String data = MZmineTestUtil.streamDataFiles(fileNames).map(raw -> {
@@ -85,10 +54,8 @@ public class DataImportAnalysisTest {
         """);
   }
 
-  @Test
-//  @Disabled("Expected to be disabled and only used when raw data changes")
-  @DisplayName("Analyze and extract test data")
-  void analyzeDataFiles() {
+  public static void main(String[] args) {
+
     // analyze data files and extract test data
     var tests = Map.of("mzml", MzMLImportTest.fileNames, //
         "imzml", ImzMLImportTest.fileNames, //
@@ -102,7 +69,7 @@ public class DataImportAnalysisTest {
         MZmineTestUtil.importFiles(files, 60);
 
         logger.info("Exporting data for: " + format);
-        DataImportAnalysisTest.printDatasetStats(files);
+        DataImportAnalysis.printDatasetStats(files);
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }

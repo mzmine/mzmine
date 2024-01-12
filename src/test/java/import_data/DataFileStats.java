@@ -27,6 +27,7 @@ package import_data;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -52,7 +53,7 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
                             List<Integer> scanPrecursorCharge, List<Float> scanRetentionTime,
                             List<String> frameMobilityRange, List<Integer> imsMaxRawDataPoints,
                             List<Integer> imsMaxCentroidDataPoints,
-                            List<Integer> imsScanNumMobScans) {
+                            List<Integer> imsScanNumMobScans, List<String> imageScanCoord) {
 
   public static final List<Integer> scanNumbers = List.of(0, 1, 10, 25, 50, 150, 200, 400, 600, 800,
       1000, 1200, 1500);
@@ -95,12 +96,20 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
         .toList();
     var imsScanNumMobScans = frames.stream().map(Frame::getMobilityScans).map(List::size).toList();
 
+    // imaging
+    var imagingScan = streamScans(raw).filter(scan -> scan instanceof ImagingScan)
+        .map(scan -> (ImagingScan) scan).toList();
+    var imageScanCoord = imagingScan.stream().map(ImagingScan::getCoordinates)
+        .filter(Objects::nonNull).map(c -> STR."\{c.getX()},\{c.getY()}").toList();
+
     return new DataFileStats(raw.getFileName(), numScans, numScansMs1, numScansMs2,
         maxRawDataPoints, maxCentroidDataPoints, scanNumDataPoints, scanTic, scanType,
         scanBasePeakMz, scanNumber, scanMzRange, scanInjectTime, scanMsLevel, scanPolarity,
         scanPrecursorMz, scanPrecursorCharge, scanRetentionTime,
         // IMS
-        frameMobilityRange, imsMaxRawDataPoints, imsMaxCentroidDataPoints, imsScanNumMobScans);
+        frameMobilityRange, imsMaxRawDataPoints, imsMaxCentroidDataPoints, imsScanNumMobScans,
+        // images
+        imageScanCoord);
   }
 
   @NotNull
@@ -151,7 +160,6 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
         .map(DataFileStats::convertToString).collect(Collectors.joining(", "));
 
     String s = STR."new import_data.DataFileStats(\{arguments})";
-    logger.info(s);
     return s;
   }
 

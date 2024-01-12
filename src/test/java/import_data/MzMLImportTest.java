@@ -58,6 +58,7 @@ public class MzMLImportTest {
 //      "rawdatafiles/DOM_b_invalid_header.mzXML" //
       , "rawdatafiles/additional/orbi_idx_msn.mzML" //
       , "rawdatafiles/additional/gc_orbi.mzML" //
+      , "rawdatafiles/additional/gc_orbi_profil.mzML" //
   );
 
   private static final Map<String, DataFileStats> stats = HashMap.newHashMap(fileNames.size());
@@ -80,7 +81,7 @@ public class MzMLImportTest {
         List.of(368.206455623197, 408.201080322266, 396.20120413401, 349.164581298828,
             405.190887451172, 207.137962510578), List.of(1, 1, 1, 1),
         List.of(7.2438664f, 7.248367f, 7.2802997f, 7.3303504f, 7.4139667f, 7.7484336f, 7.9202833f,
-            8.5974f), List.of(), List.of(), List.of(), List.of());
+            8.5974f), List.of(), List.of(), List.of(), List.of(), List.of());
     var domB = new DataFileStats("DOM_b.mzXML", 521, 87, 434, 2410, 0,
         List.of(269, 2039, 249, 2226, 229, 218, 184, 63),
         List.of(1741484.3294677734, 6.165148037929688E8, 1689558.2706298828, 5.814518785332031E8,
@@ -98,7 +99,7 @@ public class MzMLImportTest {
         List.of(426.212162243691, 408.201249101897, 366.190806726003, 450.248413085938,
             368.206530266888, 219.187151122833), List.of(1, 1, 1, 0, 1, 1),
         List.of(7.2345333f, 7.236483f, 7.267833f, 7.3167667f, 7.4032335f, 7.739217f, 7.907817f,
-            8.581467f), List.of(), List.of(), List.of(), List.of());
+            8.581467f), List.of(), List.of(), List.of(), List.of(), List.of());
     stats.put("DOM_a.mzML", domA);
     stats.put("DOM_a_invalid_header.mzML", domA);
     stats.put("DOM_a_invalid_chars.mzML", domA);
@@ -124,7 +125,7 @@ public class MzMLImportTest {
             List.of(103.054351806641, 254.0576171875, 449.108489990234), List.of(1),
             List.of(0.0010631501f, 0.0044698855f, 0.035379827f, 0.0870163f, 0.17286651f,
                 0.51696837f, 0.7151894f, 1.3292525f, 2.0071716f, 2.7059631f), List.of(), List.of(),
-            List.of(), List.of()));
+            List.of(), List.of(), List.of()));
     stats.put("gc_orbi.mzML", new import_data.DataFileStats("gc_orbi.mzML", 13066, 13066, 0, 837, 0,
         List.of(35, 54, 479, 507, 415, 254, 244, 230, 212, 230, 248, 236, 235),
         List.of(23257.0, 34254.0, 1556096.0, 1702222.0, 1117247.0, 365574.0, 363432.0, 336990.0,
@@ -146,7 +147,17 @@ public class MzMLImportTest {
         List.of(),
         List.of(8.006503f, 8.0104885f, 8.046366f, 8.106157f, 8.205812f, 8.604424f, 8.803738f,
             9.60093f, 10.398119f, 11.195321f, 11.992539f, 12.789728f, 13.985539f), List.of(),
-        List.of(), List.of(), List.of()));
+        List.of(), List.of(), List.of(), List.of()));
+    stats.put("gc_orbi_profil.mzML",
+        new import_data.DataFileStats("gc_orbi_profil.mzML", 21, 21, 0, 5412, 0,
+            List.of(3888, 3706, 5213),
+            List.of(1673612.983516693, 1787071.453713894, 8877841.729095459),
+            List.of("PROFILE", "PROFILE", "PROFILE"),
+            List.of(81.0699404490411, 69.06986635151571, 213.18512844783922),
+            List.of(5920, 5921, 5930), List.of("[60.0..900.0]", "[60.0..900.0]", "[60.0..900.0]"),
+            List.of(200.0f, 200.0f, 200.0f), List.of(1, 1, 1), List.of("+", "+", "+"), List.of(),
+            List.of(), List.of(31.5997f, 31.603699f, 31.63958f), List.of(), List.of(), List.of(),
+            List.of(), List.of()));
   }
 
   /**
