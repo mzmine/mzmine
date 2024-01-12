@@ -43,8 +43,9 @@ import org.junit.jupiter.api.Assertions;
 public record DataFileStats(String fileName, int numScans, int numScansMs1, int numScansMs2,
                             int maxRawDataPoints, int maxCentroidDataPoints,
                             List<Integer> scanNumDataPoints, List<Double> scanTic,
-                            List<String> scanType, List<Double> scanMz, List<Integer> scanNumber,
-                            List<String> scanMzRange, List<Float> scanInjectTime,
+                            List<String> scanType, List<Double> scanBasePeakMz,
+                            List<Integer> scanNumber, List<String> scanMzRange,
+                            List<Float> scanInjectTime, List<Integer> scanMsLevel,
                             List<String> scanPolarity, List<Double> scanPrecursorMz,
                             List<Integer> scanPrecursorCharge, List<Float> scanRetentionTime,
                             List<String> frameMobilityRange, List<Integer> imsMaxRawDataPoints,
@@ -70,11 +71,12 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
     var scanTic = streamScans(raw).map(MassSpectrum::getTIC).toList();
     var scanType = streamScans(raw).map(MassSpectrum::getSpectrumType).map(Objects::toString)
         .toList();
-    var scanMz = streamScans(raw).map(MassSpectrum::getBasePeakMz).toList();
+    var scanBasePeakMz = streamScans(raw).map(MassSpectrum::getBasePeakMz).toList();
 
     var scanNumber = streamScans(raw).map(Scan::getScanNumber).toList();
     var scanMzRange = streamScans(raw).map(Scan::getScanningMZRange).map(Range::toString).toList();
     var scanInjectTime = streamScans(raw).map(Scan::getInjectionTime).toList();
+    var scanMsLevel = streamScans(raw).map(Scan::getMSLevel).toList();
     var scanPolarity = streamScans(raw).map(Scan::getPolarity).map(PolarityType::toString).toList();
     var scanPrecursorMz = streamScans(raw).map(Scan::getPrecursorMz).toList();
     var scanPrecursorCharge = streamScans(raw).map(Scan::getPrecursorCharge).toList();
@@ -92,9 +94,9 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
     var imsScanNumMobScans = frames.stream().map(Frame::getMobilityScans).map(List::size).toList();
 
     return new DataFileStats(raw.getFileName(), numScans, numScansMs1, numScansMs2,
-        maxRawDataPoints, maxCentroidDataPoints, scanNumDataPoints, scanTic, scanType, scanMz,
-        scanNumber, scanMzRange, scanInjectTime, scanPolarity, scanPrecursorMz, scanPrecursorCharge,
-        scanRetentionTime,
+        maxRawDataPoints, maxCentroidDataPoints, scanNumDataPoints, scanTic, scanType,
+        scanBasePeakMz, scanNumber, scanMzRange, scanInjectTime, scanMsLevel, scanPolarity,
+        scanPrecursorMz, scanPrecursorCharge, scanRetentionTime,
         // IMS
         frameMobilityRange, imsMaxRawDataPoints, imsMaxCentroidDataPoints, imsScanNumMobScans);
   }
