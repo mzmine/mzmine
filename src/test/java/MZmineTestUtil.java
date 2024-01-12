@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,22 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.FeatureListRowSorter;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,6 +54,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MZmineTestUtil {
 
+  private static final Logger logger = Logger.getLogger(MZmineTestUtil.class.getName());
   /**
    * Call a module in MZmineCore and wait for it to finish.
    *
@@ -130,5 +138,29 @@ public class MZmineTestUtil {
 
   public static void cleanProject() {
     MZmineCore.getProjectManager().setCurrentProject(new MZmineProjectImpl());
+  }
+
+
+  public static void importFiles(final List<String> fileNames, long timeoutSeconds)
+      throws InterruptedException {
+    File[] files = fileNames.stream()
+        .map(name -> new File(MzMLImportTest.class.getClassLoader().getResource(name).getFile()))
+        .toArray(File[]::new);
+
+    AllSpectralDataImportParameters paramDataImport = new AllSpectralDataImportParameters();
+    paramDataImport.setParameter(AllSpectralDataImportParameters.fileNames, files);
+    paramDataImport.setParameter(SpectralLibraryImportParameters.dataBaseFiles, new File[0]);
+    paramDataImport.setParameter(AllSpectralDataImportParameters.advancedImport, false);
+
+    logger.info("Testing data import of mzML and mzXML without advanced parameters");
+    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(timeoutSeconds,
+        AllSpectralDataImportModule.class, paramDataImport);
+
+    // should have finished by now
+    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
+      case TIMEOUT -> "Timeout during data import. Not finished in time.";
+      case ERROR -> "Error during data import.";
+      case FINISHED -> "";
+    });
   }
 }
