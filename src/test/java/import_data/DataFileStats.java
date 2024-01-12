@@ -23,6 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+package import_data;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassSpectrum;
@@ -148,7 +150,7 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
     String arguments = Arrays.stream(getClass().getRecordComponents()).map(this::getValue)
         .map(DataFileStats::convertToString).collect(Collectors.joining(", "));
 
-    String s = STR."new DataFileStats(\{arguments})";
+    String s = STR."new import_data.DataFileStats(\{arguments})";
     logger.info(s);
     return s;
   }

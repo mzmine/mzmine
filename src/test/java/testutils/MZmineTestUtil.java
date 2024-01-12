@@ -23,9 +23,34 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+package testutils;/*
+ * Copyright (c) 2004-2024 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 import com.google.common.collect.Comparators;
+import import_data.MzMLImportTest;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -47,7 +72,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -157,10 +185,22 @@ public class MZmineTestUtil {
         AllSpectralDataImportModule.class, paramDataImport);
 
     // should have finished by now
-    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
-      case TIMEOUT -> "Timeout during data import. Not finished in time.";
-      case ERROR -> "Error during data import.";
-      case FINISHED -> "";
+    Assertions.assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
+      case TaskResult.TIMEOUT -> "Timeout during data import. Not finished in time.";
+      case TaskResult.ERROR -> "Error during data import.";
+      case TaskResult.FINISHED -> "";
     });
+  }
+
+  @Nullable
+  public static RawDataFile getRawFromProject(final String name) {
+    return MZmineCore.getProject().getCurrentRawDataFiles().stream()
+        .filter(r -> r.getName().equals(name)).findFirst().orElse(null);
+  }
+
+  @NotNull
+  public static Stream<RawDataFile> streamDataFiles(List<String> fileNames) {
+    return fileNames.stream().map(n -> new File(n).getName())
+        .map(MZmineTestUtil::getRawFromProject);
   }
 }
