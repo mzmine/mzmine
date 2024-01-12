@@ -379,7 +379,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showCorrelatedImageFeaturesItem = new ConditionalMenuItem("Co-located images",
         () -> {
           if (selectedFeature == null
-              && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile) {
+              || !(selectedFeature.getRawDataFile() instanceof ImagingRawDataFile)) {
             return false;
           }
           return selectedRowHasCorrelationData();
