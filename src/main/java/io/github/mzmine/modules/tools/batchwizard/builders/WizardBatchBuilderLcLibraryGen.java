@@ -107,6 +107,7 @@ public class WizardBatchBuilderLcLibraryGen extends BaseWizardBatchBuilder {
 
     // annotation
     makeAndAddLocalCsvDatabaseSearchStep(q, interSampleRtTol);
+    makeAndAddLipidAnnotationStep(q, true);
 
     // library generation, reload library
     makeAndAddBatchLibraryGeneration(q, exportPath, libGenMetadata);
