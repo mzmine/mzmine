@@ -57,7 +57,9 @@ public class DataImportAnalysis {
   public static void main(String[] args) {
 
     // analyze data files and extract test data
-    var tests = Map.of("mzml", MzMLImportTest.fileNames, //
+    var tests = Map.of( //
+//        "timstof", TimsTofImportTest.fileNames //
+        "mzml", MzMLImportTest.fileNames, //
         "imzml", ImzMLImportTest.fileNames, //
         "thermo", ThermoRawImportTest.fileNames //
     );
