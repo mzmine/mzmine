@@ -149,10 +149,12 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
 
     if (actualVal instanceof List alist && expectedVal instanceof List elist) {
       Assertions.assertEquals(elist.size(), alist.size(),
-          "Missmatching number of values in list for field " + field.getName());
+          "Missmatching number of values in list for field %s in dataset %s".formatted(
+              field.getName(), expected.fileName));
     }
 
-    Assertions.assertEquals(expectedVal, actualVal, "Missmatch for field " + field.getName());
+    Assertions.assertEquals(expectedVal, actualVal,
+        "Missmatch for field %s in dataset %s".formatted(field.getName(), expected.fileName));
   }
 
   public String printInstance() {
