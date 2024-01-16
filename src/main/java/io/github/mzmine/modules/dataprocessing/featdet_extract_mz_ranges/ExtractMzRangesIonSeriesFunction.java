@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries.IntensityMo
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.operations.AbstractTaskSubSupplier;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -110,6 +111,9 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskSubSupplier<Bu
           IntensityMode.HIGHEST);
     }
 
+    // binary search the start
+    double lowestMz = mzRangesSorted.getFirst().lowerEndpoint();
+
     int currentScan = -1;
     while (dataAccess.nextScan() != null) {
       int currentTree = 0;
@@ -122,15 +126,19 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskSubSupplier<Bu
       }
       // check value for tree and for all next trees in range
       int nDataPoints = dataAccess.getNumberOfDataPoints();
-      for (int dp = 0; dp < nDataPoints; dp++) {
+
+      // start index
+      int dp = dataAccess.binarySearch(lowestMz, DefaultTo.GREATER_EQUALS);
+
+      for (; dp < nDataPoints; dp++) {
         double mz = dataAccess.getMzValue(dp);
-        // all next trees
+        // check all next trees
         for (int t = currentTree; t < mzRangesSorted.size(); t++) {
           if (mz > mzRangesSorted.get(t).upperEndpoint()) {
             // out of bounds for current tree
             currentTree++;
           } else if (mz < mzRangesSorted.get(t).lowerEndpoint()) {
-            break;
+            break; // below current tree - next datapoint
           } else {
             // found match
             double intensity = dataAccess.getIntensityValue(dp);
