@@ -55,7 +55,8 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
                             List<Integer> imsMaxCentroidDataPoints,
                             List<Integer> imsScanNumMobScans, List<String> imageScanCoord) {
 
-  public static final List<Integer> scanNumbers = List.of(0, 1, 10, 25, 50, 150, 200, 400, 600, 800,
+  public static final List<Integer> scanNumbers = List.of(0, 1, 5, 10, 20, 25, 50, 75, 100, 150,
+      200, 300, 400, 600, 800,
       1000, 1200, 1500);
 
   private static final Logger logger = Logger.getLogger(DataFileStats.class.getName());

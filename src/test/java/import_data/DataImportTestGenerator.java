@@ -25,54 +25,45 @@
 
 package import_data;
 
+import io.github.mzmine.main.MZmineCore;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import testutils.MZmineTestUtil;
 
-public class DataImportAnalysis {
+public class DataImportTestGenerator {
 
-  private static final Logger logger = Logger.getLogger(DataImportAnalysis.class.getName());
+  private static final Logger logger = Logger.getLogger(DataImportTestGenerator.class.getName());
 
-  public static void printDatasetStats(final List<String> fileNames) {
-    String data = MZmineTestUtil.streamDataFiles(fileNames).map(raw -> {
-      var stats = DataFileStats.extract(raw);
-      var instance = stats.printInstance();
-      return STR."stats.put(\"\{raw.getName()}\", \{instance});";
-    }).collect(Collectors.joining("\n"));
-
-    System.out.println(STR."""
-        #######################################################
-
-        private static final Map<String, import_data.DataFileStats> stats = HashMap.newHashMap(fileNames.size());
-        static {
-          \{data}
-        }
-
-        #######################################################
-        """);
-  }
-
+  /**
+   * Call this method to regenerate the test data results - only if this data really has changed or
+   * the structure of {@link DataFileStats} has changed
+   */
   public static void main(String[] args) {
+    // DEFINE PATH HERE FOR RESOURCES
+    String path = "D:\\git\\mzmine3\\src\\test\\resources\\";
 
-    // analyze data files and extract test data
-    var tests = Map.of("mzml", MzMLImportTest.fileNames, //
-        "imzml", ImzMLImportTest.fileNames, //
-        "thermo", ThermoRawImportTest.fileNames //
+    List<AbstractDataImportTest> tests = List.of( //
+        new MzMLImportTest() //
+        , new ImzMLImportTest() //
+        , new ThermoRawImportTest() //
     );
 
-    for (var entry : tests.entrySet()) {
+    for (var entry : tests) {
       try {
-        var format = entry.getKey();
-        var files = entry.getValue();
+        var clazz = entry.getClass();
+        var files = entry.getFileNames();
         MZmineTestUtil.importFiles(files, 60);
 
-        logger.info("Exporting data for: " + format);
-        DataImportAnalysis.printDatasetStats(files);
+        logger.info("Exporting data for: " + clazz.getName());
+
+        var stats = MZmineTestUtil.streamDataFiles(files).map(DataFileStats::extract)
+            .toArray(DataFileStats[]::new);
+        DataFileStatsIO.writeJson(path, clazz, stats);
+        MZmineCore.getProjectManager().clearProject();
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
     }
+    System.exit(0);
   }
 }
