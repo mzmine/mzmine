@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,30 +25,93 @@
 
 package util.lipidannotationtest;
 
-import java.util.HashSet;
-import java.util.Set;
-import org.junit.jupiter.api.Test;
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.MSMSLipidTools;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.MolecularSpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.SpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.ILipidChain;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
+import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRule;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.ILipidFragmentFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.lipidfragmentannotation.LipidFragmentFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.FattyAcylMolecularSpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.IMolecularSpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.SphingoMolecularSpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.SterolMolecularSpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.FattyAcylSpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.GlyceroAndGlycerophosphoSpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.ISpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SphingolipidSpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SterolSpeciesLevelMatchedLipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.ILipidChain;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipidutils.LipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationChainParameters;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import junit.framework.Assert;
+import io.github.mzmine.project.impl.RawDataFileImpl;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javafx.scene.paint.Color;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 class LipidAnnotationTest {
 
-  private static final LipidAnnotationMsMsTestSpectra MSMS_TEST_SPECTRA =
-      new LipidAnnotationMsMsTestSpectra();
-  private static final MSMSLipidTools MSMS_LIPID_TOOLS = new MSMSLipidTools();
+  private static final RawDataFile FILE = new RawDataFileImpl("testfile", null, null, Color.BLACK);
+  private static final LipidAnnotationMsMsTestSpectra MSMS_TEST_SPECTRA = new LipidAnnotationMsMsTestSpectra();
+  private static final Scan SIMPLE_SCAN = new SimpleScan(FILE, -1, 2, 0.1F, null, new double[]{500},
+      new double[]{100}, MassSpectrumType.ANY, PolarityType.ANY, "Pseudo", null);
+  public static final ParameterSetParameter<LipidAnnotationChainParameters> LIPID_CHAIN_PARAMETERS_GLYCERO_AND_GLYCEROPHOSPHOLIPIDS = new ParameterSetParameter<>(
+      "Side chain parameters", "Optionally modify lipid chain parameters",
+      new LipidAnnotationChainParameters());
+
+  public static final ParameterSetParameter<LipidAnnotationChainParameters> LIPID_CHAIN_PARAMETERS_SPHINGOLIPIDS = new ParameterSetParameter<LipidAnnotationChainParameters>(
+      "Side chain parameters", "Optionally modify lipid chain parameters",
+      new LipidAnnotationChainParameters());
+
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
+
+  //Fatty aclys
+
+  @Test
+  void msMsRuleTestFA_18_1MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getFA_18_1MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestFA_18_1_OMMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getFA_18_1_OMMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestFA_12_0_OMMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getFA_12_0_OMMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestFAHFA_16_0_18_1MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getFAHFA_16_0_18_1MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestCAR_18_1MPlus() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCAR_18_1MPlus();
+    checkLipidAnnotation(testSpectrum);
+  }
 
   // Glycerlipids##############################################################################
   @Test
@@ -189,6 +252,12 @@ class LipidAnnotationTest {
   }
 
   @Test
+  void msMsRuleTestLNAPE_16_0_18_2MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getLNAPE_16_0_18_2MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
   void msMsRuleTestPS_18_0_20_4MPlusH() {
     LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPS_18_0_20_4MPlusH();
     checkLipidAnnotation(testSpectrum);
@@ -296,24 +365,196 @@ class LipidAnnotationTest {
     checkLipidAnnotation(testSpectrum);
   }
 
-   @Test
-   void msMsRuleTestCL_70_4_MPlusNH4() {
-   LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCL_70_4_MPlusNH4();
-   checkLipidAnnotation(testSpectrum);
-   }
+  @Test
+  void msMsRuleTestCL_70_4_MPlusNH4() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCL_70_4_MPlusNH4();
+    checkLipidAnnotation(testSpectrum);
+  }
 
-   @Test
-   void msMsRuleTestCL_70_5_MMinusH() {
-   LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCL_70_5_MMinusH();
-   checkLipidAnnotation(testSpectrum);
-   }
+  @Test
+  void msMsRuleTestCL_70_5_MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCL_70_5_MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
 
-   @Test
-   void msMsRuleTestCL_16_0_18_1_18_2_18_2MMinusH() {
-   LipidAnnotationMsMsTestResource testSpectrum =
-   MSMS_TEST_SPECTRA.getCL_16_0_18_1_18_2_18_2MMinusH();
-   checkLipidAnnotation(testSpectrum);
-   }
+  @Test
+  void msMsRuleTestCL_16_0_18_1_18_2_18_2MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCL_16_0_18_1_18_2_18_2MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  //Sphingolipids
+  @Test
+  void msMsRuleTestSPB_18_1_2O() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getSPB_18_1_2O();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestSPB_18_1_3O() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getSPB_18_1_3O();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestCer_18_1_2O_16_0_OMPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCer_18_0_O2_26_0_OMPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestCer_18_1_2O_16_0Acetate() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCer_18_1_O2_16_0_O_Acetate();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestCer_14_0_2O_20_0Formate() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCer_14_0_2O_20_0MPlusHCOO();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestCer_18_0_2O_16_0Acetate() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCer_18_0_2O_16_0MPlusCH3COO();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestCer_18_1_O2_24_0MPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCer_18_1_O2_24_0MPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+
+  @Test
+  void msMsRuleTestCer_14_1_2O_18_0_OMPlusHCOO() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCer_14_1_2O_18_0_OMPlusHCOO();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestCer_18_1_2O_22_0_OMPlusCH3COO() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCer_18_1_2O_22_0_OMPlusCH3COO();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestCer_20_1_2O_24_0_OMPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCer_20_1_2O_24_0_OMPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestCer_18_0_3O_16_0MPlusCH3COO() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCer_18_0_3O_16_0MPlusCH3COO();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestCer_18_1_3O_24_0_OMPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCer_18_1_3O_24_0_OMPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestCer_14_0_3O_16_0_O_HCOO() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCer_14_0_3O_16_0_O_HCOO();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestCer_18_0_3O_20_0_OMPlusCH3COO() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCer_18_0_3O_20_0_OMPlusCH3COO();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestCerP_18_1_2O_12_0_OMPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCerP_18_1_2O_12_0_OMPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestCerP_18_1_2O_12_0_OMMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCerP_18_1_2O_12_0_OMMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestHexCer_18_1_2O_24_0MMPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHexCer_18_1_2O_24_0MMPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestHex2Cer_18_1_2O_24_0MMPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHex2Cer_18_1_2O_16_0MMPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestHex2Cer_18_1_2O_16_0Acetate() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHex2Cer_18_1_2O_16_0Acetate();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestHex3Cer_18_1_2O_24_0MMPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHex3Cer_18_1_2O_16_0MMPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestHex3Cer_18_1_2O_24_0Acetate() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHex3Cer_42_1_2OAcetate();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+
+  @Test
+  void msMsRuleTestHexCer_18_1_2O_20_0MMPlusCH3COO() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHexCer_18_1_2O_20_0MMPlusCH3COO();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestHexCer_20_1_2O_16_0MMPlusHCOO() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHexCer_20_1_2O_16_0MMPlusHCOO();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestHexCer_18_1_2O_24_1_OMMPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHexCer_18_1_2O_24_1_OMMPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestHexCer_16_1_2O_26_1_OMMPlusCH3COO() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHexCer_16_1_2O_26_1_OMMPlusCH3COO();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestHexCer_18_0_3O_24_0_OMMPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHexCer_18_0_3O_24_0_OMMPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestHexCer_18_0_3O_24_0_OAcetate() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getHexCer_18_0_3O_16_0_OAcetate();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  //Sterol lipids
+  @Test
+  void msMsRuleTestCE_18_1NH4() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCE_18_1NH4();
+    checkLipidAnnotation(testSpectrum);
+  }
+
 
   private void checkLipidAnnotation(LipidAnnotationMsMsTestResource testSpectrum) {
     Set<MatchedLipid> matchedLipids = new HashSet<>();
@@ -328,50 +569,134 @@ class LipidAnnotationTest {
 
     LipidFragmentationRule[] rules = speciesLevelAnnotation.getLipidClass().getFragmentationRules();
     Set<LipidFragment> annotatedFragments = new HashSet<>();
-    DataPoint[] massList = convertTestSpectrumToDataPoints(testSpectrum);
-    MZTolerance mzTolerance = new MZTolerance(0.05, 5);
+    MassList massList = convertTestSpectrumToDataPoints(testSpectrum);
+    SIMPLE_SCAN.addMassList(massList);
+    MZTolerance mzTolerance = new MZTolerance(0.01, 5);
     if (rules != null && rules.length > 0) {
-      for (int j = 0; j < massList.length; j++) {
-        Range<Double> mzTolRangeMSMS = mzTolerance.getToleranceRange(massList[j].getMZ());
-        LipidFragment annotatedFragment =
-            MSMS_LIPID_TOOLS.checkForClassSpecificFragment(mzTolRangeMSMS, speciesLevelAnnotation,
-                testSpectrum.getIonizationType(), rules, massList[j], null);
-        if (annotatedFragment != null) {
-          annotatedFragments.add(annotatedFragment);
+      ILipidFragmentFactory lipidFragmentFactory = new LipidFragmentFactory(mzTolerance,
+          speciesLevelAnnotation, testSpectrum.getIonizationType(), rules, SIMPLE_SCAN,
+          LIPID_CHAIN_PARAMETERS_GLYCERO_AND_GLYCEROPHOSPHOLIPIDS.getEmbeddedParameters());
+
+      List<LipidFragment> annotatedFragmentsForDataPoint = lipidFragmentFactory.findLipidFragments();
+      if (annotatedFragmentsForDataPoint != null && !annotatedFragmentsForDataPoint.isEmpty()) {
+        annotatedFragments.addAll(annotatedFragmentsForDataPoint);
+      }
+    }
+
+    Assertions.assertTrue(annotatedFragments.size() >= 1, "No fragments detected");
+    // check for class specific fragments like head group fragment
+    if (testSpectrum.getTestLipid() instanceof SpeciesLevelAnnotation) {
+      ISpeciesLevelMatchedLipidFactory matchedLipidFactory = null;
+      switch (testSpectrum.getTestLipid().getLipidClass().getMainClass().getLipidCategory()) {
+        case FATTYACYLS -> {
+          matchedLipidFactory = new FattyAcylSpeciesLevelMatchedLipidFactory();
+          matchedLipids.add(
+              matchedLipidFactory.validateSpeciesLevelAnnotation(0.0, speciesLevelAnnotation,
+                  annotatedFragments, massList.getDataPoints(), 0.0, mzTolerance,
+                  testSpectrum.getIonizationType()));
+        }
+        case GLYCEROLIPIDS -> {
+          matchedLipidFactory = new GlyceroAndGlycerophosphoSpeciesLevelMatchedLipidFactory();
+          matchedLipids.add(
+              matchedLipidFactory.validateSpeciesLevelAnnotation(0.0, speciesLevelAnnotation,
+                  annotatedFragments, massList.getDataPoints(), 0.0, mzTolerance,
+                  testSpectrum.getIonizationType()));
+        }
+        case GLYCEROPHOSPHOLIPIDS -> {
+          matchedLipidFactory = new GlyceroAndGlycerophosphoSpeciesLevelMatchedLipidFactory();
+          matchedLipids.add(
+              matchedLipidFactory.validateSpeciesLevelAnnotation(0.0, speciesLevelAnnotation,
+                  annotatedFragments, massList.getDataPoints(), 0.0, mzTolerance,
+                  testSpectrum.getIonizationType()));
+        }
+        case SPHINGOLIPIDS -> {
+          matchedLipidFactory = new SphingolipidSpeciesLevelMatchedLipidFactory();
+          matchedLipids.add(
+              matchedLipidFactory.validateSpeciesLevelAnnotation(0.0, speciesLevelAnnotation,
+                  annotatedFragments, massList.getDataPoints(), 0.0, mzTolerance,
+                  testSpectrum.getIonizationType()));
+        }
+        case STEROLLIPIDS -> {
+          matchedLipidFactory = new SterolSpeciesLevelMatchedLipidFactory();
+          matchedLipids.add(
+              matchedLipidFactory.validateSpeciesLevelAnnotation(0.0, speciesLevelAnnotation,
+                  annotatedFragments, massList.getDataPoints(), 0.0, mzTolerance,
+                  testSpectrum.getIonizationType()));
+        }
+      }
+    } else if (testSpectrum.getTestLipid() instanceof MolecularSpeciesLevelAnnotation) {
+
+      IMolecularSpeciesLevelMatchedLipidFactory matchedLipidFactory = null;
+      switch (testSpectrum.getTestLipid().getLipidClass().getMainClass().getLipidCategory()) {
+        case FATTYACYLS -> {
+          matchedLipidFactory = new FattyAcylMolecularSpeciesLevelMatchedLipidFactory();
+          Set<MatchedLipid> matchedMolecularSpeciesLevelMatches = matchedLipidFactory.predictMolecularSpeciesLevelMatches(
+              annotatedFragments, speciesLevelAnnotation, 0.0, massList.getDataPoints(), 0.0,
+              mzTolerance, testSpectrum.getIonizationType());
+          for (MatchedLipid matchedLipid : matchedMolecularSpeciesLevelMatches) {
+            matchedLipids.add(matchedLipidFactory.validateMolecularSpeciesLevelAnnotation(0.0,
+                matchedLipid.getLipidAnnotation(), annotatedFragments, massList.getDataPoints(),
+                0.0, mzTolerance, testSpectrum.getIonizationType()));
+          }
+        }
+        case GLYCEROLIPIDS -> {
+          matchedLipidFactory = new GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory();
+          Set<MatchedLipid> matchedMolecularSpeciesLevelMatches = matchedLipidFactory.predictMolecularSpeciesLevelMatches(
+              annotatedFragments, speciesLevelAnnotation, 0.0, massList.getDataPoints(), 0.0,
+              mzTolerance, testSpectrum.getIonizationType());
+          for (MatchedLipid matchedLipid : matchedMolecularSpeciesLevelMatches) {
+            matchedLipids.add(matchedLipidFactory.validateMolecularSpeciesLevelAnnotation(0.0,
+                matchedLipid.getLipidAnnotation(), annotatedFragments, massList.getDataPoints(),
+                0.0, mzTolerance, testSpectrum.getIonizationType()));
+          }
+        }
+        case GLYCEROPHOSPHOLIPIDS -> {
+          matchedLipidFactory = new GlyceroAndPhosphoMolecularSpeciesLevelMatchedLipidFactory();
+          Set<MatchedLipid> matchedMolecularSpeciesLevelMatches = matchedLipidFactory.predictMolecularSpeciesLevelMatches(
+              annotatedFragments, speciesLevelAnnotation, 0.0, massList.getDataPoints(), 0.0,
+              mzTolerance, testSpectrum.getIonizationType());
+          for (MatchedLipid matchedLipid : matchedMolecularSpeciesLevelMatches) {
+            matchedLipids.add(matchedLipidFactory.validateMolecularSpeciesLevelAnnotation(0.0,
+                matchedLipid.getLipidAnnotation(), annotatedFragments, massList.getDataPoints(),
+                0.0, mzTolerance, testSpectrum.getIonizationType()));
+          }
+        }
+        case SPHINGOLIPIDS -> {
+          matchedLipidFactory = new SphingoMolecularSpeciesLevelMatchedLipidFactory();
+          Set<MatchedLipid> matchedMolecularSpeciesLevelMatches = matchedLipidFactory.predictMolecularSpeciesLevelMatches(
+              annotatedFragments, speciesLevelAnnotation, 0.0, massList.getDataPoints(), 0.0,
+              mzTolerance, testSpectrum.getIonizationType());
+          for (MatchedLipid matchedLipid : matchedMolecularSpeciesLevelMatches) {
+            matchedLipids.add(matchedLipidFactory.validateMolecularSpeciesLevelAnnotation(0.0,
+                matchedLipid.getLipidAnnotation(), annotatedFragments, massList.getDataPoints(),
+                0.0, mzTolerance, testSpectrum.getIonizationType()));
+          }
+        }
+        case STEROLLIPIDS -> {
+          matchedLipidFactory = new SterolMolecularSpeciesLevelMatchedLipidFactory();
+          Set<MatchedLipid> matchedMolecularSpeciesLevelMatches = matchedLipidFactory.predictMolecularSpeciesLevelMatches(
+              annotatedFragments, speciesLevelAnnotation, 0.0, massList.getDataPoints(), 0.0,
+              mzTolerance, testSpectrum.getIonizationType());
+          for (MatchedLipid matchedLipid : matchedMolecularSpeciesLevelMatches) {
+            matchedLipids.add(matchedLipidFactory.validateMolecularSpeciesLevelAnnotation(0.0,
+                matchedLipid.getLipidAnnotation(), annotatedFragments, massList.getDataPoints(),
+                0.0, mzTolerance, testSpectrum.getIonizationType()));
+          }
         }
       }
     }
-
-    Assert.assertTrue("No fragments detected", annotatedFragments.size() >= 1);
-    if (!annotatedFragments.isEmpty()) {
-
-      // check for class specific fragments like head group fragment
-      if (testSpectrum.getTestLipid() instanceof SpeciesLevelAnnotation) {
-        matchedLipids
-            .add(MSMS_LIPID_TOOLS.confirmSpeciesLevelAnnotation(0.0, speciesLevelAnnotation,
-                annotatedFragments, massList, 0.0, mzTolerance, testSpectrum.getIonizationType()));
-      } else if (testSpectrum.getTestLipid() instanceof MolecularSpeciesLevelAnnotation) {
-
-        // predict molecular species level annotations
-        matchedLipids.addAll(MSMS_LIPID_TOOLS.predictMolecularSpeciesLevelAnnotation(
-            annotatedFragments, speciesLevelAnnotation, 0.0, massList, 0.0, mzTolerance,
-            testSpectrum.getIonizationType()));
-      }
-    }
-    Assert.assertTrue("No lipid was matched", matchedLipids.size() >= 1);
+    Assertions.assertTrue(matchedLipids.size() >= 1, "No lipid was matched");
 
     printMsMsSpectrumTestReport(matchedLipids, testSpectrum);
   }
 
 
-
-  private DataPoint[] convertTestSpectrumToDataPoints(
-      LipidAnnotationMsMsTestResource testSpectrum) {
+  private MassList convertTestSpectrumToDataPoints(LipidAnnotationMsMsTestResource testSpectrum) {
     DataPoint[] dataPoints = new DataPoint[testSpectrum.getMzFragments().length];
     for (int i = 0; i < dataPoints.length; i++) {
-      dataPoints[i] = new SimpleDataPoint(testSpectrum.getMzFragments()[i], 1);
+      dataPoints[i] = new SimpleDataPoint(testSpectrum.getMzFragments()[i], 100);
     }
-    return dataPoints;
+    return SimpleMassList.create(null, dataPoints);
   }
 
   private SpeciesLevelAnnotation convertMolecularSpeciesLevelToSpeciesLevel(
@@ -381,19 +706,24 @@ class LipidAnnotationTest {
     int numberOfDBEs =
         lipidAnnotation.getLipidChains().stream().mapToInt(ILipidChain::getNumberOfDBEs).sum();
     return LIPID_FACTORY.buildSpeciesLevelLipid(lipidAnnotation.getLipidClass(), numberOfCarbons,
-        numberOfDBEs);
+        numberOfDBEs, 0);
   }
 
   private void printMsMsSpectrumTestReport(Set<MatchedLipid> matchedLipids,
       LipidAnnotationMsMsTestResource testResource) {
     for (MatchedLipid matchedLipid : matchedLipids) {
-      Assert.assertTrue(matchedLipid.getLipidAnnotation().getAnnotation()
-          .equals(testResource.getTestLipid().getAnnotation()));
+      if (matchedLipid.getLipidAnnotation().getAnnotation()
+          .equals(testResource.getTestLipid().getAnnotation())) {
+        Assertions.assertEquals(matchedLipid.getLipidAnnotation().getAnnotation(),
+            testResource.getTestLipid().getAnnotation());
+      }
       Set<LipidFragment> matchedFragments = matchedLipid.getMatchedFragments();
-      System.out.println("\n---Test Result for " + testResource.getTestLipid().getAnnotation() + " "
-          + testResource.getIonizationType() + " ---------");
-      System.out.println("Matched " + matchedFragments.size() + " of "
-          + testResource.getMzFragments().length + " possible signals");
+      System.out.println(
+          "\n---Test BestDataPoint for " + testResource.getTestLipid().getAnnotation() + " "
+              + testResource.getIonizationType() + " ---------");
+      System.out.println(
+          "Matched " + matchedFragments.size() + " of " + testResource.getMzFragments().length
+              + " possible signals");
       System.out.println("MS/MS score " + matchedLipid.getMsMsScore());
       System.out.println("Pseudo signals:");
       for (LipidFragment fragment : matchedFragments) {

@@ -171,6 +171,7 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
     }
     Image diffuseMap = wr;
     PhongMaterial material = new PhongMaterial();
+    material.setSpecularColor(Color.WHITE);
     material.setDiffuseMap(diffuseMap);
     material.setSpecularColor(Color.WHITE);
     meshView.setMaterial(material);

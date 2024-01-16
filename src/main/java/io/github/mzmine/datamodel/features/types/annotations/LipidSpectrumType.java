@@ -28,13 +28,10 @@ package io.github.mzmine.datamodel.features.types.annotations;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
-import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.scene.Node;
@@ -64,29 +61,12 @@ public class LipidSpectrumType extends LinkedGraphicalType {
     if (matchedLipids == null || matchedLipids.isEmpty()) {
       return null;
     }
-    var chart = new LipidSpectrumChart(matchedLipids.get(0), progress, RunOption.THIS_THREAD);
-    return chart;
+    return new LipidSpectrumChart(row, progress, RunOption.THIS_THREAD, true, false);
   }
 
   @Override
   public double getColumnWidth() {
-    return LARGE_GRAPHICAL_CELL_WIDTH;
-  }
-
-  @Nullable
-  @Override
-  public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> file, DataType<?> superType,
-      @org.jetbrains.annotations.Nullable final Object value) {
-    List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
-    if (matchedLipids != null) {
-      MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(
-          matchedLipids.get(0).getLipidAnnotation().getAnnotation() + " Matched Signals",
-          new LipidSpectrumChart(row, null));
-      return () -> MZmineCore.getDesktop().addTab(matchedLipidSpectrumTab);
-    } else {
-      return null;
-    }
+    return DEFAULT_GRAPHICAL_CELL_WIDTH;
   }
 
 }

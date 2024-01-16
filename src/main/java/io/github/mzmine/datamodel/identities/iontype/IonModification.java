@@ -96,6 +96,8 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
       "Br", 78.918886, -1);
   public static final IonModification FA = new IonModification(IonModificationType.ADDUCT, "FA",
       "HCO2", 44.99820285, -1);
+  public static final IonModification ACETATE = new IonModification(IonModificationType.ADDUCT,
+      "Acetate", "C2H3O2", 59.013304, -1);
   // combined
   // +Na -2H+]-
   public static final IonModification NA_2H = CombinedIonModification.create(NA, H_NEG, H_NEG);
@@ -141,7 +143,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
       M2plus, H2plus, CA, FE, MG, NA_H, NH4_H, K_H, Hneg_NA2, Hneg_CA, Hneg_FE,
       M_PLUS_ALREADY_CHARGED, Hneg_MG};
   public static final IonModification[] DEFAULT_VALUES_NEGATIVE = {M_MINUS, H_NEG, NA_2H, NA, CL,
-      BR, FA, M_MINUS_ALREADY_CHARGED};
+      BR, FA, ACETATE, M_MINUS_ALREADY_CHARGED};
   // default modifications
   public static final IonModification[] DEFAULT_VALUES_MODIFICATIONS = {H2O, H2O_2, H2O_3, H2O_4,
       H2O_5, NH3, O, CO, CO2, C2H4, HFA, HAc, MEOH, ACN, ISOPROP};
@@ -358,7 +360,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
 
   public String toString(boolean showMass) {
     int absCharge = Math.abs(charge);
-    String z = absCharge > 1 ? absCharge + "" : "";
+    String z = absCharge > 1 ? String.valueOf(absCharge) : "";
     z += (charge < 0 ? "-" : "+");
     if (charge == 0) {
       z = "";

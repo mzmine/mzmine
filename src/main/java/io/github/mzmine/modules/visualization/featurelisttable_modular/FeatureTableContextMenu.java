@@ -54,14 +54,13 @@ import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.io.export_features_gnps.masst.GnpsMasstSubmitModule;
@@ -85,7 +84,7 @@ import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFl
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
 import io.github.mzmine.modules.visualization.pseudospectrumvisualizer.PseudoSpectrumVisualizerPane;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
-import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
+import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidAnnotationMatchTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController;
@@ -341,6 +340,11 @@ public class FeatureTableContextMenu extends ContextMenu {
     showNetworkVisualizerItemFull.setOnAction(
         e -> showNetworkVisualizer(NetworkOverviewFlavor.FULL_NETWORKS));
 
+    //final MenuItem showLipidAnnotationSummary = new ConditionalMenuItem("Lipid Annotation summary",
+    //    () -> !selectedRows.isEmpty() && rowHasMatchedLipidSignals(selectedRows.get(0)));
+    //showLipidAnnotationSummary.setOnAction(
+    //    e -> LipidAnnotationOverviewModule.showNewTab(selectedRows, selectedFeatures, table));
+
     final MenuItem showXICItem = new ConditionalMenuItem("XIC (quick)",
         () -> !selectedRows.isEmpty());
     showXICItem.setOnAction(
@@ -374,11 +378,9 @@ public class FeatureTableContextMenu extends ContextMenu {
     //TODO find better solution to check if single feature list row has co-located images
     final MenuItem showCorrelatedImageFeaturesItem = new ConditionalMenuItem("Co-located images",
         () -> {
-          if (selectedFeature == null
-              && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile) {
-            return false;
-          }
-          return selectedRowHasCorrelationData();
+          return (!selectedRows.isEmpty() && selectedFeature != null
+              && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile
+              && selectedRowHasCorrelationData());
         });
     showCorrelatedImageFeaturesItem.setOnAction(e -> {
       showCorrelatedImageFeatures();
@@ -525,10 +527,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     showMatchedLipidSignals.setOnAction(e -> {
       List<MatchedLipid> matchedLipids = selectedRows.get(0).get(LipidMatchListType.class);
       if (matchedLipids != null && !matchedLipids.isEmpty()) {
-        MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(
-            matchedLipids.get(0).getLipidAnnotation().getAnnotation() + " Matched Signals",
-            new LipidSpectrumChart(selectedRows.get(0), null));
-        MZmineCore.getDesktop().addTab(matchedLipidSpectrumTab);
+        MZmineCore.getDesktop().addTab((new LipidAnnotationMatchTab(table)));
       }
     });
 

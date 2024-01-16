@@ -47,7 +47,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralMatchPanelFX;
 import io.github.mzmine.parameters.ParameterSet;
@@ -100,10 +100,10 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
   private final boolean exportSpectralLibMatches;
   int nextBufferIndex = 0;
   private String desc = "Exporting all identifications.";
-  private NumberFormats form = MZmineCore.getConfiguration().getExportFormats();
+  private final NumberFormats form = MZmineCore.getConfiguration().getExportFormats();
   // progress
   private int totalIds = 1;
-  private AtomicInteger processed = new AtomicInteger(0);
+  private final AtomicInteger processed = new AtomicInteger(0);
 
   protected ExportAllIdsGraphicalTask(ParameterSet parameters, @Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate) {
@@ -387,7 +387,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
       }
 
       final LipidSpectrumChart chart = new LipidSpectrumChart(lipid, new AtomicDouble(0d),
-          RunOption.THIS_THREAD);
+          RunOption.THIS_THREAD, true, true);
       final SpectraPlot spectraPlot = chart.getSpectraPlot();
 
       final String formatStr = exportParameters.getValue(GraphicsExportParameters.exportFormat);
