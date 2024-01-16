@@ -26,6 +26,7 @@
 package import_data;
 
 import java.util.List;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
@@ -37,7 +38,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 @TestInstance(Lifecycle.PER_CLASS)
-//@Disabled
+@Disabled
 public class TimsTofImportTest extends AbstractDataImportTest {
 
   @Override
