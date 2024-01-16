@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,35 +57,40 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
     assert intensityValues != null;
     assert mzValues.capacity() == intensityValues.capacity();
 
-    totalIonCurrent = 0.0;
 
     if (mzValues.capacity() == 0) {
+      totalIonCurrent = 0.0;
       mzRange = null;
       basePeakIndex = null;
       return;
     }
 
-    totalIonCurrent = 0.0;
     basePeakIndex = 0;
     mzRange = Range.closed(mzValues.get(0), mzValues.get(mzValues.capacity() - 1));
 
-    for (int i = 0; i < mzValues.capacity() - 1; i++) {
+    double lastMz = mzValues.get(0);
+    double maxIntensity = intensityValues.get(0);
+    totalIonCurrent = maxIntensity;
+    for (int i = 1; i < mzValues.capacity(); i++) {
 
       // Check the order of the m/z values
-      if ((i < mzValues.capacity() - 1) && (mzValues.get(i) > mzValues.get(i + 1))) {
+      double mz = mzValues.get(i);
+      if (lastMz > mz) {
         throw new IllegalArgumentException("The m/z values must be sorted in ascending order");
       }
 
       // Update base peak index
-      if (intensityValues.get(i) > intensityValues.get(basePeakIndex)) {
+      double intensity = intensityValues.get(i);
+      if (intensity > maxIntensity) {
         basePeakIndex = i;
+        maxIntensity = intensity;
       }
 
       // Update TIC
-      totalIonCurrent += intensityValues.get(i);
+      totalIonCurrent += intensity;
+      //
+      lastMz = mz;
     }
-
-    totalIonCurrent += intensityValues.get(intensityValues.capacity() - 1);
   }
 
 

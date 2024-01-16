@@ -37,6 +37,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -47,6 +48,7 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
@@ -421,6 +423,9 @@ public class ParameterSetupPane extends BorderPane {
     if (node instanceof CheckBox checkBox) {
       checkBox.selectedProperty()
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
+    }
+    if (node instanceof ListView listview) {
+      listview.getItems().addListener((ListChangeListener) change -> parametersChanged());
     }
     if (node instanceof Region panelComp) {
       for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {

@@ -29,7 +29,6 @@ import static io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing
 import static io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningParameters.DEFAULT_TIMS_BIN_WIDTH;
 import static io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningParameters.DEFAULT_TWIMS_BIN_WIDTH;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -55,6 +54,7 @@ public class AdvancedImsTraceBuilderParameters extends SimpleParameterSet {
           DEFAULT_DTIMS_BIN_WIDTH, 1, 1000));
 
   public AdvancedImsTraceBuilderParameters() {
-    super(new Parameter[]{timsBinningWidth, dtimsBinningWidth, twimsBinningWidth});
+    super(timsBinningWidth, dtimsBinningWidth, twimsBinningWidth);
   }
 }
+

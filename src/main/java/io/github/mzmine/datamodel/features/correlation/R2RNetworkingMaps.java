@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Contains all the {@link R2RMap} for networking of rows
@@ -55,6 +56,16 @@ public class R2RNetworkingMaps {
     R2RMap<RowsRelationship> rowMap = r2rMaps.computeIfAbsent(relationship.getType(),
         key -> new R2RMap<>());
     rowMap.add(a, b, relationship);
+  }
+
+  @Nullable
+  public R2RMap<RowsRelationship> removeAllRowRelationships(Type type) {
+    return removeAllRowRelationships(type.toString());
+  }
+
+  @Nullable
+  public R2RMap<RowsRelationship> removeAllRowRelationships(String type) {
+    return r2rMaps.remove(type);
   }
 
   public Map<String, R2RMap<RowsRelationship>> getRowsMaps() {

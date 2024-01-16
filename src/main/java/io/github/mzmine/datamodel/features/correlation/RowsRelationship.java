@@ -105,6 +105,16 @@ public interface RowsRelationship {
    */
   @NotNull FeatureListRow getRowB();
 
+  default FeatureListRow getOtherRow(FeatureListRow correlatedRow) {
+    if(getRowA().equals(correlatedRow)) {
+      return getRowB();
+    }
+    else if(getRowB().equals(correlatedRow)) {
+      return getRowA();
+    }
+    throw new RuntimeException("Given row is not part of this row relationship");
+  }
+
 
   /**
    * All types of relationships

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,15 +48,15 @@ public class MinimumFeatureFilter {
   private final AbsoluteAndRelativeInt minFInSamples;
   private final AbsoluteAndRelativeInt minFInGroups;
   private final double minFeatureHeight;
+  // percent of intensity of the smaller to overlap the larger feature
+  private final double minIPercOverlap;
+  // do not accept that feature in one raw file is out of rtRange or minIPercOverlap
+  private final boolean strictRules = false;
   // sample group size
   private UserParameter<?, ?> sgroupPara;
   private HashMap<String, Integer> sgroupSize;
   private boolean filterGroups = false;
   private MZmineProject project;
-  // percent of intensity of the smaller to overlap the larger feature
-  private final double minIPercOverlap;
-  // do not accept that feature in one raw file is out of rtRange or minIPercOverlap
-  private final boolean strictRules = false;
   private boolean excludeEstimatedFeatures = false;
 
   public MinimumFeatureFilter(AbsoluteAndRelativeInt minFInSamples,
@@ -167,16 +167,18 @@ public class MinimumFeatureFilter {
    * Check for overlapping features in two rows (features in the same RawDataFile with
    * height>minHeight and within rtTolerance)
    *
-   * @param data        Optional preloaded feature data for large scale comparison of features
+   * @param data                  Optional preloaded feature data for large scale comparison of
+   *                              features
    * @param raw
    * @param row
    * @param row2
    * @param rtTolerance
+   * @param calculateShapeOverlap deactivated shape overlap colculation for large datasets
    * @return
    */
   public OverlapResult filterMinFeaturesOverlap(@Nullable CachedFeatureDataAccess data,
-      final List<RawDataFile> raw, FeatureListRow row, FeatureListRow row2,
-      RTTolerance rtTolerance) {
+      final List<RawDataFile> raw, FeatureListRow row, FeatureListRow row2, RTTolerance rtTolerance,
+      final boolean calculateShapeOverlap) {
     OverlapResult result = OverlapResult.TRUE;
     // filter min samples in all
     if (minFInSamples.isGreaterZero()) {
@@ -186,7 +188,8 @@ public class MinimumFeatureFilter {
         Feature b = row2.getFeature(file);
         if (checkFeatureQuality(a) && checkFeatureQuality(b)) {
           if (checkRTTol(rtTolerance, a, b)) {
-            if (checkIntensityOverlap(data, a, b, minIPercOverlap, minFeatureHeight)) {
+            if (!calculateShapeOverlap || checkIntensityOverlap(data, a, b, minIPercOverlap,
+                minFeatureHeight)) {
               n++;
             } else {
               result = OverlapResult.AntiOverlap;
@@ -219,7 +222,8 @@ public class MinimumFeatureFilter {
       Feature b = row2.getFeature(file);
       if (checkFeatureQuality(a) && checkFeatureQuality(b)) {
         if (checkRTTol(rtTolerance, a, b)) {
-          if (checkIntensityOverlap(data, a, b, minIPercOverlap, minFeatureHeight)) {
+          if (!calculateShapeOverlap || checkIntensityOverlap(data, a, b, minIPercOverlap,
+              minFeatureHeight)) {
             String sgroup = sgroupOf(file);
 
             MutableInt count = counter.get(sgroup);

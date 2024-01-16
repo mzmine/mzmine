@@ -27,6 +27,7 @@ package io.github.mzmine.gui.framework.fx.features;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import java.util.Collection;
 import javafx.scene.Node;
 
@@ -36,6 +37,11 @@ import javafx.scene.Node;
 public class SimpleFeatureListTab extends SimpleTab {
 
   private final ParentFeatureListPaneGroup parentGroup;
+
+  public SimpleFeatureListTab(String title, FeatureTableFX table) {
+    this(title);
+    parentGroup.featureTableFXProperty().set(table);
+  }
 
   public SimpleFeatureListTab(String title, boolean showBinding, boolean defaultBindingState) {
     super(title, showBinding, defaultBindingState);

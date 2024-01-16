@@ -47,7 +47,7 @@ public class ImageVisualizerPaneController {
   private GridPane imagingParameterInfoGridPane;
 
   @FXML
-  private GridPane plotSettingsInfoGridPane;
+  private BorderPane settingsBorderPane;
 
   public BorderPane getPlotPane() {
     return plotPane;
@@ -65,4 +65,19 @@ public class ImageVisualizerPaneController {
     return spectrumPlotPane;
   }
 
+  public BorderPane getSettingsBorderPane() {
+    return settingsBorderPane;
+  }
+
+  public void setSettingsBorderPane(BorderPane settingsBorderPane) {
+    this.settingsBorderPane = settingsBorderPane;
+  }
+
+  public void setRawDataInfoGridPane(GridPane rawDataInfoGridPane) {
+    this.rawDataInfoGridPane = rawDataInfoGridPane;
+  }
+
+  public void setImagingParameterInfoGridPane(GridPane imagingParameterInfoGridPane) {
+    this.imagingParameterInfoGridPane = imagingParameterInfoGridPane;
+  }
 }

@@ -66,7 +66,7 @@ public class ImagingParameters {
   // max number of pixels in x and y and z (depth)
   private int maxNumberOfPixelX;
   private int maxNumberOfPixelY;
-  private int maxNumberOfPixelZ = 1;
+  private int maxNumberOfPixelZ;
   // vertical and horizontal start
   private VerticalStart vStart;
   private HorizontalStart hStart;
@@ -382,22 +382,61 @@ public class ImagingParameters {
 
 
   public enum VerticalStart {
-    TOP, BOTTOM;
+    TOP("Top"), BOTTOM("Bottom");
+    final String name;
+
+    VerticalStart(String name) {
+      this.name = name;
+    }
+
+    public String getName() {
+      return name;
+    }
   }
 
 
   public enum HorizontalStart {
-    LEFT, RIGHT;
+    LEFT("Left"), RIGHT("Right");
+    final String name;
+
+    HorizontalStart(String name) {
+      this.name = name;
+    }
+
+    public String getName() {
+      return name;
+    }
   }
 
 
   public enum Pattern {
-    MEANDER, FLY_BACK, RANDOM
+    MEANDER("Meander"), FLY_BACK("Fly Back"), RANDOM("Random");
+
+    final String name;
+
+    Pattern(String name) {
+      this.name = name;
+    }
+
+    public String getName() {
+      return name;
+    }
   }
 
 
   public enum ScanDirection {
-    HORIZONTAL, VERTICAL
+
+
+    HORIZONTAL("Horizontal"), VERTICAL("Vertical");
+    final String name;
+
+    ScanDirection(String name) {
+      this.name = name;
+    }
+
+    public String getName() {
+      return name;
+    }
   }
 
 }

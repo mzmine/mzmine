@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.I
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -88,6 +89,9 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
   public static final OptionalParameter<StringParameter> SUFFIX = new OptionalParameter<>(
       new StringParameter("Suffix (or auto)", "Select suffix or deselect for auto suffix"), false);
 
+  public static final AdvancedParametersParameter<AdvancedCorrelateGroupingParameters> advanced = new AdvancedParametersParameter<>(
+      new AdvancedCorrelateGroupingParameters(), true);
+
   // Constructor
   public CorrelateGroupingParameters() {
     super(PEAK_LISTS, RT_TOLERANCE,
@@ -98,7 +102,7 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
         // intensity max correlation
         IMAX_CORRELATION,
         // suffix or auto suffix
-        SUFFIX);
+        SUFFIX, advanced);
   }
 
 
@@ -121,6 +125,6 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
 
   @Override
   public int getVersion() {
-    return 2;
+    return 3;
   }
 }

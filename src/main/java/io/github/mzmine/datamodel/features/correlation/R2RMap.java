@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,9 @@ package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.MathUtils;
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 /**
  * Map an object to two rows
@@ -79,4 +81,21 @@ public class R2RMap<T> extends ConcurrentHashMap<Integer, T> {
     return get(toKey(a, b));
   }
 
+  /**
+   * Performance optimised version to get a stream of all correlated rows in this {@link R2RMap}.
+   * Mapping is based on the ID of the two rows. Make sure the row and allRows originate from the
+   * same feature list as this R2RMap relates to. Rows from other feature lists with common ids will
+   * be falsely correlated.
+   *
+   * @param row     the row to search relationships for
+   * @param allRows a collection of all rows to check for correlation
+   */
+  public Stream<T> streamAllCorrelatedRows(FeatureListRow row, Collection<FeatureListRow> allRows) {
+    return allRows.stream().<T>mapMulti((otherRow, consumer) -> {
+      final T relationship = get(row, otherRow);
+      if (relationship != null) {
+        consumer.accept(relationship);
+      }
+    });
+  }
 }

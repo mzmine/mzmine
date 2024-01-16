@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,7 +48,6 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Pea
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.SinglePeakDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SingleSpectrumLibrarySearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -139,7 +138,9 @@ public class SpectraVisualizerTab extends MZmineTab {
 
   private SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
 
-  public SpectraVisualizerTab(RawDataFile dataFile, Scan scanNumber, boolean enableProcessing) {
+
+  public SpectraVisualizerTab(RawDataFile dataFile, Scan scanNumber, boolean enableProcessing,
+      boolean hideSettingsPanel) {
     super("Spectra visualizer", true, false);
     // setTitle("Spectrum loading...");
     this.dataFile = dataFile;
@@ -219,12 +220,6 @@ public class SpectraVisualizerTab extends MZmineTab {
         e -> CustomDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot,
             Instant.now()));
 
-    Button dbLipidsButton = new Button(null, new ImageView(dbLipidsIcon));
-    dbLipidsButton.setTooltip(new Tooltip("Select target lipid classes for annotation"));
-    dbLipidsButton.setOnAction(
-        e -> LipidSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot,
-            Instant.now()));
-
     Button dbSpectraButton = new Button(null, new ImageView(dbSpectraIcon));
     dbSpectraButton.setTooltip(new Tooltip("Compare spectrum with spectral libraries"));
     dbSpectraButton.setOnAction(
@@ -240,13 +235,14 @@ public class SpectraVisualizerTab extends MZmineTab {
     toolBar.getItems()
         .addAll(centroidContinuousButton, dataPointsButton, annotationsButton, pickedPeakButton,
             isotopePeakButton, axesButton, exportButton, createLibraryEntryButton, dbCustomButton,
-            dbLipidsButton, dbSpectraButton, sumFormulaButton);
+            dbSpectraButton, sumFormulaButton);
 
     mainPane.setRight(toolBar);
-
     bottomPanel = new SpectraBottomPanel(this, dataFile);
-    Accordion bottomAccordion = new Accordion(new TitledPane("Spectrum options", bottomPanel));
-    mainPane.setBottom(bottomAccordion);
+    if (!hideSettingsPanel) {
+      Accordion bottomAccordion = new Accordion(new TitledPane("Spectrum options", bottomPanel));
+      mainPane.setBottom(bottomAccordion);
+    }
     setContent(mainPane);
 
     // get parameters
@@ -257,6 +253,10 @@ public class SpectraVisualizerTab extends MZmineTab {
     setMzTolerance(mzTolerance);
     mzToleranceProperty.bindBidirectional(spectrumPlot.mzToleranceProperty());
 
+  }
+
+  public SpectraVisualizerTab(RawDataFile dataFile, Scan scanNumber, boolean enableProcessing) {
+    this(dataFile, scanNumber, enableProcessing, false);
   }
 
   public SpectraVisualizerTab(RawDataFile dataFile) {

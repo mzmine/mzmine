@@ -44,8 +44,7 @@ import org.jetbrains.annotations.NotNull;
 public class NetCDFExportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Raw data export to netCDF";
-  private static final String MODULE_DESCRIPTION =
-      "This module exports raw data files from your MZmine project into various formats";
+  private static final String MODULE_DESCRIPTION = "This module exports raw data files from your MZmine project into various formats";
 
   @Override
   public @NotNull String getName() {
@@ -63,16 +62,21 @@ public class NetCDFExportModule implements MZmineProcessingModule {
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     String extension = "cdf";
 
+    String suffix = parameters.getEmbeddedParameterValueIfSelectedOrElse(
+        NetCDFExportParameters.suffix, "");
+    suffix = suffix.isBlank() ? "" : "_" + suffix;
+
     File folder = parameters.getParameter(NetCDFExportParameters.fileName).getValue();
-    if (!folder.isDirectory())
+    if (!folder.isDirectory()) {
       folder = folder.getParentFile();
+    }
 
     RawDataFile[] dataFile = parameters.getParameter(NetCDFExportParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
 
     for (RawDataFile r : dataFile) {
-      File fullName = FileAndPathUtil.getRealFilePath(folder, r.getName(), extension);
-      Task newTask = new NetCDFExportTask(r, fullName, moduleCallDate);
+      File fullName = FileAndPathUtil.getRealFilePath(folder, r.getName() + suffix, extension);
+      Task newTask = new NetCDFExportTask(r, fullName, parameters, moduleCallDate);
       tasks.add(newTask);
     }
     return ExitCode.OK;
