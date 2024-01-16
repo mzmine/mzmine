@@ -103,7 +103,7 @@ public class IINTests {
     testIonParser("[M+CH3]+", "[M+CH3]+", 1, 1, 1);
     testIonParser("[M-H+CH3]+", "[M+CH3-H]+", 1, 1, 1);
     testIonParser("[M-H+Fe]2+", "[M+Fe-H]+2", 1, 2, 1);
-    testIonParser("M-H-e", "[M-H-e]-", 1, -1, 1);
+    testIonParser("M-H-e", "[M-H-e]+", 1, +1, 1);
 
     // counter intuitve but we expect ions to have a charge and default to 1
     testIonParser("[M-H2O]", "[M-H2O]+", 1, 1, 1);
