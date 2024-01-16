@@ -28,6 +28,8 @@ package import_data;
 import java.util.List;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 /**
  * {@link Lifecycle#PER_CLASS} creates only one test instance of this class and executes everything
@@ -37,15 +39,14 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 @TestInstance(Lifecycle.PER_CLASS)
-//@TestMethodOrder(OrderAnnotation.class)
-//@Disabled
-public class ThermoRawImportTest extends AbstractDataImportTest {
+@DisabledOnOs(OS.MAC)
+public class TimsTofImportTest extends AbstractDataImportTest {
 
   @Override
   public List<String> getFileNames() {
     return List.of( //
-        "rawdatafiles/additional/astral.raw" //
-//      , "rawdatafiles/additional/astral.raw" //
+        "rawdatafiles/additional/tims_spot.d" //
+        , "rawdatafiles/additional/tims_spot_acryllic.d" //
     );
   }
 }
