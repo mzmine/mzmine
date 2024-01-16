@@ -56,8 +56,7 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
                             List<Integer> imsScanNumMobScans, List<String> imageScanCoord) {
 
   public static final List<Integer> scanNumbers = List.of(0, 1, 5, 10, 20, 25, 50, 75, 100, 150,
-      200, 300, 400, 600, 800,
-      1000, 1200, 1500);
+      200, 300, 400, 600, 800, 1000, 1200, 1500);
 
   private static final Logger logger = Logger.getLogger(DataFileStats.class.getName());
 
@@ -93,8 +92,13 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
     var frameMobilityRange = frames.stream().map(Frame::getMobilityRange).map(Range::toString)
         .toList();
     var imsMaxRawDataPoints = frames.stream().map(Frame::getMaxMobilityScanRawDataPoints).toList();
-    var imsMaxCentroidDataPoints = frames.stream().map(Frame::getMaxMobilityScanMassListDataPoints)
-        .toList();
+    var imsMaxCentroidDataPoints = frames.stream().map(dataPoints -> {
+      try {
+        return dataPoints.getMaxMobilityScanMassListDataPoints();
+      } catch (Exception ex) {
+        return null;
+      }
+    }).filter(Objects::nonNull).toList();
     var imsScanNumMobScans = frames.stream().map(Frame::getMobilityScans).map(List::size).toList();
 
     // imaging

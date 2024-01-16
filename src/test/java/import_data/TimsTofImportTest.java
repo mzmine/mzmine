@@ -25,17 +25,9 @@
 
 package import_data;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
-import testutils.MZmineTestUtil;
 
 /**
  * {@link Lifecycle#PER_CLASS} creates only one test instance of this class and executes everything
@@ -45,46 +37,14 @@ import testutils.MZmineTestUtil;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 @TestInstance(Lifecycle.PER_CLASS)
-//@TestMethodOrder(OrderAnnotation.class)
 //@Disabled
-public class TimsTofImportTest {
+public class TimsTofImportTest extends AbstractDataImportTest {
 
-  public static final List<String> fileNames = List.of( //
-      "rawdatafiles/additional/tims_spot.d" //
-      , "rawdatafiles/additional/tims_spot_acryllic.d" //
-  );
-  private static final Logger logger = Logger.getLogger(TimsTofImportTest.class.getName());
-  private static final Map<String, DataFileStats> stats = HashMap.newHashMap(fileNames.size());
-
-  static {
+  @Override
+  public List<String> getFileNames() {
+    return List.of( //
+        "rawdatafiles/additional/tims_spot.d" //
+        , "rawdatafiles/additional/tims_spot_acryllic.d" //
+    );
   }
-
-  /**
-   * Init MZmine core in headless mode with the options -r (keep running) and -m (keep in memory)
-   */
-  @BeforeAll
-  public static void init() {
-    logger.info("Getting project");
-    try {
-      MZmineTestUtil.importFiles(fileNames, 60);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-
-  @AfterAll
-  public static void tearDown() {
-    //clean the project after this integration test
-    MZmineTestUtil.cleanProject();
-  }
-
-  @Test
-//    @Order(1)
-//  @Disabled
-  @DisplayName("Test data import without advanced parameters")
-  void dataImportTest() {
-    DataImportTestUtils.testDataStatistics(fileNames, stats);
-  }
-
 }

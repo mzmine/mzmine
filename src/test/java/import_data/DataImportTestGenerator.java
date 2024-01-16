@@ -46,6 +46,7 @@ public class DataImportTestGenerator {
         new MzMLImportTest() //
         , new ImzMLImportTest() //
         , new ThermoRawImportTest() //
+        , new TimsTofImportTest() //
     );
 
     for (var entry : tests) {
