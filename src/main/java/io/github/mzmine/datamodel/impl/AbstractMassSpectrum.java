@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -59,28 +59,26 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
     assert intensityValues != null;
     assert mzValues.limit() == intensityValues.limit();
 
-    totalIonCurrent = 0.0;
 
     if (mzValues.limit() == 0) {
+      totalIonCurrent = 0.0;
       mzRange = null;
       basePeakIndex = null;
       return;
     }
 
+    basePeakIndex = 0;
+
     double lastMz = mzValues.get(0);
     double maxIntensity = intensityValues.get(0);
     totalIonCurrent = maxIntensity;
-    basePeakIndex = 0;
-
-    // first index was handled
     for (int i = 1; i < mzValues.limit(); i++) {
 
       // Check the order of the m/z values
       double mz = mzValues.get(i);
-      if (mz<lastMz) {
+      if (lastMz > mz) {
         throw new IllegalArgumentException("The m/z values must be sorted in ascending order");
       }
-      lastMz = mz;
 
       // Update base peak index
       double intensity = intensityValues.get(i);
@@ -91,6 +89,8 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
 
       // Update TIC
       totalIonCurrent += intensity;
+      //
+      lastMz = mz;
     }
     // set range after checking the order
     mzRange = Range.closed(mzValues.get(0), mzValues.get(mzValues.limit() - 1));
