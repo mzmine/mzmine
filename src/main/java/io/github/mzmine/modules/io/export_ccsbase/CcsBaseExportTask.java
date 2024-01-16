@@ -129,6 +129,14 @@ public class CcsBaseExportTask extends AbstractTask {
       }
     }
 
+    try {
+      file.createNewFile();
+    } catch (IOException e) {
+      setErrorMessage("Could not create file: %s".formatted(file.toString()));
+      logger.log(Level.SEVERE, "Could not create file. " + e.getMessage(), e);
+      return;
+    }
+
     try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardOpenOption.WRITE)) {
       writer.write(CCS_BASE_HEADER);
       writer.newLine();
