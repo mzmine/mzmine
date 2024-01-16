@@ -181,12 +181,14 @@ public class BuildingIonSeries implements IonSeries {
 
   @Override
   public double[] getIntensityValues(final double[] dst) {
-    return intensities;
+    throw new UnsupportedOperationException(
+        "This method in building ion series should not be called. Call getIntensities instead");
   }
 
   @Override
   public double[] getMzValues(final double[] dst) {
-    return mzs;
+    throw new UnsupportedOperationException(
+        "This method in building ion series should not be called. Call getMzs instead");
   }
 
   @Override
@@ -196,12 +198,12 @@ public class BuildingIonSeries implements IonSeries {
 
   @Override
   public IonSeries copy(final MemoryMapStorage storage) {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException("Only used for building");
   }
 
   @Override
   public DoubleBuffer getMZValueBuffer() {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException("Only used for building");
   }
 
   public enum IntensityMode {
