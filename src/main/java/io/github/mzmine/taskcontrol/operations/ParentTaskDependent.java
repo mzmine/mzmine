@@ -29,8 +29,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Task operations are sub tasks that can react to a parent task being canceled. It also updates the
- * finished percentage progress
+ * Task operations are sub tasks that can react to a parent task being canceled.
  */
 public interface ParentTaskDependent {
 

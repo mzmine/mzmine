@@ -27,6 +27,10 @@ package io.github.mzmine.taskcontrol.operations;
 
 import io.github.mzmine.taskcontrol.AbstractTask;
 
+/**
+ * Task operations are sub tasks that can react to a parent task being canceled. It also updates the
+ * finished percentage progress. The supplier provides a return type.
+ */
 public abstract class AbstractTaskSubSupplier<T> extends AbstractParentTaskDependent implements
     TaskSubSupplier<T> {
 
