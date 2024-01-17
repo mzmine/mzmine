@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -130,6 +130,11 @@ public class RowsFilterParameters extends SimpleParameterSet {
       "If checked, all rows with MS2 are retained without applying any further filters on them.",
       true);
 
+  public static final BooleanParameter KEEP_ALL_ANNOTATED = new BooleanParameter(
+      "Never remove annotated rows",
+      "If checked, a feature that is annotated will never be removed from the feature list.",
+      false);
+
   public static final BooleanParameter Reset_ID = new BooleanParameter(
       "Reset the feature number ID",
       "If checked, the row number of original feature list will be reset.", false);
@@ -144,7 +149,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
     super(new Parameter[]{FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT,
             ISOTOPE_FILTER_13C, removeRedundantRows, MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
             KENDRICK_MASS_DEFECT, GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT,
-            REMOVE_ROW, MS2_Filter, KEEP_ALL_MS2, Reset_ID, massDefect, handleOriginal},
+            REMOVE_ROW, MS2_Filter, KEEP_ALL_MS2, KEEP_ALL_ANNOTATED, Reset_ID, massDefect,
+            handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/feature_list_row_filter/feature_list_rows_filter.html");
   }
 
