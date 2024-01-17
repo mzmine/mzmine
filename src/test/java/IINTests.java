@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -90,6 +90,10 @@ public class IINTests {
 
   @Test
   void testIonParse() {
+    // this is tricky to format correctly. M- does not write e- and here we want it to be written
+    testIonParser("M-H+e", "[M-H]-2", 1, -2, 0);
+    testIonParser("M-H-2e", "[M-H]+", 1, 1, 0);
+    testIonParser("2M+2H-2H2O]", "[2M-2H2O+2H]+2", 2, 2, 2);
     testIonParser("2M+", "[2M]+", 2, 1, 0);
     testIonParser("M+", "[M]+", 1, 1, 0);
     testIonParser("M-2H]2-", "[M-2H]-2", 1, -2, 0);
@@ -102,8 +106,14 @@ public class IINTests {
     testIonParser("M+H+", "[M+H]+", 1, 1, 0);
     testIonParser("[M+CH3]+", "[M+CH3]+", 1, 1, 1);
     testIonParser("[M-H+CH3]+", "[M+CH3-H]+", 1, 1, 1);
-    testIonParser("[M-H+Fe]2+", "[M+Fe-H]+2", 1, 2, 1);
-    testIonParser("M-H-e", "[M-H-e]+", 1, +1, 1);
+    testIonParser("[M-H+Fe]2+", "[M+Fe-H]+2", 1, 2, 0);
+    testIonParser("M+e", "[M]-", 1, -1, 0);
+    testIonParser("M+2e", "[M]-2", 1, -2, 0);
+    testIonParser("M-e", "[M]+", 1, 1, 0);
+    testIonParser("M-2e", "[M]+2", 1, 2, 0);
+
+    testIonParser("M+Cl", "[M+Cl]-", 1, -1, 0);
+    testIonParser("M-HCl+FA", "[M-HCl+FA]-", 1, -1, 1);
 
     // counter intuitve but we expect ions to have a charge and default to 1
     testIonParser("[M-H2O]", "[M-H2O]+", 1, 1, 1);
