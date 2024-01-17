@@ -129,11 +129,10 @@ public class CcsBaseExportTask extends AbstractTask {
       }
     }
 
-    try {
-      file.createNewFile();
-    } catch (IOException e) {
-      setErrorMessage("Could not create file: %s".formatted(file.toString()));
-      logger.log(Level.SEVERE, "Could not create file. " + e.getMessage(), e);
+    if (!FileAndPathUtil.createDirectory(file.getParentFile())) {
+      setErrorMessage("Cannot create directory %s.\n You may not have write access.".formatted(
+          file.getParentFile().toString()));
+      setStatus(TaskStatus.ERROR);
       return;
     }
 
