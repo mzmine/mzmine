@@ -143,6 +143,11 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
 
     RecordComponent[] fields = getClass().getRecordComponents();
     for (final RecordComponent field : fields) {
+      // skip field like when RT has changed due to floating point parsing
+//      if (field.getName().equals("scanRetentionTime")) {
+//        continue;
+//      }
+
       testField(expected, actual, field);
     }
   }
