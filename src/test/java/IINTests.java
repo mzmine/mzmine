@@ -92,6 +92,7 @@ public class IINTests {
   void testIonParse() {
     // this is tricky to format correctly. M- does not write e- and here we want it to be written
     testIonParser("M-H+e", "[M-H]-2", 1, -2, 0);
+    testIonParser("M-H-2e", "[M-H]+", 1, 1, 0);
     testIonParser("2M+2H-2H2O]", "[2M-2H2O+2H]+2", 2, 2, 2);
     testIonParser("2M+", "[2M]+", 2, 1, 0);
     testIonParser("M+", "[M]+", 1, 1, 0);
