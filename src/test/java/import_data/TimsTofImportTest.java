@@ -47,6 +47,8 @@ public class TimsTofImportTest extends AbstractDataImportTest {
     return List.of( //
         "rawdatafiles/additional/tims_spot.d" //
         , "rawdatafiles/additional/tims_spot_acryllic.d" //
+        , "rawdatafiles/additional/lc-tims-ms-pasef-a.d" //
+        , "rawdatafiles/additional/lc-tims-ms-pasef-b.d" //
     );
   }
 }
