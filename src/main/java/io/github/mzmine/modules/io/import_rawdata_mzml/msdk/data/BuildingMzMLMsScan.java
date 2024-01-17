@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -581,6 +581,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   /**
    * Called when spectrum end is read. Load, process data points and memory map resulting data to
    * disk to save RAM.
+   * @return false if
    */
   public boolean loadProcessMemMapData(final MemoryMapStorage storage,
       final MsProcessorList spectralProcessor) {
@@ -606,6 +607,11 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     return true;
   }
 
+  /**
+   * Decode and load data from binary arrays
+   *
+   * @return null if no data available otherwise the spectral arrays
+   */
   private @Nullable SimpleSpectralArrays loadData() throws MSDKException, IOException {
     if(mzBinaryDataInfo==null) {
       // maybe UV spectrum

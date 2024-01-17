@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,6 +43,7 @@ import javolution.text.CharArray;
 import javolution.xml.internal.stream.XMLStreamReaderImpl;
 import javolution.xml.stream.XMLStreamException;
 import javolution.xml.stream.XMLStreamReader;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * <p>
@@ -57,14 +58,14 @@ public class MzMLParser {
   private final TagTracker tracker;
   private final MzMLFileImportMethod importer;
   private final MemoryMapStorage storage;
-  private final ScanImportProcessorConfig scanProcessorConfig;
+  private final @NotNull ScanImportProcessorConfig scanProcessorConfig;
 
   private int totalScans = 0, parsedScans = 0;
   private final MzMLRawDataFile newRawFile;
 
 
   public MzMLParser(MzMLFileImportMethod importer, MemoryMapStorage storage,
-      ScanImportProcessorConfig scanProcessorConfig) {
+      @NotNull ScanImportProcessorConfig scanProcessorConfig) {
     this.vars = new Vars();
     this.tracker = new TagTracker();
     this.importer = importer;
@@ -156,7 +157,6 @@ public class MzMLParser {
         } else {
           vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, vars.defaultArrayLength);
         }
-
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_SCAN)) {
         vars.scan = new MzMLScan();
@@ -540,10 +540,7 @@ public class MzMLParser {
     if (!newRawFile.getOriginalFile().isPresent() && tracker.current()
         .contentEquals(MzMLTags.TAG_BINARY) && !vars.skipBinaryDataArray) {
       if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST) && scanProcessorConfig.scanFilter().matches(vars.spectrum)) {
-        switch (vars.binaryDataInfo.getArrayType().getAccession()) {
-          case MzMLCV.cvMzArray -> vars.spectrum.getDoubleBufferMzValues();
-          case MzMLCV.cvIntensityArray -> vars.spectrum.getDoubleBufferIntensityValues();
-        }
+        // spectra are now loaded directly and processed when finishing a spectrum
       }
 //      else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
 //        switch (vars.binaryDataInfo.getArrayType().getAccession()) {
