@@ -129,6 +129,13 @@ public class CcsBaseExportTask extends AbstractTask {
       }
     }
 
+    if (!FileAndPathUtil.createDirectory(file.getParentFile())) {
+      setErrorMessage("Cannot create directory %s.\n You may not have write access.".formatted(
+          file.getParentFile().toString()));
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+
     try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardOpenOption.WRITE)) {
       writer.write(CCS_BASE_HEADER);
       writer.newLine();
