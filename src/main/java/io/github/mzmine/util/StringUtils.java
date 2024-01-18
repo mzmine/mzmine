@@ -108,6 +108,9 @@ public class StringUtils {
   @Nullable
   public static Integer parseSignAndIntegerOrElse(String str, boolean onlyUseDigits,
       @Nullable Integer defaultValue) {
+    if (str == null || str.isBlank()) {
+      return defaultValue;
+    }
     int signMultiplier = findFirstPlusMinusSignMultiplier(str);
     try {
       var value = parseIntegerOrElse(str, onlyUseDigits, defaultValue);
