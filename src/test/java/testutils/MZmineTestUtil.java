@@ -54,6 +54,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
@@ -83,6 +84,7 @@ import org.junit.jupiter.api.Assertions;
 public class MZmineTestUtil {
 
   private static final Logger logger = Logger.getLogger(MZmineTestUtil.class.getName());
+
   /**
    * Call a module in MZmineCore and wait for it to finish.
    *
@@ -171,6 +173,11 @@ public class MZmineTestUtil {
 
   public static void importFiles(final List<String> fileNames, long timeoutSeconds)
       throws InterruptedException {
+    importFiles(fileNames, timeoutSeconds, null);
+  }
+
+  public static void importFiles(final List<String> fileNames, long timeoutSeconds,
+      @Nullable AdvancedSpectraImportParameters advanced) throws InterruptedException {
     File[] files = fileNames.stream()
         .map(name -> new File(MzMLImportTest.class.getClassLoader().getResource(name).getFile()))
         .toArray(File[]::new);
@@ -178,7 +185,11 @@ public class MZmineTestUtil {
     AllSpectralDataImportParameters paramDataImport = new AllSpectralDataImportParameters();
     paramDataImport.setParameter(AllSpectralDataImportParameters.fileNames, files);
     paramDataImport.setParameter(SpectralLibraryImportParameters.dataBaseFiles, new File[0]);
-    paramDataImport.setParameter(AllSpectralDataImportParameters.advancedImport, false);
+    paramDataImport.setParameter(AllSpectralDataImportParameters.advancedImport, advanced != null);
+    if (advanced != null) {
+      var advancedP = paramDataImport.getParameter(AllSpectralDataImportParameters.advancedImport);
+      advancedP.setEmbeddedParameters(advanced);
+    }
 
     logger.info("Testing data import of mzML and mzXML without advanced parameters");
     TaskResult finished = MZmineTestUtil.callModuleWithTimeout(timeoutSeconds,

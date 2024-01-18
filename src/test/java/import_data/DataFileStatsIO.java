@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,7 +44,7 @@ public class DataFileStatsIO {
 
   private static final Logger logger = Logger.getLogger(DataFileStatsIO.class.getName());
 
-  public static void writeJson(String path, Class<?> clazz, DataFileStats[] stats) {
+  public static void writeJson(String path, Class<?> clazz, List<DataFileStats> stats) {
     var file = getFile(path, clazz);
     FileAndPathUtil.createDirectory(file.getParentFile());
     ObjectMapper objectMapper = new ObjectMapper();
@@ -71,8 +72,8 @@ public class DataFileStatsIO {
     ObjectMapper objectMapper = new ObjectMapper();
     try {
       DataFileStats[] stats = objectMapper.readValue(file, DataFileStats[].class);
-      var map = Arrays.stream(stats).collect(Collectors.toMap(DataFileStats::fileName, s -> s));
-      return map;
+      return Arrays.stream(stats)
+          .collect(Collectors.toMap(s -> s.fileName() + s.advanced(), s -> s));
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Cannot write " + e.getMessage(), e);
       throw new RuntimeException("Cannot write " + e.getMessage(), e);

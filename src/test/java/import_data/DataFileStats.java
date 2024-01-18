@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.RecordComponent;
 import java.util.Arrays;
@@ -43,7 +44,8 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 
-public record DataFileStats(String fileName, int numScans, int numScansMs1, int numScansMs2,
+public record DataFileStats(String fileName, boolean advanced, int numScans, int numScansMs1,
+                            int numScansMs2,
                             int maxRawDataPoints, int maxCentroidDataPoints,
                             List<Integer> scanNumDataPoints, List<Double> scanTic,
                             List<String> scanType, List<Double> scanBasePeakMz,
@@ -65,6 +67,10 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
    * Extract data for text
    */
   public static DataFileStats extract(RawDataFile raw) {
+    var applied = raw.getAppliedMethods().get(0);
+    boolean advanced = applied.getParameters()
+        .getValue(AllSpectralDataImportParameters.advancedImport);
+
     int numScans = raw.getNumOfScans();
     int numScansMs1 = raw.getNumOfScans(1);
     int numScansMs2 = raw.getNumOfScans(2);
@@ -107,7 +113,7 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
     var imageScanCoord = imagingScan.stream().map(ImagingScan::getCoordinates)
         .filter(Objects::nonNull).map(c -> STR."\{c.getX()},\{c.getY()}").toList();
 
-    return new DataFileStats(raw.getFileName(), numScans, numScansMs1, numScansMs2,
+    return new DataFileStats(raw.getFileName(), advanced, numScans, numScansMs1, numScansMs2,
         maxRawDataPoints, maxCentroidDataPoints, scanNumDataPoints, scanTic, scanType,
         scanBasePeakMz, scanNumber, scanMzRange, scanInjectTime, scanMsLevel, scanPolarity,
         scanPrecursorMz, scanPrecursorCharge, scanRetentionTime,

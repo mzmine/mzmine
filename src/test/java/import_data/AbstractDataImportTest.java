@@ -25,18 +25,33 @@
 
 package import_data;
 
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
+import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
+import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.TestMethodOrder;
 import testutils.MZmineTestUtil;
 
 @TestInstance(Lifecycle.PER_CLASS)
+@TestMethodOrder(OrderAnnotation.class)
 public abstract class AbstractDataImportTest {
 
   private static final Logger logger = Logger.getLogger(AbstractDataImportTest.class.getName());
@@ -66,11 +81,54 @@ public abstract class AbstractDataImportTest {
   }
 
   @Test
-//    @Order(1)
+  @Order(1)
 //  @Disabled
   @DisplayName("Test data import of mzML and mzXML without advanced parameters")
   void dataImportTest() {
     Map<String, DataFileStats> stats = DataFileStatsIO.readJson(getClass());
     DataImportTestUtils.testDataStatistics(getFileNames(), stats);
+  }
+
+  @Test
+  @Order(2)
+//  @Disabled
+  @DisplayName("Test data advanced import of mzML and mzXML with advanced parameters like mass detection")
+  void advancedDataImportTest() throws InterruptedException {
+    var advanced = createAdvancedImportSettings();
+
+    MZmineTestUtil.cleanProject();
+    MZmineTestUtil.importFiles(getFileNames(), 60, advanced);
+    Map<String, DataFileStats> stats = DataFileStatsIO.readJson(getClass());
+    DataImportTestUtils.testDataStatistics(getFileNames(), stats);
+  }
+
+
+  /**
+   * @return null if no advanced import should be checked
+   */
+  @Nullable
+  public AdvancedSpectraImportParameters createAdvancedImportSettings() {
+    final var massDetector = MassDetectionParameters.auto;
+    final ParameterSet massDetectorParam = MZmineCore.getConfiguration()
+        .getModuleParameters(AutoMassDetector.class).cloneParameterSet();
+    massDetectorParam.setParameter(AutoMassDetectorParameters.noiseLevel, 3E5);
+    massDetectorParam.setParameter(AutoMassDetectorParameters.detectIsotopes, false);
+    MZmineProcessingStep<MassDetector> massDetectorStep = new MZmineProcessingStepImpl<>(
+        massDetector, massDetectorParam);
+    final ParameterSet massDetectorParam2 = MZmineCore.getConfiguration()
+        .getModuleParameters(AutoMassDetector.class).cloneParameterSet();
+    massDetectorParam2.setParameter(AutoMassDetectorParameters.noiseLevel, 3E5);
+    massDetectorParam2.setParameter(AutoMassDetectorParameters.detectIsotopes, false);
+    MZmineProcessingStep<MassDetector> massDetectorStep2 = new MZmineProcessingStepImpl<>(
+        massDetector, massDetectorParam2);
+
+    AdvancedSpectraImportParameters advanced = (AdvancedSpectraImportParameters) new AdvancedSpectraImportParameters().cloneParameterSet();
+    advanced.setParameter(AdvancedSpectraImportParameters.msMassDetection, true, massDetectorStep);
+    advanced.setParameter(AdvancedSpectraImportParameters.ms2MassDetection, true,
+        massDetectorStep2);
+    advanced.setParameter(AdvancedSpectraImportParameters.mzRange, false);
+    advanced.setParameter(AdvancedSpectraImportParameters.denormalizeMSnScans, false);
+    advanced.setParameter(AdvancedSpectraImportParameters.scanFilter, ScanSelection.ALL_SCANS);
+    return advanced;
   }
 }
