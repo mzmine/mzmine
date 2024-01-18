@@ -40,6 +40,10 @@ import java.util.List;
 public record ScanImportProcessorConfig(ScanSelection scanFilter, MsProcessorList processor,
                                         boolean applyMassDetection) {
 
+  public ScanImportProcessorConfig(ScanSelection scanFilter, MsProcessorList processor) {
+    this(scanFilter, processor, processor.containsMassDetection());
+  }
+
   public static ScanImportProcessorConfig createDefault() {
     List<MsProcessor> processors = new ArrayList<>();
     processors.add(new SortByMzMsProcessor());

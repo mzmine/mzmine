@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,9 +26,11 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor;
 
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.processors.MassDetectorMsProcessor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Contains multiple steps to process
@@ -53,5 +55,18 @@ public class MsProcessorList implements MsProcessor {
   public String description() {
     return "Processing steps:\n" + processors.stream().map(MsProcessor::description)
         .collect(Collectors.joining("\n"));
+  }
+
+  /**
+   * Loops through all processors to find {@link MassDetectorMsProcessor}
+   *
+   * @return true if MassDetectorMsProcessor is in list
+   */
+  public boolean containsMassDetection() {
+    return stream().anyMatch(step -> step instanceof MassDetectorMsProcessor);
+  }
+
+  public Stream<MsProcessor> stream() {
+    return processors.stream();
   }
 }

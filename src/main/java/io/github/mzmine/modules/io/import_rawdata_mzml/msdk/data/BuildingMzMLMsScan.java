@@ -44,7 +44,7 @@ import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessorList;
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -584,7 +584,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
    * @return false if
    */
   public boolean loadProcessMemMapData(final MemoryMapStorage storage,
-      final MsProcessorList spectralProcessor) {
+      final @NotNull ScanImportProcessorConfig config) {
     try {
       SimpleSpectralArrays specData = loadData();
       if (specData == null) {
@@ -593,7 +593,12 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
       }
 
       // process and filter - needs metadata so wrap
-      specData = spectralProcessor.processScan(this, specData);
+      specData = config.processor().processScan(this, specData);
+
+      if (config.applyMassDetection()) {
+        // after mass detection we have a centroid scan
+        spectrumType = MassSpectrumType.CENTROIDED;
+      }
 
       // memory map
       this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.mzs());
