@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util;
 
+import java.util.Arrays;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class StringUtils {
@@ -135,8 +137,9 @@ public class StringUtils {
     }
     return -1;
   }
+
   /**
-   * @param str input
+   * @param str             input
    * @param allowOnlyDigits between the end and the sign there can only be digits. Otherwise, allow
    *                        any char
    * @return first index of + or - or -1 if not found
@@ -196,5 +199,20 @@ public class StringUtils {
    */
   public static String orDefault(final String str, final String defaultValue) {
     return str == null || str.isBlank() ? defaultValue : str;
+  }
+
+  /**
+   * @param list formatted like Python list: ['value1', 'value2']
+   * @return stream of string elements: value1, value2
+   */
+  public static Stream<String> streamListString(final String list) {
+    if (list == null || list.isBlank()) {
+      return Stream.empty();
+    }
+    String[] split = list.replaceAll("\\['", "") //
+        .replaceAll("']", "") //
+        .replaceAll("', '", ",") //
+        .split(",");
+    return Arrays.stream(split);
   }
 }
