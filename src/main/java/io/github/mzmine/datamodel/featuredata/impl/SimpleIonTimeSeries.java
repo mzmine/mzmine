@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,7 +58,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
 
   public static final String XML_ELEMENT = "simpleiontimeseries";
 
-  protected final List<Scan> scans;
+  protected final List<? extends Scan> scans;
   protected final DoubleBuffer intensityValues;
   protected final DoubleBuffer mzValues;
 
@@ -69,7 +69,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
    * @param scans
    */
   public SimpleIonTimeSeries(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
-      @NotNull double[] intensityValues, @NotNull List<Scan> scans) {
+      @NotNull double[] intensityValues, @NotNull List<? extends Scan> scans) {
     if (mzValues.length != intensityValues.length || mzValues.length != scans.size()) {
       throw new IllegalArgumentException("Length of mz, intensity and/or scans does not match.");
     }
