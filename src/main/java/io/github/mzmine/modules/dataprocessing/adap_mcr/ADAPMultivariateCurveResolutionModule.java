@@ -37,6 +37,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -75,7 +76,7 @@ public class ADAPMultivariateCurveResolutionModule implements MZmineProcessingMo
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    if (com.sun.jna.Platform.isMac()) {
+    if (SystemUtils.IS_OS_MAC) {
       LOGGER.info(
           "Multivariate curve resolution is not supported on MacOS. Use Hierarchical clustering module instead.");
       MZmineCore.getDesktop().displayErrorMessage(
@@ -93,7 +94,6 @@ public class ADAPMultivariateCurveResolutionModule implements MZmineProcessingMo
           storage, moduleCallDate);
       tasks.add(newTask);
     }
-
     return ExitCode.OK;
   }
 }
