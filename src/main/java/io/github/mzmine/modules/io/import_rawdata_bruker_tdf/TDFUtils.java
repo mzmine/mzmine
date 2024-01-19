@@ -566,11 +566,11 @@ public class TDFUtils {
     boolean massesDetected = false;
     if (msLevel == 1 && ms1Detector != null) {
       data = ms1Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray(),
-          MassSpectrumType.CENTROIDED);
+          MassSpectrumType.PROFILE);
       massesDetected = true;
     } else if (msLevel == 2 && ms2Detector != null) {
       data = ms2Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray(),
-          MassSpectrumType.CENTROIDED);
+          MassSpectrumType.PROFILE);
       massesDetected = true;
     } else {
       data = new double[2][];
