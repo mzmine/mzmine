@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -73,6 +73,7 @@ import uk.ac.ebi.jmzml.xml.io.MzMLUnmarshaller;
  * This class reads mzML 1.0 and 1.1.0 files (http://www.psidev.info/index.php?q=node/257) using the
  * jmzml library (http://code.google.com/p/jmzml/).
  */
+@Deprecated
 public class MzMLImportTask extends AbstractTask {
 
   private static final Pattern SCAN_PATTERN = Pattern.compile("scan=([0-9]+)");
