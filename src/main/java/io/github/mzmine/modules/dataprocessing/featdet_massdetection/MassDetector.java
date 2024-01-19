@@ -26,8 +26,10 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
@@ -46,7 +48,8 @@ public interface MassDetector extends MZmineModule {
    */
   double[][] getMassValues(MassSpectrum spectrum);
 
-  default double[][] getMassValues(double[] mzs, double[] intensities) {
+  default double[][] getMassValues(double[] mzs, double[] intensities,
+      final @NotNull MassSpectrumType type) {
     throw new UnsupportedOperationException("Method not implemented. Please implement me.");
   }
 }
