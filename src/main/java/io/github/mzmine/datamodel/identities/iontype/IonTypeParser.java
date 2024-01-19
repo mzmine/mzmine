@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -55,17 +55,17 @@ public class IonTypeParser {
     String clean = str.replaceAll("[^a-zA-Z0-9+-\\[\\]]", "");
     String[] splitCharge = clean.split("]");
     // default charge is 1 - because we are usually looking at charged ions
-    int charge = 1;
+    Integer detectedCharge = null;
     if (splitCharge.length > 1) {
       // [M+H]+ to [M+H and +
-      charge = StringUtils.parseSignAndIntegerOrElse(splitCharge[1], true, 1);
+      detectedCharge = StringUtils.parseSignAndIntegerOrElse(splitCharge[1], true, null);
       clean = splitCharge[0];
     } else {
       // read charge that was not separated by ']' so maybe from M+H or M+H+
       int lastPlusMinusSignIndex = StringUtils.findLastPlusMinusSignIndex(clean, true);
       if (lastPlusMinusSignIndex > -1) {
-        charge = StringUtils.parseSignAndIntegerOrElse(clean.substring(lastPlusMinusSignIndex-1),
-            true, 1);
+        detectedCharge = StringUtils.parseSignAndIntegerOrElse(
+            clean.substring(lastPlusMinusSignIndex - 1), true, null);
         clean = clean.substring(0, lastPlusMinusSignIndex);
       }
     }
@@ -116,10 +116,17 @@ public class IonTypeParser {
     }
 
     IonType ion = createIon(molMultiplier, mods);
-    int chargeDiff = charge - ion.getCharge();
+
+    int chargeDiff = 0;
+    if (detectedCharge == null && ion.getCharge() == 0) {
+      // default to charge 1
+      chargeDiff = 1;
+    } else if (detectedCharge != null) {
+      chargeDiff = detectedCharge - ion.getCharge();
+    }
     if (chargeDiff != 0) {
-      var electron = chargeDiff>0? IonModification.M_PLUS : IonModification.M_MINUS;
-      for(int c=0; c<Math.abs(chargeDiff); c++){
+      var electron = chargeDiff > 0 ? IonModification.M_PLUS : IonModification.M_MINUS;
+      for (int c = 0; c < Math.abs(chargeDiff); c++) {
         mods.add(electron);
       }
       return createIon(molMultiplier, mods);
@@ -135,8 +142,9 @@ public class IonTypeParser {
     var modifications = mods.stream().filter(Objects::nonNull).filter(m -> m.getAbsCharge() == 0)
         .toArray(IonModification[]::new);
 
-    return new IonType(molMultiplier, CombinedIonModification.create(adducts),
-        CombinedIonModification.create(modifications));
+    var combinedMod =
+        modifications.length == 0 ? null : CombinedIonModification.create(modifications);
+    return new IonType(molMultiplier, CombinedIonModification.create(adducts), combinedMod);
   }
 
   private static void parseAndAddIonModifications(final List<IonModification> mods, String mod) {

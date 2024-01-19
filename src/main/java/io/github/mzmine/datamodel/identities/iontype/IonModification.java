@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -306,7 +306,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
   public static @NotNull IonModification parseFromString(String part) {
     return Stream.of(DEFAULT_VALUES_POSITIVE, DEFAULT_VALUES_NEGATIVE, DEFAULT_VALUES_MODIFICATIONS)
         .flatMap(Arrays::stream).filter(m -> {
-          String sign = m.getSign();
+          String sign = m.getAddRemovePartSign();
           return part.equals(sign + m.getName()) || part.equals(sign + m.getMolFormula()) ||
                  // positive part can also be without sign
                  (sign.equals("+") && (part.equals(m.getName()) || part.equals(m.getMolFormula())));
@@ -319,7 +319,16 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
   }
 
   @NotNull
-  public String getSign() {
+  public String getAddRemovePartSign() {
+    return switch (Double.compare(mass, 0d)) {
+      case -1 -> "-";
+      case 1 -> "+";
+      default -> "";
+    };
+  }
+
+  @NotNull
+  public String getChargeSign() {
     return switch (charge) {
       case -1 -> "-";
       case 1 -> "+";
@@ -438,6 +447,18 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
    */
   @Override
   public int compareTo(IonModification a) {
+    // electrons always last needed for name generation later
+    if (isElectron() && a.isElectron()) {
+      return 0;
+    }
+    if (isElectron()) {
+      return 1;
+    }
+    if (a.isElectron()) {
+      return -1;
+    }
+
+    //
     int i = this.getName().compareTo(a.getName());
     if (i == 0) {
       i = Double.compare(getMass(), a.getMass());
@@ -446,6 +467,10 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
       }
     }
     return i;
+  }
+
+  public boolean isElectron() {
+    return getName().equals("e");
   }
 
   /**
