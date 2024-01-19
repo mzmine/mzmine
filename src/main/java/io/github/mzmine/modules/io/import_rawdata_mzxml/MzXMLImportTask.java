@@ -185,6 +185,30 @@ public class MzXMLImportTask extends AbstractTask {
     return "Opening file " + file;
   }
 
+  private void processAndFinalizeBuildingScan(SimpleSpectralArrays data) {
+    // data reading finished, apply data processing like sorting cropping mass detection if selected
+    var processedData = scanProcessorConfig.processor().processScan(buildingScan, data);
+    double[] mzs = processedData.mzs();
+    double[] intensities = processedData.intensities();
+
+    // Change spectrum type
+    if (scanProcessorConfig.isMassDetectActive(buildingScan.msLevel)) {
+      buildingScan.spectrumType = MassSpectrumType.CENTROIDED;
+    } else {
+      // Auto-detect whether this scan is centroided
+      buildingScan.spectrumType = ScanUtils.detectSpectrumType(mzs, intensities);
+    }
+
+    lastScan = new SimpleScan(newMZmineFile, buildingScan.scanNumber, buildingScan.msLevel,
+        buildingScan.retentionTime, buildingScan.getMsMsInfo(), mzs, intensities,
+        buildingScan.spectrumType, buildingScan.polarity, buildingScan.scanId, null);
+
+    if (scanProcessorConfig.isMassDetectActive(buildingScan.msLevel)) {
+      // create mass list and scan. Override data points and spectrum type
+      lastScan.addMassList(new ScanPointerMassList(lastScan));
+    }
+  }
+
   private class MzXMLHandler extends DefaultHandler {
 
 
@@ -316,7 +340,9 @@ public class MzXMLImportTask extends AbstractTask {
          */
 
         if (msLevelTree == 0) {
-          parentStack.addFirst(lastScan);
+          if (lastScan != null) {
+            parentStack.addFirst(lastScan);
+          }
           reset();
           lastScan = null;
           while (!parentStack.isEmpty()) {
@@ -359,76 +385,66 @@ public class MzXMLImportTask extends AbstractTask {
 
       // <peaks>
       if (qName.equalsIgnoreCase("peaks")) {
+        // this is the last element
+        // only read and process data if needed (scan matches filters)
 
-        byte[] peakBytes = Base64.getDecoder().decode(charBuffer.toString());
-
-        if (compressFlag) {
-          try {
-            peakBytes = CompressionUtils.decompress(peakBytes);
-          } catch (DataFormatException e) {
-            setStatus(TaskStatus.ERROR);
-            setErrorMessage("Corrupt compressed peak: " + e);
-            throw new SAXException("Parsing Cancelled");
-          }
-        }
-
-        // make a data input stream
-        DataInputStream peakStream = new DataInputStream(new ByteArrayInputStream(peakBytes));
-
-        double[] mzValues = new double[peaksCount];
-        double[] intensityValues = new double[peaksCount];
-
-        try {
-          for (int i = 0; i < peaksCount; i++) {
-
-            // Always respect this order pairOrder="m/z-int"
-            double mz;
-            double intensity;
-            if ("64".equals(precision)) {
-              mz = peakStream.readDouble();
-              intensity = peakStream.readDouble();
-            } else {
-              mz = peakStream.readFloat();
-              intensity = peakStream.readFloat();
-            }
-
-            // Copy m/z and intensity data
-            mzValues[i] = mz;
-            intensityValues[i] = intensity;
-          }
-          // data reading finished, apply data processing like sorting cropping mass detection if selected
-          var processedData = scanProcessorConfig.processor()
-              .processScan(buildingScan, new SimpleSpectralArrays(mzValues, intensityValues));
-          mzValues = processedData.mzs();
-          intensityValues = processedData.intensities();
-
-          // Change spectrum type
-          if (scanProcessorConfig.isMassDetectActive(buildingScan.msLevel)) {
-            buildingScan.spectrumType = MassSpectrumType.CENTROIDED;
-          } else {
-            // Auto-detect whether this scan is centroided
-            MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(mzValues, intensityValues);
-          }
-
-        } catch (IOException eof) {
-          setStatus(TaskStatus.ERROR);
-          setErrorMessage("Corrupt mzXML file");
-          throw new SAXException("Parsing Cancelled");
-        }
-
-        // Set the centroided / thresholded data points to the scan
-        lastScan = new SimpleScan(newMZmineFile, buildingScan.scanNumber, buildingScan.msLevel,
-            buildingScan.retentionTime, buildingScan.getMsMsInfo(), mzValues, intensityValues,
-            buildingScan.spectrumType, buildingScan.polarity, buildingScan.scanId, null);
-
-        if (scanProcessorConfig.isMassDetectActive(buildingScan.msLevel)) {
-          // create mass list and scan. Override data points and spectrum type
-          lastScan.addMassList(new ScanPointerMassList(lastScan));
+        if (scanProcessorConfig.scanFilter().matches(buildingScan)) {
+          SimpleSpectralArrays data = readSpectralData();
+          processAndFinalizeBuildingScan(data);
         }
       }
     }
 
+    @NotNull
+    private SimpleSpectralArrays readSpectralData() throws SAXException {
+      SimpleSpectralArrays data;
+      byte[] peakBytes = Base64.getDecoder().decode(charBuffer.toString());
+
+      if (compressFlag) {
+        try {
+          peakBytes = CompressionUtils.decompress(peakBytes);
+        } catch (DataFormatException e) {
+          setStatus(TaskStatus.ERROR);
+          setErrorMessage("Corrupt compressed peak: " + e);
+          throw new SAXException("Parsing Cancelled");
+        }
+      }
+
+      // make a data input stream
+      DataInputStream peakStream = new DataInputStream(new ByteArrayInputStream(peakBytes));
+
+      double[] mzValues = new double[peaksCount];
+      double[] intensityValues = new double[peaksCount];
+
+      try {
+        for (int i = 0; i < peaksCount; i++) {
+
+          // Always respect this order pairOrder="m/z-int"
+          double mz;
+          double intensity;
+          if ("64".equals(precision)) {
+            mz = peakStream.readDouble();
+            intensity = peakStream.readDouble();
+          } else {
+            mz = peakStream.readFloat();
+            intensity = peakStream.readFloat();
+          }
+
+          // Copy m/z and intensity data
+          mzValues[i] = mz;
+          intensityValues[i] = intensity;
+        }
+        data = new SimpleSpectralArrays(mzValues, intensityValues);
+      } catch (IOException eof) {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("Corrupt mzXML file");
+        throw new SAXException("Parsing Cancelled");
+      }
+      return data;
+    }
+
     private void reset() {
+      lastScan = null;
       buildingScan = null;
     }
 
