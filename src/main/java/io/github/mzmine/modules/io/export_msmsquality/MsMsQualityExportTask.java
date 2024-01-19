@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -279,7 +279,7 @@ public class MsMsQualityExportTask extends AbstractTask {
         molecularFormula.add(adductType.getCDKFormula());
       }
 
-      final double[][] filtered = factorOfLowest.getMassValues(msmsScan, folParams);
+      final double[][] filtered = factorOfLowest.getMassValues(msmsScan);
       final DataPoint[] dataPoints = DataPointUtils.getDataPoints(filtered[0], filtered[1]);
 
       score = MSMSScoreCalculator.evaluateMSMS(msmsFormulaTolerance, molecularFormula, dataPoints,

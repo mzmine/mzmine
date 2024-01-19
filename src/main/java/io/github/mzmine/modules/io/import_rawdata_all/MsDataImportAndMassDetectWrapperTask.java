@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -154,9 +154,9 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
       int msLevel = Objects.requireNonNullElse(scan.getMSLevel(), 1);
       double[][] mzIntensities = null;
       if (ms1Detector != null && msLevel <= 1) {
-        mzIntensities = ms1Detector.getModule().getMassValues(data, ms1Detector.getParameterSet());
+        mzIntensities = ms1Detector.getModule().getMassValues(data);
       } else if (ms2Detector != null && msLevel >= 2) {
-        mzIntensities = ms2Detector.getModule().getMassValues(data, ms2Detector.getParameterSet());
+        mzIntensities = ms2Detector.getModule().getMassValues(data);
         if (denormalizeMSnScans) {
           ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(mzIntensities[1],
               scan.getInjectionTime());

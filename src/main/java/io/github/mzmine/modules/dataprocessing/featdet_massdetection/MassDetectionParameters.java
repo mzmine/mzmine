@@ -78,6 +78,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
       "Mass detector", "Algorithm to use for mass detection and its parameters.", massDetectors,
       centroid);
 
+
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
   public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -391,7 +391,7 @@ public class TDFUtils {
     for (int i = 0; i < dataPoints.size(); i++) {
       if (msDetector != null && msParam != null) {
         spectra.add(new BuildingMobilityScan(i,
-            msDetector.getMassValues(dataPoints.get(i)[0], dataPoints.get(i)[1], msParam)));
+            msDetector.getMassValues(dataPoints.get(i)[0], dataPoints.get(i)[1])));
       } else {
         spectra.add(new BuildingMobilityScan(i, dataPoints.get(i)[0], dataPoints.get(i)[1]));
       }
@@ -472,9 +472,9 @@ public class TDFUtils {
     double[][] data = extractCentroidsForFrame(frameId, 0, numScans);
 
     if (msLevel == 1 && ms1Detector != null && ms1Param != null) {
-      data = ms1Detector.getMassValues(data[0], data[1], ms1Param);
+      data = ms1Detector.getMassValues(data[0], data[1]);
     } else if (msLevel == 2 && ms2Detector != null && ms2Param != null) {
-      data = ms2Detector.getMassValues(data[0], data[1], ms2Param);
+      data = ms2Detector.getMassValues(data[0], data[1]);
     }
 
     final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
@@ -568,10 +568,10 @@ public class TDFUtils {
     final double data[][];
     boolean massesDetected = false;
     if (msLevel == 1 && ms1Detector != null && ms1Param != null) {
-      data = ms1Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray(), ms1Param);
+      data = ms1Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray());
       massesDetected = true;
     } else if (msLevel == 2 && ms2Detector != null && ms2Param != null) {
-      data = ms2Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray(), ms2Param);
+      data = ms2Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray());
       massesDetected = true;
     } else {
       data = new double[2][];

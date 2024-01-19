@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
 public class RecursiveMassDetector implements MassDetector {
 
   @Override
-  public double[][] getMassValues(MassSpectrum scan, ParameterSet parameters) {
+  public double[][] getMassValues(MassSpectrum scan) {
     double noiseLevel =
         parameters.getParameter(RecursiveMassDetectorParameters.noiseLevel).getValue();
     double minimumMZPeakWidth =

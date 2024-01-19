@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,10 +26,10 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima;
 
 import gnu.trove.list.array.TDoubleArrayList;
-import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class detects all local maxima in a given scan.
@@ -37,7 +37,7 @@ import io.github.mzmine.parameters.ParameterSet;
 public class LocalMaxMassDetector implements MassDetector {
 
   @Override
-  public double[][] getMassValues(MassSpectrum scan, ParameterSet parameters) {
+  public double[][] getMassValues(MassSpectrum scan) {
 
     double noiseLevel =
         parameters.getParameter(LocalMaxMassDetectorParameters.noiseLevel).getValue();

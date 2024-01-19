@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -255,10 +255,10 @@ public class MobilityScanTest {
     for (Frame frame : frames) {
       file.addScan(frame);
       frame.getMobilityScanStorage()
-          .generateAndAddMobilityScanMassLists(null, centroidMassDetector, param, false);
+          .generateAndAddMobilityScanMassLists(null, centroidMassDetector, false);
 
       for (MobilityScan mobilityScan : frame.getMobilityScans()) {
-        final double[][] massValues = centroidMassDetector.getMassValues(mobilityScan, param);
+        final double[][] massValues = centroidMassDetector.getMassValues(mobilityScan);
         final MassList ml = mobilityScan.getMassList();
 
         Assertions.assertEquals(massValues[0].length,
@@ -284,7 +284,7 @@ public class MobilityScanTest {
           final MobilityScan mobScan = access.nextMobilityScan();
 
           // reapply mass detection to the original scan data
-          final double[][] massValues = centroidMassDetector.getMassValues(mobScan, param);
+          final double[][] massValues = centroidMassDetector.getMassValues(mobScan);
           Assertions.assertEquals(massValues[0].length, access.getNumberOfDataPoints());
 
           for (int i = 0; i < access.getNumberOfDataPoints(); i++) {

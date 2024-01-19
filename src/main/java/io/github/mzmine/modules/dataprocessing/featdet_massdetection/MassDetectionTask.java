@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -97,8 +97,9 @@ public class MassDetectionTask extends AbstractTask {
           scanSelection);
       totalScans = data.getNumberOfScans();
 
-      MassDetector detector = massDetector.getModule();
       ParameterSet parameterSet = massDetector.getParameterSet();
+      MassDetector detector = massDetector.getModule().create(parameterSet);
+
 
       // all scans
       while (data.hasNextScan()) {
@@ -113,7 +114,7 @@ public class MassDetectionTask extends AbstractTask {
         if (scanTypes.applyTo(scan)) {
           // run mass detection on data object
           // [mzs, intensities]
-          mzPeaks = detector.getMassValues(data, parameterSet);
+          mzPeaks = detector.getMassValues(data);
 
           // denormalize scan intensities if injection time of trapped instrument was used.
           // this is only done for MS2 because absolute intensities do not matter there
@@ -131,7 +132,7 @@ public class MassDetectionTask extends AbstractTask {
             || scanTypes == SelectedScanTypes.SCANS)) {
           // for ion mobility, detect subscans, too
           frame.getMobilityScanStorage()
-              .generateAndAddMobilityScanMassLists(getMemoryMapStorage(), detector, parameterSet,
+              .generateAndAddMobilityScanMassLists(getMemoryMapStorage(), detector,
                   denormalizeMSnScans);
         }
 

@@ -25,28 +25,30 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.IsotopesUtils;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import java.util.List;
+import org.openscience.cdk.Element;
 
 /**
- *
+ * For detecting isotopes in mass detection
  */
-public interface MassDetector extends MZmineModule {
-  public static final double[][] EMPTY_DATA = new double[2][0];
+public record MassesIsotopeDetector(boolean active, List<Element> elements, int maxCharge,
+                                    MZTolerance mzTol, List<Double> mzDiffs, double maxMzDiff) {
 
-  MassDetector create(ParameterSet params);
+  public static MassesIsotopeDetector createInactiveDefault() {
+    return new MassesIsotopeDetector(false, List.of(), 1, null, List.of(), 0);
+  }
 
-  boolean filtersActive();
-  /**
-   * Returns mass and intensity values detected in given spectrum
-   *
-   * @param spectrum
-   * @return [mzs, intensities][data]
-   */
-  double[][] getMassValues(MassSpectrum spectrum);
+  public boolean isPossibleIsotopeMz(final double exactMz, final DoubleArrayList mzs) {
+    if (!active || mzs.isEmpty()) {
+      return false;
+    }
 
-  default double[][] getMassValues(double[] mzs, double[] intensities) {
-    throw new UnsupportedOperationException("Method not implemented. Please implement me.");
+    // If the difference between current m/z and last detected m/z is greater than maximum
+    // possible isotope m/z difference do not call isPossibleIsotopeMz
+    return (mzs.getDouble(mzs.size() - 1) - exactMz) > maxMzDiff
+           && IsotopesUtils.isPossibleIsotopeMz(exactMz, mzs, mzDiffs, mzTol);
   }
 }

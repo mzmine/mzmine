@@ -25,28 +25,13 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
-
 /**
+ * To create the mass detectors from parameters
  *
+ * @param <T> MassDetector type
  */
-public interface MassDetector extends MZmineModule {
-  public static final double[][] EMPTY_DATA = new double[2][0];
+public interface MassDetectorFactory<T extends MassDetector> {
 
-  MassDetector create(ParameterSet params);
+  public T createMassDetector();
 
-  boolean filtersActive();
-  /**
-   * Returns mass and intensity values detected in given spectrum
-   *
-   * @param spectrum
-   * @return [mzs, intensities][data]
-   */
-  double[][] getMassValues(MassSpectrum spectrum);
-
-  default double[][] getMassValues(double[] mzs, double[] intensities) {
-    throw new UnsupportedOperationException("Method not implemented. Please implement me.");
-  }
 }

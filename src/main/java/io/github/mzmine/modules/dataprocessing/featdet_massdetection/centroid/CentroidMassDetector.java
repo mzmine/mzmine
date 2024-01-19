@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,8 @@ import com.google.common.primitives.Doubles;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorUtils;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassesIsotopeDetector;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.IsotopesUtils;
@@ -44,6 +46,8 @@ import org.openscience.cdk.Element;
  */
 public class CentroidMassDetector implements MassDetector {
 
+  private final double noiseLevel;
+  private final MassesIsotopeDetector isotopeDetector;
   // Variables for the detection of isotopes below the noise level
   private List<Element> isotopeElements;
   private int isotopeMaxCharge;
@@ -52,8 +56,32 @@ public class CentroidMassDetector implements MassDetector {
   // Used to optimize getMassValues
   private double maxIsotopeMzDiff;
 
+  public CentroidMassDetector(final double noiseLevel) {
+    this(noiseLevel, MassesIsotopeDetector.createInactiveDefault());
+  }
+
+  public CentroidMassDetector(final double noiseLevel,
+      final MassesIsotopeDetector isotopeDetector) {
+
+    this.noiseLevel = noiseLevel;
+    this.isotopeDetector = isotopeDetector;
+  }
+
   @Override
-  public double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters) {
+  public MassDetector create(ParameterSet parameters) {
+    var noiseLevel = parameters.getValue(CentroidMassDetectorParameters.noiseLevel);
+    var isotopeDetector = MassDetectorUtils.createIsotopeDetector(
+        parameters.getParameter(CentroidMassDetectorParameters.detectIsotopes));
+    return new CentroidMassDetector(noiseLevel, isotopeDetector);
+  }
+
+  @Override
+  public boolean filtersActive() {
+    return noiseLevel > 0;
+  }
+
+  @Override
+  public double[][] getMassValues(MassSpectrum spectrum) {
 
     final double noiseLevel = parameters.getParameter(CentroidMassDetectorParameters.noiseLevel)
         .getValue();
@@ -98,11 +126,13 @@ public class CentroidMassDetector implements MassDetector {
       double intensity = spectrum.getIntensityValue(i);
       double mz = spectrum.getMzValue(i);
       if (intensity >= noiseLevel || (detectIsotopes
-          // If the difference between current m/z and last detected m/z is greater than maximum
-          // possible isotope m/z difference do not call isPossibleIsotopeMz
-          && (mzs.isEmpty()
-          || Doubles.compare(mz - mzs.getDouble(mzs.size() - 1), maxIsotopeMzDiff) <= 0)
-          && IsotopesUtils.isPossibleIsotopeMz(mz, mzs, isotopesMzDiffs, isotopesMzTolerance))) {
+                                      // If the difference between current m/z and last detected m/z is greater than maximum
+                                      // possible isotope m/z difference do not call isPossibleIsotopeMz
+                                      && (mzs.isEmpty() ||
+                                          Doubles.compare(mz - mzs.getDouble(mzs.size() - 1),
+                                              maxIsotopeMzDiff) <= 0)
+                                      && IsotopesUtils.isPossibleIsotopeMz(mz, mzs, isotopesMzDiffs,
+          isotopesMzTolerance))) {
         // Yes, then mark this index as mzPeak
         mzs.add(mz);
         intensities.add(intensity);
@@ -112,7 +142,7 @@ public class CentroidMassDetector implements MassDetector {
   }
 
   @Override
-  public double[][] getMassValues(double[] mzs, double[] intensities, ParameterSet parameters) {
+  public double[][] getMassValues(double[] mzs, double[] intensities) {
     assert mzs.length == intensities.length;
 
     final double noiseLevel = parameters.getParameter(CentroidMassDetectorParameters.noiseLevel)
