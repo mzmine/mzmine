@@ -112,6 +112,7 @@ public class RowsFilterTask extends AbstractTask {
   private final Isotope13CFilter isotope13CFilter;
   private final AbsoluteAndRelativeInt minSamples;
   private final boolean removeRedundantIsotopeRows;
+  private final boolean keepAnnotated;
   private FeatureList filteredFeatureList;
   // Processed rows counter
   private int processedRows, totalRows;
@@ -138,6 +139,7 @@ public class RowsFilterTask extends AbstractTask {
 
     // Get parameters.
     keepAllWithMS2 = parameters.getValue(RowsFilterParameters.KEEP_ALL_MS2);
+    keepAnnotated = parameters.getValue(RowsFilterParameters.KEEP_ALL_ANNOTATED);
 
     onlyIdentified = parameters.getValue(RowsFilterParameters.HAS_IDENTITIES);
     filterByIdentityText = parameters.getValue(RowsFilterParameters.IDENTITY_TEXT);
@@ -205,9 +207,7 @@ public class RowsFilterTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-
     return totalRows == 0 ? 0.0 : (double) processedRows / (double) totalRows;
-
   }
 
   @Override
@@ -306,11 +306,12 @@ public class RowsFilterTask extends AbstractTask {
       final FeatureListRow row = iterator.next();
 
       final boolean hasMS2 = row.hasMs2Fragmentation();
+      final boolean annotated = row.isIdentified();
 
       // Only remove rows that match *all* of the criteria, so add
       // rows that fail any of the criteria.
       // Only add the row if none of the criteria have failed.
-      boolean keepRow = (keepAllWithMS2 && hasMS2)
+      boolean keepRow = (keepAllWithMS2 && hasMS2) || (keepAnnotated && annotated)
           || isFilterRowCriteriaFailed(totalSamples, row, hasMS2) != removeFailed;
       if (processInCurrentList) {
         if (keepRow) {

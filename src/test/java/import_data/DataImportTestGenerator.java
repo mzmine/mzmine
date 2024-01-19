@@ -48,6 +48,7 @@ public class DataImportTestGenerator {
         , new ThermoRawImportTest() //
         , new TimsTofImportTest() //
     );
+//    tests = List.of(new TimsTofImportTest());
 
     for (var entry : tests) {
       try {

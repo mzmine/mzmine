@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -217,12 +217,12 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final Polarity polarity;
   // csv database
   private final boolean checkLocalCsvDatabase;
+  // lipid annotation
+  private final boolean annotateLipids;
   private @NotNull String csvFilterSamplesColumn = "";
   private MassOptions csvMassOptions;
   private List<ImportType> csvColumns;
   private File csvLibraryFile;
-  // lipid annotation
-  private final boolean annotateLipids;
 
   protected BaseWizardBatchBuilder(final WizardSequence steps) {
     super(steps);
@@ -839,6 +839,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(RowsFilterParameters.REMOVE_ROW, RowsFilterChoices.KEEP_MATCHING);
     param.setParameter(RowsFilterParameters.MS2_Filter, false);
     param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, true);
+    param.setParameter(RowsFilterParameters.KEEP_ALL_ANNOTATED, false);
     param.setParameter(RowsFilterParameters.Reset_ID, false);
     param.setParameter(RowsFilterParameters.massDefect, false);
     param.setParameter(RowsFilterParameters.handleOriginal, handleOriginalFeatureLists);

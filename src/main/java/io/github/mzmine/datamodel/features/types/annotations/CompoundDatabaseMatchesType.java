@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.Database
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
@@ -64,16 +65,11 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
       new CompoundNameType(), new CompoundAnnotationScoreType(), new FormulaType(),
       new IonTypeType(), new SmilesStructureType(), new InChIStructureType(), new PrecursorMZType(),
       new MzPpmDifferenceType(), new NeutralMassType(), new RTType(), new CCSType(),
-      new DatabaseMatchInfoType(), new IsotopePatternScoreType());
+      new CCSRelativeErrorType(), new DatabaseMatchInfoType(), new IsotopePatternScoreType(),
+      new CommentType());
 
   private static final Logger logger = Logger.getLogger(
       CompoundDatabaseMatchesType.class.getName());
-
-  @Override
-  protected <K> @Nullable K map(@NotNull final DataType<K> subType,
-      final CompoundDBAnnotation item) {
-    return item.get(subType);
-  }
 
   public CompoundDatabaseMatchesType() {
   }
@@ -81,6 +77,12 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
   private static <T, R> R mapOrElse(@Nullable final T input, @NotNull final Function<T, R> mapper,
       @Nullable R elze) {
     return input != null ? mapper.apply(input) : elze;
+  }
+
+  @Override
+  protected <K> @Nullable K map(@NotNull final DataType<K> subType,
+      final CompoundDBAnnotation item) {
+    return item.get(subType);
   }
 
   @Override

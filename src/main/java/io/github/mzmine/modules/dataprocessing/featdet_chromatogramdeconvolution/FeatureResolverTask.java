@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,8 +43,8 @@ import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.MaldiSpotType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Processor;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
-import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Task;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -83,7 +83,7 @@ public class FeatureResolverTask extends AbstractTask {
   private boolean setMSMSRange, setMSMSRT;
   private double msmsRange;
   private float RTRangeMSMS;
-  private GroupMS2Task groupMS2Task;
+  private GroupMS2Processor groupMS2Task;
 
   /**
    * Create the task.
@@ -155,9 +155,10 @@ public class FeatureResolverTask extends AbstractTask {
           var groupMs2Param = parameters.getParameter(GeneralResolverParameters.groupMS2Parameters);
           if (groupMs2Param.getValue()) {
             GroupMS2SubParameters ms2params = groupMs2Param.getEmbeddedParameters();
-            groupMS2Task = new GroupMS2Task(newPeakList, ms2params, moduleCallDate);
+            groupMS2Task = new GroupMS2Processor(this, newPeakList, ms2params);
             // group all features with MS/MS
-            groupMS2Task.processFeatureList(this);
+            groupMS2Task.process();
+            groupMs2Param = null; // clear progress
           }
 
           if (!isCanceled()) {

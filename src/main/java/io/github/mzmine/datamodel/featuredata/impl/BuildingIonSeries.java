@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,23 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_msn_tree;
+package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.util.MemoryMapStorage;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Used to build chromatograms with a predefined number of scans that span the whole range. Can be
- * converted to an {@link IonTimeSeries}
+ * Used to build chromatograms or images with a predefined number of scans that span the whole
+ * range. Can be converted to an {@link IonTimeSeries}
  */
-public class SimpleFullChromatogram {
+public class BuildingIonSeries implements IonSeries {
 
   private final double[] mzs;
   private final double[] intensities;
@@ -50,7 +51,7 @@ public class SimpleFullChromatogram {
    * @param numberOfScans all scans that this chromatogram spans (e.g., all MS1 positive mode)
    * @param mode          defines how to merge intensity values
    */
-  public SimpleFullChromatogram(int numberOfScans, IntensityMode mode) {
+  public BuildingIonSeries(int numberOfScans, IntensityMode mode) {
     mzs = new double[numberOfScans];
     intensities = new double[numberOfScans];
     dataPoints = new int[numberOfScans];
@@ -87,8 +88,8 @@ public class SimpleFullChromatogram {
    * @return an ion time series with only data points > 0 with 1 leading and trailing zero around
    * detected data points if in scan range
    */
-  public IonTimeSeries<? extends Scan> toIonTimeSeries(@Nullable MemoryMapStorage storage,
-      final List<Scan> scans) {
+  public IonTimeSeries<? extends Scan> toIonTimeSeriesWithLeadingAndTrailingZero(
+      @Nullable MemoryMapStorage storage, final List<Scan> scans) {
     if (mzs.length == 0) {
       return IonTimeSeries.EMPTY;
     }
@@ -105,15 +106,15 @@ public class SimpleFullChromatogram {
         wasZero++;
         // add first zero after data
         if (wasZero == 1 && wasData) {
-          last = addDP(scans, fmzs, fintensities, fscans, i);
+          last = addDpToIonTimeSeries(scans, fmzs, fintensities, fscans, i);
           wasData = false;
         }
       } else {
         // add one leading 0 if available
         if (wasZero > 0 && !Objects.equals(last, scans.get(i - 1))) {
-          addDP(scans, fmzs, fintensities, fscans, i - 1);
+          addDpToIonTimeSeries(scans, fmzs, fintensities, fscans, i - 1);
         }
-        last = addDP(scans, fmzs, fintensities, fscans, i);
+        last = addDpToIonTimeSeries(scans, fmzs, fintensities, fscans, i);
         wasData = true;
         wasZero = 0;
       }
@@ -123,7 +124,7 @@ public class SimpleFullChromatogram {
         fscans);
   }
 
-  private Scan addDP(final List<Scan> scans, final DoubleArrayList fmzs,
+  private Scan addDpToIonTimeSeries(final List<Scan> scans, final DoubleArrayList fmzs,
       final DoubleArrayList fintensities, final List<Scan> fscans, final int i) {
     fmzs.add(mzs[i]);
     fintensities.add(intensities[i]);
@@ -137,7 +138,7 @@ public class SimpleFullChromatogram {
    * @return an ion time series that spans all scans
    */
   public IonTimeSeries<? extends Scan> toFullIonTimeSeries(@Nullable MemoryMapStorage storage,
-      final List<Scan> scans) {
+      final List<? extends Scan> scans) {
     return new SimpleIonTimeSeries(storage, mzs, intensities, scans);
   }
 
@@ -176,6 +177,33 @@ public class SimpleFullChromatogram {
         yield true;
       }
     };
+  }
+
+  @Override
+  public double[] getIntensityValues(final double[] dst) {
+    throw new UnsupportedOperationException(
+        "This method in building ion series should not be called. Call getIntensities instead");
+  }
+
+  @Override
+  public double[] getMzValues(final double[] dst) {
+    throw new UnsupportedOperationException(
+        "This method in building ion series should not be called. Call getMzs instead");
+  }
+
+  @Override
+  public DoubleBuffer getIntensityValueBuffer() {
+    throw new UnsupportedOperationException("Only used for building");
+  }
+
+  @Override
+  public IonSeries copy(final MemoryMapStorage storage) {
+    throw new UnsupportedOperationException("Only used for building");
+  }
+
+  @Override
+  public DoubleBuffer getMZValueBuffer() {
+    throw new UnsupportedOperationException("Only used for building");
   }
 
   public enum IntensityMode {
