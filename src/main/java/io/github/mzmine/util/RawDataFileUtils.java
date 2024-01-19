@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -138,7 +138,8 @@ public class RawDataFileUtils {
           break;
         case MZML_ZIP:
         case MZML_GZIP:
-          newTask = new ZipImportTask(project, fileName, module, parameters, moduleCallDate,
+          newTask = new ZipImportTask(project, fileName, ScanImportProcessorConfig.createDefault(),
+              module, parameters, moduleCallDate,
               storage);
           break;
         case BRUKER_TDF:
