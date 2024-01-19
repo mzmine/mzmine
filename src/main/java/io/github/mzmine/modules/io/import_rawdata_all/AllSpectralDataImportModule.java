@@ -369,8 +369,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
     return switch (fileType) {
       // imaging
-      case IMZML ->
-          new ImzMLImportTask(project, file, (ImagingRawDataFile) newMZmineFile, module, parameters,
+      case IMZML -> new ImzMLImportTask(project, file, scanProcessorConfig,
+          (ImagingRawDataFile) newMZmineFile, module, parameters,
               moduleCallDate);
       // imaging, maldi, or LC-MS
       case BRUKER_TSF ->
@@ -417,6 +417,9 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       ParameterSet parameters, @NotNull Instant moduleCallDate,
       @Nullable final MemoryMapStorage storage) {
     return switch (fileType) {
+      // imaging
+      case IMZML -> new ImzMLImportTask(project, file, scanProcessorConfig,
+          (ImagingRawDataFile) newMZmineFile, module, parameters, moduleCallDate);
       // MS
       case MZML, MZML_IMS ->
           new MSDKmzMLImportTask(project, file, null, scanProcessorConfig, module, parameters,
@@ -432,7 +435,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new ThermoRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate,
               scanProcessorConfig);
       // all unsupported tasks are wrapped to apply import and mass detection separately
-      case AIRD, MZDATA, WATERS_RAW, NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV, IMZML ->
+      case AIRD, MZDATA, WATERS_RAW, NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV ->
           createWrappedAdvancedTask(fileType, project, file, newMZmineFile, scanProcessorConfig,
               module, parameters, moduleCallDate, storage);
       default -> throw new IllegalStateException("Unexpected data type: " + fileType);

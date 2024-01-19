@@ -56,6 +56,18 @@ public class SimpleBuildingScan extends MetadataOnlyScan {
   public int precursorCharge = 0;
 
 
+  public SimpleBuildingScan(final int scanNumber, final int msLevel, final PolarityType polarity,
+      final MassSpectrumType spectrumType, final Float retentionTime, final double precursorMz,
+      final int precursorCharge) {
+    this.scanNumber = scanNumber;
+    this.msLevel = msLevel;
+    this.polarity = polarity;
+    this.spectrumType = spectrumType;
+    this.retentionTime = retentionTime;
+    this.precursorMz = precursorMz;
+    this.precursorCharge = precursorCharge;
+  }
+
   public SimpleBuildingScan() {
   }
 

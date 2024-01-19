@@ -98,12 +98,15 @@ public abstract class AbstractDataImportTest {
 
     //
     for (final RawDataFile raw : MZmineCore.getProject().getDataFiles()) {
+      String msg = " Error in " + raw.getName();
       for (final Scan scan : raw.getScans()) {
         // advanced sets mass list
-        assertNotNull(scan.getMassList());
-        assertEquals(scan.getNumberOfDataPoints(), scan.getMassList().getNumberOfDataPoints());
-        if (scan.getNumberOfDataPoints() > 0) {
-          assertTrue(scan.getMzValue(0) >= lowestMz);
+        assertNotNull(scan.getMassList(), msg);
+        assertEquals(scan.getNumberOfDataPoints(), scan.getMassList().getNumberOfDataPoints(), msg);
+        if (scan.getNumberOfDataPoints() > 0 && scan.getMSLevel() == 1) {
+          // MS1 scans were cropped
+          assertTrue(scan.getMzValue(0) >= lowestMz,
+              scan.getMzValue(0) + " was higher than " + lowestMz + msg);
         }
       }
     }

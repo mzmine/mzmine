@@ -88,6 +88,7 @@ public class RawDataFileUtils {
       RawDataFile newMZmineFile;
 
       Task newTask = null;
+      var scanProcessorConfig = ScanImportProcessorConfig.createDefault();
       switch (fileType) {
         case ICPMSMS_CSV:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
@@ -102,21 +103,20 @@ public class RawDataFileUtils {
               moduleCallDate);
           break;
         case MZML, MZML_IMS:
-          newTask = new MSDKmzMLImportTask(project, fileName,
-              ScanImportProcessorConfig.createDefault(), module, parameters, moduleCallDate,
-              storage);
+          newTask = new MSDKmzMLImportTask(project, fileName, scanProcessorConfig, module,
+              parameters, moduleCallDate, storage);
           break;
         case IMZML:
           newMZmineFile = MZmineCore.createNewImagingFile(fileName.getName(),
               fileName.getAbsolutePath(), storage);
-          newTask = new ImzMLImportTask(project, fileName, (ImagingRawDataFile) newMZmineFile,
-              module, parameters, moduleCallDate);
+          newTask = new ImzMLImportTask(project, fileName, scanProcessorConfig,
+              (ImagingRawDataFile) newMZmineFile, module, parameters, moduleCallDate);
           break;
         case MZXML:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
               storage);
-          newTask = new MzXMLImportTask(project, fileName, newMZmineFile,
-              ScanImportProcessorConfig.createDefault(), module, parameters, moduleCallDate);
+          newTask = new MzXMLImportTask(project, fileName, newMZmineFile, scanProcessorConfig,
+              module, parameters, moduleCallDate);
           break;
         case NETCDF:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
@@ -128,7 +128,7 @@ public class RawDataFileUtils {
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
               storage);
           newTask = new ThermoRawImportTask(project, fileName, newMZmineFile, module, parameters,
-              moduleCallDate, ScanImportProcessorConfig.createDefault());
+              moduleCallDate, scanProcessorConfig);
           break;
         case WATERS_RAW:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), fileName.getAbsolutePath(),
@@ -138,9 +138,8 @@ public class RawDataFileUtils {
           break;
         case MZML_ZIP:
         case MZML_GZIP:
-          newTask = new ZipImportTask(project, fileName, ScanImportProcessorConfig.createDefault(),
-              module, parameters, moduleCallDate,
-              storage);
+          newTask = new ZipImportTask(project, fileName, scanProcessorConfig, module, parameters,
+              moduleCallDate, storage);
           break;
         case BRUKER_TDF:
           newMZmineFile = MZmineCore.createNewIMSFile(fileName.getName(),

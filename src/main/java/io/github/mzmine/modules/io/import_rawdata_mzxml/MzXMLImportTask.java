@@ -186,6 +186,11 @@ public class MzXMLImportTask extends AbstractTask {
   }
 
   private void processAndFinalizeBuildingScan(SimpleSpectralArrays data) {
+    // Auto-detect whether this scan is centroided
+    if (buildingScan.spectrumType == null) {
+      buildingScan.spectrumType = ScanUtils.detectSpectrumType(data.mzs(), data.intensities());
+    }
+
     // data reading finished, apply data processing like sorting cropping mass detection if selected
     var processedData = scanProcessorConfig.processor().processScan(buildingScan, data);
     double[] mzs = processedData.mzs();
@@ -194,9 +199,6 @@ public class MzXMLImportTask extends AbstractTask {
     // Change spectrum type
     if (scanProcessorConfig.isMassDetectActive(buildingScan.msLevel)) {
       buildingScan.spectrumType = MassSpectrumType.CENTROIDED;
-    } else {
-      // Auto-detect whether this scan is centroided
-      buildingScan.spectrumType = ScanUtils.detectSpectrumType(mzs, intensities);
     }
 
     lastScan = new SimpleScan(newMZmineFile, buildingScan.scanNumber, buildingScan.msLevel,
