@@ -31,13 +31,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima.LocalMaxMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.recursive.RecursiveMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet.WaveletMassDetector;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -57,26 +50,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class MassDetectionParameters extends SimpleParameterSet {
 
-  public static final FactorOfLowestMassDetector factorOfLowest = MZmineCore.getModuleInstance(
-      FactorOfLowestMassDetector.class);
-  public static final CentroidMassDetector centroid = MZmineCore.getModuleInstance(
-      CentroidMassDetector.class);
-  public static final ExactMassDetector exact = MZmineCore.getModuleInstance(
-      ExactMassDetector.class);
-  public static final LocalMaxMassDetector localmax = MZmineCore.getModuleInstance(
-      LocalMaxMassDetector.class);
-  public static final RecursiveMassDetector recursive = MZmineCore.getModuleInstance(
-      RecursiveMassDetector.class);
-  public static final WaveletMassDetector wavelet = MZmineCore.getModuleInstance(
-      WaveletMassDetector.class);
-  public static final AutoMassDetector auto = MZmineCore.getModuleInstance(AutoMassDetector.class);
-
-  public static final MassDetector[] massDetectors = {factorOfLowest, centroid, exact, localmax,
-      recursive, wavelet, auto};
+  public static final MassDetector[] massDetectors = MassDetectors.listModules()
+      .toArray(MassDetector[]::new);
 
   public static final ModuleComboParameter<MassDetector> massDetector = new ModuleComboParameter<>(
       "Mass detector", "Algorithm to use for mass detection and its parameters.", massDetectors,
-      centroid);
+      MassDetectors.AUTO.getDefaultModule());
+
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
