@@ -33,6 +33,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 import java.util.List;
 
+@Deprecated
 public class MzTabmImportParameters extends SimpleParameterSet {
 
   private static final List<ExtensionFilter> filters =
@@ -49,7 +50,8 @@ public class MzTabmImportParameters extends SimpleParameterSet {
   );
 
   public MzTabmImportParameters() {
-    super(new Parameter[]{file, importRawFiles});
+    super(new Parameter[]{file, importRawFiles},
+            "https://mzmine.github.io/mzmine_documentation/module_docs/io/feat-list-import.html#mztab-m-import");
   }
 
 }

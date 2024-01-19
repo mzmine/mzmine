@@ -64,8 +64,11 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.MolecularSpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipidStatus;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.*;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -79,20 +82,19 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+
 import java.io.File;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorList;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorType.Level;
 
+@Deprecated
 public class MzTabmImportTask extends AbstractTask {
 
   // parameter values
@@ -434,6 +436,11 @@ public class MzTabmImportTask extends AbstractTask {
         Assay dataFileAssay = assayList.get(i);
         RawDataFile rawData = rawDataFiles.get(i);
 
+        if (rawData.getNumOfScans() == 0) {
+          MZmineCore.getDesktop().displayErrorMessage(
+              "The supplied raw data file number " + rawData.getName() + " contains no scans");
+        }
+
         if (smf.getAbundanceAssay().get(i) != null) {
           abundance = smf.getAbundanceAssay().get(i);
         }
@@ -474,6 +481,28 @@ public class MzTabmImportTask extends AbstractTask {
                   optCol.getIdentifier().contains("peak_height") || optCol.getIdentifier()
                       .contains("feature_height"))) {
                 feature_height = (float) Double.parseDouble(optCol.getValue()) / 60f;
+              }
+            }
+            if (optCol.getIdentifier().contains("lipid")) {
+              //todo add lipid annotation
+              List<OptColumnMapping> optSMEColList = smeList.get(j).getOpt();
+              Double mz = 0.0;
+              IonizationType adduct = IonizationType.NAME26;
+//              if (optSMEColList != null) {
+//                for (OptColumnMapping optSMECol : optSMEColList) {
+//                  if (optSMECol.getIdentifier().contains("adduct_ion")) {
+//                    adduct = IonizationType.valueOf(optSMECol.getValue());
+//                  }
+//                  if (optSMECol.getIdentifier().contains("exp_mass_to_charge")) {
+//                    mz = Double.parseDouble(optSMECol.getValue());
+//                  }
+//                }
+//              }
+
+              MatchedLipid matchedLipid = extractLipidAnnotations(optCol, sml.getSmiles().get(i),
+                  adduct, mz); //todo still an issue with mzdiff and ion adduct
+              if (matchedLipid != null) {
+                featureListRow.addLipidAnnotation(matchedLipid);
               }
             }
           }
@@ -535,8 +564,8 @@ public class MzTabmImportTask extends AbstractTask {
         feature.setCharge(charge);
         //feature.setAllMS2FragmentScans(allFragmentScans);
 
-        feature.setRawDataPointsMZRange(finalMZRange);
-        feature.setRawDataPointsIntensityRange(finalIntensityRange);
+//        feature.setRawDataPointsMZRange(finalMZRange);
+//        feature.setRawDataPointsIntensityRange(finalIntensityRange);
 
         //import annotations
         featureListRow.set(CompoundNameType.class, smeList.get(j).getChemicalName());
@@ -566,9 +595,7 @@ public class MzTabmImportTask extends AbstractTask {
           SpectralDBAnnotation spectralDBAnnotation;
           Map<DBEntryField, Object> map = new HashMap<>();
 
-          MolecularSpeciesLevelAnnotation molecularSpeciesLevelAnnotation = new MolecularSpeciesLevelAnnotation(
-              null, null, null, null);
-          MatchedLipid matchedLipid = new MatchedLipid(null, null, null, null, null);
+          MatchedLipid matchedLipid = null;
 
           for (OptColumnMapping optCol : optSMEColList) {
             if (!optCol.getValue().equals("null")) {
@@ -586,13 +613,9 @@ public class MzTabmImportTask extends AbstractTask {
                   numMatchedSignals = Integer.parseInt(optCol.getValue());
                 }
               }
-              if (optCol.getIdentifier().contains("lipid_annotations")) {
-                extractLipidAnnotations(molecularSpeciesLevelAnnotation, matchedLipid, optCol);
-              }
             }
           }
-          matchedLipid.setLipidAnnotation(molecularSpeciesLevelAnnotation);
-          featureListRow.addLipidAnnotation(matchedLipid);
+
           compoundAnnotations.add(compoundDBIdentity);
           featureListRow.set(CompoundDatabaseMatchesType.class, compoundAnnotations);
 
@@ -613,26 +636,23 @@ public class MzTabmImportTask extends AbstractTask {
     }
   }
 
-  private void extractLipidAnnotations(
-      MolecularSpeciesLevelAnnotation molecularSpeciesLevelAnnotation, MatchedLipid matchedLipid,
-      OptColumnMapping optCol) {
-    Double mzDiffPpm = null;
-    Double msmsScore = null;
-    //todo matched signals
-    //Set<LipidFragment> matchedSignals = null;
+  private MatchedLipid extractLipidAnnotations(OptColumnMapping optCol, String smiles,
+      IonizationType ionizationType, Double mz) {
+    // this function returns lipid annotation only if all required fields are available in mzTab-m file
+    Double msmsScore = 0.0;
+    MatchedLipid matchedLipid = null;
+    IMolecularFormula molecularFormula = FormulaUtils.getFomulaFromSmiles(smiles);
+    //TODO matched signals
+    Set<LipidFragment> matchedFragments = null;
 
-    if (optCol.getIdentifier().contains("lipid_annotations_lipid_annotations")) {
-      molecularSpeciesLevelAnnotation.setAnnotation(optCol.getValue());
+    if (optCol.getIdentifier().contains("adduct_ion")) {
+      ionizationType = lipidIonTypeMap.getOrDefault(optCol.getValue(), null);
     }
-    if (optCol.getIdentifier().contains("ion_adduct")) {
-      matchedLipid.setIonizationType(lipidIonTypeMap.getOrDefault(optCol.getValue(), null));
+    if (optCol.getIdentifier().contains("smiles")) {
+      molecularFormula = FormulaUtils.getFomulaFromSmiles(optCol.getValue());
     }
-    if (optCol.getIdentifier().contains("mol_formula")) {
-      molecularSpeciesLevelAnnotation.setMolecularFormula(
-          FormulaUtils.createMajorIsotopeMolFormula(optCol.getValue()));
-    }
-    if (optCol.getIdentifier().contains("mz_diff_ppm")) {
-      mzDiffPpm = Double.parseDouble(optCol.getValue());
+    if (optCol.getIdentifier().contains("exp_mass_to_charge")) {
+      mz = Double.parseDouble(optCol.getValue());
     }
     if (optCol.getIdentifier().contains("msms_score")) {
       msmsScore = Double.parseDouble(optCol.getValue());
@@ -641,15 +661,19 @@ public class MzTabmImportTask extends AbstractTask {
     //todo add matched signals
     //}
 
-    if (mzDiffPpm != null) {
-      matchedLipid.setAccurateMz(mzDiffPpm);
-    }
-    if (msmsScore != null) {
-      matchedLipid.setMsMsScore(msmsScore);
+    if (optCol.getIdentifier().contains("lipid_category") & molecularFormula != null) {
+      // TODO fix lipid annotation - current problem - mismatch of classes names
+      CustomLipidClass lipidClass = new CustomLipidClass(optCol.getValue(),
+          LipidCategories.valueOf(optCol.getValue().toUpperCase()).getAbbreviation(),
+          LipidCategories.valueOf(optCol.getValue().toUpperCase()), null, null, null, null);
+      MolecularSpeciesLevelAnnotation molecularSpeciesLevelAnnotation = new MolecularSpeciesLevelAnnotation(
+          lipidClass, lipidClass.getName(), molecularFormula, null);
+      matchedLipid = new MatchedLipid(molecularSpeciesLevelAnnotation, mz, ionizationType,
+          matchedFragments, msmsScore, MatchedLipidStatus.MATCHED);
+      return matchedLipid;
     }
 
-    //todo add matched signals
-    //matchedLipid.setMatchedFragments(matchedSignals);
+    return null;
   }
 
   private static void extractSpectralDBAnnotations(Map<DBEntryField, Object> map,

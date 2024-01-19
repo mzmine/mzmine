@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,9 +26,18 @@
 package io.github.mzmine.util.spectraldb.entry;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.datamodel.features.types.annotations.*;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
@@ -41,16 +50,19 @@ import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Spectral library entry is a mass spectrum that can be memory mapped (memory map defined in
@@ -154,8 +166,9 @@ public interface SpectralLibraryEntry extends MassList {
     return precursors.stream().map(extractor).filter(Objects::nonNull).toList();
   }
 
-  static SpectralLibraryEntry loadFromXML(XMLStreamReader reader) throws XMLStreamException {
-    return SpectralDBEntry.loadFromXML(reader);
+  static SpectralLibraryEntry loadFromXML(XMLStreamReader reader, MZmineProject project)
+      throws XMLStreamException {
+    return SpectralDBEntry.loadFromXML(reader, project);
   }
 
   void putAll(Map<DBEntryField, Object> fields);
@@ -274,6 +287,4 @@ public interface SpectralLibraryEntry extends MassList {
   void setLibrary(@Nullable SpectralLibrary library);
 
   @Nullable String getLibraryName();
-
-  public <T> T setField(DBEntryField field, T value);
 }

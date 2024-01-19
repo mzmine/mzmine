@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2022 The MZmine Development Team
+  ~ Copyright (c) 2004-2023 The MZmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -185,6 +185,8 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule"/>
       <MenuItem text="Denormalize scans (multiply by inject time)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_denormalize_by_inject_time.DenormalizeScansMultiplyByInjectTimeModule"/>
+      <MenuItem text="Split MALDI spots to raw data files" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_maldipseudofilegenerator.MaldiPseudoFileGeneratorModule"/>
     </Menu>
 
     <Menu text="Mass detection">
@@ -193,6 +195,8 @@
       <MenuItem onAction="#runModule"
         text="FTMS shoulder peak filter"
         userData="io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.ShoulderPeaksFilterModule"/>
+      <MenuItem onAction="#runModule" text="Scan signal removal"
+        userData="io.github.mzmine.modules.dataprocessing.filter_scan_signals.ScanSignalRemovalModule"/>
       <MenuItem onAction="#runModule"
         text="Mass calibration"
         userData="io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationModule"/>
@@ -237,6 +241,9 @@
       <MenuItem onAction="#runModule"
         text="Image builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule"/>
+      <MenuItem onAction="#runModule"
+        text="Dried droplet MALDI"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_maldispotfeaturedetection.MaldiSpotFeatureDetectionModule"/>
     </Menu>
     <Menu text="MSn">
       <MenuItem onAction="#runModule"
@@ -305,8 +312,6 @@
         userData="io.github.mzmine.modules.io.export_features_venn.VennExportModule"/>
       <MenuItem text="Statistics export (MetaboAnalyst)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule"/>
-      <MenuItem text="mzTab" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_features_mztab.MzTabExportModule"/>
       <MenuItem text="mzTab-m" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule"/>
       <MenuItem text="SQL Database" onAction="#runModule"
@@ -374,10 +379,12 @@
     </Menu>
 
     <Menu text="Feature grouping">
+      <MenuItem text="Image co-localization grouping" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule"/>
       <MenuItem text="Correlation grouping (metaCorrelate)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule"/>
       <MenuItem text="MS/MS spectral networking" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingModule"/>
       <MenuItem text="Ion identity networking" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule"/>
       <MenuItem text="Add more ion identities" onAction="#runModule"
@@ -607,8 +614,13 @@
 
   <!-- TOOLS -->
   <Menu text="Tools">
-    <MenuItem text="Isotope pattern preview"
-      onAction="#runModule"
+      <MenuItem onAction="#openQuickSearch" text="Quick search">
+        <accelerator>
+          <KeyCodeCombination alt="UP" code="F"
+            control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+        </accelerator>
+      </MenuItem>
+    <MenuItem text="Isotope pattern preview" onAction="#runModule"
       userData="io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule"/>
     <MenuItem onAction="#showSpectralMirrorDialog" text="Spectral mirror (USI enabled)"/>
 <!--    There is an exception with a combobox value being null in the dialog. not sure how to fix -->
@@ -622,6 +634,12 @@
       userData="io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule"/>
     <MenuItem onAction="#runModule" text="Export MS2 Spectra quality"
       userData="io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule"/>
+    <Menu text="timsTOF fleX">
+      <MenuItem onAction="#runModule" text="timsTOF MALDI dried-droplet MS2"
+            userData="io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule"/>
+      <MenuItem onAction="#runModule" text="timsTOF SIMSEF imaging scheduler"
+            userData="io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule"/>
+    </Menu>
   </Menu>
 
   <Menu text="Processing wizard">

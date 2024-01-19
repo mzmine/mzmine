@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.io.export_features_mztabm;
 
 import com.google.common.collect.Range;
-import de.isas.mztab2.io.MzTabNonValidatingWriter;
 import de.isas.mztab2.io.MzTabValidatingWriter;
 import de.isas.mztab2.model.*;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -477,7 +476,7 @@ public class MZTabmExportTask extends AbstractTask {
     if (uniqueID == "precursor_mz") {
       sme.setTheoreticalMassToCharge(DEFAULT_DOUBLE_VALUE);
     }
-    if (uniqueID.contains("score")) {
+    if (uniqueID.contains("score") & returnValue != null) {
       Parameter parameter = new Parameter();
       parameter.setName(uniqueID);
       sm.setBestIdConfidenceMeasure(parameter);
@@ -627,16 +626,16 @@ public class MZTabmExportTask extends AbstractTask {
     mtd.setSmallMoleculeFeatureQuantificationUnit(
         new Parameter().cvLabel("PRIDE").cvAccession("PRIDE:0000330")
             .name("Arbitrary quantification unit"));
-    mtd.addIdConfidenceMeasureItem(new Parameter().id(1).cvLabel("MS").cvAccession("MS_1003303")
-        .name("spectral similarity"));
+    mtd.addIdConfidenceMeasureItem(
+        new Parameter().id(1).cvLabel("MS").cvAccession("MS_1003303").name("spectral similarity"));
     mtd.setSmallMoleculeIdentificationReliability(
         new Parameter().cvLabel("MS").cvAccession("MS:1002896")
             .name("compound identification confidence level"));
     mtd.setQuantificationMethod(new Parameter().cvLabel("MS").cvAccession("MS:1001834")
         .name("LC-MS label-free quantification analysis"));
-    mtd.addCvItem(new CV().id(1).label("MS").fullName("PSI-MS controlled vocabulary")
-        .version("4.1.108").
-            uri("https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"));
+    mtd.addCvItem(
+        new CV().id(1).label("MS").fullName("PSI-MS controlled vocabulary").version("4.1.108")
+            .uri("https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"));
     mtd.addCvItem(new CV().id(2).label("MS")
         .fullName("PRIDE PRoteomics IDEntifications (PRIDE) database controlled vocabulary")
         .version("17.11.2022").uri("http://purl.obolibrary.org/obo/pride_cv.obo"));

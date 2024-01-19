@@ -608,16 +608,4 @@ public class ModularFeature implements Feature, ModularDataModel {
   public String toString() {
     return FeatureUtils.featureToString(this);
   }
-
-  public void setRawDataPointsMZRange(Range<Double> mzRange) {
-    set(MZRangeType.class, mzRange);
-  }
-
-  public void setRawDataPointsIntensityRange(Range<Float> intensityRange) {
-    set(IntensityRangeType.class, intensityRange);
-  }
-
-  public void setRawDataPointsRTRange(Range<Float> rtRange) {
-    set(RTRangeType.class, rtRange);
-  }
 }
