@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class MetadataOnlyScan implements Scan {
 
+
   @Override
   public int getNumberOfDataPoints() {
     throw new UnsupportedOperationException(

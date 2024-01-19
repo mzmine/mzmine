@@ -29,7 +29,10 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SimpleSpectralArrays;
-import java.util.Arrays;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.IndexRange;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CropMzMsProcessor implements MsProcessor {
 
@@ -42,35 +45,25 @@ public class CropMzMsProcessor implements MsProcessor {
     this.max = max;
   }
 
-  public SimpleSpectralArrays processScan(final Scan scan, final SimpleSpectralArrays spectrum) {
+  public @NotNull SimpleSpectralArrays processScan(final @Nullable Scan metadataOnlyScan,
+      final @NotNull SimpleSpectralArrays spectrum) {
     // only crop MS1 scans
-    if (scan.getMSLevel() != 1) {
+    if (metadataOnlyScan != null && metadataOnlyScan.getMSLevel() != 1) {
       return spectrum;
     }
 
-    // returns the index of the value>=min/max
-    // requires sorted values, is ensured as this is always the first step in loading/processing
-    int lower = Arrays.binarySearch(spectrum.mzs(), min);
-    if (lower < 0) {
-      lower = -lower - 1; // get insertion point
+    IndexRange range = BinarySearch.indexRange(spectrum.mzs(), min, max);
+    if (range.size() == spectrum.getNumberOfDataPoints()) {
+      return spectrum;
     }
-    int upper = Arrays.binarySearch(spectrum.mzs(), max);
-    if (upper < 0) {
-      upper = -upper - 1; // get insertion point
-    } else {
-      upper++; // increment on direct match
-    }
-    if (lower > upper) {
-      return SimpleSpectralArrays.EMPTY;
-    }
-
-    var mzs = Arrays.copyOfRange(spectrum.mzs(), lower, upper);
-    var intensities = Arrays.copyOfRange(spectrum.intensities(), lower, upper);
+    // filter
+    double[] mzs = range.subarray(spectrum.mzs());
+    double[] intensities = range.subarray(spectrum.intensities());
     return new SimpleSpectralArrays(mzs, intensities);
   }
 
   @Override
-  public String description() {
+  public @NotNull String description() {
     var format = MZmineCore.getConfiguration().getGuiFormats();
     return "Crop m/z to " + format.mz(min) + " - " + format.mz(max);
   }

@@ -389,7 +389,8 @@ public class TDFUtils {
     for (int i = 0; i < dataPoints.size(); i++) {
       if (msDetector != null) {
         spectra.add(new BuildingMobilityScan(i,
-            msDetector.getMassValues(dataPoints.get(i)[0], dataPoints.get(i)[1])));
+            msDetector.getMassValues(dataPoints.get(i)[0], dataPoints.get(i)[1],
+                MassSpectrumType.CENTROIDED)));
       } else {
         spectra.add(new BuildingMobilityScan(i, dataPoints.get(i)[0], dataPoints.get(i)[1]));
       }
@@ -469,9 +470,9 @@ public class TDFUtils {
     double[][] data = extractCentroidsForFrame(frameId, 0, numScans);
 
     if (msLevel == 1 && ms1Detector != null) {
-      data = ms1Detector.getMassValues(data[0], data[1]);
+      data = ms1Detector.getMassValues(data[0], data[1], MassSpectrumType.CENTROIDED);
     } else if (msLevel == 2 && ms2Detector != null) {
-      data = ms2Detector.getMassValues(data[0], data[1]);
+      data = ms2Detector.getMassValues(data[0], data[1], MassSpectrumType.CENTROIDED);
     }
 
     final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
@@ -564,10 +565,12 @@ public class TDFUtils {
     final double data[][];
     boolean massesDetected = false;
     if (msLevel == 1 && ms1Detector != null) {
-      data = ms1Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray());
+      data = ms1Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray(),
+          MassSpectrumType.CENTROIDED);
       massesDetected = true;
     } else if (msLevel == 2 && ms2Detector != null) {
-      data = ms2Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray());
+      data = ms2Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray(),
+          MassSpectrumType.CENTROIDED);
       massesDetected = true;
     } else {
       data = new double[2][];

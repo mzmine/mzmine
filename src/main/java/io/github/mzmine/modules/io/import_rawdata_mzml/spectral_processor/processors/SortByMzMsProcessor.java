@@ -30,6 +30,8 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProc
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SortByMzMsProcessor implements MsProcessor {
 
@@ -37,12 +39,13 @@ public class SortByMzMsProcessor implements MsProcessor {
   public SortByMzMsProcessor() {
   }
 
-  public SimpleSpectralArrays processScan(final Scan scan, final SimpleSpectralArrays spectrum) {
+  public @NotNull SimpleSpectralArrays processScan(final @Nullable Scan metadataOnlyScan,
+      final @NotNull SimpleSpectralArrays spectrum) {
     return DataPointUtils.sort(spectrum, DataPointSorter.DEFAULT_MZ_ASCENDING);
   }
 
   @Override
-  public String description() {
+  public @NotNull String description() {
     return "Sort by m/z";
   }
 }

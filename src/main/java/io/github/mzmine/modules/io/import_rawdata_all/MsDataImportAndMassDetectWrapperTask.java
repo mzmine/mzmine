@@ -122,6 +122,10 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
    * @return true if succeed and false if cancelled
    */
   public boolean applyMassDetection() {
+    if (!scanProcessorConfig.hasProcessors()) {
+      return true;
+    }
+
     totalScans = newMZmineFile.getNumOfScans();
 
     for (Scan scan : newMZmineFile.getScans()) {
@@ -129,14 +133,12 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
         return false;
       }
 
-      if (scanProcessorConfig.applyMassDetection()) {
-        SimpleSpectralArrays processedData = scanProcessorConfig.processor()
-            .processScan(scan, new SimpleSpectralArrays(scan));
-        // uses a different storage for mass lists then the one defined for the MS data import
-        SimpleMassList newMassList = new SimpleMassList(storage, processedData.mzs(),
-            processedData.intensities());
-        scan.addMassList(newMassList);
-      }
+      SimpleSpectralArrays processedData = scanProcessorConfig.processor()
+          .processScan(scan, new SimpleSpectralArrays(scan));
+      // uses a different storage for mass lists then the one defined for the MS data import
+      SimpleMassList newMassList = new SimpleMassList(storage, processedData.mzs(),
+          processedData.intensities());
+      scan.addMassList(newMassList);
       parsedScans++;
     }
     return true;

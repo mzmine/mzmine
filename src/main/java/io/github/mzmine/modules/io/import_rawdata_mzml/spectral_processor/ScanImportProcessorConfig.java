@@ -25,36 +25,80 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor;
 
+import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.processors.MassDetectorMsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.processors.SortByMzMsProcessor;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Configuration that controls scan filtering and processing during data import
- *
- * @param scanFilter
- * @param processor
- * @param applyMassDetection
  */
-public record ScanImportProcessorConfig(ScanSelection scanFilter, MsProcessorList processor,
-                                        boolean applyMassDetection) {
+public final class ScanImportProcessorConfig {
 
-  public ScanImportProcessorConfig(ScanSelection scanFilter, MsProcessorList processor) {
-    this(scanFilter, processor, processor.containsMassDetection());
+  private final ScanSelection scanFilter;
+  private final MsProcessorList processor;
+  private final boolean ms1MassDetectActive;
+  private final boolean ms2MassDetectActive;
+
+  public ScanImportProcessorConfig(final ScanSelection scanFilter,
+      final MsProcessorList processor) {
+    this.scanFilter = scanFilter;
+    this.processor = processor;
+    Optional<MassDetectorMsProcessor> md = processor.findFirst(MassDetectorMsProcessor.class);
+    ms1MassDetectActive = md.isPresent() && md.get().isMs1Active();
+    ms2MassDetectActive = md.isPresent() && md.get().isMsnActive();
   }
 
   public static ScanImportProcessorConfig createDefault() {
     List<MsProcessor> processors = new ArrayList<>();
     processors.add(new SortByMzMsProcessor());
-    return new ScanImportProcessorConfig(ScanSelection.ALL_SCANS, new MsProcessorList(processors),
-        false);
+    return new ScanImportProcessorConfig(ScanSelection.ALL_SCANS, new MsProcessorList(processors));
   }
 
   @Override
   public String toString() {
-    return "ScanImportProcessorConfig: scanFilter=%s, applyMassDetection=%s".formatted(scanFilter,
-        applyMassDetection) + "\n" + processor.description();
+    return STR."""
+    ScanImportProcessorConfig: scanFilter=\{scanFilter}
+    applyMassDetection: MS1=\{ms1MassDetectActive}; MS2..n=\{ms2MassDetectActive}
+    \{processor.description()}""";
   }
 
+  public ScanSelection scanFilter() {
+    return scanFilter;
+  }
+
+  public MsProcessorList processor() {
+    return processor;
+  }
+
+  public boolean isMassDetectActive(int msLevel) {
+    return (msLevel <= 1 && ms1MassDetectActive) || (msLevel > 1 && ms2MassDetectActive);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (obj == null || obj.getClass() != this.getClass()) {
+      return false;
+    }
+    var that = (ScanImportProcessorConfig) obj;
+    return Objects.equals(this.scanFilter, that.scanFilter) && Objects.equals(this.processor,
+        that.processor) && Objects.equals(this.ms1MassDetectActive, that.ms1MassDetectActive)
+           && Objects.equals(this.ms2MassDetectActive, that.ms2MassDetectActive);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(scanFilter, processor, ms1MassDetectActive, ms2MassDetectActive);
+  }
+
+
+  public boolean hasProcessors() {
+    return processor().size() > 0;
+  }
 }

@@ -29,6 +29,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.util.scans.ScanUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DenormalizeInjectTimeMsProcessor implements MsProcessor {
 
@@ -36,14 +38,19 @@ public class DenormalizeInjectTimeMsProcessor implements MsProcessor {
   public DenormalizeInjectTimeMsProcessor() {
   }
 
-  public SimpleSpectralArrays processScan(final Scan scan, final SimpleSpectralArrays spectrum) {
+  public @NotNull SimpleSpectralArrays processScan(final @Nullable Scan metadataOnlyScan,
+      final @NotNull SimpleSpectralArrays spectrum) {
+    if (metadataOnlyScan == null) {
+      return spectrum;
+    }
+    
     ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(spectrum.intensities(),
-        scan.getInjectionTime());
+        metadataOnlyScan.getInjectionTime());
     return spectrum;
   }
 
   @Override
-  public String description() {
+  public @NotNull String description() {
     return "Denormalize MSn scans by multiplying intensities with the injection time (traps only)";
   }
 }

@@ -161,8 +161,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     }
 
     var scanFilter = advanced.getValue(AdvancedSpectraImportParameters.scanFilter);
-    var conf = new ScanImportProcessorConfig(scanFilter, new MsProcessorList(processors),
-        applyMassDetection);
+    var conf = new ScanImportProcessorConfig(scanFilter, new MsProcessorList(processors));
     logger.info("Data import uses advanced direct data processing with these settings:\n" + conf);
     return conf;
   }

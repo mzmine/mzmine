@@ -26,6 +26,8 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor;
 
 import io.github.mzmine.datamodel.Scan;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Classes only used during data import to reduce the need for memory mapping and to filter data
@@ -36,11 +38,13 @@ public interface MsProcessor {
   /**
    * Process input data. This is usually called during import when a scan is read and finalized.
    *
-   * @param scan     scan that may not contain all metadata. Only metadata needed to process
-   * @param spectrum spectral data to process
+   * @param metadataOnlyScan scan that may not contain all metadata. Only metadata needed to
+   *                         process
+   * @param spectrum         spectral data to process
    * @return resulting spectral data or input data if on no change
    */
-  SimpleSpectralArrays processScan(final Scan scan, final SimpleSpectralArrays spectrum);
+  @NotNull SimpleSpectralArrays processScan(@Nullable final Scan metadataOnlyScan,
+      @NotNull final SimpleSpectralArrays spectrum);
 
-  String description();
+  @NotNull String description();
 }

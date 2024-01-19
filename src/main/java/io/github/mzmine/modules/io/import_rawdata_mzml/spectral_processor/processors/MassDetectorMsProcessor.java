@@ -25,66 +25,90 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.processors;
 
+import static io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorUtils.createMassDetector;
+
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MassDetectorMsProcessor implements MsProcessor {
 
-  private final MZmineProcessingStep<MassDetector> ms1Detector;
-  private final MZmineProcessingStep<MassDetector> ms2Detector;
+  private final MassDetector ms1Detector;
+  private final MassDetector ms2Detector;
+  private final String description;
 
-  public MassDetectorMsProcessor(@NotNull ParameterSet advancedParameters) {
-    if (advancedParameters.getParameter(AdvancedSpectraImportParameters.msMassDetection)
-        .getValue()) {
-      this.ms1Detector = advancedParameters.getParameter(
-          AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter().getValue();
-    } else {
-      ms1Detector = null;
-    }
-    if (advancedParameters.getParameter(AdvancedSpectraImportParameters.ms2MassDetection)
-        .getValue()) {
-      this.ms2Detector = advancedParameters.getParameter(
-          AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter().getValue();
-    } else {
-      ms2Detector = null;
-    }
+  public MassDetectorMsProcessor(@NotNull ParameterSet advanced) {
+    StringBuilder descb = new StringBuilder("Applying mass detection on scans:");
+
+    ms1Detector = buildDetector(advanced, AdvancedSpectraImportParameters.msMassDetection, descb,
+        "MS1: ");
+    ms2Detector = buildDetector(advanced, AdvancedSpectraImportParameters.ms2MassDetection, descb,
+        "MS2: ");
+
+    this.description = descb.toString();
   }
 
-  private SimpleSpectralArrays applyMassDetection(MZmineProcessingStep<MassDetector> msDetector,
-      final SimpleSpectralArrays spectrum) {
+  @Nullable
+  private MassDetector buildDetector(final @NotNull ParameterSet advanced,
+      final OptionalParameter<ModuleComboParameter<MassDetector>> msMassDetection,
+      final StringBuilder description, final String msLevelStr) {
+    var optionalParameter = advanced.getParameter(msMassDetection);
+    if (!optionalParameter.getValue()) {
+      return null;
+    }
+    var ms1Step = optionalParameter.getEmbeddedParameter().getValue();
+
+    description.append("\n  - ").append(msLevelStr).append(ms1Step.getParameterSet().toString());
+    return createMassDetector(ms1Step);
+  }
+
+  private SimpleSpectralArrays applyMassDetection(MassDetector msDetector,
+      final @Nullable Scan metadataOnlyScan, final SimpleSpectralArrays spectrum) {
     // run mass detection on data object
     // [mzs, intensities]
-    var values = msDetector.getModule()
-        .getMassValues(spectrum.mzs(), spectrum.intensities(), msDetector.getParameterSet());
+    MassSpectrumType type = MassSpectrumType.CENTROIDED;
+    if (metadataOnlyScan != null) {
+      type = metadataOnlyScan.getSpectrumType();
+    }
+    if (type == null) {
+      type = MassSpectrumType.CENTROIDED;
+    }
+
+    var values = msDetector.getMassValues(spectrum.mzs(), spectrum.intensities(), type);
     return new SimpleSpectralArrays(values[0], values[1]);
   }
 
 
-  public SimpleSpectralArrays processScan(final Scan scan, final SimpleSpectralArrays spectrum) {
-    if (ms2Detector != null && scan.getMSLevel() > 1) {
-      return applyMassDetection(ms2Detector, spectrum);
-    } else if (ms1Detector != null) {
-      return applyMassDetection(ms1Detector, spectrum);
+  @Override
+  public @NotNull SimpleSpectralArrays processScan(final @Nullable Scan metadataOnlyScan,
+      final @NotNull SimpleSpectralArrays spectrum) {
+    if (isMsnActive() && metadataOnlyScan != null && metadataOnlyScan.getMSLevel() > 1) {
+      return applyMassDetection(ms2Detector, metadataOnlyScan, spectrum);
+    } else if (isMs1Active()) {
+      return applyMassDetection(ms1Detector, metadataOnlyScan, spectrum);
     }
     // no mass detection return input
     return spectrum;
   }
 
+  public boolean isMs1Active() {
+    return ms1Detector != null;
+  }
+
+  public boolean isMsnActive() {
+    return ms2Detector != null;
+  }
+
   @Override
-  public String description() {
-    StringBuilder b = new StringBuilder("Applying mass detection on scans:");
-    if (ms1Detector != null) {
-      b.append("\n  - MS1: ").append(ms1Detector.getParameterSet().toString());
-    }
-    if (ms2Detector != null) {
-      b.append("\n  - MS2: ").append(ms2Detector.getParameterSet().toString());
-    }
-    return b.toString();
+  public @NotNull String description() {
+    return description;
   }
 }

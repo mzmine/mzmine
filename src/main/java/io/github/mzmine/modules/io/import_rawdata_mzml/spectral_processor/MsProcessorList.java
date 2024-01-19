@@ -29,8 +29,11 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.processors.MassDetectorMsProcessor;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Contains multiple steps to process
@@ -44,15 +47,16 @@ public class MsProcessorList implements MsProcessor {
   }
 
   @Override
-  public SimpleSpectralArrays processScan(final Scan scan, SimpleSpectralArrays spectrum) {
+  public @NotNull SimpleSpectralArrays processScan(final @Nullable Scan metadataOnlyScan,
+      @NotNull SimpleSpectralArrays spectrum) {
     for (final MsProcessor processor : processors) {
-      spectrum = processor.processScan(scan, spectrum);
+      spectrum = processor.processScan(metadataOnlyScan, spectrum);
     }
     return spectrum;
   }
 
   @Override
-  public String description() {
+  public @NotNull String description() {
     return "Processing steps:\n" + processors.stream().map(MsProcessor::description)
         .collect(Collectors.joining("\n"));
   }
@@ -66,7 +70,20 @@ public class MsProcessorList implements MsProcessor {
     return stream().anyMatch(step -> step instanceof MassDetectorMsProcessor);
   }
 
+  /**
+   * @param clazz class of processor
+   * @return first instance of this processor in list
+   */
+  @SuppressWarnings("unchecked")
+  public <T> Optional<T> findFirst(Class<T> clazz) {
+    return stream().filter(clazz::isInstance).map(t -> (T) t).findFirst();
+  }
+
   public Stream<MsProcessor> stream() {
     return processors.stream();
+  }
+
+  public int size() {
+    return processors.size();
   }
 }

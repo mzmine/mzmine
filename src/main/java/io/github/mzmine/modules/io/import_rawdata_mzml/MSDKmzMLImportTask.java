@@ -231,7 +231,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
   @NotNull
   private Scan convertScan(final BuildingMzMLMsScan mzMLScan, final RawDataFileImpl newMZmineFile) {
     // might not be centroided if mass detection was off
-    if (scanProcessorConfig.applyMassDetection()) {
+    if (scanProcessorConfig.isMassDetectActive(mzMLScan.getMSLevel())) {
       Scan scan = ConversionUtils.mzmlScanToSimpleScan(newMZmineFile, mzMLScan,
           MassSpectrumType.CENTROIDED);
       scan.addMassList(new ScanPointerMassList(scan));
@@ -288,7 +288,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
             mobilityScanNumberCounter++;
           }
 
-          finishedFrame.setMobilityScans(mobilityScans, scanProcessorConfig.applyMassDetection());
+          finishedFrame.setMobilityScans(mobilityScans,
+              scanProcessorConfig.isMassDetectActive(finishedFrame.getMSLevel()));
           finishedFrame.setMobilities(mobilities);
           newImsFile.addScan(buildingFrame);
 
@@ -339,7 +340,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
     }
 
     // apply mass detection to frames and mobility scans
-    if (scanProcessorConfig.applyMassDetection()) {
+    if (scanProcessorConfig.processor().containsMassDetection()) {
       logger.warning("""
           Applying the advanced import (with mass detection) to an IMS mzML file only performs mass
            detection on the summed frame level. Better to perform individual steps of mass detection

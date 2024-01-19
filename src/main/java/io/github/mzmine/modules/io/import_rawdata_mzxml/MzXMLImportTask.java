@@ -31,11 +31,8 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
-import io.github.mzmine.datamodel.msms.ActivationMethod;
-import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SimpleSpectralArrays;
@@ -84,15 +81,6 @@ public class MzXMLImportTask extends AbstractTask {
   private final DefaultHandler handler = new MzXMLHandler();
   private String precision;
 
-  // extracted values
-  private float retentionTime = 0;
-  private int scanNumber = 0;
-  private int msLevel = 1;
-  private PolarityType polarity = PolarityType.UNKNOWN;
-  private String scanId = "";
-  private double precursorMz = 0d;
-  private int precursorCharge = 0;
-
   // Retention time parser
   private DatatypeFactory dataTypeFactory;
 
@@ -109,11 +97,15 @@ public class MzXMLImportTask extends AbstractTask {
    */
   private final LinkedList<SimpleScan> parentStack;
 
+  /**
+   * The current building scan
+   */
+  private SimpleBuildingScan buildingScan;
   /*
    * This variable hold the present scan or fragment, it is send to the stack when another
    * scan/fragment appears as a parser.startElement
    */
-  private SimpleScan buildingScan;
+  private SimpleScan lastScan;
 
 
   public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
@@ -217,36 +209,36 @@ public class MzXMLImportTask extends AbstractTask {
       // <scan>
       if (qName.equalsIgnoreCase("scan")) {
 
-        if (buildingScan != null) {
-          parentStack.addFirst(buildingScan);
-          buildingScan = null;
+        if (lastScan != null) {
+          lastScan = null;
         }
+        buildingScan = new SimpleBuildingScan();
 
         /*
          * Only num, msLevel & peaksCount values are required according with mzxml standard, the
          * others are optional
          */
-        scanNumber = Integer.parseInt(attrs.getValue("num"));
+        buildingScan.scanNumber = Integer.parseInt(attrs.getValue("num"));
 
         // mzXML files with empty msLevel attribute do exist, so we use
         // 1 as default
-        msLevel = 1;
+        buildingScan.msLevel = 1;
         if (!Strings.isNullOrEmpty(attrs.getValue("msLevel"))) {
-          msLevel = Integer.parseInt(attrs.getValue("msLevel"));
+          buildingScan.msLevel = Integer.parseInt(attrs.getValue("msLevel"));
         }
 
         String scanType = attrs.getValue("scanType");
         String filterLine = attrs.getValue("filterLine");
-        scanId = filterLine;
-        if (Strings.isNullOrEmpty(scanId)) {
-          scanId = scanType;
+        buildingScan.scanId = filterLine;
+        if (Strings.isNullOrEmpty(buildingScan.scanId)) {
+          buildingScan.scanId = scanType;
         }
 
         String polarityAttr = attrs.getValue("polarity");
         if ((polarityAttr != null) && (polarityAttr.length() == 1)) {
-          polarity = PolarityType.fromSingleChar(polarityAttr);
+          buildingScan.polarity = PolarityType.fromSingleChar(polarityAttr);
         } else {
-          polarity = PolarityType.UNKNOWN;
+          buildingScan.polarity = PolarityType.UNKNOWN;
         }
         peaksCount = Integer.parseInt(attrs.getValue("peaksCount"));
 
@@ -255,7 +247,7 @@ public class MzXMLImportTask extends AbstractTask {
         if (retentionTimeStr != null) {
           Date currentDate = new Date();
           Duration dur = dataTypeFactory.newDuration(retentionTimeStr);
-          retentionTime = (float) (dur.getTimeInMillis(currentDate) / 1000d / 60d);
+          buildingScan.retentionTime = (float) (dur.getTimeInMillis(currentDate) / 1000d / 60d);
         } else {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("This file does not contain retentionTime for scans");
@@ -264,7 +256,7 @@ public class MzXMLImportTask extends AbstractTask {
 
         int parentScan = -1;
 
-        if (msLevel > 9) {
+        if (buildingScan.msLevel > 9) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("msLevel value bigger than 10");
           throw new SAXException("The value of msLevel is bigger than 10");
@@ -278,7 +270,7 @@ public class MzXMLImportTask extends AbstractTask {
 
         // Setting the level of fragment of scan and parent scan number
         msLevelTree++;
-        parentTreeValue[msLevel] = scanNumber;
+        parentTreeValue[buildingScan.msLevel] = buildingScan.scanNumber;
       }
 
       // <peaks>
@@ -298,7 +290,7 @@ public class MzXMLImportTask extends AbstractTask {
         charBuffer.setLength(0);
         String precursorChargeStr = attrs.getValue("precursorCharge");
         if (precursorChargeStr != null) {
-          precursorCharge = Integer.parseInt(precursorChargeStr);
+          buildingScan.precursorCharge = Integer.parseInt(precursorChargeStr);
         }
       }
 
@@ -324,9 +316,9 @@ public class MzXMLImportTask extends AbstractTask {
          */
 
         if (msLevelTree == 0) {
-          parentStack.addFirst(buildingScan);
+          parentStack.addFirst(lastScan);
           reset();
-          buildingScan = null;
+          lastScan = null;
           while (!parentStack.isEmpty()) {
             SimpleScan currentScan = parentStack.removeLast();
             try {
@@ -354,9 +346,12 @@ public class MzXMLImportTask extends AbstractTask {
       // <precursorMz>
       if (qName.equalsIgnoreCase("precursorMz")) {
         final String textContent = charBuffer.toString();
-        precursorMz = 0d;
+        buildingScan.precursorMz = 0d;
         if (!textContent.isEmpty()) {
-          precursorMz = Double.parseDouble(textContent);
+          buildingScan.precursorMz = Double.parseDouble(textContent);
+          if (buildingScan.precursorMz > 0 && buildingScan.msLevel <= 0) {
+            buildingScan.msLevel = 2;
+          }
         }
 
         return;
@@ -404,58 +399,37 @@ public class MzXMLImportTask extends AbstractTask {
           // data reading finished, apply data processing like sorting cropping mass detection if selected
           var processedData = scanProcessorConfig.processor()
               .processScan(buildingScan, new SimpleSpectralArrays(mzValues, intensityValues));
-
           mzValues = processedData.mzs();
           intensityValues = processedData.intensities();
+
+          // Change spectrum type
+          if (scanProcessorConfig.isMassDetectActive(buildingScan.msLevel)) {
+            buildingScan.spectrumType = MassSpectrumType.CENTROIDED;
+          } else {
+            // Auto-detect whether this scan is centroided
+            MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(mzValues, intensityValues);
+          }
+
         } catch (IOException eof) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Corrupt mzXML file");
           throw new SAXException("Parsing Cancelled");
         }
 
-        if (scanProcessorConfig.applyMassDetection()) {
-          if (intensityValues != null) {
-            final DDAMsMsInfo info =
-                msLevel != 1 && Double.compare(precursorMz, 0d) != 0 ? new DDAMsMsInfoImpl(
-                    precursorMz, precursorCharge, null, null, null, msLevel,
-                    ActivationMethod.UNKNOWN, null) : null;
-            // Set the centroided / thresholded data points to the scan
-            buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, info,
-                mzValues, intensityValues, MassSpectrumType.CENTROIDED, polarity, scanId, null);
+        // Set the centroided / thresholded data points to the scan
+        lastScan = new SimpleScan(newMZmineFile, buildingScan.scanNumber, buildingScan.msLevel,
+            buildingScan.retentionTime, buildingScan.getMsMsInfo(), mzValues, intensityValues,
+            buildingScan.spectrumType, buildingScan.polarity, buildingScan.scanId, null);
 
-            // create mass list and scan. Override data points and spectrum type
-            ScanPointerMassList newMassList = new ScanPointerMassList(buildingScan);
-            buildingScan.addMassList(newMassList);
-          }
+        if (scanProcessorConfig.isMassDetectActive(buildingScan.msLevel)) {
+          // create mass list and scan. Override data points and spectrum type
+          lastScan.addMassList(new ScanPointerMassList(lastScan));
         }
-
-        // if no mass dection was applied - just create the scan
-        if (buildingScan == null) {
-          // Auto-detect whether this scan is centroided
-          MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(mzValues, intensityValues);
-
-          final DDAMsMsInfo info =
-              msLevel != 1 && precursorMz != 0d ? new DDAMsMsInfoImpl(precursorMz, precursorCharge,
-                  null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
-
-          // Set the final data points to the scan
-          buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, info,
-              mzValues, intensityValues, spectrumType, polarity, scanId, null);
-        }
-
       }
     }
 
-
     private void reset() {
       buildingScan = null;
-      retentionTime = 0;
-      scanNumber = 0;
-      msLevel = 1;
-      polarity = PolarityType.UNKNOWN;
-      scanId = "";
-      precursorMz = 0d;
-      precursorCharge = 0;
     }
 
     /**

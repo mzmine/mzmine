@@ -68,8 +68,8 @@ import org.jetbrains.annotations.Nullable;
  * </p>
  */
 public class BuildingMzMLMsScan extends MetadataOnlyScan {
-//public class BuildingMzMLMsScan implements Scan {
-  //public class MzMLMsScan extends AbstractStorableSpectrum implements MsScan {
+
+  private static final Logger logger = Logger.getLogger(BuildingMzMLMsScan.class.getName());
 
   private final MzMLCVGroup cvParams;
   private final MzMLPrecursorList precursorList;
@@ -78,7 +78,6 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   private final @NotNull String id;
   private final int scanNumber;
   private final int numOfDataPoints;
-  private final Logger logger = Logger.getLogger(getClass().getName());
   private MassSpectrumType spectrumType;
   private Float retentionTime;
   private Range<Double> mzRange;
@@ -581,6 +580,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   /**
    * Called when spectrum end is read. Load, process data points and memory map resulting data to
    * disk to save RAM.
+   *
    * @return false if
    */
   public boolean loadProcessMemMapData(final MemoryMapStorage storage,
@@ -595,7 +595,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
       // process and filter - needs metadata so wrap
       specData = config.processor().processScan(this, specData);
 
-      if (config.applyMassDetection()) {
+      if (config.isMassDetectActive(getMSLevel())) {
         // after mass detection we have a centroid scan
         spectrumType = MassSpectrumType.CENTROIDED;
       }
@@ -618,7 +618,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
    * @return null if no data available otherwise the spectral arrays
    */
   private @Nullable SimpleSpectralArrays loadData() throws MSDKException, IOException {
-    if(mzBinaryDataInfo==null) {
+    if (mzBinaryDataInfo == null) {
       // maybe UV spectrum
       clearUnusedData();
       return null;
