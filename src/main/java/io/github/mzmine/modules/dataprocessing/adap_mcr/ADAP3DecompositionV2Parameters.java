@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -68,12 +68,12 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
       NumberFormat.getNumberInstance(), 0.05, 0.0, Double.MAX_VALUE);
 
   public static final IntegerParameter MIN_CLUSTER_SIZE = new IntegerParameter(
-      "Minimum Number of Peaks", "Minimum number of peaks that can form a component", 1);
+      "Minimum number of features", "Minimum number of features that can form a component", 1);
 
   public static final BooleanParameter ADJUST_APEX_RET_TIME = new BooleanParameter(
       "Adjust Apex Ret Times",
       "If this option is checked, the apex retention time is calculated by fitting a parabola into "
-          + "the top half of an EIC peak", false);
+          + "the top half of an EIC", false);
 
   // ------------------------------------------------------------------------
   // ----- End of Second-phase parameters -----------------------------------
