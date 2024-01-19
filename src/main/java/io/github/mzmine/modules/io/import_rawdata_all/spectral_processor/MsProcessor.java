@@ -23,9 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor;
+package io.github.mzmine.modules.io.import_rawdata_all.spectral_processor;
 
+import io.github.mzmine.datamodel.MetadataOnlyScan;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.io.import_rawdata_mzxml.SimpleBuildingScan;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +41,8 @@ public interface MsProcessor {
    * Process input data. This is usually called during import when a scan is read and finalized.
    *
    * @param metadataOnlyScan scan that may not contain all metadata. Only metadata needed to
-   *                         process
+   *                         process. This can be for example {@link MetadataOnlyScan} or
+   *                         {@link SimpleBuildingScan}
    * @param spectrum         spectral data to process
    * @return resulting spectral data or input data if on no change
    */

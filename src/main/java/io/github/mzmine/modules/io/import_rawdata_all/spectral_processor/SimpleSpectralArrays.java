@@ -23,29 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.processors;
+package io.github.mzmine.modules.io.import_rawdata_all.spectral_processor;
 
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessor;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SimpleSpectralArrays;
-import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.DataPointUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class SortByMzMsProcessor implements MsProcessor {
+/**
+ * Data structure to represent spectral data in memory
+ *
+ * @param mzs should be sorted by mz ascending
+ */
+public record SimpleSpectralArrays(double[] mzs, double[] intensities) {
 
+  public static final SimpleSpectralArrays EMPTY = new SimpleSpectralArrays(new double[0],
+      new double[0]);
 
-  public SortByMzMsProcessor() {
+  public SimpleSpectralArrays(final Scan scan) {
+    this(scan.getMzValues(new double[scan.getNumberOfDataPoints()]),
+        scan.getIntensityValues(new double[scan.getNumberOfDataPoints()]));
   }
 
-  public @NotNull SimpleSpectralArrays processScan(final @Nullable Scan metadataOnlyScan,
-      final @NotNull SimpleSpectralArrays spectrum) {
-    return DataPointUtils.sort(spectrum, DataPointSorter.DEFAULT_MZ_ASCENDING);
-  }
-
-  @Override
-  public @NotNull String description() {
-    return "Sort by m/z";
+  public int getNumberOfDataPoints() {
+    return mzs().length;
   }
 }

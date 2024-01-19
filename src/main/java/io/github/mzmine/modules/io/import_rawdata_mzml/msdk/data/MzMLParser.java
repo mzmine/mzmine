@@ -26,9 +26,9 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import io.github.msdk.datamodel.Chromatogram;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.TagTracker;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.io.InputStream;

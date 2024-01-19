@@ -23,10 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor;
+package io.github.mzmine.modules.io.import_rawdata_all.spectral_processor;
 
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.processors.MassDetectorMsProcessor;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.processors.MassDetectorMsProcessor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

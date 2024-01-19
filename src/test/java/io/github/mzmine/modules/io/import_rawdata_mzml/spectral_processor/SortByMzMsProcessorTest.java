@@ -28,7 +28,8 @@ package io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.processors.SortByMzMsProcessor;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.processors.SortByMzMsProcessor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

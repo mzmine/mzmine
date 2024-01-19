@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.processors;
+package io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.processors;
 
 import static io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorUtils.createMassDetector;
 
@@ -31,8 +31,8 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.MsProcessor;
-import io.github.mzmine.modules.io.import_rawdata_mzml.spectral_processor.SimpleSpectralArrays;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.MsProcessor;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
