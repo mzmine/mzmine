@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -80,7 +80,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
       return;
     }
 
-    double[][] mzValues = massDetector.getMassValues(previewScan, parameters);
+    double[][] mzValues = massDetector.create(parameterSet).getMassValues(previewScan);
 
     MassListDataSet peaksDataSet = new MassListDataSet(mzValues[0], mzValues[1]);
 

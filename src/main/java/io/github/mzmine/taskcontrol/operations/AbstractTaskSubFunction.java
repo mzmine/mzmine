@@ -23,21 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto;
+package io.github.mzmine.taskcontrol.operations;
 
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.taskcontrol.AbstractTask;
 
-public class AutoMassDetectorParameters extends SimpleParameterSet {
 
-  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
-      "The minimum signal intensity to be considered a peak.",
-      MZmineCore.getConfiguration().getIntensityFormat(), 1E3);
+/**
+ * Task operations are sub tasks that can react to a parent task being canceled. It also updates the
+ * finished percentage progress. The function processes items and returns new types.
+ */
+public abstract class AbstractTaskSubFunction<T, R> extends AbstractParentTaskDependent implements
+    TaskSubFunction<T, R> {
 
-  public AutoMassDetectorParameters() {
-    super(new Parameter[]{noiseLevel},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#auto");
+  public AbstractTaskSubFunction() {
+    this(null);
   }
+
+  public AbstractTaskSubFunction(final AbstractTask parentTask) {
+    super(parentTask);
+  }
+
 }

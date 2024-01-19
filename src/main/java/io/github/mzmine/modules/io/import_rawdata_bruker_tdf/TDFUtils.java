@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,7 +48,6 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMa
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
-import io.github.mzmine.parameters.ParameterSet;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import java.io.File;
@@ -220,7 +219,7 @@ public class TDFUtils {
 
     if (!loadLibrary() || tdfLib == null) {
       logger.warning(() -> "File + " + path.getAbsolutePath() + " cannot be loaded because tdf "
-          + "library could not be initialised.");
+                           + "library could not be initialised.");
       return 0L;
     }
 
@@ -239,7 +238,7 @@ public class TDFUtils {
         throw new RuntimeException("Error opening tdf file.");
       }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
-          + tdfLib.tims_has_recalibrated_state(handle));
+                          + tdfLib.tims_has_recalibrated_state(handle));
       return handle;
     } else {
       logger.finest(() -> "Opening tdf path " + path.getAbsolutePath());
@@ -250,7 +249,7 @@ public class TDFUtils {
         throw new RuntimeException("Error opening tdf file.");
       }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
-          + tdfLib.tims_has_recalibrated_state(handle));
+                          + tdfLib.tims_has_recalibrated_state(handle));
       return handle;
     }
   }
@@ -310,7 +309,7 @@ public class TDFUtils {
           final long finalStart = start;
           logger.fine(
               () -> "Could not read scans " + finalStart + "-" + end + " for frame " + frameId
-                  + ". Increasing buffer size to " + BUFFER_SIZE + " and reloading.");
+                    + ". Increasing buffer size to " + BUFFER_SIZE + " and reloading.");
           buffer = new byte[BUFFER_SIZE];
           continue; // try again
         }
@@ -359,7 +358,7 @@ public class TDFUtils {
   @Nullable
   public List<BuildingMobilityScan> loadSpectraForTIMSFrame(final long frameId,
       @NotNull final TDFFrameTable frameTable) {
-    return loadSpectraForTIMSFrame(frameId, frameTable, null, null);
+    return loadSpectraForTIMSFrame(frameId, frameTable, null);
   }
 
   /**
@@ -369,13 +368,11 @@ public class TDFUtils {
    * @param frameId    The id of the frame. See {@link TDFFrameTable}
    * @param frameTable The frame table
    * @param msDetector Mass detector for the given ms level. May be null.
-   * @param msParam    Mass detector parameters. May be null.
    * @return List of scans for the given frame id. Empty scans have been filtered out.
    */
   @Nullable
   public List<BuildingMobilityScan> loadSpectraForTIMSFrame(final long frameId,
-      @NotNull final TDFFrameTable frameTable, @Nullable final MassDetector msDetector,
-      @Nullable final ParameterSet msParam) {
+      @NotNull final TDFFrameTable frameTable, @Nullable final MassDetector msDetector) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
@@ -384,14 +381,15 @@ public class TDFUtils {
 
     if (numScans != dataPoints.size()) {
       logger.warning(() -> "Number of scans for frame " + frameId + " in tdf (" + numScans
-          + ") does not match number of loaded scans (" + dataPoints.size() + ").");
+                           + ") does not match number of loaded scans (" + dataPoints.size()
+                           + ").");
       return null;
     }
 
     for (int i = 0; i < dataPoints.size(); i++) {
-      if (msDetector != null && msParam != null) {
+      if (msDetector != null) {
         spectra.add(new BuildingMobilityScan(i,
-            msDetector.getMassValues(dataPoints.get(i)[0], dataPoints.get(i)[1], msParam)));
+            msDetector.getMassValues(dataPoints.get(i)[0], dataPoints.get(i)[1])));
       } else {
         spectra.add(new BuildingMobilityScan(i, dataPoints.get(i)[0], dataPoints.get(i)[1]));
       }
@@ -417,7 +415,7 @@ public class TDFUtils {
 
       if (error == 0) {
         logger.warning(() -> "Could not extract centroid scan for frame " + frameId + " for scans "
-            + startScanNum + " to " + endScanNum + ".");
+                             + startScanNum + " to " + endScanNum + ".");
         return new double[][]{{0}, {0}};
       }
 
@@ -437,7 +435,7 @@ public class TDFUtils {
       @NotNull final FramePrecursorTable framePrecursorTable,
       @Nullable final TDFMaldiFrameInfoTable maldiFrameInfoTable) {
     return extractCentroidScanForTimsFrame(newFile, frameId, metaDataTable, frameTable,
-        framePrecursorTable, maldiFrameInfoTable, null, null, null, null);
+        framePrecursorTable, maldiFrameInfoTable, null, null);
   }
 
   /**
@@ -451,8 +449,7 @@ public class TDFUtils {
       @NotNull final TDFMetaDataTable metaDataTable, @NotNull final TDFFrameTable frameTable,
       @NotNull final FramePrecursorTable framePrecursorTable,
       @Nullable final TDFMaldiFrameInfoTable maldiFrameInfoTable,
-      @Nullable final MassDetector ms1Detector, @Nullable final ParameterSet ms1Param,
-      @Nullable final MassDetector ms2Detector, @Nullable final ParameterSet ms2Param) {
+      @Nullable final MassDetector ms1Detector, @Nullable final MassDetector ms2Detector) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
@@ -465,16 +462,16 @@ public class TDFUtils {
     final String scanDefinition =
         metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
             frameTable.getScanModeColumn().get(frameIndex).intValue()) + " Frame #" + frameId
-            + " RT: " + rtFormat.format(rt);
+        + " RT: " + rtFormat.format(rt);
     final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
         .floatValue();
 
     double[][] data = extractCentroidsForFrame(frameId, 0, numScans);
 
-    if (msLevel == 1 && ms1Detector != null && ms1Param != null) {
-      data = ms1Detector.getMassValues(data[0], data[1], ms1Param);
-    } else if (msLevel == 2 && ms2Detector != null && ms2Param != null) {
-      data = ms2Detector.getMassValues(data[0], data[1], ms2Param);
+    if (msLevel == 1 && ms1Detector != null) {
+      data = ms1Detector.getMassValues(data[0], data[1]);
+    } else if (msLevel == 2 && ms2Detector != null) {
+      data = ms2Detector.getMassValues(data[0], data[1]);
     }
 
     final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
@@ -527,8 +524,7 @@ public class TDFUtils {
       @NotNull final TDFMetaDataTable metaDataTable, @NotNull final TDFFrameTable frameTable,
       @NotNull final FramePrecursorTable framePrecursorTable,
       @Nullable final TDFMaldiFrameInfoTable maldiFrameInfoTable,
-      @Nullable final MassDetector ms1Detector, @Nullable final ParameterSet ms1Param,
-      @Nullable final MassDetector ms2Detector, @Nullable final ParameterSet ms2Param) {
+      @Nullable final MassDetector ms1Detector, @Nullable final MassDetector ms2Detector) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
@@ -541,7 +537,7 @@ public class TDFUtils {
     final String scanDefinition =
         metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
             frameTable.getScanModeColumn().get(frameIndex).intValue()) + " Frame #" + frameId
-            + " RT: " + rtFormat.format(rt);
+        + " RT: " + rtFormat.format(rt);
     final Range<Double> mzRange = metaDataTable.getMzRange();
     final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
         .floatValue();
@@ -567,11 +563,11 @@ public class TDFUtils {
 
     final double data[][];
     boolean massesDetected = false;
-    if (msLevel == 1 && ms1Detector != null && ms1Param != null) {
-      data = ms1Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray(), ms1Param);
+    if (msLevel == 1 && ms1Detector != null) {
+      data = ms1Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray());
       massesDetected = true;
-    } else if (msLevel == 2 && ms2Detector != null && ms2Param != null) {
-      data = ms2Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray(), ms2Param);
+    } else if (msLevel == 2 && ms2Detector != null) {
+      data = ms2Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray());
       massesDetected = true;
     } else {
       data = new double[2][];
@@ -681,7 +677,8 @@ public class TDFUtils {
       try {
         final String errorMessage = new String(errorBuffer, "UTF-8");
         logger.fine(() -> "Last TDF import error: " + errorMessage + " length: " + len
-            + ". Required buffer size: " + errorCode + " actual size: " + BUFFER_SIZE);
+                          + ". Required buffer size: " + errorCode + " actual size: "
+                          + BUFFER_SIZE);
         if (errorMessage.contains("CorruptFrameDataError")) {
           throw new IllegalStateException("Error reading tdf raw data. " + errorMessage);
         }

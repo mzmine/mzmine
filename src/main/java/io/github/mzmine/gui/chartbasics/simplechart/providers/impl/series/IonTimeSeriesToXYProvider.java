@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,6 +63,11 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
     series = f.getFeatureData();
     seriesKey = FeatureUtils.featureToString(f);
     color = new SimpleObjectProperty<>(f.getRawDataFile().getColor());
+  }
+
+  public IonTimeSeriesToXYProvider(final IonTimeSeries<? extends Scan> series,
+      final String seriesKey, final javafx.scene.paint.Color color) {
+    this(series, seriesKey, new SimpleObjectProperty<>(color));
   }
 
   @NotNull

@@ -25,28 +25,38 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import org.jetbrains.annotations.NotNull;
 
-/**
- *
- */
-public interface MassDetector extends MZmineModule {
-  public static final double[][] EMPTY_DATA = new double[2][0];
+public class MassDetectorUtils {
 
-  MassDetector create(ParameterSet params);
-
-  boolean filtersActive();
   /**
-   * Returns mass and intensity values detected in given spectrum
-   *
-   * @param spectrum
-   * @return [mzs, intensities][data]
+   * Create the isotope detector or an inactive version if not selected
    */
-  double[][] getMassValues(MassSpectrum spectrum);
+  @NotNull
+  public static MassesIsotopeDetector createIsotopeDetector(
+      final @NotNull OptionalModuleParameter<DetectIsotopesParameter> detectIsotopes) {
 
-  default double[][] getMassValues(double[] mzs, double[] intensities) {
-    throw new UnsupportedOperationException("Method not implemented. Please implement me.");
+    // If isotopes are going to be detected get all the required parameters
+    if (detectIsotopes.getValue()) {
+      var isotopesParameters = detectIsotopes.getEmbeddedParameters();
+      return isotopesParameters.create();
+    } else {
+      return MassesIsotopeDetector.createInactiveDefault();
+    }
+  }
+
+
+  /**
+   * Create new mass detector with the parameters provided in this {@link MZmineProcessingStep}
+   */
+  @NotNull
+  public static MassDetector createMassDetector(
+      final MZmineProcessingStep<MassDetector> massDetectorStep) {
+    ParameterSet parameterSet = massDetectorStep.getParameterSet();
+    // derive new mass detector with parameters
+    return massDetectorStep.getModule().create(parameterSet);
   }
 }

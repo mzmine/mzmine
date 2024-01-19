@@ -23,21 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto;
+package io.github.mzmine.taskcontrol.operations;
 
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import org.jetbrains.annotations.Nullable;
 
-public class AutoMassDetectorParameters extends SimpleParameterSet {
+/**
+ * Something that is dependent on the parent task still running or may change task status
+ */
+public class AbstractParentTaskDependent implements ParentTaskDependent {
 
-  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
-      "The minimum signal intensity to be considered a peak.",
-      MZmineCore.getConfiguration().getIntensityFormat(), 1E3);
+  protected AbstractTask parentTask;
 
-  public AutoMassDetectorParameters() {
-    super(new Parameter[]{noiseLevel},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#auto");
+  public AbstractParentTaskDependent() {
+    this(null);
+  }
+
+  public AbstractParentTaskDependent(final AbstractTask parentTask) {
+    this.parentTask = parentTask;
+  }
+
+  @Nullable
+  public AbstractTask getParentTask() {
+    return parentTask;
+  }
+
+  @Override
+  public void setParentTask(final @Nullable AbstractTask parentTask) {
+    this.parentTask = parentTask;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,14 +53,40 @@ public class WaveletMassDetector implements MassDetector {
   private static final int WAVELET_ESL = -5;
   private static final int WAVELET_ESR = 5;
 
-  @Override
-  public double[][] getMassValues(MassSpectrum scan, ParameterSet parameters) {
+  private final double noiseLevel;
+  private final int scaleLevel;
+  private final double waveletWindow;
 
-    double noiseLevel = parameters.getParameter(WaveletMassDetectorParameters.noiseLevel)
-        .getValue();
-    int scaleLevel = parameters.getParameter(WaveletMassDetectorParameters.scaleLevel).getValue();
-    double waveletWindow = parameters.getParameter(WaveletMassDetectorParameters.waveletWindow)
-        .getValue();
+  /**
+   * required to create a default instance via reflection
+   */
+  public WaveletMassDetector() {
+    this(0, 0, 0);
+  }
+
+  public WaveletMassDetector(final double noiseLevel, final int scaleLevel,
+      final double waveletWindow) {
+
+    this.noiseLevel = noiseLevel;
+    this.scaleLevel = scaleLevel;
+    this.waveletWindow = waveletWindow;
+  }
+
+  @Override
+  public MassDetector create(final ParameterSet params) {
+    double noiseLevel = params.getValue(WaveletMassDetectorParameters.noiseLevel);
+    int scaleLevel = params.getValue(WaveletMassDetectorParameters.scaleLevel);
+    double waveletWindow = params.getValue(WaveletMassDetectorParameters.waveletWindow);
+    return new WaveletMassDetector(noiseLevel, scaleLevel, waveletWindow);
+  }
+
+  @Override
+  public boolean filtersActive() {
+    return true; // profile to centroid always active
+  }
+
+  @Override
+  public double[][] getMassValues(MassSpectrum scan) {
 
     DataPoint waveletDataPoints[] = performCWT(scan, waveletWindow, scaleLevel);
 

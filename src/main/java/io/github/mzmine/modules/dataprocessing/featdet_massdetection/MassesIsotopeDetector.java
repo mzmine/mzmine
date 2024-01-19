@@ -23,21 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto;
+package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.IsotopesUtils;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import java.util.List;
+import org.openscience.cdk.Element;
 
-public class AutoMassDetectorParameters extends SimpleParameterSet {
+/**
+ * For detecting isotopes in mass detection
+ */
+public record MassesIsotopeDetector(boolean active, List<Element> elements, int maxCharge,
+                                    MZTolerance mzTol, List<Double> mzDiffs, double maxMzDiff) {
 
-  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
-      "The minimum signal intensity to be considered a peak.",
-      MZmineCore.getConfiguration().getIntensityFormat(), 1E3);
+  public static MassesIsotopeDetector createInactiveDefault() {
+    return new MassesIsotopeDetector(false, List.of(), 1, null, List.of(), 0);
+  }
 
-  public AutoMassDetectorParameters() {
-    super(new Parameter[]{noiseLevel},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#auto");
+  public boolean isPossibleIsotopeMz(final double exactMz, final DoubleArrayList mzs) {
+    if (!active || mzs.isEmpty()) {
+      return false;
+    }
+
+    // If the difference between current m/z and last detected m/z is greater than maximum
+    // possible isotope m/z difference do not call isPossibleIsotopeMz
+    return (mzs.getDouble(mzs.size() - 1) - exactMz) > maxMzDiff
+           && IsotopesUtils.isPossibleIsotopeMz(exactMz, mzs, mzDiffs, mzTol);
   }
 }

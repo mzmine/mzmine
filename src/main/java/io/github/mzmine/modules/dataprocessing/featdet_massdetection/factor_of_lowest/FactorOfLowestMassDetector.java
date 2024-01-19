@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,13 +36,21 @@ import org.jetbrains.annotations.NotNull;
  */
 public class FactorOfLowestMassDetector implements MassDetector {
 
-  @Override
-  public double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters) {
+  private final double noiseFactor;
+
+  /**
+   * required to create a default instance via reflection
+   */
+  public FactorOfLowestMassDetector() {
+    this(0);
+  }
+
+  public FactorOfLowestMassDetector(double noiseFactor) {
+    this.noiseFactor = noiseFactor;
+  }
+
+  public static double[][] getMassValues(MassSpectrum spectrum, double noiseFactor) {
     // most likely working on {@link ScanDataAccess}
-
-    final double noiseFactor = parameters.getValue(
-        FactorOfLowestMassDetectorParameters.noiseFactor);
-
     // get the minimum intensity and base noise on this
     double noiseLevel = minIntensity(spectrum) * noiseFactor;
 
@@ -65,16 +73,7 @@ public class FactorOfLowestMassDetector implements MassDetector {
     return new double[][]{mzs.toArray(), intensities.toArray()};
   }
 
-  @Override
-  public double[][] getMassValues(double[] mzs, double[] intensities, ParameterSet parameters) {
-    assert mzs.length == intensities.length;
-
-    final double noiseFactor = parameters.getValue(
-        FactorOfLowestMassDetectorParameters.noiseFactor);
-    return getMassValues(mzs, intensities, noiseFactor);
-  }
-
-  public double[][] getMassValues(double[] mzs, double[] intensities, double noiseFactor) {
+  public static double[][] getMassValues(double[] mzs, double[] intensities, double noiseFactor) {
     assert mzs.length == intensities.length;
 
     // get the minimum intensity and base noise on this
@@ -98,7 +97,10 @@ public class FactorOfLowestMassDetector implements MassDetector {
     return new double[][]{pickedMZs.toArray(), pickedIntensities.toArray()};
   }
 
-  private double minIntensity(double[] rawIntensities) {
+  private static double minIntensity(double[] rawIntensities) {
+    if (rawIntensities.length == 0) {
+      return 0;
+    }
     double minIntensity = Double.MAX_VALUE;
     for (double v : rawIntensities) {
       if (v < minIntensity) {
@@ -111,9 +113,13 @@ public class FactorOfLowestMassDetector implements MassDetector {
     return minIntensity;
   }
 
-  private double minIntensity(MassSpectrum spec) {
+  private static double minIntensity(MassSpectrum spec) {
+    var size = spec.getNumberOfDataPoints();
+    if (size == 0) {
+      return 0;
+    }
     double minIntensity = Double.MAX_VALUE;
-    for (int i = 0; i < spec.getNumberOfDataPoints(); i++) {
+    for (int i = 0; i < size; i++) {
       final double value = spec.getIntensityValue(i);
       if (value < minIntensity && value > 0) {
         minIntensity = value;
@@ -123,6 +129,27 @@ public class FactorOfLowestMassDetector implements MassDetector {
       minIntensity = 0;
     }
     return minIntensity;
+  }
+
+  @Override
+  public double[][] getMassValues(double[] mzs, double[] intensities) {
+    return getMassValues(mzs, intensities, noiseFactor);
+  }
+
+  @Override
+  public FactorOfLowestMassDetector create(ParameterSet parameters) {
+    var noiseFactor = parameters.getValue(FactorOfLowestMassDetectorParameters.noiseFactor);
+    return new FactorOfLowestMassDetector(noiseFactor);
+  }
+
+  @Override
+  public boolean filtersActive() {
+    return noiseFactor > 1; // profile to centroid so always active
+  }
+
+  @Override
+  public double[][] getMassValues(MassSpectrum spectrum) {
+    return getMassValues(spectrum, noiseFactor);
   }
 
   @Override
