@@ -44,7 +44,7 @@ public class ThermoRawImportTest extends AbstractDataImportTest {
   @Override
   public List<String> getFileNames() {
     return List.of( //
-//        "rawdatafiles/additional/astral.raw" //
+        "rawdatafiles/additional/astral.raw" //
 //      , "rawdatafiles/additional/astral.raw" //
     );
   }

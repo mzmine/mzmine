@@ -25,12 +25,18 @@
 
 package import_data;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetectorParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -40,7 +46,6 @@ import java.util.Map;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -55,24 +60,12 @@ import testutils.MZmineTestUtil;
 public abstract class AbstractDataImportTest {
 
   private static final Logger logger = Logger.getLogger(AbstractDataImportTest.class.getName());
+  private double lowestMz;
 
   public AbstractDataImportTest() {
   }
 
   public abstract List<String> getFileNames();
-
-  /**
-   * Init MZmine core in headless mode with the options -r (keep running) and -m (keep in memory)
-   */
-  @BeforeAll
-  public void init() {
-    logger.info("Getting project");
-    try {
-      MZmineTestUtil.importFiles(getFileNames(), 60);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
-  }
 
   @AfterAll
   public void tearDown() {
@@ -84,9 +77,11 @@ public abstract class AbstractDataImportTest {
   @Order(1)
 //  @Disabled
   @DisplayName("Test data import of mzML and mzXML without advanced parameters")
-  void dataImportTest() {
+  void dataImportTest() throws InterruptedException {
+    MZmineTestUtil.cleanProject();
+    MZmineTestUtil.importFiles(getFileNames(), 60);
     Map<String, DataFileStats> stats = DataFileStatsIO.readJson(getClass());
-    DataImportTestUtils.testDataStatistics(getFileNames(), stats);
+    DataImportTestUtils.testDataStatistics(getFileNames(), stats, false);
   }
 
   @Test
@@ -99,7 +94,19 @@ public abstract class AbstractDataImportTest {
     MZmineTestUtil.cleanProject();
     MZmineTestUtil.importFiles(getFileNames(), 60, advanced);
     Map<String, DataFileStats> stats = DataFileStatsIO.readJson(getClass());
-    DataImportTestUtils.testDataStatistics(getFileNames(), stats);
+    DataImportTestUtils.testDataStatistics(getFileNames(), stats, true);
+
+    //
+    for (final RawDataFile raw : MZmineCore.getProject().getDataFiles()) {
+      for (final Scan scan : raw.getScans()) {
+        // advanced sets mass list
+        assertNotNull(scan.getMassList());
+        assertEquals(scan.getNumberOfDataPoints(), scan.getMassList().getNumberOfDataPoints());
+        if (scan.getNumberOfDataPoints() > 0) {
+          assertTrue(scan.getMzValue(0) >= lowestMz);
+        }
+      }
+    }
   }
 
 
@@ -108,17 +115,13 @@ public abstract class AbstractDataImportTest {
    */
   @Nullable
   public AdvancedSpectraImportParameters createAdvancedImportSettings() {
-    final var massDetector = MassDetectionParameters.auto;
-    final ParameterSet massDetectorParam = MZmineCore.getConfiguration()
-        .getModuleParameters(AutoMassDetector.class).cloneParameterSet();
-    massDetectorParam.setParameter(AutoMassDetectorParameters.noiseLevel, 3E5);
-    massDetectorParam.setParameter(AutoMassDetectorParameters.detectIsotopes, false);
-    MZmineProcessingStep<MassDetector> massDetectorStep = new MZmineProcessingStepImpl<>(
-        massDetector, massDetectorParam);
-    final ParameterSet massDetectorParam2 = MZmineCore.getConfiguration()
-        .getModuleParameters(AutoMassDetector.class).cloneParameterSet();
-    massDetectorParam2.setParameter(AutoMassDetectorParameters.noiseLevel, 3E5);
-    massDetectorParam2.setParameter(AutoMassDetectorParameters.detectIsotopes, false);
+    final var massDetector = MassDetectors.FACTOR_OF_LOWEST.getDefaultModule();
+    ParameterSet massDetectorParam = MassDetectors.FACTOR_OF_LOWEST.getParametersCopy();
+    massDetectorParam.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 3d);
+    var massDetectorStep = new MZmineProcessingStepImpl<>(massDetector, massDetectorParam);
+
+    ParameterSet massDetectorParam2 = MassDetectors.FACTOR_OF_LOWEST.getParametersCopy();
+    massDetectorParam2.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 3d);
     MZmineProcessingStep<MassDetector> massDetectorStep2 = new MZmineProcessingStepImpl<>(
         massDetector, massDetectorParam2);
 
@@ -126,8 +129,10 @@ public abstract class AbstractDataImportTest {
     advanced.setParameter(AdvancedSpectraImportParameters.msMassDetection, true, massDetectorStep);
     advanced.setParameter(AdvancedSpectraImportParameters.ms2MassDetection, true,
         massDetectorStep2);
-    advanced.setParameter(AdvancedSpectraImportParameters.mzRange, false);
-    advanced.setParameter(AdvancedSpectraImportParameters.denormalizeMSnScans, false);
+    lowestMz = 350d;
+    advanced.setParameter(AdvancedSpectraImportParameters.mzRange, true,
+        Range.closed(lowestMz, 5000d));
+    advanced.setParameter(AdvancedSpectraImportParameters.denormalizeMSnScans, true);
     advanced.setParameter(AdvancedSpectraImportParameters.scanFilter, ScanSelection.ALL_SCANS);
     return advanced;
   }
