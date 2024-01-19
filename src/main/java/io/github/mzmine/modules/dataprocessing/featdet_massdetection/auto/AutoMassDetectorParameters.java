@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,11 +26,9 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 
 public class AutoMassDetectorParameters extends SimpleParameterSet {
 
@@ -38,13 +36,8 @@ public class AutoMassDetectorParameters extends SimpleParameterSet {
       "The minimum signal intensity to be considered a peak.",
       MZmineCore.getConfiguration().getIntensityFormat(), 1E3);
 
-  public static final OptionalModuleParameter<DetectIsotopesParameter> detectIsotopes
-      = new OptionalModuleParameter<>("Detect isotope signals below noise level",
-      "Include peaks corresponding to isotope masses distribution of specified elements.",
-      new DetectIsotopesParameter());
-
   public AutoMassDetectorParameters() {
-    super(new Parameter[] {noiseLevel, detectIsotopes},
+    super(new Parameter[]{noiseLevel},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection-algorithms.html#auto");
   }
 }

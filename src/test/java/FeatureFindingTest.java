@@ -49,7 +49,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
@@ -623,10 +623,9 @@ public class FeatureFindingTest {
   }
 
   private MZmineProcessingStep<MassDetector> createCentroidMassDetector(double noise) {
-    CentroidMassDetector detect = MZmineCore.getModuleInstance(CentroidMassDetector.class);
-    CentroidMassDetectorParameters param = new CentroidMassDetectorParameters();
+    MassDetector detect = MassDetectors.CENTROID.getDefaultModule();
+    ParameterSet param = MassDetectors.CENTROID.getParametersCopy();
     param.setParameter(CentroidMassDetectorParameters.noiseLevel, noise);
-    param.setParameter(CentroidMassDetectorParameters.detectIsotopes, false);
     return new MZmineProcessingStepImpl<>(detect, param);
   }
 

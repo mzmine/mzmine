@@ -28,8 +28,6 @@ package io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorUtils;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassesIsotopeDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
 import io.github.mzmine.parameters.ParameterSet;
@@ -40,25 +38,29 @@ public class AutoMassDetector implements MassDetector {
 
   private final CentroidMassDetector centroidDetector;
   private final ExactMassDetector exactMassDetector;
-  private final boolean filtersActive;
 
-  public AutoMassDetector(final double noiseLevel, final MassesIsotopeDetector isotopeDetector) {
-    centroidDetector = new CentroidMassDetector(noiseLevel, isotopeDetector);
-    exactMassDetector = new ExactMassDetector(noiseLevel, isotopeDetector);
-    filtersActive = noiseLevel > 0;
+  /**
+   * required to create a default instance via reflection
+   */
+  public AutoMassDetector() {
+    centroidDetector = null;
+    exactMassDetector = null;
+  }
+
+  public AutoMassDetector(final double noiseLevel) {
+    centroidDetector = new CentroidMassDetector(noiseLevel);
+    exactMassDetector = new ExactMassDetector(noiseLevel);
   }
 
   @Override
   public MassDetector create(final ParameterSet params) {
     double noiseLevel = params.getValue(AutoMassDetectorParameters.noiseLevel);
-    var isotopeDetector = MassDetectorUtils.createIsotopeDetector(
-        params.getParameter(AutoMassDetectorParameters.detectIsotopes));
-    return new AutoMassDetector(noiseLevel, isotopeDetector);
+    return new AutoMassDetector(noiseLevel);
   }
 
   @Override
   public boolean filtersActive() {
-    return filtersActive;
+    return true; // may be profile to centroid so always active
   }
 
   @Override
@@ -81,9 +83,17 @@ public class AutoMassDetector implements MassDetector {
     }
   }
 
+  public double[][] getMassValues(double[] mzs, double[] intensities, MassSpectrumType type) {
+    if (type == MassSpectrumType.PROFILE) {
+      return exactMassDetector.getMassValues(mzs, intensities);
+    } else {
+      return centroidDetector.getMassValues(mzs, intensities);
+    }
+  }
+
   @Override
   public double[][] getMassValues(double[] mzs, double[] intensities) {
-    return MassDetector.super.getMassValues(mzs, intensities);
+    throw new UnsupportedOperationException("Requires spectrum type, see other method");
   }
 
 }

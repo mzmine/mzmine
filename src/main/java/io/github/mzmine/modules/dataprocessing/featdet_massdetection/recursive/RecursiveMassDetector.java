@@ -40,17 +40,45 @@ import org.jetbrains.annotations.NotNull;
 
 public class RecursiveMassDetector implements MassDetector {
 
+  private final double noiseLevel;
+  private final double minimumMZPeakWidth;
+  private final double maximumMZPeakWidth;
+
+  /**
+   * required to create a default instance via reflection
+   */
+  public RecursiveMassDetector() {
+    this(0, 0, 0);
+  }
+
+  public RecursiveMassDetector(final double noiseLevel, final double minimumMZPeakWidth,
+      final double maximumMZPeakWidth) {
+
+    this.noiseLevel = noiseLevel;
+    this.minimumMZPeakWidth = minimumMZPeakWidth;
+    this.maximumMZPeakWidth = maximumMZPeakWidth;
+  }
+
+  @Override
+  public RecursiveMassDetector create(ParameterSet parameters) {
+    double noiseLevel = parameters.getParameter(RecursiveMassDetectorParameters.noiseLevel)
+        .getValue();
+    double minimumMZPeakWidth = parameters.getParameter(
+        RecursiveMassDetectorParameters.minimumMZPeakWidth).getValue();
+    double maximumMZPeakWidth = parameters.getParameter(
+        RecursiveMassDetectorParameters.maximumMZPeakWidth).getValue();
+    return new RecursiveMassDetector(noiseLevel, minimumMZPeakWidth, maximumMZPeakWidth);
+  }
+
+  @Override
+  public boolean filtersActive() {
+    return true; // profile to centroid so always active
+  }
+
   @Override
   public double[][] getMassValues(MassSpectrum scan) {
-    double noiseLevel =
-        parameters.getParameter(RecursiveMassDetectorParameters.noiseLevel).getValue();
-    double minimumMZPeakWidth =
-        parameters.getParameter(RecursiveMassDetectorParameters.minimumMZPeakWidth).getValue();
-    double maximumMZPeakWidth =
-        parameters.getParameter(RecursiveMassDetectorParameters.maximumMZPeakWidth).getValue();
-
-    TreeSet<DataPoint> mzPeaks =
-        new TreeSet<DataPoint>(new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
+    TreeSet<DataPoint> mzPeaks = new TreeSet<DataPoint>(
+        new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
     // Find MzPeaks
     recursiveThreshold(mzPeaks, scan, 1, scan.getNumberOfDataPoints() - 1, noiseLevel,
@@ -100,19 +128,22 @@ public class RecursiveMassDetector implements MassDetector {
       while ((ind < stopInd) && (scan.getIntensityValue(ind) > curentNoiseLevel)) {
 
         boolean isLocalMinimum =
-            (scan.getIntensityValue(ind - 1) > scan.getIntensityValue(ind))
-                && (scan.getIntensityValue(ind) < scan.getIntensityValue(ind + 1));
+            (scan.getIntensityValue(ind - 1) > scan.getIntensityValue(ind)) && (
+                scan.getIntensityValue(ind) < scan.getIntensityValue(ind + 1));
 
         // Check if this is the minimum point of the peak
-        if (isLocalMinimum && (scan.getIntensityValue(ind) < localMinimum))
+        if (isLocalMinimum && (scan.getIntensityValue(ind) < localMinimum)) {
           localMinimum = scan.getIntensityValue(ind);
+        }
 
         // Check if this is the maximum point of the peak
-        if (scan.getIntensityValue(ind) > scan.getIntensityValue(peakMaxInd))
+        if (scan.getIntensityValue(ind) > scan.getIntensityValue(peakMaxInd)) {
           peakMaxInd = ind;
+        }
 
         // Forming the DataPoint array that defines this peak
-        RawDataPointsInds.add(new SimpleDataPoint(scan.getMzValue(ind), scan.getIntensityValue(ind)));
+        RawDataPointsInds.add(
+            new SimpleDataPoint(scan.getMzValue(ind), scan.getIntensityValue(ind)));
         ind++;
       }
 
@@ -126,7 +157,8 @@ public class RecursiveMassDetector implements MassDetector {
 
         // Declare a new MzPeak with intensity equal to max intensity
         // data point
-        mzPeaks.add(new SimpleDataPoint(scan.getMzValue(peakMaxInd), scan.getIntensityValue(peakMaxInd)));
+        mzPeaks.add(
+            new SimpleDataPoint(scan.getMzValue(peakMaxInd), scan.getIntensityValue(peakMaxInd)));
 
         if (recuLevel > 0) {
           // return stop index and beginning of the next peak

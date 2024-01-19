@@ -26,8 +26,8 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.massdetection;
 
 import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorUtils;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingTask;
@@ -42,16 +42,16 @@ import org.jmol.util.Logger;
 
 public class DPPMassDetectionTask extends DataPointProcessingTask {
 
+  private final MassDetector detector;
   int currentIndex;
-  // private MZmineProcessingStep<MassDetector> pMassDetector;
-  private MZmineProcessingStep<MassDetector> massDetector;
 
   DPPMassDetectionTask(MassSpectrum dataPoints, SpectraPlot targetPlot, ParameterSet parameterSet,
       DataPointProcessingController controller, TaskStatusListener listener) {
     super(dataPoints, targetPlot, parameterSet, controller, listener);
     currentIndex = 0;
-    massDetector = parameterSet.getParameter(DPPMassDetectionParameters.massDetector).getValue();
-    // massDetector = step.getModule();
+    var massDetectorStep = parameterSet.getValue(DPPMassDetectionParameters.massDetector);
+    detector = MassDetectorUtils.createMassDetector(massDetectorStep);
+
     setDisplayResults(
         parameterSet.getParameter(DPPMassDetectionParameters.displayResults).getValue());
 
@@ -82,7 +82,6 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
 
     setStatus(TaskStatus.PROCESSING);
 
-    MassDetector detector = massDetector.getModule();
     double[][] masses = detector.getMassValues(getDataPoints());
 
     if (masses == null || masses.length <= 0) {

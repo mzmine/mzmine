@@ -34,11 +34,13 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.recursive.RecursiveMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet.WaveletMassDetector;
 import io.github.mzmine.parameters.ParameterSet;
+import java.util.Arrays;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public enum MassDetectors {
   AUTO(AutoMassDetector.class), CENTROID(CentroidMassDetector.class), EXACT(
-      ExactMassDetector.class), FACTOR_OF_LOWEST(FactorOfLowestMassDetector.class), LOCALMAX(
+      ExactMassDetector.class), FACTOR_OF_LOWEST(FactorOfLowestMassDetector.class), LOCAL_MAX(
       LocalMaxMassDetector.class), RECURSIVE(RecursiveMassDetector.class), WAVELET(
       WaveletMassDetector.class);
 
@@ -49,6 +51,26 @@ public enum MassDetectors {
 
   MassDetectors(final Class<? extends MassDetector> massDetectorClass) {
     this.massDetector = MZmineCore.getModuleInstance(massDetectorClass);
+  }
+
+  /**
+   * List of modules that contain the name and parameter class. Used by the parameters. use
+   * {@link MassDetector#create(ParameterSet)} to create the instance for processing
+   */
+  @NotNull
+  public static List<MassDetector> listModules() {
+    return Arrays.stream(values()).map(MassDetectors::getDefaultModule).toList();
+  }
+
+  /**
+   * Without AUTO mass detector as this only works when spectrum type is known. List of modules that
+   * contain the name and parameter class. Used by the parameters. use
+   * {@link MassDetector#create(ParameterSet)} to create the instance for processing
+   */
+  @NotNull
+  public static List<MassDetector> listModulesNoAuto() {
+    return Arrays.stream(values()).filter(md -> md != AUTO).map(MassDetectors::getDefaultModule)
+        .toList();
   }
 
   @NotNull
@@ -65,4 +87,13 @@ public enum MassDetectors {
     return massDetector.create(parameters);
   }
 
+  @NotNull
+  public MassDetector getDefaultModule() {
+    return massDetector;
+  }
+
+  @Override
+  public String toString() {
+    return massDetector.getName();
+  }
 }

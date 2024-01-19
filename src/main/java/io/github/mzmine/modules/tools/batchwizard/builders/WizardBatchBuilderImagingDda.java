@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,10 +36,9 @@ import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilder
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.SelectedScanTypes;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingParameters;
@@ -162,12 +161,10 @@ public class WizardBatchBuilderImagingDda extends BaseWizardBatchBuilder {
           .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
       final AdvancedSpectraImportParameters advancedParam = (AdvancedSpectraImportParameters) new AdvancedSpectraImportParameters().cloneParameterSet();
 
-      final CentroidMassDetector massDetector = MassDetectionParameters.centroid;
-      final ParameterSet massDetectorParam = MZmineCore.getConfiguration()
-          .getModuleParameters(CentroidMassDetector.class).cloneParameterSet();
+      final MassDetector massDetector = MassDetectors.CENTROID.getDefaultModule();
+      final ParameterSet massDetectorParam = MassDetectors.CENTROID.getParametersCopy();
       massDetectorParam.setParameter(CentroidMassDetectorParameters.noiseLevel,
           massDetectorOption.getMs1NoiseLevel());
-      massDetectorParam.setParameter(CentroidMassDetectorParameters.detectIsotopes, false);
       MZmineProcessingStep<MassDetector> massDetectorStep = new MZmineProcessingStepImpl<>(
           massDetector, massDetectorParam);
       advancedParam.setParameter(AdvancedSpectraImportParameters.msMassDetection, true,

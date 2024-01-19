@@ -41,7 +41,6 @@ import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
@@ -246,10 +245,7 @@ public class MobilityScanTest {
 
     IMSRawDataFile file = createRawDataFile();
 
-    MassDetector centroidMassDetector = new CentroidMassDetector();
-    CentroidMassDetectorParameters param = new CentroidMassDetectorParameters();
-    param.setParameter(CentroidMassDetectorParameters.detectIsotopes, false);
-    param.setParameter(CentroidMassDetectorParameters.noiseLevel, 0.45d);
+    MassDetector centroidMassDetector = new CentroidMassDetector(0.45d);
 
     final List<Frame> frames = makeSomeFrames(file, 300);
     for (Frame frame : frames) {

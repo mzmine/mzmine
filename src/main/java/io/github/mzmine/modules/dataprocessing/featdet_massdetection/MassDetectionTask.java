@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -51,8 +50,8 @@ public class MassDetectionTask extends AbstractTask {
   private final ScanSelection scanSelection;
   private final SelectedScanTypes scanTypes;
   private final Boolean denormalizeMSnScans;
-  private final MZmineProcessingStep<MassDetector> massDetector;
   private final ParameterSet parameters;
+  private final MassDetector detector;
   private int processedScans = 0, totalScans = 0;
 
   public MassDetectionTask(RawDataFile dataFile, ParameterSet parameters,
@@ -61,7 +60,9 @@ public class MassDetectionTask extends AbstractTask {
 
     this.dataFile = dataFile;
 
-    this.massDetector = parameters.getValue(MassDetectionParameters.massDetector);
+    var massDetectorStep = parameters.getValue(MassDetectionParameters.massDetector);
+    detector = MassDetectorUtils.createMassDetector(massDetectorStep);
+
     this.scanSelection = parameters.getValue(MassDetectionParameters.scanSelection);
     this.scanTypes = parameters.getValue(MassDetectionParameters.scanTypes);
     denormalizeMSnScans = parameters.getValue(MassDetectionParameters.denormalizeMSnScans);
@@ -96,10 +97,6 @@ public class MassDetectionTask extends AbstractTask {
       ScanDataAccess data = EfficientDataAccess.of(dataFile, EfficientDataAccess.ScanDataType.RAW,
           scanSelection);
       totalScans = data.getNumberOfScans();
-
-      ParameterSet parameterSet = massDetector.getParameterSet();
-      MassDetector detector = massDetector.getModule().create(parameterSet);
-
 
       // all scans
       while (data.hasNextScan()) {

@@ -80,7 +80,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
       return;
     }
 
-    double[][] mzValues = massDetector.getMassValues(previewScan);
+    double[][] mzValues = massDetector.create(parameterSet).getMassValues(previewScan);
 
     MassListDataSet peaksDataSet = new MassListDataSet(mzValues[0], mzValues[1]);
 

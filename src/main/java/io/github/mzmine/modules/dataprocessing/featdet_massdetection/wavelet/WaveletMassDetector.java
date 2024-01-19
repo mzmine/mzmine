@@ -57,6 +57,13 @@ public class WaveletMassDetector implements MassDetector {
   private final int scaleLevel;
   private final double waveletWindow;
 
+  /**
+   * required to create a default instance via reflection
+   */
+  public WaveletMassDetector() {
+    this(0, 0, 0);
+  }
+
   public WaveletMassDetector(final double noiseLevel, final int scaleLevel,
       final double waveletWindow) {
 
@@ -71,6 +78,11 @@ public class WaveletMassDetector implements MassDetector {
     int scaleLevel = params.getValue(WaveletMassDetectorParameters.scaleLevel);
     double waveletWindow = params.getValue(WaveletMassDetectorParameters.waveletWindow);
     return new WaveletMassDetector(noiseLevel, scaleLevel, waveletWindow);
+  }
+
+  @Override
+  public boolean filtersActive() {
+    return true; // profile to centroid always active
   }
 
   @Override
