@@ -325,7 +325,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         if (advancedParam != null) {
           newTask = createAdvancedTask(fileType, project, fileName, newMZmineFile,
               scanProcessorConfig, AllSpectralDataImportModule.class, parameters, moduleCallDate,
-              storage, advancedParam);
+              storage);
         } else {
           newTask = createTask(fileType, project, fileName, newMZmineFile, scanProcessorConfig,
               AllSpectralDataImportModule.class, parameters, moduleCallDate, storage);
@@ -349,7 +349,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         }
 
       } catch (IOException e) {
-        e.printStackTrace();
         MZmineCore.getDesktop().displayErrorMessage("Could not create a new temporary file " + e);
         logger.log(Level.SEVERE, "Could not create a new temporary file ", e);
         return ExitCode.ERROR;
@@ -399,7 +398,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case ICPMSMS_CSV ->
           new IcpMsCVSImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
       case MZML_GZIP, MZML_ZIP ->
-          new ZipImportTask(project, file, module, parameters, moduleCallDate, storage);
+          new ZipImportTask(project, file, scanProcessorConfig, module, parameters, moduleCallDate,
+              storage);
       default -> throw new IllegalStateException("Unexpected value: " + fileType);
     };
   }
@@ -409,15 +409,13 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    * yet
    *
    * @param scanProcessorConfig the advanced parameters
-   * @param advancedParams TODO remove and use config
    * @return the task or null if the data format is not supported for direct mass detection
    */
   private AbstractTask createAdvancedTask(RawDataFileType fileType, MZmineProject project,
       File file, @Nullable RawDataFile newMZmineFile,
       @NotNull ScanImportProcessorConfig scanProcessorConfig, Class<? extends MZmineModule> module,
       ParameterSet parameters, @NotNull Instant moduleCallDate,
-      @Nullable final MemoryMapStorage storage,
-      final AdvancedSpectraImportParameters advancedParams) {
+      @Nullable final MemoryMapStorage storage) {
     return switch (fileType) {
       // MS
       case MZML, MZML_IMS ->
@@ -427,8 +425,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new MzXMLImportTask(project, file, newMZmineFile, scanProcessorConfig, module, parameters,
               moduleCallDate);
       case BRUKER_TDF ->
-        // TODO use scanProcessorConfig
-          new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile, advancedParams, module,
+          new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile, scanProcessorConfig,
+              module,
               parameters, moduleCallDate);
       case THERMO_RAW ->
           new ThermoRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate,
