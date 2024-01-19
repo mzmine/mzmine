@@ -504,7 +504,7 @@ public class MzXMLImportTask extends AbstractTask {
      */
     private double[][] applyMassDetection(MassDetector msDetector, double[] mzs,
         double[] intensities) {
-      MassSpectrumType spectrumType = MassSpectrumType.ANY;
+      MassSpectrumType spectrumType = MassSpectrumType.CENTROIDED;
       if (msDetector instanceof AutoMassDetector) {
         // auto requires the mass spectrum type to be set
         spectrumType = ScanUtils.detectSpectrumType(mzs, intensities);
