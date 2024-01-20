@@ -175,7 +175,6 @@ public class FeatureFindingTest {
       // check all scans and mass lists
       for (Scan scan : raw.getScans()) {
         assertNotNull(scan);
-//        assertNotNull(scan.getMassList());
       }
       switch (raw.getName()) {
         case sample1 -> {
@@ -185,7 +184,6 @@ public class FeatureFindingTest {
           assertEquals(434, raw.getScanNumbers(2).size());
           // number of data points
           assertEquals(2400, raw.getMaxRawDataPoints());
-//          assertEquals(2400, raw.getMaxCentroidDataPoints());
           // check two scans
           Scan scan = raw.getScan(0);
           assertEquals(1, scan.getMSLevel());
@@ -207,7 +205,6 @@ public class FeatureFindingTest {
           assertEquals(434, raw.getScanNumbers(2).size());
           // number of data points
           assertEquals(2410, raw.getMaxRawDataPoints());
-//          assertEquals(2410, raw.getMaxCentroidDataPoints());
           // check two scans
           Scan scan = raw.getScan(1);
           assertEquals(1, scan.getMSLevel());
