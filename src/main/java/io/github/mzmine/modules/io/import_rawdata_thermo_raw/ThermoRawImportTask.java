@@ -28,7 +28,6 @@ package io.github.mzmine.modules.io.import_rawdata_thermo_raw;
 import com.sun.jna.Platform;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
@@ -167,9 +166,7 @@ public class ThermoRawImportTask extends AbstractTask {
             + " out of " + totalScans + ")"));
       }
 
-      dataFile.getAppliedMethods()
-          .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
-      project.addFile(dataFile);
+      msdkTask.addAppliedMethodAndAddToProject(dataFile);
 
     } catch (Throwable e) {
       if (dumper != null) {

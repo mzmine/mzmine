@@ -131,9 +131,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       return;
     }
 
-    dataFile.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
-    project.addFile(dataFile);
+    addAppliedMethodAndAddToProject(dataFile);
 
     if (convertedScansAfterFilter == 0) {
       setStatus(TaskStatus.ERROR);
@@ -142,6 +140,12 @@ public class MSDKmzMLImportTask extends AbstractTask {
     }
 
     setStatus(TaskStatus.FINISHED);
+  }
+
+  public void addAppliedMethodAndAddToProject(final RawDataFile dataFile) {
+    dataFile.getAppliedMethods()
+        .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
+    project.addFile(dataFile);
   }
 
   /**

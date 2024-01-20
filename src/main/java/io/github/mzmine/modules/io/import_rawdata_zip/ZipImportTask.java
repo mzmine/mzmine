@@ -26,12 +26,12 @@
 package io.github.mzmine.modules.io.import_rawdata_zip;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -59,7 +59,7 @@ public class ZipImportTask extends AbstractTask {
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
 
-  private Task decompressedOpeningTask = null;
+  private MSDKmzMLImportTask msdkTask;
 
   public ZipImportTask(@NotNull MZmineProject project, File fileToOpen,
       @NotNull final ScanImportProcessorConfig scanProcessorConfig,
@@ -107,26 +107,34 @@ public class ZipImportTask extends AbstractTask {
       }
 
       BufferedInputStream bis = new BufferedInputStream(is);
-      final MSDKmzMLImportTask msdKmzMLImportTask = new MSDKmzMLImportTask(project, fileToOpen, bis,
-          scanProcessorConfig, ZipImportModule.class, parameters, getModuleCallDate(),
-          getMemoryMapStorage());
 
-      if (isCanceled()) {
+      msdkTask = new MSDKmzMLImportTask(project, fileToOpen, bis, scanProcessorConfig, module,
+          parameters, moduleCallDate, getMemoryMapStorage());
+
+      this.addTaskStatusListener((task, newStatus, oldStatus) -> {
+        if (isCanceled()) {
+          msdkTask.cancel();
+        }
+      });
+      RawDataFile dataFile = msdkTask.importStreamOrFile();
+
+      if (dataFile == null || isCanceled()) {
         return;
       }
+      var totalScans = msdkTask.getTotalScansInMzML();
+      var parsedScans = msdkTask.getParsedMzMLScans();
+      var convertedScans = msdkTask.getConvertedScansAfterFilter();
 
-      decompressedOpeningTask = msdKmzMLImportTask;
-
-      // Run the underlying task
-      decompressedOpeningTask.run();
       bis.close();
       is.close();
 
       if (isCanceled()) {
         return;
       }
+
+      msdkTask.addAppliedMethodAndAddToProject(dataFile);
+
     } catch (Throwable e) {
-      e.printStackTrace();
       logger.log(Level.SEVERE, "Could not open file " + fileToOpen, e);
       setErrorMessage(ExceptionUtils.exceptionToString(e));
       setStatus(TaskStatus.ERROR);
@@ -142,8 +150,8 @@ public class ZipImportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    if (decompressedOpeningTask != null) {
-      return decompressedOpeningTask.getTaskDescription();
+    if (msdkTask != null) {
+      return msdkTask.getTaskDescription();
     } else {
       return "Importing file " + fileToOpen;
     }
@@ -154,17 +162,17 @@ public class ZipImportTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (decompressedOpeningTask == null) {
+    if (msdkTask == null) {
       return 0d;
     }
-    return decompressedOpeningTask.getFinishedPercentage();
+    return msdkTask.getFinishedPercentage();
   }
 
   @Override
   public void cancel() {
     super.cancel();
-    if (decompressedOpeningTask != null) {
-      decompressedOpeningTask.cancel();
+    if (msdkTask != null) {
+      msdkTask.cancel();
     }
   }
 
