@@ -32,6 +32,7 @@ import com.google.common.math.Quantiles;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
@@ -52,6 +53,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DateTimeUtils;
+import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
@@ -93,7 +95,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
   private MzMLFileImportMethod msdkTask = null;
-  private int totalScans = 0, parsedScans;
+  private int totalScansAfterFilter = 0, convertedScansAfterFilter;
   private String description;
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen,
@@ -118,21 +120,42 @@ public class MSDKmzMLImportTask extends AbstractTask {
     this.module = module;
   }
 
-  /**
-   * @see java.lang.Runnable#run()
-   */
   @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
 
-    try {
-      // TODO create predicate to filter scans before loading them
+    RawDataFile dataFile = importStreamOrFile();
 
+    if (dataFile == null || isCanceled()) {
+      return;
+    }
+
+    dataFile.getAppliedMethods()
+        .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
+    project.addFile(dataFile);
+
+    if (convertedScansAfterFilter == 0) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("No scans found");
+      return;
+    }
+
+    setStatus(TaskStatus.FINISHED);
+  }
+
+  /**
+   * Import mzml from InputStream (if not null) or from file otherwise. Does not add the applied
+   * method and does not add the data file to project
+   *
+   * @return the raw data file, only if successful and not canceled
+   */
+  @Nullable
+  public RawDataFile importStreamOrFile() {
+    try {
       if (fis != null) {
         msdkTask = new MzMLFileImportMethod(moduleCallDate, fis, storage, scanProcessorConfig);
       } else {
-//        msdkTask = new MzMLFileImportMethod(file);
         msdkTask = new MzMLFileImportMethod(moduleCallDate, file, storage, scanProcessorConfig);
       }
 
@@ -144,15 +167,15 @@ public class MSDKmzMLImportTask extends AbstractTask {
       MzMLRawDataFile msdkTaskRes = msdkTask.parseMzMl();
 
       if (isCanceled()) {
-        return;
+        return null;
       }
 
       if (msdkTaskRes == null) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("MSDK returned null");
-        return;
+        return null;
       }
-      totalScans = msdkTaskRes.getScans().size();
+      totalScansAfterFilter = msdkTaskRes.getScans().size();
 
       var startTimeStamp = DateTimeUtils.parseOrElse(msdkTaskRes.getStartTimeStamp(), null);
       final boolean isIms = msdkTaskRes.getScans().stream() //
@@ -166,30 +189,28 @@ public class MSDKmzMLImportTask extends AbstractTask {
         newMZmineFile = buildLCMSFile(msdkTaskRes);
       }
       newMZmineFile.setStartTimeStamp(startTimeStamp);
-      newMZmineFile.getAppliedMethods()
-          .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
-      project.addFile(newMZmineFile);
-      logger.info("Finished parsing " + file + ", parsed " + parsedScans + " scans");
+      logger.info("Finished parsing " + file + ", parsed " + convertedScansAfterFilter + " scans");
 
+      if (totalScansAfterFilter == 0) {
+        var activeFilter = scanProcessorConfig.scanFilter().isActiveFilter();
+        String filter = activeFilter ? STR."""
+            \nScan filters were active in import and filtered out \{getTotalScansInMzML()} scans, either deactivate the filters or remove this file from the import list"""
+            : "Scan filters were off.";
+
+        String msg = STR."""
+            \{file.getName()} had 0 scans after import. \{filter}""";
+        DialogLoggerUtil.showMessageDialogForTime("Empty file", msg);
+      }
+
+      return newMZmineFile;
     } catch (Throwable e) {
       logger.log(Level.WARNING, "Error during mzML read: " + e.getMessage(), e);
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Error parsing mzML: " + ExceptionUtils.exceptionToString(e));
-      return;
+      return null;
     }
-
-    if (isCanceled()) {
-      return;
-    }
-
-    if (parsedScans == 0) {
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage("No scans found");
-      return;
-    }
-
-    setStatus(TaskStatus.FINISHED);
   }
+
 
   @Override
   public void cancel() {
@@ -200,6 +221,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
   }
 
   public RawDataFileImpl buildLCMSFile(MzMLRawDataFile file) throws IOException {
+    String descriptionTemplate = description = "Importing %s, total / parsed is %d / ".formatted(
+        this.file.getName(), totalScansAfterFilter);
     RawDataFileImpl newMZmineFile = new RawDataFileImpl(this.file.getName(),
         this.file.getAbsolutePath(), storage);
     for (BuildingMzMLMsScan mzMLScan : file.getScans()) {
@@ -207,23 +230,11 @@ public class MSDKmzMLImportTask extends AbstractTask {
         return newMZmineFile;
       }
 
-      //todo is wrapper needed?
-//      MsdkScanWrapper wrapper = new MsdkScanWrapper(mzMLScan);
-
-      //todo handle scan sorting
-      // scans sorting is enforced in {@link AbstractStorableSpectrum#setDataPoints}
-      // create mass list and scan. Override data points and spectrum type
-//          newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan, mzIntensities[0],
-//              mzIntensities[1], MassSpectrumType.CENTROIDED);
-//
-
       Scan newScan = convertScan(mzMLScan, newMZmineFile);
       newMZmineFile.addScan(newScan);
 
-      parsedScans++;
-      description =
-          "Importing " + this.file.getName() + ", parsed " + parsedScans + "/" + totalScans
-          + " scans";
+      convertedScansAfterFilter++;
+      description = descriptionTemplate + convertedScansAfterFilter;
     }
     return newMZmineFile;
   }
@@ -242,6 +253,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
   }
 
   public IMSRawDataFileImpl buildIonMobilityFile(MzMLRawDataFile file) throws IOException {
+    String descriptionTemplate = description = "Importing %s, total / parsed is %d / ".formatted(
+        this.file.getName(), totalScansAfterFilter);
     IMSRawDataFileImpl newImsFile = new IMSRawDataFileImpl(this.file.getName(),
         this.file.getAbsolutePath(), storage);
 
@@ -312,9 +325,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
             mzMLScan.getMobility().mobilityType(), null, null);
         frameNumber++;
 
-        description =
-            "Importing " + this.file.getName() + ", parsed " + parsedScans + "/" + totalScans
-            + " scans";
+        description = descriptionTemplate + convertedScansAfterFilter;
       }
 
       // I'm not proud of this piece of code, but some manufactures or conversion tools leave out
@@ -336,7 +347,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       ConversionUtils.extractImsMsMsInfo(mzMLScan, buildingImsMsMsInfos, frameNumber,
           mobilityScanNumberCounter);
       mobilityScanNumberCounter++;
-      parsedScans++;
+      convertedScansAfterFilter++;
     }
 
     // apply mass detection to frames and mobility scans
@@ -413,7 +424,43 @@ public class MSDKmzMLImportTask extends AbstractTask {
       return 0.0;
     }
     final double msdkProgress = msdkTask.getFinishedPercentage();
-    final double parsingProgress = totalScans == 0 ? 0.0 : (double) parsedScans / totalScans;
+    final double parsingProgress = totalScansAfterFilter == 0 ? 0.0
+        : (double) convertedScansAfterFilter / totalScansAfterFilter;
     return (msdkProgress * 0.25) + (parsingProgress * 0.75);
+  }
+
+
+  /**
+   * This is the number of total scans after scan filtering applied
+   */
+  public int getTotalScansAfterFilter() {
+    return totalScansAfterFilter;
+  }
+
+  /**
+   * This is the number of already converted scans, after filtering
+   */
+  public int getConvertedScansAfterFilter() {
+    return convertedScansAfterFilter;
+  }
+
+  /**
+   * This is the number of total scans in mzML without filtering
+   */
+  public int getTotalScansInMzML() {
+    if (msdkTask == null || msdkTask.getParser() == null) {
+      return 0;
+    }
+    return msdkTask.getParser().getTotalScans();
+  }
+
+  /**
+   * THis is the number of parsed mzML scans, without filtering
+   */
+  public int getParsedMzMLScans() {
+    if (msdkTask == null || msdkTask.getParser() == null) {
+      return 0;
+    }
+    return msdkTask.getParser().getParsedScans();
   }
 }

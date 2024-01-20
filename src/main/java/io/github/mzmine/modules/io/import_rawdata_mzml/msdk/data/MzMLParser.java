@@ -727,6 +727,14 @@ public class MzMLParser {
     }
   }
 
+  public int getTotalScans() {
+    return totalScans;
+  }
+
+  public int getParsedScans() {
+    return parsedScans;
+  }
+
   public Float getFinishedPercentage() {
     if (totalScans == 0) {
       return 0.0f;

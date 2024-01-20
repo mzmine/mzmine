@@ -40,7 +40,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -272,29 +271,11 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
     return matches(scan, offset);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ScanSelection that = (ScanSelection) o;
-    return Objects.equals(getScanNumberRange(), that.getScanNumberRange()) && Objects.equals(
-        getScanMobilityRange(), that.getScanMobilityRange()) && Objects.equals(getScanRTRange(),
-        that.getScanRTRange()) && getPolarity() == that.getPolarity()
-           && getSpectrumType() == that.getSpectrumType() && Objects.equals(getMsLevelFilter(),
-        that.getMsLevelFilter()) && Objects.equals(getBaseFilteringInteger(),
-        that.getBaseFilteringInteger()) && Objects.equals(getScanDefinition(),
-        that.getScanDefinition());
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(getScanNumberRange(), getScanMobilityRange(), getScanRTRange(),
-        getPolarity(), getSpectrumType(), getMsLevelFilter(), getBaseFilteringInteger(),
-        getScanDefinition());
+  /**
+   * @return true if any filter is set, otherwise false
+   */
+  public boolean isActiveFilter() {
+    return !ALL_SCANS.equals(this);
   }
 
   @Override

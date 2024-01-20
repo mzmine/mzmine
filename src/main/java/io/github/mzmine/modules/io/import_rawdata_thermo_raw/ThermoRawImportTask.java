@@ -28,13 +28,10 @@ package io.github.mzmine.modules.io.import_rawdata_thermo_raw;
 import com.sun.jna.Platform;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
-import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -62,7 +59,6 @@ public class ThermoRawImportTask extends AbstractTask {
 
   private final File fileToOpen;
   private final MZmineProject project;
-  private final RawDataFile newMZmineFile;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
   private final ScanImportProcessorConfig scanProcessorConfig;
@@ -72,8 +68,9 @@ public class ThermoRawImportTask extends AbstractTask {
   private String taskDescription;
   private int parsedScans = 0;
 
+  private MSDKmzMLImportTask msdkTask;
+  private int convertedScans;
 
-  private MzMLFileImportMethod msdkTask;
 
   public ThermoRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
@@ -82,7 +79,6 @@ public class ThermoRawImportTask extends AbstractTask {
     this.project = project;
     this.fileToOpen = fileToOpen;
     taskDescription = "Opening file " + fileToOpen;
-    this.newMZmineFile = newMZmineFile;
     this.parameters = parameters;
     this.module = module;
     this.scanProcessorConfig = scanProcessorConfig;
@@ -141,55 +137,41 @@ public class ThermoRawImportTask extends AbstractTask {
       InputStream mzMLStream = dumper.getInputStream();
       BufferedInputStream bufStream = new BufferedInputStream(mzMLStream);
 
-      msdkTask = new MzMLFileImportMethod(moduleCallDate, bufStream, storage, scanProcessorConfig);
-      MzMLRawDataFile msdkFile = msdkTask.parseMzMl();
+      msdkTask = new MSDKmzMLImportTask(project, fileToOpen, bufStream, scanProcessorConfig, module,
+          parameters, moduleCallDate, storage);
 
-      if (msdkFile == null) {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("MSDK returned null");
+      this.addTaskStatusListener((task, newStatus, oldStatus) -> {
+        if (isCanceled()) {
+          msdkTask.cancel();
+        }
+      });
+      RawDataFile dataFile = msdkTask.importStreamOrFile();
+
+      if (dataFile == null || isCanceled()) {
         return;
       }
-      int totalScans = msdkFile.getScans().size();
-
-      for (var scan : msdkFile.getScans()) {
-
-        if (isCanceled()) {
-          bufStream.close();
-          dumper.destroy();
-          return;
-        }
-
-        Scan newScan = ConversionUtils.mzmlScanToSimpleScan(newMZmineFile, scan);
-
-        newMZmineFile.addScan(newScan);
-        parsedScans++;
-        taskDescription =
-            "Importing " + fileToOpen.getName() + ", parsed " + parsedScans + "/" + totalScans
-            + " scans";
-      }
-
+      var totalScans = msdkTask.getTotalScansInMzML();
+      parsedScans = msdkTask.getParsedMzMLScans();
+      convertedScans = msdkTask.getConvertedScansAfterFilter();
       // Finish
       bufStream.close();
       dumper.destroy();
 
       if (parsedScans == 0) {
-        throw (new Exception("No scans found"));
+        throw (new RuntimeException("No scans found"));
       }
 
       if (parsedScans != totalScans) {
-        throw (new Exception(
+        throw (new RuntimeException(
             "ThermoRawFileParser process crashed before all scans were extracted (" + parsedScans
             + " out of " + totalScans + ")"));
       }
 
-      newMZmineFile.getAppliedMethods()
+      dataFile.getAppliedMethods()
           .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
-      project.addFile(newMZmineFile);
+      project.addFile(dataFile);
 
     } catch (Throwable e) {
-
-      e.printStackTrace();
-
       if (dumper != null) {
         dumper.destroy();
       }
@@ -202,7 +184,8 @@ public class ThermoRawImportTask extends AbstractTask {
       return;
     }
 
-    logger.info("Finished parsing " + fileToOpen + ", parsed " + parsedScans + " scans");
+    logger.info(
+        STR."Finished parsing \{fileToOpen}, parsed \{parsedScans} scans and after filtering remained \{convertedScans}");
     setStatus(TaskStatus.FINISHED);
 
   }

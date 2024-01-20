@@ -202,6 +202,10 @@ public class MzMLFileImportMethod extends AbstractTask {
     return mzMLFile;
   }
 
+  public MzMLParser getParser() {
+    return parser;
+  }
+
   @Override
   public double getFinishedPercentage() {
     return parser == null ? 0 : parser.getFinishedPercentage();
