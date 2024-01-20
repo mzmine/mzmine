@@ -82,6 +82,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   private Float retentionTime;
   private Range<Double> mzRange;
   private Range<Double> mzScanWindowRange;
+  private Double tic;
 
   // temporary - set to null after load
   private MzMLBinaryDataInfo mzBinaryDataInfo;
@@ -200,29 +201,25 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
 
   @Override
   public @Nullable Double getTIC() {
+    if (tic != null) {
+      return tic;
+    }
     if (intensityValues == null) {
       throw new UnsupportedOperationException(
           "No data yet. Call load method to load data and memory map the scan.");
     }
-    return Arrays.stream(getIntensityValues(new double[getNumberOfDataPoints()])).sum();
+    tic = Arrays.stream(getIntensityValues(new double[getNumberOfDataPoints()])).sum();
+    return tic;
   }
 
   @Override
   public double[] getMzValues(@NotNull final double[] dst) {
-    if (mzValues == null) {
-      throw new UnsupportedOperationException(
-          "No data yet. Call load method to load data and memory map the scan.");
-    }
-    return DataPointUtils.getDoubleBufferAsArray(mzValues);
+    throw new UnsupportedOperationException("Use double buffers directly instead");
   }
 
   @Override
   public double[] getIntensityValues(@NotNull final double[] dst) {
-    if (intensityValues == null) {
-      throw new UnsupportedOperationException(
-          "No data yet. Call load method to load data and memory map the scan.");
-    }
-    return DataPointUtils.getDoubleBufferAsArray(intensityValues);
+    throw new UnsupportedOperationException("Use double buffers directly instead");
   }
 
   @Override

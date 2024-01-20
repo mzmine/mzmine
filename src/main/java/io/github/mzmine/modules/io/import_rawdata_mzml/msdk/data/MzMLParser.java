@@ -517,6 +517,7 @@ public class MzMLParser {
    */
   private void filterProcessFinalizeScan() {
     var spectrum = vars.spectrum;
+    logger.info(STR."Finalizing scan \{spectrum.getScanNumber()}");
     if (scanProcessorConfig.scanFilter().matches(spectrum)) {
       if (spectrum.loadProcessMemMapData(storage, scanProcessorConfig)) {
         vars.spectrumList.add(spectrum);

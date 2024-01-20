@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -216,11 +216,16 @@ public class MzMLPeaksDecoder {
    */
   public static double[] decodeToDouble(String binaryData, MzMLBinaryDataInfo binaryDataInfo,
       double[] data) throws IOException, MSDKException {
-//  public static DoubleBuffer decodeToDouble(CharArray binaryData, MzMLBinaryDataInfo binaryDataInfo,
-//      MemoryMapStorage storage, double[] data) throws IOException, MSDKException {
 
     int lengthIn = binaryDataInfo.getEncodedLength();
     int numPoints = binaryDataInfo.getArrayLength();
+
+    // for some reason there sometimes might be zero length <peaks> tags
+    // (ms2 usually)
+    // in this case we just return an empty result
+    if (lengthIn == 0) {
+      return new double[0];
+    }
 
     InputStream is;
 //    InputStream is = new ByteArrayInputStream(binaryData.getBytes());
@@ -231,12 +236,6 @@ public class MzMLPeaksDecoder {
     is = CharSource.wrap(binaryData).asByteSource(StandardCharsets.UTF_8).openStream();
     is = Base64.getDecoder().wrap(is);
 
-    // for some reason there sometimes might be zero length <peaks> tags
-    // (ms2 usually)
-    // in this case we just return an empty result
-    if (lengthIn == 0) {
-      return new double[0];
-    }
 
     InflaterInputStream iis = null;
     LittleEndianDataInputStream dis = null;
