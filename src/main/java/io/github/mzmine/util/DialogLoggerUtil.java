@@ -109,14 +109,17 @@ public class DialogLoggerUtil {
     showMessageDialogForTime(title, message, 3500);
   }
   public static void showMessageDialogForTime(String title, String message, long timeMillis) {
-    Alert alert = showMessageDialog(title, message, false);
-    if (alert == null) {
-      return;
-    }
+    MZmineCore.runLater(() -> {
+      Alert alert = showMessageDialog(title, message, false);
+      if (alert == null) {
+        return;
+      }
 
-    Timeline idleTimer = new Timeline(new KeyFrame(Duration.millis(timeMillis), e -> alert.hide()));
-    idleTimer.setCycleCount(1);
-    idleTimer.play();
+      Timeline idleTimer = new Timeline(
+          new KeyFrame(Duration.millis(timeMillis), e -> alert.hide()));
+      idleTimer.setCycleCount(1);
+      idleTimer.play();
+    });
   }
 
 }
