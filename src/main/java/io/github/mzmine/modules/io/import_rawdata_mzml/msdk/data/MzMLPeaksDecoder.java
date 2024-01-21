@@ -25,22 +25,25 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
-import com.google.common.io.CharSource;
 import com.google.common.io.LittleEndianDataInputStream;
 import io.github.msdk.MSDKException;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.MSNumpress;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
+import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 import javolution.text.CharArray;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * <p>
@@ -199,8 +202,108 @@ public class MzMLPeaksDecoder {
    * @throws MSDKException       if any. //   * @param inputStream a {@link InputStream} object.
    */
   public static double[] decodeToDouble(MzMLBinaryDataInfo binaryDataInfo)
-      throws IOException, MSDKException {
-    return decodeToDouble(binaryDataInfo.getXmlBinaryContent(), binaryDataInfo, null);
+      throws MSDKException, IOException {
+//    return decodeToDouble(binaryDataInfo.getXmlBinaryContent(), binaryDataInfo, null);
+    return decodeToDoubleJmzml(binaryDataInfo.getXmlBinaryContent(), binaryDataInfo);
+  }
+
+  private static double[] decodeToDoubleJmzml(final String binaryData,
+      final MzMLBinaryDataInfo binaryDataInfo) {
+
+    int lengthIn = binaryDataInfo.getEncodedLength();
+    int numPoints = binaryDataInfo.getArrayLength();
+    // for some reason there sometimes might be zero length <peaks> tags
+    // (ms2 usually)
+    // in this case we just return an empty result
+    if (lengthIn == 0) {
+      return new double[0];
+    }
+
+    double[] data = new double[numPoints];
+
+    byte[] bytes = Base64.getDecoder().decode(binaryData);
+
+    if (binaryDataInfo.getCompressionType()
+        .isCompressed()) { // if CVParam states the data is compressed
+      bytes = decompress(bytes);
+    }
+
+    if (binaryDataInfo.getCompressionType().isNumpress()) {
+      try {
+        data = decompressIfNumpress(binaryDataInfo, data, bytes);
+        return data;
+      } catch (MSDKException e) {
+        logger.warning(STR."Could not decompress numpress \{binaryDataInfo.getCompressionType()}");
+      }
+    }
+
+    // otherwise directly read numbers
+    convertToDoubles(binaryDataInfo, bytes, data);
+    return data;
+  }
+
+  private static void convertToDoubles(final MzMLBinaryDataInfo binaryDataInfo, final byte[] bytes,
+      final double[] data) {
+    ByteBuffer buffer = ByteBuffer.wrap(bytes);
+    buffer.order(ByteOrder.LITTLE_ENDIAN);
+
+    switch (binaryDataInfo.getBitLength()) {
+      case THIRTY_TWO_BIT_FLOAT -> {
+        for (int i = 0; i < data.length; i++) {
+          data[i] = buffer.getFloat();
+        }
+      }
+      case THIRTY_TWO_BIT_INTEGER -> {
+        for (int i = 0; i < data.length; i++) {
+          data[i] = buffer.getInt();
+        }
+      }
+      case SIXTY_FOUR_BIT_FLOAT -> {
+        for (int i = 0; i < data.length; i++) {
+          data[i] = buffer.getDouble();
+        }
+      }
+      case SIXTY_FOUR_BIT_INTEGER -> {
+        for (int i = 0; i < data.length; i++) {
+          data[i] = buffer.getLong();
+        }
+      }
+    }
+  }
+
+  private static byte[] decompress(byte[] compressedData) {
+    byte[] decompressedData = null;
+
+    // using a ByteArrayOutputStream to not having to define the result array size beforehand
+    Inflater decompressor = new Inflater();
+
+    decompressor.setInput(compressedData);
+    // Create an expandable byte array to hold the decompressed data
+    try (ByteArrayOutputStream bos = new ByteArrayOutputStream(compressedData.length)) {
+      byte[] buf = new byte[1024];
+      while (!decompressor.finished()) {
+        try {
+          int count = decompressor.inflate(buf);
+          if (count == 0 && decompressor.needsInput()) {
+            break;
+          }
+          bos.write(buf, 0, count);
+        } catch (DataFormatException e) {
+          throw new IllegalStateException(
+              "Encountered wrong data format " + "while trying to decompress binary data!", e);
+        }
+      }
+
+      // Get the decompressed data
+      decompressedData = bos.toByteArray();
+    } catch (IOException e) {
+      // ToDo: add logging
+      e.printStackTrace();
+    }
+    if (decompressedData == null) {
+      throw new IllegalStateException("Decompression of binary data produced no result (null)!");
+    }
+    return decompressedData;
   }
 
   /**
@@ -233,9 +336,13 @@ public class MzMLPeaksDecoder {
 //        ByteBuffer.wrap(binaryData.getBytes(StandardCharsets.UTF_8))
 //            .order(ByteOrder.LITTLE_ENDIAN))) {
 
-    is = CharSource.wrap(binaryData).asByteSource(StandardCharsets.UTF_8).openStream();
-    is = Base64.getDecoder().wrap(is);
+    var decoded = Base64.getDecoder().decode(binaryData);
+    is = new ByteArrayInputStream(decoded);
+//    is = new BufferedInputStream(new ByteArrayInputStream(decoded));
 
+    // CharSource.wrap
+//    is = CharSource.wrap(binaryData).asByteSource(StandardCharsets.UTF_8).openStream();
+//    is = Base64.getDecoder().wrap(is);
 
     InflaterInputStream iis = null;
     LittleEndianDataInputStream dis = null;
@@ -263,34 +370,10 @@ public class MzMLPeaksDecoder {
       }
 
       // Now we can check for NumPress
-      int numDecodedDoubles;
-      switch (binaryDataInfo.getCompressionType()) {
-        case NUMPRESS_LINPRED:
-        case NUMPRESS_LINPRED_ZLIB:
-          bytes = IOUtils.toByteArray(dis);
-          numDecodedDoubles = MSNumpress.decodeLinear(bytes, bytes.length, data);
-          if (numDecodedDoubles < 0) {
-            throw new MSDKException("MSNumpress linear decoder failed");
-          }
-          return data;
-        case NUMPRESS_POSINT:
-        case NUMPRESS_POSINT_ZLIB:
-          bytes = IOUtils.toByteArray(dis);
-          numDecodedDoubles = MSNumpress.decodePic(bytes, bytes.length, data);
-          if (numDecodedDoubles < 0) {
-            throw new MSDKException("MSNumpress positive integer decoder failed");
-          }
-          return data;
-        case NUMPRESS_SHLOGF:
-        case NUMPRESS_SHLOGF_ZLIB:
-          bytes = IOUtils.toByteArray(dis);
-          numDecodedDoubles = MSNumpress.decodeSlof(bytes, bytes.length, data);
-          if (numDecodedDoubles < 0) {
-            throw new MSDKException("MSNumpress short logged float decoder failed");
-          }
-          return data;
-        default:
-          break;
+      if (binaryDataInfo.getCompressionType().isNumpress()) {
+        bytes = IOUtils.toByteArray(dis);
+        data = decompressIfNumpress(binaryDataInfo, data, bytes);
+        return data;
       }
     } else {
       dis = new LittleEndianDataInputStream(is);
@@ -346,6 +429,38 @@ public class MzMLPeaksDecoder {
       dis.close();
     }
     return data;
+  }
+
+  @Nullable
+  private static double[] decompressIfNumpress(final MzMLBinaryDataInfo binaryDataInfo,
+      final double[] data, byte[] bytes) throws MSDKException {
+    int numDecodedDoubles;
+    switch (binaryDataInfo.getCompressionType()) {
+      case NUMPRESS_LINPRED:
+      case NUMPRESS_LINPRED_ZLIB:
+        numDecodedDoubles = MSNumpress.decodeLinear(bytes, bytes.length, data);
+        if (numDecodedDoubles < 0) {
+          throw new MSDKException("MSNumpress linear decoder failed");
+        }
+        return data;
+      case NUMPRESS_POSINT:
+      case NUMPRESS_POSINT_ZLIB:
+        numDecodedDoubles = MSNumpress.decodePic(bytes, bytes.length, data);
+        if (numDecodedDoubles < 0) {
+          throw new MSDKException("MSNumpress positive integer decoder failed");
+        }
+        return data;
+      case NUMPRESS_SHLOGF:
+      case NUMPRESS_SHLOGF_ZLIB:
+        numDecodedDoubles = MSNumpress.decodeSlof(bytes, bytes.length, data);
+        if (numDecodedDoubles < 0) {
+          throw new MSDKException("MSNumpress short logged float decoder failed");
+        }
+        return data;
+      default:
+        break;
+    }
+    return null;
   }
 
 }

@@ -430,7 +430,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
     final double msdkProgress = msdkTask.getFinishedPercentage();
     final double parsingProgress = totalScansAfterFilter == 0 ? 0.0
         : (double) convertedScansAfterFilter / totalScansAfterFilter;
-    return (msdkProgress * 0.25) + (parsingProgress * 0.75);
+    return (msdkProgress * 0.95) + (parsingProgress * 0.05);
   }
 
 
