@@ -78,6 +78,7 @@ import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -163,11 +164,7 @@ public class FeatureFindingTest {
         AllSpectralDataImportModule.class, paramDataImport);
 
     // should have finished by now
-    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
-      case TIMEOUT -> "Timeout during data import. Not finished in time.";
-      case ERROR -> "Error during data import.";
-      case FINISHED -> "";
-    });
+    Assertions.assertInstanceOf(TaskResult.FINISHED.class, finished, finished.description());
 
     assertEquals(2, project.getDataFiles().length);
     int filesTested = 0;
@@ -246,11 +243,7 @@ public class FeatureFindingTest {
         ModularADAPChromatogramBuilderModule.class, paramChrom);
 
     // should have finished by now
-    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
-      case TIMEOUT -> "Timeout during chromatogram builder. Not finished in time.";
-      case ERROR -> "Error during chromatogram builder.";
-      case FINISHED -> "";
-    });
+    Assertions.assertInstanceOf(TaskResult.FINISHED.class, finished, finished.description());
 
     assertEquals(project.getCurrentFeatureLists().size(), 2);
     // test feature lists
@@ -324,11 +317,7 @@ public class FeatureFindingTest {
         paramSmooth);
 
     // should have finished by now
-    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
-      case TIMEOUT -> "Timeout during chromatogram smoothing. Not finished in time.";
-      case ERROR -> "Error during chromatogram smoothing.";
-      case FINISHED -> "";
-    });
+    Assertions.assertInstanceOf(TaskResult.FINISHED.class, finished, finished.description());
 
     assertEquals(4, project.getCurrentFeatureLists().size());
     // test feature lists
@@ -433,11 +422,7 @@ public class FeatureFindingTest {
         MinimumSearchFeatureResolverModule.class, generalParam);
 
     // should have finished by now
-    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
-      case TIMEOUT -> "Time out during feature deconvolution. Not finished in time.";
-      case ERROR -> "Error during feature deconvolution.";
-      case FINISHED -> "";
-    });
+    Assertions.assertInstanceOf(TaskResult.FINISHED.class, finished, finished.description());
 
     logger.info("Lists after deconvolution:  " + project.getCurrentFeatureLists().stream()
         .map(FeatureList::getName).collect(Collectors.joining(", ")));
@@ -499,11 +484,7 @@ public class FeatureFindingTest {
         generalParam);
 
     // should have finished by now
-    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
-      case TIMEOUT -> "Timeout during isotope grouper. Not finished in time.";
-      case ERROR -> "Error during isotope grouper.";
-      case FINISHED -> "";
-    });
+    Assertions.assertInstanceOf(TaskResult.FINISHED.class, finished, finished.description());
 
     assertEquals(8, project.getCurrentFeatureLists().size());
     // test feature lists
@@ -581,11 +562,7 @@ public class FeatureFindingTest {
         generalParam);
 
     // should have finished by now
-    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
-      case TIMEOUT -> "Timeout during feature join aligner. Not finished in time.";
-      case ERROR -> "Error during join aligner.";
-      case FINISHED -> "";
-    });
+    Assertions.assertInstanceOf(TaskResult.FINISHED.class, finished, finished.description());
 
     assertEquals(9, project.getCurrentFeatureLists().size());
     // test feature lists
