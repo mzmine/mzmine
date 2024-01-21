@@ -39,10 +39,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.DataFormatException;
-import javolution.text.CharArray;
-import javolution.xml.internal.stream.XMLStreamReaderImpl;
 import javolution.xml.stream.XMLStreamException;
-import javolution.xml.stream.XMLStreamReader;
+import org.codehaus.stax2.XMLStreamReader2;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -78,28 +76,28 @@ public class MzMLParser {
   /**
    * <p>
    * Carry out the required parsing of the mzML data when the
-   * {@link XMLStreamReaderImpl XMLStreamReaderImpl} enters the given tag
+   * {@link XMLStreamReader2 XMLStreamReader2} enters the given tag
    * </p>
    *
-   * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl XMLStreamReaderImpl
+   * @param xmlStreamReader an instance of {@link XMLStreamReader2 XMLStreamReader2
    * @param is              {@link InputStream InputStream} of the mzML data
    * @param openingTagName  The tag <code>xmlStreamReader</code> entered
    */
-  public void processOpeningTag(XMLStreamReaderImpl xmlStreamReader, CharArray openingTagName)
-      throws XMLStreamException, IOException, DataFormatException {
+  public void processOpeningTag(XMLStreamReader2 xmlStreamReader, String openingTagName)
+      throws XMLStreamException, IOException, DataFormatException, javax.xml.stream.XMLStreamException {
     tracker.enter(openingTagName);
 
     if (tracker.current().contentEquals((MzMLTags.TAG_RUN))) {
-      final CharArray defaultInstrumentConfigurationRef = getRequiredAttribute(xmlStreamReader,
+      final String defaultInstrumentConfigurationRef = getRequiredAttribute(xmlStreamReader,
           MzMLTags.ATTR_DEFAULT_INSTRUMENT_CONFIGURATION_REF);
-      newRawFile.setDefaultInstrumentConfiguration(defaultInstrumentConfigurationRef.toString());
+      newRawFile.setDefaultInstrumentConfiguration(defaultInstrumentConfigurationRef);
 
       // startTimeStamp may be optional, so it makes no sense to stop import of a RawDataFile
       // if this tag is skipped
-      final CharArray startTimeStamp = xmlStreamReader.getAttributeValue(null,
+      final String startTimeStamp = xmlStreamReader.getAttributeValue(null,
           MzMLTags.ATTR_START_TIME_STAMP);
       if (startTimeStamp != null) {
-        newRawFile.setStartTimeStamp(startTimeStamp.toString());
+        newRawFile.setStartTimeStamp(startTimeStamp);
         logger.info("startTimeStamp value is: " + startTimeStamp);
       } else {
         logger.info("startTimeStamp wasn't set");
@@ -107,28 +105,28 @@ public class MzMLParser {
     }
 
     if (tracker.current().contentEquals((MzMLTags.TAG_SPECTRUM_LIST))) {
-      final CharArray defaultDataProcessingRefScan = getRequiredAttribute(xmlStreamReader,
+      final String defaultDataProcessingRefScan = getRequiredAttribute(xmlStreamReader,
           MzMLTags.ATTR_DEFAULT_DATA_PROCESSING_REF);
-      newRawFile.setDefaultDataProcessingScan(defaultDataProcessingRefScan.toString());
+      newRawFile.setDefaultDataProcessingScan(defaultDataProcessingRefScan);
     }
 
 //    if (tracker.current().contentEquals((MzMLTags.TAG_CHROMATOGRAM_LIST))) {
-//      final CharArray defaultDataProcessingRefChromatogram = getRequiredAttribute(xmlStreamReader,
+//      final String defaultDataProcessingRefChromatogram = getRequiredAttribute(xmlStreamReader,
 //          MzMLTags.ATTR_DEFAULT_DATA_PROCESSING_REF);
 //      newRawFile.setDefaultDataProcessingChromatogram(
 //          defaultDataProcessingRefChromatogram.toString());
 //    }
 
     if (openingTagName.contentEquals((MzMLTags.TAG_SPECTRUM_LIST))) {
-      final CharArray count = getRequiredAttribute(xmlStreamReader, "count");
-      this.totalScans = count.toInt();
+      final String count = getRequiredAttribute(xmlStreamReader, "count");
+      this.totalScans = Integer.parseInt(count);
     }
 
     if (tracker.inside(MzMLTags.TAG_REF_PARAM_GROUP_LIST)) {
 
       if (openingTagName.contentEquals(MzMLTags.TAG_REF_PARAM_GROUP)) {
-        final CharArray id = getRequiredAttribute(xmlStreamReader, "id");
-        vars.referenceableParamGroup = new MzMLReferenceableParamGroup(id.toString());
+        final String id = getRequiredAttribute(xmlStreamReader, "id");
+        vars.referenceableParamGroup = new MzMLReferenceableParamGroup(id);
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
         MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
@@ -139,10 +137,10 @@ public class MzMLParser {
 
     if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST)) {
       if (openingTagName.contentEquals(MzMLTags.TAG_SPECTRUM)) {
-        String id = getRequiredAttribute(xmlStreamReader, "id").toString();
-        int index = getRequiredAttribute(xmlStreamReader, "index").toInt();
-        vars.defaultArrayLength = getRequiredAttribute(xmlStreamReader,
-            "defaultArrayLength").toInt();
+        String id = getRequiredAttribute(xmlStreamReader, "id");
+        int index = Integer.parseInt(getRequiredAttribute(xmlStreamReader, "index"));
+        vars.defaultArrayLength = Integer.parseInt(
+            getRequiredAttribute(xmlStreamReader, "defaultArrayLength"));
         Integer scanNumber = getScanNumber(id).orElse(index + 1);
         //        vars.spectrum = new BuildingMzMLMsScan(newRawFile, id, scanNumber, vars.defaultArrayLength);
         vars.spectrum = new BuildingMzMLMsScan(id, scanNumber, vars.defaultArrayLength);
@@ -150,10 +148,12 @@ public class MzMLParser {
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
         vars.skipBinaryDataArray = false;
-        int encodedLength = getRequiredAttribute(xmlStreamReader, "encodedLength").toInt();
-        final CharArray arrayLength = xmlStreamReader.getAttributeValue(null, "arrayLength");
+        int encodedLength = Integer.parseInt(
+            getRequiredAttribute(xmlStreamReader, "encodedLength"));
+        final String arrayLength = xmlStreamReader.getAttributeValue(null, "arrayLength");
         if (arrayLength != null) {
-          vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, arrayLength.toInt());
+          vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength,
+              Integer.parseInt(arrayLength));
         } else {
           vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, vars.defaultArrayLength);
         }
@@ -193,7 +193,7 @@ public class MzMLParser {
 
         } else if (tracker.inside(MzMLTags.TAG_SPECTRUM) && tracker.inside(
             MzMLTags.TAG_BINARY_DATA_ARRAY) && !vars.skipBinaryDataArray) {
-          String accession = getRequiredAttribute(xmlStreamReader, "accession").toString();
+          String accession = getRequiredAttribute(xmlStreamReader, "accession");
           if (vars.binaryDataInfo.isBitLengthAccession(accession)) {
             vars.binaryDataInfo.setBitLength(accession);
           } else if (vars.binaryDataInfo.isCompressionTypeAccession(accession)) {
@@ -220,12 +220,12 @@ public class MzMLParser {
         if (vars.spectrum != null && !vars.skipBinaryDataArray) {
           //here we obtain the text value of the whole TAG_BINARY
           //using getElementText() requires exiting the tracker afterwards, otherwise xmlStreamReader produces an error
-          var binaryContent = xmlStreamReader.getElementText().toString();
+          var binaryContent = xmlStreamReader.getElementText();
           vars.binaryDataInfo.setTextContent(binaryContent);
           tracker.exit(tracker.current());
         }
       } else if (openingTagName.contentEquals(MzMLTags.TAG_REF_PARAM_GROUP_REF)) {
-        String refValue = getRequiredAttribute(xmlStreamReader, "ref").toString();
+        String refValue = getRequiredAttribute(xmlStreamReader, "ref");
         for (MzMLReferenceableParamGroup ref : vars.referenceableParamGroupList) {
           if (ref.getParamGroupName().equals(refValue)) {
             vars.spectrum.getCVParams().getCVParamsList().addAll(ref.getCVParamsList());
@@ -240,10 +240,9 @@ public class MzMLParser {
       if (tracker.inside(MzMLTags.TAG_PRECURSOR_LIST)) {
 
         if (openingTagName.contentEquals(MzMLTags.TAG_PRECURSOR)) {
-          final CharArray spectrumRef = xmlStreamReader.getAttributeValue(null,
+          final String spectrumRef = xmlStreamReader.getAttributeValue(null,
               MzMLTags.ATTR_SPECTRUM_REF);
-          String spectrumRefString = spectrumRef == null ? null : spectrumRef.toString();
-          vars.precursor = new MzMLPrecursorElement(spectrumRefString);
+          vars.precursor = new MzMLPrecursorElement(spectrumRef);
 
         } else if (openingTagName.contentEquals(MzMLTags.TAG_ISOLATION_WINDOW)) {
           vars.isolationWindow = new MzMLIsolationWindow();
@@ -316,7 +315,7 @@ public class MzMLParser {
 //      } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
 //        vars.skipBinaryDataArray = false;
 //        int encodedLength = getRequiredAttribute(xmlStreamReader, "encodedLength").toInt();
-//        final CharArray arrayLength = xmlStreamReader.getAttributeValue(null, "arrayLength");
+//        final String arrayLength = xmlStreamReader.getAttributeValue(null, "arrayLength");
 //        if (arrayLength != null) {
 //          vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, arrayLength.toInt());
 //        } else {
@@ -367,7 +366,7 @@ public class MzMLParser {
 //      }
 //
 //      if (openingTagName.contentEquals(MzMLTags.TAG_PRECURSOR)) {
-//        final CharArray spectrumRef = xmlStreamReader.getAttributeValue(null, "spectrumRef");
+//        final String spectrumRef = xmlStreamReader.getAttributeValue(null, "spectrumRef");
 //        String spectrumRefString = spectrumRef == null ? null : spectrumRef.toString();
 //        vars.precursor = new MzMLPrecursorElement(spectrumRefString);
 //
@@ -418,11 +417,11 @@ public class MzMLParser {
 //    }
   }
 
-  private MzMLUserParam createMzMLUserParam(XMLStreamReaderImpl xmlStreamReader) {
-    CharArray name = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_NAME);
-    CharArray value = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_VALUE);
+  private MzMLUserParam createMzMLUserParam(XMLStreamReader2 xmlStreamReader) {
+    String name = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_NAME);
+    String value = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_VALUE);
     if (name != null && value != null) {
-      return new MzMLUserParam(name.toString(), value.toString());
+      return new MzMLUserParam(name, value);
     }
     return null;
   }
@@ -430,13 +429,13 @@ public class MzMLParser {
   /**
    * <p>
    * Carry out the required parsing of the mzML data when the
-   * {@link XMLStreamReaderImpl XMLStreamReaderImpl} exits the given tag
+   * {@link XMLStreamReader2 XMLStreamReader2} exits the given tag
    * </p>
    *
-   * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl XMLStreamReaderImpl
-   * @param closingTagName  a {@link CharArray} object.
+   * @param xmlStreamReader an instance of {@link XMLStreamReader2 XMLStreamReader2
+   * @param closingTagName  a {@link String} object.
    */
-  public void processClosingTag(XMLStreamReaderImpl xmlStreamReader, CharArray closingTagName) {
+  public void processClosingTag(XMLStreamReader2 xmlStreamReader, String closingTagName) {
     tracker.exit(closingTagName);
 
     if (closingTagName.equals(MzMLTags.TAG_SPECTRUM)) {
@@ -517,7 +516,7 @@ public class MzMLParser {
    */
   private void filterProcessFinalizeScan() {
     var spectrum = vars.spectrum;
-    logger.info(STR."Finalizing scan \{spectrum.getScanNumber()}");
+//    logger.info(STR."Finalizing scan \{spectrum.getScanNumber()}");
     if (scanProcessorConfig.scanFilter().matches(spectrum)) {
       if (spectrum.loadProcessMemMapData(storage, scanProcessorConfig)) {
         vars.spectrumList.add(spectrum);
@@ -529,15 +528,15 @@ public class MzMLParser {
   /**
    * <p>
    * Carry out the required parsing of the mzML data when the
-   * {@link XMLStreamReaderImpl XMLStreamReaderImpl} when
+   * {@link XMLStreamReader2 XMLStreamReader2} when
    * {@link javolution.xml.stream.XMLStreamConstants#CHARACTERS CHARACTERS} are found Deprecated
    * until random access parser is introduced
    * </p>
    *
-   * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl XMLStreamReaderImpl
+   * @param xmlStreamReader an instance of {@link XMLStreamReader2 XMLStreamReader2
    */
   @Deprecated
-  public void processCharacters(XMLStreamReaderImpl xmlStreamReader) {
+  public void processCharacters(XMLStreamReader2 xmlStreamReader) {
     if (!newRawFile.getOriginalFile().isPresent() && tracker.current()
         .contentEquals(MzMLTags.TAG_BINARY) && !vars.skipBinaryDataArray) {
       if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST) && scanProcessorConfig.scanFilter().matches(vars.spectrum)) {
@@ -557,15 +556,15 @@ public class MzMLParser {
    * Call this method when the <code>xmlStreamReader</code> enters <code>&lt;cvParam&gt;</code> tag
    * </p>
    *
-   * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl XMLStreamReaderImpl
+   * @param xmlStreamReader an instance of {@link XMLStreamReader2 XMLStreamReader2
    * @return {@link MzMLCVParam MzMLCVParam} object notation of the <code>&lt;cvParam&gt;</code>
    * entered
    */
-  private MzMLCVParam createMzMLCVParam(XMLStreamReader xmlStreamReader) {
-    CharArray accession = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_ACCESSION);
-    CharArray value = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_VALUE);
-    CharArray name = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_NAME);
-    CharArray unitAccession = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_UNIT_ACCESSION);
+  private MzMLCVParam createMzMLCVParam(XMLStreamReader2 xmlStreamReader) {
+    String accession = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_ACCESSION);
+    String value = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_VALUE);
+    String name = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_NAME);
+    String unitAccession = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_UNIT_ACCESSION);
 
     // accession is a required attribute
     if (accession == null) {
@@ -573,11 +572,7 @@ public class MzMLParser {
     }
 
     // these attributes are optional
-    String valueStr = value == null ? null : value.toString();
-    String nameStr = name == null ? null : name.toString();
-    String unitAccessionStr = unitAccession == null ? null : unitAccession.toString();
-
-    return new MzMLCVParam(accession.toString(), valueStr, nameStr, unitAccessionStr);
+    return new MzMLCVParam(accession, value, name, unitAccession);
   }
 
 
@@ -623,10 +618,10 @@ public class MzMLParser {
    *
    * @param xmlStreamReader XMLStreamReader instance used to parse
    * @param attr            Attribute's value to be found
-   * @return a CharArray containing the value of the attribute.
+   * @return a String containing the value of the attribute.
    */
-  public CharArray getRequiredAttribute(XMLStreamReader xmlStreamReader, String attr) {
-    CharArray attrValue = xmlStreamReader.getAttributeValue(null, attr);
+  public String getRequiredAttribute(XMLStreamReader2 xmlStreamReader, String attr) {
+    String attrValue = xmlStreamReader.getAttributeValue(null, attr);
     if (attrValue == null) {
       throw new IllegalStateException(
           "Tag " + xmlStreamReader.getLocalName() + " must provide an `" + attr

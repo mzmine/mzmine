@@ -226,6 +226,8 @@ dependencies {
     implementation "org.apache.xmlgraphics:batik-parser:$batikVersion"
     implementation "net.sf.epsgraphics:epsgraphics:1.2"
     implementation "com.miglayout:miglayout:3.7.4"
+    // the defactor standard parser in jackson?
+    implementation("com.fasterxml.woodstox:woodstox-core:6.6.0")
     implementation "javax.xml.bind:jaxb-api:2.3.1"
     implementation "com.sun.xml.bind:jaxb-core:2.3.0.1"
     implementation "com.sun.xml.bind:jaxb-impl:2.3.2"
