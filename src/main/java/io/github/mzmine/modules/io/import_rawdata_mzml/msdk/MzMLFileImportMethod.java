@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk;
 
+import com.fasterxml.aalto.stax.InputFactoryImpl;
 import io.github.msdk.MSDKException;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLParser;
@@ -32,10 +33,11 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,16 +45,15 @@ import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
-import javolution.xml.stream.XMLStreamConstants;
-import javolution.xml.stream.XMLStreamException;
-import org.codehaus.stax2.XMLInputFactory2;
-import org.codehaus.stax2.XMLStreamReader2;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This class contains methods which parse data in MzML format from {@link File File},
- * {@link Path Path} or {@link InputStream InputStream} <br> scans will be parsed, and the values
+ * This class contains methods which parse data in MzML format from {@link java.io.File File},
+ * {@link Path} or {@link InputStream InputStream} <br> scans will be parsed, and the values
  * pre-loaded. Scans can be filtered out.
  */
 public class MzMLFileImportMethod extends AbstractTask {
@@ -120,78 +121,84 @@ public class MzMLFileImportMethod extends AbstractTask {
    */
   public MzMLRawDataFile parseMzMl() throws MSDKException {
     try {
+      // comparison of woodstox and aalto:
+      // woodstox seems to use less memory
+      // aalto seems to be a bit faster
+      // both very similar
+      // most memory is consumed by data reading and decompression etc
+      // woodstox
+//      XMLInputFactory2 factory = (XMLInputFactory2) XMLInputFactory2.newFactory();
+//      factory.configureForSpeed();
 
-      InputStream is = null;
+      // aalto
+      InputFactoryImpl factory = new InputFactoryImpl();
+      factory.configureForSpeed();
 
-      if (mzMLFile != null) {
-        logger.finest("Began parsing file: " + mzMLFile.getAbsolutePath());
-
-//        is = FileMemoryMapper.mapToMemory(mzMLFile);
-      } else if (inputStream != null) {
+      if (inputStream != null) {
         logger.finest("Began parsing file from stream");
-        is = inputStream;
+        try (Reader reader = new InputStreamReader(inputStream)) {
+//        BufferedReader br = new BufferedReader(reader, 8192*4);
+          XMLStreamReader xmlStreamReader = factory.createXMLStreamReader(reader);
+          return parseMzMlInternal(xmlStreamReader);
+        }
+      } else if (mzMLFile != null) {
+        logger.finest("Began parsing file: " + mzMLFile.getAbsolutePath());
+//        try (BufferedReader br = Files.newBufferedReader(mzMLFile.toPath(),
+        try (var fis = Files.newInputStream(mzMLFile.toPath()); Reader br = new InputStreamReader(
+            fis, StandardCharsets.UTF_8)) {
+          XMLStreamReader xmlStreamReader = factory.createXMLStreamReader(br);
+          return parseMzMlInternal(xmlStreamReader);
+        }
       } else {
         throw new MSDKException("Invalid input");
       }
-      // It's ok to directly create this particular reader, this class is `public final`
-      // and we precisely want that fast UFT-8 reader implementation
-//      final XMLStreamReaderImpl xmlStreamReader = new XMLStreamReaderImpl();
-//      xmlStreamReader.setInput(is, "UTF-8");
-      XMLInputFactory2 factory = (XMLInputFactory2) XMLInputFactory2.newFactory();
-      factory.configureForSpeed();
+    } catch (IOException | XMLStreamException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
 
-      XMLStreamReader2 xmlStreamReader = null;
-      try (BufferedReader br = Files.newBufferedReader(mzMLFile.toPath(), StandardCharsets.UTF_8)) {
-        xmlStreamReader = (XMLStreamReader2) factory.createXMLStreamReader(br);
+  private MzMLRawDataFile parseMzMlInternal(XMLStreamReader xmlStreamReader) throws MSDKException {
+    try {
+      this.parser = new MzMLParser(this, storage, scanProcessorConfig);
+      this.newRawFile = parser.getMzMLRawFile();
 
-        this.parser = new MzMLParser(this, storage, scanProcessorConfig);
-        this.newRawFile = parser.getMzMLRawFile();
+      int eventType;
+      try {
+        do {
+          // check if parsing has been cancelled?
+          if (isCanceled()) {
+            return null;
+          }
 
-        int eventType;
-        try {
-          do {
-            // check if parsing has been cancelled?
-            if (isCanceled()) {
-              return null;
+          eventType = xmlStreamReader.next();
+
+          switch (eventType) {
+            case XMLStreamConstants.START_ELEMENT -> {
+              final String openingTagName = xmlStreamReader.getLocalName();
+              parser.processOpeningTag(xmlStreamReader, openingTagName);
             }
-
-            eventType = xmlStreamReader.next();
-
-            switch (eventType) {
-              case XMLStreamConstants.START_ELEMENT -> {
-                final String openingTagName = xmlStreamReader.getLocalName();
-                parser.processOpeningTag(xmlStreamReader, openingTagName);
-              }
-              case XMLStreamConstants.END_ELEMENT -> {
-                final String closingTagName = xmlStreamReader.getLocalName();
-                parser.processClosingTag(xmlStreamReader, closingTagName);
-              }
+            case XMLStreamConstants.END_ELEMENT -> {
+              final String closingTagName = xmlStreamReader.getLocalName();
+              parser.processClosingTag(xmlStreamReader, closingTagName);
+            }
 
 //            processCharacters method is not used in the moment
 //            might be returned if new random access xml parser is introduced
 //            case XMLStreamConstants.CHARACTERS:
 //              parser.processCharacters(xmlStreamReader);
 //              break;
-            }
-
-          } while (eventType != XMLStreamConstants.END_DOCUMENT);
-
-        } catch (DataFormatException e) {
-          throw new RuntimeException(e);
-        } finally {
-          if (xmlStreamReader != null) {
-            xmlStreamReader.close();
           }
-        }
-        logger.finest("Parsing Complete");
-      } catch (IOException | XMLStreamException e) {
-        logger.log(Level.WARNING, "Error while loading mzML/RAW file " + e.getMessage(), e);
-        throw (new MSDKException(e));
-      }
-    } catch (javax.xml.stream.XMLStreamException e) {
-      throw new RuntimeException(e);
-    }
 
+        } while (eventType != XMLStreamConstants.END_DOCUMENT);
+
+      } catch (DataFormatException | XMLStreamException e) {
+        throw new RuntimeException(e);
+      }
+      logger.finest("Parsing Complete");
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Error while loading mzML/RAW file " + e.getMessage(), e);
+      throw (new MSDKException(e));
+    }
     return newRawFile;
   }
 

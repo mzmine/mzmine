@@ -197,18 +197,34 @@ public class MzMLPeaksDecoder {
    *
    * @param binaryDataInfo meta-info about encoded data
    * @return a double array containing the decoded values
-   * @throws DataFormatException if any.
-   * @throws IOException         if any.
-   * @throws MSDKException       if any. //   * @param inputStream a {@link InputStream} object.
    */
-  public static double[] decodeToDouble(MzMLBinaryDataInfo binaryDataInfo)
-      throws MSDKException, IOException {
-//    return decodeToDouble(binaryDataInfo.getXmlBinaryContent(), binaryDataInfo, null);
-    return decodeToDoubleJmzml(binaryDataInfo.getXmlBinaryContent(), binaryDataInfo);
+  public static double[] decodeToDouble(MzMLBinaryDataInfo binaryDataInfo) {
+    return decodeToDoubleAsArray(binaryDataInfo.getXmlBinaryContent(), binaryDataInfo);
   }
 
-  private static double[] decodeToDoubleJmzml(final String binaryData,
+  /**
+   * Converts a base64 encoded mz or intensity string used in mzML files to an array of doubles. If
+   * the original precision was 32 bit, you still get doubles as output.
+   *
+   * @param binaryData
+   * @param binaryDataInfo meta-info about encoded data
+   * @return a double array containing the decoded values
+   */
+  private static double[] decodeToDoubleAsArray(final String binaryData,
       final MzMLBinaryDataInfo binaryDataInfo) {
+    return decodeToDoubleAsArray(binaryData, binaryDataInfo, null);
+  }
+
+  /**
+   * Converts a base64 encoded mz or intensity string used in mzML files to an array of doubles. If
+   * the original precision was 32 bit, you still get doubles as output.
+   *
+   * @param binaryData
+   * @param binaryDataInfo meta-info about encoded data
+   * @return a double array containing the decoded values
+   */
+  public static double[] decodeToDoubleAsArray(final String binaryData,
+      final MzMLBinaryDataInfo binaryDataInfo, double @Nullable [] data) {
 
     int lengthIn = binaryDataInfo.getEncodedLength();
     int numPoints = binaryDataInfo.getArrayLength();
@@ -219,12 +235,14 @@ public class MzMLPeaksDecoder {
       return new double[0];
     }
 
-    double[] data = new double[numPoints];
+    if (data == null || data.length < numPoints) {
+      data = new double[numPoints];
+    }
 
     byte[] bytes = Base64.getDecoder().decode(binaryData);
 
-    if (binaryDataInfo.getCompressionType()
-        .isCompressed()) { // if CVParam states the data is compressed
+    if (binaryDataInfo.getCompressionType().isZlibCompressed()) {
+      // if CVParam states the data is compressed
       bytes = decompress(bytes);
     }
 
@@ -279,7 +297,9 @@ public class MzMLPeaksDecoder {
 
     decompressor.setInput(compressedData);
     // Create an expandable byte array to hold the decompressed data
-    try (ByteArrayOutputStream bos = new ByteArrayOutputStream(compressedData.length)) {
+    // use 2.5 times size to limit number of backing array resize by ByteArrayOutputStream.ensureCapacity
+    try (ByteArrayOutputStream bos = new ByteArrayOutputStream(
+        (int) (compressedData.length * 2.5))) {
       byte[] buf = new byte[1024];
       while (!decompressor.finished()) {
         try {
@@ -296,6 +316,7 @@ public class MzMLPeaksDecoder {
 
       // Get the decompressed data
       decompressedData = bos.toByteArray();
+      decompressor.end();
     } catch (IOException e) {
       // ToDo: add logging
       e.printStackTrace();
@@ -307,8 +328,10 @@ public class MzMLPeaksDecoder {
   }
 
   /**
-   * Converts a base64 encoded mz or intensity string used in mzML files to an array of doubles. If
-   * the original precision was 32 bit, you still get doubles as output.
+   * This method is slower than the direct array version
+   * {@link #decodeToDoubleAsArray(String, MzMLBinaryDataInfo)} Converts a base64 encoded mz or
+   * intensity string used in mzML files to an array of doubles. If the original precision was 32
+   * bit, you still get doubles as output.
    *
    * @param binaryDataInfo meta-info about encoded data
    * @param data           an array of double.
@@ -317,8 +340,9 @@ public class MzMLPeaksDecoder {
    * @throws IOException         if any.
    * @throws MSDKException       if any. //   * @param inputStream a {@link InputStream} object.
    */
-  public static double[] decodeToDouble(String binaryData, MzMLBinaryDataInfo binaryDataInfo,
-      double[] data) throws IOException, MSDKException {
+  @Deprecated
+  public static double[] decodeToDoubleAsStream(String binaryData,
+      MzMLBinaryDataInfo binaryDataInfo, double[] data) throws IOException, MSDKException {
 
     int lengthIn = binaryDataInfo.getEncodedLength();
     int numPoints = binaryDataInfo.getArrayLength();
@@ -330,23 +354,8 @@ public class MzMLPeaksDecoder {
       return new double[0];
     }
 
-    InputStream is;
-//    InputStream is = new ByteArrayInputStream(binaryData.getBytes());
-//    try (InputStream inputStream = new ByteBufferInputStream(
-//        ByteBuffer.wrap(binaryData.getBytes(StandardCharsets.UTF_8))
-//            .order(ByteOrder.LITTLE_ENDIAN))) {
-
     var decoded = Base64.getDecoder().decode(binaryData);
-    is = new ByteArrayInputStream(decoded);
-//    is = new BufferedInputStream(new ByteArrayInputStream(decoded));
-
-    // CharSource.wrap
-//    is = CharSource.wrap(binaryData).asByteSource(StandardCharsets.UTF_8).openStream();
-//    is = Base64.getDecoder().wrap(is);
-
-    InflaterInputStream iis = null;
-    LittleEndianDataInputStream dis = null;
-    byte[] bytes = null;
+    InputStream is = new ByteArrayInputStream(decoded);
 
     if (data == null || data.length < numPoints) {
       data = new double[numPoints];
@@ -354,67 +363,49 @@ public class MzMLPeaksDecoder {
 
     // first check for zlib compression, inflation must be done before
     // NumPress
-    if (binaryDataInfo.getCompressionType() != null) {
-      switch (binaryDataInfo.getCompressionType()) {
-        case ZLIB:
-        case NUMPRESS_LINPRED_ZLIB:
-        case NUMPRESS_POSINT_ZLIB:
-        case NUMPRESS_SHLOGF_ZLIB:
-          iis = new InflaterInputStream(is);
-          dis = new LittleEndianDataInputStream(iis);
-          break;
-
-        default:
-          dis = new LittleEndianDataInputStream(is);
-          break;
-      }
-
-      // Now we can check for NumPress
-      if (binaryDataInfo.getCompressionType().isNumpress()) {
-        bytes = IOUtils.toByteArray(dis);
-        data = decompressIfNumpress(binaryDataInfo, data, bytes);
-        return data;
-      }
-    } else {
-      dis = new LittleEndianDataInputStream(is);
+    var compression = binaryDataInfo.getCompressionType();
+    if (compression.isZlibCompressed()) {
+      is = new InflaterInputStream(is);
     }
 
-    Integer precision;
-    switch (binaryDataInfo.getBitLength()) {
-      case THIRTY_TWO_BIT_FLOAT:
-      case THIRTY_TWO_BIT_INTEGER:
-        precision = 32;
-        break;
-      case SIXTY_FOUR_BIT_FLOAT:
-      case SIXTY_FOUR_BIT_INTEGER:
-        precision = 64;
-        break;
-      default:
+    // always little endian
+    var dis = new LittleEndianDataInputStream(is);
+
+    // Now we can check for NumPress
+    if (compression.isNumpress()) {
+      byte[] bytes = IOUtils.toByteArray(dis);
+      data = decompressIfNumpress(binaryDataInfo, data, bytes);
+
+      try {
         dis.close();
-        throw new IllegalArgumentException(
-            "Precision MUST be specified and be either 32-bit or 64-bit, "
-            + "if MS-NUMPRESS compression was not used");
+      } catch (IOException e) {
+        logger.info("Exception when closing stream in parser, all worked as expected though");
+      }
+      return data;
     }
 
+    // to read doubles
     try {
-      switch (precision) {
-        case (32): {
-          int asInt;
-
-          for (int i = 0; i < numPoints; i++) {
-            asInt = dis.readInt();
-            data[i] = Float.intBitsToFloat(asInt);
+      switch (binaryDataInfo.getBitLength()) {
+        case THIRTY_TWO_BIT_FLOAT -> {
+          for (int i = 0; i < data.length; i++) {
+            data[i] = dis.readFloat();
           }
-          break;
         }
-        case (64): {
-          long asLong;
-
-          for (int i = 0; i < numPoints; i++) {
-            asLong = dis.readLong();
-            data[i] = Double.longBitsToDouble(asLong);
+        case THIRTY_TWO_BIT_INTEGER -> {
+          for (int i = 0; i < data.length; i++) {
+            data[i] = dis.readInt();
           }
-          break;
+        }
+        case SIXTY_FOUR_BIT_FLOAT -> {
+          for (int i = 0; i < data.length; i++) {
+            data[i] = dis.readDouble();
+          }
+        }
+        case SIXTY_FOUR_BIT_INTEGER -> {
+          for (int i = 0; i < data.length; i++) {
+            data[i] = dis.readLong();
+          }
         }
       }
     } catch (EOFException eof) {
@@ -425,8 +416,6 @@ public class MzMLPeaksDecoder {
           "Couldn't obtain values. Please make sure the scan/chromatogram passes the Predicate.");
     } catch (Exception e) {
       logger.log(Level.WARNING, "Error in PeaksDecoder " + e.getMessage(), e);
-    } finally {
-      dis.close();
     }
     return data;
   }

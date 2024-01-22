@@ -36,22 +36,28 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
-import org.apache.commons.lang3.time.StopWatch;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 import testutils.MZmineTestUtil;
 import testutils.TaskResult;
 import testutils.TaskResult.FINISHED;
 
+/**
+ * Speed test to log the time required to import files. Just define List of String that point to
+ * resources files or absolute paths and add a test to the main method. The results will be appended
+ * to {@link #speedTestFile} define a full path here as it will otherwise be relative to
+ * build/target path.
+ */
 public class ImportSpeedTestMain {
+
+  static final List<String> thermo = List.of(
+      "rawdatafiles/speedtest/gc_orbi_profle/gc_orbi_profile_a.raw");
 
   static final List<String> orbiCentroid = List.of(//
       "rawdatafiles/speedtest/blood_skin/bld_a.mzML",
       "rawdatafiles/speedtest/blood_skin/skin_a.mzML",
       "rawdatafiles/speedtest/blood_skin/bld_b.mzML",
       "rawdatafiles/speedtest/blood_skin/skin_b.mzML",
-//      "rawdatafiles/speedtest/blood_skin/bld_c.mzML",
-//      "rawdatafiles/speedtest/blood_skin/skin_c.mzML",
       "rawdatafiles/speedtest/blood_skin/bld_d.mzML",
       "rawdatafiles/speedtest/blood_skin/skin_d.mzML"//
   );
@@ -66,28 +72,26 @@ public class ImportSpeedTestMain {
       64_zlib_lin_float
       64_zlib_lin_int
       """.split("\n");
-  private static final Logger logger = Logger.getLogger(ImportSpeedTestMain.class.getName());
-  static StopWatch watch = StopWatch.create();
+  private static String speedTestFile = "D:\\git\\mzmine3\\src\\test\\java\\import_data\\speed\\speed.jsonlines";
 
-//  static final List<String> gcOrbiProfile = List.of(
-//      "rawdatafiles/speedtest/gc_orbi_profile_200mb_a.mzML",
-//      "rawdatafiles/speedtest/gc_orbi_profile_200mb_b.mzML");
+
+  private static final Logger logger = Logger.getLogger(ImportSpeedTestMain.class.getName());
 
   public static void main(String[] args) {
 
     // keep running and all in memory
     MZmineCore.main(new String[]{"-r", "-m", "all"});
 
-    var speedTestFile = "D:\\git\\mzmine3\\src\\test\\java\\import_data\\speed\\speed.jsonlines";
-
     try {
-//      var description = "String, Woodstox, direct bytes";
-      var description = "String, Woodstox, ByteArrayInputStream";
+      var description = "String, aalto, direct bytes, no buffers, zip optimized, no sorting, final";
+//      var description = "main RandomAccessFile, javolution, ByteArrayInputStream";
+
       testImportSpeed("Import skinbld_centroid", description, orbiCentroid, speedTestFile);
 
       for (int i = 0; i < 3; i++) {
-        String gc = "rawdatafiles/speedtest/gc_orbi_profle/%s/gc_orbi_profile_a.mzML";
+        testImportSpeed("Import GC RAW", description, thermo, speedTestFile);
 
+        String gc = "rawdatafiles/speedtest/gc_orbi_profle/%s/gc_orbi_profile_a.mzML";
         for (final String parameter : parameters) {
           var files = List.of(gc.formatted(parameter));
           testImportSpeed("Import " + parameter, description, files, speedTestFile);
@@ -149,8 +153,6 @@ public class ImportSpeedTestMain {
 
     logger.info("Testing data import of mzML and mzXML without advanced parameters");
 
-    watch.reset();
-    watch.start();
     TaskResult finished = MZmineTestUtil.callModuleWithTimeout(timeoutSeconds,
         AllSpectralDataImportModule.class, paramDataImport);
 

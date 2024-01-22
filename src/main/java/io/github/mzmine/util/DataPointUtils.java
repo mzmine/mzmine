@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.IntToDoubleFunction;
+import org.jetbrains.annotations.NotNull;
 
 public class DataPointUtils {
 
@@ -58,6 +59,23 @@ public class DataPointUtils {
       data[1][i] = dataPoints[i].getIntensity();
     }
     return data;
+  }
+
+  /**
+   * Used to keep legacy-modules running, not to be used in new modules. Directly access the
+   * underlying DoubleBuffers of Scans or {@link io.github.mzmine.datamodel.featuredata.IonSeries}
+   * and extending classes.
+   *
+   * @return mzs and intensities as arrays
+   */
+  public static SimpleSpectralArrays getDataPointsAsSpectralArrays(DataPoint[] dataPoints) {
+    double[] mzs = new double[dataPoints.length];
+    double[] intensities = new double[dataPoints.length];
+    for (int i = 0; i < dataPoints.length; i++) {
+      mzs[i] = dataPoints[i].getMZ();
+      intensities[i] = dataPoints[i].getIntensity();
+    }
+    return new SimpleSpectralArrays(mzs, intensities);
   }
 
   /**
@@ -222,30 +240,13 @@ public class DataPointUtils {
    * @param sorter      sorting direction and property
    * @return sorted array of [2][length] for [mz, intensity]
    */
-  public static double[][] sort(double[] mzs, double[] intensities, DataPointSorter sorter) {
+  public static SimpleSpectralArrays sort(double[] mzs, double[] intensities,
+      DataPointSorter sorter) {
     assert mzs.length == intensities.length;
     DataPoint[] dps = DataPointUtils.getDataPoints(mzs, intensities);
     Arrays.sort(dps, sorter);
-    return getDataPointsAsDoubleArray(dps);
+    return getDataPointsAsSpectralArrays(dps);
   }
-
-  /**
-   * Ensure sorting by mz ascending. Only applied if input data was unsorted.
-   *
-   * @param mzs         input mzs
-   * @param intensities input intensities
-   * @return [mzs, intensities], either the input arrays if already sorted or new sorted arrays
-   */
-  public static double[][] ensureSortingMzAscendingDefault(final double[] mzs,
-      final double[] intensities) {
-    for (int i = 1; i < mzs.length; i++) {
-      if (mzs[i - 1] > mzs[i]) {
-        return sort(mzs, intensities, DataPointSorter.DEFAULT_MZ_ASCENDING);
-      }
-    }
-    return new double[][]{mzs, intensities};
-  }
-
 
   /**
    * Sorts the two arrays as data points
@@ -256,11 +257,28 @@ public class DataPointUtils {
    */
   public static SimpleSpectralArrays sort(final SimpleSpectralArrays spectrum,
       final DataPointSorter sorter) {
-    var values = DataPointUtils.sort(spectrum.mzs(), spectrum.intensities(), sorter);
-    return new SimpleSpectralArrays(values[0], values[1]);
+    return DataPointUtils.sort(spectrum.mzs(), spectrum.intensities(), sorter);
   }
 
-  //todo - check if those methods are needed
+
+  /**
+   * Ensure sorting by mz ascending. Only applied if input data was unsorted.
+   *
+   * @param data input mzs and intensities
+   * @return either the input arrays if already sorted or new sorted arrays
+   */
+  public static SimpleSpectralArrays ensureSortingMzAscendingDefault(
+      final @NotNull SimpleSpectralArrays data) {
+    double[] mzs = data.mzs();
+    for (int i = 1; i < mzs.length; i++) {
+      if (mzs[i - 1] > mzs[i]) {
+        return sort(data, DataPointSorter.DEFAULT_MZ_ASCENDING);
+      }
+    }
+    // return input
+    return data;
+  }
+
   /**
    * Apply intensityPercentage filter so that the returned array contains all data points that make
    * X % of the total intensity. The result is further cropped to a maxNumSignals.

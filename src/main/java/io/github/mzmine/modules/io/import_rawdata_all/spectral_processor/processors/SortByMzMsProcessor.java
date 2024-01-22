@@ -35,13 +35,24 @@ import org.jetbrains.annotations.Nullable;
 
 public class SortByMzMsProcessor implements MsProcessor {
 
+  /**
+   * Maybe add this option later. Scans are usually sorted so we should avoid sorting and generating
+   * datapoints if its already sorted.
+   */
+  private final boolean checkAlreadySorted = true;
 
   public SortByMzMsProcessor() {
   }
 
   public @NotNull SimpleSpectralArrays processScan(final @Nullable Scan metadataOnlyScan,
       final @NotNull SimpleSpectralArrays spectrum) {
-    return DataPointUtils.sort(spectrum, DataPointSorter.DEFAULT_MZ_ASCENDING);
+    // scans are usually sorted so check sorting first
+    if (checkAlreadySorted) {
+      return DataPointUtils.ensureSortingMzAscendingDefault(spectrum);
+    } else {
+      // directly apply sorting
+      return DataPointUtils.sort(spectrum, DataPointSorter.DEFAULT_MZ_ASCENDING);
+    }
   }
 
   @Override

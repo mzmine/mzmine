@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.impl;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
@@ -95,10 +96,11 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
 
     // so many data sources have unsorted spectra - so better sort the spectrum here
     // this is only done if the mzs were unsorted
-    var mzsIntensities = DataPointUtils.ensureSortingMzAscendingDefault(mzValues, intensityValues);
+    SimpleSpectralArrays sorted = DataPointUtils.ensureSortingMzAscendingDefault(
+        new SimpleSpectralArrays(mzValues, intensityValues));
 
-    this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzsIntensities[0]);
-    this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzsIntensities[1]);
+    this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, sorted.mzs());
+    this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, sorted.intensities());
     onDataChangedEvent();
   }
 

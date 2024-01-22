@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util;
 
 import io.github.msdk.MSDKRuntimeException;
-import java.util.ArrayDeque;
+import java.util.LinkedHashSet;
 
 /**
  * This class is not thread safe. If more than one thread attempts to use {@link #enter(String)}
@@ -34,8 +34,9 @@ import java.util.ArrayDeque;
  */
 public class TagTracker {
 
-  private ArrayDeque<String> stack;
-  private ArrayDeque<String> pool;
+  // use hashmap for fast lookup
+  // last element is current tag
+  private LinkedHashSet<String> stack = new LinkedHashSet<>();
   /** Constant <code>DEFAULT_CHAR_ARR_SIZE=64</code> */
   protected final static int DEFAULT_CHAR_ARR_SIZE = 64;
 
@@ -54,8 +55,6 @@ public class TagTracker {
    */
   public TagTracker(int maxDepth) {
     this.maxDepth = maxDepth;
-    stack = new ArrayDeque<>();
-    pool = new ArrayDeque<>();
   }
 
   /**
@@ -71,7 +70,7 @@ public class TagTracker {
    * @param tag a {@link String} object.
    */
   public void enter(String tag) {
-    stack.push(tag);
+    stack.addLast(tag);
     if (stack.size() > maxDepth)
       throw new IllegalStateException("Max stack depth [" + maxDepth + "] exceeded");
   }
@@ -82,7 +81,7 @@ public class TagTracker {
    * @param tag a {@link String} object.
    */
   public void exit(String tag) {
-    final String top = stack.peek();
+    final String top = stack.removeLast();
     if (top == null) {
       throw new MSDKRuntimeException("Stack exit called when the stack was empty.");
     }
@@ -90,24 +89,16 @@ public class TagTracker {
       throw (new MSDKRuntimeException(
           "Cannot exit tag '" + tag + "'. Last tag entered was '" + top + "'"));
     }
-    returnArr(stack.pop());
   }
 
   /**
    * <p>inside.</p>
    *
-   * @param tag a {@link CharSequence} object.
+   * @param tag a {@link String} object.
    * @return a boolean.
    */
-  public boolean inside(CharSequence tag) {
-    if (tag == null)
-      return false;
-    for (String aStack : stack) {
-      if (aStack.contentEquals(tag)) {
-        return true;
-      }
-    }
-    return false;
+  public boolean inside(String tag) {
+    return tag != null && stack.contains(tag);
   }
 
   /**
@@ -116,15 +107,11 @@ public class TagTracker {
    * @return a {@link String} object.
    */
   public String current() {
-    final String top = stack.peek();
+    final String top = stack.getLast();
     if (top == null) {
       return "";
     }
     return top;
-  }
-
-  private void returnArr(String arr) {
-    pool.push(arr);
   }
 
 }

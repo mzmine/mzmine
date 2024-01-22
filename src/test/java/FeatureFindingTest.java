@@ -40,7 +40,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
@@ -48,9 +47,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.M
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayParameters;
@@ -63,6 +59,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParam
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.combowithinput.FeatureLimitOptions;
@@ -149,15 +146,12 @@ public class FeatureFindingTest {
     paramDataImport.setParameter(AllSpectralDataImportParameters.fileNames, files);
     paramDataImport.setParameter(SpectralLibraryImportParameters.dataBaseFiles, new File[0]);
     paramDataImport.setParameter(AllSpectralDataImportParameters.advancedImport, true);
-    AdvancedSpectraImportParameters advancedImport = paramDataImport.getParameter(
-        AllSpectralDataImportParameters.advancedImport).getEmbeddedParameters();
-    advancedImport.setParameter(AdvancedSpectraImportParameters.msMassDetection, true);
-    advancedImport.setParameter(AdvancedSpectraImportParameters.ms2MassDetection, true);
-    // create centroid mass detectors
-    advancedImport.getParameter(AdvancedSpectraImportParameters.msMassDetection)
-        .getEmbeddedParameter().setValue(createCentroidMassDetector(0));
-    advancedImport.getParameter(AdvancedSpectraImportParameters.ms2MassDetection)
-        .getEmbeddedParameter().setValue(createCentroidMassDetector(0));
+
+    var advancedImport = AdvancedSpectraImportParameters.create(
+        MassDetectorWizardOptions.ABSOLUTE_NOISE_LEVEL, 0d, 0d, null, ScanSelection.ALL_SCANS,
+        false);
+    paramDataImport.getParameter(AllSpectralDataImportParameters.advancedImport)
+        .setEmbeddedParameters(advancedImport);
 
     logger.info("Testing advanced data import of mzML and mzXML with direct mass detection");
     TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30,
@@ -594,13 +588,6 @@ public class FeatureFindingTest {
     assertEquals(57, processed1.stream()
             .filter(row -> row.getFeatures().stream().filter(Objects::nonNull).count() == 2).count(),
         "Number of aligned features changed");
-  }
-
-  private MZmineProcessingStep<MassDetector> createCentroidMassDetector(double noise) {
-    MassDetector detect = MassDetectors.CENTROID.getDefaultModule();
-    ParameterSet param = MassDetectors.CENTROID.getParametersCopy();
-    param.setParameter(CentroidMassDetectorParameters.noiseLevel, noise);
-    return new MZmineProcessingStepImpl<>(detect, param);
   }
 
 

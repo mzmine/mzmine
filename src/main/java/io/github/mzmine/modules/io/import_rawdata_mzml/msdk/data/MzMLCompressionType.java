@@ -67,7 +67,7 @@ public enum MzMLCompressionType {
     return name;
   }
 
-  public boolean isCompressed() {
+  public boolean isZlibCompressed() {
     return switch (this) {
       case NUMPRESS_LINPRED, NO_COMPRESSION, NUMPRESS_SHLOGF, NUMPRESS_POSINT -> false;
       case ZLIB, NUMPRESS_LINPRED_ZLIB, NUMPRESS_POSINT_ZLIB, NUMPRESS_SHLOGF_ZLIB -> true;

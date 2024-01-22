@@ -33,14 +33,18 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.zip.DataFormatException;
-import javolution.xml.stream.XMLStreamException;
-import org.codehaus.stax2.XMLStreamReader2;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -60,6 +64,16 @@ public class MzMLParser {
 
   private int totalScans = 0, parsedScans = 0;
   private final MzMLRawDataFile newRawFile;
+  private final Pattern scanNumberPattern = Pattern.compile("scan=([0-9]+)");
+  private final Pattern agilentScanNumberPattern = Pattern.compile("scan[iI]d=([0-9]+)");
+
+  private final Map<String, MzMLCompressionType> compressionTypeMap = Arrays.stream(
+          MzMLCompressionType.values())
+      .collect(Collectors.toMap(MzMLCompressionType::getAccession, Function.identity()));
+  private final Map<String, MzMLBitLength> bitlengthMap = Arrays.stream(MzMLBitLength.values())
+      .collect(Collectors.toMap(MzMLBitLength::getAccession, Function.identity()));
+  private final Map<String, MzMLArrayType> arrayTypeMap = Arrays.stream(MzMLArrayType.values())
+      .collect(Collectors.toMap(MzMLArrayType::getAccession, Function.identity()));
 
 
   public MzMLParser(MzMLFileImportMethod importer, MemoryMapStorage storage,
@@ -76,15 +90,15 @@ public class MzMLParser {
   /**
    * <p>
    * Carry out the required parsing of the mzML data when the
-   * {@link XMLStreamReader2 XMLStreamReader2} enters the given tag
+   * {@link XMLStreamReader XMLStreamReader} enters the given tag
    * </p>
    *
-   * @param xmlStreamReader an instance of {@link XMLStreamReader2 XMLStreamReader2
+   * @param xmlStreamReader an instance of {@link XMLStreamReader XMLStreamReader
    * @param is              {@link InputStream InputStream} of the mzML data
    * @param openingTagName  The tag <code>xmlStreamReader</code> entered
    */
-  public void processOpeningTag(XMLStreamReader2 xmlStreamReader, String openingTagName)
-      throws XMLStreamException, IOException, DataFormatException, javax.xml.stream.XMLStreamException {
+  public void processOpeningTag(XMLStreamReader xmlStreamReader, String openingTagName)
+      throws IOException, DataFormatException, XMLStreamException {
     tracker.enter(openingTagName);
 
     if (tracker.current().contentEquals((MzMLTags.TAG_RUN))) {
@@ -194,12 +208,12 @@ public class MzMLParser {
         } else if (tracker.inside(MzMLTags.TAG_SPECTRUM) && tracker.inside(
             MzMLTags.TAG_BINARY_DATA_ARRAY) && !vars.skipBinaryDataArray) {
           String accession = getRequiredAttribute(xmlStreamReader, "accession");
-          if (vars.binaryDataInfo.isBitLengthAccession(accession)) {
-            vars.binaryDataInfo.setBitLength(accession);
-          } else if (vars.binaryDataInfo.isCompressionTypeAccession(accession)) {
+          if (bitlengthMap.get(accession) != null) {
+            vars.binaryDataInfo.setBitLength(bitlengthMap.get(accession));
+          } else if (compressionTypeMap.get(accession) != null) {
             manageCompression(vars.binaryDataInfo, accession);
-          } else if (vars.binaryDataInfo.isArrayTypeAccession(accession)) {
-            vars.binaryDataInfo.setArrayType(accession);
+          } else if (arrayTypeMap.get(accession) != null) {
+            vars.binaryDataInfo.setArrayType(arrayTypeMap.get(accession));
           } else {
             vars.skipBinaryDataArray = true;
           }
@@ -417,7 +431,7 @@ public class MzMLParser {
 //    }
   }
 
-  private MzMLUserParam createMzMLUserParam(XMLStreamReader2 xmlStreamReader) {
+  private MzMLUserParam createMzMLUserParam(XMLStreamReader xmlStreamReader) {
     String name = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_NAME);
     String value = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_VALUE);
     if (name != null && value != null) {
@@ -429,13 +443,13 @@ public class MzMLParser {
   /**
    * <p>
    * Carry out the required parsing of the mzML data when the
-   * {@link XMLStreamReader2 XMLStreamReader2} exits the given tag
+   * {@link XMLStreamReader XMLStreamReader} exits the given tag
    * </p>
    *
-   * @param xmlStreamReader an instance of {@link XMLStreamReader2 XMLStreamReader2
+   * @param xmlStreamReader an instance of {@link XMLStreamReader XMLStreamReader
    * @param closingTagName  a {@link String} object.
    */
-  public void processClosingTag(XMLStreamReader2 xmlStreamReader, String closingTagName) {
+  public void processClosingTag(XMLStreamReader xmlStreamReader, String closingTagName) {
     tracker.exit(closingTagName);
 
     if (closingTagName.equals(MzMLTags.TAG_SPECTRUM)) {
@@ -528,18 +542,19 @@ public class MzMLParser {
   /**
    * <p>
    * Carry out the required parsing of the mzML data when the
-   * {@link XMLStreamReader2 XMLStreamReader2} when
+   * {@link XMLStreamReader XMLStreamReader} when
    * {@link javolution.xml.stream.XMLStreamConstants#CHARACTERS CHARACTERS} are found Deprecated
    * until random access parser is introduced
    * </p>
    *
-   * @param xmlStreamReader an instance of {@link XMLStreamReader2 XMLStreamReader2
+   * @param xmlStreamReader an instance of {@link XMLStreamReader XMLStreamReader
    */
   @Deprecated
-  public void processCharacters(XMLStreamReader2 xmlStreamReader) {
+  public void processCharacters(XMLStreamReader xmlStreamReader) {
     if (!newRawFile.getOriginalFile().isPresent() && tracker.current()
         .contentEquals(MzMLTags.TAG_BINARY) && !vars.skipBinaryDataArray) {
-      if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST) && scanProcessorConfig.scanFilter().matches(vars.spectrum)) {
+      if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST) && scanProcessorConfig.scanFilter()
+          .matches(vars.spectrum)) {
         // spectra are now loaded directly and processed when finishing a spectrum
       }
 //      else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
@@ -556,11 +571,11 @@ public class MzMLParser {
    * Call this method when the <code>xmlStreamReader</code> enters <code>&lt;cvParam&gt;</code> tag
    * </p>
    *
-   * @param xmlStreamReader an instance of {@link XMLStreamReader2 XMLStreamReader2
+   * @param xmlStreamReader an instance of {@link XMLStreamReader XMLStreamReader
    * @return {@link MzMLCVParam MzMLCVParam} object notation of the <code>&lt;cvParam&gt;</code>
    * entered
    */
-  private MzMLCVParam createMzMLCVParam(XMLStreamReader2 xmlStreamReader) {
+  private MzMLCVParam createMzMLCVParam(XMLStreamReader xmlStreamReader) {
     String accession = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_ACCESSION);
     String value = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_VALUE);
     String name = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_NAME);
@@ -585,8 +600,7 @@ public class MzMLParser {
    * @return a {@link Integer} object.
    */
   public Optional<Integer> getScanNumber(String spectrumId) {
-    final Pattern pattern = Pattern.compile("scan=([0-9]+)");
-    final Matcher matcher = pattern.matcher(spectrumId);
+    final Matcher matcher = scanNumberPattern.matcher(spectrumId);
     boolean scanNumberFound = matcher.find();
 
     // Some vendors include scan=XX in the ID, some don't, such as
@@ -599,8 +613,7 @@ public class MzMLParser {
     }
 
     // agilent
-    final Pattern agilentPattern = Pattern.compile("scan[iI]d=([0-9]+)");
-    final Matcher agilentMatcher = agilentPattern.matcher(spectrumId);
+    final Matcher agilentMatcher = agilentScanNumberPattern.matcher(spectrumId);
     boolean agilentScanNumberFound = agilentMatcher.find();
     if (agilentScanNumberFound) {
       Integer scanNumber = Integer.parseInt(agilentMatcher.group(1));
@@ -620,7 +633,7 @@ public class MzMLParser {
    * @param attr            Attribute's value to be found
    * @return a String containing the value of the attribute.
    */
-  public String getRequiredAttribute(XMLStreamReader2 xmlStreamReader, String attr) {
+  public String getRequiredAttribute(XMLStreamReader xmlStreamReader, String attr) {
     String attrValue = xmlStreamReader.getAttributeValue(null, attr);
     if (attrValue == null) {
       throw new IllegalStateException(
@@ -639,10 +652,14 @@ public class MzMLParser {
    * @param accession  a {@link String} object.
    */
   public void manageCompression(MzMLBinaryDataInfo binaryInfo, String accession) {
+    MzMLCompressionType newCompression = compressionTypeMap.get(accession);
+    if (newCompression == null) {
+      return;
+    }
     if (binaryInfo.getCompressionType() == MzMLCompressionType.NO_COMPRESSION) {
-      binaryInfo.setCompressionType(accession);
+      binaryInfo.setCompressionType(newCompression);
     } else {
-      if (binaryInfo.getCompressionType(accession) == MzMLCompressionType.ZLIB) {
+      if (newCompression == MzMLCompressionType.ZLIB) {
         switch (binaryInfo.getCompressionType()) {
           case NUMPRESS_LINPRED ->
               binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_LINPRED_ZLIB);
@@ -652,7 +669,7 @@ public class MzMLParser {
               binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_SHLOGF_ZLIB);
         }
       } else {
-        switch (binaryInfo.getCompressionType(accession)) {
+        switch (newCompression) {
           case NUMPRESS_LINPRED ->
               binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_LINPRED_ZLIB);
           case NUMPRESS_POSINT ->

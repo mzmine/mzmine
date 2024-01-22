@@ -180,6 +180,9 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
     try {
       // building scans have no data file
       RawDataFile raw = scan.getDataFile();
+      if (raw == null) {
+        return 1;
+      }
       if (!raw.getScans().isEmpty()) {
         offset = raw.getScans().getFirst().getScanNumber();
       } else {

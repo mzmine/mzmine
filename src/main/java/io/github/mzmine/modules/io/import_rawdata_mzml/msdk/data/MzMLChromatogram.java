@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -412,10 +412,12 @@ class MzMLChromatogram implements Chromatogram {
     try {
       double[] array = new double[this.numOfDataPoints];
       if (MzMLCV.cvRetentionTimeArray.equals(binaryDataInfo.getArrayType().getAccession())) {
-        this.rtValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent.toString(), binaryDataInfo, array);
+        this.rtValues = MzMLPeaksDecoder.decodeToDoubleAsArray(xmlMzContent.toString(),
+            binaryDataInfo, array);
       }
       if (MzMLCV.cvIntensityArray.equals(binaryDataInfo.getArrayType().getAccession())) {
-        this.intensityValues = MzMLPeaksDecoder.decodeToDouble(xmlMzContent.toString(), binaryDataInfo, array);
+        this.intensityValues = MzMLPeaksDecoder.decodeToDoubleAsArray(xmlMzContent.toString(),
+            binaryDataInfo, array);
       }
     } catch (Exception e) {
       throw (new MSDKRuntimeException(e));

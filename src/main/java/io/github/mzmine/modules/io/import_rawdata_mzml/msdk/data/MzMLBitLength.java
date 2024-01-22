@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,11 +44,24 @@ public enum MzMLBitLength {
   /**
    * <p>getValue.</p>
    *
-   * @return the CV Parameter accession of the precision bit length as {@link String
-   *         String}
+   * @return the CV Parameter accession of the precision bit length as {@link String String}
    */
   public String getValue() {
     return accession;
   }
 
+  /**
+   * returns accession see {@link #getValue()}
+   */
+  public String getAccession() {
+    return accession;
+  }
+
+  public int bits() {
+    return switch (this) {
+      case SIXTY_FOUR_BIT_INTEGER, SIXTY_FOUR_BIT_FLOAT -> 64;
+      case THIRTY_TWO_BIT_INTEGER, THIRTY_TWO_BIT_FLOAT -> 32;
+      case SIXTEEN_BIT_FLOAT -> 16;
+    };
+  }
 }

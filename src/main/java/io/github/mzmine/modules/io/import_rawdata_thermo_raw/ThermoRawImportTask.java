@@ -37,7 +37,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.ZipUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -133,18 +132,21 @@ public class ThermoRawImportTask extends AbstractTask {
       dumper = Runtime.getRuntime().exec(cmdLine, null, thermoRawFileParserDir);
 
       // Get the stdout of ThermoRawFileParser process as InputStream
-      InputStream mzMLStream = dumper.getInputStream();
-      BufferedInputStream bufStream = new BufferedInputStream(mzMLStream);
+      RawDataFile dataFile = null;
+      try (InputStream mzMLStream = dumper.getInputStream()) //
+//          BufferedInputStream bufStream = new BufferedInputStream(mzMLStream))//
+      {
 
-      msdkTask = new MSDKmzMLImportTask(project, fileToOpen, bufStream, scanProcessorConfig, module,
-          parameters, moduleCallDate, storage);
+        msdkTask = new MSDKmzMLImportTask(project, fileToOpen, mzMLStream, scanProcessorConfig,
+            module, parameters, moduleCallDate, storage);
 
-      this.addTaskStatusListener((task, newStatus, oldStatus) -> {
-        if (isCanceled()) {
-          msdkTask.cancel();
-        }
-      });
-      RawDataFile dataFile = msdkTask.importStreamOrFile();
+        this.addTaskStatusListener((task, newStatus, oldStatus) -> {
+          if (isCanceled()) {
+            msdkTask.cancel();
+          }
+        });
+        dataFile = msdkTask.importStreamOrFile();
+      }
 
       if (dataFile == null || isCanceled()) {
         return;
@@ -153,7 +155,6 @@ public class ThermoRawImportTask extends AbstractTask {
       parsedScans = msdkTask.getParsedMzMLScans();
       convertedScans = msdkTask.getConvertedScansAfterFilter();
       // Finish
-      bufStream.close();
       dumper.destroy();
 
       if (parsedScans == 0) {

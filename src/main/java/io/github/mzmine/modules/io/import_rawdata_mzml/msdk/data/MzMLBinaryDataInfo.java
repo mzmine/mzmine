@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -70,17 +70,6 @@ public class MzMLBinaryDataInfo {
    * Sets the precision bit length of the binary data array
    * </p>
    *
-   * @param bitLengthAccession The CV Parameter accession as {@link String String}
-   */
-  public void setBitLength(String bitLengthAccession) {
-    this.bitLength = getBitLength(bitLengthAccession);
-  }
-
-  /**
-   * <p>
-   * Sets the precision bit length of the binary data array
-   * </p>
-   *
    * @param bitLength a {@link MzMLBitLength} object.
    */
   public void setBitLength(MzMLBitLength bitLength) {
@@ -123,19 +112,8 @@ public class MzMLBinaryDataInfo {
    * @return a {@link MzMLCompressionType MzMLCompressionType} corresponding to the compression of
    * the binary data array
    */
-  public MzMLCompressionType getCompressionType() {
+  public @NotNull MzMLCompressionType getCompressionType() {
     return compressionType;
-  }
-
-  /**
-   * <p>
-   * Sets the compression type of the binary data array
-   * </p>
-   *
-   * @param compressionTypeAccession the CV Parameter accession as {@link String String}
-   */
-  public void setCompressionType(String compressionTypeAccession) {
-    this.compressionType = getCompressionType(compressionTypeAccession);
   }
 
   /**
@@ -145,38 +123,8 @@ public class MzMLBinaryDataInfo {
    *
    * @param compressionType a {@link MzMLCompressionType} object.
    */
-  public void setCompressionType(MzMLCompressionType compressionType) {
+  public void setCompressionType(@NotNull MzMLCompressionType compressionType) {
     this.compressionType = compressionType;
-  }
-
-  /**
-   * <p>
-   * Check if the given CV Parameter accession is that of a compression method
-   * </p>
-   *
-   * @param compressionTypeAccession The CV Parameter accession as {@link String String}
-   * @return true if the given accession is of a compression type CV Parameter, false otherwise
-   */
-  public boolean isCompressionTypeAccession(String compressionTypeAccession) {
-    return getCompressionType(compressionTypeAccession) != null;
-  }
-
-  /**
-   * <p>
-   * Gets the compression type for the given accession
-   * </p>
-   *
-   * @param accession The CV Parameter accession as {@link String String}
-   * @return a {@link MzMLCompressionType MzMLCompressionType} enum constant if the accession
-   * corresponds to a valid compression type, null otherwise
-   */
-  public MzMLCompressionType getCompressionType(String accession) {
-    for (MzMLCompressionType compressionType : MzMLCompressionType.values()) {
-      if (compressionType.getAccession().equals(accession)) {
-        return compressionType;
-      }
-    }
-    return null;
   }
 
   /**
@@ -191,17 +139,6 @@ public class MzMLBinaryDataInfo {
 
   /**
    * <p>
-   * Sets the array type of the binary data array
-   * </p>
-   *
-   * @param arrayTypeAccession the CV Parameter accession as {@link String String}
-   */
-  public void setArrayType(String arrayTypeAccession) {
-    this.arrayType = getArrayType(arrayTypeAccession);
-  }
-
-  /**
-   * <p>
    * Sets the bit length of the binary data array
    * </p>
    *
@@ -209,37 +146,6 @@ public class MzMLBinaryDataInfo {
    */
   public void setArrayType(MzMLArrayType arrayType) {
     this.arrayType = arrayType;
-  }
-
-  /**
-   * <p>
-   * Check if the given CV Parameter accession is that of a binary data array type
-   * </p>
-   *
-   * @param arrayTypeAccession the CV Parameter accession as {@link String String}
-   * @return true if the given accession is of a binary data array type CV Parameter, false
-   * otherwise
-   */
-  public boolean isArrayTypeAccession(String arrayTypeAccession) {
-    return getArrayType(arrayTypeAccession) != null;
-  }
-
-  /**
-   * <p>
-   * Gets the binary data array type for the given accession
-   * </p>
-   *
-   * @param accession The CV Parameter accession as {@link String String}
-   * @return a {@link MzMLArrayType MzMLArrayType} enum constant if the accession corresponds to a
-   * valid binary data array type, null otherwise
-   */
-  public MzMLArrayType getArrayType(String accession) {
-    for (MzMLArrayType arrayType : MzMLArrayType.values()) {
-      if (arrayType.getAccession().equals(accession)) {
-        return arrayType;
-      }
-    }
-    return null;
   }
 
   /**

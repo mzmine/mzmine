@@ -60,7 +60,7 @@ import testutils.MZmineTestUtil;
 public abstract class AbstractDataImportTest {
 
   private static final Logger logger = Logger.getLogger(AbstractDataImportTest.class.getName());
-  private double lowestMz;
+  public static double lowestMz = 350d;
 
   public AbstractDataImportTest() {
   }
@@ -73,11 +73,37 @@ public abstract class AbstractDataImportTest {
     MZmineTestUtil.cleanProject();
   }
 
+  /**
+   * @return null if no advanced import should be checked
+   */
+  @Nullable
+  public static AdvancedSpectraImportParameters createAdvancedImportSettings() {
+    final var massDetector = MassDetectors.FACTOR_OF_LOWEST.getDefaultModule();
+    ParameterSet massDetectorParam = MassDetectors.FACTOR_OF_LOWEST.getParametersCopy();
+    massDetectorParam.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 3d);
+    var massDetectorStep = new MZmineProcessingStepImpl<>(massDetector, massDetectorParam);
+
+    ParameterSet massDetectorParam2 = MassDetectors.FACTOR_OF_LOWEST.getParametersCopy();
+    massDetectorParam2.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 3d);
+    MZmineProcessingStep<MassDetector> massDetectorStep2 = new MZmineProcessingStepImpl<>(
+        massDetector, massDetectorParam2);
+
+    AdvancedSpectraImportParameters advanced = (AdvancedSpectraImportParameters) new AdvancedSpectraImportParameters().cloneParameterSet();
+    advanced.setParameter(AdvancedSpectraImportParameters.msMassDetection, true, massDetectorStep);
+    advanced.setParameter(AdvancedSpectraImportParameters.ms2MassDetection, true,
+        massDetectorStep2);
+    advanced.setParameter(AdvancedSpectraImportParameters.mzRange, true,
+        Range.closed(lowestMz, 5000d));
+    advanced.setParameter(AdvancedSpectraImportParameters.denormalizeMSnScans, true);
+    advanced.setParameter(AdvancedSpectraImportParameters.scanFilter, ScanSelection.ALL_SCANS);
+    return advanced;
+  }
+
   @Test
   @Order(1)
 //  @Disabled
   @DisplayName("Test data import of mzML and mzXML without advanced parameters")
-  void dataImportTest() throws InterruptedException {
+  public void dataImportTest() throws InterruptedException {
     MZmineTestUtil.cleanProject();
     MZmineTestUtil.importFiles(getFileNames(), 60);
     Map<String, DataFileStats> stats = DataFileStatsIO.readJson(getClass());
@@ -88,7 +114,7 @@ public abstract class AbstractDataImportTest {
   @Order(2)
 //  @Disabled
   @DisplayName("Test data advanced import of mzML and mzXML with advanced parameters like mass detection")
-  void advancedDataImportTest() throws InterruptedException {
+  public void advancedDataImportTest() throws InterruptedException {
     var advanced = createAdvancedImportSettings();
 
     MZmineTestUtil.cleanProject();
@@ -110,33 +136,5 @@ public abstract class AbstractDataImportTest {
         }
       }
     }
-  }
-
-
-  /**
-   * @return null if no advanced import should be checked
-   */
-  @Nullable
-  public AdvancedSpectraImportParameters createAdvancedImportSettings() {
-    final var massDetector = MassDetectors.FACTOR_OF_LOWEST.getDefaultModule();
-    ParameterSet massDetectorParam = MassDetectors.FACTOR_OF_LOWEST.getParametersCopy();
-    massDetectorParam.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 3d);
-    var massDetectorStep = new MZmineProcessingStepImpl<>(massDetector, massDetectorParam);
-
-    ParameterSet massDetectorParam2 = MassDetectors.FACTOR_OF_LOWEST.getParametersCopy();
-    massDetectorParam2.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 3d);
-    MZmineProcessingStep<MassDetector> massDetectorStep2 = new MZmineProcessingStepImpl<>(
-        massDetector, massDetectorParam2);
-
-    AdvancedSpectraImportParameters advanced = (AdvancedSpectraImportParameters) new AdvancedSpectraImportParameters().cloneParameterSet();
-    advanced.setParameter(AdvancedSpectraImportParameters.msMassDetection, true, massDetectorStep);
-    advanced.setParameter(AdvancedSpectraImportParameters.ms2MassDetection, true,
-        massDetectorStep2);
-    lowestMz = 350d;
-    advanced.setParameter(AdvancedSpectraImportParameters.mzRange, true,
-        Range.closed(lowestMz, 5000d));
-    advanced.setParameter(AdvancedSpectraImportParameters.denormalizeMSnScans, true);
-    advanced.setParameter(AdvancedSpectraImportParameters.scanFilter, ScanSelection.ALL_SCANS);
-    return advanced;
   }
 }

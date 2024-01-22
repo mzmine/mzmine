@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,14 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
+import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetectorParameters;
+import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
+import io.github.mzmine.parameters.ParameterSet;
+
 public enum MassDetectorWizardOptions {
   ABSOLUTE_NOISE_LEVEL, FACTOR_OF_LOWEST_SIGNAL;
 
@@ -34,5 +42,26 @@ public enum MassDetectorWizardOptions {
       case ABSOLUTE_NOISE_LEVEL -> "Absolute intensity";
       case FACTOR_OF_LOWEST_SIGNAL -> "Factor of lowest signal (requires centroided data)";
     };
+  }
+
+  public MZmineProcessingStep<MassDetector> createMassDetectorStep(double noise) {
+    return switch (this) {
+      case ABSOLUTE_NOISE_LEVEL -> createAutoMassDetector(noise);
+      case FACTOR_OF_LOWEST_SIGNAL -> createFactorOfLowestMassDetector(noise);
+    };
+  }
+
+  private MZmineProcessingStep<MassDetector> createAutoMassDetector(double noise) {
+    MassDetector detect = MassDetectors.AUTO.getDefaultModule();
+    ParameterSet param = MassDetectors.AUTO.getParametersCopy();
+    param.setParameter(AutoMassDetectorParameters.noiseLevel, noise);
+    return new MZmineProcessingStepImpl<>(detect, param);
+  }
+
+  private MZmineProcessingStep<MassDetector> createFactorOfLowestMassDetector(double noise) {
+    MassDetector detect = MassDetectors.FACTOR_OF_LOWEST.getDefaultModule();
+    ParameterSet param = MassDetectors.FACTOR_OF_LOWEST.getParametersCopy();
+    param.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, noise);
+    return new MZmineProcessingStepImpl<>(detect, param);
   }
 }
