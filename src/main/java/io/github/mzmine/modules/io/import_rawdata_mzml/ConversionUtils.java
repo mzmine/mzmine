@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
@@ -154,10 +155,8 @@ public class ConversionUtils {
   }
 
   public static BuildingMobilityScan mzmlScanToMobilityScan(int scannum, BuildingMzMLMsScan scan) {
-    // TODO make sure memory mapping is not done twice - maybe turn off memory mapping for those scans
-    var dps = scan.getNumberOfDataPoints();
-    return new BuildingMobilityScan(scannum, scan.getMzValues(new double[dps]),
-        scan.getIntensityValues(new double[dps]));
+    SimpleSpectralArrays data = scan.getMobilityScanSimpleSpectralData();
+    return new BuildingMobilityScan(scannum, data);
   }
 
   /**

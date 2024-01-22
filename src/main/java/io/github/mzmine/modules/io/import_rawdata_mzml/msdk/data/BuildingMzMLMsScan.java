@@ -90,8 +90,11 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
 
   //Final memory-mapped processed data
   //No intermediate results
-  private DoubleBuffer mzValues;
-  private DoubleBuffer intensityValues;
+  private @Nullable DoubleBuffer mzValues;
+  private @Nullable DoubleBuffer intensityValues;
+
+  // mobility scans are memory mapped later
+  private @Nullable SimpleSpectralArrays mobilityScanSimpleSpectralData;
 
 
   /**
@@ -597,10 +600,15 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
         spectrumType = MassSpectrumType.CENTROIDED;
       }
 
-      // memory map
-      this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.mzs());
-      this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage,
-          specData.intensities());
+      if (getMobility() != null) {
+        // cannot memory map mobility scan data as we need to do this later all mobility scans at once
+        mobilityScanSimpleSpectralData = specData;
+      } else {
+        // memory map regular scan data but not mobility scans
+        this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.mzs());
+        this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage,
+            specData.intensities());
+      }
 
     } catch (MSDKException | IOException e) {
       logger.warning("Could not load data of scan #%d".formatted(getScanNumber()));
@@ -636,5 +644,13 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   public void clearUnusedData() {
     mzBinaryDataInfo = null;
     intensityBinaryDataInfo = null;
+  }
+
+  /**
+   * Only mobility scans have their data still in memory as they are memory mapped all at once
+   */
+  @Nullable
+  public SimpleSpectralArrays getMobilityScanSimpleSpectralData() {
+    return mobilityScanSimpleSpectralData;
   }
 }

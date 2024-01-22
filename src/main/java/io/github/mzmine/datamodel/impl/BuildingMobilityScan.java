@@ -34,11 +34,9 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
-import java.util.Arrays;
 import java.util.Iterator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,6 +62,9 @@ public class BuildingMobilityScan implements MobilityScan {
     this(scanNumber, mzIntensities[0], mzIntensities[1]);
   }
 
+  public BuildingMobilityScan(final int scanNumber, final SimpleSpectralArrays data) {
+    this(scanNumber, data.mzs(), data.intensities());
+  }
   /**
    * @param scanNumber  The scan number beginning with 0
    * @param mzs         The m/z values
@@ -99,16 +100,10 @@ public class BuildingMobilityScan implements MobilityScan {
       return;
     }
 
-    DataPoint[] dps = new DataPoint[mzs.length];
-    for (int i = 0; i < mzs.length; i++) {
-      dps[i] = new SimpleDataPoint(mzs[i], intensities[i]);
-    }
-    DataPointSorter sorter = new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending);
-    Arrays.sort(dps, sorter);
-    double[][] data = DataPointUtils.getDataPointsAsDoubleArray(dps);
+    var sorted = DataPointUtils.sort(mzs, intensities, DataPointSorter.DEFAULT_MZ_ASCENDING);
 
-    mzs = data[0];
-    intensities = data[1];
+    mzs = sorted.mzs();
+    intensities = sorted.intensities();
 
     basePeakIndex = 0;
     for (int i = 1; i < mzs.length; i++) {
@@ -119,6 +114,7 @@ public class BuildingMobilityScan implements MobilityScan {
     this.intensityValues = intensities;
     this.mzValues = mzs;
   }
+
 
   public double[] getMzValues() {
     return mzValues;
