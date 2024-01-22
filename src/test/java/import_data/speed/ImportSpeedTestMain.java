@@ -50,29 +50,13 @@ import testutils.TaskResult.FINISHED;
  */
 public class ImportSpeedTestMain {
 
-  static final List<String> thermo = List.of(
-      "rawdatafiles/speedtest/gc_orbi_profle/gc_orbi_profile_a.raw");
-
-  static final List<String> orbiCentroid = List.of(//
-      "rawdatafiles/speedtest/blood_skin/bld_a.mzML",
-      "rawdatafiles/speedtest/blood_skin/skin_a.mzML",
-      "rawdatafiles/speedtest/blood_skin/bld_b.mzML",
-      "rawdatafiles/speedtest/blood_skin/skin_b.mzML",
-      "rawdatafiles/speedtest/blood_skin/bld_d.mzML",
-      "rawdatafiles/speedtest/blood_skin/skin_d.mzML"//
-  );
-  static final String[] parameters = """
-      32_int
-      32_zlib_lin
-      32_zlib_lin_float
-      32_zlib_lin_int
-      64
-      64_lin_int
-      64_zlib_lin
-      64_zlib_lin_float
-      64_zlib_lin_int
-      """.split("\n");
-  private static String speedTestFile = "D:\\git\\mzmine3\\src\\test\\java\\import_data\\speed\\speed.jsonlines";
+  static final List<String> thermo = List.of("rawdatafiles/additional/astral.raw");
+  static final List<String> dom = List.of("""
+      rawdatafiles/DOM_a.mzML
+      rawdatafiles/DOM_a_invalid_chars.mzML
+      rawdatafiles/DOM_a_invalid_header.mzML
+          """.split("\n"));
+  public static String speedTestFile = "D:\\git\\mzmine3\\src\\test\\java\\import_data\\speed\\speed.jsonlines";
 
 
   private static final Logger logger = Logger.getLogger(ImportSpeedTestMain.class.getName());
@@ -83,19 +67,12 @@ public class ImportSpeedTestMain {
     MZmineCore.main(new String[]{"-r", "-m", "all"});
 
     try {
-      var description = "String, aalto, direct bytes, no buffers, zip optimized, no sorting, final";
-//      var description = "main RandomAccessFile, javolution, ByteArrayInputStream";
+      var description = "mzml parser, first review, aalto stream reader";
 
-      testImportSpeed("Import skinbld_centroid", description, orbiCentroid, speedTestFile);
 
       for (int i = 0; i < 3; i++) {
-        testImportSpeed("Import GC RAW", description, thermo, speedTestFile);
-
-        String gc = "rawdatafiles/speedtest/gc_orbi_profle/%s/gc_orbi_profile_a.mzML";
-        for (final String parameter : parameters) {
-          var files = List.of(gc.formatted(parameter));
-          testImportSpeed("Import " + parameter, description, files, speedTestFile);
-        }
+        testImportSpeed("Robin, Import, Astral", description, thermo, speedTestFile);
+        testImportSpeed("Robin, import, dom", description, dom, speedTestFile);
       }
 
       System.exit(0);
