@@ -199,7 +199,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    * @param context libraries or raw data
    * @return true if file names are duplicates
    */
-  @Nullable
   private static boolean containsDuplicateFiles(final File[] fileNames, String context) {
     List<String> duplicates = CollectionUtils.streamDuplicates(
         Arrays.stream(fileNames).map(File::getName)).toList();
@@ -364,7 +363,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    * @param scanProcessorConfig
    */
   private AbstractTask createTask(RawDataFileType fileType, MZmineProject project, File file,
-      @Nullable RawDataFile newMZmineFile, final ScanImportProcessorConfig scanProcessorConfig,
+      @Nullable RawDataFile newMZmineFile,
+      @NotNull final ScanImportProcessorConfig scanProcessorConfig,
       Class<? extends MZmineModule> module, ParameterSet parameters,
       @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
     return switch (fileType) {
@@ -471,7 +471,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 
   public MemoryMapStorage getMassListStorage() {
     if (storageMassLists == null) {
-      this.storageMassLists = MemoryMapStorage.forRawDataFile();
+      this.storageMassLists = MemoryMapStorage.forMassList();
     }
     return storageMassLists;
   }

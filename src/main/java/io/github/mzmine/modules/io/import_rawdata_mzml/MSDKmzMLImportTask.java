@@ -87,8 +87,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
   public static final Pattern watersPattern = Pattern.compile(
       "function=([1-9]+) process=[\\d]+ scan=[\\d]+");
   private static final Logger logger = Logger.getLogger(MSDKmzMLImportTask.class.getName());
-  private final File file;
-  private final InputStream fis;
+
+  // File is always set even if the input stream may be already opened, e.g., from a converter
+  private final @NotNull File file;
+  private final @Nullable InputStream fis;
   // advanced processing will apply mass detection directly to the scans
   private final MZmineProject project;
   private final @NotNull ScanImportProcessorConfig scanProcessorConfig;
@@ -98,7 +100,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
   private int totalScansAfterFilter = 0, convertedScansAfterFilter;
   private String description;
 
-  public MSDKmzMLImportTask(MZmineProject project, File fileToOpen,
+  /**
+   * Create for file
+   */
+  public MSDKmzMLImportTask(MZmineProject project, @NotNull File fileToOpen,
       @NotNull ScanImportProcessorConfig scanProcessorConfig,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
       @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
@@ -106,15 +111,22 @@ public class MSDKmzMLImportTask extends AbstractTask {
         storage);
   }
 
-  public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, InputStream fisToOpen,
+  /**
+   * Create for input stream
+   *
+   * @param fisToOpen         file input stream defines the input
+   * @param fileOfInputStream is the input stream origin but is not directly used for import here
+   */
+  public MSDKmzMLImportTask(MZmineProject project, @NotNull File fileOfInputStream,
+      @Nullable InputStream fisToOpen,
       @NotNull ScanImportProcessorConfig scanProcessorConfig,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
       @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
     super(storage, moduleCallDate); // storage in raw data file
-    this.file = fileToOpen;
+    this.file = fileOfInputStream;
     this.fis = fisToOpen;
     this.project = project;
-    description = "Importing raw data file: " + fileToOpen.getName();
+    description = "Importing raw data file: " + fileOfInputStream.getName();
     this.scanProcessorConfig = scanProcessorConfig;
     this.parameters = parameters;
     this.module = module;

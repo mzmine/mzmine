@@ -65,7 +65,6 @@ public class MzMLFileImportMethod extends AbstractTask {
 
   private MzMLRawDataFile newRawFile;
   private final @NotNull ScanImportProcessorConfig scanProcessorConfig;
-  private final MemoryMapStorage storage;
 
   /**
    * Read file
@@ -96,7 +95,6 @@ public class MzMLFileImportMethod extends AbstractTask {
     super(storage, moduleCallDate);
     this.mzMLFile = mzMLFile;
     this.inputStream = inputStream;
-    this.storage = storage;
     this.scanProcessorConfig = scanProcessorConfig;
   }
 
@@ -137,12 +135,14 @@ public class MzMLFileImportMethod extends AbstractTask {
       if (inputStream != null) {
         logger.finest("Began parsing file from stream");
         try (Reader reader = new InputStreamReader(inputStream)) {
+          // buffered reader had no performance gains. most likely because the XMLStreamReader already buffers
 //        BufferedReader br = new BufferedReader(reader, 8192*4);
           XMLStreamReader xmlStreamReader = factory.createXMLStreamReader(reader);
           return parseMzMlInternal(xmlStreamReader);
         }
       } else if (mzMLFile != null) {
         logger.finest("Began parsing file: " + mzMLFile.getAbsolutePath());
+        // buffered reader had no performance gains. most likely because the XMLStreamReader already buffers
 //        try (BufferedReader br = Files.newBufferedReader(mzMLFile.toPath(),
         try (var fis = Files.newInputStream(mzMLFile.toPath()); Reader br = new InputStreamReader(
             fis, StandardCharsets.UTF_8)) {
