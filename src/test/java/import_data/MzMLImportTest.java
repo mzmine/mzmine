@@ -52,6 +52,7 @@ public class MzMLImportTest extends AbstractDataImportTest {
         , "rawdatafiles/additional/orbi_idx_msn.mzML" //
         , "rawdatafiles/additional/gc_orbi_a.mzML" //
         , "rawdatafiles/additional/gc_orbi_profile_21scans.mzML" //
+        , "rawdatafiles/additional/lc-tims-ms-pasef-a_2frames.mzML" //
     );
   }
 
