@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.apache.commons.io.FileUtils;
@@ -51,6 +52,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class FileAndPathUtil {
 
+  private static final Logger logger = Logger.getLogger(FileAndPathUtil.class.getName());
   private final static File USER_MZMINE_DIR = new File(FileUtils.getUserDirectory(), ".mzmine/");
   private static File MZMINE_TEMP_DIR = new File(System.getProperty("java.io.tmpdir"));
 
@@ -658,6 +660,7 @@ public class FileAndPathUtil {
    */
   public static File createTempFile(String prefix, String suffix) throws IOException {
     final File tempFile = Files.createTempFile(MZMINE_TEMP_DIR.toPath(), prefix, suffix).toFile();
+    logger.info("Created temp file " + tempFile.getAbsolutePath());
     return tempFile;
   }
 
