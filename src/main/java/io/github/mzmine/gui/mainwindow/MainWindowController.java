@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -530,8 +530,8 @@ public class MainWindowController {
       MZmineCore.getDesktop().handleShowTaskView();
     });
     final MenuItem cancelAll = new MenuItem("Cancel all tasks");
-    cancelAll.setOnAction(
-        e -> Arrays.stream(MZmineCore.getTaskController().getTaskQueue().getQueueSnapshot())
+    cancelAll.setOnAction(e -> Arrays.stream(
+            MZmineCore.getTaskController().getSubmittedTaskQueue().getQueueSnapshot())
             .forEach(t -> t.getActualTask().cancel()));
     miniTaskView.getProgressBarContextMenu().getItems().addAll(showTasks, cancelAll);
     miniTaskView.setOnProgressBarClicked(e -> {
@@ -543,7 +543,7 @@ public class MainWindowController {
     final MenuItem cancelBatch = new MenuItem("Cancel batch");
     cancelBatch.setOnAction(e -> {
       final Optional<BatchTask> batchTask = Arrays.stream(
-              MZmineCore.getTaskController().getTaskQueue().getQueueSnapshot())
+              MZmineCore.getTaskController().getSubmittedTaskQueue().getQueueSnapshot())
           .filter(t -> t.getActualTask() instanceof BatchTask)
           .map(t -> (BatchTask) t.getActualTask()).findFirst();
       batchTask.ifPresent(AbstractTask::cancel);

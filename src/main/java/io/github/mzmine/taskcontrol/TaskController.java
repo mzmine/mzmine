@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,12 +26,18 @@
 package io.github.mzmine.taskcontrol;
 
 import io.github.mzmine.taskcontrol.impl.TaskQueue;
+import io.github.mzmine.taskcontrol.impl.WorkerThread;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 
  */
 public interface TaskController {
+
+  ThreadPoolExecutor getExecutor();
+
+  WorkerThread runTaskOnThisThread(Task task);
 
   public void addTask(Task task);
 
@@ -45,7 +51,7 @@ public interface TaskController {
 
   public void addTaskControlListener(TaskControlListener listener);
 
-  public TaskQueue getTaskQueue();
+  public TaskQueue getSubmittedTaskQueue();
 
   public boolean isTaskInstanceRunningOrQueued(Class<? extends AbstractTask> clazz);
 

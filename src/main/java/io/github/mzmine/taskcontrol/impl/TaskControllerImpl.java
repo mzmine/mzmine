@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,8 +27,6 @@ package io.github.mzmine.taskcontrol.impl;
 
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.HeadLessDesktop;
-import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.gui.preferences.NumOfThreadsParameter;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -36,12 +34,17 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskControlListener;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Vector;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Task controller implementation
@@ -50,34 +53,107 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
   private static final Logger logger = Logger.getLogger(TaskControllerImpl.class.getName());
   /**
-   * Update the task progress window every 300 ms
+   * Update the task progress window every 1000 ms
    */
-  private final int TASKCONTROLLER_THREAD_SLEEP = 300;
+  private static final int TASKCONTROLLER_THREAD_SLEEP = 100;
+  private static final int GUI_UPDATE_SLEEP = 950;
 
   private static final TaskControllerImpl INSTANCE = new TaskControllerImpl();
   private final ArrayList<TaskControlListener> listeners = new ArrayList<>();
-  private final Thread taskControllerThread;
-
-  private final TaskQueue taskQueue;
-
-  /**
-   * This vector contains references to all running threads of NORMAL priority. Maximum number of
-   * concurrent threads is specified in the preferences dialog.
-   */
-  private final Vector<WorkerThread> runningThreads;
-
+  // the executor that runs tasks, may be recreated with different size of pools
+  @NotNull
+  protected final ThreadPoolExecutor executor;
+  // add all tasks here
+  private final ConcurrentLinkedDeque<WrappedTask> tasksToSubmit = new ConcurrentLinkedDeque<>();
+  // Those tasks show in the GUI and are submitted to a thread pool
+  private final TaskQueue submittedTaskQueue;
+  // the scheduler tasks that update schedule and GUI
+  private final ScheduledFuture<?> schedulerUpdateFuture;
+  private final ScheduledFuture<?> guiUpdateFuture;
+  protected int previousQueueSize = -1;
+  protected int previousPercentDone = -1;
+  private int numThreads;
 
   private TaskControllerImpl() {
     logger.finest("Starting task controller thread");
-    taskQueue = new TaskQueue();
+    submittedTaskQueue = new TaskQueue();
 
-    runningThreads = new Vector<>();
+    // create the actual executor that runs the tasks
+    numThreads = MZmineCore.getConfiguration().getNumOfThreads();
+    executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(numThreads);
 
     // Create a low-priority thread that will manage the queue and start
     // worker threads for tasks
-    taskControllerThread = new Thread(this, "Task controller thread");
-    taskControllerThread.setPriority(Thread.MIN_PRIORITY);
-    taskControllerThread.start();
+    try (ScheduledExecutorService managerExecutor = Executors.newSingleThreadScheduledExecutor(
+        r -> {
+          Thread t = new Thread(r, "MZmine Task controller thread");
+          t.setDaemon(true);
+          t.setPriority(Thread.MIN_PRIORITY);
+          return t;
+        })) {
+
+      schedulerUpdateFuture = managerExecutor.scheduleAtFixedRate(this::scheduleTasks, 0,
+          TASKCONTROLLER_THREAD_SLEEP, TimeUnit.MILLISECONDS);
+
+      guiUpdateFuture = managerExecutor.scheduleAtFixedRate(this::updateGui, 0, GUI_UPDATE_SLEEP,
+          TimeUnit.MILLISECONDS);
+    }
+  }
+
+  private void setNumberOfThreads(final int numThreads) {
+    this.numThreads = numThreads;
+    boolean shrink = numThreads < executor.getCorePoolSize();
+    if (shrink) {
+      executor.setCorePoolSize(numThreads);
+      executor.setMaximumPoolSize(numThreads);
+    } else {
+      executor.setMaximumPoolSize(numThreads);
+      executor.setCorePoolSize(numThreads);
+    }
+  }
+
+  private void updateGui() {
+    logger.fine("Updating GUI from task manager");
+    Desktop desktop = MZmineCore.getDesktop();
+    if ((desktop != null) && (!(desktop instanceof HeadLessDesktop))) {
+      desktop.getTasksView().refresh();
+    }
+  }
+
+  private void scheduleTasks() {
+    logger.fine("Scheduling more tasks");
+
+    // Obtain the settings of max concurrent threads
+    int maxRunningThreads = MZmineCore.getConfiguration().getNumOfThreads();
+    if (maxRunningThreads != numThreads) {
+      setNumberOfThreads(maxRunningThreads);
+    }
+
+    List<WrappedTask> tasks = new ArrayList<>();
+    WrappedTask task;
+    while ((task = tasksToSubmit.pollFirst()) != null) {
+      tasks.add(task);
+      // track task use
+      GoogleAnalyticsTracker.trackTaskRun(task.getActualTask());
+
+      // Create a new thread if the task is high-priority or if we
+      // have less then maximum # of threads running
+      var worker = new WorkerThread(task);
+
+      if (task.getPriority() == TaskPriority.NORMAL) {
+        executor.submit(worker);
+      }
+      if (task.getPriority() == TaskPriority.HIGH) {
+        // maybe add a second executor for high priority to not spawn too many threads
+        Thread thread = new Thread(worker);
+        thread.setName("High priority Task " + worker.getTitle());
+        thread.setDaemon(true);
+        thread.start();
+      }
+    }
+
+    // push all to the submitted tasks
+    submittedTaskQueue.addAll(tasks);
   }
 
   public static TaskControllerImpl getInstance() {
@@ -85,8 +161,21 @@ public class TaskControllerImpl implements TaskController, Runnable {
   }
 
   @Override
-  public TaskQueue getTaskQueue() {
-    return taskQueue;
+  public TaskQueue getSubmittedTaskQueue() {
+    return submittedTaskQueue;
+  }
+
+  @Override
+  public ThreadPoolExecutor getExecutor() {
+    return executor;
+  }
+
+  @Override
+  public WorkerThread runTaskOnThisThread(Task task) {
+    var worker = new WorkerThread(new WrappedTask(task, TaskPriority.HIGH));
+    runningThreads.add(worker);
+    submittedTaskQueue.addWrappedTask(worker.getWrappedTask()); // show in UI
+    return worker;
   }
 
   @Override
@@ -126,7 +215,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
       Task task = tasks[i];
       TaskPriority priority = priorities[i];
       WrappedTask newQueueEntry = new WrappedTask(task, priority);
-      taskQueue.addWrappedTask(newQueueEntry);
+      submittedTaskQueue.addWrappedTask(newQueueEntry);
       wrappedTasks[i] = newQueueEntry;
       // logger.finest("Added wrapped task for " +
       // task.getTaskDescription());
@@ -139,114 +228,24 @@ public class TaskControllerImpl implements TaskController, Runnable {
     return wrappedTasks;
   }
 
-  /**
-   * Task controller thread main method.
-   */
-  @Override
-  public void run() {
 
-    int previousQueueSize = -1;
-    int previousPercentDone = -1;
-
-    while (true) {
-
-      final int waitingTasks = taskQueue.getNumOfWaitingTasks();
-      final int percentDone = taskQueue.getTotalPercentComplete();
-      if ((waitingTasks != previousQueueSize) || (percentDone != previousPercentDone)) {
-        previousQueueSize = waitingTasks;
-        previousPercentDone = percentDone;
-        for (TaskControlListener listener : listeners) {
-          listener.numberOfWaitingTasksChanged(waitingTasks, percentDone);
-        }
+  private void checkNumberOfWaitingTasksAndNotify() {
+    final int waitingTasks = submittedTaskQueue.getNumOfWaitingTasks();
+    final int percentDone = submittedTaskQueue.getTotalPercentComplete();
+    if ((waitingTasks != previousQueueSize) || (percentDone != previousPercentDone)) {
+      previousQueueSize = waitingTasks;
+      previousPercentDone = percentDone;
+      for (TaskControlListener listener : listeners) {
+        listener.numberOfWaitingTasksChanged(waitingTasks, percentDone);
       }
-
-      // If the queue is empty, we can sleep. When new task is added into
-      // the queue, we will be awaken by notify()
-      synchronized (this) {
-        while (taskQueue.isEmpty()) {
-          try {
-            this.wait(100);
-          } catch (InterruptedException e) {
-            // Ignore
-          }
-        }
-      }
-
-      // Check if all tasks in the queue are finished
-      if (taskQueue.allTasksFinished()) {
-        taskQueue.clear();
-        continue;
-      }
-
-      // Remove already finished threads from runningThreads
-      Iterator<WorkerThread> threadIterator = runningThreads.iterator();
-      while (threadIterator.hasNext()) {
-        WorkerThread thread = threadIterator.next();
-        if (thread.isFinished()) {
-          threadIterator.remove();
-        }
-      }
-
-      // Get a snapshot of the queue
-      WrappedTask[] queueSnapshot = taskQueue.getQueueSnapshot();
-
-      // Obtain the settings of max concurrent threads
-      NumOfThreadsParameter parameter = MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.numOfThreads);
-      int maxRunningThreads;
-      if (parameter.isAutomatic() || (parameter.getValue() == null)) {
-        maxRunningThreads = Runtime.getRuntime().availableProcessors();
-      } else {
-        maxRunningThreads = parameter.getValue();
-      }
-
-      // Check all tasks in the queue
-      for (WrappedTask task : queueSnapshot) {
-
-        // Skip assigned and canceled tasks
-        if (task.isAssigned() || (task.getActualTask().getStatus() == TaskStatus.CANCELED)) {
-          continue;
-        }
-
-        // Create a new thread if the task is high-priority or if we
-        // have less then maximum # of threads running
-        if ((task.getPriority() == TaskPriority.HIGH) || (runningThreads.size()
-            < maxRunningThreads)) {
-          WorkerThread newThread = new WorkerThread(task);
-
-          // track task use
-          GoogleAnalyticsTracker.trackTaskRun(task.getActualTask());
-
-          if (task.getPriority() == TaskPriority.NORMAL) {
-            runningThreads.add(newThread);
-          }
-
-          newThread.start();
-        }
-      }
-
-      // Refresh the tasks window
-      Desktop desktop = MZmineCore.getDesktop();
-      if ((desktop != null) && (!(desktop instanceof HeadLessDesktop))) {
-        desktop.getTasksView().refresh();
-      }
-
-      // Sleep for a while until next update
-      try {
-        Thread.sleep(TASKCONTROLLER_THREAD_SLEEP);
-      } catch (InterruptedException e) {
-        // Ignore
-      }
-
     }
-
   }
 
   @Override
   public void setTaskPriority(Task task, TaskPriority priority) {
 
     // Get a snapshot of current task queue
-    WrappedTask[] currentQueue = taskQueue.getQueueSnapshot();
+    WrappedTask[] currentQueue = submittedTaskQueue.getQueueSnapshot();
 
     // Find the requested task
     for (WrappedTask wrappedTask : currentQueue) {
@@ -271,7 +270,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
   }
 
   public boolean isTaskInstanceRunningOrQueued(Class<? extends AbstractTask> clazz) {
-    final WrappedTask[] snapshot = taskQueue.getQueueSnapshot();
+    final WrappedTask[] snapshot = submittedTaskQueue.getQueueSnapshot();
     for (WrappedTask wrappedTask : snapshot) {
       if (clazz.isInstance(wrappedTask.getActualTask())) {
         return true;

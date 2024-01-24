@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -73,12 +73,6 @@ public class WrappedTask {
    */
   void setPriority(TaskPriority priority) {
     MZmineCore.runLater(() -> this.priority.setValue(priority));
-    if (assignedTo != null) {
-      switch (priority) {
-        case HIGH -> assignedTo.setPriority(Thread.MAX_PRIORITY);
-        case NORMAL -> assignedTo.setPriority(Thread.NORM_PRIORITY);
-      }
-    }
   }
 
   public Property<TaskPriority> priorityProperty() {

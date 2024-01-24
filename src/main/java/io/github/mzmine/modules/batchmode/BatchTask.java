@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,6 +44,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.InternalThreadPoolTask.ThreadPoolTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -52,6 +53,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -121,6 +123,7 @@ public class BatchTask extends AbstractTask {
   @Override
   public void run() {
 
+    Instant start = Instant.now();
     setStatus(TaskStatus.PROCESSING);
     logger.info("Starting a batch of " + totalSteps + " steps");
 
@@ -153,7 +156,9 @@ public class BatchTask extends AbstractTask {
               continue;
             } else {
               setStatus(TaskStatus.ERROR);
-              setErrorMessage("Could not set data files in advanced batch mode. Will cancel all jobs. " + datasetName);
+              setErrorMessage(
+                  "Could not set data files in advanced batch mode. Will cancel all jobs. "
+                  + datasetName);
               return;
             }
           }
@@ -197,6 +202,8 @@ public class BatchTask extends AbstractTask {
 
     logger.info("Finished a batch of " + totalSteps + " steps");
     setStatus(TaskStatus.FINISHED);
+    Duration duration = Duration.between(start, Instant.now());
+    logger.info(STR."Timing: Whole batch took \{duration} to finish");
   }
 
   private void setOutputFiles(final File parentDir, final boolean createResultsDir,
@@ -240,6 +247,8 @@ public class BatchTask extends AbstractTask {
 
 
   private void processQueueStep(int stepNumber) {
+
+    Instant start = Instant.now();
 
     logger.info("Starting step # " + (stepNumber + 1));
 
@@ -319,9 +328,22 @@ public class BatchTask extends AbstractTask {
 
     boolean allTasksFinished = false;
 
+    // submit as ThreadPoolTask
+    final WrappedTask[] currentStepWrappedTasks;
+    // create ThreadPool
+    if (currentStepTasks.size() > 1) {
+      int nThreads = MZmineCore.getConfiguration().getNumOfThreads();
+      var description = STR."\{method.getName()} on \{currentStepTasks.size()} items";
+      var threadPoolTask = new ThreadPoolTask(description, nThreads, currentStepTasks);
+      currentStepWrappedTasks = MZmineCore.getTaskController().runTaskOnThisThread(threadPoolTask);
+    } else {
+      currentStepWrappedTasks = MZmineCore.getTaskController()
+          .runTaskOnThisThread(currentStepTasks.toArray(new Task[0]));
+    }
+
     // Submit the tasks to the task controller for processing
-    WrappedTask[] currentStepWrappedTasks = MZmineCore.getTaskController()
-        .addTasks(currentStepTasks.toArray(new Task[0]));
+//    WrappedTask[] currentStepWrappedTasks = MZmineCore.getTaskController()
+//        .addTasks(currentStepTasks.toArray(new Task[0]));
     currentStepTasks = null;
 
     while (!allTasksFinished) {
@@ -399,6 +421,10 @@ public class BatchTask extends AbstractTask {
     if (!createdFeatureLists.isEmpty()) {
       previousCreatedFeatureLists = createdFeatureLists;
     }
+
+    Duration duration = Duration.between(start, Instant.now());
+    logger.info(
+        STR."Timing: Batch step \{stepNumber + 1}: \{method.getName()} took \{duration} to finish");
   }
 
   private void setLastFilesIfAllDataImportStep(final ParameterSet batchStepParameters) {

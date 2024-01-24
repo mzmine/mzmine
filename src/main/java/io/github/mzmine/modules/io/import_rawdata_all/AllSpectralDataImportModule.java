@@ -217,7 +217,10 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   @NotNull
   @Override
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+      @NotNull Collection<Task> tasksToAdd, @NotNull Instant moduleCallDate) {
+
+    // collect all tasks and run them on ThreadPoolTask
+    List<Task> tasks = new ArrayList<>();
 
     // precheck first, make sure all
     File[] selectedFiles = Arrays.stream(
@@ -354,6 +357,16 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       }
     }
 
+    // create ThreadPool
+//    int nThreads = MZmineCore.getConfiguration().getNumOfThreads();
+//    var description = STR."Importing \{tasks.size()} data files";
+//    var threadPoolTask = new ThreadPoolTask(description , nThreads, tasks);
+//    tasksToAdd.add(threadPoolTask);
+
+    tasksToAdd.addAll(tasks);
+
+
+
     return ExitCode.OK;
   }
 
@@ -370,8 +383,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     return switch (fileType) {
       // imaging
       case IMZML -> new ImzMLImportTask(project, file, scanProcessorConfig,
-          (ImagingRawDataFile) newMZmineFile, module, parameters,
-              moduleCallDate);
+          (ImagingRawDataFile) newMZmineFile, module, parameters, moduleCallDate);
       // imaging, maldi, or LC-MS
       case BRUKER_TSF ->
           new TSFImportTask(project, file, storage, module, parameters, moduleCallDate);
@@ -429,8 +441,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
               moduleCallDate);
       case BRUKER_TDF ->
           new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile, scanProcessorConfig,
-              module,
-              parameters, moduleCallDate);
+              module, parameters, moduleCallDate);
       case THERMO_RAW ->
           new ThermoRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate,
               scanProcessorConfig);

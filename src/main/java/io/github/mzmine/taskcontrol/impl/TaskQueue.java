@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,11 +26,10 @@
 package io.github.mzmine.taskcontrol.impl;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -43,16 +42,15 @@ public class TaskQueue {
   /**
    * This observable list stores the actual tasks
    */
-  private final ObservableList<WrappedTask> queue =
-      FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
+  private final ObservableList<WrappedTask> queue = FXCollections.synchronizedObservableList(
+      FXCollections.observableArrayList());
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   public int getNumOfWaitingTasks() {
     final WrappedTask snapshot[] = getQueueSnapshot();
-    final long numOfWaitingTasks = Arrays.asList(snapshot).stream()
-        .filter(task -> ((task.getActualTask().getStatus() == TaskStatus.PROCESSING)
-            || (task.getActualTask().getStatus() == TaskStatus.WAITING)))
-        .count();
+    final long numOfWaitingTasks = Arrays.asList(snapshot).stream().filter(
+        task -> ((task.getActualTask().getStatus() == TaskStatus.PROCESSING) || (
+            task.getActualTask().getStatus() == TaskStatus.WAITING))).count();
     return (int) numOfWaitingTasks;
   }
 
@@ -70,15 +68,28 @@ public class TaskQueue {
 
   void addWrappedTask(WrappedTask task) {
     logger.finest("Adding task \"" + task + "\" to the task controller queue");
-    if (task.getActualTask() instanceof AbstractTask) {
-      ((AbstractTask) task.getActualTask()).addTaskStatusListener((t, oldStatus, newStatus) -> {
+    task.getActualTask().addTaskStatusListener((t, oldStatus, newStatus) -> {
+      if (t.getStatus() == TaskStatus.FINISHED) {
+        MZmineCore.runLater(() -> queue.remove(task));
+      }
+    });
+
+    MZmineCore.runLater(() -> queue.add(task));
+  }
+
+  public void addAll(final List<WrappedTask> tasks) {
+    for (final WrappedTask task : tasks) {
+      logger.finest("Adding task \"" + task + "\" to the task controller queue");
+      task.getActualTask().addTaskStatusListener((t, oldStatus, newStatus) -> {
         if (t.getStatus() == TaskStatus.FINISHED) {
           MZmineCore.runLater(() -> queue.remove(task));
         }
       });
     }
 
-    MZmineCore.runLater(() -> queue.add(task));
+    MZmineCore.runLater(() -> {
+      queue.addAll(tasks);
+    });
   }
 
   void clear() {

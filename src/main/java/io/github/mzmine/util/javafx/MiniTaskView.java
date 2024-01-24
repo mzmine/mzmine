@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -80,8 +80,8 @@ public class MiniTaskView extends FlowPane {
       tasksLabel.setText("ERROR: No task controller.");
       return;
     }
-    final int percent = controller.getTaskQueue().getTotalPercentComplete();
-    final WrappedTask[] queueSnapshot = controller.getTaskQueue().getQueueSnapshot();
+    final int percent = controller.getSubmittedTaskQueue().getTotalPercentComplete();
+    final WrappedTask[] queueSnapshot = controller.getSubmittedTaskQueue().getQueueSnapshot();
     final int tasks = queueSnapshot.length;
 
     tasksProgressBar.setProgress(percent * 0.01);

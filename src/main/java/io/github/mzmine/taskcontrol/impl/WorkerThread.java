@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,17 +35,22 @@ import java.util.logging.Logger;
 /**
  * Task controller worker thread, this thread will process one task and then finish
  */
-class WorkerThread extends Thread {
+public class WorkerThread implements Runnable {
 
+  private final String title;
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private WrappedTask wrappedTask;
   private boolean finished = false;
 
   WorkerThread(WrappedTask wrappedTask) {
-    super("Thread executing task " + wrappedTask);
+    title = "Thread executing task " + wrappedTask;
     this.wrappedTask = wrappedTask;
     wrappedTask.assignTo(this);
+  }
+
+  public String getTitle() {
+    return title;
   }
 
   /**
@@ -118,4 +123,5 @@ class WorkerThread extends Thread {
   public WrappedTask getWrappedTask() {
     return wrappedTask;
   }
+
 }

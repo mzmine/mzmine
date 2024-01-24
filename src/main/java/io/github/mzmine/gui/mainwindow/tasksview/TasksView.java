@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -82,7 +82,7 @@ public class TasksView extends VBox {
   }
 
   private void initTaskView() {
-    ObservableList<WrappedTask> tasksQueue = MZmineCore.getTaskController().getTaskQueue()
+    ObservableList<WrappedTask> tasksQueue = MZmineCore.getTaskController().getSubmittedTaskQueue()
         .getTasks();
     table.setItems(tasksQueue);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,7 +44,8 @@ class ShutDownHook extends Thread {
     // additional processes (such as ThermoRawDump.exe on Windows) and these
     // will block the shutdown of the JVM. If we cancel the tasks, the
     // processes will be killed immediately.
-    for (WrappedTask wt : MZmineCore.getTaskController().getTaskQueue().getQueueSnapshot()) {
+    for (WrappedTask wt : MZmineCore.getTaskController().getSubmittedTaskQueue()
+        .getQueueSnapshot()) {
       Task t = wt.getActualTask();
       if ((t.getStatus() == TaskStatus.WAITING) || (t.getStatus() == TaskStatus.PROCESSING)) {
         t.cancel();
