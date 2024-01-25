@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,6 @@ package io.github.mzmine.datamodel.featuredata.impl;
 import io.github.mzmine.datamodel.featuredata.IonSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -159,8 +158,8 @@ public class StorageUtils {
   /**
    * Stores the given array into a double buffer.
    *
-   * @param storage The storage to be used. If null, the values will be wrapped using {@link
-   *                DoubleBuffer#wrap(double[])}.
+   * @param storage The storage to be used. If null, the values will be wrapped using
+   *                {@link DoubleBuffer#wrap(double[])}.
    * @param values  The values to be stored. If storage is null, a double buffer will be wrapped
    *                around this array. Changes in the array will therefore be reflected in the
    *                DoubleBuffer.
@@ -172,12 +171,7 @@ public class StorageUtils {
 
     DoubleBuffer buffer;
     if (storage != null) {
-      try {
-        buffer = storage.storeData(values);
-      } catch (IOException e) {
-        e.printStackTrace();
-        buffer = DoubleBuffer.wrap(values);
-      }
+      buffer = storage.storeData(values);
     } else {
       buffer = DoubleBuffer.wrap(values);
     }
@@ -187,8 +181,8 @@ public class StorageUtils {
   /**
    * Stores the given array into an int buffer.
    *
-   * @param storage The storage to be used. If null, the values will be wrapped using {@link
-   *                IntBuffer#wrap(int[])}.
+   * @param storage The storage to be used. If null, the values will be wrapped using
+   *                {@link IntBuffer#wrap(int[])}.
    * @param values  The values to be stored. If storage is null, an int buffer will be wrapped
    *                around this array. Changes in the array will therefore be reflected in the
    *                DoubleBuffer.
@@ -200,15 +194,11 @@ public class StorageUtils {
 
     IntBuffer buffer;
     if (storage != null) {
-      try {
         buffer = storage.storeData(values);
-      } catch (IOException e) {
-        e.printStackTrace();
-        buffer = IntBuffer.wrap(values);
-      }
     } else {
       buffer = IntBuffer.wrap(values);
     }
+
     return buffer;
   }
 }

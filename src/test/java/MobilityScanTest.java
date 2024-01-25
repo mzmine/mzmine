@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -65,7 +65,7 @@ public class MobilityScanTest {
     Random rnd = new Random(System.currentTimeMillis());
     double[] numbers = rnd.doubles().limit(10).toArray();
 
-    MemoryMapStorage storage = null; // MemoryMapStorage.create();
+    MemoryMapStorage storage = MemoryMapStorage.create();
 
     DoubleBuffer stored = null;
     stored = StorageUtils.storeValuesToDoubleBuffer(storage, numbers);

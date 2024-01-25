@@ -54,7 +54,6 @@ import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.SpectraMerging;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
@@ -70,7 +69,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -246,7 +244,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
     DataTypeUtils.addDefaultIonMobilityTypeColumns(flist);
     project.addFeatureList(flist);
 
-    final Unsafe theUnsafe = initUnsafe();
+    /*final Unsafe theUnsafe = initUnsafe();
     if (theUnsafe != null && tempStorage != null) {
       logger.finest(() -> "Clearing temporary files...");
       try {
@@ -255,7 +253,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
         e.printStackTrace();
         logger.log(Level.WARNING, e, e::getMessage);
       }
-    }
+    }*/
 
     setStatus(TaskStatus.FINISHED);
   }
