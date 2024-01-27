@@ -87,7 +87,6 @@ public class HeadLessDesktop implements Desktop {
   @Override
   public void displayException(Exception e) {
     logger.log(Level.SEVERE, e.toString(), e);
-    e.printStackTrace();
   }
 
   @Override

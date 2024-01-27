@@ -463,8 +463,7 @@ public class MZmineGUI extends Application implements Desktop {
       preferences.getValue(MZminePreferences.theme).apply(rootScene.getStylesheets());
 
     } catch (Exception e) {
-      e.printStackTrace();
-      logger.severe("Error loading MZmine GUI from FXML: " + e);
+      logger.log(Level.SEVERE, "Error loading MZmine GUI from FXML: " + e.getMessage(), e);
       Platform.exit();
     }
 
@@ -542,8 +541,7 @@ public class MZmineGUI extends Application implements Desktop {
 
     // register shutdown hook only if we have GUI - we don't want to
     // save configuration on exit if we only run a batch
-    ShutDownHook shutDownHook = new ShutDownHook();
-    Runtime.getRuntime().addShutdownHook(shutDownHook);
+    Runtime.getRuntime().addShutdownHook(new ShutDownHook());
     Runtime.getRuntime().addShutdownHook(new Thread(new TmpFileCleanup()));
   }
 
@@ -569,7 +567,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public void openWebPage(URL url) {
+  public void openWebPage(@NotNull URL url) {
     openWebPage(String.valueOf(url));
   }
 
@@ -710,7 +708,7 @@ public class MZmineGUI extends Application implements Desktop {
       }
       return alertTask.get();
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage(), e);
       return null;
     }
   }
@@ -758,7 +756,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public ExitCode exitMZmine() {
+  public @NotNull ExitCode exitMZmine() {
 
     requestQuit();
     return ExitCode.UNKNOWN;
@@ -777,7 +775,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public List<MZmineTab> getAllTabs() {
+  public @NotNull List<MZmineTab> getAllTabs() {
     if (mainWindowController == null) {
       return List.of();
     }
@@ -865,10 +863,8 @@ public class MZmineGUI extends Application implements Desktop {
 
     try {
       return task.get();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    } catch (ExecutionException e) {
-      e.printStackTrace();
+    } catch (InterruptedException | ExecutionException e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
     return ButtonType.NO;
   }

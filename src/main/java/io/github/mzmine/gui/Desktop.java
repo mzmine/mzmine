@@ -107,7 +107,7 @@ public interface Desktop extends MZmineModule {
    *
    * @param title Message box title
    * @param msg   Text to show
-   * @[param url url to open
+   * @param url url to open
    */
   void displayMessage(String title, String msg, String url);
 

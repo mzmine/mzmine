@@ -38,7 +38,9 @@ import java.util.logging.Logger;
 class ShutDownHook extends Thread {
 
   private static final Logger logger = Logger.getLogger(ShutDownHook.class.getName());
-  public void start() {
+
+  @Override
+  public void run() {
 
     // Cancel all running tasks - this is important because tasks can spawn
     // additional processes (such as ThermoRawDump.exe on Windows) and these
@@ -59,7 +61,7 @@ class ShutDownHook extends Thread {
     }
 
     // Close all temporary files
-    RawDataFile dataFiles[] = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    RawDataFile[] dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
     for (RawDataFile dataFile : dataFiles) {
       dataFile.close();
     }

@@ -217,7 +217,6 @@ public final class MZmineCore {
           isFxInitialized = true;
           Application.launch(MZmineGUI.class, args);
         } catch (Throwable e) {
-          e.printStackTrace();
           logger.log(Level.SEVERE, "Could not initialize GUI", e);
           System.exit(1);
         }
@@ -359,7 +358,6 @@ public final class MZmineCore {
 
       } catch (Throwable e) {
         logger.log(Level.SEVERE, "Could not start module " + moduleClass, e);
-        e.printStackTrace();
         return null;
       }
     }
@@ -493,7 +491,6 @@ public final class MZmineCore {
       }
       return new Semver(versionString, SemverType.LOOSE);
     } catch (Exception e) {
-      e.printStackTrace();
       return new Semver("3-SNAPSHOT", SemverType.LOOSE);
     }
   }
