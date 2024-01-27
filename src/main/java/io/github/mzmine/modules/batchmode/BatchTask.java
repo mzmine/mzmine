@@ -44,11 +44,12 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.InternalThreadPoolTask.ThreadPoolTask;
 import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
+import io.github.mzmine.taskcontrol.threadpools.ThreadPoolTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -120,6 +121,29 @@ public class BatchTask extends AbstractTask {
     previousCreatedFeatureLists = new ArrayList<>();
   }
 
+  /**
+   * Runs all tasks in a single {@link ThreadPoolTask} on the {@link TaskController#getExecutor()}
+   * default executor
+   *
+   * @param method     for logging
+   * @param tasksToRun list will be cleared after scheduling to avoid memory leak in long running
+   *                   tasks. all tasks will be organized by ThreadPool
+   * @return the {@link TaskStatus} of the carrier task reflecting the worst case of the sub tasks
+   * meaning that if any had an error > cancel > finished
+   */
+  private static TaskStatus runInTaskPool(final MZmineProcessingModule method,
+      final List<Task> tasksToRun) {
+    TaskController taskController = MZmineCore.getTaskController();
+    var description = STR."\{method.getName()} on \{tasksToRun.size()} items";
+    var threadPoolTask = ThreadPoolTask.createDefaultTaskManagerPool(description, tasksToRun);
+    // clear tasks to not leak the long running tasks by keeping them alive
+    tasksToRun.clear();
+    // Submit the tasks to the task controller for processing
+    // this runs the ThreadPoolTask on this thread (blocking) and calls all sub tasks in the default executor
+    WrappedTask finishedTask = taskController.runTaskOnThisThreadBlocking(threadPoolTask);
+    return finishedTask.getActualTask().getStatus();
+  }
+
   @Override
   public void run() {
 
@@ -133,7 +157,7 @@ public class BatchTask extends AbstractTask {
     // Process individual batch steps
     for (int i = 0; i < totalSteps; i++) {
       // at the end of one dataset, clear the project and start over again
-      if (useAdvanced && processedSteps % stepsPerDataset == 0) {
+      if (useAdvanced && currentStep() == 0) {
         // clear the old project
         MZmineCore.getProjectManager().clearProject();
         currentDataset++;
@@ -245,6 +269,9 @@ public class BatchTask extends AbstractTask {
     }
   }
 
+  public int currentStep() {
+    return processedSteps % stepsPerDataset;
+  }
 
   private void processQueueStep(int stepNumber) {
 
@@ -326,79 +353,18 @@ public class BatchTask extends AbstractTask {
       return;
     }
 
-    boolean allTasksFinished = false;
-
     // submit as ThreadPoolTask
-    final WrappedTask[] currentStepWrappedTasks;
+    final TaskStatus status;
     // create ThreadPool
     if (currentStepTasks.size() > 1) {
-      int nThreads = MZmineCore.getConfiguration().getNumOfThreads();
-      var description = STR."\{method.getName()} on \{currentStepTasks.size()} items";
-      var threadPoolTask = new ThreadPoolTask(description, nThreads, currentStepTasks);
-      currentStepWrappedTasks = MZmineCore.getTaskController().runTaskOnThisThread(threadPoolTask);
+      status = runInTaskPool(method, currentStepTasks);
     } else {
-      currentStepWrappedTasks = MZmineCore.getTaskController()
-          .runTaskOnThisThread(currentStepTasks.toArray(new Task[0]));
+      // Submit the tasks to the task controller for processing
+      status = runTasksIndividually(currentStepTasks);
     }
 
-    // Submit the tasks to the task controller for processing
-//    WrappedTask[] currentStepWrappedTasks = MZmineCore.getTaskController()
-//        .addTasks(currentStepTasks.toArray(new Task[0]));
-    currentStepTasks = null;
-
-    while (!allTasksFinished) {
-
-      // If we canceled the batch, cancel all running tasks
-      if (isCanceled()) {
-        for (WrappedTask stepTask : currentStepWrappedTasks) {
-          stepTask.getActualTask().cancel();
-        }
-        return;
-      }
-
-      // First set to true, then check all tasks
-      allTasksFinished = true;
-
-      for (WrappedTask stepTask : currentStepWrappedTasks) {
-
-        TaskStatus stepStatus = stepTask.getActualTask().getStatus();
-
-        // If any of them is not finished, keep checking
-        if (stepStatus != TaskStatus.FINISHED) {
-          allTasksFinished = false;
-        }
-
-        // If there was an error, we have to stop the whole batch
-        if (stepStatus == TaskStatus.ERROR) {
-          setStatus(TaskStatus.ERROR);
-          setErrorMessage(
-              stepTask.getActualTask().getTaskDescription() + ": " + stepTask.getActualTask()
-                  .getErrorMessage());
-          return;
-        }
-
-        // If user canceled any of the tasks, we have to cancel the
-        // whole batch
-        if (stepStatus == TaskStatus.CANCELED) {
-          setStatus(TaskStatus.CANCELED);
-          for (WrappedTask t : currentStepWrappedTasks) {
-            t.getActualTask().cancel();
-          }
-          return;
-        }
-
-      }
-
-      // Wait 1s before checking the tasks again
-      if (!allTasksFinished) {
-        synchronized (this) {
-          try {
-            this.wait(1000);
-          } catch (InterruptedException e) {
-            // ignore
-          }
-        }
-      }
+    if (status != TaskStatus.FINISHED) {
+      return;
     }
 
     createdDataFiles = new ArrayList<>(project.getCurrentRawDataFiles());
@@ -425,6 +391,74 @@ public class BatchTask extends AbstractTask {
     Duration duration = Duration.between(start, Instant.now());
     logger.info(
         STR."Timing: Batch step \{stepNumber + 1}: \{method.getName()} took \{duration} to finish");
+  }
+
+  /**
+   * Runs all tasks in the {@link TaskController}
+   *
+   * @param tasksToRun this list will be cleared after scheduling the tasks to avoid memory leaks
+   *                   during long running tasks
+   * @return TaskStatus of all tasks, the first cancel or error will be returned without checking
+   * the rest of the threads
+   */
+  private TaskStatus runTasksIndividually(List<Task> tasksToRun) {
+    final WrappedTask[] wrappedTasks = MZmineCore.getTaskController()
+        .addTasks(tasksToRun.toArray(new Task[0]));
+    tasksToRun.clear(); // do not keep the instance alive during long-running tasks
+    boolean allTasksFinished = false;
+    while (true) {
+
+      // If we canceled the batch, cancel all running tasks
+      if (isCanceled()) {
+        for (WrappedTask stepTask : wrappedTasks) {
+          stepTask.getActualTask().cancel();
+        }
+        return TaskStatus.CANCELED;
+      }
+
+      // First set to true, then check all tasks
+      allTasksFinished = true;
+
+      for (WrappedTask stepTask : wrappedTasks) {
+        Task actualTask = stepTask.getActualTask();
+        TaskStatus stepStatus = actualTask.getStatus();
+
+        // If any of them is not finished, keep checking
+        if (stepStatus != TaskStatus.FINISHED) {
+          allTasksFinished = false;
+        }
+
+        // If there was an error, we have to stop the whole batch
+        if (stepStatus == TaskStatus.ERROR) {
+          setStatus(TaskStatus.ERROR);
+          setErrorMessage(actualTask.getTaskDescription() + ": " + actualTask.getErrorMessage());
+          return TaskStatus.ERROR;
+        }
+
+        // If user canceled any of the tasks, we have to cancel the
+        // whole batch
+        if (stepStatus == TaskStatus.CANCELED) {
+          setStatus(TaskStatus.CANCELED);
+          for (WrappedTask t : wrappedTasks) {
+            t.getActualTask().cancel();
+          }
+          return TaskStatus.CANCELED;
+        }
+      }
+
+      // Wait 1s before checking the tasks again
+      if (allTasksFinished) {
+        break;
+      }
+      synchronized (this) {
+        try {
+          this.wait(1000);
+        } catch (InterruptedException e) {
+          // ignore
+        }
+      }
+    }
+    return TaskStatus.FINISHED;
   }
 
   private void setLastFilesIfAllDataImportStep(final ParameterSet batchStepParameters) {

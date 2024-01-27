@@ -192,6 +192,9 @@ public final class MZmineCore {
       String numCores = argsParser.getNumCores();
       setNumThreadsOverride(numCores);
 
+      // after loading the config and numCores
+      getInstance().taskController = TaskControllerImpl.getInstance();
+
       // apply memory management option
       keepInMemory.enforceToMemoryMapping();
 
@@ -648,7 +651,6 @@ public final class MZmineCore {
 
     // Create instances of core modules
     projectManager = ProjectManagerImpl.getInstance();
-    taskController = TaskControllerImpl.getInstance();
 
     logger.fine("Initializing core classes..");
   }

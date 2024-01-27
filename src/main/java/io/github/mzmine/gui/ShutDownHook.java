@@ -28,9 +28,8 @@ package io.github.mzmine.gui;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.taskcontrol.impl.WrappedTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Shutdown hook - invoked on JRE shutdown. This method saves current configuration to XML and
@@ -38,25 +37,25 @@ import io.github.mzmine.taskcontrol.impl.WrappedTask;
  */
 class ShutDownHook extends Thread {
 
+  private static final Logger logger = Logger.getLogger(ShutDownHook.class.getName());
   public void start() {
 
     // Cancel all running tasks - this is important because tasks can spawn
     // additional processes (such as ThermoRawDump.exe on Windows) and these
     // will block the shutdown of the JVM. If we cancel the tasks, the
     // processes will be killed immediately.
-    for (WrappedTask wt : MZmineCore.getTaskController().getSubmittedTaskQueue()
-        .getQueueSnapshot()) {
-      Task t = wt.getActualTask();
-      if ((t.getStatus() == TaskStatus.WAITING) || (t.getStatus() == TaskStatus.PROCESSING)) {
-        t.cancel();
-      }
+    try {
+      MZmineCore.getTaskController().close();
+
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Could not stop all tasks on shutdown", e);
     }
 
     // Save configuration
     try {
       MZmineCore.getConfiguration().saveConfiguration(MZmineConfiguration.CONFIG_FILE);
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, "Could not save config on shutdown", e);
     }
 
     // Close all temporary files

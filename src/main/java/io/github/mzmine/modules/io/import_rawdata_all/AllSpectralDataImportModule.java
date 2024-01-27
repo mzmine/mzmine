@@ -365,8 +365,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 
     tasksToAdd.addAll(tasks);
 
-
-
     return ExitCode.OK;
   }
 

@@ -42,13 +42,15 @@ public class LabeledProgressBar extends StackPane {
   private LabeledProgressBar(final StringExpression labelBinding) {
     progressBar = new ProgressBar(0.0d);
     progressBar.setOpacity(0.3);
+    progressBar.setMaxWidth(Double.MAX_VALUE);
     label = new Label("");
     label.setMouseTransparent(true);
 
-    this.getChildren().addAll(progressBar, label);
+    this.getChildren().addAll();
 
     // bindings
     label.textProperty().bind(labelBinding);
+    this.getChildren().addAll(progressBar, label);
   }
 
   /**

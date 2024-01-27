@@ -25,34 +25,46 @@
 
 package io.github.mzmine.taskcontrol;
 
-import io.github.mzmine.taskcontrol.impl.TaskQueue;
-import io.github.mzmine.taskcontrol.impl.WorkerThread;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import java.util.concurrent.ThreadPoolExecutor;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * 
  */
 public interface TaskController {
 
+  /**
+   * The executor that schedules the tasks
+   */
+  @NotNull
   ThreadPoolExecutor getExecutor();
 
-  WorkerThread runTaskOnThisThread(Task task);
+  /**
+   * Add a task to the task list (will be in the TaskView) and run it on the calling thread.
+   *
+   * @param task the task to be added and run
+   * @return the wrapped task after finishing the Task.run method
+   */
+  WrappedTask runTaskOnThisThreadBlocking(Task task);
 
-  public void addTask(Task task);
+  void addTask(Task task);
 
-  public WrappedTask[] addTasks(Task tasks[]);
+  WrappedTask[] addTasks(Task[] tasks);
 
-  public void addTask(Task task, TaskPriority priority);
+  void addTask(Task task, TaskPriority priority);
 
-  public WrappedTask[] addTasks(Task tasks[], TaskPriority[] priority);
+  WrappedTask[] addTasks(Task[] tasks, TaskPriority[] priority);
 
-  public void setTaskPriority(Task task, TaskPriority priority);
+  void setTaskPriority(Task task, TaskPriority priority);
 
-  public void addTaskControlListener(TaskControlListener listener);
+  void cancelBatchTasks();
 
-  public TaskQueue getSubmittedTaskQueue();
+  void close();
 
-  public boolean isTaskInstanceRunningOrQueued(Class<? extends AbstractTask> clazz);
+  void setNumberOfThreads(int numThreads);
 
+  boolean isTaskInstanceRunningOrQueued(Class<? extends AbstractTask> clazz);
+
+  void cancelAllTasks();
 }
