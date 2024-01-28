@@ -23,9 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package import_data.speed;
+package io.github.mzmine.modules.batchmode.timing;
 
-public record SpeedMeasurement(String name, String batchFile, String description, int files,
-                               double timeSeconds) {
+import java.time.Duration;
 
+public record StepTimeMeasurement(int stepNumber, String name, Duration duration) {
+
+  @Override
+  public String toString() {
+    return STR."Step \{stepNumber + 1}: \{name} took \{duration} to finish";
+  }
 }

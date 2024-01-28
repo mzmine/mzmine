@@ -34,6 +34,7 @@ import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -59,7 +60,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -86,6 +89,7 @@ public class BatchTask extends AbstractTask {
   private Boolean createResultsDir;
   private File parentDir;
   private int currentDataset;
+  private List<StepTimeMeasurement> stepTimes = new ArrayList<>();
 
   BatchTask(MZmineProject project, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     this(project, parameters, moduleCallDate,
@@ -95,6 +99,7 @@ public class BatchTask extends AbstractTask {
   public BatchTask(final MZmineProject project, final ParameterSet parameters,
       final Instant moduleCallDate, final List<File> subDirectories) {
     super(null, moduleCallDate);
+    setName("Batch task");
     this.project = project;
     this.queue = parameters.getParameter(BatchModeParameters.batchQueue).getValue();
     // advanced parameters
@@ -147,7 +152,7 @@ public class BatchTask extends AbstractTask {
   @Override
   public void run() {
 
-    Instant start = Instant.now();
+    Instant batchStart = Instant.now();
     setStatus(TaskStatus.PROCESSING);
     logger.info("Starting a batch of " + totalSteps + " steps");
 
@@ -161,6 +166,12 @@ public class BatchTask extends AbstractTask {
         // clear the old project
         MZmineCore.getProjectManager().clearProject();
         currentDataset++;
+
+        // print step times
+        if (!stepTimes.isEmpty()) {
+          printBatchTimes(batchStart);
+          stepTimes.clear();
+        }
 
         // change files
         File datasetDir = subDirectories.get(currentDataset);
@@ -226,8 +237,17 @@ public class BatchTask extends AbstractTask {
 
     logger.info("Finished a batch of " + totalSteps + " steps");
     setStatus(TaskStatus.FINISHED);
-    Duration duration = Duration.between(start, Instant.now());
-    logger.info(STR."Timing: Whole batch took \{duration} to finish");
+    printBatchTimes(batchStart);
+    Duration duration = Duration.between(batchStart, Instant.now());
+    stepTimes.addFirst(new StepTimeMeasurement(0, getName(), duration));
+  }
+
+  private void printBatchTimes(final Instant batchStart) {
+    Duration duration = Duration.between(batchStart, Instant.now());
+    String times = stepTimes.stream().map(Objects::toString).collect(Collectors.joining("\n"));
+    logger.info(STR."""
+    Timing: Whole batch took \{duration} to finish
+    \{times}""");
   }
 
   private void setOutputFiles(final File parentDir, final boolean createResultsDir,
@@ -269,6 +289,10 @@ public class BatchTask extends AbstractTask {
     }
   }
 
+  public List<StepTimeMeasurement> getStepTimes() {
+    return stepTimes;
+  }
+
   public int currentStep() {
     return processedSteps % stepsPerDataset;
   }
@@ -276,7 +300,6 @@ public class BatchTask extends AbstractTask {
   private void processQueueStep(int stepNumber) {
 
     Instant start = Instant.now();
-
     logger.info("Starting step # " + (stepNumber + 1));
 
     // Run next step of the batch
@@ -389,8 +412,7 @@ public class BatchTask extends AbstractTask {
     }
 
     Duration duration = Duration.between(start, Instant.now());
-    logger.info(
-        STR."Timing: Batch step \{stepNumber + 1}: \{method.getName()} took \{duration} to finish");
+    stepTimes.add(new StepTimeMeasurement(stepNumber, method.getName(), duration));
   }
 
   /**
