@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -427,6 +428,20 @@ public class BatchTask extends AbstractTask {
     final WrappedTask[] wrappedTasks = MZmineCore.getTaskController()
         .addTasks(tasksToRun.toArray(new Task[0]));
     tasksToRun.clear(); // do not keep the instance alive during long-running tasks
+
+    // TODO check if this performs better
+    for (final WrappedTask task : wrappedTasks) {
+      // wait for all to finish
+      try {
+        task.getFuture().get();
+      } catch (InterruptedException | ExecutionException e) {
+        return TaskStatus.ERROR;
+      }
+    }
+    if (true) {
+      return TaskStatus.FINISHED;
+    }
+
     boolean allTasksFinished = false;
     while (true) {
 

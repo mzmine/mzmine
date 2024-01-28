@@ -33,6 +33,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
@@ -41,13 +42,11 @@ import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
-import testutils.TaskResult;
-import testutils.TaskResult.ERROR;
-import testutils.TaskResult.FINISHED;
-import testutils.TaskResult.TIMEOUT;
 
 /**
  * Speed test to log the time required to import files. Just define List of String that point to
@@ -64,17 +63,36 @@ public class BatchSpeedTestMain {
       rawdatafiles/DOM_a_invalid_header.mzML
           """.split("\n"));
   private static final Logger logger = Logger.getLogger(BatchSpeedTestMain.class.getName());
-  public static String speedTestFile = "D:\\git\\mzmine3\\src\\test\\java\\import_data\\speed\\speed.jsonlines";
+  public static String speedTestFile = "D:\\git\\mzmine3\\src\\test\\java\\import_data\\local\\speed.jsonlines";
 
   public static void main(String[] args) {
-    String RAM = "16GB";
+    String RAM = "16GB, MZmine4";
     // keep running and all in memory
     String inMemory = "all";
 //    String inMemory = "none";
-    MZmineCore.main(new String[]{"-r", "-m", inMemory});
+    boolean headLess = false;
 
+    try (var executor = Executors.newScheduledThreadPool(2)) {
+
+      executor.schedule(() -> {
+        try {
+          if (headLess) {
+            MZmineCore.main(new String[]{"-r", "-m", inMemory});
+          } else {
+            MZmineCore.main(new String[]{"-m", inMemory});
+          }
+        } catch (Exception ex) {
+        }
+      }, 0, TimeUnit.SECONDS);
+      long delay = headLess ? 1 : 6;
+      executor.schedule(() -> BatchSpeedTestMain.testSpeed(inMemory, RAM, headLess), delay,
+          TimeUnit.SECONDS);
+    }
+  }
+
+  private static void testSpeed(final String inMemory, final String RAM, final boolean headLess) {
     try {
-      String description = STR."inMemory=\{inMemory}, RAM=\{RAM}";
+      String description = STR."inMemory=\{inMemory}, RAM=\{RAM} \{headLess ? "headless" : "GUI"}";
       List<String> dom = Dom250Samples.DOM;
       List<String> dom8 = Dom250Samples.DOM.subList(0, 8);
       List<String> dom32 = Dom250Samples.DOM.subList(0, 32);
@@ -86,8 +104,8 @@ public class BatchSpeedTestMain {
         runBatch(description, dom8, Dom250Samples.batchFile, speedTestFile);
         runBatch(description, dom32, Dom250Samples.batchFile, speedTestFile);
         runBatch(description, dom64, Dom250Samples.batchFile, speedTestFile);
-        runBatch(description, dom100, Dom250Samples.batchFile, speedTestFile);
-        runBatch(description, dom200, Dom250Samples.batchFile, speedTestFile);
+//        runBatch(description, dom100, Dom250Samples.batchFile, speedTestFile);
+//        runBatch(description, dom200, Dom250Samples.batchFile, speedTestFile);
       }
 
       System.exit(0);
@@ -151,12 +169,7 @@ public class BatchSpeedTestMain {
     BatchTask task = BatchModeModule.runBatch(MZmineCore.getProject(), batch, files, new File[0],
         Instant.now());
 
-    TaskResult finished = switch (task.getStatus()) {
-      case WAITING, PROCESSING, CANCELED -> new TIMEOUT(BatchModeModule.class);
-      case FINISHED -> new FINISHED(BatchModeModule.class, 0);
-      case ERROR -> new ERROR(BatchModeModule.class);
-    };
-    Assertions.assertInstanceOf(FINISHED.class, finished, finished.description());
+    Assertions.assertEquals(TaskStatus.FINISHED, task.getStatus());
 
     return task.getStepTimes();
   }
