@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -77,7 +77,7 @@ public class TableViewUtils {
    */
   public static <T, S extends Number> void setFormattedCellFactory(TableColumn<T, S> col,
       NumberFormat format) {
-    col.setCellFactory(_ -> new TableCell<>() {
+    col.setCellFactory(__ -> new TableCell<>() {
 
       @Override
       public void updateItem(S value, boolean empty) {
