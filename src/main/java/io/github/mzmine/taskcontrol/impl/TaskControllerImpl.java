@@ -40,7 +40,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
@@ -130,8 +129,9 @@ public class TaskControllerImpl implements TaskController {
     }
   }
 
+  @Override
   public ObservableList<WrappedTask> getReadOnlyTasks() {
-    return new ReadOnlyListWrapper<>(tasks);
+    return FXCollections.unmodifiableObservableList(tasks);
   }
 
   /**
@@ -185,7 +185,7 @@ public class TaskControllerImpl implements TaskController {
   @Override
   public WrappedTask runTaskOnThisThreadBlocking(Task task) {
     WrappedTask worker = new WrappedTask(task, TaskPriority.NORMAL);
-    addSubmittedTasksToView(new WrappedTask[]{worker});
+    addSubmittedTasksToView(worker);
     worker.run();
     return worker;
   }

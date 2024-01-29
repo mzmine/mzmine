@@ -29,6 +29,7 @@ import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -72,6 +73,14 @@ public interface TaskController {
   void setTaskPriority(Task task, TaskPriority priority);
 
   void cancelBatchTasks();
+
+  /**
+   * Keep an instance of the read only list view as long as the other object is alive and listening
+   * to changes.
+   *
+   * @return read only list view
+   */
+  ObservableList<WrappedTask> getReadOnlyTasks();
 
   void close();
 

@@ -27,6 +27,8 @@ package io.github.mzmine.gui.mainwindow.tasksview;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
+import io.github.mzmine.taskcontrol.impl.WrappedTask;
+import javafx.collections.ObservableList;
 import javafx.scene.layout.Region;
 
 public class TasksViewController {
@@ -35,6 +37,8 @@ public class TasksViewController {
   private final TasksViewInteractor interactor;
   private final TasksView view;
   private final MiniTaskView miniView;
+  // this reference needs to stay here to keep a reference - otherwise the weakListener will be garbage collected
+  private final ObservableList<WrappedTask> readOnlyTasks;
 
   public TasksViewController() {
     model = new TasksViewModel();
@@ -47,7 +51,7 @@ public class TasksViewController {
     model.setOnCancelBatchTask(interactor::cancelBatchTasks);
     model.setOnShowTasksView(interactor::showTasksView);
 
-    var readOnlyTasks = TaskControllerImpl.getInstance().getReadOnlyTasks();
+    readOnlyTasks = TaskControllerImpl.getInstance().getReadOnlyTasks();
     readOnlyTasks.addListener(interactor::onSubmittedTasksChanged);
   }
 
