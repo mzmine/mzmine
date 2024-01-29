@@ -140,7 +140,8 @@ public class BatchSpeedTestMain {
             StandardOpenOption.APPEND, StandardOpenOption.CREATE)) {
 
           var tsvMapper = new CsvMapper();
-          var schema = tsvMapper.schemaFor(SpeedMeasurement.class).withUseHeader(!exists);
+          var schema = tsvMapper.schemaFor(SpeedMeasurement.class).withColumnSeparator('\t')
+              .withUseHeader(!exists);
           ObjectWriter tsvObjectWriter = tsvMapper.writer(schema);
 
           ObjectMapper jsonMapper = new ObjectMapper();
