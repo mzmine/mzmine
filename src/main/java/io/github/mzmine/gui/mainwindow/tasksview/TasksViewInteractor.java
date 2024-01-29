@@ -48,7 +48,7 @@ public class TasksViewInteractor {
     return task.isFinished() || task.isCanceled();
   }
 
-  public void onSubmittedTasksChanged(final Change<? extends WrappedTask> change) {
+  void onSubmittedTasksChanged(final Change<? extends WrappedTask> change) {
     MZmineCore.runLater(() -> {
       while (change.next()) {
         if (change.wasRemoved()) {
@@ -63,7 +63,7 @@ public class TasksViewInteractor {
     });
   }
 
-  public void updateDataModel() {
+  void updateDataModel() {
 //    logger.info("Updating tasks view");
 
     // remove finished tasks
@@ -92,15 +92,15 @@ public class TasksViewInteractor {
     model.setBatchProgress(batchProgress);
   }
 
-  public void cancelAllTasks(ActionEvent actionEvent) {
+  void cancelAllTasks(ActionEvent actionEvent) {
     TaskControllerImpl.getInstance().cancelAllTasks();
   }
 
-  public void cancelBatchTasks(ActionEvent actionEvent) {
+  void cancelBatchTasks(ActionEvent actionEvent) {
     TaskControllerImpl.getInstance().cancelBatchTasks();
   }
 
-  public void showTasksView(ActionEvent actionEvent) {
+  void showTasksView(ActionEvent actionEvent) {
     MZmineCore.getDesktop().handleShowTaskView();
   }
 }

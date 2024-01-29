@@ -119,6 +119,7 @@ public class BatchSpeedTestMain {
   private static void runBatch(String description, final List<String> files, final String batchFile,
       final String speedTestFile) throws InterruptedException, IOException {
 
+    System.gc();
     try {
       File jsonFile = FileAndPathUtil.getRealFilePath(new File(speedTestFile), ".jsonlines");
       File tsvFile = FileAndPathUtil.getRealFilePath(new File(speedTestFile), ".tsv");
