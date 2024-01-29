@@ -52,15 +52,23 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
   private final int totalTasks;
   private final String description;
   private final List<WrappedTask> tasks;
+  private final TaskPriority priority;
 
   protected ThreadPoolTask(String description, List<? extends Task> tasks) {
     // time is not used
     super(null, Instant.now());
     this.description = description;
-    this.tasks = tasks.stream().map(task -> new WrappedTask(task, TaskPriority.NORMAL)).toList();
+    this.tasks = tasks.stream().map(task -> new WrappedTask(task, task.getTaskPriority())).toList();
+    priority = this.tasks.stream().map(WrappedTask::getTaskPriority).findFirst()
+        .orElse(TaskPriority.NORMAL);
     totalTasks = tasks.size();
 
     addTaskStatusListener((_a, _b, _c) -> applyNewStatusToFutures());
+  }
+
+  @Override
+  public TaskPriority getTaskPriority() {
+    return priority;
   }
 
   /**
