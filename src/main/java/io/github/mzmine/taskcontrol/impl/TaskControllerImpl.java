@@ -59,6 +59,7 @@ public class TaskControllerImpl implements TaskController {
   // the executor that runs tasks, may be recreated with different size of pools
   @NotNull
   protected final ThreadPoolExecutor executor;
+  private final @NotNull ThreadPoolExecutor highPriorityExecutor;
 
   // only modify on FX thread
   private final ObservableList<WrappedTask> tasks = FXCollections.observableArrayList();
@@ -77,6 +78,8 @@ public class TaskControllerImpl implements TaskController {
     this.numThreads = numThreads;
     executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(this.numThreads);
 
+    highPriorityExecutor = (ThreadPoolExecutor) TaskController.createHighPriorityThreadPool(
+        this.numThreads);
     // Create a low-priority thread that will manage the queue and start
     // worker threads for tasks
     updateExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
@@ -164,9 +167,13 @@ public class TaskControllerImpl implements TaskController {
     if (shrink) {
       executor.setCorePoolSize(numThreads);
       executor.setMaximumPoolSize(numThreads);
+      highPriorityExecutor.setCorePoolSize(numThreads);
+      highPriorityExecutor.setMaximumPoolSize(numThreads);
     } else {
       executor.setMaximumPoolSize(numThreads);
       executor.setCorePoolSize(numThreads);
+      highPriorityExecutor.setMaximumPoolSize(numThreads);
+      highPriorityExecutor.setCorePoolSize(numThreads);
     }
   }
 
@@ -229,17 +236,10 @@ public class TaskControllerImpl implements TaskController {
       // Create a new thread if the task is high-priority or if we
       // have less then maximum # of threads running
 
-      if (task.getTaskPriority() == TaskPriority.NORMAL) {
+      var usedExecutor =
+          task.getTaskPriority() == TaskPriority.NORMAL ? executor : highPriorityExecutor;
         Future<?> future = executor.submit(task);
         task.setFuture(future);
-      }
-      if (task.getTaskPriority() == TaskPriority.HIGH) {
-        // maybe add a second executor for high priority to not spawn too many threads
-        Thread thread = new Thread(task);
-        thread.setName("High priority Task " + task.getTaskDescription());
-        thread.setDaemon(true);
-        thread.start();
-      }
     }
 
     addSubmittedTasksToView(wrappedTasks);

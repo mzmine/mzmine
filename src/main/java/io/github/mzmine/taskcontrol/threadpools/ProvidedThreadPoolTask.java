@@ -37,7 +37,7 @@ public final class ProvidedThreadPoolTask extends ThreadPoolTask {
   private final boolean autoShutdownExecutor;
 
   public ProvidedThreadPoolTask(final String description, final ThreadPoolExecutor executor,
-      boolean autoShutdownExecutor, final List<Task> tasks) {
+      boolean autoShutdownExecutor, final List<? extends Task> tasks) {
     super(description, tasks);
     this.executor = executor;
     this.autoShutdownExecutor = autoShutdownExecutor;

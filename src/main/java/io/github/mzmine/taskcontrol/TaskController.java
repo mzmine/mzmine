@@ -26,19 +26,30 @@
 package io.github.mzmine.taskcontrol;
 
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 
+ *
  */
 public interface TaskController {
+
+  @NotNull
+  static ExecutorService createHighPriorityThreadPool(int numThreads) {
+    return Executors.newFixedThreadPool(numThreads, r -> {
+      Thread t = new Thread(r, "High priority sub task thread");
+      t.setDaemon(true);
+      t.setPriority(Thread.MIN_PRIORITY);
+      return t;
+    });
+  }
 
   /**
    * The executor that schedules the tasks
    */
-  @NotNull
-  ThreadPoolExecutor getExecutor();
+  @NotNull ThreadPoolExecutor getExecutor();
 
   /**
    * Add a task to the task list (will be in the TaskView) and run it on the calling thread.

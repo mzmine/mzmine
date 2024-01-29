@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.taskcontrol.threadpools;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
@@ -37,6 +38,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,7 +53,7 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
   private final String description;
   private final List<WrappedTask> tasks;
 
-  protected ThreadPoolTask(String description, List<Task> tasks) {
+  protected ThreadPoolTask(String description, List<? extends Task> tasks) {
     // time is not used
     super(null, Instant.now());
     this.description = description;
@@ -65,7 +67,7 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
    * Implementation that uses the task controller internal thread pool to limit threads
    */
   public static ThreadPoolTask createDefaultTaskManagerPool(final String description,
-      final List<Task> tasks) {
+      final List<? extends Task> tasks) {
     return new ProvidedThreadPoolTask(description, MZmineCore.getTaskController().getExecutor(),
         false, tasks);
   }
@@ -91,30 +93,43 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
       // do not auto close as we are usually using the TaskController thread pool
       threadPool = createThreadPool();
 
-      for (WrappedTask task : tasks) {
-        task.addTaskStatusListener((_, newStatus, _) -> handleSubTaskStatusChanged(newStatus));
-
-        Runnable runnable = trackProgressTask(task);
-        Future<?> future = threadPool.submit(runnable);
-        task.setFuture(future);
+      int numThreads = 128;
+      if (threadPool instanceof ThreadPoolExecutor threadPoolExecutor) {
+        numThreads = threadPoolExecutor.getCorePoolSize();
       }
 
-      // only shutdown if this was not a provided executor
-      if (this instanceof ProvidedThreadPoolTask provided && provided.autoShutdownExecutor()) {
-        threadPool.shutdown();
-      }
+      try (ExecutorService highPrioExecutor = TaskController.createHighPriorityThreadPool(
+          numThreads)) {
 
-      // wait for finish
-      for (WrappedTask task : tasks) {
-        if (isCanceled()) {
-          break;
+        // execute
+        for (WrappedTask task : tasks) {
+          task.addTaskStatusListener(
+              (__, newStatus, oldStatus) -> handleSubTaskStatusChanged(newStatus));
+
+          Runnable runnable = trackProgressTask(task);
+
+          var executor =
+              task.getTaskPriority() == TaskPriority.HIGH ? highPrioExecutor : threadPool;
+          Future<?> future = executor.submit(runnable);
+          task.setFuture(future);
+
+          // only shutdown if this was not a provided executor
+          if (this instanceof ProvidedThreadPoolTask provided && provided.autoShutdownExecutor()) {
+            threadPool.shutdown();
+          }
         }
-        Future<?> future = task.getFuture();
-        assert future != null;
-        // wait for execution end
-        var result = future.get();
-      }
 
+        // wait for finish
+        for (WrappedTask task : tasks) {
+          if (isCanceled()) {
+            break;
+          }
+          Future<?> future = task.getFuture();
+          assert future != null;
+          // wait for execution end
+          var result = future.get();
+        }
+      }
     } catch (InterruptedException e) {
       cancel();
       logger.log(Level.SEVERE, STR."Task \{description} did not finish and timedout.");
@@ -135,6 +150,7 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
       setStatus(TaskStatus.FINISHED);
     }
   }
+
 
   private void handleSubTaskStatusChanged(final TaskStatus newStatus) {
     switch (newStatus) {
