@@ -102,14 +102,21 @@ public class BatchSpeedTestMain {
       List<BatchSpeedJob> jobs) {
     try {
       int[] iterations = new int[jobs.size()];
-      for (int i = 0; i < jobs.size(); i++) {
-        var job = jobs.get(i);
-        if (iterations[i] < job.iterations()) {
-          iterations[i]++;
+      while (true) {
+        boolean allDone = true;
+        for (int i = 0; i < jobs.size(); i++) {
+          var job = jobs.get(i);
+          if (iterations[i] < job.iterations()) {
+            iterations[i]++;
+            allDone = false;
 
-          String description = STR."inMemory=\{inMemory}, \{job.description()} \{headLess
-              ? "headless" : "GUI"}";
-          runBatch(description, job.files(), job.batchFile(), outFile);
+            String description = STR."inMemory=\{inMemory}, \{job.description()} \{headLess
+                ? "headless" : "GUI"}";
+            runBatch(description, job.files(), job.batchFile(), outFile);
+          }
+        }
+        if (allDone) {
+          break;
         }
       }
 
@@ -127,7 +134,7 @@ public class BatchSpeedTestMain {
     System.gc();
     try {
       File jsonFile = FileAndPathUtil.getRealFilePath(new File(outFile), ".jsonlines");
-      File tsvFile = FileAndPathUtil.getRealFilePath(new File(outFile), ".tsv");
+      File tsvFile = FileAndPathUtil.getRealFilePath(new File(outFile), ".csv");
 
       FileAndPathUtil.createDirectory(tsvFile.getParentFile());
 
@@ -140,7 +147,7 @@ public class BatchSpeedTestMain {
             StandardOpenOption.APPEND, StandardOpenOption.CREATE)) {
 
           var tsvMapper = new CsvMapper();
-          var schema = tsvMapper.schemaFor(SpeedMeasurement.class).withColumnSeparator('\t')
+          var schema = tsvMapper.schemaFor(SpeedMeasurement.class)
               .withUseHeader(!exists);
           ObjectWriter tsvObjectWriter = tsvMapper.writer(schema);
 
@@ -153,6 +160,8 @@ public class BatchSpeedTestMain {
 
             String tsv = tsvObjectWriter.writeValueAsString(sm);
             tsvWriter.append(tsv);
+            // disable header
+            tsvObjectWriter = tsvMapper.writer(schema.withUseHeader(false));
 
             String str = jsonMapper.writeValueAsString(sm);
             jsonWriter.append(str).append('\n');
