@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
@@ -223,4 +224,8 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     return "Main task: Gap filling " + peakList;
   }
 
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.HIGH;
+  }
 }

@@ -121,6 +121,8 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
           Future<?> future = executor.submit(runnable);
           task.setFuture(future);
 
+          MZmineCore.getTaskController().addSubmittedTasksToView(task);
+
           // only shutdown if this was not a provided executor
           if (this instanceof ProvidedThreadPoolTask provided && provided.autoShutdownExecutor()) {
             threadPool.shutdown();

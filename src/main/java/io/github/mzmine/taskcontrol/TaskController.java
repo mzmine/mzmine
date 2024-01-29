@@ -67,6 +67,8 @@ public interface TaskController {
 
   WrappedTask[] addTasks(Task[] tasks, TaskPriority[] priority);
 
+  void addSubmittedTasksToView(WrappedTask... wrappedTasks);
+
   void setTaskPriority(Task task, TaskPriority priority);
 
   void cancelBatchTasks();
@@ -78,4 +80,5 @@ public interface TaskController {
   boolean isTaskInstanceRunningOrQueued(Class<? extends AbstractTask> clazz);
 
   void cancelAllTasks();
+
 }

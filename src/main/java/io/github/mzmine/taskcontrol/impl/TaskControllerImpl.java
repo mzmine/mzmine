@@ -238,7 +238,7 @@ public class TaskControllerImpl implements TaskController {
 
       var usedExecutor =
           task.getTaskPriority() == TaskPriority.NORMAL ? executor : highPriorityExecutor;
-        Future<?> future = executor.submit(task);
+      Future<?> future = usedExecutor.submit(task);
         task.setFuture(future);
     }
 
@@ -247,7 +247,8 @@ public class TaskControllerImpl implements TaskController {
     return wrappedTasks;
   }
 
-  private void addSubmittedTasksToView(final WrappedTask[] wrappedTasks) {
+  @Override
+  public void addSubmittedTasksToView(final WrappedTask... wrappedTasks) {
     MZmineCore.runLater(() -> tasks.addAll(wrappedTasks));
   }
 
