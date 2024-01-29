@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,7 +58,7 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
     this.tasks = tasks.stream().map(task -> new WrappedTask(task, TaskPriority.NORMAL)).toList();
     totalTasks = tasks.size();
 
-    addTaskStatusListener((_, _, _) -> applyNewStatusToFutures());
+    addTaskStatusListener((_a, _b, _c) -> applyNewStatusToFutures());
   }
 
   /**
