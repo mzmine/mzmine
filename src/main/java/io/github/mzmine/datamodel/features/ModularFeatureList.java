@@ -160,12 +160,23 @@ public class ModularFeatureList implements FeatureList {
 
     // add row bindings automatically
     featureTypes.addListener((SetChangeListener<? super DataType>) change -> {
-      DataType added = change.getElementAdded();
-      if (added == null) {
-        return;
+      if (change.wasAdded()) {
+        DataType<?> added = change.getElementAdded();
+        // add row bindings
+        addRowBinding(added.createDefaultRowBindings());
       }
-      // add row bindings
-      addRowBinding(added.createDefaultRowBindings());
+      if (change.wasRemoved()) {
+        // remove data from all features
+        DataType<?> removed = change.getElementRemoved();
+        parallelStreamFeatures().forEach(feature -> feature.remove(removed));
+      }
+    });
+    rowTypes.addListener((SetChangeListener<? super DataType>) change -> {
+      if (change.wasRemoved()) {
+        // remove data from all features
+        DataType<?> removed = change.getElementRemoved();
+        parallelStream().forEach(row -> row.remove(removed));
+      }
     });
   }
 
