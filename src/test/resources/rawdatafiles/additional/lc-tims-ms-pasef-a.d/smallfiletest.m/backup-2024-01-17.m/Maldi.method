@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BrukerCommon.xsd">
+    <generalinfo>
+        <org>Bruker Daltonik</org>
+        <os/>
+        <hostname/>
+        <author/>
+    </generalinfo>
+    <fileinfo>
+        <contenttype>MaldiMethodDataFile</contenttype>
+        <version>5</version>
+        <date>2020-10-27 16:46:21+01:00</date>
+    </fileinfo>
+    <MaldiSource>
+        <version>1</version>
+        <Enabled>0</Enabled>
+    </MaldiSource>
+    <Laser>
+        <version>1</version>
+        <Shots>400</Shots>
+        <PowerUV>9.98935063680013</PowerUV>
+        <Frequency>10000</Frequency>
+        <InternalFrequency>0</InternalFrequency>
+        <ParmSet>Single</ParmSet>
+        <ApplParmSet>MS Dried Droplet</ApplParmSet>
+        <CustomParms>0</CustomParms>
+        <PowerOfsBoost>0</PowerOfsBoost>
+        <MovesPerGrid>5</MovesPerGrid>
+        <ShotsAtRasterPos>200</ShotsAtRasterPos>
+        <RasterMode>0</RasterMode>
+        <ScanMode>0</ScanMode>
+        <ScanSizeX>0</ScanSizeX>
+        <ScanSizeY>0</ScanSizeY>
+        <LaserBursts>1</LaserBursts>
+        <RasterName>Empty</RasterName>
+        <LaserBurstsPerPos>1</LaserBurstsPerPos>
+    </Laser>
+    <MaldiLensSystem>
+        <version>1</version>
+        <MaldiPlate>
+            <version>2</version>
+            <DiffToNextLens>30</DiffToNextLens>
+        </MaldiPlate>
+    </MaldiLensSystem>
+    <MaldiAcqModeConfiguration>
+        <version>1</version>
+        <NoAcquisitions>3</NoAcquisitions>
+        <MoveIncrement>20</MoveIncrement>
+    </MaldiAcqModeConfiguration>
+    <PostIonization>
+        <version>1</version>
+        <Enable>0</Enable>
+        <TriggerDelay>0</TriggerDelay>
+    </PostIonization>
+    <AutoMScalibParamData>
+        <version>0</version>
+        <MaxPeakIntensityPerShot>100</MaxPeakIntensityPerShot>
+        <MinNoOfAssignedPeaks>5</MinNoOfAssignedPeaks>
+        <MaxStdDeviationInPpm>1.5</MaxStdDeviationInPpm>
+        <MaxPeakErrorInPpm>1.5</MaxPeakErrorInPpm>
+        <MassRangeCoverageIsActive>0</MassRangeCoverageIsActive>
+        <MassRangeCoverageInPercent>50</MassRangeCoverageInPercent>
+        <PeakFinderMinIntensityPerShot>10</PeakFinderMinIntensityPerShot>
+        <NumOfSumForAcquisition>5</NumOfSumForAcquisition>
+        <AutoAssignToleranceInPpm>100</AutoAssignToleranceInPpm>
+        <CalibMode>2</CalibMode>
+        <AutoNoOfAssignedPeaksIsActive>1</AutoNoOfAssignedPeaksIsActive>
+    </AutoMScalibParamData>
+    <MsMsParameter>
+        <version>1</version>
+        <Precursor_m_z>1046.54</Precursor_m_z>
+    </MsMsParameter>
+</root>
