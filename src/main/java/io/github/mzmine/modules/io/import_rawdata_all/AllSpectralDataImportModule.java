@@ -128,7 +128,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    * Define filters and processors for scans
    */
   public static @NotNull ScanImportProcessorConfig createSpectralProcessors(
-      @Nullable final ParameterSet advanced) {
+      @Nullable final AdvancedSpectraImportParameters advanced) {
     if (advanced == null) {
       return ScanImportProcessorConfig.createDefault();
     }

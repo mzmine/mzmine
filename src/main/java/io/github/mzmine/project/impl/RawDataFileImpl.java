@@ -198,7 +198,8 @@ public class RawDataFileImpl implements RawDataFile {
     // check for zero intensity because this might indicate incorrect conversion by msconvert
     // when not using peak picking as the first step
     // only check for centroid data as this might be a conversion error
-    if (!containsZeroIntensity && spectraType.isCentroided()) {
+    // only check MS1 as MS2 is more often empty
+    if (!containsZeroIntensity && spectraType.isCentroided() && newScan.getMSLevel() == 1) {
       // just check a few data points as the conversion error just adds many centroid data points to
       // the sides of each centroid
       int dataPointsToCheck = Math.min(16, newScan.getNumberOfDataPoints());
