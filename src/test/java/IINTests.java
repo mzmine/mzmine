@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,6 +42,24 @@ public class IINTests {
 
   private static final Logger logger = Logger.getLogger(IINTests.class.getName());
 
+  private static void testIonParser(final String input, int mol, int charge, int mod) {
+    testIonParser(input, input, mol, charge, mod);
+  }
+
+  private static void testIonParser(final String input, String formatted, int mol, int charge,
+      int mod) {
+    IonType ionType = IonTypeParser.parse(input);
+
+    Assertions.assertNotNull(ionType, "%s could not be parsed".formatted(input));
+    Assertions.assertEquals(charge, ionType.getCharge(),
+        "%s charge was wrong as %d".formatted(input, charge));
+    Assertions.assertEquals(mol, ionType.getMolecules(),
+        "%s mol was wrong as %d".formatted(input, mol));
+    Assertions.assertEquals(mod, ionType.getModCount(),
+        "%s mod was wrong as %d".formatted(input, mod));
+    Assertions.assertEquals(formatted, ionType.toString(false));
+  }
+
   @Test
   void testIonTypeParsing() {
     IonType type1 = new IonType(IonModification.NH4);
@@ -72,6 +90,10 @@ public class IINTests {
 
   @Test
   void testIonParse() {
+    // this is tricky to format correctly. M- does not write e- and here we want it to be written
+    testIonParser("M-H+e", "[M-H]-2", 1, -2, 0);
+    testIonParser("M-H-2e", "[M-H]+", 1, 1, 0);
+    testIonParser("2M+2H-2H2O]", "[2M-2H2O+2H]+2", 2, 2, 2);
     testIonParser("2M+", "[2M]+", 2, 1, 0);
     testIonParser("M+", "[M]+", 1, 1, 0);
     testIonParser("M-2H]2-", "[M-2H]-2", 1, -2, 0);
@@ -84,28 +106,17 @@ public class IINTests {
     testIonParser("M+H+", "[M+H]+", 1, 1, 0);
     testIonParser("[M+CH3]+", "[M+CH3]+", 1, 1, 1);
     testIonParser("[M-H+CH3]+", "[M+CH3-H]+", 1, 1, 1);
-    testIonParser("[M-H+Fe]2+", "[M+Fe-H]+2", 1, 2, 1);
+    testIonParser("[M-H+Fe]2+", "[M+Fe-H]+2", 1, 2, 0);
+    testIonParser("M+e", "[M]-", 1, -1, 0);
+    testIonParser("M+2e", "[M]-2", 1, -2, 0);
+    testIonParser("M-e", "[M]+", 1, 1, 0);
+    testIonParser("M-2e", "[M]+2", 1, 2, 0);
+
+    testIonParser("M+Cl", "[M+Cl]-", 1, -1, 0);
+    testIonParser("M-HCl+FA", "[M-HCl+FA]-", 1, -1, 1);
 
     // counter intuitve but we expect ions to have a charge and default to 1
     testIonParser("[M-H2O]", "[M-H2O]+", 1, 1, 1);
-  }
-
-  private static void testIonParser(final String input, int mol, int charge, int mod) {
-    testIonParser(input, input, mol, charge, mod);
-  }
-
-  private static void testIonParser(final String input, String formatted, int mol, int charge,
-      int mod) {
-    IonType ionType = IonTypeParser.parse(input);
-
-    Assertions.assertNotNull(ionType, "%s could not be parsed".formatted(input));
-    Assertions.assertEquals(charge, ionType.getCharge(),
-        "%s charge was wrong as %d".formatted(input, charge));
-    Assertions.assertEquals(mol, ionType.getMolecules(),
-        "%s mol was wrong as %d".formatted(input, mol));
-    Assertions.assertEquals(mod, ionType.getModCount(),
-        "%s mod was wrong as %d".formatted(input, mod));
-    Assertions.assertEquals(formatted, ionType.toString(false));
   }
 
   @Test

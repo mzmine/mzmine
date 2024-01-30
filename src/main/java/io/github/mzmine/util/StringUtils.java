@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.util;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class StringUtils {
 
@@ -35,7 +36,9 @@ public class StringUtils {
    * @param defaultValue  default to return
    * @return parsed integer or the default value on exception
    */
-  public static int parseIntegerOrElse(String str, boolean onlyUseDigits, int defaultValue) {
+  @Nullable
+  public static Integer parseIntegerOrElse(String str, boolean onlyUseDigits,
+      @Nullable Integer defaultValue) {
     try {
       return Integer.parseInt(onlyUseDigits ? getDigits(str) : str);
     } catch (Exception ex) {
@@ -102,10 +105,24 @@ public class StringUtils {
    * @param defaultValue  default to return
    * @return parsed integer or the default value on exception
    */
-  public static int parseSignAndIntegerOrElse(String str, boolean onlyUseDigits, int defaultValue) {
+  @Nullable
+  public static Integer parseSignAndIntegerOrElse(String str, boolean onlyUseDigits,
+      @Nullable Integer defaultValue) {
+    if (str == null || str.isBlank()) {
+      return defaultValue;
+    }
+    int signMultiplier = findFirstPlusMinusSignMultiplier(str);
     try {
-      int signMultiplier = findFirstPlusMinusSignMultiplier(str, 1);
-      return signMultiplier * parseIntegerOrElse(str, onlyUseDigits, defaultValue);
+      var value = parseIntegerOrElse(str, onlyUseDigits, defaultValue);
+      if (signMultiplier == 0 && value == null) {
+        return null;
+      } else if (value == null) {
+        return signMultiplier;
+      } else if (signMultiplier == 0) {
+        return value;
+      } else {
+        return value * signMultiplier;
+      }
     } catch (Exception ex) {
       // silent
       return defaultValue;
@@ -135,8 +152,9 @@ public class StringUtils {
     }
     return -1;
   }
+
   /**
-   * @param str input
+   * @param str             input
    * @param allowOnlyDigits between the end and the sign there can only be digits. Otherwise, allow
    *                        any char
    * @return first index of + or - or -1 if not found
@@ -169,7 +187,7 @@ public class StringUtils {
   /**
    * @return +1 or -1 depending on first + or - sign in string. Or defaultValue if no signs
    */
-  private static int findFirstPlusMinusSignMultiplier(final String str, int defaultValue) {
+  private static int findFirstPlusMinusSignMultiplier(final String str) {
     for (int i = 0; i < str.length(); i++) {
       char c = str.charAt(i);
       if (c == '+') {
@@ -179,7 +197,7 @@ public class StringUtils {
         return -1;
       }
     }
-    return defaultValue;
+    return 0;
   }
 
   /**

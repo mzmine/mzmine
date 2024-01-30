@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.MolecularClassType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
-import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
@@ -110,7 +110,7 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType(false, "CCS", new CCSType()),
       new ImportType(false, "mobility", new MobilityType()),
       new ImportType(true, "comment", new CommentType()),
-      new ImportType(false, "adduct", new IonAdductType()),
+      new ImportType(false, "adduct", new IonTypeType()),
       new ImportType(false, "PubChemCID", new PubChemIdType()),
       new ImportType(false, "molecular_class", new MolecularClassType()));
 

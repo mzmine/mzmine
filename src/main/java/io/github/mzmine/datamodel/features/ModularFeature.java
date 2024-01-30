@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -74,7 +74,6 @@ import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
-import javafx.collections.SetChangeListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,17 +95,6 @@ public class ModularFeature implements Feature, ModularDataModel {
   public ModularFeature(@NotNull ModularFeatureList flist) {
     this.flist = flist;
 
-    // TODO turn into weak bindings? with WeakAdapter in FeatureList
-    // register listener to types map to automatically generate default properties for new DataTypes
-    flist.getFeatureTypes().addListener((SetChangeListener<? super DataType>) change -> {
-      if (change.wasAdded()) {
-        // do nothing for now
-      } else if (change.wasRemoved()) {
-        // remove type columns to maps
-        DataType type = change.getElementRemoved();
-        this.remove(type);
-      }
-    });
     //
     map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
       if (change.wasAdded()) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -127,10 +127,11 @@ public class CombinedIonModification extends IonModification {
     StringBuilder nname = new StringBuilder();
     String s = null;
     int counter = 0;
-    for (int i = 0; i < mods.length; i++) {
-      String cs = mods[i].getName();
+    int lastNonElectronIndex = 0;
+    for (; lastNonElectronIndex < mods.length; lastNonElectronIndex++) {
+      String cs = mods[lastNonElectronIndex].getName();
       if("e".equals(cs)){
-        continue;
+        break; // electrons are always at the end
       }
       if (s == null) {
         s = cs;
@@ -138,15 +139,17 @@ public class CombinedIonModification extends IonModification {
       } else if (s.equals(cs)) {
         counter++;
       } else {
-        String sign = (mods[i - 1].getMass() < 0 ? "-" : "+");
+        // finish previous modification
+        String sign = (mods[lastNonElectronIndex - 1].getMass() < 0 ? "-" : "+");
         String counterS = counter > 1 ? String.valueOf(counter) : "";
         nname.append(sign).append(counterS).append(s);
         s = cs;
         counter = 1;
       }
     }
-    if(s!=null) {
-      String sign = (mods[mods.length - 1].getMass() < 0 ? "-" : "+");
+    // finalize last part
+    if (s != null && lastNonElectronIndex > 0) {
+      String sign = (mods[lastNonElectronIndex - 1].getMass() < 0 ? "-" : "+");
       String counterS = counter > 1 ? String.valueOf(counter) : "";
       nname.append(sign).append(counterS).append(s);
     }

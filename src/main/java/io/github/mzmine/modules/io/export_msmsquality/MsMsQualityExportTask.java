@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,11 +45,8 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetectorParameters;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore.Result;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
@@ -94,8 +91,7 @@ public class MsMsQualityExportTask extends AbstractTask {
   private final MZTolerance msmsFormulaTolerance;
   private final boolean annotatedOnly;
   private final ParameterSet parameterSet;
-  private final ParameterSet folParams;
-  private final MassDetector factorOfLowest = MassDetectionParameters.factorOfLowest;
+  private final MassDetector factorOfLowest;
   private final boolean matchCompoundToFlist;
   private int processedRows;
 
@@ -111,9 +107,7 @@ public class MsMsQualityExportTask extends AbstractTask {
         MsMsQualityExportParameters.matchCompoundNameToFlist);
     annotatedOnly = parameterSet.getValue(MsMsQualityExportParameters.onlyCompoundAnnotated);
 
-    folParams = MZmineCore.getConfiguration().getModuleParameters(FactorOfLowestMassDetector.class)
-        .cloneParameterSet();
-    folParams.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 1d);
+    factorOfLowest = new FactorOfLowestMassDetector(1d);
 
     numRows = Arrays.stream(featureLists).mapToInt(FeatureList::getNumberOfRows).sum();
   }
@@ -279,7 +273,7 @@ public class MsMsQualityExportTask extends AbstractTask {
         molecularFormula.add(adductType.getCDKFormula());
       }
 
-      final double[][] filtered = factorOfLowest.getMassValues(msmsScan, folParams);
+      final double[][] filtered = factorOfLowest.getMassValues(msmsScan);
       final DataPoint[] dataPoints = DataPointUtils.getDataPoints(filtered[0], filtered[1]);
 
       score = MSMSScoreCalculator.evaluateMSMS(msmsFormulaTolerance, molecularFormula, dataPoints,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -51,8 +50,8 @@ public class MassDetectionTask extends AbstractTask {
   private final ScanSelection scanSelection;
   private final SelectedScanTypes scanTypes;
   private final Boolean denormalizeMSnScans;
-  private final MZmineProcessingStep<MassDetector> massDetector;
   private final ParameterSet parameters;
+  private final MassDetector detector;
   private int processedScans = 0, totalScans = 0;
 
   public MassDetectionTask(RawDataFile dataFile, ParameterSet parameters,
@@ -61,7 +60,9 @@ public class MassDetectionTask extends AbstractTask {
 
     this.dataFile = dataFile;
 
-    this.massDetector = parameters.getValue(MassDetectionParameters.massDetector);
+    var massDetectorStep = parameters.getValue(MassDetectionParameters.massDetector);
+    detector = MassDetectorUtils.createMassDetector(massDetectorStep);
+
     this.scanSelection = parameters.getValue(MassDetectionParameters.scanSelection);
     this.scanTypes = parameters.getValue(MassDetectionParameters.scanTypes);
     denormalizeMSnScans = parameters.getValue(MassDetectionParameters.denormalizeMSnScans);
@@ -97,9 +98,6 @@ public class MassDetectionTask extends AbstractTask {
           scanSelection);
       totalScans = data.getNumberOfScans();
 
-      MassDetector detector = massDetector.getModule();
-      ParameterSet parameterSet = massDetector.getParameterSet();
-
       // all scans
       while (data.hasNextScan()) {
         if (isCanceled()) {
@@ -113,7 +111,7 @@ public class MassDetectionTask extends AbstractTask {
         if (scanTypes.applyTo(scan)) {
           // run mass detection on data object
           // [mzs, intensities]
-          mzPeaks = detector.getMassValues(data, parameterSet);
+          mzPeaks = detector.getMassValues(data);
 
           // denormalize scan intensities if injection time of trapped instrument was used.
           // this is only done for MS2 because absolute intensities do not matter there
@@ -131,7 +129,7 @@ public class MassDetectionTask extends AbstractTask {
             || scanTypes == SelectedScanTypes.SCANS)) {
           // for ion mobility, detect subscans, too
           frame.getMobilityScanStorage()
-              .generateAndAddMobilityScanMassLists(getMemoryMapStorage(), detector, parameterSet,
+              .generateAndAddMobilityScanMassLists(getMemoryMapStorage(), detector,
                   denormalizeMSnScans);
         }
 

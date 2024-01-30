@@ -77,4 +77,9 @@ public class RowGroupSimple implements RowGroup {
   public boolean isCorrelated(final FeatureListRow a, final FeatureListRow b) {
     return map.get(a, b) != null;
   }
+
+  @Override
+  public String toString() {
+    return String.valueOf(getGroupID());
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,9 +32,6 @@ import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.masslist.StoredMobilityScanMassList;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -118,17 +115,13 @@ public class MobilityScanStorage {
   }
 
   /**
-   * @param storage                The storage for mobility scans-
-   * @param massDetector           The mass detector
-   * @param massDetectorParameters The parameters for the mass detector.
+   * @param storage      The storage for mobility scans-
+   * @param massDetector The mass detector
    */
   public void generateAndAddMobilityScanMassLists(@Nullable MemoryMapStorage storage,
-      @NotNull MassDetector massDetector, @NotNull ParameterSet massDetectorParameters,
-      boolean denormalizeMSnScans) {
+      @NotNull MassDetector massDetector, boolean denormalizeMSnScans) {
 
-    if (massDetector instanceof CentroidMassDetector &&
-        Double.compare(massDetectorParameters.getValue(CentroidMassDetectorParameters.noiseLevel),
-            0d) == 0) {
+    if (!massDetector.filtersActive()) {
       // no need to run mass detection in this case.
       massListBasePeakIndices = rawBasePeakIndices;
       massListMaxNumPoints = rawMaxNumPoints;
@@ -142,7 +135,7 @@ public class MobilityScanStorage {
     final List<double[][]> data = new ArrayList<>();
 
     for (MobilityScan mobilityScan : getMobilityScans()) {
-      double[][] mzIntensity = massDetector.getMassValues(mobilityScan, massDetectorParameters);
+      double[][] mzIntensity = massDetector.getMassValues(mobilityScan);
       if (denormalizeMSnScans && frame.getMSLevel() > 1) {
         ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(mzIntensity[1],
             frame.getInjectionTime());

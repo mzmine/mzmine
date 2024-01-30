@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,7 +41,6 @@ import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
@@ -246,19 +245,16 @@ public class MobilityScanTest {
 
     IMSRawDataFile file = createRawDataFile();
 
-    MassDetector centroidMassDetector = new CentroidMassDetector();
-    CentroidMassDetectorParameters param = new CentroidMassDetectorParameters();
-    param.setParameter(CentroidMassDetectorParameters.detectIsotopes, false);
-    param.setParameter(CentroidMassDetectorParameters.noiseLevel, 0.45d);
+    MassDetector centroidMassDetector = new CentroidMassDetector(0.45d);
 
     final List<Frame> frames = makeSomeFrames(file, 300);
     for (Frame frame : frames) {
       file.addScan(frame);
       frame.getMobilityScanStorage()
-          .generateAndAddMobilityScanMassLists(null, centroidMassDetector, param, false);
+          .generateAndAddMobilityScanMassLists(null, centroidMassDetector, false);
 
       for (MobilityScan mobilityScan : frame.getMobilityScans()) {
-        final double[][] massValues = centroidMassDetector.getMassValues(mobilityScan, param);
+        final double[][] massValues = centroidMassDetector.getMassValues(mobilityScan);
         final MassList ml = mobilityScan.getMassList();
 
         Assertions.assertEquals(massValues[0].length,
@@ -284,7 +280,7 @@ public class MobilityScanTest {
           final MobilityScan mobScan = access.nextMobilityScan();
 
           // reapply mass detection to the original scan data
-          final double[][] massValues = centroidMassDetector.getMassValues(mobScan, param);
+          final double[][] massValues = centroidMassDetector.getMassValues(mobScan);
           Assertions.assertEquals(massValues[0].length, access.getNumberOfDataPoints());
 
           for (int i = 0; i < access.getNumberOfDataPoints(); i++) {

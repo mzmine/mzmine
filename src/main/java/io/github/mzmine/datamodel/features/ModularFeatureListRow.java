@@ -85,7 +85,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javafx.collections.SetChangeListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -120,17 +119,6 @@ public class ModularFeatureListRow implements FeatureListRow {
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id) {
     this.flist = flist;
 
-    // register listener to types map to automatically generate default properties for new DataTypes
-    flist.getRowTypes().addListener((SetChangeListener<? super DataType>) change -> {
-      if (change.wasAdded()) {
-        // do nothing for now
-      } else if (change.wasRemoved()) {
-        // remove type columns to maps
-        DataType type = change.getElementRemoved();
-        this.remove(type);
-      }
-    });
-    //
     map.addListener((MapChangeListener<? super DataType, ? super Object>) change -> {
       if (change.wasAdded()) {
         flist.addRowType(change.getKey());

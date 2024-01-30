@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,23 +27,41 @@ package io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto;
 
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetectorParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AutoMassDetector implements MassDetector {
 
-  private final CentroidMassDetector centroidDetector = new CentroidMassDetector();
-  private final ExactMassDetector exactMassDetector = new ExactMassDetector();
+  private final CentroidMassDetector centroidDetector;
+  private final ExactMassDetector exactMassDetector;
 
-  private ExactMassDetectorParameters exactMassDetectorParameters;
-  private CentroidMassDetectorParameters centroidMassDetectorParameters;
+  /**
+   * required to create a default instance via reflection
+   */
+  public AutoMassDetector() {
+    centroidDetector = null;
+    exactMassDetector = null;
+  }
+
+  public AutoMassDetector(final double noiseLevel) {
+    centroidDetector = new CentroidMassDetector(noiseLevel);
+    exactMassDetector = new ExactMassDetector(noiseLevel);
+  }
+
+  @Override
+  public MassDetector create(final ParameterSet params) {
+    double noiseLevel = params.getValue(AutoMassDetectorParameters.noiseLevel);
+    return new AutoMassDetector(noiseLevel);
+  }
+
+  @Override
+  public boolean filtersActive() {
+    return true; // may be profile to centroid so always active
+  }
 
   @Override
   public @NotNull String getName() {
@@ -55,66 +73,27 @@ public class AutoMassDetector implements MassDetector {
     return AutoMassDetectorParameters.class;
   }
 
+
   @Override
-  public double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters) {
+  public double[][] getMassValues(MassSpectrum spectrum) {
     if (spectrum.getSpectrumType() == MassSpectrumType.PROFILE) {
-      return exactMassDetector.getMassValues(spectrum, getExactParam(parameters));
+      return exactMassDetector.getMassValues(spectrum);
     } else {
-      return centroidDetector.getMassValues(spectrum, getCentroidParam(parameters));
+      return centroidDetector.getMassValues(spectrum);
+    }
+  }
+
+  public double[][] getMassValues(double[] mzs, double[] intensities, MassSpectrumType type) {
+    if (type == MassSpectrumType.PROFILE) {
+      return exactMassDetector.getMassValues(mzs, intensities);
+    } else {
+      return centroidDetector.getMassValues(mzs, intensities);
     }
   }
 
   @Override
-  public double[][] getMassValues(double[] mzs, double[] intensities, ParameterSet parameters) {
-    return MassDetector.super.getMassValues(mzs, intensities, parameters);
+  public double[][] getMassValues(double[] mzs, double[] intensities) {
+    throw new UnsupportedOperationException("Requires spectrum type, see other method");
   }
 
-  private ParameterSet getExactParam(ParameterSet autoParam) {
-    exactMassDetectorParameters = (ExactMassDetectorParameters) (new ExactMassDetectorParameters())
-        .cloneParameterSet();
-    exactMassDetectorParameters.getParameter(ExactMassDetectorParameters.noiseLevel)
-        .setValue(autoParam.getParameter(AutoMassDetectorParameters.noiseLevel).getValue());
-    exactMassDetectorParameters.setParameter(ExactMassDetectorParameters.detectIsotopes,
-        autoParam.getParameter(AutoMassDetectorParameters.detectIsotopes).getValue());
-
-    DetectIsotopesParameter detectIsotopesParameter = exactMassDetectorParameters
-        .getParameter(ExactMassDetectorParameters.detectIsotopes)
-        .getEmbeddedParameters();
-
-    detectIsotopesParameter.getParameter(DetectIsotopesParameter.elements).setValue(
-        autoParam.getParameter(AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters()
-            .getParameter(DetectIsotopesParameter.elements).getValue());
-    detectIsotopesParameter.getParameter(DetectIsotopesParameter.isotopeMzTolerance).setValue(
-        autoParam.getParameter(AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters()
-            .getParameter(DetectIsotopesParameter.isotopeMzTolerance).getValue());
-    detectIsotopesParameter.getParameter(DetectIsotopesParameter.maxCharge).setValue(
-        autoParam.getParameter(AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters()
-            .getParameter(DetectIsotopesParameter.maxCharge).getValue());
-
-    return exactMassDetectorParameters;
-  }
-
-  private ParameterSet getCentroidParam(ParameterSet autoParam) {
-    centroidMassDetectorParameters = new CentroidMassDetectorParameters();
-    centroidMassDetectorParameters.getParameter(CentroidMassDetectorParameters.noiseLevel)
-        .setValue(autoParam.getParameter(AutoMassDetectorParameters.noiseLevel).getValue());
-    centroidMassDetectorParameters
-        .setParameter(CentroidMassDetectorParameters.detectIsotopes,
-            autoParam.getParameter(AutoMassDetectorParameters.detectIsotopes).getValue());
-
-    DetectIsotopesParameter detectIsotopesParameter = centroidMassDetectorParameters
-        .getParameter(CentroidMassDetectorParameters.detectIsotopes)
-        .getEmbeddedParameters();
-    detectIsotopesParameter.getParameter(DetectIsotopesParameter.elements).setValue(
-        autoParam.getParameter(AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters()
-            .getParameter(DetectIsotopesParameter.elements).getValue());
-    detectIsotopesParameter.getParameter(DetectIsotopesParameter.isotopeMzTolerance).setValue(
-        autoParam.getParameter(AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters()
-            .getParameter(DetectIsotopesParameter.isotopeMzTolerance).getValue());
-    detectIsotopesParameter.getParameter(DetectIsotopesParameter.maxCharge).setValue(
-        autoParam.getParameter(AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters()
-            .getParameter(DetectIsotopesParameter.maxCharge).getValue());
-
-    return centroidMassDetectorParameters;
-  }
 }

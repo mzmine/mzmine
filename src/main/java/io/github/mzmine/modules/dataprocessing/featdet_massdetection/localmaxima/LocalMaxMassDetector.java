@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,25 +26,46 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima;
 
 import gnu.trove.list.array.TDoubleArrayList;
-import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class detects all local maxima in a given scan.
  */
 public class LocalMaxMassDetector implements MassDetector {
 
+
+  private final double noiseLevel;
+
+  /**
+   * required to create a default instance via reflection
+   */
+  public LocalMaxMassDetector() {
+    this(0);
+  }
+
+  public LocalMaxMassDetector(double noiseLevel) {
+    this.noiseLevel = noiseLevel;
+  }
+
   @Override
-  public double[][] getMassValues(MassSpectrum scan, ParameterSet parameters) {
+  public LocalMaxMassDetector create(ParameterSet parameters) {
+    var noiseLevel = parameters.getValue(LocalMaxMassDetectorParameters.noiseLevel);
+    return new LocalMaxMassDetector(noiseLevel);
+  }
 
-    double noiseLevel =
-        parameters.getParameter(LocalMaxMassDetectorParameters.noiseLevel).getValue();
+  @Override
+  public boolean filtersActive() {
+    return true; // profile to centroid so always active
+  }
 
+  @Override
+  public double[][] getMassValues(MassSpectrum scan) {
     // lists of primitive doubles
-    TDoubleArrayList mzs = new TDoubleArrayList(100);
-    TDoubleArrayList intensities = new TDoubleArrayList(100);
+    TDoubleArrayList mzs = new TDoubleArrayList(128);
+    TDoubleArrayList intensities = new TDoubleArrayList(128);
 
     // All data points of current m/z peak
 
@@ -57,15 +78,16 @@ public class LocalMaxMassDetector implements MassDetector {
     // Iterate through all data points
     for (int i = 0; i < scan.getNumberOfDataPoints() - 1; i++) {
       double intensity = scan.getIntensityValue(i);
-      double nextIntensity = scan.getIntensityValue(i+1);
+      double nextIntensity = scan.getIntensityValue(i + 1);
 
-      boolean nextIsBigger =  nextIntensity > intensity;
+      boolean nextIsBigger = nextIntensity > intensity;
       boolean nextIsZero = Double.compare(nextIntensity, 0d) == 0;
       boolean currentIsZero = Double.compare(intensity, 0d) == 0;
 
       // Ignore zero intensity regions
-      if (currentIsZero)
+      if (currentIsZero) {
         continue;
+      }
 
       // Check for local maximum
       if (ascending && (!nextIsBigger)) {

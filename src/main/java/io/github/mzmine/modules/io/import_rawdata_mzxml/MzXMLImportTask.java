@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,8 +40,9 @@ import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorUtils;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -117,8 +118,8 @@ public class MzXMLImportTask extends AbstractTask {
 
   // advanced processing will apply mass detection directly to the scans
   private final boolean applyMassDetection;
-  private MZmineProcessingStep<MassDetector> ms1Detector = null;
-  private MZmineProcessingStep<MassDetector> ms2Detector = null;
+  private MassDetector ms1Detector = null;
+  private MassDetector ms2Detector = null;
 
   /*
    * This variable hold the present scan or fragment, it is send to the stack when another
@@ -149,12 +150,14 @@ public class MzXMLImportTask extends AbstractTask {
 
     if (advancedParam != null) {
       if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
-        this.ms1Detector = advancedParam.getParameter(
+        var detectorStep = advancedParam.getParameter(
             AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter().getValue();
+        ms1Detector = MassDetectorUtils.createMassDetector(detectorStep);
       }
       if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
-        this.ms2Detector = advancedParam.getParameter(
+        var detectorStep = advancedParam.getParameter(
             AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter().getValue();
+        ms2Detector = MassDetectorUtils.createMassDetector(detectorStep);
       }
       // currently, we do not support injection times from mzXML file format
 //      denormalizeMSnScans = advancedParam.getValue(
@@ -499,11 +502,16 @@ public class MzXMLImportTask extends AbstractTask {
      * @param intensities input values
      * @return new mzs: double[0]; new intensities: double[1] arrays
      */
-    private double[][] applyMassDetection(MZmineProcessingStep<MassDetector> msDetector,
-        double[] mzs, double[] intensities) {
+    private double[][] applyMassDetection(MassDetector msDetector, double[] mzs,
+        double[] intensities) {
+      MassSpectrumType spectrumType = MassSpectrumType.CENTROIDED;
+      if (msDetector instanceof AutoMassDetector) {
+        // auto requires the mass spectrum type to be set
+        spectrumType = ScanUtils.detectSpectrumType(mzs, intensities);
+      }
+
       // wrap data points in a simple mass spectrum
-      return msDetector.getModule()
-          .getMassValues(new SimpleMassSpectrum(mzs, intensities), msDetector.getParameterSet());
+      return msDetector.getMassValues(new SimpleMassSpectrum(mzs, intensities, spectrumType));
     }
 
     private void reset() {

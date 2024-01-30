@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,8 +30,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -50,8 +50,8 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
   private final RawDataFile newMZmineFile;
   private final AbstractTask importTask;
   private final Boolean denormalizeMSnScans;
-  private MZmineProcessingStep<MassDetector> ms1Detector = null;
-  private MZmineProcessingStep<MassDetector> ms2Detector = null;
+  private MassDetector ms1Detector = null;
+  private MassDetector ms2Detector = null;
 
   private int totalScans = 1;
   private final int parsedScans = 0;
@@ -76,12 +76,14 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
     this.importTask = importTask;
 
     if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
-      this.ms1Detector = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)
+      var detectorStep = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)
           .getEmbeddedParameter().getValue();
+      ms1Detector = MassDetectorUtils.createMassDetector(detectorStep);
     }
     if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
-      this.ms2Detector = advancedParam.getParameter(
+      var detectorStep = advancedParam.getParameter(
           AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter().getValue();
+      ms2Detector = MassDetectorUtils.createMassDetector(detectorStep);
     }
     denormalizeMSnScans = advancedParam.getValue(
         AdvancedSpectraImportParameters.denormalizeMSnScans);
@@ -154,9 +156,9 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
       int msLevel = Objects.requireNonNullElse(scan.getMSLevel(), 1);
       double[][] mzIntensities = null;
       if (ms1Detector != null && msLevel <= 1) {
-        mzIntensities = ms1Detector.getModule().getMassValues(data, ms1Detector.getParameterSet());
+        mzIntensities = ms1Detector.getMassValues(data);
       } else if (ms2Detector != null && msLevel >= 2) {
-        mzIntensities = ms2Detector.getModule().getMassValues(data, ms2Detector.getParameterSet());
+        mzIntensities = ms2Detector.getMassValues(data);
         if (denormalizeMSnScans) {
           ScanUtils.denormalizeIntensitiesMultiplyByInjectTime(mzIntensities[1],
               scan.getInjectionTime());

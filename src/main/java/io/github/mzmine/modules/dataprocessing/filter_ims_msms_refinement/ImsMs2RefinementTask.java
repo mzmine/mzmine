@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,11 +35,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetectorParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -57,10 +54,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class ImsMs2RefinementTask extends AbstractTask {
 
-  private static final MassDetector fol = MassDetectionParameters.factorOfLowest;
+  private final MassDetector fol;
   private final FeatureList[] flists;
   private final int minNumPoints;
-  private final ParameterSet folParam;
   private final ParameterSet param;
   private final Boolean useFOL;
   private final Boolean useMinPoints;
@@ -78,12 +74,10 @@ public class ImsMs2RefinementTask extends AbstractTask {
     minNumPoints = param.getParameter(ImsMs2RefinementParameters.minNumPoints)
         .getEmbeddedParameter().getValue();
     useFOL = param.getParameter(ImsMs2RefinementParameters.noiseLevel).getValue();
-    final double folNoiseLevel = param.getParameter(ImsMs2RefinementParameters.noiseLevel)
-        .getEmbeddedParameter().getValue();
+    final double folNoiseLevel = param.getEmbeddedParameterValueIfSelectedOrElse(
+        ImsMs2RefinementParameters.noiseLevel, 1d);
 
-    folParam = MZmineCore.getConfiguration().getModuleParameters(FactorOfLowestMassDetector.class)
-        .cloneParameterSet();
-    folParam.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, 2.5);
+    fol = new FactorOfLowestMassDetector(folNoiseLevel);
 
     numRows = Arrays.stream(flists).mapToInt(FeatureList::getNumberOfRows).sum();
   }
@@ -141,7 +135,7 @@ public class ImsMs2RefinementTask extends AbstractTask {
       }
 
       final SimpleMassList massList = new SimpleMassList(flist.getMemoryMapStorage(),
-          fol.getMassValues(msms, folParam));
+          fol.getMassValues(msms));
       msms.addMassList(massList);
     }
   }
