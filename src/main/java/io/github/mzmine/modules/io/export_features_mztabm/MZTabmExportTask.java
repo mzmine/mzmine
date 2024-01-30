@@ -435,8 +435,6 @@ public class MZTabmExportTask extends AbstractTask {
         mzTabFile.metadata(mtd);
         MzTabValidatingWriter validatingWriter = new MzTabValidatingWriter();
         validatingWriter.write(curFile.toPath(), mzTabFile);
-//        MzTabNonValidatingWriter nonValidatingWriter = new MzTabNonValidatingWriter();
-//        nonValidatingWriter.write(curFile.toPath(), mzTabFile);
       } catch (Exception e) {
         e.printStackTrace();
         setStatus(TaskStatus.ERROR);
