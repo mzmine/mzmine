@@ -67,7 +67,7 @@ public class OnlineLcReactivityParameters extends SimpleParameterSet {
 
   private static void exportExample(File file) {
     var examples = List.of(
-        new OnlineReaction("unique_reaction_substring", "my_reaction", "([#6][CX3](=O)O)",
+        new OnlineReaction("my_reaction", "unique_reaction_substring", "([#6][CX3](=O)O)",
             "([#6][CX3](=O)O).(OC)>>[#6][CX3](=O)OC.O", 123.45));
     try {
       file = CSVUtils.ensureTsvOrCsvFormat(file, "csv");

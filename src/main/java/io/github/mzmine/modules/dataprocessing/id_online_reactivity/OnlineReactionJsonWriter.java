@@ -67,7 +67,7 @@ public class OnlineReactionJsonWriter {
         .sorted(Comparator.comparing(entry -> entry.getKey().deltaMz())).forEach(entry -> {
           int[] partnerIds = entry.getValue().stream().mapToInt(OnlineReactionMatch::getPartnerRowId)
               .sorted().toArray();
-          reactionsSorted.add(new OnlineReactionMatchExportDto(entry.getKey(), type, partnerIds));
+          reactionsSorted.add(new OnlineReactionMatchExportDto(type, entry.getKey(), partnerIds));
         });
   }
 

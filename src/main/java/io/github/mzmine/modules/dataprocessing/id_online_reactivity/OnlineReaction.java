@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
-public record OnlineReaction(String filenameContains, String reactionName, String eductSmarts,
+public record OnlineReaction(String reactionName, String filenameContains, String eductSmarts,
                              String reactionSmarts, double deltaMz) {
 
   public enum Type {
