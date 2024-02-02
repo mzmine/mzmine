@@ -393,6 +393,8 @@
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementModule"/>
       <MenuItem text="Relations between compounds (IINs)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relations.IonNetRelationsModule"/>
+      <MenuItem text="Online reactivity" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineLcReactivityModule"/>
       <MenuItem text="Formula prediction on ion identities" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction.FormulaPredictionIonNetworkModule"/>
       <MenuItem text="Average formulas" onAction="#runModule"

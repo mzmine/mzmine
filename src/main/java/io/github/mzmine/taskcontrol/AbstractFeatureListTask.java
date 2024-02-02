@@ -26,8 +26,6 @@
 package io.github.mzmine.taskcontrol;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -36,11 +34,8 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractSimpleTask extends AbstractTask {
+public abstract class AbstractFeatureListTask extends AbstractSimpleTask {
 
-  private final ParameterSet parameters;
-  private final Class<? extends MZmineModule> moduleClass;
-  protected long totalItems;
 
   /**
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
@@ -48,65 +43,21 @@ public abstract class AbstractSimpleTask extends AbstractTask {
    *                       stored in ram. For now, one storage should be created per module call in
    * @param moduleCallDate
    */
-  protected AbstractSimpleTask(@Nullable final MemoryMapStorage storage,
+  protected AbstractFeatureListTask(@Nullable final MemoryMapStorage storage,
       @NotNull final Instant moduleCallDate, @NotNull ParameterSet parameters,
       @NotNull Class<? extends MZmineModule> moduleClass) {
-    super(storage, moduleCallDate);
-    this.parameters = parameters;
-    this.moduleClass = moduleClass;
+    super(storage, moduleCallDate, parameters, moduleClass);
   }
-
-  @Override
-  public double getFinishedPercentage() {
-    return totalItems != 0 ? getFinishedItems() / (double) totalItems : 0;
-  }
-
-  @Override
-  public void run() {
-    setStatus(TaskStatus.PROCESSING);
-
-    process();
-
-    if (!isCanceled()) {
-      addAppliedMethod();
-      setStatus(TaskStatus.FINISHED);
-    }
-  }
-
-  /**
-   * used to compute the finished percentage
-   */
-  public abstract long getFinishedItems();
-
-  /**
-   * Do the actual processing. Is automatically called in the {@link #run()} method
-   */
-  protected abstract void process();
-
-  /**
-   * Automatically adds the applied method to all the feature lists
-   *
-   * @return the processed feature lists
-   */
-  @NotNull
-  protected abstract List<FeatureList> getProcessedFeatureLists();
 
   /**
    * Automatically adds the applied method to all the raw data files
    *
    * @return the processed raw data files
    */
+  @Override
   @NotNull
-  protected abstract List<RawDataFile> getProcessedDataFiles();
-
-  protected void addAppliedMethod() {
-    SimpleFeatureListAppliedMethod appliedMethod = new SimpleFeatureListAppliedMethod(moduleClass,
-        parameters, moduleCallDate);
-    for (final var flist : getProcessedFeatureLists()) {
-      flist.addDescriptionOfAppliedTask(appliedMethod);
-    }
-    for (final var raw : getProcessedDataFiles()) {
-      raw.getAppliedMethods().add(appliedMethod);
-    }
+  protected List<RawDataFile> getProcessedDataFiles() {
+    return List.of();
   }
+
 }

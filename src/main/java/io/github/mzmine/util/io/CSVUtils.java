@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,9 +27,12 @@ package io.github.mzmine.util.io;
 
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -101,4 +104,22 @@ public class CSVUtils {
         Arrays.stream(list).mapToObj(format::format).collect(Collectors.joining(sep)));
   }
 
+  /**
+   * Use tab for tsv and comma instead
+   */
+  public static char detectSeparatorFromName(@NotNull final File file) {
+    return file.getName().endsWith(".tsv") ? '\t' : ',';
+  }
+
+  /**
+   * Keeps the file format if set to csv or tsv. Otherwise, replaces by defaultFormat
+   */
+  @NotNull
+  public static File ensureTsvOrCsvFormat(final File file, final @NotNull String defaultFormat) {
+    String name = file.getName();
+    if (name.endsWith("tsv") || name.endsWith("csv")) {
+      return file;
+    }
+    return FileAndPathUtil.getRealFilePath(file, defaultFormat);
+  }
 }

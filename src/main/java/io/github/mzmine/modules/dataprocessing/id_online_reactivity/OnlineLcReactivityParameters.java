@@ -1,0 +1,79 @@
+/*
+ * Copyright (c) 2004-2024 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
+
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithExampleExportParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.util.io.CSVUtils;
+import io.github.mzmine.util.io.CsvWriter;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.stage.FileChooser.ExtensionFilter;
+
+public class OnlineLcReactivityParameters extends SimpleParameterSet {
+
+  public static final FeatureListsParameter flists = new FeatureListsParameter();
+  public static final BooleanParameter onlyGroupedRows = new BooleanParameter(
+      "Only grouped features", "Check only grouped features (run metaCorrelate before)", true);
+  public static final MZToleranceParameter mzTol = new MZToleranceParameter(0.003, 5);
+  private static final Logger logger = Logger.getLogger(
+      OnlineLcReactivityParameters.class.getName());
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("comma-separated values", "*.csv"), //
+      new ExtensionFilter("tab-separated values", "*.tsv"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
+  public static final FileNameWithExampleExportParameter filePath = new FileNameWithExampleExportParameter(
+      "Reactions file", """
+      This file needs to contain those columns:
+      filename_contains,reaction,educt_smarts,reaction_smarts,delta_mz,type
+      The raw data files should always contain a unique identifier that is listed in filename_contains (not ending or starting with numbers)
+      type is either REACTION, EDUCT, PRODUCT""", extensions,
+      OnlineLcReactivityParameters::exportExample);
+
+  public OnlineLcReactivityParameters() {
+    super(flists, filePath, onlyGroupedRows, mzTol);
+  }
+
+
+  private static void exportExample(File file) {
+    var examples = List.of(
+        new OnlineReaction("unique_reaction_substring", "my_reaction", "([#6][CX3](=O)O)",
+            "([#6][CX3](=O)O).(OC)>>[#6][CX3](=O)OC.O", 123.45));
+    try {
+      file = CSVUtils.ensureTsvOrCsvFormat(file, "csv");
+      CsvWriter.writeToFile(file, examples, OnlineReaction.class, false);
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Cannot write example file", e);
+    }
+  }
+}

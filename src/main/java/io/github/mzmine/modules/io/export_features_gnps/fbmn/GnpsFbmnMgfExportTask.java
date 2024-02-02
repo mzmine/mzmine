@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,6 +42,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionJsonWriter;
+import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
@@ -50,6 +52,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -90,6 +93,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
   private final FeatureListRowsFilter filter;
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
+  private final OnlineReactionJsonWriter reactionJsonWriter;
   private int currentIndex = 0;
   // by robin
   private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
@@ -111,6 +115,8 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
         mergeMS2 ? parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER)
             .getEmbeddedParameters() : null;
     merger = MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
+
+    reactionJsonWriter = new OnlineReactionJsonWriter(false);
   }
 
   @Override
@@ -260,6 +266,14 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
 
       writer.append("SCANS=").append(rowID).write(newLine);
       writer.append("RTINSECONDS=").append(rtsForm.format(retTimeInSeconds)).write(newLine);
+
+      // write reactions if available
+      List<OnlineReactionMatch> reactions = row.getOnlineReactionMatches();
+      String reactionJson = reactionJsonWriter.createReactivityString(reactions);
+      if (reactionJson != null) {
+        writer.append(DBEntryField.ONLINE_REACTIVITY.getMgfID()).append("=").append(reactionJson)
+            .write(newLine);
+      }
 
       int msmsCharge = Objects.requireNonNullElse(msmsScan.getPrecursorCharge(), 1);
       String msmsPolarity = msmsScan.getPolarity().asSingleChar();

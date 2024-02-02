@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.features.types.annotations.SplashType;
 import io.github.mzmine.datamodel.features.types.annotations.UsiType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.annotations.online_reaction.OnlineLcReactionMatchType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
@@ -91,6 +92,9 @@ public enum DBEntryField {
 
   // compound annotation might match to multiple different compounds
   OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES,
+
+  // online reactivity
+  ONLINE_REACTIVITY,
 
   // number of signals
   NUM_PEAKS(Integer.class), // only used for everything that cannot easily be mapped
@@ -249,6 +253,7 @@ public enum DBEntryField {
       case DATASET_ID -> DatasetIdType.class;
       case USI -> UsiType.class;
       case SPLASH -> SplashType.class;
+      case ONLINE_REACTIVITY -> OnlineLcReactionMatchType.class;
       // TODO change to real data types instead of strings
       // are there other formats that define those properly?
       case MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS ->
@@ -319,6 +324,7 @@ public enum DBEntryField {
       case FILENAME -> "raw_file_name";
       case SIRIUS_MERGED_SCANS -> "merged_scans";
       case SIRIUS_MERGED_STATS -> "merged_statistics";
+      case ONLINE_REACTIVITY -> "online_reactivity";
       case UNSPECIFIED -> "";
     };
   }
@@ -372,6 +378,7 @@ public enum DBEntryField {
       case OTHER_MATCHED_COMPOUNDS_NAMES -> "other_matched_compounds_names";
       case FEATURE_ID -> "feature_id";
       case FILENAME -> "file_name";
+      case ONLINE_REACTIVITY -> "online_reactivity";
       case SIRIUS_MERGED_SCANS -> "";
       case SIRIUS_MERGED_STATS -> "";
       case UNSPECIFIED -> "";
@@ -431,6 +438,7 @@ public enum DBEntryField {
       case FILENAME -> "FILENAME";
       case SIRIUS_MERGED_SCANS -> "MERGED_SCANS";
       case SIRIUS_MERGED_STATS -> "MERGED_STATS";
+      case ONLINE_REACTIVITY -> "ONLINE_REACTIVITY";
       case UNSPECIFIED -> "";
     };
   }
@@ -491,6 +499,7 @@ public enum DBEntryField {
       case FEATURE_ID -> "FEATURE_ID";
       case SIRIUS_MERGED_SCANS -> "MERGED_SCANS";
       case SIRIUS_MERGED_STATS -> "MERGED_STATS";
+      case ONLINE_REACTIVITY -> "ONLINE_REACTIVITY";
       case UNSPECIFIED -> "";
     };
   }
@@ -554,7 +563,7 @@ public enum DBEntryField {
       case FEATURE_ID -> "";
       case SIRIUS_MERGED_SCANS -> "";
       case UNSPECIFIED -> "";
-      case SIRIUS_MERGED_STATS -> "";
+      case SIRIUS_MERGED_STATS, ONLINE_REACTIVITY -> "";
     };
   }
 
@@ -589,7 +598,7 @@ public enum DBEntryField {
           MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, //
           DATASET_ID, USI, SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC, //
           OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, QUALITY_PRECURSOR_PURITY, PEPTIDE_SEQ, //
-          IMS_TYPE ->
+          IMS_TYPE, ONLINE_REACTIVITY ->
           value.toString();
       case RT -> switch (value) {
         // float is default for RT but handle Double in case wrong value was present

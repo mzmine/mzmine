@@ -57,6 +57,9 @@ public class MzMLPeaksDecoder {
   /**
    * Converts a base64 encoded mz or intensity string used in mzML files to an array of floats. If
    * the original precision was 64 bit, you still get floats as output.
+   * <p>
+   * Deprecated, should use the array methods
+   * {@link #decodeToDoubleAsArray(String, MzMLBinaryDataInfo, double[])}
    *
    * @param binaryDataInfo meta-info about the compressed data
    * @param data           an array of float.
@@ -64,6 +67,7 @@ public class MzMLPeaksDecoder {
    * @throws IOException   if any.
    * @throws MSDKException if any. //   * @param inputStream a {@link InputStream} object.
    */
+  @Deprecated
   public static float[] decodeToFloat(CharArray binaryData, MzMLBinaryDataInfo binaryDataInfo,
       float[] data) throws IOException, MSDKException {
 
