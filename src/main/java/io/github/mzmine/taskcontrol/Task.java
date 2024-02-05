@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,9 @@
  */
 
 package io.github.mzmine.taskcontrol;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -57,6 +60,17 @@ public interface Task extends Runnable {
     TaskStatus status = getStatus();
     return status == TaskStatus.FINISHED;
   }
+
+  /**
+   * Set status to error and sets error message
+   *
+   * @param message error message
+   */
+  default void error(String message) {
+    this.error(message, null);
+  }
+
+  void error(@NotNull String message, @Nullable Exception exceptionToLog);
 
   String getErrorMessage();
 

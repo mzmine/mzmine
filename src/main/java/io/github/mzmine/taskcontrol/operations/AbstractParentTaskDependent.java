@@ -25,7 +25,7 @@
 
 package io.github.mzmine.taskcontrol.operations;
 
-import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.AbstractModifiableTask;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -33,23 +33,22 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AbstractParentTaskDependent implements ParentTaskDependent {
 
-  protected AbstractTask parentTask;
+  protected AbstractModifiableTask parentTask;
 
   public AbstractParentTaskDependent() {
     this(null);
   }
 
-  public AbstractParentTaskDependent(final AbstractTask parentTask) {
+  public AbstractParentTaskDependent(final AbstractModifiableTask parentTask) {
     this.parentTask = parentTask;
   }
 
-  @Nullable
-  public AbstractTask getParentTask() {
+  public AbstractModifiableTask getParentTask() {
     return parentTask;
   }
 
   @Override
-  public void setParentTask(final @Nullable AbstractTask parentTask) {
+  public void setParentTask(final @Nullable AbstractModifiableTask parentTask) {
     this.parentTask = parentTask;
   }
 }

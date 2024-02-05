@@ -23,35 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.chartbasics.simplechart.datasets;
+package io.github.mzmine.taskcontrol;
 
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.taskcontrol.TaskStatusListener;
-import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfree.data.xy.AbstractXYDataset;
 
-public abstract class AbstractTaskXYDataset extends AbstractXYDataset implements Task {
-  // TODO replace with internal getTask method and use AbstractModifiableTask
+/**
+ * Tasks will most likely want to extend either {@link AbstractTask} or more specified classes
+ * {@link AbstractFeatureListTask} {@link AbstractRawDataFileTask}
+ */
+public abstract class AbstractModifiableTask implements Task {
 
-  private static final Logger logger = Logger.getLogger(AbstractTaskXYDataset.class.getName());
-  @Serial
-  private static final long serialVersionUID = 1L;
+  private static final Logger logger = Logger.getLogger(AbstractModifiableTask.class.getName());
   private final StringProperty name = new SimpleStringProperty("Task name");
-  protected final @NotNull Property<TaskStatus> status = new SimpleObjectProperty<>(
-      TaskStatus.WAITING);
-  protected String errorMessage = null;
+  private TaskStatus status = TaskStatus.WAITING;
+  private String errorMessage = null;
   // listener to control status changes
   private List<TaskStatusListener> listener;
 
@@ -67,28 +59,20 @@ public abstract class AbstractTaskXYDataset extends AbstractXYDataset implements
     return name;
   }
 
-  /**
-   * Convenience method for determining if this task has been canceled. Also returns true if the
-   * task encountered an error.
-   *
-   * @return true if this task has been canceled or stopped due to an error
-   */
-  public final boolean isCanceled() {
-    return (status.getValue() == TaskStatus.CANCELED) || (status.getValue() == TaskStatus.ERROR);
-  }
-
-  /**
-   * Convenience method for determining if this task has been completed
-   *
-   * @return true if this task is finished
-   */
-  public final boolean isFinished() {
-    return status.getValue() == TaskStatus.FINISHED;
+  @Override
+  public void cancel() {
+    if (!isFinished()) {
+      setStatus(TaskStatus.CANCELED);
+    }
   }
 
   @Override
-  public void cancel() {
-    setStatus(TaskStatus.CANCELED);
+  public void error(@NotNull String message, @Nullable Exception exceptionToLog) {
+    if (exceptionToLog != null) {
+      logger.log(Level.SEVERE, message, exceptionToLog);
+    }
+    setErrorMessage(message);
+    setStatus(TaskStatus.ERROR);
   }
 
   @Override
@@ -96,9 +80,6 @@ public abstract class AbstractTaskXYDataset extends AbstractXYDataset implements
     return errorMessage;
   }
 
-  /**
-   *
-   */
   public final void setErrorMessage(String errorMessage) {
     this.errorMessage = errorMessage;
   }
@@ -115,29 +96,20 @@ public abstract class AbstractTaskXYDataset extends AbstractXYDataset implements
    */
   @Override
   public final TaskStatus getStatus() {
-    return status.getValue();
+    return this.status;
   }
 
   /**
    *
    */
   public final void setStatus(TaskStatus newStatus) {
-    TaskStatus old = getStatus();
-    status.setValue(newStatus);
-    if (listener != null && !newStatus.equals(old)) {
-      for (TaskStatusListener listener : listener) {
-        listener.taskStatusChanged(this, newStatus, old);
+    TaskStatus old = status;
+    this.status = newStatus;
+    if (listener != null && !status.equals(old)) {
+      for (int i = 0; i < listener.size(); i++) {
+        listener.get(i).taskStatusChanged(this, status, old);
       }
     }
-  }
-
-  /**
-   * Returns the TaskStatus of this Task
-   *
-   * @return The current status of this task
-   */
-  public @NotNull Property<TaskStatus> statusProperty() {
-    return status;
   }
 
   @Override
@@ -163,15 +135,4 @@ public abstract class AbstractTaskXYDataset extends AbstractXYDataset implements
       listener.clear();
     }
   }
-
-
-  @Override
-  public void error(@NotNull String message, @Nullable Exception exceptionToLog) {
-    if (exceptionToLog != null) {
-      logger.log(Level.SEVERE, message, exceptionToLog);
-    }
-    setErrorMessage(message);
-    setStatus(TaskStatus.ERROR);
-  }
 }
-

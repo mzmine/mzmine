@@ -54,7 +54,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -71,7 +70,7 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
   private final boolean onlyGroupedRows;
 
   private final AtomicLong finishedItems = new AtomicLong(0);
-  private String description;
+  private final String description;
 
   public OnlineLcReactivityTask(@NotNull ParameterSet parameters, FeatureList flist,
       @NotNull Instant moduleCallDate) {
@@ -299,9 +298,7 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
     try {
       return CsvReader.readToList(reactionsFile, OnlineReaction.class);
     } catch (IOException e) {
-      logger.log(Level.SEVERE, "Cannot load file " + reactionsFile.getAbsolutePath(), e);
-      setErrorMessage("Cannot load file " + reactionsFile.getAbsolutePath());
-      setStatus(TaskStatus.ERROR);
+      error("Cannot load file " + reactionsFile.getAbsolutePath(), e);
       return List.of();
     }
   }

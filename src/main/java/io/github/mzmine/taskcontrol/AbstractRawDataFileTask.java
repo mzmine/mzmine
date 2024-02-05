@@ -34,7 +34,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AbstractRawDataTask extends AbstractSimpleTask {
+public abstract class AbstractRawDataFileTask extends AbstractSimpleTask {
 
 
   /**
@@ -43,7 +43,7 @@ public abstract class AbstractRawDataTask extends AbstractSimpleTask {
    *                       stored in ram. For now, one storage should be created per module call in
    * @param moduleCallDate
    */
-  protected AbstractRawDataTask(@Nullable final MemoryMapStorage storage,
+  protected AbstractRawDataFileTask(@Nullable final MemoryMapStorage storage,
       @NotNull final Instant moduleCallDate, @NotNull ParameterSet parameters,
       @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);

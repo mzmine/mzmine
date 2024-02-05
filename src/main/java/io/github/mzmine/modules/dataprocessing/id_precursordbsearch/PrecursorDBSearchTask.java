@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.taskcontrol.AbstractModifiableTask;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -132,7 +133,7 @@ class PrecursorDBSearchTask extends AbstractTask {
         }
         // cancelled
         if (isCanceled()) {
-          tasks.stream().forEach(AbstractTask::cancel);
+          tasks.stream().forEach(AbstractModifiableTask::cancel);
         }
       } else {
         setStatus(TaskStatus.ERROR);
