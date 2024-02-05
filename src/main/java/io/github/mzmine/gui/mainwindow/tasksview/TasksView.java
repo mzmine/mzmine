@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import static io.github.mzmine.util.javafx.TableViewUtils.createColumn;
 
 import io.github.mzmine.gui.framework.fx.LabeledProgressBarCell;
 import io.github.mzmine.gui.framework.fx.MenuItems;
+import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.javafx.TableViewUtils;
 import javafx.event.ActionEvent;
@@ -38,14 +39,11 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.util.Builder;
 
-public class TasksView implements Builder<Region> {
+public class TasksView extends FxViewBuilder<TasksViewModel> {
 
-  private final TasksViewModel model;
-
-  public TasksView(final TasksViewModel model) {
-    this.model = model;
+  TasksView(final TasksViewModel model) {
+    super(model);
   }
 
   @Override

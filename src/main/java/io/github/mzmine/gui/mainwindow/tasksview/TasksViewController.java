@@ -25,15 +25,16 @@
 
 package io.github.mzmine.gui.mainwindow.tasksview;
 
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.gui.framework.fx.mvci.FxController;
+import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import javafx.collections.ObservableList;
 import javafx.scene.layout.Region;
+import org.jetbrains.annotations.NotNull;
 
-public class TasksViewController {
+public class TasksViewController extends FxController<TasksViewModel> {
 
-  private final TasksViewModel model;
   private final TasksViewInteractor interactor;
   private final TasksView view;
   private final MiniTaskView miniView;
@@ -41,7 +42,7 @@ public class TasksViewController {
   private final ObservableList<WrappedTask> readOnlyTasks;
 
   public TasksViewController() {
-    model = new TasksViewModel();
+    super(new TasksViewModel());
     interactor = new TasksViewInteractor(model);
     view = new TasksView(model);
     miniView = new MiniTaskView(model);
@@ -59,10 +60,10 @@ public class TasksViewController {
    * Thread safe operation running on the fx thread. Updates the tasks model
    */
   public void updateDataModel() {
-    MZmineCore.runLater(interactor::updateDataModel);
+    onGuiThread(interactor::updateModel);
   }
 
-  public Region buildView() {
+  public @NotNull Region buildView() {
     return view.build();
   }
 
@@ -70,4 +71,13 @@ public class TasksViewController {
     return miniView.build();
   }
 
+  @Override
+  public @NotNull TasksViewInteractor getInteractor() {
+    return interactor;
+  }
+
+  @Override
+  protected @NotNull FxViewBuilder<TasksViewModel> getViewBuilder() {
+    return view;
+  }
 }
