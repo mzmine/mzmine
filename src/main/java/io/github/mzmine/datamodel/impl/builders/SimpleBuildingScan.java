@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_mzxml;
+package io.github.mzmine.datamodel.impl.builders;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
-import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,8 +41,6 @@ import org.jetbrains.annotations.Nullable;
  * Only used to build scans and contain metadata, e.g., during loading of scans
  */
 public class SimpleBuildingScan extends MetadataOnlyScan {
-
-  private static final Logger logger = Logger.getLogger(SimpleBuildingScan.class.getName());
 
   public String scanId;
   public int scanNumber;

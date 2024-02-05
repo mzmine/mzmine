@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Configuration that controls scan filtering and processing during data import
@@ -52,6 +53,12 @@ public final class ScanImportProcessorConfig {
     ms2MassDetectActive = md.isPresent() && md.get().isMsnActive();
   }
 
+  /**
+   * Will only sort the scans by mz and apply no further processing
+   *
+   * @return the default scan processor config
+   */
+  @NotNull
   public static ScanImportProcessorConfig createDefault() {
     List<MsProcessor> processors = new ArrayList<>();
     processors.add(new SortByMzMsProcessor());
