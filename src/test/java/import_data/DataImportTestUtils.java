@@ -34,10 +34,10 @@ import testutils.MZmineTestUtil;
 public class DataImportTestUtils {
 
   public static void testDataStatistics(final List<String> fileNames,
-      final Map<String, DataFileStats> expectedStats) {
+      final Map<String, DataFileStats> expectedStats, final boolean advanced) {
     for (final String file : fileNames) {
       String name = new File(file).getName();
-      var expected = expectedStats.get(name);
+      var expected = expectedStats.get(name + advanced);
       var actual = MZmineTestUtil.getRawFromProject(name);
       Assertions.assertNotNull(expected);
       Assertions.assertNotNull(actual);

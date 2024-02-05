@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,16 +25,6 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.msdk.datamodel.ActivationInfo;
@@ -47,12 +37,24 @@ import io.github.msdk.datamodel.RawDataFile;
 import io.github.msdk.datamodel.SeparationType;
 import io.github.msdk.datamodel.SimpleActivationInfo;
 import io.github.msdk.datamodel.SimpleIsolationInfo;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javolution.text.CharArray;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 class MzMLChromatogram implements Chromatogram {
 
   private final @NotNull MzMLRawDataFile dataFile;
-  private @NotNull InputStream inputStream;
+  //  private @NotNull InputStream inputStream;
   private final @NotNull String chromatogramId;
   private final @NotNull Integer chromatogramNumber;
   private final @NotNull Integer numOfDataPoints;
@@ -66,8 +68,10 @@ class MzMLChromatogram implements Chromatogram {
   private Double mz;
   private SeparationType separationType;
   private Range<Float> rtRange;
-  private float[] rtValues;
-  private float[] intensityValues;
+  private double[] rtValues;
+  private double[] intensityValues;
+
+  private MemoryMapStorage storage;
 
   private final Logger logger = Logger.getLogger(getClass().getName());
 
@@ -76,17 +80,17 @@ class MzMLChromatogram implements Chromatogram {
    * Constructor for {@link MzMLChromatogram MzMLChromatogram}
    * </p>
    *
-   * @param dataFile a {@link MzMLRawDataFile MzMLRawDataFile} object the parser stores the data in
-   * @param is an {@link InputStream InputStream} of the MzML format data
-   * @param chromatogramId the Chromatogram ID
+   * @param dataFile           a {@link MzMLRawDataFile MzMLRawDataFile} object the parser stores
+   *                           the data in //   * @param is an {@link InputStream InputStream} of
+   *                           the MzML format data
+   * @param chromatogramId     the Chromatogram ID
    * @param chromatogramNumber the Chromatogram number
-   * @param numOfDataPoints the number of data points in the retention time and intensity arrays
+   * @param numOfDataPoints    the number of data points in the retention time and intensity arrays
    */
-  MzMLChromatogram(@NotNull MzMLRawDataFile dataFile, InputStream is, String chromatogramId,
+  MzMLChromatogram(@NotNull MzMLRawDataFile dataFile, String chromatogramId,
       Integer chromatogramNumber, Integer numOfDataPoints) {
     this.cvParams = new MzMLCVGroup();
     this.dataFile = dataFile;
-    this.inputStream = is;
     this.chromatogramId = chromatogramId;
     this.chromatogramNumber = chromatogramNumber;
     this.numOfDataPoints = numOfDataPoints;
@@ -98,17 +102,20 @@ class MzMLChromatogram implements Chromatogram {
     this.rtRange = null;
     this.rtValues = null;
     this.intensityValues = null;
-
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   @Nullable
   public RawDataFile getRawDataFile() {
-    return dataFile;
+    throw new UnsupportedOperationException("DataFile was changed in type");
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   @NotNull
   public Integer getChromatogramNumber() {
@@ -172,28 +179,6 @@ class MzMLChromatogram implements Chromatogram {
 
   /**
    * <p>
-   * getInputStream.
-   * </p>
-   *
-   * @return a {@link io.github.msdk.io.mzml2.util.io.ByteBufferInputStream} object.
-   */
-  public InputStream getInputStream() {
-    return inputStream;
-  }
-
-  /**
-   * <p>
-   * setInputStream.
-   * </p>
-   *
-   * @param inputStream a {@link InputStream} object.
-   */
-  public void setInputStream(InputStream inputStream) {
-    this.inputStream = inputStream;
-  }
-
-  /**
-   * <p>
    * getPrecursor.
    * </p>
    *
@@ -247,12 +232,15 @@ class MzMLChromatogram implements Chromatogram {
     return chromatogramId;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   @NotNull
   public ChromatogramType getChromatogramType() {
-    if (chromatogramType != ChromatogramType.UNKNOWN)
+    if (chromatogramType != ChromatogramType.UNKNOWN) {
       return chromatogramType;
+    }
 
     int count = 0;
 
@@ -281,7 +269,9 @@ class MzMLChromatogram implements Chromatogram {
     return chromatogramType;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   @Nullable
   public Double getMz() {
@@ -291,17 +281,20 @@ class MzMLChromatogram implements Chromatogram {
       // set mz value to the respective cv value only if the value is present
       if (product != null) {
         if (product.getIsolationWindow().isPresent()) {
-          Optional<String> cvval =
-              getCVValue(product.getIsolationWindow().get(), MzMLCV.cvIsolationWindowTarget);
-          if (cvval.isPresent())
+          Optional<String> cvval = getCVValue(product.getIsolationWindow().get(),
+              MzMLCV.cvIsolationWindowTarget);
+          if (cvval.isPresent()) {
             mz = Double.valueOf(cvval.get());
+          }
         }
       }
     }
     return mz;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   @NotNull
   public List<IsolationInfo> getIsolations() {
@@ -311,29 +304,32 @@ class MzMLChromatogram implements Chromatogram {
       Optional<MzMLIsolationWindow> productIsolationWindow = getProduct().getIsolationWindow();
 
       if (!precursorIsolationWindow.isPresent()) {
-        logger.severe("Couldn't find precursor isolation window for chromotgram (#"
-            + getChromatogramNumber() + ")");
+        logger.severe(
+            "Couldn't find precursor isolation window for chromotgram (#" + getChromatogramNumber()
+                + ")");
         return Collections.emptyList();
       }
 
       if (!productIsolationWindow.isPresent()) {
-        logger.severe("Couldn't find product isolation window for chromotgram (#"
-            + getChromatogramNumber() + ")");
+        logger.severe(
+            "Couldn't find product isolation window for chromotgram (#" + getChromatogramNumber()
+                + ")");
         return Collections.emptyList();
       }
 
-      Optional<String> precursorIsolationMz =
-          getCVValue(precursorIsolationWindow.get(), MzMLCV.cvIsolationWindowTarget);
-      Optional<String> precursorActivationEnergy =
-          getCVValue(getPrecursor().getActivation(), MzMLCV.cvActivationEnergy);
+      Optional<String> precursorIsolationMz = getCVValue(precursorIsolationWindow.get(),
+          MzMLCV.cvIsolationWindowTarget);
+      Optional<String> precursorActivationEnergy = getCVValue(getPrecursor().getActivation(),
+          MzMLCV.cvActivationEnergy);
       Optional<Integer> precursorScanNumber = getScanNumber(precursor.getSpectrumRef().orElse(""));
-      Optional<String> productIsolationMz =
-          getCVValue(productIsolationWindow.get(), MzMLCV.cvIsolationWindowTarget);
+      Optional<String> productIsolationMz = getCVValue(productIsolationWindow.get(),
+          MzMLCV.cvIsolationWindowTarget);
       ActivationType precursorActivation = ActivationType.UNKNOWN;
       ActivationInfo activationInfo = null;
 
-      if (getCVValue(getPrecursor().getActivation(), MzMLCV.cvActivationCID).isPresent())
+      if (getCVValue(getPrecursor().getActivation(), MzMLCV.cvActivationCID).isPresent()) {
         precursorActivation = ActivationType.CID;
+      }
 
       if (precursorActivationEnergy != null) {
         activationInfo = new SimpleActivationInfo(Double.valueOf(precursorActivationEnergy.get()),
@@ -347,17 +343,17 @@ class MzMLChromatogram implements Chromatogram {
           precursorScanNumber.isPresent() ? Integer.valueOf(precursorScanNumber.get()) : null;
 
       if (precursorIsolationMz.isPresent()) {
-        isolationInfo =
-            new SimpleIsolationInfo(Range.singleton(Double.valueOf(precursorIsolationMz.get())),
-                null, Double.valueOf(precursorIsolationMz.get()), null, activationInfo,
-                precursorScanNumberInt);
+        isolationInfo = new SimpleIsolationInfo(
+            Range.singleton(Double.valueOf(precursorIsolationMz.get())), null,
+            Double.valueOf(precursorIsolationMz.get()), null, activationInfo,
+            precursorScanNumberInt);
         isolations.add(isolationInfo);
       }
 
       if (productIsolationMz.isPresent()) {
-        isolationInfo =
-            new SimpleIsolationInfo(Range.singleton(Double.valueOf(productIsolationMz.get())), null,
-                Double.valueOf(productIsolationMz.get()), null, null, null);
+        isolationInfo = new SimpleIsolationInfo(
+            Range.singleton(Double.valueOf(productIsolationMz.get())), null,
+            Double.valueOf(productIsolationMz.get()), null, null, null);
         isolations.add(isolationInfo);
       }
 
@@ -367,89 +363,90 @@ class MzMLChromatogram implements Chromatogram {
     return Collections.emptyList();
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   @NotNull
   public SeparationType getSeparationType() {
     return separationType;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public IonAnnotation getIonAnnotation() {
     return null;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   @NotNull
   public Integer getNumberOfDataPoints() {
     return numOfDataPoints;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  @NotNull
   public float[] getRetentionTimes(@Nullable float array[]) {
-    if (rtValues == null) {
-      if (getRtBinaryDataInfo().getArrayLength() != numOfDataPoints) {
-        logger.warning(
-            "Retention time binary data array contains a different array length from the default array length of the scan (#"
-                + getChromatogramNumber() + ")");
-      }
-
-      try {
-        rtValues = MzMLPeaksDecoder.decodeToFloat(inputStream, getRtBinaryDataInfo(), array);
-      } catch (Exception e) {
-        throw (new MSDKRuntimeException(e));
-      }
-    }
-
-    if (array == null || array.length < numOfDataPoints) {
-      array = new float[numOfDataPoints];
-
-      System.arraycopy(rtValues, 0, array, 0, numOfDataPoints);
-    }
-
-    return array;
+    throw new UnsupportedOperationException(
+        "This chromatogram was used for import only. Use the DoubleBuffer method");
   }
 
-  /** {@inheritDoc} */
+  public double[] getDoubleRetentionTimes() {
+    return this.rtValues;
+  }
+
+  public void processBinaryChromatogramValues(CharArray xmlMzContent,
+      MzMLBinaryDataInfo binaryDataInfo) {
+    if (binaryDataInfo.getArrayLength() != numOfDataPoints) {
+      logger.warning(
+          "Intensity binary data array contains a different array length from the default array length of the chromatogram (#"
+              + getChromatogramNumber() + ")");
+    }
+    try {
+      double[] array = new double[this.numOfDataPoints];
+      if (MzMLCV.cvRetentionTimeArray.equals(binaryDataInfo.getArrayType().getAccession())) {
+        this.rtValues = MzMLPeaksDecoder.decodeToDoubleAsArray(xmlMzContent.toString(),
+            binaryDataInfo, array);
+      }
+      if (MzMLCV.cvIntensityArray.equals(binaryDataInfo.getArrayType().getAccession())) {
+        this.intensityValues = MzMLPeaksDecoder.decodeToDoubleAsArray(xmlMzContent.toString(),
+            binaryDataInfo, array);
+      }
+    } catch (Exception e) {
+      throw (new MSDKRuntimeException(e));
+    }
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   @NotNull
-  public float[] getIntensityValues(@Nullable float[] array) {
-    if (intensityValues == null) {
-      if (getIntensityBinaryDataInfo().getArrayLength() != numOfDataPoints) {
-        logger.warning(
-            "Intensity binary data array contains a different array length from the default array length of the chromatogram (#"
-                + getChromatogramNumber() + ")");
-      }
-
-      try {
-        intensityValues =
-            MzMLPeaksDecoder.decodeToFloat(inputStream, getIntensityBinaryDataInfo(), array);
-      } catch (Exception e) {
-        throw (new MSDKRuntimeException(e));
-      }
-    }
-
-    if (array == null || array.length < numOfDataPoints) {
-      array = new float[numOfDataPoints];
-
-      System.arraycopy(intensityValues, 0, array, 0, numOfDataPoints);
-    }
-
-    return array;
+  public float[] getIntensityValues(@Nullable float array[]) {
+    throw new UnsupportedOperationException(
+        "This chromatogram was used for import only. Use the DoubleBuffer method");
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   @Nullable
   public double[] getMzValues(@Nullable double array[]) {
     return null;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   @Nullable
   public Range<Float> getRtRange() {
@@ -462,14 +459,13 @@ class MzMLChromatogram implements Chromatogram {
 
   /**
    * <p>
-   * Search for the CV Parameter value for the given accession in the {@link Chromatogram
-   * Chromatogram}'s CV Parameters
+   * Search for the CV Parameter value for the given accession in the
+   * {@link Chromatogram Chromatogram}'s CV Parameters
    * </p>
    *
    * @param accession the CV Parameter accession as {@link String String}
    * @return an {@link Optional Optional<String>} containing the CV Parameter value for the given
-   *         accession, if present <br>
-   *         An empty {@link Optional Optional<String>} otherwise
+   * accession, if present <br> An empty {@link Optional Optional<String>} otherwise
    */
   public Optional<String> getCVValue(String accession) {
     return getCVValue(cvParams, accession);
@@ -477,23 +473,23 @@ class MzMLChromatogram implements Chromatogram {
 
   /**
    * <p>
-   * Search for the CV Parameter value for the given accession in the given {@link MzMLCVGroup
-   * MzMLCVGroup}
+   * Search for the CV Parameter value for the given accession in the given
+   * {@link MzMLCVGroup MzMLCVGroup}
    * </p>
    *
-   * @param group the {@link MzMLCVGroup MzMLCVGroup} to search through
+   * @param group     the {@link MzMLCVGroup MzMLCVGroup} to search through
    * @param accession the CV Parameter accession as {@link String String}
    * @return an {@link Optional Optional<String>} containing the CV Parameter value for the given
-   *         accession, if present <br>
-   *         An empty {@link Optional Optional<String>} otherwise
+   * accession, if present <br> An empty {@link Optional Optional<String>} otherwise
    */
   public Optional<String> getCVValue(MzMLCVGroup group, String accession) {
     Optional<String> value;
     for (MzMLCVParam cvParam : group.getCVParamsList()) {
       if (cvParam.getAccession().equals(accession)) {
         value = cvParam.getValue();
-        if (!value.isPresent())
+        if (!value.isPresent()) {
           value = Optional.of("");
+        }
         return value;
       }
     }

@@ -28,6 +28,7 @@ package io.github.mzmine.util;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Parse and format dates. MZmine uses {@link LocalDateTime} to represent date + time in this
@@ -58,4 +59,22 @@ public class DateTimeUtils {
     }
   }
 
+  /**
+   * Obtains an instance of LocalDateTime from a text string such as 2007-12-03T10:15:30. The string
+   * must represent a valid date-time and is parsed using DateTimeFormatter.ISO_LOCAL_DATE_TIME.
+   *
+   * @param dateTime the text to parse such as "2007-12-03T10:15:30" or "2007-12-03T10:15:30Z"
+   * @return the parsed local date-time or default value on error or if input was null
+   */
+  public static LocalDateTime parseOrElse(final String dateTime,
+      final @Nullable LocalDateTime defaultValue) {
+    if (dateTime == null) {
+      return defaultValue;
+    }
+    try {
+      return DateTimeUtils.parse(dateTime);
+    } catch (Exception ignored) {
+      return defaultValue;
+    }
+  }
 }

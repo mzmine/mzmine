@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,15 +25,16 @@
 
 package io.github.mzmine.modules.io.deprecated_jmzml;
 
-import java.io.File;
-import java.util.List;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.util.ExitCode;
+import java.io.File;
+import java.util.List;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
+@Deprecated
 public class MzMLImportParameters extends SimpleParameterSet {
 
   private static final List<ExtensionFilter> extensions = List.of( //

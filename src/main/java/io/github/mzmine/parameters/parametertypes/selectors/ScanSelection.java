@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,7 +40,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -175,20 +174,24 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
     return streamMatchingScans(dataFile).mapToInt(Scan::getScanNumber).toArray();
   }
 
-  public boolean matches(Scan scan) {
-    // scan offset was changed
+  private static int getOffset(final Scan scan) {
     int offset;
-    if (scanNumberRange != null) {
-      offset = scanNumberRange.lowerEndpoint();
-    } else {
-      // first scan number
-      if (scan.getDataFile() != null && scan.getDataFile().getScans().size() > 0) {
-        offset = scan.getDataFile().getScans().get(0).getScanNumber();
+    // first scan number
+    try {
+      // building scans have no data file
+      RawDataFile raw = scan.getDataFile();
+      if (raw == null) {
+        return 1;
+      }
+      if (!raw.getScans().isEmpty()) {
+        offset = raw.getScans().getFirst().getScanNumber();
       } else {
         offset = 1;
       }
+    } catch (Exception e) {
+      offset = 1;
     }
-    return matches(scan, offset);
+    return offset;
   }
 
   /**
@@ -248,6 +251,17 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
     return true;
   }
 
+  public boolean matches(Scan scan) {
+    // scan offset was changed
+    int offset;
+    if (scanNumberRange != null) {
+      offset = scanNumberRange.lowerEndpoint();
+    } else {
+      // first scan number
+      offset = getOffset(scan);
+    }
+    return matches(scan, offset);
+  }
 
   public boolean matches(MobilityScan scan) {
     // scan offset was changed
@@ -255,40 +269,16 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
     if (scanNumberRange != null) {
       offset = scanNumberRange.lowerEndpoint();
     } else {
-      // first scan number
-      if (scan.getFrame().getDataFile() != null
-          && scan.getFrame().getDataFile().getScans().size() > 0) {
-        offset = scan.getFrame().getDataFile().getScans().get(0).getScanNumber();
-      } else {
-        offset = 1;
-      }
+      offset = getOffset(scan.getFrame());
     }
     return matches(scan, offset);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ScanSelection that = (ScanSelection) o;
-    return Objects.equals(getScanNumberRange(), that.getScanNumberRange()) && Objects.equals(
-        getScanMobilityRange(), that.getScanMobilityRange()) && Objects.equals(getScanRTRange(),
-        that.getScanRTRange()) && getPolarity() == that.getPolarity()
-        && getSpectrumType() == that.getSpectrumType() && Objects.equals(getMsLevelFilter(),
-        that.getMsLevelFilter()) && Objects.equals(getBaseFilteringInteger(),
-        that.getBaseFilteringInteger()) && Objects.equals(getScanDefinition(),
-        that.getScanDefinition());
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(getScanNumberRange(), getScanMobilityRange(), getScanRTRange(),
-        getPolarity(), getSpectrumType(), getMsLevelFilter(), getBaseFilteringInteger(),
-        getScanDefinition());
+  /**
+   * @return true if any filter is set, otherwise false
+   */
+  public boolean isActiveFilter() {
+    return !ALL_SCANS.equals(this);
   }
 
   @Override
@@ -366,4 +356,5 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
         getScanMobilityRange(), getPolarity(), getSpectrumType(), getMsLevelFilter(),
         getScanDefinition());
   }
+
 }

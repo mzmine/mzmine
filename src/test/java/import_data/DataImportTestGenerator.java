@@ -26,8 +26,10 @@
 package import_data;
 
 import io.github.mzmine.main.MZmineCore;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import testutils.MZmineTestUtil;
 
 public class DataImportTestGenerator {
@@ -48,24 +50,43 @@ public class DataImportTestGenerator {
         , new ThermoRawImportTest() //
         , new TimsTofImportTest() //
     );
-//    tests = List.of(new TimsTofImportTest());
+//    tests = List.of(new MzMLImportTest());
 
     for (var entry : tests) {
       try {
         var clazz = entry.getClass();
         var files = entry.getFileNames();
-        MZmineTestUtil.importFiles(files, 60);
+        List<DataFileStats> stats = importAnalyzeFiles(files, entry);
 
-        logger.info("Exporting data for: " + clazz.getName());
-
-        var stats = MZmineTestUtil.streamDataFiles(files).map(DataFileStats::extract)
-            .toArray(DataFileStats[]::new);
         DataFileStatsIO.writeJson(path, clazz, stats);
-        MZmineCore.getProjectManager().clearProject();
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
     }
     System.exit(0);
   }
+
+  private static List<DataFileStats> importAnalyzeFiles(final List<String> files,
+      final AbstractDataImportTest test) throws InterruptedException {
+    logger.info("Exporting data for: " + test.getClass().getName());
+    MZmineTestUtil.importFiles(files, 60);
+
+    var stats = MZmineTestUtil.streamDataFiles(files).map(DataFileStats::extract)
+        .collect(Collectors.toCollection(ArrayList::new));
+    // now import spectra with advanced settings
+    MZmineCore.getProjectManager().clearProject();
+
+    // advanced
+    var advancedImport = test.createAdvancedImportSettings();
+    if (advancedImport != null) {
+      MZmineTestUtil.importFiles(files, 60, advancedImport);
+      var advancedStats = MZmineTestUtil.streamDataFiles(files).map(DataFileStats::extract)
+          .toList();
+      stats.addAll(advancedStats);
+      MZmineCore.getProjectManager().clearProject();
+    }
+
+    return stats;
+  }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,14 +25,28 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AdvancedSpectraImportParameters extends SimpleParameterSet {
+
+  public static final ScanSelectionParameter scanFilter = new ScanSelectionParameter();
+
+  public static final OptionalParameter<DoubleRangeParameter> mzRange = new OptionalParameter<>(
+      new DoubleRangeParameter("Crop MS1 m/z", "m/z boundary of the cropped region",
+          MZmineCore.getConfiguration().getMZFormat()), false);
 
   public static final OptionalParameter<ModuleComboParameter<MassDetector>> msMassDetection = new OptionalParameter<>(
       new ModuleComboParameter<MassDetector>("MS1 detector (Advanced)",
@@ -51,8 +65,39 @@ public class AdvancedSpectraImportParameters extends SimpleParameterSet {
       This reduces the intensity differences between spectra acquired with different injection times
       and reverts to "raw" intensities.""", false);
 
+
   public AdvancedSpectraImportParameters() {
-    super(msMassDetection, ms2MassDetection, denormalizeMSnScans);
+    super(scanFilter, mzRange, msMassDetection, ms2MassDetection, denormalizeMSnScans);
+  }
+
+  /**
+   * Create new instance copy and set all values
+   */
+  @NotNull
+  public static AdvancedSpectraImportParameters create(@NotNull MassDetectorWizardOptions detector,
+      @Nullable Double ms1NoiseLevel, @Nullable Double ms2NoiseLevel,
+      @Nullable Range<Double> mzRangeFilter, @NotNull ScanSelection scanFilter,
+      boolean denormMsnScans) {
+    var params = (AdvancedSpectraImportParameters) new AdvancedSpectraImportParameters().cloneParameterSet();
+
+    params.setParameter(AdvancedSpectraImportParameters.msMassDetection, ms1NoiseLevel != null);
+    params.setParameter(AdvancedSpectraImportParameters.ms2MassDetection, ms2NoiseLevel != null);
+    params.setParameter(AdvancedSpectraImportParameters.mzRange, mzRangeFilter != null,
+        mzRangeFilter);
+    params.setParameter(AdvancedSpectraImportParameters.scanFilter, scanFilter);
+    params.setParameter(AdvancedSpectraImportParameters.denormalizeMSnScans, denormMsnScans);
+    // create centroid mass detectors
+    if (ms1NoiseLevel != null) {
+      params.getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
+          .setValue(detector.createMassDetectorStep(ms1NoiseLevel));
+
+    }
+    if (ms2NoiseLevel != null) {
+      params.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter()
+          .setValue(detector.createMassDetectorStep(ms2NoiseLevel));
+    }
+
+    return params;
   }
 
 }

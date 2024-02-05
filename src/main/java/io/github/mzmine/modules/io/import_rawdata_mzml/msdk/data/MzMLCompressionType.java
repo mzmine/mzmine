@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -67,6 +67,20 @@ public enum MzMLCompressionType {
     return name;
   }
 
+  public boolean isZlibCompressed() {
+    return switch (this) {
+      case NUMPRESS_LINPRED, NO_COMPRESSION, NUMPRESS_SHLOGF, NUMPRESS_POSINT -> false;
+      case ZLIB, NUMPRESS_LINPRED_ZLIB, NUMPRESS_POSINT_ZLIB, NUMPRESS_SHLOGF_ZLIB -> true;
+    };
+  }
+
+  public boolean isNumpress() {
+    return switch (this) {
+      case NO_COMPRESSION, ZLIB -> false;
+      case NUMPRESS_LINPRED, NUMPRESS_SHLOGF, NUMPRESS_POSINT, NUMPRESS_LINPRED_ZLIB, NUMPRESS_POSINT_ZLIB, NUMPRESS_SHLOGF_ZLIB ->
+          true;
+    };
+  }
 }
 
 

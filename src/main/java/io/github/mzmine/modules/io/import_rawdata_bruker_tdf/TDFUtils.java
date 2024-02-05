@@ -37,7 +37,8 @@ import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleImagingFrame;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TDFLibrary;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks.CentroidData;
@@ -278,15 +279,15 @@ public class TDFUtils {
    * @param frameId   The id of the frame. See {@link TDFFrameTable}
    * @param scanBegin The first scan index (starting with 0)
    * @param scanEnd   The last scan index
-   * @return List of double[][]. Each array represents the data points of one scan
+   * @return List of {@link SimpleSpectralArrays}, each represents the data points of one scan
    */
-  public List<double[][]> loadDataPointsForFrame(final long frameId, final long scanBegin,
+  public List<SimpleSpectralArrays> loadDataPointsForFrame(final long frameId, final long scanBegin,
       final long scanEnd) {
     if (handle == 0L) {
       throw new IllegalStateException("No tdf data file opened yet.");
     }
 
-    final List<double[][]> dataPoints = new ArrayList<>((int) (scanEnd - scanBegin));
+    final List<SimpleSpectralArrays> dataPoints = new ArrayList<>((int) (scanEnd - scanBegin));
 
     // buffer to store our scans. allocation takes time, so we want to reuse it
     // cannot be final, since we might have to increase the buffer size on the run
@@ -336,10 +337,7 @@ public class TDFUtils {
 
         synchronized (tdfLib) {
           final double[] masses = convertIndicesToMZ(handle, frameId, indices);
-          double[][] dps = new double[2][];
-          dps[0] = masses;
-          dps[1] = intensities;
-          dataPoints.add(dps);
+          dataPoints.add(new SimpleSpectralArrays(masses, intensities));
         }
       }
       Arrays.fill(buffer, (byte) 0);
@@ -347,37 +345,25 @@ public class TDFUtils {
     return dataPoints;
   }
 
-  /**
-   * Loads mobility resolved scans of a specific frame. Tested with scan modes 0 and 8 (MS1 and
-   * PASEF-MS/MS)
-   *
-   * @param frameId    The id of the frame. See {@link TDFFrameTable}
-   * @param frameTable The frame table
-   * @return List of scans for the given frame id. Empty scans have been filtered out.
-   */
-  @Nullable
-  public List<BuildingMobilityScan> loadSpectraForTIMSFrame(final long frameId,
-      @NotNull final TDFFrameTable frameTable) {
-    return loadSpectraForTIMSFrame(frameId, frameTable, null);
-  }
 
   /**
    * Loads mobility resolved scans of a specific frame. Tested with scan modes 0 and 8 (MS1 and
    * PASEF-MS/MS)
    *
-   * @param frameId    The id of the frame. See {@link TDFFrameTable}
-   * @param frameTable The frame table
-   * @param msDetector Mass detector for the given ms level. May be null.
+   * @param frame           The id of the frame. See {@link TDFFrameTable}
+   * @param frameTable      The frame table
+   * @param processorConfig import scan processor config
    * @return List of scans for the given frame id. Empty scans have been filtered out.
    */
   @Nullable
-  public List<BuildingMobilityScan> loadSpectraForTIMSFrame(final long frameId,
-      @NotNull final TDFFrameTable frameTable, @Nullable final MassDetector msDetector) {
-
+  public List<BuildingMobilityScan> loadSpectraForTIMSFrame(final SimpleFrame frame,
+      @NotNull final TDFFrameTable frameTable,
+      @NotNull final ScanImportProcessorConfig processorConfig) {
+    final long frameId = frame.getFrameId();
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
     final List<BuildingMobilityScan> spectra = new ArrayList<>(numScans);
-    final List<double[][]> dataPoints = loadDataPointsForFrame(frameId, 0, numScans);
+    final List<SimpleSpectralArrays> dataPoints = loadDataPointsForFrame(frameId, 0, numScans);
 
     if (numScans != dataPoints.size()) {
       logger.warning(() -> "Number of scans for frame " + frameId + " in tdf (" + numScans
@@ -387,11 +373,10 @@ public class TDFUtils {
     }
 
     for (int i = 0; i < dataPoints.size(); i++) {
-      if (msDetector != null) {
-        spectra.add(new BuildingMobilityScan(i,
-            msDetector.getMassValues(dataPoints.get(i)[0], dataPoints.get(i)[1])));
-      } else {
-        spectra.add(new BuildingMobilityScan(i, dataPoints.get(i)[0], dataPoints.get(i)[1]));
+      SimpleSpectralArrays data = dataPoints.get(i);
+      if (processorConfig.hasProcessors()) {
+        data = processorConfig.processor().processScan(frame, data);
+        spectra.add(new BuildingMobilityScan(i, data.mzs(), data.intensities()));
       }
     }
 
@@ -401,7 +386,7 @@ public class TDFUtils {
   // ---------------------------------------------------------------------------------------------
   // AVERAGE FRAMES
   // -----------------------------------------------------------------------------------------------
-  private double[][] extractCentroidsForFrame(final long frameId, final int startScanNum,
+  private SimpleSpectralArrays extractCentroidsForFrame(final long frameId, final int startScanNum,
       final int endScanNum) {
     if (handle == 0L) {
       throw new IllegalStateException("No tdf data file opened yet.");
@@ -416,40 +401,28 @@ public class TDFUtils {
       if (error == 0) {
         logger.warning(() -> "Could not extract centroid scan for frame " + frameId + " for scans "
                              + startScanNum + " to " + endScanNum + ".");
-        return new double[][]{{0}, {0}};
+        return SimpleSpectralArrays.EMPTY;
       }
 
-      return data.toDoubles();
+      return new SimpleSpectralArrays(data.getMzs(), data.getIntensitiesAsDoubles());
     }
   }
 
-  /**
-   * @param frameId             the frame id.
-   * @param metaDataTable       {@link TDFMetaDataTable} to construct the frame.
-   * @param frameTable          {@link FramePrecursorTable} to construct the frame.
-   * @param maldiFrameInfoTable Nullable for LC-IMS-MS. Required in case a maldi file is loaded.
-   * @return The frame.
-   */
-  public SimpleFrame extractCentroidScanForTimsFrame(IMSRawDataFile newFile, final long frameId,
-      @NotNull final TDFMetaDataTable metaDataTable, @NotNull final TDFFrameTable frameTable,
-      @NotNull final FramePrecursorTable framePrecursorTable,
-      @Nullable final TDFMaldiFrameInfoTable maldiFrameInfoTable) {
-    return extractCentroidScanForTimsFrame(newFile, frameId, metaDataTable, frameTable,
-        framePrecursorTable, maldiFrameInfoTable, null, null);
-  }
 
   /**
    * @param frameId             the frame id.
    * @param metaDataTable       {@link TDFMetaDataTable} to construct the frame.
    * @param frameTable          {@link FramePrecursorTable} to construct the frame.
    * @param maldiFrameInfoTable Nullable for LC-IMS-MS. Required in case a maldi file is loaded.
+   * @param scanProcessorConfig
    * @return The frame.
    */
+  @Nullable
   public SimpleFrame extractCentroidScanForTimsFrame(IMSRawDataFile newFile, final long frameId,
       @NotNull final TDFMetaDataTable metaDataTable, @NotNull final TDFFrameTable frameTable,
       @NotNull final FramePrecursorTable framePrecursorTable,
       @Nullable final TDFMaldiFrameInfoTable maldiFrameInfoTable,
-      @Nullable final MassDetector ms1Detector, @Nullable final MassDetector ms2Detector) {
+      final ScanImportProcessorConfig scanProcessorConfig) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
@@ -466,27 +439,18 @@ public class TDFUtils {
     final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
         .floatValue();
 
-    double[][] data = extractCentroidsForFrame(frameId, 0, numScans);
-
-    if (msLevel == 1 && ms1Detector != null) {
-      data = ms1Detector.getMassValues(data[0], data[1]);
-    } else if (msLevel == 2 && ms2Detector != null) {
-      data = ms2Detector.getMassValues(data[0], data[1]);
-    }
-
-    final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
-        createPopulatedArrayFrom1(numScans));
-
     Range<Double> mzRange = metaDataTable.getMzRange();
 
     SimpleFrame frame;
     if (maldiFrameInfoTable == null || maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
-      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0], data[1],
+      // regular frame
+      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel, rt, null, null,
           MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange, MobilityType.TIMS, null,
           accumulationTime);
     } else {
-      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0],
-          data[1], MassSpectrumType.CENTROIDED, polarity,
+      // IMAGING
+      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel, rt, null, null,
+          MassSpectrumType.CENTROIDED, polarity,
           scanDefinition + " " + maldiFrameInfoTable.getSpotNameColumn().get(frameIndex), mzRange,
           MobilityType.TIMS, null, accumulationTime);
       Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
@@ -494,6 +458,23 @@ public class TDFUtils {
       ((SimpleImagingFrame) frame).setCoordinates(coords);
     }
 
+    // filters do not contain this frame
+    if (!scanProcessorConfig.scanFilter().matches(frame)) {
+      return null;
+    }
+
+    // load data after filters applied
+    SimpleSpectralArrays data = extractCentroidsForFrame(frameId, 0, numScans);
+
+    // process data?
+    if (scanProcessorConfig.hasProcessors()) {
+      data = scanProcessorConfig.processor().processScan(frame, data);
+    }
+    // finally set data and mobilities
+    frame.setDataPoints(data.mzs(), data.intensities());
+
+    final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
+        createPopulatedArrayFrom1(numScans));
     frame.setMobilities(mobilities);
 
     return frame;
@@ -524,7 +505,7 @@ public class TDFUtils {
       @NotNull final TDFMetaDataTable metaDataTable, @NotNull final TDFFrameTable frameTable,
       @NotNull final FramePrecursorTable framePrecursorTable,
       @Nullable final TDFMaldiFrameInfoTable maldiFrameInfoTable,
-      @Nullable final MassDetector ms1Detector, @Nullable final MassDetector ms2Detector) {
+      @NotNull final ScanImportProcessorConfig scanProcessorConfig) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
@@ -542,6 +523,26 @@ public class TDFUtils {
     final float accumulationTime = frameTable.getAccumulationTimeColumn().get(frameIndex)
         .floatValue();
 
+    SimpleFrame frame;
+    if (maldiFrameInfoTable == null || maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
+      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel, rt, null, null,
+          MassSpectrumType.PROFILE, polarity,
+          scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
+    } else {
+      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel, rt, null, null,
+          MassSpectrumType.PROFILE,
+          polarity, scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
+      Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
+          maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
+      ((SimpleImagingFrame) frame).setCoordinates(coords);
+    }
+
+    // filters do not contain this frame
+    if (!scanProcessorConfig.scanFilter().matches(frame)) {
+      return null;
+    }
+
+    // load data and process
     final int[] intensityData = extractProfileForFrame(frameId, 0, numScans);
 
     // remove all extra zeros
@@ -559,35 +560,21 @@ public class TDFUtils {
     filteredMzIndices.add(intensityData.length - 1);
     filteredIntensities.add(intensityData[intensityData.length - 1]);
 
+    // load data after filters applied
     final double[] profileMzs = convertIndicesToMZ(handle, frameId, filteredMzIndices.toIntArray());
 
-    final double data[][];
-    boolean massesDetected = false;
-    if (msLevel == 1 && ms1Detector != null) {
-      data = ms1Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray());
-      massesDetected = true;
-    } else if (msLevel == 2 && ms2Detector != null) {
-      data = ms2Detector.getMassValues(profileMzs, filteredIntensities.toDoubleArray());
-      massesDetected = true;
-    } else {
-      data = new double[2][];
-      data[0] = profileMzs;
-      data[1] = filteredIntensities.toDoubleArray();
-    }
+    var data = new SimpleSpectralArrays(profileMzs, filteredIntensities.toDoubleArray());
 
-    SimpleFrame frame;
-    if (maldiFrameInfoTable == null || maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
-      frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0], data[1],
-          massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE, polarity,
-          scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
-    } else {
-      frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel, rt, data[0],
-          data[1], massesDetected ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE,
-          polarity, scanDefinition, mzRange, MobilityType.TIMS, null, accumulationTime);
-      Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
-          maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
-      ((SimpleImagingFrame) frame).setCoordinates(coords);
+    // process data?
+    if (scanProcessorConfig.hasProcessors()) {
+      data = scanProcessorConfig.processor().processScan(frame, data);
+
+      if (scanProcessorConfig.isMassDetectActive(frame.getMSLevel())) {
+        frame.setSpectrumType(MassSpectrumType.CENTROIDED);
+      }
     }
+    // finally set data and mobilities
+    frame.setDataPoints(data.mzs(), data.intensities());
 
     final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
         createPopulatedArrayFrom1(numScans));

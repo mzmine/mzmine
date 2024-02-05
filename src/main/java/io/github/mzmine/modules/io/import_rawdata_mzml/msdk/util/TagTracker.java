@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,17 +26,17 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util;
 
 import io.github.msdk.MSDKRuntimeException;
-import java.util.ArrayDeque;
-import javolution.text.CharArray;
+import java.util.LinkedHashSet;
 
 /**
- * This class is not thread safe. If more than one thread attempts to use {@link #enter(CharArray)}
- * or {@link #exit(CharArray)} methods, the behavior is undefined.
+ * This class is not thread safe. If more than one thread attempts to use {@link #enter(String)}
+ * or {@link #exit(String)} methods, the behavior is undefined.
  */
 public class TagTracker {
 
-  private ArrayDeque<CharArray> stack;
-  private ArrayDeque<CharArray> pool;
+  // use hashmap for fast lookup
+  // last element is current tag
+  private LinkedHashSet<String> stack = new LinkedHashSet<>();
   /** Constant <code>DEFAULT_CHAR_ARR_SIZE=64</code> */
   protected final static int DEFAULT_CHAR_ARR_SIZE = 64;
 
@@ -55,8 +55,6 @@ public class TagTracker {
    */
   public TagTracker(int maxDepth) {
     this.maxDepth = maxDepth;
-    stack = new ArrayDeque<>();
-    pool = new ArrayDeque<>();
   }
 
   /**
@@ -69,12 +67,10 @@ public class TagTracker {
   /**
    * <p>enter.</p>
    *
-   * @param tag a {@link CharArray} object.
+   * @param tag a {@link String} object.
    */
-  public void enter(CharArray tag) {
-    final CharArray arr = borrowArr(tag.length());
-    copyContent(tag, arr);
-    stack.push(arr);
+  public void enter(String tag) {
+    stack.addLast(tag);
     if (stack.size() > maxDepth)
       throw new IllegalStateException("Max stack depth [" + maxDepth + "] exceeded");
   }
@@ -82,10 +78,10 @@ public class TagTracker {
   /**
    * <p>exit.</p>
    *
-   * @param tag a {@link CharArray} object.
+   * @param tag a {@link String} object.
    */
-  public void exit(CharArray tag) {
-    final CharArray top = stack.peek();
+  public void exit(String tag) {
+    final String top = stack.removeLast();
     if (top == null) {
       throw new MSDKRuntimeException("Stack exit called when the stack was empty.");
     }
@@ -93,69 +89,29 @@ public class TagTracker {
       throw (new MSDKRuntimeException(
           "Cannot exit tag '" + tag + "'. Last tag entered was '" + top + "'"));
     }
-    returnArr(stack.pop());
   }
 
   /**
    * <p>inside.</p>
    *
-   * @param tag a {@link CharSequence} object.
+   * @param tag a {@link String} object.
    * @return a boolean.
    */
-  public boolean inside(CharSequence tag) {
-    if (tag == null)
-      return false;
-    for (CharArray aStack : stack) {
-      if (aStack.contentEquals(tag)) {
-        return true;
-      }
-    }
-    return false;
+  public boolean inside(String tag) {
+    return tag != null && stack.contains(tag);
   }
 
   /**
    * <p>current.</p>
    *
-   * @return a {@link CharArray} object.
+   * @return a {@link String} object.
    */
-  public CharArray current() {
-    final CharArray top = stack.peek();
-    if (top == null)
-      return new CharArray("");
+  public String current() {
+    final String top = stack.getLast();
+    if (top == null) {
+      return "";
+    }
     return top;
-  }
-
-  private CharArray createArr(int capacity) {
-    return new CharArray(capacity);
-  }
-
-  private CharArray borrowArr(int capacity) {
-    if (pool.isEmpty())
-      return createArr(capacity);
-    final CharArray c = pool.pop();
-    if (c.array().length < capacity) {
-      c.setArray(new char[capacity], 0, 0);
-    }
-    return c;
-  }
-
-  /**
-   * Copy content from c1 to c2. If c2's buffer is not big enough, it will be reassigned.
-   * 
-   * @param c1 Copy from.
-   * @param c2 Copy to. Potentially increasing the buffer size and erasing all previous content.
-   */
-  private void copyContent(final CharArray c1, CharArray c2) {
-    final char[] a1 = c1.array();
-    final char[] a2 = c2.array().length >= c1.length() ? c2.array() : new char[c1.length()];
-    for (int i = 0; i < c1.length(); i++) {
-      a2[i] = a1[c1.offset() + i];
-    }
-    c2.setArray(a2, 0, c1.length());
-  }
-
-  private void returnArr(CharArray arr) {
-    pool.push(arr);
   }
 
 }

@@ -33,12 +33,13 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import java.util.Collection;
 
 /**
  * This class represent one spectrum of a raw data file.
@@ -123,7 +124,8 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   /**
    * @return RawDataFile containing this Scan
    */
-  @NotNull RawDataFile getDataFile();
+  @NotNull
+  RawDataFile getDataFile();
 
   /**
    * @return Scan number

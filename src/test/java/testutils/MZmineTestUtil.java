@@ -49,11 +49,11 @@ package testutils;/*
  */
 
 import com.google.common.collect.Comparators;
-import import_data.MzMLImportTest;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
@@ -73,6 +73,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.time.StopWatch;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
@@ -83,6 +84,7 @@ import org.junit.jupiter.api.Assertions;
 public class MZmineTestUtil {
 
   private static final Logger logger = Logger.getLogger(MZmineTestUtil.class.getName());
+
   /**
    * Call a module in MZmineCore and wait for it to finish.
    *
@@ -113,6 +115,7 @@ public class MZmineTestUtil {
   public static TaskResult callModuleWithTimeout(long timeout, TimeUnit unit,
       @NotNull Class<? extends MZmineRunnableModule> moduleClass, @NotNull ParameterSet parameters)
       throws InterruptedException {
+    StopWatch watch = StopWatch.createStarted();
     List<Task> tasks = MZmineCore.runMZmineModule(moduleClass, parameters);
     List<AbstractTask> abstractTasks = new ArrayList<>(tasks.size());
     for (Task t : tasks) {
@@ -128,6 +131,7 @@ public class MZmineTestUtil {
     List<String> errorMessage = Collections.synchronizedList(new ArrayList<>());
     CountDownLatch lock = new CountDownLatch(1);
     new AllTasksFinishedListener(abstractTasks, false, at -> {
+      watch.stop();
       // free lock if succeeded
       lock.countDown();
     }, errorTasks -> {
@@ -139,7 +143,7 @@ public class MZmineTestUtil {
 
     // wait
     if (!lock.await(timeout, unit)) {
-      return TaskResult.TIMEOUT;
+      return new TaskResult.TIMEOUT(moduleClass);
     }
 
     if (errorMessage.size() > 0) {
@@ -148,9 +152,9 @@ public class MZmineTestUtil {
               .collect(Collectors.joining("; ")));
     }
     if (abstractTasks.stream().allMatch(task -> task.isFinished())) {
-      return TaskResult.FINISHED;
+      return new TaskResult.FINISHED(moduleClass, watch.getNanoTime());
     } else {
-      return TaskResult.ERROR;
+      return new TaskResult.ERROR(moduleClass);
     }
   }
 
@@ -169,27 +173,37 @@ public class MZmineTestUtil {
   }
 
 
-  public static void importFiles(final List<String> fileNames, long timeoutSeconds)
+  public static TaskResult importFiles(final List<String> fileNames, long timeoutSeconds)
       throws InterruptedException {
-    File[] files = fileNames.stream()
-        .map(name -> new File(MzMLImportTest.class.getClassLoader().getResource(name).getFile()))
-        .toArray(File[]::new);
+    return importFiles(fileNames, timeoutSeconds, null);
+  }
+
+  public static TaskResult importFiles(final List<String> fileNames, long timeoutSeconds,
+      @Nullable AdvancedSpectraImportParameters advanced) throws InterruptedException {
+    File[] files = fileNames.stream().map(name -> {
+      var file = new File(name);
+      if (file.exists()) {
+        return file;
+      }
+      return new File(MZmineTestUtil.class.getClassLoader().getResource(name).getFile());
+    }).toArray(File[]::new);
 
     AllSpectralDataImportParameters paramDataImport = new AllSpectralDataImportParameters();
     paramDataImport.setParameter(AllSpectralDataImportParameters.fileNames, files);
     paramDataImport.setParameter(SpectralLibraryImportParameters.dataBaseFiles, new File[0]);
-    paramDataImport.setParameter(AllSpectralDataImportParameters.advancedImport, false);
+    paramDataImport.setParameter(AllSpectralDataImportParameters.advancedImport, advanced != null);
+    if (advanced != null) {
+      var advancedP = paramDataImport.getParameter(AllSpectralDataImportParameters.advancedImport);
+      advancedP.setEmbeddedParameters(advanced);
+    }
 
     logger.info("Testing data import of mzML and mzXML without advanced parameters");
     TaskResult finished = MZmineTestUtil.callModuleWithTimeout(timeoutSeconds,
         AllSpectralDataImportModule.class, paramDataImport);
 
     // should have finished by now
-    Assertions.assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
-      case TaskResult.TIMEOUT -> "Timeout during data import. Not finished in time.";
-      case TaskResult.ERROR -> "Error during data import.";
-      case TaskResult.FINISHED -> "";
-    });
+    Assertions.assertInstanceOf(TaskResult.FINISHED.class, finished, finished.description());
+    return finished;
   }
 
   @Nullable

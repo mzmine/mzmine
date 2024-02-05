@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,7 +45,11 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleImagingScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.impl.builders.SimpleBuildingScan;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -54,7 +58,6 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Map;
@@ -73,6 +76,7 @@ public class ImzMLImportTask extends AbstractTask {
 
   private File file;
   private MZmineProject project;
+  private final ScanImportProcessorConfig scanProcessorConfig;
   private ImagingRawDataFile newMZmineFile;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
@@ -92,12 +96,14 @@ public class ImzMLImportTask extends AbstractTask {
   private static final int PARENT_STACK_SIZE = 20;
   private LinkedList<SimpleScan> parentStack = new LinkedList<>();
 
-  public ImzMLImportTask(MZmineProject project, File fileToOpen, ImagingRawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+  public ImzMLImportTask(MZmineProject project, File fileToOpen,
+      final @NotNull ScanImportProcessorConfig scanProcessorConfig,
+      ImagingRawDataFile newMZmineFile, @NotNull final Class<? extends MZmineModule> module,
+      @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
+    this.scanProcessorConfig = scanProcessorConfig;
     this.newMZmineFile = newMZmineFile;
     this.parameters = parameters;
     this.module = module;
@@ -148,19 +154,37 @@ public class ImzMLImportTask extends AbstractTask {
         double precursorMz = extractPrecursorMz(spectrum);
         int precursorCharge = extractPrecursorCharge(spectrum);
         String scanDefinition = extractScanDefinition(spectrum);
-        double mzValues[] = extractMzValues(spectrum);
-        double intensityValues[] = extractIntensityValues(spectrum);
-
         // imaging
         Coordinates coord = extractCoordinates(spectrum);
 
+        // TODO find out if spectrum type is encoded in imzml file
+        var metadataScan = new SimpleBuildingScan(scanNumber, msLevel, polarity,
+            MassSpectrumType.CENTROIDED, retentionTime, precursorMz, precursorCharge);
+        if (!scanProcessorConfig.scanFilter().matches(metadataScan)) {
+          // skip parsing of data and skip this scan completely
+          parsedScans++;
+          continue;
+        }
+
+        double[] mzValues = extractMzValues(spectrum);
+        double[] intensityValues = extractIntensityValues(spectrum);
         // Auto-detect whether this scan is centroided
+        SimpleSpectralArrays data = new SimpleSpectralArrays(mzValues, intensityValues);
         MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(mzValues, intensityValues);
 
-        SimpleImagingScan scan = new SimpleImagingScan(newMZmineFile, scanNumber, msLevel,
-            retentionTime, precursorMz, precursorCharge, mzValues, intensityValues, spectrumType,
-            polarity, scanDefinition, null, coord);
+        data = scanProcessorConfig.processor().processScan(metadataScan, data);
 
+        if (scanProcessorConfig.isMassDetectActive(msLevel)) {
+          spectrumType = MassSpectrumType.CENTROIDED;
+        }
+
+        SimpleImagingScan scan = new SimpleImagingScan(newMZmineFile, scanNumber, msLevel,
+            retentionTime, precursorMz, precursorCharge, data.mzs(), data.intensities(),
+            spectrumType, polarity, scanDefinition, null, coord);
+
+        if (scanProcessorConfig.isMassDetectActive(msLevel)) {
+          scan.addMassList(new ScanPointerMassList(scan));
+        }
 
         /*
          * Verify the size of parentStack. The actual size of the window to cover possible
@@ -184,7 +208,8 @@ public class ImzMLImportTask extends AbstractTask {
 
       // set settings of image
       newMZmineFile.setImagingParam(new ImagingParameters(imzml));
-      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
+      newMZmineFile.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {

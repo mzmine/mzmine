@@ -51,10 +51,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderPa
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.SelectedScanTypes;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest.FactorOfLowestMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
@@ -116,6 +113,7 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportParameters;
 import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportModule;
 import io.github.mzmine.modules.io.export_network_graphml.NetworkGraphMlExportParameters;
+import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
@@ -847,12 +845,19 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   }
 
   protected void makeAndAddImportTask(final BatchQueue q) {
-    // todo make auto mass detector work, so we can use it here.
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
-    param.getParameter(AllSpectralDataImportParameters.advancedImport).setValue(false);
     param.getParameter(AllSpectralDataImportParameters.fileNames).setValue(dataFiles);
     param.getParameter(SpectralLibraryImportParameters.dataBaseFiles).setValue(libraries);
+    // turn advanced off but still set the noise levels etc
+    param.getParameter(AllSpectralDataImportParameters.advancedImport).setValue(false);
+
+    boolean denormalize = massDetectorOption.getValueType() == FACTOR_OF_LOWEST_SIGNAL;
+    var advancedParameters = AdvancedSpectraImportParameters.create(
+        massDetectorOption.getValueType(), getNoiseLevelForMsLevel(1), getNoiseLevelForMsLevel(2),
+        null, ScanSelection.ALL_SCANS, denormalize);
+    param.getParameter(AllSpectralDataImportParameters.advancedImport)
+        .setEmbeddedParameters(advancedParameters);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(AllSpectralDataImportModule.class), param));
@@ -860,6 +865,26 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
   protected void makeAndAddMassDetectionStepForAllScans(final BatchQueue q) {
     makeAndAddMassDetectionStep(q, 0, SelectedScanTypes.SCANS);
+  }
+
+  public double getNoiseLevelForMsLevel(int msLevel) {
+    return getNoiseLevelForMsLevel(msLevel, SelectedScanTypes.SCANS);
+  }
+
+  public double getNoiseLevelForMsLevel(int msLevel, SelectedScanTypes scanTypes) {
+    return switch (massDetectorOption.getValueType()) {
+      case ABSOLUTE_NOISE_LEVEL -> {
+        if (msLevel == 1 && scanTypes == SelectedScanTypes.MOBLITY_SCANS) {
+          yield massDetectorOption.getMs1NoiseLevel() / 5; // lower threshold for mobility scans
+        } else if (msLevel >= 2) {
+          yield massDetectorOption.getMsnNoiseLevel();
+        } else {
+          yield massDetectorOption.getMs1NoiseLevel();
+        }
+      }
+      case FACTOR_OF_LOWEST_SIGNAL -> msLevel >= 2 ? massDetectorOption.getMsnNoiseLevel()
+          : massDetectorOption.getMs1NoiseLevel();
+    };
   }
 
   /**
@@ -870,33 +895,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
 
     // use factor of lowest or auto mass detector
     // factor of lowest only works on centroid for now
-    MassDetector massDetector = null;
-    ParameterSet detectorParam = null;
-
-    switch (massDetectorOption.getValueType()) {
-      case ABSOLUTE_NOISE_LEVEL -> {
-        massDetector = MassDetectors.AUTO.getDefaultModule();
-        detectorParam = MassDetectors.AUTO.getParametersCopy();
-
-        final double noiseLevel;
-        if (msLevel == 1 && scanTypes == SelectedScanTypes.MOBLITY_SCANS) {
-          noiseLevel =
-              massDetectorOption.getMs1NoiseLevel() / 5; // lower threshold for mobility scans
-        } else if (msLevel >= 2) {
-          noiseLevel = massDetectorOption.getMsnNoiseLevel();
-        } else {
-          noiseLevel = massDetectorOption.getMs1NoiseLevel();
-        }
-        detectorParam.setParameter(AutoMassDetectorParameters.noiseLevel, noiseLevel);
-      }
-      case FACTOR_OF_LOWEST_SIGNAL -> {
-        massDetector = MassDetectors.FACTOR_OF_LOWEST.getDefaultModule();
-        detectorParam = MassDetectors.FACTOR_OF_LOWEST.getParametersCopy();
-        double noiseFactor = msLevel >= 2 ? massDetectorOption.getMsnNoiseLevel()
-            : massDetectorOption.getMs1NoiseLevel();
-        detectorParam.setParameter(FactorOfLowestMassDetectorParameters.noiseFactor, noiseFactor);
-      }
-    }
+    MZmineProcessingStep<MassDetector> massDetectorStep = massDetectorOption.getValueType()
+        .createMassDetectorStep(getNoiseLevelForMsLevel(msLevel, scanTypes));
 
     // set the main parameters
     final ParameterSet param = MZmineCore.getConfiguration()
@@ -916,8 +916,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
           .setValue(true, new ScanSelection(MsLevelFilter.ALL_LEVELS));
     }
     param.setParameter(MassDetectionParameters.scanTypes, scanTypes);
-    param.setParameter(MassDetectionParameters.massDetector,
-        new MZmineProcessingStepImpl<>(massDetector, detectorParam));
+    param.setParameter(MassDetectionParameters.massDetector, massDetectorStep);
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(MassDetectionModule.class),
         param));

@@ -156,10 +156,9 @@ public class MassDetectionParameters extends SimpleParameterSet {
         }
       }
 
-      if ((!mostlyCentroided) && (massDetectorName.startsWith("Centroid")
-                                  || massDetectorName.startsWith("Factor"))) {
+      if ((!mostlyCentroided) && (massDetectorName.startsWith("Centroid"))) {
         String msg = """
-            MZmine thinks you are running the centroid or factor mass detector on (mostly) profile scans.
+            MZmine thinks you are running the centroid on (mostly) profile scans.
             This will likely produce wrong results.
             Continue anyway?""";
         if (MZmineCore.getDesktop().displayConfirmation(msg, ButtonType.YES, ButtonType.NO)

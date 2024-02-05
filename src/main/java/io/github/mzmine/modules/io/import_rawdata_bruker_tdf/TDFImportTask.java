@@ -40,9 +40,7 @@ import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorUtils;
-import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.BuildingPASEFMsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.FramePrecursorTable;
@@ -84,11 +82,6 @@ public class TDFImportTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(TDFImportTask.class.getName());
   private final MZmineProject project;
 
-  @Nullable
-  private MassDetector ms1Detector;
-  @Nullable
-  private MassDetector ms2Detector;
-
   private File fileNameToOpen;
   private File tdf, tdfBin;
   private String rawDataFileName;
@@ -102,6 +95,7 @@ public class TDFImportTask extends AbstractTask {
   private TDFMaldiFrameInfoTable maldiFrameInfoTable;
   private TDFMaldiFrameLaserInfoTable maldiFrameLaserInfoTable;
   private IMSRawDataFile newMZmineFile;
+  private final ScanImportProcessorConfig scanProcessorConfig;
   private final Class<? extends MZmineModule> module;
   private final ParameterSet parameters;
   private boolean isMaldi;
@@ -131,32 +125,21 @@ public class TDFImportTask extends AbstractTask {
   public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
-    this(project, file, newMZmineFile, null, module, parameters, moduleCallDate);
+    this(project, file, newMZmineFile, ScanImportProcessorConfig.createDefault(), module,
+        parameters, moduleCallDate);
   }
 
   public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile,
-      @Nullable final AdvancedSpectraImportParameters advancedParam,
+      final @NotNull ScanImportProcessorConfig scanProcessorConfig,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
     super(newMZmineFile.getMemoryMapStorage(), moduleCallDate);
     this.fileNameToOpen = file;
     this.project = project;
     this.newMZmineFile = newMZmineFile;
+    this.scanProcessorConfig = scanProcessorConfig;
     this.module = module;
     this.parameters = parameters;
-
-    if (advancedParam != null) {
-      if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
-        var detectorStep = advancedParam.getParameter(
-            AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter().getValue();
-        ms1Detector = MassDetectorUtils.createMassDetector(detectorStep);
-      }
-      if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
-        var detectorStep = advancedParam.getParameter(
-            AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter().getValue();
-        ms2Detector = MassDetectorUtils.createMassDetector(detectorStep);
-      }
-    }
   }
 
   @Override
@@ -274,15 +257,19 @@ public class TDFImportTask extends AbstractTask {
         final SimpleFrame frame;
         if (!importProfile) {
           frame = tdfUtils.extractCentroidScanForTimsFrame(newMZmineFile, frameId, metaDataTable,
-              frameTable, framePrecursorTable, maldiFrameInfoTable, ms1Detector, ms2Detector);
+              frameTable, framePrecursorTable, maldiFrameInfoTable, scanProcessorConfig);
         } else {
           frame = tdfUtils.extractProfileScanForFrame(newMZmineFile, frameId, metaDataTable,
-              frameTable, framePrecursorTable, maldiFrameInfoTable, ms1Detector, ms2Detector);
+              frameTable, framePrecursorTable, maldiFrameInfoTable, scanProcessorConfig);
         }
 
-        if (frame.getMSLevel() == 1 && ms1Detector != null) {
-          frame.addMassList(new ScanPointerMassList(frame));
-        } else if (frame.getMSLevel() == 2 && ms2Detector != null) {
+        // frame might be null when filtered out - just continue with next
+        if (frame == null) {
+          loadedFrames++;
+          continue;
+        }
+
+        if (scanProcessorConfig.isMassDetectActive(frame.getMSLevel())) {
           frame.addMassList(new ScanPointerMassList(frame));
         }
 
@@ -418,15 +405,14 @@ public class TDFImportTask extends AbstractTask {
           + numFrames);
       setFinishedPercentage(0.1 + (0.9 * ((double) loadedFrames / numFrames)));
 
-      final int msLevel = frame.getMSLevel();
-      final MassDetector detector = msLevel == 1 ? ms1Detector : ms2Detector;
-      final List<BuildingMobilityScan> spectra = tdfUtils.loadSpectraForTIMSFrame(
-          frame.getFrameId(), frameTable, detector);
+      final List<BuildingMobilityScan> spectra = tdfUtils.loadSpectraForTIMSFrame(frame, frameTable,
+          scanProcessorConfig);
       if (spectra.isEmpty()) {
         spectra.add(new BuildingMobilityScan(0, new double[]{}, new double[]{}));
       }
 
-      frame.setMobilityScans(spectra, detector != null);
+      boolean useAsMassList = scanProcessorConfig.isMassDetectActive(frame.getMSLevel());
+      frame.setMobilityScans(spectra, useAsMassList);
 
       if (isCanceled()) {
         return;

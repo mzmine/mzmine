@@ -71,9 +71,7 @@ public class ProjectLoadTest {
     final ProjectOpeningTask task = new ProjectOpeningTask(param, Instant.now());
     final TaskResult result = MZmineTestUtil.callModuleWithTimeout(60, ProjectLoadModule.class,
         param);
-    if (result != TaskResult.FINISHED) {
-      Assertions.fail("Error while importing project");
-    }
+    Assertions.assertInstanceOf(TaskResult.FINISHED.class, result, result.description());
 
     var flist = MZmineCore.getProjectManager().getCurrentProject()
         .getFeatureList("Aligned feature list corr PEARSON r greq 0.85 dp greq 5");

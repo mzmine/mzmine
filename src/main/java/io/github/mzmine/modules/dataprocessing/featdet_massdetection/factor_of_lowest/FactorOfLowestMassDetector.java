@@ -25,14 +25,17 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.factor_of_lowest;
 
-import gnu.trove.list.array.TDoubleArrayList;
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
 import io.github.mzmine.parameters.ParameterSet;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Remove peaks below the minimum intensity x a user defined factor
+ * Remove peaks below the minimum intensity x a user defined factor.
+ * Can be applied to profile and centroid mode data
  */
 public class FactorOfLowestMassDetector implements MassDetector {
 
@@ -50,6 +53,12 @@ public class FactorOfLowestMassDetector implements MassDetector {
   }
 
   public static double[][] getMassValues(MassSpectrum spectrum, double noiseFactor) {
+    // need to apply centroiding to profile data first
+    if (spectrum.getSpectrumType() == MassSpectrumType.PROFILE) {
+      double[][] centroided = ExactMassDetector.getMassValues(spectrum, 0);
+      return getMassValues(centroided[0], centroided[1], MassSpectrumType.CENTROIDED, noiseFactor);
+    }
+
     // most likely working on {@link ScanDataAccess}
     // get the minimum intensity and base noise on this
     double noiseLevel = minIntensity(spectrum) * noiseFactor;
@@ -58,8 +67,8 @@ public class FactorOfLowestMassDetector implements MassDetector {
     final int points = spectrum.getNumberOfDataPoints();
 
     // lists of primitive doubles
-    TDoubleArrayList mzs = new TDoubleArrayList(points);
-    TDoubleArrayList intensities = new TDoubleArrayList(points);
+    DoubleArrayList mzs = new DoubleArrayList(points);
+    DoubleArrayList intensities = new DoubleArrayList(points);
     // Find possible mzPeaks
     for (int i = 0; i < points; i++) {
       // Is intensity above the noise level?
@@ -70,11 +79,17 @@ public class FactorOfLowestMassDetector implements MassDetector {
         intensities.add(intensity);
       }
     }
-    return new double[][]{mzs.toArray(), intensities.toArray()};
+    return new double[][]{mzs.toDoubleArray(), intensities.toDoubleArray()};
   }
 
-  public static double[][] getMassValues(double[] mzs, double[] intensities, double noiseFactor) {
+  public static double[][] getMassValues(double[] mzs, double[] intensities,
+      final @NotNull MassSpectrumType type, double noiseFactor) {
     assert mzs.length == intensities.length;
+    // need to apply centroiding to profile data first
+    if (type == MassSpectrumType.PROFILE) {
+      double[][] centroided = ExactMassDetector.getMassValues(mzs, intensities, 0);
+      return getMassValues(centroided[0], centroided[1], MassSpectrumType.CENTROIDED, noiseFactor);
+    }
 
     // get the minimum intensity and base noise on this
     double noiseLevel = minIntensity(intensities) * noiseFactor;
@@ -82,8 +97,8 @@ public class FactorOfLowestMassDetector implements MassDetector {
     // use number of centroid signals as base array list capacity
     final int points = mzs.length;
     // lists of primitive doubles
-    TDoubleArrayList pickedMZs = new TDoubleArrayList(points);
-    TDoubleArrayList pickedIntensities = new TDoubleArrayList(points);
+    DoubleArrayList pickedMZs = new DoubleArrayList(points);
+    DoubleArrayList pickedIntensities = new DoubleArrayList(points);
 
     // Find possible mzPeaks
     for (int i = 0; i < points; i++) {
@@ -94,7 +109,7 @@ public class FactorOfLowestMassDetector implements MassDetector {
         pickedIntensities.add(intensities[i]);
       }
     }
-    return new double[][]{pickedMZs.toArray(), pickedIntensities.toArray()};
+    return new double[][]{pickedMZs.toDoubleArray(), pickedIntensities.toDoubleArray()};
   }
 
   private static double minIntensity(double[] rawIntensities) {
@@ -132,8 +147,9 @@ public class FactorOfLowestMassDetector implements MassDetector {
   }
 
   @Override
-  public double[][] getMassValues(double[] mzs, double[] intensities) {
-    return getMassValues(mzs, intensities, noiseFactor);
+  public double[][] getMassValues(double[] mzs, double[] intensities,
+      final @NotNull MassSpectrumType type) {
+    return getMassValues(mzs, intensities, type, noiseFactor);
   }
 
   @Override

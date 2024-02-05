@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,329 +25,208 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk;
 
+import com.fasterxml.aalto.stax.InputFactoryImpl;
 import io.github.msdk.MSDKException;
-import io.github.msdk.MSDKMethod;
-import io.github.msdk.datamodel.Chromatogram;
-import io.github.msdk.datamodel.MsScan;
-import io.github.msdk.datamodel.RawDataFile;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLParser;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.FileMemoryMapper;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.function.Predicate;
+import java.time.Instant;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import javolution.text.CharArray;
-import javolution.xml.internal.stream.XMLStreamReaderImpl;
-import javolution.xml.stream.XMLStreamConstants;
-import javolution.xml.stream.XMLStreamException;
+import java.util.zip.DataFormatException;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * <p>
- * This class contains methods which parse data in MzML format from {@link File File}, {@link Path
- * Path} or {@link InputStream InputStream} <br> {@link MsScan Scan}s and {@link Chromatogram
- * Chromatogram}s will be parsed, and the values pre-loaded when the {@link Predicate Predicate} is
- * passed. Other {@link MsScan Scan}s and {@link Chromatogram Chromatogram}s can be loaded on demand
- * if the source is a {@link File File}, whereas, they will be dropped if the source is an {@link
- * InputStream InputStream}
- * </p>
+ * This class contains methods which parse data in MzML format from {@link java.io.File File},
+ * {@link Path} or {@link InputStream InputStream} <br> scans will be parsed, and the values
+ * pre-loaded. Scans can be filtered out.
  */
-public class MzMLFileImportMethod implements MSDKMethod<RawDataFile> {
+public class MzMLFileImportMethod extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(MzMLFileImportMethod.class.getName());
   private final File mzMLFile;
-
   private final InputStream inputStream;
-  private MzMLRawDataFile newRawFile;
   private MzMLParser parser;
-  private volatile boolean canceled;
-  private int lastLoggedProgress;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-  private Predicate<MsScan> msScanPredicate = s -> true;
-  private Predicate<Chromatogram> chromatogramPredicate = c -> true;
+
+  private MzMLRawDataFile newRawFile;
+  private final @NotNull ScanImportProcessorConfig scanProcessorConfig;
 
   /**
-   * <p>
-   * Constructor for MzMLFileImportMethod.
-   * </p>
-   *
-   * @param mzMLFilePath a {@link String String} which contains the absolute path to the MzML File.
+   * Read file
    */
-  public MzMLFileImportMethod(String mzMLFilePath) {
-    this(new File(mzMLFilePath), s -> true, c -> true);
+  public MzMLFileImportMethod(@NotNull Instant moduleCallDate, File mzMLFile,
+      MemoryMapStorage storage, @NotNull ScanImportProcessorConfig scanProcessorConfig) {
+    this(moduleCallDate, mzMLFile, null, storage, scanProcessorConfig);
   }
 
-  /**
-   * <p>
-   * Constructor for MzMLFileImportMethod.
-   * </p>
-   *
-   * @param mzMLFilePath          a {@link String String} which contains the absolute path to the
-   *                              MzML File.
-   * @param msScanPredicate       Only {@link MsScan MsScan}s which pass this predicate will be
-   *                              parsed by the parser and added to the {@link MzMLRawDataFile
-   *                              RawDataFile} returned by the {@link #getResult() getResult()}
-   *                              method.
-   * @param chromatogramPredicate Only {@link Chromatogram Chromatogram}s which pass this predicate
-   *                              will be parsed by the parser and added to the {@link
-   *                              MzMLRawDataFile RawDataFile} returned by the {@link #getResult()
-   *                              getResult()} method.
-   */
-  public MzMLFileImportMethod(String mzMLFilePath, Predicate<MsScan> msScanPredicate,
-      Predicate<Chromatogram> chromatogramPredicate) {
-    this(new File(mzMLFilePath), msScanPredicate, chromatogramPredicate);
-  }
 
   /**
-   * <p>
-   * Constructor for MzMLFileImportMethod.
-   * </p>
-   *
-   * @param mzMLFilePath a {@link Path Path} object which contains the path to the MzML File.
-   */
-  public MzMLFileImportMethod(Path mzMLFilePath) {
-    this(mzMLFilePath.toFile(), s -> false, c -> false);
-  }
-
-  /**
-   * <p>
-   * Constructor for MzMLFileImportMethod.
-   * </p>
-   *
-   * @param mzMLFilePath          a {@link Path Path} object which contains the path to the MzML
-   *                              File.
-   * @param msScanPredicate       Only {@link MsScan MsScan}s which pass this predicate will be
-   *                              parsed by the parser and added to the {@link MzMLRawDataFile
-   *                              RawDataFile} returned by the {@link #getResult() getResult()}
-   *                              method.
-   * @param chromatogramPredicate Only {@link Chromatogram Chromatogram}s which pass this predicate
-   *                              will be parsed by the parser and added to the {@link
-   *                              MzMLRawDataFile RawDataFile} returned by the {@link #getResult()
-   *                              getResult()} method.
-   */
-  public MzMLFileImportMethod(Path mzMLFilePath, Predicate<MsScan> msScanPredicate,
-      Predicate<Chromatogram> chromatogramPredicate) {
-    this(mzMLFilePath.toFile(), msScanPredicate, chromatogramPredicate);
-  }
-
-  /**
-   * <p>
-   * Constructor for MzMLFileImportMethod.
-   * </p>
-   *
-   * @param mzMLFile a {@link File File} object instance of the MzML File.
-   */
-  public MzMLFileImportMethod(File mzMLFile) {
-    this(mzMLFile, null, s -> false, c -> false);
-  }
-
-  /**
-   * <p>
-   * Constructor for MzMLFileImportMethod.
-   * </p>
-   *
-   * @param mzMLFile              a {@link File File} object instance of the MzML File.
-   * @param msScanPredicate       Only {@link MsScan MsScan}s which pass this predicate will be
-   *                              parsed by the parser and added to the {@link MzMLRawDataFile
-   *                              RawDataFile} returned by the {@link #getResult() getResult()}
-   *                              method.
-   * @param chromatogramPredicate Only {@link Chromatogram Chromatogram}s which pass this predicate
-   *                              will be parsed by the parser and added to the {@link
-   *                              MzMLRawDataFile RawDataFile} returned by the {@link #getResult()
-   *                              getResult()} method.
-   */
-  public MzMLFileImportMethod(File mzMLFile, Predicate<MsScan> msScanPredicate,
-      Predicate<Chromatogram> chromatogramPredicate) {
-    this(mzMLFile, null, msScanPredicate, chromatogramPredicate);
-  }
-
-  /**
-   * <p>
-   * Constructor for MzMLFileImportMethod.
-   * </p>
+   * Read stream, e.g., from thermo RAW file parser
    *
    * @param inputStream an {@link InputStream InputStream} which contains data in MzML format.
    */
-  public MzMLFileImportMethod(InputStream inputStream) {
-    this(null, inputStream, s -> true, c -> true);
+  public MzMLFileImportMethod(@NotNull Instant moduleCallDate, InputStream inputStream,
+      MemoryMapStorage storage, @NotNull ScanImportProcessorConfig scanProcessorConfig) {
+    this(moduleCallDate, null, inputStream, storage, scanProcessorConfig);
   }
 
-  /**
-   * <p>
-   * Constructor for MzMLFileImportMethod.
-   * </p>
-   *
-   * @param inputStream           an {@link InputStream InputStream} which contains data in MzML
-   *                              format.
-   * @param msScanPredicate       Only {@link MsScan MsScan}s which pass this predicate will be
-   *                              parsed by the parser and added to the {@link MzMLRawDataFile
-   *                              RawDataFile} returned by the {@link #getResult() getResult()}
-   *                              method.
-   * @param chromatogramPredicate Only {@link Chromatogram Chromatogram}s which pass this predicate
-   *                              will be parsed by the parser and added to the {@link
-   *                              MzMLRawDataFile RawDataFile} returned by the {@link #getResult()
-   *                              getResult()} method.
-   */
-  public MzMLFileImportMethod(InputStream inputStream, Predicate<MsScan> msScanPredicate,
-      Predicate<Chromatogram> chromatogramPredicate) {
-    this(null, inputStream, msScanPredicate, chromatogramPredicate);
-  }
 
   /**
-   * <p>
-   * Internal constructor used to initialize instances of this object using other constructors.
-   * </p>
+   * Read file or stream. One is null
    */
-  private MzMLFileImportMethod(File mzMLFile, InputStream inputStream,
-      Predicate<MsScan> msScanPredicate, Predicate<Chromatogram> chromatogramPredicate) {
+  private MzMLFileImportMethod(@NotNull Instant moduleCallDate, File mzMLFile,
+      InputStream inputStream, @Nullable MemoryMapStorage storage,
+      @NotNull ScanImportProcessorConfig scanProcessorConfig) {
+    super(storage, moduleCallDate);
     this.mzMLFile = mzMLFile;
     this.inputStream = inputStream;
-    this.canceled = false;
-    this.lastLoggedProgress = 0;
-    this.msScanPredicate = this.msScanPredicate.and(msScanPredicate);
-    this.chromatogramPredicate = this.chromatogramPredicate.and(chromatogramPredicate);
+    this.scanProcessorConfig = scanProcessorConfig;
+  }
+
+  @Override
+  public void run() {
+    setStatus(TaskStatus.PROCESSING);
+    try {
+      parseMzMl();
+    } catch (MSDKException e) {
+      var name = newRawFile == null ? "" : newRawFile.getName();
+      setErrorMessage("Error during parsing of mzML/raw file " + name);
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+    setStatus(TaskStatus.FINISHED);
   }
 
   /**
-   * {@inheritDoc}
-   *
-   * <p>
    * Parse the MzML data and return the parsed data
-   * </p>
    *
    * @return a {@link MzMLRawDataFile MzMLRawDataFile} object containing the parsed data
    */
-  @Override
-  public MzMLRawDataFile execute() throws MSDKException {
-
+  public MzMLRawDataFile parseMzMl() throws MSDKException {
     try {
+      // comparison of woodstox and aalto:
+      // woodstox seems to use less memory
+      // aalto seems to be a bit faster
+      // both very similar
+      // most memory is consumed by data reading and decompression etc
+      // woodstox
+//      XMLInputFactory2 factory = (XMLInputFactory2) XMLInputFactory2.newFactory();
+//      factory.configureForSpeed();
 
-      InputStream is = null;
+      // aalto
+      InputFactoryImpl factory = new InputFactoryImpl();
+      factory.configureForSpeed();
 
-      if (mzMLFile != null) {
-        logger.finest("Began parsing file: " + mzMLFile.getAbsolutePath());
-        is = FileMemoryMapper.mapToMemory(mzMLFile);
-      } else if (inputStream != null) {
+      if (inputStream != null) {
         logger.finest("Began parsing file from stream");
-        is = inputStream;
+        try (Reader reader = new InputStreamReader(inputStream)) {
+          // buffered reader had no performance gains. most likely because the XMLStreamReader already buffers
+//        BufferedReader br = new BufferedReader(reader, 8192*4);
+          XMLStreamReader xmlStreamReader = factory.createXMLStreamReader(reader);
+          return parseMzMlInternal(xmlStreamReader);
+        }
+      } else if (mzMLFile != null) {
+        logger.finest("Began parsing file: " + mzMLFile.getAbsolutePath());
+        // buffered reader had no performance gains. most likely because the XMLStreamReader already buffers
+//        try (BufferedReader br = Files.newBufferedReader(mzMLFile.toPath(),
+        try (var fis = Files.newInputStream(mzMLFile.toPath()); Reader br = new InputStreamReader(
+            fis, StandardCharsets.UTF_8)) {
+          XMLStreamReader xmlStreamReader = factory.createXMLStreamReader(br);
+          return parseMzMlInternal(xmlStreamReader);
+        }
       } else {
         throw new MSDKException("Invalid input");
       }
-      // It's ok to directly create this particular reader, this class is `public final`
-      // and we precisely want that fast UFT-8 reader implementation
-      final XMLStreamReaderImpl xmlStreamReader = new XMLStreamReaderImpl();
-      xmlStreamReader.setInput(is, "UTF-8");
+    } catch (IOException | XMLStreamException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
 
-      this.parser = new MzMLParser(this);
+  private MzMLRawDataFile parseMzMlInternal(XMLStreamReader xmlStreamReader) throws MSDKException {
+    try {
+      this.parser = new MzMLParser(this, storage, scanProcessorConfig);
       this.newRawFile = parser.getMzMLRawFile();
-
-      lastLoggedProgress = 0;
 
       int eventType;
       try {
         do {
           // check if parsing has been cancelled?
-          if (canceled) {
+          if (isCanceled()) {
             return null;
           }
 
           eventType = xmlStreamReader.next();
 
           switch (eventType) {
-            case XMLStreamConstants.START_ELEMENT:
-              final CharArray openingTagName = xmlStreamReader.getLocalName();
-              parser.processOpeningTag(xmlStreamReader, is, openingTagName);
-              break;
-
-            case XMLStreamConstants.END_ELEMENT:
-              final CharArray closingTagName = xmlStreamReader.getLocalName();
+            case XMLStreamConstants.START_ELEMENT -> {
+              final String openingTagName = xmlStreamReader.getLocalName();
+              parser.processOpeningTag(xmlStreamReader, openingTagName);
+            }
+            case XMLStreamConstants.END_ELEMENT -> {
+              final String closingTagName = xmlStreamReader.getLocalName();
               parser.processClosingTag(xmlStreamReader, closingTagName);
-              break;
+            }
 
-            case XMLStreamConstants.CHARACTERS:
-              parser.processCharacters(xmlStreamReader);
-              break;
+//            processCharacters method is not used in the moment
+//            might be returned if new random access xml parser is introduced
+//            case XMLStreamConstants.CHARACTERS:
+//              parser.processCharacters(xmlStreamReader);
+//              break;
           }
 
         } while (eventType != XMLStreamConstants.END_DOCUMENT);
 
-      } finally {
-        if (xmlStreamReader != null) {
-          xmlStreamReader.close();
-        }
+      } catch (DataFormatException | XMLStreamException e) {
+        throw new RuntimeException(e);
       }
       logger.finest("Parsing Complete");
-    } catch (IOException | XMLStreamException e) {
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Error while loading mzML/RAW file " + e.getMessage(), e);
       throw (new MSDKException(e));
     }
-
     return newRawFile;
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public Float getFinishedPercentage() {
-    if (parser == null) {
-      return null;
-    } else {
-      return parser.getFinishedPercentage();
-    }
+  public String getTaskDescription() {
+    return newRawFile == null ? "" : "Parsing mzML file from " + newRawFile.getName();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public RawDataFile getResult() {
+  public MzMLRawDataFile getResult() {
     return newRawFile;
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void cancel() {
-    this.canceled = true;
-  }
-
-  /**
-   * <p>
-   * Getter for the field <code>msScanPredicate</code>.
-   * </p>
-   *
-   * @return {@link Predicate Predicate} specified for {@link MsScan MsScan}s <br> The {@link
-   * Predicate Predicate} evaluates to true always, if it wasn't specified on initialization
-   */
-  public Predicate<MsScan> getMsScanPredicate() {
-    return msScanPredicate;
-  }
-
-  /**
-   * <p>
-   * Getter for the field <code>chromatogramPredicate</code>.
-   * </p>
-   *
-   * @return {@link Predicate Predicate} specified for {@link Chromatogram Chromatogram}s <br> The
-   * {@link Predicate Predicate} evaluates to true always, if it wasn't specified on initialization
-   */
-  public Predicate<Chromatogram> getChromatogramPredicate() {
-    return chromatogramPredicate;
-  }
-
-  /**
-   * <p>
-   * Getter for the field <code>mzMLFile</code>.
-   * </p>
-   *
    * @return a {@link File File} instance of the MzML source if being read from a file <br> null if
    * the MzML source is an {@link InputStream InputStream}
    */
+  @Nullable
   public File getMzMLFile() {
     return mzMLFile;
   }
 
+  public MzMLParser getParser() {
+    return parser;
+  }
+
+  @Override
+  public double getFinishedPercentage() {
+    return parser == null ? 0 : parser.getFinishedPercentage();
+  }
 }

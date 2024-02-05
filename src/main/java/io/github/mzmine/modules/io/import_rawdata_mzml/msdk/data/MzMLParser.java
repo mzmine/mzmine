@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,21 +26,26 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import io.github.msdk.datamodel.Chromatogram;
-import io.github.msdk.datamodel.MsScan;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.TagTracker;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javolution.text.CharArray;
-import javolution.xml.internal.stream.XMLStreamReaderImpl;
-import javolution.xml.stream.XMLStreamReader;
-import org.apache.commons.io.IOUtils;
+import java.util.stream.Collectors;
+import java.util.zip.DataFormatException;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * <p>
@@ -49,54 +54,64 @@ import org.apache.commons.io.IOUtils;
  */
 public class MzMLParser {
 
-  private Vars vars;
-  private TagTracker tracker;
-  private final MzMLRawDataFile newRawFile;
-  private final MzMLFileImportMethod importer;
-  private int totalScans = 0, parsedScans = 0;
   private static final Logger logger = Logger.getLogger(MzMLParser.class.getName());
 
-  /**
-   * <p>
-   * Constructor for {@link MzMLParser MzMLParser}
-   * </p>
-   *
-   * @param importer an instance of an initialized {@link MzMLFileImportMethod
-   *                 MzMLFileImportMethod}
-   */
-  public MzMLParser(MzMLFileImportMethod importer) {
+  private final Vars vars;
+  private final TagTracker tracker;
+  private final MzMLFileImportMethod importer;
+  private final MemoryMapStorage storage;
+  private final @NotNull ScanImportProcessorConfig scanProcessorConfig;
+
+  private int totalScans = 0, parsedScans = 0;
+  private final MzMLRawDataFile newRawFile;
+  private final Pattern scanNumberPattern = Pattern.compile("scan=([0-9]+)");
+  private final Pattern agilentScanNumberPattern = Pattern.compile("scan[iI]d=([0-9]+)");
+
+  private final Map<String, MzMLCompressionType> compressionTypeMap = Arrays.stream(
+          MzMLCompressionType.values())
+      .collect(Collectors.toMap(MzMLCompressionType::getAccession, Function.identity()));
+  private final Map<String, MzMLBitLength> bitlengthMap = Arrays.stream(MzMLBitLength.values())
+      .collect(Collectors.toMap(MzMLBitLength::getAccession, Function.identity()));
+  private final Map<String, MzMLArrayType> arrayTypeMap = Arrays.stream(MzMLArrayType.values())
+      .collect(Collectors.toMap(MzMLArrayType::getAccession, Function.identity()));
+
+
+  public MzMLParser(MzMLFileImportMethod importer, MemoryMapStorage storage,
+      @NotNull ScanImportProcessorConfig scanProcessorConfig) {
     this.vars = new Vars();
     this.tracker = new TagTracker();
     this.importer = importer;
     this.newRawFile = new MzMLRawDataFile(importer.getMzMLFile(), vars.msFunctionsList,
         vars.spectrumList, vars.chromatogramsList);
+    this.storage = storage;
+    this.scanProcessorConfig = scanProcessorConfig;
   }
 
   /**
    * <p>
-   * Carry out the required parsing of the mzML data when the {@link XMLStreamReaderImpl
-   * XMLStreamReaderImpl} enters the given tag
+   * Carry out the required parsing of the mzML data when the
+   * {@link XMLStreamReader XMLStreamReader} enters the given tag
    * </p>
    *
-   * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl XMLStreamReaderImpl
+   * @param xmlStreamReader an instance of {@link XMLStreamReader XMLStreamReader
    * @param is              {@link InputStream InputStream} of the mzML data
    * @param openingTagName  The tag <code>xmlStreamReader</code> entered
    */
-  public void processOpeningTag(XMLStreamReaderImpl xmlStreamReader, InputStream is,
-      CharArray openingTagName) {
+  public void processOpeningTag(XMLStreamReader xmlStreamReader, String openingTagName)
+      throws IOException, DataFormatException, XMLStreamException {
     tracker.enter(openingTagName);
 
     if (tracker.current().contentEquals((MzMLTags.TAG_RUN))) {
-      final CharArray defaultInstrumentConfigurationRef = getRequiredAttribute(xmlStreamReader,
+      final String defaultInstrumentConfigurationRef = getRequiredAttribute(xmlStreamReader,
           MzMLTags.ATTR_DEFAULT_INSTRUMENT_CONFIGURATION_REF);
-      newRawFile.setDefaultInstrumentConfiguration(defaultInstrumentConfigurationRef.toString());
+      newRawFile.setDefaultInstrumentConfiguration(defaultInstrumentConfigurationRef);
 
       // startTimeStamp may be optional, so it makes no sense to stop import of a RawDataFile
       // if this tag is skipped
-      final CharArray startTimeStamp = xmlStreamReader.getAttributeValue(null,
+      final String startTimeStamp = xmlStreamReader.getAttributeValue(null,
           MzMLTags.ATTR_START_TIME_STAMP);
       if (startTimeStamp != null) {
-        newRawFile.setStartTimeStamp(startTimeStamp.toString());
+        newRawFile.setStartTimeStamp(startTimeStamp);
         logger.info("startTimeStamp value is: " + startTimeStamp);
       } else {
         logger.info("startTimeStamp wasn't set");
@@ -104,27 +119,28 @@ public class MzMLParser {
     }
 
     if (tracker.current().contentEquals((MzMLTags.TAG_SPECTRUM_LIST))) {
-      final CharArray defaultDataProcessingRefScan = getRequiredAttribute(xmlStreamReader,
+      final String defaultDataProcessingRefScan = getRequiredAttribute(xmlStreamReader,
           MzMLTags.ATTR_DEFAULT_DATA_PROCESSING_REF);
-      newRawFile.setDefaultDataProcessingScan(defaultDataProcessingRefScan.toString());
+      newRawFile.setDefaultDataProcessingScan(defaultDataProcessingRefScan);
     }
 
-    if (tracker.current().contentEquals((MzMLTags.TAG_CHROMATOGRAM_LIST))) {
-      final CharArray defaultDataProcessingRefChromatogram = getRequiredAttribute(xmlStreamReader,
-          MzMLTags.ATTR_DEFAULT_DATA_PROCESSING_REF);
-      newRawFile.setDefaultDataProcessingScan(defaultDataProcessingRefChromatogram.toString());
-    }
+//    if (tracker.current().contentEquals((MzMLTags.TAG_CHROMATOGRAM_LIST))) {
+//      final String defaultDataProcessingRefChromatogram = getRequiredAttribute(xmlStreamReader,
+//          MzMLTags.ATTR_DEFAULT_DATA_PROCESSING_REF);
+//      newRawFile.setDefaultDataProcessingChromatogram(
+//          defaultDataProcessingRefChromatogram.toString());
+//    }
 
     if (openingTagName.contentEquals((MzMLTags.TAG_SPECTRUM_LIST))) {
-      final CharArray count = getRequiredAttribute(xmlStreamReader, "count");
-      this.totalScans = count.toInt();
+      final String count = getRequiredAttribute(xmlStreamReader, "count");
+      this.totalScans = Integer.parseInt(count);
     }
 
     if (tracker.inside(MzMLTags.TAG_REF_PARAM_GROUP_LIST)) {
 
       if (openingTagName.contentEquals(MzMLTags.TAG_REF_PARAM_GROUP)) {
-        final CharArray id = getRequiredAttribute(xmlStreamReader, "id");
-        vars.referenceableParamGroup = new MzMLReferenceableParamGroup(id.toString());
+        final String id = getRequiredAttribute(xmlStreamReader, "id");
+        vars.referenceableParamGroup = new MzMLReferenceableParamGroup(id);
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
         MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
@@ -135,24 +151,26 @@ public class MzMLParser {
 
     if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST)) {
       if (openingTagName.contentEquals(MzMLTags.TAG_SPECTRUM)) {
-        String id = getRequiredAttribute(xmlStreamReader, "id").toString();
-        Integer index = getRequiredAttribute(xmlStreamReader, "index").toInt();
-        vars.defaultArrayLength = getRequiredAttribute(xmlStreamReader,
-            "defaultArrayLength").toInt();
+        String id = getRequiredAttribute(xmlStreamReader, "id");
+        int index = Integer.parseInt(getRequiredAttribute(xmlStreamReader, "index"));
+        vars.defaultArrayLength = Integer.parseInt(
+            getRequiredAttribute(xmlStreamReader, "defaultArrayLength"));
         Integer scanNumber = getScanNumber(id).orElse(index + 1);
-        vars.spectrum = new MzMLMsScan(newRawFile, is, id, scanNumber, vars.defaultArrayLength);
+        //        vars.spectrum = new BuildingMzMLMsScan(newRawFile, id, scanNumber, vars.defaultArrayLength);
+        vars.spectrum = new BuildingMzMLMsScan(id, scanNumber, vars.defaultArrayLength);
 
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
         vars.skipBinaryDataArray = false;
-        int encodedLength = getRequiredAttribute(xmlStreamReader, "encodedLength").toInt();
-        final CharArray arrayLength = xmlStreamReader.getAttributeValue(null, "arrayLength");
+        int encodedLength = Integer.parseInt(
+            getRequiredAttribute(xmlStreamReader, "encodedLength"));
+        final String arrayLength = xmlStreamReader.getAttributeValue(null, "arrayLength");
         if (arrayLength != null) {
-          vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, arrayLength.toInt());
+          vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength,
+              Integer.parseInt(arrayLength));
         } else {
           vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, vars.defaultArrayLength);
         }
-
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_SCAN)) {
         vars.scan = new MzMLScan();
@@ -189,13 +207,13 @@ public class MzMLParser {
 
         } else if (tracker.inside(MzMLTags.TAG_SPECTRUM) && tracker.inside(
             MzMLTags.TAG_BINARY_DATA_ARRAY) && !vars.skipBinaryDataArray) {
-          String accession = getRequiredAttribute(xmlStreamReader, "accession").toString();
-          if (vars.binaryDataInfo.isBitLengthAccession(accession)) {
-            vars.binaryDataInfo.setBitLength(accession);
-          } else if (vars.binaryDataInfo.isCompressionTypeAccession(accession)) {
+          String accession = getRequiredAttribute(xmlStreamReader, "accession");
+          if (bitlengthMap.get(accession) != null) {
+            vars.binaryDataInfo.setBitLength(bitlengthMap.get(accession));
+          } else if (compressionTypeMap.get(accession) != null) {
             manageCompression(vars.binaryDataInfo, accession);
-          } else if (vars.binaryDataInfo.isArrayTypeAccession(accession)) {
-            vars.binaryDataInfo.setArrayType(accession);
+          } else if (arrayTypeMap.get(accession) != null) {
+            vars.binaryDataInfo.setArrayType(arrayTypeMap.get(accession));
           } else {
             vars.skipBinaryDataArray = true;
           }
@@ -204,11 +222,7 @@ public class MzMLParser {
 
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY)) {
-        if (vars.spectrum != null && !vars.skipBinaryDataArray) {
-          int bomOffset = xmlStreamReader.getLocation().getBomLength();
-          vars.binaryDataInfo.setPosition(
-              xmlStreamReader.getLocation().getTotalCharsRead() + bomOffset);
-        }
+        //todo check if we can put this before previous if and use this to create boolean to indicate detection of both mzs and intensities
         if (!vars.skipBinaryDataArray) {
           if (MzMLCV.cvMzArray.equals(vars.binaryDataInfo.getArrayType().getAccession())) {
             vars.spectrum.setMzBinaryDataInfo(vars.binaryDataInfo);
@@ -217,10 +231,15 @@ public class MzMLParser {
             vars.spectrum.setIntensityBinaryDataInfo(vars.binaryDataInfo);
           }
         }
-
-
+        if (vars.spectrum != null && !vars.skipBinaryDataArray) {
+          //here we obtain the text value of the whole TAG_BINARY
+          //using getElementText() requires exiting the tracker afterwards, otherwise xmlStreamReader produces an error
+          var binaryContent = xmlStreamReader.getElementText();
+          vars.binaryDataInfo.setTextContent(binaryContent);
+          tracker.exit(tracker.current());
+        }
       } else if (openingTagName.contentEquals(MzMLTags.TAG_REF_PARAM_GROUP_REF)) {
-        String refValue = getRequiredAttribute(xmlStreamReader, "ref").toString();
+        String refValue = getRequiredAttribute(xmlStreamReader, "ref");
         for (MzMLReferenceableParamGroup ref : vars.referenceableParamGroupList) {
           if (ref.getParamGroupName().equals(refValue)) {
             vars.spectrum.getCVParams().getCVParamsList().addAll(ref.getCVParamsList());
@@ -235,10 +254,9 @@ public class MzMLParser {
       if (tracker.inside(MzMLTags.TAG_PRECURSOR_LIST)) {
 
         if (openingTagName.contentEquals(MzMLTags.TAG_PRECURSOR)) {
-          final CharArray spectrumRef = xmlStreamReader.getAttributeValue(null,
+          final String spectrumRef = xmlStreamReader.getAttributeValue(null,
               MzMLTags.ATTR_SPECTRUM_REF);
-          String spectrumRefString = spectrumRef == null ? null : spectrumRef.toString();
-          vars.precursor = new MzMLPrecursorElement(spectrumRefString);
+          vars.precursor = new MzMLPrecursorElement(spectrumRef);
 
         } else if (openingTagName.contentEquals(MzMLTags.TAG_ISOLATION_WINDOW)) {
           vars.isolationWindow = new MzMLIsolationWindow();
@@ -290,151 +308,148 @@ public class MzMLParser {
         }
 
       }
-
-    } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
-      if (openingTagName.contentEquals(MzMLTags.TAG_CHROMATOGRAM)) {
-        String chromatogramId = getRequiredAttribute(xmlStreamReader, "id").toString();
-        Integer chromatogramNumber = getRequiredAttribute(xmlStreamReader, "index").toInt() + 1;
-        vars.defaultArrayLength = getRequiredAttribute(xmlStreamReader,
-            "defaultArrayLength").toInt();
-        vars.chromatogram = new MzMLChromatogram(newRawFile, is, chromatogramId, chromatogramNumber,
-            vars.defaultArrayLength);
-
-      } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
-        if (!tracker.inside(MzMLTags.TAG_BINARY_DATA_ARRAY) && !tracker.inside(
-            MzMLTags.TAG_PRECURSOR) && !tracker.inside(MzMLTags.TAG_PRODUCT)
-            && vars.chromatogram != null) {
-          MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
-          vars.chromatogram.getCVParams().addCVParam(cvParam);
-          ;
-        }
-
-      } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
-        vars.skipBinaryDataArray = false;
-        int encodedLength = getRequiredAttribute(xmlStreamReader, "encodedLength").toInt();
-        final CharArray arrayLength = xmlStreamReader.getAttributeValue(null, "arrayLength");
-        if (arrayLength != null) {
-          vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, arrayLength.toInt());
-        } else {
-          vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, vars.defaultArrayLength);
-        }
-
-      } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY)) {
-        if (vars.chromatogram != null && !vars.skipBinaryDataArray) {
-          int bomOffset = xmlStreamReader.getLocation().getBomLength();
-          vars.binaryDataInfo.setPosition(
-              xmlStreamReader.getLocation().getTotalCharsRead() + bomOffset);
-        }
-        if (!vars.skipBinaryDataArray) {
-          if (MzMLCV.cvRetentionTimeArray.equals(
-              vars.binaryDataInfo.getArrayType().getAccession())) {
-            vars.chromatogram.setRtBinaryDataInfo(vars.binaryDataInfo);
-            ;
-          }
-          if (MzMLCV.cvIntensityArray.equals(vars.binaryDataInfo.getArrayType().getAccession())) {
-            vars.chromatogram.setIntensityBinaryDataInfo(vars.binaryDataInfo);
-          }
-        }
-
-      } else if (openingTagName.contentEquals(MzMLTags.TAG_REF_PARAM_GROUP_REF)) {
-        String refValue = xmlStreamReader.getAttributeValue(null, "ref").toString();
-        for (MzMLReferenceableParamGroup ref : vars.referenceableParamGroupList) {
-          if (ref.getParamGroupName().equals(refValue)) {
-            vars.chromatogram.getCVParams().getCVParamsList().addAll(ref.getCVParamsList());
-            break;
-          }
-        }
-
-      }
-
-      if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM) && tracker.inside(
-          MzMLTags.TAG_BINARY_DATA_ARRAY) && openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)
-          && vars.binaryDataInfo != null && !vars.skipBinaryDataArray) {
-        String accession = getRequiredAttribute(xmlStreamReader, "accession").toString();
-        if (vars.binaryDataInfo.isBitLengthAccession(accession)) {
-          vars.binaryDataInfo.setBitLength(accession);
-        } else if (vars.binaryDataInfo.isCompressionTypeAccession(accession)) {
-          manageCompression(vars.binaryDataInfo, accession);
-        } else if (vars.binaryDataInfo.isArrayTypeAccession(accession)) {
-          vars.binaryDataInfo.setArrayType(accession);
-        } else {
-          vars.skipBinaryDataArray = true;
-        }
-
-      }
-
-      if (openingTagName.contentEquals(MzMLTags.TAG_PRECURSOR)) {
-        final CharArray spectrumRef = xmlStreamReader.getAttributeValue(null, "spectrumRef");
-        String spectrumRefString = spectrumRef == null ? null : spectrumRef.toString();
-        vars.precursor = new MzMLPrecursorElement(spectrumRefString);
-
-      } else if (openingTagName.contentEquals(MzMLTags.TAG_PRODUCT)) {
-        vars.product = new MzMLProduct();
-
-      } else if (tracker.inside(MzMLTags.TAG_PRECURSOR)) {
-        if (openingTagName.contentEquals(MzMLTags.TAG_ISOLATION_WINDOW)) {
-          vars.isolationWindow = new MzMLIsolationWindow();
-          vars.selectedIonList = new MzMLPrecursorSelectedIonList();
-
-        } else if (openingTagName.contentEquals(MzMLTags.TAG_ACTIVATION)) {
-          vars.activation = new MzMLPrecursorActivation();
-
-        } else if (tracker.inside(MzMLTags.TAG_ISOLATION_WINDOW)) {
-          if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
-            MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
-            vars.isolationWindow.addCVParam(cvParam);
-          }
-
-        } else if (tracker.inside(MzMLTags.TAG_SELECTED_ION_LIST)) {
-          if (openingTagName.contentEquals(MzMLTags.TAG_SELECTED_ION)) {
-            vars.selectedIon = new MzMLPrecursorSelectedIon();
-          } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
-            MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
-            vars.selectedIon.addCVParam(cvParam);
-          }
-
-        } else if (tracker.inside(MzMLTags.TAG_ACTIVATION)) {
-          if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
-            MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
-            vars.activation.addCVParam(cvParam);
-          }
-        }
-      } else if (tracker.inside(MzMLTags.TAG_PRODUCT)) {
-        if (openingTagName.contentEquals(MzMLTags.TAG_ISOLATION_WINDOW)) {
-          vars.isolationWindow = new MzMLIsolationWindow();
-
-        } else if (tracker.inside(MzMLTags.TAG_ISOLATION_WINDOW)) {
-          if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
-            MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
-            vars.isolationWindow.addCVParam(cvParam);
-
-          }
-
-        }
-      }
-
     }
+//    else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
+//      if (openingTagName.contentEquals(MzMLTags.TAG_CHROMATOGRAM)) {
+//        String chromatogramId = getRequiredAttribute(xmlStreamReader, "id").toString();
+//        Integer chromatogramNumber = getRequiredAttribute(xmlStreamReader, "index").toInt() + 1;
+//        vars.defaultArrayLength = getRequiredAttribute(xmlStreamReader,
+//            "defaultArrayLength").toInt();
+//        vars.chromatogram = new MzMLChromatogram(newRawFile, chromatogramId, chromatogramNumber,
+//            vars.defaultArrayLength);
+//
+//      } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
+//        if (!tracker.inside(MzMLTags.TAG_BINARY_DATA_ARRAY) && !tracker.inside(
+//            MzMLTags.TAG_PRECURSOR) && !tracker.inside(MzMLTags.TAG_PRODUCT)
+//            && vars.chromatogram != null) {
+//          MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
+//          vars.chromatogram.getCVParams().addCVParam(cvParam);
+//        }
+//
+//      } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
+//        vars.skipBinaryDataArray = false;
+//        int encodedLength = getRequiredAttribute(xmlStreamReader, "encodedLength").toInt();
+//        final String arrayLength = xmlStreamReader.getAttributeValue(null, "arrayLength");
+//        if (arrayLength != null) {
+//          vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, arrayLength.toInt());
+//        } else {
+//          vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, vars.defaultArrayLength);
+//        }
+//
+//      } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY)) {
+//        if (vars.chromatogram != null && !vars.skipBinaryDataArray) {
+//          vars.chromatogram.processBinaryChromatogramValues(xmlStreamReader.getElementText(),
+//              vars.binaryDataInfo);
+//          tracker.exit(tracker.current());
+//        }
+//        if (!vars.skipBinaryDataArray) {
+//          if (MzMLCV.cvRetentionTimeArray.equals(
+//              vars.binaryDataInfo.getArrayType().getAccession())) {
+//            vars.chromatogram.setRtBinaryDataInfo(vars.binaryDataInfo);
+//          }
+//          if (MzMLCV.cvIntensityArray.equals(vars.binaryDataInfo.getArrayType().getAccession())) {
+//            vars.chromatogram.setIntensityBinaryDataInfo(vars.binaryDataInfo);
+//          }
+//        }
+//
+//      } else if (openingTagName.contentEquals(MzMLTags.TAG_REF_PARAM_GROUP_REF)) {
+//        String refValue = xmlStreamReader.getAttributeValue(null, "ref").toString();
+//        for (MzMLReferenceableParamGroup ref : vars.referenceableParamGroupList) {
+//          if (ref.getParamGroupName().equals(refValue)) {
+//            vars.chromatogram.getCVParams().getCVParamsList().addAll(ref.getCVParamsList());
+//            break;
+//          }
+//        }
+//
+//      }
+//
+//      if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM) && tracker.inside(
+//          MzMLTags.TAG_BINARY_DATA_ARRAY) && openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)
+//          && vars.binaryDataInfo != null && !vars.skipBinaryDataArray) {
+//        String accession = getRequiredAttribute(xmlStreamReader, "accession").toString();
+//        if (vars.binaryDataInfo.isBitLengthAccession(accession)) {
+//          vars.binaryDataInfo.setBitLength(accession);
+//        } else if (vars.binaryDataInfo.isCompressionTypeAccession(accession)) {
+//          manageCompression(vars.binaryDataInfo, accession);
+//        } else if (vars.binaryDataInfo.isArrayTypeAccession(accession)) {
+//          vars.binaryDataInfo.setArrayType(accession);
+//        } else {
+//          vars.skipBinaryDataArray = true;
+//        }
+//
+//      }
+//
+//      if (openingTagName.contentEquals(MzMLTags.TAG_PRECURSOR)) {
+//        final String spectrumRef = xmlStreamReader.getAttributeValue(null, "spectrumRef");
+//        String spectrumRefString = spectrumRef == null ? null : spectrumRef.toString();
+//        vars.precursor = new MzMLPrecursorElement(spectrumRefString);
+//
+//      } else if (openingTagName.contentEquals(MzMLTags.TAG_PRODUCT)) {
+//        vars.product = new MzMLProduct();
+//
+//      } else if (tracker.inside(MzMLTags.TAG_PRECURSOR)) {
+//        if (openingTagName.contentEquals(MzMLTags.TAG_ISOLATION_WINDOW)) {
+//          vars.isolationWindow = new MzMLIsolationWindow();
+//          vars.selectedIonList = new MzMLPrecursorSelectedIonList();
+//
+//        } else if (openingTagName.contentEquals(MzMLTags.TAG_ACTIVATION)) {
+//          vars.activation = new MzMLPrecursorActivation();
+//
+//        } else if (tracker.inside(MzMLTags.TAG_ISOLATION_WINDOW)) {
+//          if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
+//            MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
+//            vars.isolationWindow.addCVParam(cvParam);
+//          }
+//
+//        } else if (tracker.inside(MzMLTags.TAG_SELECTED_ION_LIST)) {
+//          if (openingTagName.contentEquals(MzMLTags.TAG_SELECTED_ION)) {
+//            vars.selectedIon = new MzMLPrecursorSelectedIon();
+//          } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
+//            MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
+//            vars.selectedIon.addCVParam(cvParam);
+//          }
+//
+//        } else if (tracker.inside(MzMLTags.TAG_ACTIVATION)) {
+//          if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
+//            MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
+//            vars.activation.addCVParam(cvParam);
+//          }
+//        }
+//      } else if (tracker.inside(MzMLTags.TAG_PRODUCT)) {
+//        if (openingTagName.contentEquals(MzMLTags.TAG_ISOLATION_WINDOW)) {
+//          vars.isolationWindow = new MzMLIsolationWindow();
+//
+//        } else if (tracker.inside(MzMLTags.TAG_ISOLATION_WINDOW)) {
+//          if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
+//            MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
+//            vars.isolationWindow.addCVParam(cvParam);
+//
+//          }
+//
+//        }
+//      }
+//    }
   }
 
-  private MzMLUserParam createMzMLUserParam(XMLStreamReaderImpl xmlStreamReader) {
-    CharArray name = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_NAME);
-    CharArray value = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_VALUE);
+  private MzMLUserParam createMzMLUserParam(XMLStreamReader xmlStreamReader) {
+    String name = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_NAME);
+    String value = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_VALUE);
     if (name != null && value != null) {
-      return new MzMLUserParam(name.toString(), value.toString());
+      return new MzMLUserParam(name, value);
     }
     return null;
   }
 
   /**
    * <p>
-   * Carry out the required parsing of the mzML data when the {@link XMLStreamReaderImpl
-   * XMLStreamReaderImpl} exits the given tag
+   * Carry out the required parsing of the mzML data when the
+   * {@link XMLStreamReader XMLStreamReader} exits the given tag
    * </p>
    *
-   * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl XMLStreamReaderImpl
-   * @param closingTagName  a {@link CharArray} object.
+   * @param xmlStreamReader an instance of {@link XMLStreamReader XMLStreamReader
+   * @param closingTagName  a {@link String} object.
    */
-  public void processClosingTag(XMLStreamReaderImpl xmlStreamReader, CharArray closingTagName) {
+  public void processClosingTag(XMLStreamReader xmlStreamReader, String closingTagName) {
     tracker.exit(closingTagName);
 
     if (closingTagName.equals(MzMLTags.TAG_SPECTRUM)) {
@@ -454,9 +469,10 @@ public class MzMLParser {
     } else if (closingTagName.equals(MzMLTags.TAG_PRODUCT)) {
       if (tracker.inside(MzMLTags.TAG_SPECTRUM)) {
         vars.spectrum.getProductList().addProduct(vars.product);
-      } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM)) {
-        vars.chromatogram.setProdcut(vars.product);
       }
+//      else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM)) {
+//        vars.chromatogram.setProdcut(vars.product);
+//      }
 
     } else if (closingTagName.equals(MzMLTags.TAG_SELECTED_ION_LIST)) {
       vars.precursor.setSelectedIonList(vars.selectedIonList);
@@ -470,9 +486,11 @@ public class MzMLParser {
     } else if (closingTagName.equals(MzMLTags.TAG_PRECURSOR)) {
       if (tracker.inside(MzMLTags.TAG_SPECTRUM)) {
         vars.spectrum.getPrecursorList().addPrecursor(vars.precursor);
-      } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM)) {
-        vars.chromatogram.setPrecursor(vars.precursor);
       }
+
+//      else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM)) {
+//        vars.chromatogram.setPrecursor(vars.precursor);
+//      }
 
     } else if (closingTagName.equals(MzMLTags.TAG_SCAN_WINDOW)) {
       vars.scanWindowList.addScanWindow(vars.scanWindow);
@@ -489,64 +507,62 @@ public class MzMLParser {
 
     } else if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST)) {
       if (closingTagName.contentEquals(MzMLTags.TAG_SPECTRUM)) {
-        if (vars.spectrum.getMzBinaryDataInfo() != null
-            && vars.spectrum.getIntensityBinaryDataInfo() != null && (importer.getMzMLFile() != null
-            || importer.getMsScanPredicate().test(vars.spectrum))) {
-          vars.spectrumList.add(vars.spectrum);
-        }
-      }
-
-    } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
-      if (closingTagName.contentEquals(MzMLTags.TAG_CHROMATOGRAM)) {
-        if (vars.chromatogram.getRtBinaryDataInfo() != null
-            && vars.chromatogram.getIntensityBinaryDataInfo() != null && (
-            importer.getMzMLFile() != null || importer.getChromatogramPredicate()
-                .test(vars.chromatogram))) {
-          vars.chromatogramsList.add(vars.chromatogram);
-        }
+        filterProcessFinalizeScan();
       }
 
     }
 
+//    else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
+//      if (closingTagName.contentEquals(MzMLTags.TAG_CHROMATOGRAM)) {
+//        if (vars.chromatogram.getRtBinaryDataInfo() != null
+//            && vars.chromatogram.getIntensityBinaryDataInfo() != null && (importer.getMzMLFile()
+//                                                                          != null)) {
+//          vars.chromatogramsList.add(vars.chromatogram);
+//        }
+//      }
+//    }
+
+  }
+
+  /**
+   * Called when spectrum end is read. Check if spectrum is filtered - skip this scan if not in
+   * filter. Then process data points and memory map resulting data to disk to save RAM.
+   */
+  private void filterProcessFinalizeScan() {
+    var spectrum = vars.spectrum;
+//    logger.info(STR."Finalizing scan \{spectrum.getScanNumber()}");
+    if (scanProcessorConfig.scanFilter().matches(spectrum)) {
+      if (spectrum.loadProcessMemMapData(storage, scanProcessorConfig)) {
+        vars.spectrumList.add(spectrum);
+      }
+    }
+    vars.spectrum = null;
   }
 
   /**
    * <p>
-   * Carry out the required parsing of the mzML data when the {@link XMLStreamReaderImpl
-   * XMLStreamReaderImpl} when {@link javolution.xml.stream.XMLStreamConstants#CHARACTERS
-   * CHARACTERS} are found
+   * Carry out the required parsing of the mzML data when the
+   * {@link XMLStreamReader XMLStreamReader} when
+   * {@link javolution.xml.stream.XMLStreamConstants#CHARACTERS CHARACTERS} are found Deprecated
+   * until random access parser is introduced
    * </p>
    *
-   * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl XMLStreamReaderImpl
+   * @param xmlStreamReader an instance of {@link XMLStreamReader XMLStreamReader
    */
-  public void processCharacters(XMLStreamReaderImpl xmlStreamReader) {
+  @Deprecated
+  public void processCharacters(XMLStreamReader xmlStreamReader) {
     if (!newRawFile.getOriginalFile().isPresent() && tracker.current()
         .contentEquals(MzMLTags.TAG_BINARY) && !vars.skipBinaryDataArray) {
-      if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST) && importer.getMsScanPredicate()
-          .test(vars.spectrum)) {
-        vars.spectrum.setInputStream(IOUtils.toInputStream(xmlStreamReader.getText()));
-        switch (vars.binaryDataInfo.getArrayType().getAccession()) {
-          case MzMLCV.cvMzArray:
-            vars.spectrum.getMzValues();
-            break;
-
-          case MzMLCV.cvIntensityArray:
-            vars.spectrum.getIntensityValues();
-            break;
-        }
-      } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)
-          && importer.getChromatogramPredicate().test(vars.chromatogram)) {
-        vars.chromatogram.setInputStream(IOUtils.toInputStream(xmlStreamReader.getText()));
-        switch (vars.binaryDataInfo.getArrayType().getAccession()) {
-          case MzMLCV.cvRetentionTimeArray:
-            vars.chromatogram.getRetentionTimes();
-            break;
-
-          case MzMLCV.cvIntensityArray:
-            vars.chromatogram.getIntensityBinaryDataInfo();
-            break;
-        }
+      if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST) && scanProcessorConfig.scanFilter()
+          .matches(vars.spectrum)) {
+        // spectra are now loaded directly and processed when finishing a spectrum
       }
+//      else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
+//        switch (vars.binaryDataInfo.getArrayType().getAccession()) {
+//          case MzMLCV.cvRetentionTimeArray -> vars.chromatogram.getDoubleRetentionTimes();
+//          case MzMLCV.cvIntensityArray -> vars.chromatogram.getIntensityBinaryDataInfo();
+//        }
+//      }
     }
   }
 
@@ -555,15 +571,15 @@ public class MzMLParser {
    * Call this method when the <code>xmlStreamReader</code> enters <code>&lt;cvParam&gt;</code> tag
    * </p>
    *
-   * @param xmlStreamReader an instance of {@link XMLStreamReaderImpl XMLStreamReaderImpl
+   * @param xmlStreamReader an instance of {@link XMLStreamReader XMLStreamReader
    * @return {@link MzMLCVParam MzMLCVParam} object notation of the <code>&lt;cvParam&gt;</code>
    * entered
    */
   private MzMLCVParam createMzMLCVParam(XMLStreamReader xmlStreamReader) {
-    CharArray accession = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_ACCESSION);
-    CharArray value = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_VALUE);
-    CharArray name = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_NAME);
-    CharArray unitAccession = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_UNIT_ACCESSION);
+    String accession = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_ACCESSION);
+    String value = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_VALUE);
+    String name = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_NAME);
+    String unitAccession = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_UNIT_ACCESSION);
 
     // accession is a required attribute
     if (accession == null) {
@@ -571,11 +587,7 @@ public class MzMLParser {
     }
 
     // these attributes are optional
-    String valueStr = value == null ? null : value.toString();
-    String nameStr = name == null ? null : name.toString();
-    String unitAccessionStr = unitAccession == null ? null : unitAccession.toString();
-
-    return new MzMLCVParam(accession.toString(), valueStr, nameStr, unitAccessionStr);
+    return new MzMLCVParam(accession, value, name, unitAccession);
   }
 
 
@@ -588,8 +600,7 @@ public class MzMLParser {
    * @return a {@link Integer} object.
    */
   public Optional<Integer> getScanNumber(String spectrumId) {
-    final Pattern pattern = Pattern.compile("scan=([0-9]+)");
-    final Matcher matcher = pattern.matcher(spectrumId);
+    final Matcher matcher = scanNumberPattern.matcher(spectrumId);
     boolean scanNumberFound = matcher.find();
 
     // Some vendors include scan=XX in the ID, some don't, such as
@@ -598,19 +609,18 @@ public class MzMLParser {
     // So, get the value of the index tag if the scanNumber is not present in the ID
     if (scanNumberFound) {
       Integer scanNumber = Integer.parseInt(matcher.group(1));
-      return Optional.ofNullable(scanNumber);
+      return Optional.of(scanNumber);
     }
 
     // agilent
-    final Pattern agilentPattern = Pattern.compile("scan[iI]d=([0-9]+)");
-    final Matcher agilentMatcher = agilentPattern.matcher(spectrumId);
+    final Matcher agilentMatcher = agilentScanNumberPattern.matcher(spectrumId);
     boolean agilentScanNumberFound = agilentMatcher.find();
     if (agilentScanNumberFound) {
       Integer scanNumber = Integer.parseInt(agilentMatcher.group(1));
-      return Optional.ofNullable(scanNumber);
+      return Optional.of(scanNumber);
     }
 
-    return Optional.ofNullable(null);
+    return Optional.empty();
   }
 
   /**
@@ -621,14 +631,14 @@ public class MzMLParser {
    *
    * @param xmlStreamReader XMLStreamReader instance used to parse
    * @param attr            Attribute's value to be found
-   * @return a CharArray containing the value of the attribute.
+   * @return a String containing the value of the attribute.
    */
-  public CharArray getRequiredAttribute(XMLStreamReader xmlStreamReader, String attr) {
-    CharArray attrValue = xmlStreamReader.getAttributeValue(null, attr);
+  public String getRequiredAttribute(XMLStreamReader xmlStreamReader, String attr) {
+    String attrValue = xmlStreamReader.getAttributeValue(null, attr);
     if (attrValue == null) {
       throw new IllegalStateException(
           "Tag " + xmlStreamReader.getLocalName() + " must provide an `" + attr
-              + "`attribute (Line " + xmlStreamReader.getLocation().getLineNumber() + ")");
+          + "`attribute (Line " + xmlStreamReader.getLocation().getLineNumber() + ")");
     }
     return attrValue;
   }
@@ -642,36 +652,30 @@ public class MzMLParser {
    * @param accession  a {@link String} object.
    */
   public void manageCompression(MzMLBinaryDataInfo binaryInfo, String accession) {
+    MzMLCompressionType newCompression = compressionTypeMap.get(accession);
+    if (newCompression == null) {
+      return;
+    }
     if (binaryInfo.getCompressionType() == MzMLCompressionType.NO_COMPRESSION) {
-      binaryInfo.setCompressionType(accession);
+      binaryInfo.setCompressionType(newCompression);
     } else {
-      if (binaryInfo.getCompressionType(accession) == MzMLCompressionType.ZLIB) {
+      if (newCompression == MzMLCompressionType.ZLIB) {
         switch (binaryInfo.getCompressionType()) {
-          case NUMPRESS_LINPRED:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_LINPRED_ZLIB);
-            break;
-          case NUMPRESS_POSINT:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_POSINT_ZLIB);
-            break;
-          case NUMPRESS_SHLOGF:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_SHLOGF_ZLIB);
-            break;
-          default:
-            break;
+          case NUMPRESS_LINPRED ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_LINPRED_ZLIB);
+          case NUMPRESS_POSINT ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_POSINT_ZLIB);
+          case NUMPRESS_SHLOGF ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_SHLOGF_ZLIB);
         }
       } else {
-        switch (binaryInfo.getCompressionType(accession)) {
-          case NUMPRESS_LINPRED:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_LINPRED_ZLIB);
-            break;
-          case NUMPRESS_POSINT:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_POSINT_ZLIB);
-            break;
-          case NUMPRESS_SHLOGF:
-            binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_SHLOGF_ZLIB);
-            break;
-          default:
-            break;
+        switch (newCompression) {
+          case NUMPRESS_LINPRED ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_LINPRED_ZLIB);
+          case NUMPRESS_POSINT ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_POSINT_ZLIB);
+          case NUMPRESS_SHLOGF ->
+              binaryInfo.setCompressionType(MzMLCompressionType.NUMPRESS_SHLOGF_ZLIB);
         }
       }
     }
@@ -695,7 +699,7 @@ public class MzMLParser {
 
     int defaultArrayLength;
     boolean skipBinaryDataArray;
-    MzMLMsScan spectrum;
+    BuildingMzMLMsScan spectrum;
     MzMLChromatogram chromatogram;
     MzMLBinaryDataInfo binaryDataInfo;
     MzMLReferenceableParamGroup referenceableParamGroup;
@@ -709,7 +713,7 @@ public class MzMLParser {
     MzMLScanWindowList scanWindowList;
     MzMLScanWindow scanWindow;
     ArrayList<MzMLReferenceableParamGroup> referenceableParamGroupList;
-    List<MsScan> spectrumList;
+    List<BuildingMzMLMsScan> spectrumList;
     List<Chromatogram> chromatogramsList;
     List<String> msFunctionsList;
 
@@ -734,6 +738,14 @@ public class MzMLParser {
       chromatogramsList = new ArrayList<>();
       msFunctionsList = new ArrayList<>(); // TODO populate this list
     }
+  }
+
+  public int getTotalScans() {
+    return totalScans;
+  }
+
+  public int getParsedScans() {
+    return parsedScans;
   }
 
   public Float getFinishedPercentage() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.Arrays;
 import java.util.Collection;
@@ -95,6 +96,17 @@ public interface ParameterSet extends ParameterContainer {
     if (getValue(parameter)) {
       final UserParameter<V, ?> actualParam = getParameter(parameter).getEmbeddedParameter();
       return actualParam == null ? null : actualParam.getValue();
+    }
+    return defaultValue;
+  }
+
+  /**
+   * @param defaultValue A default value. may be null.
+   */
+  default <T extends ParameterSet> T getEmbeddedParametersIfSelectedOrElse(
+      OptionalModuleParameter<T> parameter, @Nullable T defaultValue) {
+    if (getValue(parameter)) {
+      return getParameter(parameter).getEmbeddedParameters();
     }
     return defaultValue;
   }

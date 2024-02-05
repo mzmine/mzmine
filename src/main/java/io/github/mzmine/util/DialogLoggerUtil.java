@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,8 +52,8 @@ public class DialogLoggerUtil {
   }
 
   public static void showErrorDialog(String title, String message) {
+    logger.info(title + ": " + message);
     if (MZmineCore.isHeadLessMode()) {
-      logger.info(title + ": " + message);
       return;
     }
     Alert alert = new Alert(AlertType.ERROR, null);
@@ -74,8 +74,8 @@ public class DialogLoggerUtil {
 
   @Nullable
   public static Alert showMessageDialog(String title, String message, boolean modal) {
+    logger.info(title + ": " + message);
     if (MZmineCore.isHeadLessMode()) {
-      logger.info(title + ": " + message);
       return null;
     }
     Alert alert = new Alert(AlertType.INFORMATION, null);
@@ -105,15 +105,21 @@ public class DialogLoggerUtil {
   /**
    * shows a message dialog just for a few given milliseconds
    */
+  public static void showMessageDialogForTime(String title, String message) {
+    showMessageDialogForTime(title, message, 3500);
+  }
   public static void showMessageDialogForTime(String title, String message, long timeMillis) {
-    Alert alert = showMessageDialog(title, message, false);
-    if (alert == null) {
-      return;
-    }
+    MZmineCore.runLater(() -> {
+      Alert alert = showMessageDialog(title, message, false);
+      if (alert == null) {
+        return;
+      }
 
-    Timeline idleTimer = new Timeline(new KeyFrame(Duration.millis(timeMillis), e -> alert.hide()));
-    idleTimer.setCycleCount(1);
-    idleTimer.play();
+      Timeline idleTimer = new Timeline(
+          new KeyFrame(Duration.millis(timeMillis), e -> alert.hide()));
+      idleTimer.setCycleCount(1);
+      idleTimer.play();
+    });
   }
 
 }

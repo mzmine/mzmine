@@ -44,14 +44,15 @@ public class MzMLImportTest extends AbstractDataImportTest {
   @Override
   public List<String> getFileNames() {
     return List.of( //
-        "rawdatafiles/DOM_a.mzML", //
-//      "rawdatafiles/DOM_a_invalid_header.mzML", //
-//      "rawdatafiles/DOM_a_invalid_chars.mzML", //
-        "rawdatafiles/DOM_b.mzXML" //
-//      "rawdatafiles/DOM_b_invalid_header.mzXML" //
+        "rawdatafiles/DOM_a.mzML" //
+        , "rawdatafiles/DOM_a_invalid_header.mzML" //
+        , "rawdatafiles/DOM_a_invalid_chars.mzML" //
+        , "rawdatafiles/DOM_b.mzXML" //
+        , "rawdatafiles/DOM_b_invalid_header.mzXML" //
         , "rawdatafiles/additional/orbi_idx_msn.mzML" //
-        , "rawdatafiles/additional/gc_orbi.mzML" //
-        , "rawdatafiles/additional/gc_orbi_profil.mzML" //
+        , "rawdatafiles/additional/gc_orbi_a.mzML" //
+        , "rawdatafiles/additional/gc_orbi_profile_21scans.mzML" //
+        , "rawdatafiles/additional/lc-tims-ms-pasef-a_2frames.mzML" //
     );
   }
 

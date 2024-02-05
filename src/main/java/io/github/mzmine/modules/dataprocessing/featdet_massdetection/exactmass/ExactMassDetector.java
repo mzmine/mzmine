@@ -26,6 +26,8 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass;
 
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
@@ -48,6 +50,12 @@ public class ExactMassDetector implements MassDetector {
     this.noiseLevel = noiseLevel;
   }
 
+  @NotNull
+  public static double[][] getMassValues(final double[] mzs, final double[] intensities,
+      double noiseLevel) {
+    return getMassValues(new SimpleMassSpectrum(mzs, intensities, MassSpectrumType.PROFILE),
+        noiseLevel);
+  }
   @NotNull
   public static double[][] getMassValues(MassSpectrum spectrum, double noiseLevel) {
     // lists of primitive doubles
@@ -121,6 +129,12 @@ public class ExactMassDetector implements MassDetector {
   @NotNull
   public double[][] getMassValues(MassSpectrum spectrum) {
     return getMassValues(spectrum, noiseLevel);
+  }
+
+  @Override
+  public double[][] getMassValues(final double[] mzs, final double[] intensities,
+      final @NotNull MassSpectrumType type) {
+    return getMassValues(new SimpleMassSpectrum(mzs, intensities, type));
   }
 
   /**

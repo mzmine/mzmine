@@ -26,27 +26,20 @@
 package io.github.mzmine.datamodel.data_access;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.*;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MobilityScanDataAccess implements MobilityScan {
 

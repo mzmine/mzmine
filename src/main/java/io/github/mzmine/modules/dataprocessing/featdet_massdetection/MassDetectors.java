@@ -39,10 +39,36 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public enum MassDetectors {
-  AUTO(AutoMassDetector.class), CENTROID(CentroidMassDetector.class), EXACT(
-      ExactMassDetector.class), FACTOR_OF_LOWEST(FactorOfLowestMassDetector.class), LOCAL_MAX(
-      LocalMaxMassDetector.class), RECURSIVE(RecursiveMassDetector.class), WAVELET(
-      WaveletMassDetector.class);
+  /**
+   * Handles Profile and Centroid mode data. Uses {@link ExactMassDetector} first with 0 noise level
+   * on profile data
+   */
+  FACTOR_OF_LOWEST(FactorOfLowestMassDetector.class),
+  /**
+   * Handles both profile and centroid mode data. Uses {@link ExactMassDetector} or
+   * {@link CentroidMassDetector} for profile and centroid mode data
+   */
+  AUTO(AutoMassDetector.class),
+  /**
+   * Only on centroided data
+   */
+  CENTROID(CentroidMassDetector.class),
+  /**
+   * Only on Profile mode data
+   */
+  EXACT(ExactMassDetector.class),
+  /**
+   * Only on profile mode data
+   */
+  LOCAL_MAX(LocalMaxMassDetector.class),
+  /**
+   *
+   */
+  RECURSIVE(RecursiveMassDetector.class),
+  /**
+   *
+   */
+  WAVELET(WaveletMassDetector.class);
 
   /**
    * This instance is never used for mass detection but contains the name and factory logic

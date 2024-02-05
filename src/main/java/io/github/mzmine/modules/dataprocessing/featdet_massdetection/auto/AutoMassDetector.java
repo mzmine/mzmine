@@ -83,17 +83,14 @@ public class AutoMassDetector implements MassDetector {
     }
   }
 
-  public double[][] getMassValues(double[] mzs, double[] intensities, MassSpectrumType type) {
-    if (type == MassSpectrumType.PROFILE) {
-      return exactMassDetector.getMassValues(mzs, intensities);
-    } else {
-      return centroidDetector.getMassValues(mzs, intensities);
-    }
-  }
-
   @Override
-  public double[][] getMassValues(double[] mzs, double[] intensities) {
-    throw new UnsupportedOperationException("Requires spectrum type, see other method");
+  public double[][] getMassValues(double[] mzs, double[] intensities,
+      @NotNull MassSpectrumType type) {
+    if (type == MassSpectrumType.PROFILE) {
+      return exactMassDetector.getMassValues(mzs, intensities, type);
+    } else {
+      return centroidDetector.getMassValues(mzs, intensities, type);
+    }
   }
 
 }

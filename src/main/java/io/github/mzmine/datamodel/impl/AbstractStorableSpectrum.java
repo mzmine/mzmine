@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.impl;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
@@ -40,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
 
   private static final Logger logger = Logger.getLogger(AbstractStorableSpectrum.class.getName());
-  private static final DoubleBuffer EMPTY_BUFFER = DoubleBuffer.wrap(new double[0]);
+  public static final DoubleBuffer EMPTY_BUFFER = DoubleBuffer.wrap(new double[0]);
 
   protected DoubleBuffer mzValues;
   protected DoubleBuffer intensityValues;
@@ -63,6 +64,21 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
     setDataPoints(storage, mzValues, intensityValues);
   }
 
+  public AbstractStorableSpectrum(@Nullable DoubleBuffer mzValues,
+      @Nullable DoubleBuffer intensityValues) {
+    if (mzValues == null ^ intensityValues == null) {
+      // one is null the other not
+      throw new IllegalArgumentException(
+          "%s is null and the other not".formatted(mzValues == null ? "mzs" : "intensities"));
+    } else if (mzValues != null) {
+      assert mzValues.limit() == intensityValues.limit();
+      this.mzValues = mzValues;
+      this.intensityValues = intensityValues;
+      //todo transfer checks
+      onDataChangedEvent();
+    }
+  }
+
   protected synchronized void setDataPoints(@Nullable MemoryMapStorage storage,
       @Nullable double[] mzValues, @Nullable double[] intensityValues) {
 
@@ -80,10 +96,15 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
 
     // so many data sources have unsorted spectra - so better sort the spectrum here
     // this is only done if the mzs were unsorted
-    var mzsIntensities = DataPointUtils.ensureSortingMzAscendingDefault(mzValues, intensityValues);
+    SimpleSpectralArrays sorted = DataPointUtils.ensureSortingMzAscendingDefault(
+        new SimpleSpectralArrays(mzValues, intensityValues));
 
-    this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzsIntensities[0]);
-    this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzsIntensities[1]);
+    this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, sorted.mzs());
+    this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, sorted.intensities());
+    onDataChangedEvent();
+  }
+
+  private void onDataChangedEvent() {
     updateMzRangeAndTICValues();
   }
 
