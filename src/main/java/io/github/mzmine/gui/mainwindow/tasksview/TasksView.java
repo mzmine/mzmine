@@ -27,8 +27,8 @@ package io.github.mzmine.gui.mainwindow.tasksview;
 
 import static io.github.mzmine.util.javafx.TableViewUtils.createColumn;
 
-import io.github.mzmine.gui.framework.fx.LabeledProgressBarCell;
-import io.github.mzmine.gui.framework.fx.MenuItems;
+import io.github.mzmine.gui.framework.fx.components.LabeledProgressBarCell;
+import io.github.mzmine.gui.framework.fx.components.MenuItems;
 import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.javafx.TableViewUtils;

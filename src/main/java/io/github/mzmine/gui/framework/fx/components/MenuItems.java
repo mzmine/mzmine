@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx;
+package io.github.mzmine.gui.framework.fx.components;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.event.ActionEvent;

@@ -25,8 +25,8 @@
 
 package io.github.mzmine.gui.mainwindow.tasksview;
 
-import io.github.mzmine.gui.framework.fx.LabeledProgressBar;
-import io.github.mzmine.gui.framework.fx.MenuItems;
+import io.github.mzmine.gui.framework.fx.components.LabeledProgressBar;
+import io.github.mzmine.gui.framework.fx.components.MenuItems;
 import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
 import javafx.beans.binding.Bindings;
 import javafx.event.EventHandler;
