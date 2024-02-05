@@ -32,19 +32,24 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.util.maths.Precision;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.RecordComponent;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 
-public record DataFileStats(String fileName, int numScans, int numScansMs1, int numScansMs2,
-                            int maxRawDataPoints, int maxCentroidDataPoints,
+public record DataFileStats(String fileName, boolean advanced, int numScans, int numScansMs1,
+                            int numScansMs2, int maxRawDataPoints, int maxCentroidDataPoints,
                             List<Integer> scanNumDataPoints, List<Double> scanTic,
                             List<String> scanType, List<Double> scanBasePeakMz,
                             List<Integer> scanNumber, List<String> scanMzRange,
@@ -53,7 +58,9 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
                             List<Integer> scanPrecursorCharge, List<Float> scanRetentionTime,
                             List<String> frameMobilityRange, List<Integer> imsMaxRawDataPoints,
                             List<Integer> imsMaxCentroidDataPoints,
-                            List<Integer> imsScanNumMobScans, List<String> imageScanCoord) {
+                            List<Integer> imsScanNumMobScans, List<String> imageScanCoord,
+                            List<List<Double>> firstCenterLastMz,
+                            List<List<Double>> firstCenterLastIntensities) {
 
   public static final List<Integer> scanNumbers = List.of(0, 1, 5, 10, 20, 25, 50, 75, 100, 150,
       200, 300, 400, 600, 800, 1000, 1200, 1500);
@@ -65,6 +72,10 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
    * Extract data for text
    */
   public static DataFileStats extract(RawDataFile raw) {
+    var applied = raw.getAppliedMethods().get(0);
+    boolean advanced = applied.getParameters()
+        .getValue(AllSpectralDataImportParameters.advancedImport);
+
     int numScans = raw.getNumOfScans();
     int numScansMs1 = raw.getNumOfScans(1);
     int numScansMs2 = raw.getNumOfScans(2);
@@ -84,6 +95,14 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
     var scanPrecursorMz = streamScans(raw).map(Scan::getPrecursorMz).toList();
     var scanPrecursorCharge = streamScans(raw).map(Scan::getPrecursorCharge).toList();
     var scanRetentionTime = streamScans(raw).map(Scan::getRetentionTime).toList();
+
+    // random data points check
+    var dps = streamScans(raw).map(DataFileStats::extractSomeDataPoints).toList();
+    var mzs = dps.stream().map(
+        triple -> Arrays.stream(triple).map(dp -> dp.map(SimpleDataPoint::getMZ).orElse(null))
+            .toList()).toList();
+    var intensities = dps.stream().map(triple -> Arrays.stream(triple)
+        .map(dp -> dp.map(SimpleDataPoint::getIntensity).orElse(null)).toList()).toList();
 
     // check ion mobility
     var frames = streamScans(raw).filter(scan -> scan instanceof Frame).map(scan -> (Frame) scan)
@@ -107,14 +126,29 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
     var imageScanCoord = imagingScan.stream().map(ImagingScan::getCoordinates)
         .filter(Objects::nonNull).map(c -> STR."\{c.getX()},\{c.getY()}").toList();
 
-    return new DataFileStats(raw.getFileName(), numScans, numScansMs1, numScansMs2,
+    return new DataFileStats(raw.getFileName(), advanced, numScans, numScansMs1, numScansMs2,
         maxRawDataPoints, maxCentroidDataPoints, scanNumDataPoints, scanTic, scanType,
         scanBasePeakMz, scanNumber, scanMzRange, scanInjectTime, scanMsLevel, scanPolarity,
         scanPrecursorMz, scanPrecursorCharge, scanRetentionTime,
         // IMS
         frameMobilityRange, imsMaxRawDataPoints, imsMaxCentroidDataPoints, imsScanNumMobScans,
         // images
-        imageScanCoord);
+        imageScanCoord,
+        // data
+        mzs, intensities);
+  }
+
+  private static Optional<SimpleDataPoint>[] extractSomeDataPoints(Scan scan) {
+    var size = scan.getNumberOfDataPoints();
+    return new Optional[]{getDataPoint(scan, 0), getDataPoint(scan, size / 2),
+        getDataPoint(scan, size - 1)};
+  }
+
+  private static Optional<SimpleDataPoint> getDataPoint(final Scan scan, int index) {
+    if (index < 0 || index >= scan.getNumberOfDataPoints()) {
+      return Optional.empty();
+    }
+    return Optional.of(new SimpleDataPoint(scan.getMzValue(index), scan.getIntensityValue(index)));
   }
 
   @NotNull
@@ -143,7 +177,54 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
 
     RecordComponent[] fields = getClass().getRecordComponents();
     for (final RecordComponent field : fields) {
+      // TIC may be different when compared files with different conversion settings
+      if (field.getName().equals("scanTic")) {
+        checkWithPrecision(field.getName(), expected.scanTic, actual.scanTic, 50);
+        continue;
+      }
+      // compare floats with defined precision
+      if (field.getName().equals("scanRetentionTime")) {
+        var ex = expected.scanRetentionTime.stream().map(Float::doubleValue).toList();
+        var ac = actual.scanRetentionTime.stream().map(Float::doubleValue).toList();
+        checkWithPrecision(field.getName(), ex, ac, 0.0001);
+        continue;
+      }
+      if (field.getName().equals("scanBasePeakMz")) {
+        checkWithPrecision(field.getName(), expected.scanBasePeakMz, actual.scanBasePeakMz, 0.0001);
+        continue;
+      }
+      if (field.getName().equals("firstCenterLastMz")) {
+        var ex = expected.firstCenterLastMz.stream().flatMap(Collection::stream).toList();
+        var ac = actual.firstCenterLastMz.stream().flatMap(Collection::stream).toList();
+        checkWithPrecision(field.getName(), ex, ac, 0.0001);
+        continue;
+      }
+      if (field.getName().equals("firstCenterLastIntensities")) {
+        var ex = expected.firstCenterLastIntensities.stream().flatMap(Collection::stream).toList();
+        var ac = actual.firstCenterLastIntensities.stream().flatMap(Collection::stream).toList();
+        checkWithPrecision(field.getName(), ex, ac, 1);
+        continue;
+      }
+
       testField(expected, actual, field);
+    }
+  }
+
+  private void checkWithPrecision(String field, final List<Double> expected,
+      final List<Double> actual, double maxDiff) {
+    for (int i = 0; i < expected.size(); i++) {
+      Double e = expected.get(i);
+      Double a = actual.get(i);
+
+      if (Objects.equals(e, a)) {
+        return;
+      }
+      if (e == null ^ a == null) {
+        throw new IllegalArgumentException(STR."Expected \{e} but is \{a} for \{field}");
+      }
+      if (!Precision.equals(e, a, maxDiff)) {
+        throw new IllegalArgumentException(STR."Expected \{e} but is \{a} for \{field}");
+      }
     }
   }
 
@@ -154,10 +235,12 @@ public record DataFileStats(String fileName, int numScans, int numScansMs1, int 
 
     if (actualVal instanceof List alist && expectedVal instanceof List elist) {
       Assertions.assertEquals(elist.size(), alist.size(),
-          "Missmatching number of values in list for field " + field.getName());
+          "Missmatching number of values in list for field %s in dataset %s".formatted(
+              field.getName(), expected.fileName));
     }
 
-    Assertions.assertEquals(expectedVal, actualVal, "Missmatch for field " + field.getName());
+    Assertions.assertEquals(expectedVal, actualVal,
+        "Missmatch for field %s in dataset %s".formatted(field.getName(), expected.fileName));
   }
 
   public String printInstance() {

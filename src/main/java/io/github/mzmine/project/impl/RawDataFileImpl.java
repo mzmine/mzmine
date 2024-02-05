@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import java.io.IOException;
@@ -198,18 +197,20 @@ public class RawDataFileImpl implements RawDataFile {
 
     // check for zero intensity because this might indicate incorrect conversion by msconvert
     // when not using peak picking as the first step
-    if (!containsZeroIntensity) {
-      double[] intensities = newScan.getIntensityValues(new double[0]);
-      for (double v : intensities) {
-        if (v <= 0) {
+    // only check for centroid data as this might be a conversion error
+    // only check MS1 as MS2 is more often empty
+    if (!containsZeroIntensity && spectraType.isCentroided() && newScan.getMSLevel() == 1) {
+      // just check a few data points as the conversion error just adds many centroid data points to
+      // the sides of each centroid
+      int dataPointsToCheck = Math.min(16, newScan.getNumberOfDataPoints());
+      for (int i = 0; i < dataPointsToCheck; i++) {
+        if (newScan.getIntensityValue(i) <= 0) {
           containsZeroIntensity = true;
-          if (spectraType.isCentroided()) {
-            logger.warning("""
-                Scans were detected as centroid but contain zero intensity values. This might indicate incorrect conversion by msconvert.
-                Make sure to run "peak picking" with vendor algorithm as the first step (even before title maker), otherwise msconvert uses
-                a different algorithm that picks the highest data point of a profile spectral peak and adds zero intensities next to each signal.
-                This leads to degraded mass accuracies.""");
-          }
+          logger.warning("""
+              Scans were detected as centroid but contain zero intensity values. This might indicate incorrect conversion by msconvert.
+              Make sure to run "peak picking" with vendor algorithm as the first step (even before title maker), otherwise msconvert uses
+              a different algorithm that picks the highest data point of a profile spectral peak and adds zero intensities next to each signal.
+              This leads to degraded mass accuracies.""");
           break;
         }
       }

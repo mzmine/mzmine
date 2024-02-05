@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -51,8 +52,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ThermoRawImportModule implements MZmineProcessingModule {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
+  private static final Logger logger = Logger.getLogger(ThermoRawImportModule.class.getName());
   private static final String MODULE_NAME = "Thermo RAW file import";
   private static final String MODULE_DESCRIPTION = "This module imports raw data into the project.";
 
@@ -93,6 +93,7 @@ public class ThermoRawImportModule implements MZmineProcessingModule {
     String commonPrefix = RawDataFileUtils.askToRemoveCommonPrefix(fileNames);
 
     // one storage for all files imported in the same task as they are typically analyzed together
+    var scanImportProcessorConfig = ScanImportProcessorConfig.createDefault();
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
     for (int i = 0; i < fileNames.length; i++) {
@@ -113,9 +114,10 @@ public class ThermoRawImportModule implements MZmineProcessingModule {
       }
 
       try {
-        RawDataFile newMZmineFile = MZmineCore.createNewFile(newName, fileNames[i].getAbsolutePath(), storage);
+        RawDataFile newMZmineFile = MZmineCore.createNewFile(newName,
+            fileNames[i].getAbsolutePath(), storage);
         Task newTask = new ThermoRawImportTask(project, fileNames[i], newMZmineFile,
-            ThermoRawImportModule.class, parameters, moduleCallDate);
+            ThermoRawImportModule.class, parameters, moduleCallDate, scanImportProcessorConfig);
         tasks.add(newTask);
 
       } catch (IOException e) {

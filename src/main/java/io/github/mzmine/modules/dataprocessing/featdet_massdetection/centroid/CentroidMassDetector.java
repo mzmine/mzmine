@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid;
 
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
@@ -82,7 +83,8 @@ public class CentroidMassDetector implements MassDetector {
   }
 
   @Override
-  public double[][] getMassValues(double[] mzs, double[] intensities) {
+  public double[][] getMassValues(double[] mzs, double[] intensities,
+      final @NotNull MassSpectrumType type) {
     assert mzs.length == intensities.length;
     return getMassValues(mzs, intensities, noiseLevel);
   }

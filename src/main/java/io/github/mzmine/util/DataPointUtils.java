@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import com.google.common.primitives.Doubles;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.util.collections.BinarySearch;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.IntToDoubleFunction;
+import org.jetbrains.annotations.NotNull;
 
 public class DataPointUtils {
 
@@ -57,6 +59,23 @@ public class DataPointUtils {
       data[1][i] = dataPoints[i].getIntensity();
     }
     return data;
+  }
+
+  /**
+   * Used to keep legacy-modules running, not to be used in new modules. Directly access the
+   * underlying DoubleBuffers of Scans or {@link io.github.mzmine.datamodel.featuredata.IonSeries}
+   * and extending classes.
+   *
+   * @return mzs and intensities as arrays
+   */
+  public static SimpleSpectralArrays getDataPointsAsSpectralArrays(DataPoint[] dataPoints) {
+    double[] mzs = new double[dataPoints.length];
+    double[] intensities = new double[dataPoints.length];
+    for (int i = 0; i < dataPoints.length; i++) {
+      mzs[i] = dataPoints[i].getMZ();
+      intensities[i] = dataPoints[i].getIntensity();
+    }
+    return new SimpleSpectralArrays(mzs, intensities);
   }
 
   /**
@@ -221,30 +240,44 @@ public class DataPointUtils {
    * @param sorter      sorting direction and property
    * @return sorted array of [2][length] for [mz, intensity]
    */
-  public static double[][] sort(double[] mzs, double[] intensities, DataPointSorter sorter) {
+  public static SimpleSpectralArrays sort(double[] mzs, double[] intensities,
+      DataPointSorter sorter) {
     assert mzs.length == intensities.length;
     DataPoint[] dps = DataPointUtils.getDataPoints(mzs, intensities);
     Arrays.sort(dps, sorter);
-    return getDataPointsAsDoubleArray(dps);
+    return getDataPointsAsSpectralArrays(dps);
   }
+
+  /**
+   * Sorts the two arrays as data points
+   *
+   * @param spectrum spectral data
+   * @param sorter   sorting direction and property
+   * @return sorted spectral data
+   */
+  public static SimpleSpectralArrays sort(final SimpleSpectralArrays spectrum,
+      final DataPointSorter sorter) {
+    return DataPointUtils.sort(spectrum.mzs(), spectrum.intensities(), sorter);
+  }
+
 
   /**
    * Ensure sorting by mz ascending. Only applied if input data was unsorted.
    *
-   * @param mzs         input mzs
-   * @param intensities input intensities
-   * @return [mzs, intensities], either the input arrays if already sorted or new sorted arrays
+   * @param data input mzs and intensities
+   * @return either the input arrays if already sorted or new sorted arrays
    */
-  public static double[][] ensureSortingMzAscendingDefault(final double[] mzs,
-      final double[] intensities) {
+  public static SimpleSpectralArrays ensureSortingMzAscendingDefault(
+      final @NotNull SimpleSpectralArrays data) {
+    double[] mzs = data.mzs();
     for (int i = 1; i < mzs.length; i++) {
       if (mzs[i - 1] > mzs[i]) {
-        return sort(mzs, intensities, DataPointSorter.DEFAULT_MZ_ASCENDING);
+        return sort(data, DataPointSorter.DEFAULT_MZ_ASCENDING);
       }
     }
-    return new double[][]{mzs, intensities};
+    // return input
+    return data;
   }
-
 
   /**
    * Apply intensityPercentage filter so that the returned array contains all data points that make
@@ -307,5 +340,4 @@ public class DataPointUtils {
   public static boolean inRange(final double tested, final double center, final double delta) {
     return tested >= center - delta && tested <= center + delta;
   }
-
 }

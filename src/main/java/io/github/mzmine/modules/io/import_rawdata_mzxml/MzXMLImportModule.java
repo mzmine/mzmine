@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -112,8 +113,11 @@ public class MzXMLImportModule implements MZmineProcessingModule {
       }
 
       try {
-        RawDataFile newMZmineFile = MZmineCore.createNewFile(newName, fileNames[i].getAbsolutePath(), storage);
-        Task newTask = new MzXMLImportTask(project, fileNames[i], newMZmineFile, MzXMLImportModule.class, parameters, moduleCallDate);
+        RawDataFile newMZmineFile = MZmineCore.createNewFile(newName,
+            fileNames[i].getAbsolutePath(), storage);
+        Task newTask = new MzXMLImportTask(project, fileNames[i], newMZmineFile,
+            ScanImportProcessorConfig.createDefault(), MzXMLImportModule.class, parameters,
+            moduleCallDate);
         tasks.add(newTask);
       } catch (IOException e) {
         e.printStackTrace();

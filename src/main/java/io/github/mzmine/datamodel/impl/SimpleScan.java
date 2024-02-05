@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,9 +32,8 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
-import javax.validation.constraints.Null;
+import java.nio.DoubleBuffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,10 +56,21 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   private MsMsInfo msMsInfo;
 
   /**
-   * Clone constructor
+   * clone scan with new data
    */
   public SimpleScan(@NotNull RawDataFile dataFile, Scan sc, double[] newMzValues,
       double[] newIntensityValues) {
+
+    this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getMsMsInfo(),
+        newMzValues, newIntensityValues, sc.getSpectrumType(), sc.getPolarity(),
+        sc.getScanDefinition(), sc.getScanningMZRange(), sc.getInjectionTime());
+  }
+
+  /**
+   * clone scan with new data
+   */
+  public SimpleScan(@NotNull RawDataFile dataFile, Scan sc, DoubleBuffer newMzValues,
+      DoubleBuffer newIntensityValues) {
 
     this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getMsMsInfo(),
         newMzValues, newIntensityValues, sc.getSpectrumType(), sc.getPolarity(),
@@ -86,6 +96,25 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
       Range<Double> scanMZRange, @Nullable Float injectionTime) {
 
     super(dataFile.getMemoryMapStorage(), mzValues, intensityValues);
+
+    this.dataFile = dataFile;
+    this.scanNumber = scanNumber;
+    this.msLevel = msLevel;
+    this.retentionTime = retentionTime;
+    this.polarity = polarity;
+    this.scanDefinition = scanDefinition;
+    this.scanMZRange = scanMZRange;
+    setSpectrumType(spectrumType);
+    setMsMsInfo(msMsInfo);
+    this.injectionTime = injectionTime;
+  }
+
+  public SimpleScan(@NotNull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
+      @Nullable MsMsInfo msMsInfo, DoubleBuffer mzValues, DoubleBuffer intensityValues,
+      MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
+      Range<Double> scanMZRange, @Nullable Float injectionTime) {
+
+    super(mzValues, intensityValues);
 
     this.dataFile = dataFile;
     this.scanNumber = scanNumber;
@@ -184,8 +213,8 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     return massList;
   }
 
-  @Override
   @NotNull
+  @Override
   public RawDataFile getDataFile() {
     return dataFile;
   }

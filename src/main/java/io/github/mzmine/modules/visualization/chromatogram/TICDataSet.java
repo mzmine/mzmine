@@ -378,8 +378,9 @@ public class TICDataSet extends AbstractTaskXYZDataset {
       if (plotType == TICPlotType.TIC) {
 
         // Total ion count.
-        intensity = mzRange.encloses(scan.getDataPointMZRange()) ? scan.getTIC()
-            : ScanUtils.calculateTIC(scan, mzRange);
+        if (scan.getDataPointMZRange() != null) {
+          intensity = mzRange.encloses(scan.getDataPointMZRange()) ? scan.getTIC() : ScanUtils.calculateTIC(scan, mzRange);
+        }
 
       } else if (plotType == TICPlotType.BASEPEAK && basePeakIntensity != null) {
 

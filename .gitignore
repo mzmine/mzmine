@@ -21,3 +21,5 @@ not-bio
 /src/test/log*
 /src/test/resources/rawdatafiles/200ngHeLaPASEF_2min_compressed.d
 /.run
+/src/test/java/import_data/local
+/src/test/resources/rawdatafiles/local

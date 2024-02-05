@@ -25,17 +25,45 @@
 
 package testutils;
 
+import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.util.maths.Precision;
+
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public enum TaskResult {
-  FINISHED,
+public sealed interface TaskResult permits TaskResult.ERROR, TaskResult.FINISHED,
+    TaskResult.TIMEOUT {
+
+  default String description() {
+    return switch (this) {
+      case TIMEOUT f -> STR."Timeout during \{f.moduleClass.getName()}. Not finished in time.";
+      case ERROR f -> STR."Error during \{f.moduleClass.getName()}.";
+      case FINISHED f -> STR."Finished \{f.moduleClass().getName()} in \{f.getMiliSeconds()} ms";
+    };
+  }
+
+  record FINISHED(Class<? extends MZmineRunnableModule> moduleClass, long nanotime) implements
+      TaskResult {
+
+    public double getMiliSeconds() {
+      return Precision.round(nanotime / 1000000.0, 1).doubleValue();
+    }
+
+    public double getSeconds() {
+      return Precision.round(nanotime / 1000000000.0, 4).doubleValue();
+    }
+  }
   /**
    * at least one task
    */
-  ERROR,
+  record ERROR(Class<? extends MZmineRunnableModule> moduleClass) implements TaskResult {
+
+  }
+
   /**
    * did not finish in the specified time
    */
-  TIMEOUT
+  record TIMEOUT(Class<? extends MZmineRunnableModule> moduleClass) implements TaskResult {
+
+  }
 }

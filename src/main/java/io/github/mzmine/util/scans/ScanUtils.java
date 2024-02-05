@@ -668,6 +668,7 @@ public class ScanUtils {
    * msdk-spectra-spectrumtypedetection/src/main/java/io/github/
    * msdk/spectra/spectrumtypedetection/SpectrumTypeDetectionAlgorithm.java
    */
+  @NotNull
   public static MassSpectrumType detectSpectrumType(@NotNull double[] mzValues,
       double[] intensityValues) {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -117,5 +117,40 @@ public sealed interface IndexRange permits EmptyIndexRange, SimpleIndexRange, Si
   default <T> T[] subarray(T[] data) {
     return isEmpty() ? CollectionUtils.createArray(data, 0)
         : Arrays.copyOfRange(data, min(), maxExclusive());
+  }
+
+  /**
+   * Create a sublist view that contains this IndexRange
+   */
+  default double[] subarray(double[] data) {
+    return isEmpty() ? new double[0] : Arrays.copyOfRange(data, min(), maxExclusive());
+  }
+
+  /**
+   * Create a sublist view that contains this IndexRange
+   */
+  default int[] subarray(int[] data) {
+    return isEmpty() ? new int[0] : Arrays.copyOfRange(data, min(), maxExclusive());
+  }
+
+  /**
+   * Create a sublist view that contains this IndexRange
+   */
+  default float[] subarray(float[] data) {
+    return isEmpty() ? new float[0] : Arrays.copyOfRange(data, min(), maxExclusive());
+  }
+
+  /**
+   * Create a sublist view that contains this IndexRange
+   */
+  default long[] subarray(long[] data) {
+    return isEmpty() ? new long[0] : Arrays.copyOfRange(data, min(), maxExclusive());
+  }
+
+  /**
+   * Create a sublist view that contains this IndexRange
+   */
+  default boolean[] subarray(boolean[] data) {
+    return isEmpty() ? new boolean[0] : Arrays.copyOfRange(data, min(), maxExclusive());
   }
 }

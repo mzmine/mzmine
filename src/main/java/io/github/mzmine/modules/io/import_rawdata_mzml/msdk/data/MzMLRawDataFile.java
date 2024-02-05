@@ -28,27 +28,22 @@ package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 import com.google.common.collect.ImmutableList;
 import io.github.msdk.datamodel.Chromatogram;
 import io.github.msdk.datamodel.FileType;
-import io.github.msdk.datamodel.MsScan;
-import io.github.msdk.datamodel.RawDataFile;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * <p>
- * MzMLRawDataFile class.
- * </p>
- *
+ * Only used during import as temporary object
  */
-public class MzMLRawDataFile implements RawDataFile {
+public class MzMLRawDataFile {
 
   private static final @NotNull FileType fileType = FileType.MZML;
 
   private final File sourceFile;
 
   private final @NotNull List<String> msFunctions;
-  private final @NotNull List<MsScan> msScans;
+  private final @NotNull List<BuildingMzMLMsScan> msScans;
   private final @NotNull List<Chromatogram> chromatograms;
 
   private @NotNull String defaultInstrumentConfiguration;
@@ -59,9 +54,6 @@ public class MzMLRawDataFile implements RawDataFile {
   private @NotNull String name;
 
   /**
-   * <p>
-   * Constructor for MzMLRawDataFile.
-   * </p>
    *
    * @param sourceFile a {@link File} object.
    * @param msFunctions a {@link List} object.
@@ -69,7 +61,7 @@ public class MzMLRawDataFile implements RawDataFile {
    * @param chromatograms a {@link List} object.
    */
   @SuppressWarnings("null")
-  public MzMLRawDataFile(File sourceFile, List<String> msFunctions, List<MsScan> msScans,
+  public MzMLRawDataFile(File sourceFile, List<String> msFunctions, List<BuildingMzMLMsScan> msScans,
       List<Chromatogram> chromatograms) {
     this.sourceFile = sourceFile;
     this.startTimeStamp = "";
@@ -82,45 +74,30 @@ public class MzMLRawDataFile implements RawDataFile {
     this.defaultDataProcessingChromatogram = "unknown";
   }
 
-  /** {@inheritDoc} */
-  @Override
   @NotNull
   public String getName() {
     return name;
   }
 
-  /** {@inheritDoc} */
-  @Override
   public Optional<File> getOriginalFile() {
     return Optional.ofNullable(sourceFile);
   }
 
-  /** {@inheritDoc} */
-  @Override
   @NotNull
   public FileType getRawDataFileType() {
     return fileType;
   }
 
-  /** {@inheritDoc} */
-  @SuppressWarnings("null")
-  @Override
   @NotNull
   public List<String> getMsFunctions() {
     return ImmutableList.copyOf(msFunctions);
   }
 
-  /** {@inheritDoc} */
-  @SuppressWarnings("null")
-  @Override
   @NotNull
-  public List<MsScan> getScans() {
+  public List<BuildingMzMLMsScan> getScans() {
     return ImmutableList.copyOf(msScans);
   }
 
-  /** {@inheritDoc} */
-  @SuppressWarnings("null")
-  @Override
   @NotNull
   public List<Chromatogram> getChromatograms() {
     return ImmutableList.copyOf(chromatograms);
@@ -157,9 +134,5 @@ public class MzMLRawDataFile implements RawDataFile {
   public void setDefaultDataProcessingChromatogram(String defaultDataProcessingChromatogram) {
     this.defaultDataProcessingChromatogram = defaultDataProcessingChromatogram;
   }
-
-  /** {@inheritDoc} */
-  @Override
-  public void dispose() {}
 
 }
