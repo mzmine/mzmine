@@ -23,36 +23,52 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx;
+package io.github.mzmine.gui.framework.fx.mvci;
 
-import static javafx.beans.binding.Bindings.createStringBinding;
-
-import javafx.beans.binding.Bindings;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.TableCell;
+import javafx.scene.layout.Region;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Has a progress bar Pattern of implementation found on
- * https://www.pragmaticcoding.ca/javafx/elements/tableview-data
+ * MVCI controller with cached view
  */
-public class LabeledProgressBarCell<S> extends TableCell<S, Number> {
+public abstract class FxCachedViewController<ViewModelClass> extends FxController<ViewModelClass> {
 
-  public LabeledProgressBarCell() {
-    LabeledProgressBar progressBar = new LabeledProgressBar(itemProperty().map(Number::doubleValue),
-        createStringBinding(this::getFormattedProgress, itemProperty()));
+  @Nullable
+  protected Region cachedView;
 
-    // show or hide pane
-    graphicProperty().bind(
-        Bindings.createObjectBinding(() -> !isEmpty() ? progressBar : null, emptyProperty()));
-    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+  protected FxCachedViewController(@NotNull ViewModelClass model) {
+    super(model);
   }
 
-  private String getFormattedProgress() {
-    var item = getItem();
-    if (item == null) {
-      return "";
+  /**
+   * The cached view which is automatically created if not yet exists
+   *
+   * @return cached or new view
+   */
+  public @NotNull Region getCachedView() {
+    if (cachedView == null) {
+      return buildView();
     }
-    return "%.0f %%".formatted(item.doubleValue() * 100.0);
+    return cachedView;
   }
 
+  /**
+   * Creates a view and sets the cached internal instance
+   */
+  public @NotNull Region buildView() {
+    cachedView = super.buildView();
+    return cachedView;
+  }
+
+  /**
+   * Clears the internally cached view and returns the old view
+   *
+   * @return the old view
+   */
+  public @Nullable Region clearCachedView() {
+    Region internalView = cachedView;
+    cachedView = null;
+    return internalView;
+  }
 }

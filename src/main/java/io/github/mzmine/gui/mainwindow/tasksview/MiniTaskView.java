@@ -25,10 +25,10 @@
 
 package io.github.mzmine.gui.mainwindow.tasksview;
 
-import static javafx.beans.binding.Bindings.createStringBinding;
-
-import io.github.mzmine.gui.framework.fx.LabeledProgressBar;
-import io.github.mzmine.gui.framework.fx.MenuItems;
+import io.github.mzmine.gui.framework.fx.components.LabeledProgressBar;
+import io.github.mzmine.gui.framework.fx.components.MenuItems;
+import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
+import javafx.beans.binding.Bindings;
 import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.input.MouseButton;
@@ -36,14 +36,11 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.util.Builder;
 
-public class MiniTaskView implements Builder<Region> {
+public class MiniTaskView extends FxViewBuilder<TasksViewModel> {
 
-  private final TasksViewModel model;
-
-  public MiniTaskView(final TasksViewModel model) {
-    this.model = model;
+  MiniTaskView(final TasksViewModel model) {
+    super(model);
   }
 
   @Override
@@ -63,7 +60,7 @@ public class MiniTaskView implements Builder<Region> {
   private LabeledProgressBar createTaskPane() {
     return new LabeledProgressBar( //
         model.allTasksProgressProperty(),
-        createStringBinding(this::computeTasksText, model.getTasks()));
+        Bindings.createStringBinding(this::computeTasksText, model.getTasks()));
   }
 
   private LabeledProgressBar createBatchPane() {

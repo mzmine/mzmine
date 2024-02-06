@@ -23,37 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx;
+package io.github.mzmine.gui.framework.fx.mvci;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.scene.control.MenuItem;
+import javafx.scene.layout.Region;
+import javafx.util.Builder;
 
-public class MenuItems {
+/**
+ * MVCI View base class. Creates the view in the build method.
+ */
+public abstract class FxViewBuilder<ViewModelClass> implements Builder<Region> {
 
+  protected final ViewModelClass model;
 
-  public static MenuItem create(String title, EventHandler<ActionEvent> eventHandler) {
-    var item = new MenuItem(title);
-    item.setOnAction(eventHandler);
-    return item;
-  }
-
-  public static MenuItem create(String title, Runnable run) {
-    var item = new MenuItem(title);
-    item.setOnAction(e -> run.run());
-    return item;
-  }
-
-  public static MenuItem create(final String title,
-      final ObjectProperty<EventHandler<ActionEvent>> property) {
-    var item = new MenuItem(title);
-    item.setOnAction(e -> {
-      var run = property.get();
-      if (run != null) {
-        run.handle(e);
-      }
-    });
-    return item;
+  protected FxViewBuilder(ViewModelClass model) {
+    this.model = model;
   }
 }

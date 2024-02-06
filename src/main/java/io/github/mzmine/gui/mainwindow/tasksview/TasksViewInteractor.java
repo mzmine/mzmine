@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.mainwindow.tasksview;
 
+import io.github.mzmine.gui.framework.fx.mvci.FxInteractor;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
@@ -34,13 +35,12 @@ import java.util.logging.Logger;
 import javafx.collections.ListChangeListener.Change;
 import javafx.event.ActionEvent;
 
-public class TasksViewInteractor {
+public class TasksViewInteractor extends FxInteractor<TasksViewModel> {
 
   private static final Logger logger = Logger.getLogger(TasksViewInteractor.class.getName());
-  private final TasksViewModel model;
 
-  public TasksViewInteractor(final TasksViewModel model) {
-    this.model = model;
+  TasksViewInteractor(final TasksViewModel model) {
+    super(model);
   }
 
   private static boolean isDone(final WrappedTaskModel wt) {
@@ -63,7 +63,8 @@ public class TasksViewInteractor {
     });
   }
 
-  void updateDataModel() {
+  @Override
+  public void updateModel() {
 //    logger.info("Updating tasks view");
 
     // remove finished tasks
