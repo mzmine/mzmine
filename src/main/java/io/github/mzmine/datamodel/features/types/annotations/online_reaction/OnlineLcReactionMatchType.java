@@ -64,7 +64,7 @@ public class OnlineLcReactionMatchType extends ListWithSubsType<OnlineReactionMa
     return (K) switch (subType) {
       case OnlineLcReactionMatchType __ -> match;
       case PartnerIdsType __ -> "" + match.getPartnerRowId();
-      case SmartsEductStructureType __ -> reaction.reactionSmarts();
+      case SmartsEductStructureType __ -> reaction.eductSmarts();
       case SmartsReactionStructureType __ -> reaction.reactionSmarts();
       case MzAbsoluteDifferenceType __ -> reaction.deltaMz();
       case TypeStringType __ -> match.getTypeOfRowA().toString();
