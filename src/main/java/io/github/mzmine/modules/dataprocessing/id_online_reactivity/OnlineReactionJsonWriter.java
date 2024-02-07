@@ -30,6 +30,7 @@ import static java.util.stream.Collectors.groupingBy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReaction.Type;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OnlineReactionJsonWriter {
@@ -72,7 +74,8 @@ public class OnlineReactionJsonWriter {
   }
 
   @Nullable
-  public String createReactivityString(final List<OnlineReactionMatch> matches) {
+  public String createReactivityString(final @NotNull FeatureListRow row,
+      final List<OnlineReactionMatch> matches) {
     if (matches.isEmpty()) {
       return null;
     }
@@ -80,7 +83,7 @@ public class OnlineReactionJsonWriter {
 
     // group by Educt or Product type and then by reaction
     Map<Type, Map<OnlineReaction, List<OnlineReactionMatch>>> groupedByTypeAndReaction = matches.stream()
-        .collect(groupingBy(OnlineReactionMatch::getTypeOfRowA,
+        .collect(groupingBy(match -> match.getTypeOfRow(row),
             groupingBy(OnlineReactionMatch::getReaction)));
 
     addAll(groupedByTypeAndReaction, Type.Educt, reactionsSorted);

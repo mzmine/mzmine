@@ -299,20 +299,21 @@ public class SiriusExportTask extends AbstractTask {
     };
 
     putFeatureFieldsIntoEntry(f, entry);
+    FeatureListRow row = f.getRow();
 
     switch (spectrumType) {
       case CORRELATED -> {
         entry.putIfNotNull(DBEntryField.MS_LEVEL, 1);
         entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, "CORRELATED MS");
         entry.putIfNotNull(DBEntryField.FILENAME,
-            f.getRow().getFeatures().stream().map(Feature::getRawDataFile).filter(Objects::nonNull)
+            row.getFeatures().stream().map(Feature::getRawDataFile).filter(Objects::nonNull)
                 .map(RawDataFile::getName).collect(Collectors.joining(";")));
       }
       case MS -> entry.putIfNotNull(DBEntryField.MS_LEVEL, 1);
       case MSMS -> entry.putIfNotNull(DBEntryField.MS_LEVEL, 2);
     }
 
-    final IonIdentity ionType = f.getRow().getBestIonIdentity();
+    final IonIdentity ionType = row.getBestIonIdentity();
     if (ionType != null) {
       entry.putIfNotNull(DBEntryField.ION_TYPE, ionType.getAdduct());
     }
@@ -323,8 +324,8 @@ public class SiriusExportTask extends AbstractTask {
 
     // reactivity only for MS1
     if (entry.getMsLevel().stream().anyMatch(msLevel -> msLevel == 1)) {
-      String reactivityString = reactionJsonWriter.createReactivityString(
-          f.getRow().getOnlineReactionMatches());
+      String reactivityString = reactionJsonWriter.createReactivityString(row,
+          row.getOnlineReactionMatches());
 
       if (reactivityString != null) {
         entry.putIfNotNull(DBEntryField.ONLINE_REACTIVITY, reactivityString);

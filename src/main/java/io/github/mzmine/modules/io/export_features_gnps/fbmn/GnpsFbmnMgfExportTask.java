@@ -269,7 +269,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
 
       // write reactions if available
       List<OnlineReactionMatch> reactions = row.getOnlineReactionMatches();
-      String reactionJson = reactionJsonWriter.createReactivityString(reactions);
+      String reactionJson = reactionJsonWriter.createReactivityString(row, reactions);
       if (reactionJson != null) {
         writer.append(DBEntryField.ONLINE_REACTIVITY.getMgfID()).append("=").append(reactionJson)
             .write(newLine);

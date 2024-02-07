@@ -28,6 +28,6 @@ package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
 import io.github.mzmine.datamodel.RawDataFile;
 import java.util.List;
 
-public record ReactionsMatchingRawFiles(OnlineReaction reaction, List<RawDataFile> raws) {
+public record ReactionMatchingRawFiles(OnlineReaction reaction, List<RawDataFile> raws) {
 
 }

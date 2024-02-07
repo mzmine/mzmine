@@ -27,10 +27,8 @@ package io.github.mzmine.datamodel.features.types.annotations.online_reaction;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
-import io.github.mzmine.datamodel.features.types.TypeStringType;
 import io.github.mzmine.datamodel.features.types.annotations.SmartsEductStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmartsReactionStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.iin.PartnerIdsType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReaction;
 import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
@@ -43,11 +41,11 @@ public class OnlineLcReactionMatchType extends ListWithSubsType<OnlineReactionMa
   // Unmodifiable list of all subtypes
   private static final List<DataType> subTypes = List.of( //
       new OnlineLcReactionMatchType(), //
-      new PartnerIdsType(), //
-      new SmartsEductStructureType(), //
-      new SmartsReactionStructureType(), //
+      new EductIdType(), //
+      new ProductIdType(), //
       new MzAbsoluteDifferenceType(), //
-      new TypeStringType() //
+      new SmartsEductStructureType(), //
+      new SmartsReactionStructureType() //
   );
 
 
@@ -63,11 +61,11 @@ public class OnlineLcReactionMatchType extends ListWithSubsType<OnlineReactionMa
     OnlineReaction reaction = match.getReaction();
     return (K) switch (subType) {
       case OnlineLcReactionMatchType __ -> match;
-      case PartnerIdsType __ -> "" + match.getPartnerRowId();
+      case EductIdType __ -> match.getEductRow().getID();
+      case ProductIdType __ -> match.getProductRow().getID();
       case SmartsEductStructureType __ -> reaction.eductSmarts();
       case SmartsReactionStructureType __ -> reaction.reactionSmarts();
       case MzAbsoluteDifferenceType __ -> reaction.deltaMz();
-      case TypeStringType __ -> match.getTypeOfRowA().toString();
       default -> throw new UnsupportedOperationException(
           "DataType %s is not covered in map".formatted(subType.toString()));
     };

@@ -25,9 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
 
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithExampleExportParameter;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonCheckComboBoxParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.io.CSVUtils;
@@ -60,16 +62,30 @@ public class OnlineLcReactivityParameters extends SimpleParameterSet {
       type is either REACTION, EDUCT, PRODUCT""", extensions,
       OnlineLcReactivityParameters::exportExample);
 
+  private static final List<IonModification> adducts = List.of(IonModification.H,
+      IonModification.NA);
+
+  public static final IonCheckComboBoxParameter eductAdducts = new IonCheckComboBoxParameter(
+      "Educt adducts", """
+      Educt and product adducts define more combinations to check reactivity matches.
+      This can be helpful if the ionization changes after the reaction, e.g.,
+      Educt ionizes as [M+Na]+ and product as [M+H]+""", adducts, adducts);
+
+  public static final IonCheckComboBoxParameter productAdducts = new IonCheckComboBoxParameter(
+      "Product adducts", """
+      Educt and product adducts define more combinations to check reactivity matches.
+      This can be helpful if the ionization changes after the reaction, e.g.,
+      Educt ionizes as [M+Na]+ and product as [M+H]+""", adducts, adducts);
+
   public OnlineLcReactivityParameters() {
-    super(flists, filePath, onlyGroupedRows, mzTol);
+    super(flists, filePath, onlyGroupedRows, mzTol, eductAdducts, productAdducts);
   }
 
 
   private static void exportExample(File file) {
     var examples = List.of(new OnlineReaction("my_reaction",
         "unique_substring_contained_in_filenames_better_not_start_or_end_with_number_add_suffix",
-        "([#6][CX3](=O)O)",
-            "([#6][CX3](=O)O).(OC)>>[#6][CX3](=O)OC.O", 123.45));
+        "([#6][CX3](=O)O)", "([#6][CX3](=O)O).(OC)>>[#6][CX3](=O)OC.O", 123.45));
     try {
       file = CSVUtils.ensureTsvOrCsvFormat(file, "csv");
       CsvWriter.writeToFile(file, examples, OnlineReaction.class, false);
