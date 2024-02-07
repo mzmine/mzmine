@@ -48,7 +48,7 @@ public class SmallDomBatchSpeedTestMain {
 
   public static void main(String[] args) {
     String speedTestFile = "D:\\git\\mzmine3\\src\\test\\java\\import_data\\local\\speed.jsonlines";
-    String description = "RAM=16GB, MZmine4, smallDOM";
+    String description = "RAM=16GB, MZmine3.10, smallDOM";
     // keep running and all in memory
     String inMemory = "all";
 //    String inMemory = "none";
