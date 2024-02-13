@@ -51,23 +51,32 @@ public class TaskControllerImpl implements TaskController {
 
   private static final Logger logger = Logger.getLogger(TaskControllerImpl.class.getName());
   /**
+   *
    */
   private static final int TASKCONTROLLER_THREAD_SLEEP = 350;
 
   private static TaskControllerImpl INSTANCE;
   // the executor that runs tasks, may be recreated with different size of pools
-  @NotNull
-  protected final ThreadPoolExecutor executor;
+  /**
+   * This is the main executor of this controller. Fixed size of numThreads threads.
+   */
+  protected final @NotNull ThreadPoolExecutor executor;
+
+  /**
+   * This executor has 0 - numThreads threads and caches them for a specified time if inactive.
+   */
   private final @NotNull ThreadPoolExecutor highPriorityExecutor;
 
   // only modify on FX thread
   private final ObservableList<WrappedTask> tasks = FXCollections.observableArrayList();
 
-  // the scheduler tasks that update schedule and GUI
-  private final ScheduledFuture<?> schedulerUpdateFuture;
+  /**
+   * the scheduler tasks that update schedule and GUI
+   */
   private final ScheduledExecutorService updateExecutor;
+  private final ScheduledFuture<?> schedulerUpdateFuture;
 
-  // can be set from outside and resizes the THreadPool
+  // can be set from outside and resizes the ThreadPool
   private int numThreads;
 
   private TaskControllerImpl(final int numThreads) {
@@ -77,8 +86,8 @@ public class TaskControllerImpl implements TaskController {
     this.numThreads = numThreads;
     executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(this.numThreads);
 
-    highPriorityExecutor = (ThreadPoolExecutor) TaskController.createHighPriorityThreadPool(
-        this.numThreads);
+    // this is a cached thread pool that only retains threads for a certain time, if inactive
+    highPriorityExecutor = TaskController.createHighPriorityThreadPool(this.numThreads);
     // Create a low-priority thread that will manage the queue and start
     // worker threads for tasks
     updateExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
@@ -155,6 +164,17 @@ public class TaskControllerImpl implements TaskController {
     } catch (Exception e) {
       logger.warning("Error when shutting down update executor");
     }
+
+    try {
+      executor.awaitTermination(5, TimeUnit.SECONDS); // Wait for threads to finish
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+    try {
+      updateExecutor.awaitTermination(5, TimeUnit.SECONDS); // Wait for threads to finish
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
   }
 
   @Override
@@ -167,14 +187,12 @@ public class TaskControllerImpl implements TaskController {
     if (shrink) {
       executor.setCorePoolSize(numThreads);
       executor.setMaximumPoolSize(numThreads);
-      highPriorityExecutor.setCorePoolSize(numThreads);
-      highPriorityExecutor.setMaximumPoolSize(numThreads);
     } else {
       executor.setMaximumPoolSize(numThreads);
       executor.setCorePoolSize(numThreads);
-      highPriorityExecutor.setMaximumPoolSize(numThreads);
-      highPriorityExecutor.setCorePoolSize(numThreads);
     }
+    // core pool size for high priority is 0
+    highPriorityExecutor.setMaximumPoolSize(numThreads);
   }
 
   @Override
@@ -239,7 +257,7 @@ public class TaskControllerImpl implements TaskController {
       var usedExecutor =
           task.getTaskPriority() == TaskPriority.NORMAL ? executor : highPriorityExecutor;
       Future<?> future = usedExecutor.submit(task);
-        task.setFuture(future);
+      task.setFuture(future);
     }
 
     addSubmittedTasksToView(wrappedTasks);

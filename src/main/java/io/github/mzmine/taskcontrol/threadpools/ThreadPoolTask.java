@@ -100,9 +100,10 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
     try {
       // do not auto close as we are usually using the TaskController thread pool
       threadPool = createThreadPool();
+      int numThreads = MZmineCore.getConfiguration().getNumOfThreads();
 
-      int numThreads = 128;
       if (threadPool instanceof ThreadPoolExecutor threadPoolExecutor) {
+        // threads are usually defined by the threadPool used for normal tasks
         numThreads = threadPoolExecutor.getCorePoolSize();
       }
 

@@ -45,6 +45,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 public class HeadLessDesktop implements Desktop {
@@ -121,7 +122,7 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  public TasksViewController getTasksViewController() {
+  public @Nullable TasksViewController getTasksViewController() {
     return null;
   }
 
