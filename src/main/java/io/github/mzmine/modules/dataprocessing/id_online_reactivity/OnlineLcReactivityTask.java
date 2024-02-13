@@ -37,6 +37,8 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.online_reaction.OnlineLcReactionMatchType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -74,16 +76,24 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
   private final String description;
   private final List<IonModification> eductAdducts;
   private final List<IonModification> productAdducts;
+  private final MetadataColumn<?> sampleIdCol;
+  private final MetadataColumn<?> unreactedControlsCol;
 
   public OnlineLcReactivityTask(@NotNull ParameterSet parameters, FeatureList flist,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate, parameters, OnlineLcReactivityModule.class);
     this.flist = flist;
-    reactionsFile = parameters.getValue(OnlineLcReactivityParameters.filePath);
+    reactionsFile = parameters.getValue(OnlineLcReactivityParameters.reactionsFile);
     mzTol = parameters.getValue(OnlineLcReactivityParameters.mzTol);
     onlyGroupedRows = parameters.getValue(OnlineLcReactivityParameters.onlyGroupedRows);
     eductAdducts = parameters.getValue(OnlineLcReactivityParameters.eductAdducts);
     productAdducts = parameters.getValue(OnlineLcReactivityParameters.productAdducts);
+
+    MetadataTable metadata = MZmineCore.getProjectMetadata();
+    sampleIdCol = parameters.getOptionalValue(OnlineLcReactivityParameters.uniqueSampleId)
+        .map(metadata::getColumnByName).orElse(null);
+    unreactedControlsCol = parameters.getOptionalValue(
+        OnlineLcReactivityParameters.unreactedControls).map(metadata::getColumnByName).orElse(null);
 
     description = "Online reactivity task on " + flist.getName();
   }
@@ -168,6 +178,12 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
       }
       return;
     }
+
+    // TODO add a map that links raw data files to their unreacted controls
+    // user input by metadata sheet or filename pattern
+    // unreacted_control_mix32_pos_suid.mzml is the control of, including,
+    // mix32_pos_REACTION.mzml
+    // if products are found in control - then remove annotation
 
     // may create even more reactions if adducts are set by the user
     // needs at least one adduct for both educt and product to create new reactions like

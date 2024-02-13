@@ -28,6 +28,8 @@ package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.MetadataGroupingParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameWithExampleExportParameter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonCheckComboBoxParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -54,7 +56,7 @@ public class OnlineLcReactivityParameters extends SimpleParameterSet {
       new ExtensionFilter("tab-separated values", "*.tsv"), //
       new ExtensionFilter("All files", "*.*") //
   );
-  public static final FileNameWithExampleExportParameter filePath = new FileNameWithExampleExportParameter(
+  public static final FileNameWithExampleExportParameter reactionsFile = new FileNameWithExampleExportParameter(
       "Reactions file", """
       This file needs to contain those columns:
       filename_contains,reaction,educt_smarts,reaction_smarts,delta_mz,type
@@ -76,9 +78,21 @@ public class OnlineLcReactivityParameters extends SimpleParameterSet {
       Educt and product adducts define more combinations to check reactivity matches.
       This can be helpful if the ionization changes after the reaction, e.g.,
       Educt ionizes as [M+Na]+ and product as [M+H]+""", adducts, adducts);
+  public static final OptionalParameter<MetadataGroupingParameter> uniqueSampleId = new OptionalParameter<>(
+      new MetadataGroupingParameter("Unique sample ID metadata", """
+          Metadata column that defines a unique sample ID.
+          Go to Project/Metadata to load a metadata sheet and reload this module to select this column.
+          The values should be a substring found in the filenames. 
+          Make sure to use a prefix or suffix before and after numbers otherwise id1 also matches id10.
+          Just adding a id1_ will resolve this issue."""));
+  public static final OptionalParameter<MetadataGroupingParameter> unreactedControls = new OptionalParameter<>(
+      new MetadataGroupingParameter("Unreacted controls metadata", """
+          Metadata column that defines all unreacted controls as true or control.
+          Go to Project/Metadata to load a metadata sheet and reload this module to select this column."""));
 
   public OnlineLcReactivityParameters() {
-    super(flists, filePath, onlyGroupedRows, mzTol, eductAdducts, productAdducts);
+    super(flists, reactionsFile, uniqueSampleId, unreactedControls, onlyGroupedRows, mzTol,
+        eductAdducts, productAdducts);
   }
 
 

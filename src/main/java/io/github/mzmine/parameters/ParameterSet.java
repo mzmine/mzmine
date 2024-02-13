@@ -38,6 +38,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 import javafx.beans.property.BooleanProperty;
 import org.jetbrains.annotations.NotNull;
@@ -98,6 +99,18 @@ public interface ParameterSet extends ParameterContainer {
       return actualParam == null ? null : actualParam.getValue();
     }
     return defaultValue;
+  }
+
+  /**
+   * can be used to map the resulting value
+   */
+  default <V, T extends UserParameter<V, ?>> Optional<V> getOptionalValue(
+      OptionalParameter<T> parameter) {
+    if (getValue(parameter)) {
+      final UserParameter<V, ?> actualParam = getParameter(parameter).getEmbeddedParameter();
+      return actualParam == null ? Optional.empty() : Optional.ofNullable(actualParam.getValue());
+    }
+    return Optional.empty();
   }
 
   /**
