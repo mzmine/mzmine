@@ -37,6 +37,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 
+/**
+ * MVCI view that uses a builder to generate a MiniTaskView on demand
+ */
 public class MiniTaskView extends FxViewBuilder<TasksViewModel> {
 
   MiniTaskView(final TasksViewModel model) {

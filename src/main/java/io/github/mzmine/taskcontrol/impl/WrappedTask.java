@@ -159,7 +159,7 @@ public class WrappedTask implements Task {
 
         String errorMsg = actualTask.getErrorMessage();
         if (errorMsg == null) {
-          errorMsg = "Unspecified error";
+          errorMsg = "Unspecified error in " + actualTask.getClass();
         }
 
         // Log the error

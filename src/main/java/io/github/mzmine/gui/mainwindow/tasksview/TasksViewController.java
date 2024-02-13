@@ -33,6 +33,10 @@ import javafx.collections.ObservableList;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * The MVCI controller is the entry point to create and control the TaskView. It also controls on
+ * which thread the {@link TasksViewInteractor} works and updates the model.
+ */
 public class TasksViewController extends FxController<TasksViewModel> {
 
   private final TasksViewInteractor interactor;

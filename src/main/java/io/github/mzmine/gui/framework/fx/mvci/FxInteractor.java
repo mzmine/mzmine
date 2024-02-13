@@ -27,6 +27,7 @@ package io.github.mzmine.gui.framework.fx.mvci;
 
 /**
  * MVCI Interactor base class. This class interacts with business logic and updates the data model.
+ * The {@link FxController} orchestrates its tasks on specific threads.
  */
 public abstract class FxInteractor<ViewModelClass> {
 

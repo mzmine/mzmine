@@ -31,13 +31,15 @@ import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import java.util.HashSet;
-import java.util.logging.Logger;
 import javafx.collections.ListChangeListener.Change;
 import javafx.event.ActionEvent;
 
+/**
+ * The interactor updates the data model based on a binding to the TaskController submitted tasks
+ * list via a binding that is created in {@link TasksViewController}. It also interacts with other
+ * MZmineCore classes like the TaskController itself
+ */
 public class TasksViewInteractor extends FxInteractor<TasksViewModel> {
-
-  private static final Logger logger = Logger.getLogger(TasksViewInteractor.class.getName());
 
   TasksViewInteractor(final TasksViewModel model) {
     super(model);
