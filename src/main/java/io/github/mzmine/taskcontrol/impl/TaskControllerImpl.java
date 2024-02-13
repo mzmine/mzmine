@@ -87,7 +87,7 @@ public class TaskControllerImpl implements TaskController {
     executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(this.numThreads);
 
     // this is a cached thread pool that only retains threads for a certain time, if inactive
-    highPriorityExecutor = TaskController.createHighPriorityThreadPool(this.numThreads);
+    highPriorityExecutor = TaskController.createCachedHighPriorityThreadPool(this.numThreads);
     // Create a low-priority thread that will manage the queue and start
     // worker threads for tasks
     updateExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
@@ -198,6 +198,11 @@ public class TaskControllerImpl implements TaskController {
   @Override
   public @NotNull ThreadPoolExecutor getExecutor() {
     return executor;
+  }
+
+  @Override
+  public @NotNull ThreadPoolExecutor getHighPriorityExecutor() {
+    return highPriorityExecutor;
   }
 
   @Override

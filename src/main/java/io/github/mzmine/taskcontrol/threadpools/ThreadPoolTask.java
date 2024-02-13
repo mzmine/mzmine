@@ -44,6 +44,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * ThreadPoolTask (virtual, fixed, provided) that can be used to wrap a list of tasks, e.g., when
+ * running many tasks, a ThreadPoolTask will show up as an additional task with the combined
+ * progress of how many sub tasks are finished. The main task will wait for sub tasks to complete.
+ * <p>
+ * General cases use {@link #createDefaultTaskManagerPool(String, List)} and the thread pool of the
+ * {@link TaskController}
+ * <p>
+ * Use {@link FixedThreadPoolTask} to limit the number of threads.
+ * <p>
+ * Use
+ */
 public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedThreadPoolTask,
     ProvidedThreadPoolTask, VirtualThreadPoolTask {
 
@@ -72,12 +84,19 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
   }
 
   /**
-   * Implementation that uses the task controller internal thread pool to limit threads
+   * Implementation that uses the task controller internal thread pool to limit threads. This should
+   * be generally used unless more constraints are needed to run a task. Then create a new
+   * {@link FixedThreadPoolTask} or for blocking calls {@link VirtualThreadPoolTask}
    */
   public static ThreadPoolTask createDefaultTaskManagerPool(final String description,
       final List<? extends Task> tasks) {
-    return new ProvidedThreadPoolTask(description, MZmineCore.getTaskController().getExecutor(),
+    return new ProvidedThreadPoolTask(description, getTaskControllerThreadPool(),
         false, tasks);
+  }
+
+  @NotNull
+  private static ThreadPoolExecutor getTaskControllerThreadPool() {
+    return MZmineCore.getTaskController().getExecutor();
   }
 
   private void applyNewStatusToFutures() {
@@ -100,6 +119,7 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
     try {
       // do not auto close as we are usually using the TaskController thread pool
       threadPool = createThreadPool();
+
       int numThreads = MZmineCore.getConfiguration().getNumOfThreads();
 
       if (threadPool instanceof ThreadPoolExecutor threadPoolExecutor) {
@@ -107,13 +127,14 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
         numThreads = threadPoolExecutor.getCorePoolSize();
       }
 
-      try (ExecutorService highPrioExecutor = TaskController.createHighPriorityThreadPool(
+      // this executor is only used for high priority tasks, core thread pool size is zero
+      try (ExecutorService highPrioExecutor = TaskController.createCachedHighPriorityThreadPool(
           numThreads)) {
 
         // execute
         for (WrappedTask task : tasks) {
           task.addTaskStatusListener(
-              (__, newStatus, oldStatus) -> handleSubTaskStatusChanged(newStatus));
+              (thistask, newStatus, oldStatus) -> handleSubTaskStatusChanged(thistask, newStatus));
 
           Runnable runnable = trackProgressTask(task);
 
@@ -163,11 +184,13 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
   }
 
 
-  private void handleSubTaskStatusChanged(final TaskStatus newStatus) {
+  private void handleSubTaskStatusChanged(final Task thistask, final TaskStatus newStatus) {
     switch (newStatus) {
       case CANCELED -> cancel();
       case ERROR -> {
-        logger.info("Subtask had an error. Cancelling all sub tasks now.");
+        logger.info(STR."""
+            Subtask had an error. Cancelling all sub tasks now.
+            \{thistask.toString()}""");
         cancel();
         setStatus(TaskStatus.ERROR);
       }

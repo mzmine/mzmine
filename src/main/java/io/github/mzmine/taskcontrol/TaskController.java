@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 public interface TaskController {
 
   @NotNull
-  static ThreadPoolExecutor createHighPriorityThreadPool(int maxNumThreads) {
+  static ThreadPoolExecutor createCachedHighPriorityThreadPool(int maxNumThreads) {
     ThreadFactory threadFac = r -> {
       Thread t = new Thread(r, "High priority sub task thread");
       t.setDaemon(true);
@@ -54,6 +54,12 @@ public interface TaskController {
    * The executor that schedules the tasks
    */
   @NotNull ThreadPoolExecutor getExecutor();
+
+  /**
+   * The executor that schedules high priority tasks on a separate cached number of threads. This
+   * avoids long waits for threads on the {@link #getExecutor()} that runs all general tasks
+   */
+  @NotNull ThreadPoolExecutor getHighPriorityExecutor();
 
   /**
    * Add a task to the task list (will be in the TaskView) and run it on the calling thread.

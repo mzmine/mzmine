@@ -168,4 +168,9 @@ public abstract class AbstractTask implements Task {
   public Instant getModuleCallDate() {
     return moduleCallDate;
   }
+
+  @Override
+  public String toString() {
+    return STR."Task (\{getName()}) description: \{getTaskDescription()}";
+  }
 }
