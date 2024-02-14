@@ -25,7 +25,9 @@
 
 package import_data.speed;
 
-public record SpeedMeasurement(String name, String batchFile, String description, int files,
-                               double timeSeconds) {
+import java.util.List;
+
+public record BatchSpeedJob(String description, int iterations, String batchFile,
+                            List<String> files) {
 
 }

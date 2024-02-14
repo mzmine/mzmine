@@ -23,9 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package import_data.speed;
+package io.github.mzmine.taskcontrol.threadpools;
 
-public record SpeedMeasurement(String name, String batchFile, String description, int files,
-                               double timeSeconds) {
+import io.github.mzmine.taskcontrol.Task;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 
+public final class ProvidedThreadPoolTask extends ThreadPoolTask {
+
+
+  private final ThreadPoolExecutor executor;
+  private final boolean autoShutdownExecutor;
+
+  public ProvidedThreadPoolTask(final String description, final ThreadPoolExecutor executor,
+      boolean autoShutdownExecutor, final List<? extends Task> tasks) {
+    super(description, tasks);
+    this.executor = executor;
+    this.autoShutdownExecutor = autoShutdownExecutor;
+  }
+
+  @Override
+  public ExecutorService createThreadPool() {
+    return executor;
+  }
+
+  public boolean autoShutdownExecutor() {
+    return autoShutdownExecutor;
+  }
 }

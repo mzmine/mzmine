@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,26 +27,27 @@ package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
-import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
-import io.github.mzmine.modules.visualization.chromatogram.FeatureTICRenderer;
+import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
+import io.github.mzmine.modules.visualization.chromatogram.MzRangeEicDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureConvertors;
-import io.github.mzmine.util.ManualFeatureUtils;
-import java.text.NumberFormat;
+import io.github.mzmine.util.RangeUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
-import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Calculates The feature data sets in a new thread to safe perfomance and not make the gui freeze.
@@ -56,12 +57,9 @@ public class FeatureDataSetCalc extends AbstractTask {
 
   public static final Logger logger = Logger.getLogger(FeatureDataSetCalc.class.getName());
 
-  private final NumberFormat mzFormat;
   private final Collection<RawDataFile> rawDataFiles;
-  private final Range<Double> mzRange;
-  private int doneFiles;
-  private final List<FeatureDataSet> features;
-  private final HashMap<FeatureDataSet, FeatureTICRenderer> dataSetsAndRenderers;
+  private final List<Range<Double>> mzRangesSorted;
+  private final AtomicInteger doneFiles = new AtomicInteger(0);
   private final TICPlot chromPlot;
   private final ScanSelection scanSelection;
 
@@ -69,65 +67,81 @@ public class FeatureDataSetCalc extends AbstractTask {
       ScanSelection scanSelection, TICPlot chromPlot) {
     super(null, Instant.now()); // no new data stored -> null, date irrelevant (not used in batch)
     this.rawDataFiles = rawDataFiles;
-    this.mzRange = mzRange;
+    this.mzRangesSorted = List.of(mzRange);
     this.chromPlot = chromPlot;
     this.scanSelection = scanSelection;
-    doneFiles = 0;
-    setStatus(TaskStatus.WAITING);
-    features = new ArrayList<>();
-    dataSetsAndRenderers = new HashMap<>();
-    mzFormat = MZmineCore.getConfiguration().getMZFormat();
   }
 
   @Override
   public String getTaskDescription() {
-    return "Calculating base peak chromatogram(s) of m/z " + mzFormat.format(
-        (mzRange.upperEndpoint() + mzRange.lowerEndpoint()) / 2) + " in " + rawDataFiles.size()
-        + " file(s).";
+    return STR."Calculating \{mzRangesSorted.size()} base peak chromatogram(s) in \{rawDataFiles.size()} files.";
   }
 
   @Override
   public double getFinishedPercentage() {
     // + 1 because we count the generation of the data sets, too.
-    return ((double) doneFiles / (rawDataFiles.size() + 1));
+    return ((double) doneFiles.get() / (rawDataFiles.size() + 1));
   }
 
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    // TODO: new ModularFeatureList name
-    ModularFeatureList newFeatureList = new ModularFeatureList("Feature list " + this.hashCode(),
-        null, new ArrayList<>(rawDataFiles));
+    logger.info(getTaskDescription());
+    // extract all IonSeries at once
+    final List<ColoredXYDataset> datasets = rawDataFiles.stream().parallel()
+        .map(this::extractDataset).flatMap(Collection::stream).toList();
 
-    for (RawDataFile rawDataFile : rawDataFiles) {
-      if (getStatus() == TaskStatus.CANCELED) {
-        return;
-      }
-
-      ManualFeature feature = ManualFeatureUtils.pickFeatureManually(rawDataFile,
-          rawDataFile.getDataRTRange(scanSelection.getMsLevelFilter().getSingleMsLevelOrNull()),
-          mzRange);
-      if (feature != null && feature.getScanNumbers() != null
-          && feature.getScanNumbers().length > 0) {
-        feature.setFeatureList(newFeatureList);
-        ModularFeature modularFeature = FeatureConvertors.ManualFeatureToModularFeature(
-            newFeatureList, feature);
-        features.add(new FeatureDataSet(modularFeature));
-      } else {
-        logger.finest("No scans found for " + rawDataFile.getName());
-      }
-      doneFiles++;
+    if (datasets.isEmpty()) {
+      setStatus(TaskStatus.FINISHED);
+      return;
     }
 
-    Platform.runLater(() -> {
-      if (getStatus() == TaskStatus.CANCELED) {
+    // set datasets to plot
+    MZmineCore.runLater(() -> {
+      if (isCanceled()) {
         return;
       }
-      chromPlot.removeAllFeatureDataSets(false);
-      chromPlot.addFeatureDataSets(features);
+      logger.info("Adding EIC datasets to plot");
+      chromPlot.applyWithNotifyChanges(false, true, () -> {
+        chromPlot.removeAllDataSetsOf(MzRangeEicDataSet.class, false);
+        chromPlot.addDataSets(datasets);
+      });
     });
 
     setStatus(TaskStatus.FINISHED);
+  }
+
+  /**
+   * @return list of datasets for each mzRange or empty if interrupted or empty
+   */
+  @NotNull
+  private List<ColoredXYDataset> extractDataset(final RawDataFile dataFile) {
+    if (isCanceled()) {
+      doneFiles.incrementAndGet();
+      return List.of();
+    }
+
+    List<Scan> scans = scanSelection.getMatchingScans(dataFile.getScans());
+
+    var extractFunction = new ExtractMzRangesIonSeriesFunction(dataFile, scans, mzRangesSorted,
+        ScanDataType.RAW, this);
+
+    BuildingIonSeries[] ionSeries = extractFunction.get();
+
+    List<ColoredXYDataset> datasets = new ArrayList<>();
+
+    for (int i = 0; i < ionSeries.length; i++) {
+      var builder = ionSeries[i];
+      Range<Double> mzRange = mzRangesSorted.get(i);
+      double mz = RangeUtils.rangeCenter(mzRange);
+
+      IonTimeSeries<? extends Scan> series = builder.toIonTimeSeriesWithLeadingAndTrailingZero(null,
+          scans);
+      datasets.add(
+          new MzRangeEicDataSet(series, mzRange, dataFile.getColor(), RunOption.THIS_THREAD));
+    }
+    doneFiles.incrementAndGet();
+    return datasets;
   }
 }

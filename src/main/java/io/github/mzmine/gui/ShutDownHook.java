@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,9 +28,8 @@ package io.github.mzmine.gui;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.taskcontrol.impl.WrappedTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Shutdown hook - invoked on JRE shutdown. This method saves current configuration to XML and
@@ -38,28 +37,31 @@ import io.github.mzmine.taskcontrol.impl.WrappedTask;
  */
 class ShutDownHook extends Thread {
 
-  public void start() {
+  private static final Logger logger = Logger.getLogger(ShutDownHook.class.getName());
+
+  @Override
+  public void run() {
 
     // Cancel all running tasks - this is important because tasks can spawn
     // additional processes (such as ThermoRawDump.exe on Windows) and these
     // will block the shutdown of the JVM. If we cancel the tasks, the
     // processes will be killed immediately.
-    for (WrappedTask wt : MZmineCore.getTaskController().getTaskQueue().getQueueSnapshot()) {
-      Task t = wt.getActualTask();
-      if ((t.getStatus() == TaskStatus.WAITING) || (t.getStatus() == TaskStatus.PROCESSING)) {
-        t.cancel();
-      }
+    try {
+      MZmineCore.getTaskController().close();
+
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Could not stop all tasks on shutdown", e);
     }
 
     // Save configuration
     try {
       MZmineCore.getConfiguration().saveConfiguration(MZmineConfiguration.CONFIG_FILE);
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, "Could not save config on shutdown", e);
     }
 
     // Close all temporary files
-    RawDataFile dataFiles[] = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    RawDataFile[] dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
     for (RawDataFile dataFile : dataFiles) {
       dataFile.close();
     }

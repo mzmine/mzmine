@@ -27,9 +27,7 @@
 
 <!--<?import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem?>-->
 
-<?import io.github.mzmine.gui.mainwindow.tasksview.TasksView?>
 <?import io.github.mzmine.util.javafx.groupablelistview.GroupableListView?>
-<?import io.github.mzmine.util.javafx.MiniTaskView?>
 <?import java.net.URL?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Label?>
@@ -44,7 +42,6 @@
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
@@ -62,12 +59,9 @@
     xmlns="http://javafx.com/javafx/14.0.1">
     <bottom>
       <VBox fx:id="bottomBox" maxHeight="130">
-        <TasksView fx:id="taskView"/>
         <StatusBar maxHeight="30" minHeight="30" fx:id="statusBar">
           <rightItems>
-            <HBox spacing="5">
-              <MiniTaskView fx:id="miniTaskView" progressBarOpacity="0.3" prefWidth="250"
-              maxWidth="300" minWidth="250" alignment="CENTER_RIGHT" hgap="5"/>
+            <HBox spacing="5" fx:id="bottomMenuBar">
                 <StackPane scaleShape="true">
                   <Label alignment="CENTER"
                     minWidth="150" prefWidth="150" fx:id="memoryBarLabel">

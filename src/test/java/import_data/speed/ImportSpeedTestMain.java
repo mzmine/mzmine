@@ -91,7 +91,7 @@ public class ImportSpeedTestMain {
     TaskResult finished = importFiles(files, 5 * 60, null);
 
     if (finished instanceof FINISHED f) {
-      var sm = new SpeedMeasurement(name, description, files.size(), f.getSeconds());
+      var sm = new SpeedMeasurement(name, null, description, files.size(), f.getSeconds());
       appendToFile(speedTestFile, sm);
     }
 

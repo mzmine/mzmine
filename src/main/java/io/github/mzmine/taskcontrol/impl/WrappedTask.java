@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,72 +28,104 @@ package io.github.mzmine.taskcontrol.impl;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.TaskStatusListener;
+import io.github.mzmine.util.ExceptionUtils;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Wrapper class for Tasks that stores additional information
  */
-public class WrappedTask {
+public class WrappedTask implements Task {
 
-  private StringProperty name = new SimpleStringProperty("");
-
-  public final String getName() {
-    return name.get();
-  }
-
-  public final void setName(String value) {
-    name.set(value);
-  }
-
-  public StringProperty nameProperty() {
-    return name;
-  }
-
+  private static final Logger logger = Logger.getLogger(WrappedTask.class.getName());
   private Task task;
-  private Property<TaskPriority> priority;
-  private WorkerThread assignedTo;
+  private final Property<TaskPriority> priority;
+  private boolean finished = false;
+  private @Nullable Future<?> future;
 
   public WrappedTask(Task task, TaskPriority priority) {
     this.task = task;
     this.priority = new SimpleObjectProperty<>(priority);
   }
 
+  @Nullable
+  public Future<?> getFuture() {
+    return future;
+  }
+
+  public void setFuture(final @Nullable Future<?> future) {
+    this.future = future;
+    if (future != null && isCanceled()) {
+      future.cancel(true);
+    }
+  }
+
+  @Override
+  public String getTaskDescription() {
+    return task.getTaskDescription();
+  }
+
+  @Override
+  public double getFinishedPercentage() {
+    return task.getFinishedPercentage();
+  }
+
+  @Override
+  public TaskStatus getStatus() {
+    return task.getStatus();
+  }
+
+  @Override
+  public String getErrorMessage() {
+    return task.getErrorMessage();
+  }
+
   /**
    * @return Returns the priority.
    */
-  TaskPriority getPriority() {
+  @Override
+  public TaskPriority getTaskPriority() {
     return priority.getValue();
+  }
+
+  @Override
+  public void cancel() {
+    task.cancel();
+    if (future != null) {
+      future.cancel(true);
+    }
+  }
+
+  @Override
+  public void addTaskStatusListener(final TaskStatusListener list) {
+    task.addTaskStatusListener(list);
+  }
+
+  @Override
+  public boolean removeTaskStatusListener(final TaskStatusListener list) {
+    return task.removeTaskStatusListener(list);
+  }
+
+  @Override
+  public void clearTaskStatusListener() {
+    task.clearTaskStatusListener();
   }
 
   /**
    * @param priority The priority to set.
    */
-  void setPriority(TaskPriority priority) {
+  public void setPriority(TaskPriority priority) {
     MZmineCore.runLater(() -> this.priority.setValue(priority));
-    if (assignedTo != null) {
-      switch (priority) {
-        case HIGH -> assignedTo.setPriority(Thread.MAX_PRIORITY);
-        case NORMAL -> assignedTo.setPriority(Thread.NORM_PRIORITY);
-      }
-    }
   }
 
   public Property<TaskPriority> priorityProperty() {
     return priority;
-  }
-
-  /**
-   * @return Returns the assigned.
-   */
-  boolean isAssigned() {
-    return assignedTo != null;
-  }
-
-  void assignTo(WorkerThread thread) {
-    assignedTo = thread;
   }
 
   /**
@@ -109,6 +141,71 @@ public class WrappedTask {
 
   synchronized void removeTaskReference() {
     task = new FinishedTask(task);
+  }
+
+  public void run() {
+    Task actualTask = getActualTask();
+
+    try {
+
+      // Log the start (INFO level events go to the Status bar, too)
+      logger.info("Starting processing of task " + actualTask.getTaskDescription());
+
+      // Process the actual task
+      actualTask.run();
+
+      // Check if task finished with an error
+      if (actualTask.getStatus() == TaskStatus.ERROR) {
+
+        String errorMsg = actualTask.getErrorMessage();
+        if (errorMsg == null) {
+          errorMsg = "Unspecified error in " + actualTask.getClass();
+        }
+
+        // Log the error
+        logger.severe("Error of task " + actualTask.getTaskDescription() + ": " + errorMsg);
+
+        MZmineCore.getDesktop().displayErrorMessage(errorMsg);
+      } else {
+        // Log the finish
+        logger.info("Processing of task " + actualTask.getTaskDescription() + " done, status "
+                    + actualTask.getStatus());
+      }
+
+    } catch (Throwable e) {
+      /*
+       * This should never happen, it means the task did not handle its exception properly, or there
+       * was some severe error, like OutOfMemoryError
+       */
+
+      logger.log(Level.SEVERE,
+          "Unhandled exception " + e + " while processing task " + actualTask.getTaskDescription(),
+          e);
+
+      MZmineCore.getDesktop().displayErrorMessage(
+          "Unhandled exception in task " + actualTask.getTaskDescription() + ": "
+          + ExceptionUtils.exceptionToString(e));
+
+    }
+
+    /*
+     * This is important to allow the garbage collector to remove the task, while keeping the task
+     * description in the "Tasks in progress" window
+     */
+    removeTaskReference();
+
+    /*
+     * Mark this thread as finished
+     */
+    finished = true;
+  }
+
+  /**
+   * if run method is complete its finished the state of the task may be finished, canceled or error
+   * though
+   */
+  boolean isWorkFinished() {
+    return finished;
   }
 
 }

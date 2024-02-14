@@ -23,9 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package import_data.speed;
+package io.github.mzmine.modules.visualization.chromatogram;
 
-public record SpeedMeasurement(String name, String batchFile, String description, int files,
-                               double timeSeconds) {
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.RangeUtils;
+import javafx.scene.paint.Color;
 
+/**
+ * Simple dataset for extracted ion chromatograms
+ */
+public class MzRangeEicDataSet extends ColoredXYDataset {
+
+  public MzRangeEicDataSet(final IonTimeSeries<? extends Scan> series, final Range<Double> mzRange,
+      final Color color, final RunOption runOption) {
+    super(new IonTimeSeriesToXYProvider(series,
+            MZmineCore.getConfiguration().getGuiFormats().mz(RangeUtils.rangeCenter(mzRange)), color),
+        runOption);
+  }
 }

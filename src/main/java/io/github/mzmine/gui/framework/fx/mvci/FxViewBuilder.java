@@ -23,9 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package import_data.speed;
+package io.github.mzmine.gui.framework.fx.mvci;
 
-public record SpeedMeasurement(String name, String batchFile, String description, int files,
-                               double timeSeconds) {
+import javafx.scene.layout.Region;
+import javafx.util.Builder;
 
+/**
+ * MVCI View base class. Creates the view on demand in the build method.
+ */
+public abstract class FxViewBuilder<ViewModelClass> implements Builder<Region> {
+
+  protected final ViewModelClass model;
+
+  protected FxViewBuilder(ViewModelClass model) {
+    this.model = model;
+  }
 }

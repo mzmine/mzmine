@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.pseudospectrumvisualizer;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -110,7 +111,7 @@ class PseudoSpectrumFeatureDataSetCalculationTask extends AbstractTask {
 
     // extract all IonSeries at once
     extractFunction = new ExtractMzRangesIonSeriesFunction(dataFile, scans, mzRangesSorted,
-        this);
+        ScanDataType.MASS_LIST, this);
 
     BuildingIonSeries[] ionSeries = extractFunction.get();
 

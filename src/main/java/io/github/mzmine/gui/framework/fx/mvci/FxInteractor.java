@@ -23,59 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.taskcontrol;
+package io.github.mzmine.gui.framework.fx.mvci;
 
 /**
- *
+ * MVCI Interactor base class. This class interacts with business logic and updates the data model.
+ * The {@link FxController} orchestrates its tasks on specific threads.
  */
-public interface Task extends Runnable {
+public abstract class FxInteractor<ViewModelClass> {
 
-  String getTaskDescription();
+  protected final ViewModelClass model;
 
-  double getFinishedPercentage();
-
-  TaskStatus getStatus();
-
-
-  /**
-   * Convenience method for determining if this task has been canceled. Also returns true if the
-   * task encountered an error.
-   *
-   * @return true if this task has been canceled or stopped due to an error
-   */
-  default boolean isCanceled() {
-    TaskStatus status = getStatus();
-    return (status == TaskStatus.CANCELED) || (status == TaskStatus.ERROR);
+  protected FxInteractor(ViewModelClass model) {
+    this.model = model;
   }
 
   /**
-   * Convenience method for determining if this task has been completed
-   *
-   * @return true if this task is finished
+   * Method designed to be run on the FXAT to load data received via the fetchData() method into the
+   * ViewModel.  This method is called from the load() method of the ScreenController via the
+   * setOnSucceeded() method of a Task.
    */
-  default boolean isFinished() {
-    TaskStatus status = getStatus();
-    return status == TaskStatus.FINISHED;
-  }
-
-  String getErrorMessage();
-
-  /**
-   * The standard TaskPriority assign to this task
-   *
-   * @return
-   */
-  TaskPriority getTaskPriority();
-
-  /**
-   * Cancel a running task by user request.
-   */
-  void cancel();
-
-  void addTaskStatusListener(TaskStatusListener list);
-
-  boolean removeTaskStatusListener(TaskStatusListener list);
-
-  void clearTaskStatusListener();
-
+  public abstract void updateModel();
 }

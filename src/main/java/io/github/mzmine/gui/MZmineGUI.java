@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,7 +39,7 @@ import io.github.mzmine.gui.mainwindow.GlobalKeyHandler;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
-import io.github.mzmine.gui.mainwindow.tasksview.TasksView;
+import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
@@ -53,7 +53,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
@@ -93,7 +92,6 @@ import javafx.scene.control.DialogPane;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -101,6 +99,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -387,7 +386,7 @@ public class MZmineGUI extends Application implements Desktop {
     }
 
     String title = "Tasks";
-    TasksView tasksView = mainWindowController.getTasksView();
+    Region tasksView = mainWindowController.getTasksView();
 
     // remove
     switch (currentTaskManagerLocation) {
@@ -464,8 +463,7 @@ public class MZmineGUI extends Application implements Desktop {
       preferences.getValue(MZminePreferences.theme).apply(rootScene.getStylesheets());
 
     } catch (Exception e) {
-      e.printStackTrace();
-      logger.severe("Error loading MZmine GUI from FXML: " + e);
+      logger.log(Level.SEVERE, "Error loading MZmine GUI from FXML: " + e.getMessage(), e);
       Platform.exit();
     }
 
@@ -543,8 +541,7 @@ public class MZmineGUI extends Application implements Desktop {
 
     // register shutdown hook only if we have GUI - we don't want to
     // save configuration on exit if we only run a batch
-    ShutDownHook shutDownHook = new ShutDownHook();
-    Runtime.getRuntime().addShutdownHook(shutDownHook);
+    Runtime.getRuntime().addShutdownHook(new ShutDownHook());
     Runtime.getRuntime().addShutdownHook(new Thread(new TmpFileCleanup()));
   }
 
@@ -565,12 +562,12 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public TableView<WrappedTask> getTasksView() {
-    return mainWindowController.getTasksView().getTable();
+  public @Nullable TasksViewController getTasksViewController() {
+    return mainWindowController.getTasksViewController();
   }
 
   @Override
-  public void openWebPage(URL url) {
+  public void openWebPage(@NotNull URL url) {
     openWebPage(String.valueOf(url));
   }
 
@@ -711,7 +708,7 @@ public class MZmineGUI extends Application implements Desktop {
       }
       return alertTask.get();
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage(), e);
       return null;
     }
   }
@@ -759,7 +756,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public ExitCode exitMZmine() {
+  public @NotNull ExitCode exitMZmine() {
 
     requestQuit();
     return ExitCode.UNKNOWN;
@@ -778,7 +775,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public List<MZmineTab> getAllTabs() {
+  public @NotNull List<MZmineTab> getAllTabs() {
     if (mainWindowController == null) {
       return List.of();
     }
@@ -866,10 +863,8 @@ public class MZmineGUI extends Application implements Desktop {
 
     try {
       return task.get();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    } catch (ExecutionException e) {
-      e.printStackTrace();
+    } catch (InterruptedException | ExecutionException e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
     return ButtonType.NO;
   }

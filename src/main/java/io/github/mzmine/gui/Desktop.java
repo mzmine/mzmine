@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,15 +28,14 @@ package io.github.mzmine.gui;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.net.URL;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
@@ -108,7 +107,7 @@ public interface Desktop extends MZmineModule {
    *
    * @param title Message box title
    * @param msg   Text to show
-   * @[param url url to open
+   * @param url url to open
    */
   void displayMessage(String title, String msg, String url);
 
@@ -190,7 +189,13 @@ public interface Desktop extends MZmineModule {
 
   @NotNull ExitCode exitMZmine();
 
-  TableView<WrappedTask> getTasksView();
+  /**
+   * Maybe add a tasksview controller in the future for headless mode?
+   *
+   * @return the tasksview controller if GUI mode
+   */
+  @Nullable
+  TasksViewController getTasksViewController();
 
   void openWebPage(@NotNull URL url);
 

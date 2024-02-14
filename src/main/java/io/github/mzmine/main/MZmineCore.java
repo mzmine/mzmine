@@ -99,8 +99,6 @@ public final class MZmineCore {
   private boolean headLessMode = true;
   private boolean tdfPseudoProfile = false;
   private boolean tsfProfile = false;
-  // batch exit code is only set if run in headless mode with batch file
-  private ExitCode batchExitCode = null;
 
   private MZmineCore() {
     init();
@@ -192,6 +190,9 @@ public final class MZmineCore {
       String numCores = argsParser.getNumCores();
       setNumThreadsOverride(numCores);
 
+      // after loading the config and numCores
+      getInstance().taskController = TaskControllerImpl.getInstance();
+
       // apply memory management option
       keepInMemory.enforceToMemoryMapping();
 
@@ -214,7 +215,6 @@ public final class MZmineCore {
           isFxInitialized = true;
           Application.launch(MZmineGUI.class, args);
         } catch (Throwable e) {
-          e.printStackTrace();
           logger.log(Level.SEVERE, "Could not initialize GUI", e);
           System.exit(1);
         }
@@ -224,6 +224,7 @@ public final class MZmineCore {
         // Tracker
         GoogleAnalyticsTracker.track("MZmine Loaded (Headless mode)", "/JAVA/Main/HEADLESS");
 
+        Task batchTask = null;
         if (batchFile != null) {
           // load batch
           if ((!batchFile.exists()) || (!batchFile.canRead())) {
@@ -232,7 +233,7 @@ public final class MZmineCore {
           }
 
           // run batch file
-          getInstance().batchExitCode = BatchModeModule.runBatch(
+          batchTask = BatchModeModule.runBatch(
               getInstance().projectManager.getCurrentProject(), batchFile, overrideDataFiles,
               overrideSpectralLibraryFiles, Instant.now());
         }
@@ -240,12 +241,12 @@ public final class MZmineCore {
         // option to keep MZmine running after the batch is finished
         // currently used to test - maybe useful to provide an API to access more data or to run other modules on demand
         if (!keepRunningInHeadless) {
-          exit();
+          exit(batchTask);
         }
       }
     } catch (Exception ex) {
       logger.log(Level.SEVERE, "Error during MZmine start up", ex);
-      exit();
+      exit(null);
     }
   }
 
@@ -285,13 +286,13 @@ public final class MZmineCore {
   /**
    * Exit MZmine (usually used in headless mode)
    */
-  public static void exit() {
+  public static void exit(final @Nullable Task batchTask) {
     if(isHeadLessMode() && isFxInitialized) {
       // fx might be initialized for graphics export in headless mode - shut it down
       // in GUI mode it is shut down automatically
       Platform.exit();
     }
-    if (instance.batchExitCode == ExitCode.OK || instance.batchExitCode == null) {
+    if (batchTask == null || batchTask.isFinished()) {
       System.exit(0);
     } else {
       System.exit(1);
@@ -356,7 +357,6 @@ public final class MZmineCore {
 
       } catch (Throwable e) {
         logger.log(Level.SEVERE, "Could not start module " + moduleClass, e);
-        e.printStackTrace();
         return null;
       }
     }
@@ -490,7 +490,6 @@ public final class MZmineCore {
       }
       return new Semver(versionString, SemverType.LOOSE);
     } catch (Exception e) {
-      e.printStackTrace();
       return new Semver("3-SNAPSHOT", SemverType.LOOSE);
     }
   }
@@ -648,7 +647,6 @@ public final class MZmineCore {
 
     // Create instances of core modules
     projectManager = ProjectManagerImpl.getInstance();
-    taskController = TaskControllerImpl.getInstance();
 
     logger.fine("Initializing core classes..");
   }

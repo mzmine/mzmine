@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -106,7 +106,9 @@ public abstract class AbstractTask implements Task {
    */
   @Override
   public void cancel() {
-    setStatus(TaskStatus.CANCELED);
+    if (!isFinished()) {
+      setStatus(TaskStatus.CANCELED);
+    }
   }
 
   /**
@@ -165,5 +167,10 @@ public abstract class AbstractTask implements Task {
 
   public Instant getModuleCallDate() {
     return moduleCallDate;
+  }
+
+  @Override
+  public String toString() {
+    return STR."Task (\{getName()}) description: \{getTaskDescription()}";
   }
 }

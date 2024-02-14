@@ -23,3 +23,4 @@ not-bio
 /.run
 /src/test/java/import_data/local
 /src/test/resources/rawdatafiles/local
+/src/test/java/import_data/speed/local/tims32subs/

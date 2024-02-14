@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,11 +35,10 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
-import io.github.mzmine.gui.mainwindow.tasksview.TasksView;
+import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
-import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
@@ -63,11 +62,9 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
-import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import io.github.mzmine.util.javafx.MiniTaskView;
 import io.github.mzmine.util.javafx.groupablelistview.GroupEntity;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewCell;
@@ -76,7 +73,6 @@ import io.github.mzmine.util.javafx.groupablelistview.ValueEntity;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.IOException;
 import java.text.NumberFormat;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -122,13 +118,13 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
@@ -179,9 +175,8 @@ public class MainWindowController {
 
   @FXML
   public FlowPane taskViewPane;
-
   @FXML
-  public TasksView taskView;
+  public HBox bottomMenuBar;
 
   @FXML
   private Scene mainScene;
@@ -216,11 +211,10 @@ public class MainWindowController {
   @FXML
   private Label memoryBarLabel;
 
-  @FXML
-  private ProgressBar miniProgressBar;
+  private TasksViewController tasksViewController;
+  private Region tasksView;
+  private Region miniTaskView;
 
-  @FXML
-  private MiniTaskView miniTaskView;
 
   @NotNull
   private static Pane getRawGraphic(RawDataFile rawDataFile) {
@@ -279,8 +273,8 @@ public class MainWindowController {
     initFeatureListsList();
 
     addTab(new MZmineIntroductionTab());
+
     initTasksViewToTab();
-    initMiniTaskView();
     selectTab(MZmineIntroductionTab.TITLE);
 
     memoryBar.setOnMouseClicked(event -> handleMemoryBarClick(event));
@@ -288,11 +282,15 @@ public class MainWindowController {
 
     // Setup the Timeline to update the memory indicator periodically
     final Timeline memoryUpdater = new Timeline();
-    int UPDATE_FREQUENCY = 500; // ms
+    int UPDATE_FREQUENCY = 250; // ms
     memoryUpdater.setCycleCount(Animation.INDEFINITE);
     memoryUpdater.getKeyFrames().add(new KeyFrame(Duration.millis(UPDATE_FREQUENCY), e -> {
 
-      getTasksView().getTable().refresh();
+      tasksViewController.updateDataModel();
+
+      // Obtain the settings of max concurrent threads
+      var numOfThreads = MZmineCore.getConfiguration().getNumOfThreads();
+      MZmineCore.getTaskController().setNumberOfThreads(numOfThreads);
 
       final long freeMemMB = Runtime.getRuntime().freeMemory() / (1024 * 1024);
       final long totalMemMB = Runtime.getRuntime().totalMemory() / (1024 * 1024);
@@ -524,58 +522,30 @@ public class MainWindowController {
     });
   }
 
-  private void initMiniTaskView() {
-    final MenuItem showTasks = new MenuItem("Show tasks view");
-    showTasks.setOnAction(e -> {
-      MZmineCore.getDesktop().handleShowTaskView();
-    });
-    final MenuItem cancelAll = new MenuItem("Cancel all tasks");
-    cancelAll.setOnAction(
-        e -> Arrays.stream(MZmineCore.getTaskController().getTaskQueue().getQueueSnapshot())
-            .forEach(t -> t.getActualTask().cancel()));
-    miniTaskView.getProgressBarContextMenu().getItems().addAll(showTasks, cancelAll);
-    miniTaskView.setOnProgressBarClicked(e -> {
-      if (e.getButton() == MouseButton.PRIMARY) {
-        MZmineCore.getDesktop().handleShowTaskView();
-      }
-    });
-
-    final MenuItem cancelBatch = new MenuItem("Cancel batch");
-    cancelBatch.setOnAction(e -> {
-      final Optional<BatchTask> batchTask = Arrays.stream(
-              MZmineCore.getTaskController().getTaskQueue().getQueueSnapshot())
-          .filter(t -> t.getActualTask() instanceof BatchTask)
-          .map(t -> (BatchTask) t.getActualTask()).findFirst();
-      batchTask.ifPresent(AbstractTask::cancel);
-    });
-    miniTaskView.getBatchBarContextMenu().getItems().add(cancelBatch);
-
-    Timeline timeline = new Timeline(300);
-    timeline.setCycleCount(Animation.INDEFINITE);
-    timeline.getKeyFrames().add(new KeyFrame(Duration.millis(300), e -> {
-      miniTaskView.refresh(MZmineCore.getTaskController());
-    }));
-    timeline.play();
-  }
 
   public void initTasksViewToTab() {
-    var view = removeTasksFromBottom();
+    tasksViewController = new TasksViewController();
+    tasksView = tasksViewController.buildView();
+    miniTaskView = tasksViewController.buildMiniView();
+
+    // add tab
     MZmineTab tab = new SimpleTab("Tasks");
-    tab.setContent(view);
+    tab.setContent(getTasksView());
     addTab(tab);
+
+    bottomMenuBar.getChildren().addFirst(miniTaskView);
   }
 
-  public TasksView removeTasksFromBottom() {
-    TasksView tasksView = getTasksView();
-    bottomBox.getChildren().remove(tasksView);
+  public Region removeTasksFromBottom() {
+    bottomBox.getChildren().remove(getTasksView());
     return tasksView;
   }
 
   public void addTasksToBottom() {
-    TasksView tasksView = getTasksView();
+    Region tasksView = getTasksView();
     ObservableList<Node> children = bottomBox.getChildren();
     if (!children.contains(tasksView)) {
-      children.add(0, tasksView);
+      children.addFirst(tasksView);
     }
   }
 
@@ -597,17 +567,22 @@ public class MainWindowController {
     return spectralLibraryList;
   }
 
-  /*
-   * public TaskProgressView<Task<?>> getTaskTable() { return tasksView; }
-   */
-
   public StatusBar getStatusBar() {
     return statusBar;
   }
 
-  public TasksView getTasksView() {
-    return taskView;
+  public Region getTasksView() {
+    return tasksView;
   }
+
+  public Region getMiniTasksView() {
+    return miniTaskView;
+  }
+
+  public TasksViewController getTasksViewController() {
+    return tasksViewController;
+  }
+
 
   public void handleLibraryToFeatureList(final ActionEvent actionEvent) {
     logger.finest("Libraries to feature lists");

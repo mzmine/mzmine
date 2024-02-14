@@ -23,9 +23,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package import_data.speed;
+package io.github.mzmine.gui.framework.fx.components;
 
-public record SpeedMeasurement(String name, String batchFile, String description, int files,
-                               double timeSeconds) {
+import static javafx.beans.binding.Bindings.createStringBinding;
+
+import javafx.beans.binding.Bindings;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.TableCell;
+
+/**
+ * Has a progress bar Pattern of implementation found on
+ * https://www.pragmaticcoding.ca/javafx/elements/tableview-data
+ */
+public class LabeledProgressBarCell<S> extends TableCell<S, Number> {
+
+  public LabeledProgressBarCell() {
+    LabeledProgressBar progressBar = new LabeledProgressBar(itemProperty().map(Number::doubleValue),
+        createStringBinding(this::getFormattedProgress, itemProperty()));
+
+    // show or hide pane
+    graphicProperty().bind(
+        Bindings.createObjectBinding(() -> !isEmpty() ? progressBar : null, emptyProperty()));
+    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+  }
+
+  private String getFormattedProgress() {
+    var item = getItem();
+    if (item == null) {
+      return "";
+    }
+    return "%.0f %%".formatted(item.doubleValue() * 100.0);
+  }
 
 }
