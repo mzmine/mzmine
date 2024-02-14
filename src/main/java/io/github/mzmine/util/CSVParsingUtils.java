@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,10 @@
 package io.github.mzmine.util;
 
 import com.Ostermiller.util.CSVParser;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.RFC4180ParserBuilder;
+import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
@@ -45,8 +49,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -255,17 +261,48 @@ public class CSVParsingUtils {
    * @return list of rows
    * @throws IOException if read is unsuccessful
    */
-  public static List<String[]> readData(final BufferedReader reader, final String sep)
-      throws IOException {
-    List<String[]> data = new ArrayList<>();
-    String line;
-    while ((line = reader.readLine()) != null) {
-      String[] split = line.split(sep);
-      if (split.length > 0 && split[0].length() > 0) {
-        data.add(split);
-      }
+  public static List<String[]> readData(final File file, final String sep)
+      throws IOException, CsvException {
+    try (var reader = Files.newBufferedReader(file.toPath())) {
+      return readData(reader, sep);
     }
-    return data;
+  }
+
+  /**
+   * Read data until end
+   *
+   * @param sep separator
+   * @return list of rows
+   * @throws IOException if read is unsuccessful
+   */
+  public static List<String[]> readData(final BufferedReader reader, final String sep)
+      throws IOException, CsvException {
+    try (CSVReader csvReader = new CSVReaderBuilder(reader).withCSVParser(
+        new RFC4180ParserBuilder().withSeparator(sep.charAt(0)).build()).build()) {
+      LinkedList<String[]> result = new LinkedList<>();
+      String[] row;
+      while ((row = csvReader.readNext()) != null) {
+        boolean empty = Arrays.stream(row).allMatch(s -> s == null || s.isBlank());
+        if (!empty) {
+          result.add(row);
+        }
+      }
+      return result;
+    }
+  }
+
+  /**
+   * Read data until end - then map to columns
+   *
+   * @param sep separator
+   * @return array of [columns][rows]
+   * @throws IOException if read is unsuccessful
+   */
+  public static String[][] readDataMapToColumns(final File file, final String sep)
+      throws IOException, CsvException {
+    try (var reader = Files.newBufferedReader(file.toPath())) {
+      return readDataMapToColumns(reader, sep);
+    }
   }
 
   /**
@@ -276,8 +313,9 @@ public class CSVParsingUtils {
    * @throws IOException if read is unsuccessful
    */
   public static String[][] readDataMapToColumns(final BufferedReader reader, final String sep)
-      throws IOException {
+      throws IOException, CsvException {
     List<String[]> rows = readData(reader, sep);
+
     // max columns
     int cols = rows.stream().mapToInt(a -> a.length).max().orElse(0);
 
@@ -286,7 +324,7 @@ public class CSVParsingUtils {
       String[] row = rows.get(r);
       for (int c = 0; c < row.length; c++) {
         String v = row[c];
-        data[c][r] = v == null || v.isEmpty() ? null : v;
+        data[c][r] = v == null || v.isBlank() ? null : v;
       }
     }
 

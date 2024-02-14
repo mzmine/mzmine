@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.FILENAME_HEADER;
 
+import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
@@ -268,6 +269,9 @@ public class WideTableIOUtils implements TableIOUtils {
       return false;
     } catch (IOException ioException) {
       logger.severe("Error while reading the metadata: " + ioException.getMessage());
+      return false;
+    } catch (CsvException ioException) {
+      logger.severe("Error while parsing the metadata: " + ioException.getMessage());
       return false;
     }
     return true;
