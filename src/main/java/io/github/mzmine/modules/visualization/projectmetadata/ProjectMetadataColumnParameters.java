@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,13 +43,18 @@ import org.jetbrains.annotations.Nullable;
 
 public class ProjectMetadataColumnParameters extends SimpleParameterSet {
 
-  private static final Logger logger = Logger.getLogger(
-      ProjectMetadataColumnParameters.class.getName());
   public static final StringParameter title = new StringParameter("Title",
       "Title of the new parameter", "", true, true);
-
   public static final TextParameter description = new TextParameter("Description",
       "Description of the new parameter", "", false);
+  public static final ComboParameter<AvailableTypes> valueType = new ComboParameter<>("Type",
+      "Type of the new parameter", AvailableTypes.values(), AvailableTypes.values()[0]);
+  private static final Logger logger = Logger.getLogger(
+      ProjectMetadataColumnParameters.class.getName());
+
+  public ProjectMetadataColumnParameters() {
+    super(new Parameter[]{title, description, valueType});
+  }
 
   /**
    * Order represents the order of value conversion in
@@ -107,9 +112,15 @@ public class ProjectMetadataColumnParameters extends SimpleParameterSet {
      */
     public static @Nullable AvailableTypes[] tryMap(final String[] values) {
       try {
-        AvailableTypes[] types = new AvailableTypes[values.length];
-        for (int i = 0; i < values.length; i++) {
-          types[i] = AvailableTypes.valueOf(values[i]);
+        // check if this is the type row. it starts with "TYPE"
+        if (values.length == 0 || !values[0].equalsIgnoreCase("type")) {
+          return null;
+        }
+
+        // type descriptions start in column 1
+        AvailableTypes[] types = new AvailableTypes[values.length - 1];
+        for (int i = 1; i < values.length; i++) {
+          types[i - 1] = AvailableTypes.valueOf(values[i]);
         }
         return types;
       } catch (Exception e) {
@@ -146,12 +157,5 @@ public class ProjectMetadataColumnParameters extends SimpleParameterSet {
         return null;
       }
     }
-  }
-
-  public static final ComboParameter<AvailableTypes> valueType = new ComboParameter<>("Type",
-      "Type of the new parameter", AvailableTypes.values(), AvailableTypes.values()[0]);
-
-  public ProjectMetadataColumnParameters() {
-    super(new Parameter[]{title, description, valueType});
   }
 }

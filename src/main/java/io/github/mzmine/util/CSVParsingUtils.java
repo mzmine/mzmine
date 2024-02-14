@@ -251,17 +251,22 @@ public class CSVParsingUtils {
   /**
    * Read data until end
    *
-   * @param sep separator
+   * @param sep             separator
+   * @param omitFirstColumn Omits the first column when parsing the file as it may be empty due to
+   *                        column descriptions.
    * @return list of rows
    * @throws IOException if read is unsuccessful
    */
-  public static List<String[]> readData(final BufferedReader reader, final String sep)
-      throws IOException {
+  public static List<String[]> readData(final BufferedReader reader, final String sep,
+      boolean omitFirstColumn) throws IOException {
     List<String[]> data = new ArrayList<>();
     String line;
     while ((line = reader.readLine()) != null) {
       String[] split = line.split(sep);
-      if (split.length > 0 && split[0].length() > 0) {
+      if (omitFirstColumn && split.length > 0) {
+        split = Arrays.copyOfRange(split, 1, split.length);
+      }
+      if (split.length > 0 && !split[0].isEmpty()) {
         data.add(split);
       }
     }
@@ -271,13 +276,15 @@ public class CSVParsingUtils {
   /**
    * Read data until end - then map to columns
    *
-   * @param sep separator
+   * @param sep             separator
+   * @param omitFirstColumn Omits the first column when parsing the file as it may be empty due to
+   *                        column descriptions.
    * @return array of [columns][rows]
    * @throws IOException if read is unsuccessful
    */
-  public static String[][] readDataMapToColumns(final BufferedReader reader, final String sep)
-      throws IOException {
-    List<String[]> rows = readData(reader, sep);
+  public static String[][] readDataMapToColumns(final BufferedReader reader, final String sep,
+      boolean omitFirstColumn) throws IOException {
+    List<String[]> rows = readData(reader, sep, true);
     // max columns
     int cols = rows.stream().mapToInt(a -> a.length).max().orElse(0);
 

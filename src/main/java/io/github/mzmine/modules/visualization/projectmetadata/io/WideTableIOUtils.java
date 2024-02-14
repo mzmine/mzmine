@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -56,13 +56,21 @@ public class WideTableIOUtils implements TableIOUtils {
 
   private final MetadataTable metadataTable;
 
-  // define the header fields names of the file with imported metadata
-  private enum HeaderFields {
-    TITLE, DESC, TYPE
-  }
-
   public WideTableIOUtils(MetadataTable metadataTable) {
     this.metadataTable = metadataTable;
+  }
+
+  private static boolean anyConversionError(final String[] titles, final AvailableTypes[] dataTypes,
+      final Object[][] convertedData) {
+    boolean anyError = false;
+    for (int i = 0; i < convertedData.length; i++) {
+      if (convertedData[i] == null) {
+        String type = Objects.toString(dataTypes[i], "null");
+        logger.warning("Data for column " + titles[i] + " could not be converted to type " + type);
+        anyError = true;
+      }
+    }
+    return anyError;
   }
 
   /**
@@ -139,19 +147,6 @@ public class WideTableIOUtils implements TableIOUtils {
     return true;
   }
 
-  private static boolean anyConversionError(final String[] titles, final AvailableTypes[] dataTypes,
-      final Object[][] convertedData) {
-    boolean anyError = false;
-    for (int i = 0; i < convertedData.length; i++) {
-      if (convertedData[i] == null) {
-        String type = Objects.toString(dataTypes[i], "null");
-        logger.warning("Data for column " + titles[i] + " could not be converted to type " + type);
-        anyError = true;
-      }
-    }
-    return anyError;
-  }
-
   @Override
   public boolean importFrom(File file, final boolean skipColOnError) {
     // different file formats are supported.
@@ -173,13 +168,13 @@ public class WideTableIOUtils implements TableIOUtils {
         if (cells.length == 0) {
           continue;
         }
-        if (FILENAME_HEADER.equalsIgnoreCase(cells[0])) {
-          titles = cells;
+        if (FILENAME_HEADER.equalsIgnoreCase(cells[1])) {
+          titles = Arrays.copyOfRange(cells, 1, cells.length);
         } else if (dataTypes == null) {
           // try to map to types otherwise use as description
           dataTypes = AvailableTypes.tryMap(cells);
           if (dataTypes == null && descriptions == null) {
-            descriptions = cells;
+            descriptions = Arrays.copyOfRange(cells, 1, cells.length);
           }
         }
       }
@@ -204,7 +199,7 @@ public class WideTableIOUtils implements TableIOUtils {
 
       logger.info("The header size & format correspond, OK");
       // represents the names of the RawDataFiles
-      var columnData = CSVParsingUtils.readDataMapToColumns(reader, sep);
+      var columnData = CSVParsingUtils.readDataMapToColumns(reader, sep, true);
       final Object[][] convertedData;
 
       if (dataTypes != null) {
@@ -328,5 +323,10 @@ public class WideTableIOUtils implements TableIOUtils {
       data[col] = dataType.tryCastType(column);
     }
     return data;
+  }
+
+  // define the header fields names of the file with imported metadata
+  private enum HeaderFields {
+    TITLE, DESC, TYPE
   }
 }
