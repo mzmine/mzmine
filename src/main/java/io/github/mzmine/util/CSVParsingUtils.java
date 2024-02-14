@@ -52,7 +52,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -255,31 +254,32 @@ public class CSVParsingUtils {
   }
 
   /**
-   * Read data until end
+   * Read data until end. Skips empty lines. The returned list is not trimmed to size. If you retain the list than use {@link ArrayList#trimToSize()}.
    *
-   * @param sep separator
-   * @return list of rows
+   * @param separator separator
+   * @return List of rows
    * @throws IOException if read is unsuccessful
    */
-  public static List<String[]> readData(final File file, final String sep)
+  public static List<String[]> readData(final File file, final String separator)
       throws IOException, CsvException {
     try (var reader = Files.newBufferedReader(file.toPath())) {
-      return readData(reader, sep);
+      return readData(reader, separator);
     }
   }
 
   /**
-   * Read data until end
+   * Read data until end. Skips empty lines. The returned list is not trimmed to size. If you retain the list than use {@link ArrayList#trimToSize()}.
    *
-   * @param sep separator
-   * @return list of rows
+   * @param separator separator
+   * @return List of rows
    * @throws IOException if read is unsuccessful
    */
-  public static List<String[]> readData(final BufferedReader reader, final String sep)
+  public static List<String[]> readData(final BufferedReader reader, final String separator)
       throws IOException, CsvException {
+    char sep = "\\t".equals(separator) ? '\t' : separator.charAt(0);
     try (CSVReader csvReader = new CSVReaderBuilder(reader).withCSVParser(
-        new RFC4180ParserBuilder().withSeparator(sep.charAt(0)).build()).build()) {
-      LinkedList<String[]> result = new LinkedList<>();
+        new RFC4180ParserBuilder().withSeparator(sep).build()).build()) {
+      List<String[]> result = new ArrayList<>();
       String[] row;
       while ((row = csvReader.readNext()) != null) {
         boolean empty = Arrays.stream(row).allMatch(s -> s == null || s.isBlank());
