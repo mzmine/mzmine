@@ -279,7 +279,7 @@ public class CSVParsingUtils {
     char sep = "\\t".equals(separator) ? '\t' : separator.charAt(0);
     try (CSVReader csvReader = new CSVReaderBuilder(reader).withCSVParser(
         new RFC4180ParserBuilder().withSeparator(sep).build()).build()) {
-      List<String[]> result = new ArrayList<>();
+      List<String[]> result = new ArrayList<>(64);
       String[] row;
       while ((row = csvReader.readNext()) != null) {
         boolean empty = Arrays.stream(row).allMatch(s -> s == null || s.isBlank());
