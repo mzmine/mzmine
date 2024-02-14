@@ -59,8 +59,7 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskSubSupplier<Bu
    */
   public ExtractMzRangesIonSeriesFunction(@NotNull RawDataFile dataFile,
       @NotNull ScanSelection scanSelection, @NotNull List<Range<Double>> mzRangesSorted,
-      @NotNull ScanDataType scanDataType,
-      @Nullable AbstractTask parentTask) {
+      @NotNull ScanDataType scanDataType, @Nullable AbstractTask parentTask) {
     super(parentTask);
 
     dataAccess = EfficientDataAccess.of(dataFile, scanDataType, scanSelection);
@@ -131,6 +130,9 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskSubSupplier<Bu
 
       // start index
       int dp = dataAccess.binarySearch(lowestMz, DefaultTo.GREATER_EQUALS);
+      if (dp == -1) {
+        continue;
+      }
 
       for (; dp < nDataPoints; dp++) {
         double mz = dataAccess.getMzValue(dp);
