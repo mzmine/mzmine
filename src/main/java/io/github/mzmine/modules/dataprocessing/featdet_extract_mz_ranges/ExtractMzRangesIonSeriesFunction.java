@@ -59,10 +59,11 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskSubSupplier<Bu
    */
   public ExtractMzRangesIonSeriesFunction(@NotNull RawDataFile dataFile,
       @NotNull ScanSelection scanSelection, @NotNull List<Range<Double>> mzRangesSorted,
+      @NotNull ScanDataType scanDataType,
       @Nullable AbstractTask parentTask) {
     super(parentTask);
 
-    dataAccess = EfficientDataAccess.of(dataFile, ScanDataType.MASS_LIST, scanSelection);
+    dataAccess = EfficientDataAccess.of(dataFile, scanDataType, scanSelection);
     this.mzRangesSorted = mzRangesSorted;
     description = "Extracting %d ion series from data file %s".formatted(mzRangesSorted.size(),
         dataFile.getName());
@@ -72,10 +73,11 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskSubSupplier<Bu
    * @param mzRangesSorted sorted by mz ascending
    */
   public ExtractMzRangesIonSeriesFunction(@NotNull RawDataFile dataFile, List<? extends Scan> scans,
-      @NotNull List<Range<Double>> mzRangesSorted, @Nullable AbstractTask parentTask) {
+      @NotNull List<Range<Double>> mzRangesSorted, @NotNull ScanDataType scanDataType,
+      @Nullable AbstractTask parentTask) {
     super(parentTask);
 
-    dataAccess = EfficientDataAccess.of(dataFile, ScanDataType.MASS_LIST, scans);
+    dataAccess = EfficientDataAccess.of(dataFile, scanDataType, scans);
     this.mzRangesSorted = mzRangesSorted;
   }
 

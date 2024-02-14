@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,7 +44,6 @@ import javafx.beans.property.BooleanProperty;
 public class SpectraDataSetCalc extends AbstractTask {
 
   private final ChromatogramCursorPosition pos;
-  private final HashMap<RawDataFile, ScanDataSet> filesAndDataSets;
   private final Collection<RawDataFile> rawDataFiles;
   private final ScanSelection scanSelection;
   private final boolean showSpectraOfEveryRawFile;
@@ -57,7 +56,6 @@ public class SpectraDataSetCalc extends AbstractTask {
       boolean showSpectraOfEveryRawFile, SpectraPlot spectrumPlot,
       BooleanProperty showMassListProperty) {
     super(null, Instant.now());
-    filesAndDataSets = new HashMap<>();
     this.rawDataFiles = rawDataFiles;
     this.pos = pos;
     doneFiles = 0;
@@ -83,37 +81,13 @@ public class SpectraDataSetCalc extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     // is MS level>2 spectrum? then directly show
-    if (pos.getScan() != null && pos.getScan().getMSLevel() > 1) {
-      ScanDataSet dataSet = new ScanDataSet(pos.getScan());
-      filesAndDataSets.put(pos.getDataFile(), dataSet);
-    } else if (showSpectraOfEveryRawFile) {
-      double rt = pos.getRetentionTime();
-      rawDataFiles.forEach(rawDataFile -> {
-        Scan scan = null;
-        var singleMsLevelOrNull = scanSelection.getMsLevelFilter().getSingleMsLevelOrNull();
-        if (singleMsLevelOrNull != null) {
-          scan = rawDataFile.binarySearchClosestScan((float) rt, singleMsLevelOrNull);
-        } else {
-          scan = rawDataFile.binarySearchClosestScan((float) rt);
-        }
-        if (scan != null) {
-          ScanDataSet dataSet = new ScanDataSet(scan);
-          filesAndDataSets.put(rawDataFile, dataSet);
-        }
-        doneFiles++;
-
-        if (getStatus() == TaskStatus.CANCELED) {
-        }
-
-      });
-    } else {
-      ScanDataSet dataSet = new ScanDataSet(pos.getScan());
-      filesAndDataSets.put(pos.getDataFile(), dataSet);
-      doneFiles++;
+    final HashMap<RawDataFile, ScanDataSet> filesAndDataSets = createDatasetsForRawFiles();
+    if (isCanceled()) {
+      return;
     }
 
     MZmineCore.runLater(() -> {
-      if (getStatus() == TaskStatus.CANCELED) {
+      if (isCanceled()) {
         return;
       }
       // apply changes after all updates
@@ -137,5 +111,34 @@ public class SpectraDataSetCalc extends AbstractTask {
       });
     });
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private HashMap<RawDataFile, ScanDataSet> createDatasetsForRawFiles() {
+    HashMap<RawDataFile, ScanDataSet> filesAndDataSets = new HashMap<>();
+    if (pos.getScan() != null) {
+      ScanDataSet dataSet = new ScanDataSet(pos.getScan());
+      filesAndDataSets.put(pos.getDataFile(), dataSet);
+      doneFiles++;
+    } else if (showSpectraOfEveryRawFile) {
+      double rt = pos.getRetentionTime();
+      for (var rawDataFile : rawDataFiles) {
+        if (isCanceled()) {
+          return filesAndDataSets;
+        }
+        Scan scan = null;
+        var singleMsLevelOrNull = scanSelection.getMsLevelFilter().getSingleMsLevelOrNull();
+        if (singleMsLevelOrNull != null) {
+          scan = rawDataFile.binarySearchClosestScan((float) rt, singleMsLevelOrNull);
+        } else {
+          scan = rawDataFile.binarySearchClosestScan((float) rt);
+        }
+        if (scan != null) {
+          ScanDataSet dataSet = new ScanDataSet(scan);
+          filesAndDataSets.put(rawDataFile, dataSet);
+        }
+        doneFiles++;
+      }
+    }
+    return filesAndDataSets;
   }
 }

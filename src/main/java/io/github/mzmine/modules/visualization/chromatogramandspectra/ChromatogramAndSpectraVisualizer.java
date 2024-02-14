@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -123,8 +123,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * displayed.
    */
   protected final ObjectProperty<Range<Double>> mzRange;
-  protected final PauseTransition chromDelay = new PauseTransition(Duration.millis(200));
-  protected final PauseTransition spectraDelay = new PauseTransition(Duration.millis(200));
+  protected final PauseTransition chromDelay = new PauseTransition(Duration.millis(100));
+  protected final PauseTransition spectraDelay = new PauseTransition(Duration.millis(100));
   private final NumberFormat mzFormat;
   private final NumberFormat rtFormat;
   protected FlowPane pnSpectrumControls;
@@ -585,6 +585,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   private void delayedFeatureDataUpdate(final double mz) {
     // mz of the base peak in the selected scan of the selected raw data file.
     Range<Double> bpcChromToleranceRange = getChromMzTolerance().getToleranceRange(mz);
+
     FeatureDataSetCalc thread = new FeatureDataSetCalc(filesAndDataSets.keySet(),
         bpcChromToleranceRange, getScanSelection(), getChromPlot());
 
@@ -630,9 +631,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         showSpectraOfEveryRawFile, getSpectrumPlot(), showMassListProperty);
 
     thread.addTaskStatusListener((task, newStatus, oldStatus) -> {
-      // logger
-      // .finest("SpectraUpdate status changed from " + oldStatus.toString() + " to " + newStatus
-      // .toString());
       currentSpectraDataSetCalc = null;
     });
 
