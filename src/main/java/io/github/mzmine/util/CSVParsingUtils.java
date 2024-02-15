@@ -25,7 +25,6 @@
 
 package io.github.mzmine.util;
 
-import com.Ostermiller.util.CSVParser;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.RFC4180ParserBuilder;
@@ -170,6 +169,11 @@ public class CSVParsingUtils {
           case IonAdductType ignored -> {
             final IonType ionType = IonTypeParser.parse(line[columnIndex]);
             annotation.putIfNotNull(IonTypeType.class, ionType);
+
+          }
+          case IonTypeType ignored -> {
+            final IonType ionType = IonTypeParser.parse(line[columnIndex]);
+            annotation.putIfNotNull(IonTypeType.class, ionType);
           }
           case StringType st -> annotation.put(st, line[columnIndex]);
           default -> throw new RuntimeException(
@@ -205,12 +209,12 @@ public class CSVParsingUtils {
    *                       IonNetworkLibrary)}.
    */
   public static CompoundDbLoadResult getAnnotationsFromCsvFile(final File peakListFile,
-      char fieldSeparator, @NotNull List<ImportType> types,
+      String fieldSeparator, @NotNull List<ImportType> types,
       @Nullable IonNetworkLibrary ionLibrary) {
-    try (final FileReader dbFileReader = new FileReader(peakListFile)) {
+    try (final BufferedReader dbFileReader = new BufferedReader(new FileReader(peakListFile))) {
       List<CompoundDBAnnotation> list = new ArrayList<>();
 
-      String[][] peakListValues = CSVParser.parse(dbFileReader, fieldSeparator);
+      String[][] peakListValues = readDataMapToColumns(dbFileReader, fieldSeparator);
 
       final SimpleStringProperty errorMessage = new SimpleStringProperty();
       final List<ImportType> lineIds = CSVParsingUtils.findLineIds(types, peakListValues[0],
