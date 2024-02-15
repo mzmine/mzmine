@@ -214,19 +214,19 @@ public class CSVParsingUtils {
     try (final BufferedReader dbFileReader = new BufferedReader(new FileReader(peakListFile))) {
       List<CompoundDBAnnotation> list = new ArrayList<>();
 
-      String[][] peakListValues = readDataMapToColumns(dbFileReader, fieldSeparator);
+      List<String[]> peakListValues = readData(dbFileReader, fieldSeparator);
 
       final SimpleStringProperty errorMessage = new SimpleStringProperty();
-      final List<ImportType> lineIds = CSVParsingUtils.findLineIds(types, peakListValues[0],
+      final List<ImportType> lineIds = CSVParsingUtils.findLineIds(types, peakListValues.get(0),
           errorMessage);
 
       if (lineIds == null) {
         return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR, errorMessage.get());
       }
 
-      for (int i = 1; i < peakListValues.length; i++) {
+      for (int i = 1; i < peakListValues.size(); i++) {
         final CompoundDBAnnotation baseAnnotation = CSVParsingUtils.csvLineToCompoundDBAnnotation(
-            peakListValues[i], lineIds);
+            peakListValues.get(i), lineIds);
 
         if (!CompoundDBAnnotation.isBaseAnnotationValid(baseAnnotation, ionLibrary != null)) {
           logger.info(String.format(
