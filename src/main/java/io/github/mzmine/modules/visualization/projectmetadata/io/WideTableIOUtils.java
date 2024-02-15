@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.FILENAME_HEADER;
 
+import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -85,8 +86,12 @@ public class WideTableIOUtils implements TableIOUtils {
    */
   @Override
   public boolean exportTo(File file) {
+
     try (FileWriter fw = new FileWriter(file,
         false); BufferedWriter bufferedWriter = new BufferedWriter(fw)) {
+
+      final CSVWriter csvWriter = new CSVWriter(bufferedWriter, '\t', '"',
+          CSVWriter.DEFAULT_ESCAPE_CHARACTER, System.lineSeparator());
 
       var data = metadataTable.getData();
 
@@ -98,9 +103,11 @@ public class WideTableIOUtils implements TableIOUtils {
 
       // create the .tsv file header
       StringMetadataColumn dataFileCol = new StringMetadataColumn(FILENAME_HEADER, "");
-      List<String> parametersTitles = new ArrayList<>(List.of(dataFileCol.getTitle()));
-      List<String> parametersDescriptions = new ArrayList<>(List.of(dataFileCol.getDescription()));
-      List<String> parametersTypes = new ArrayList<>(List.of(dataFileCol.getType().toString()));
+      final List<String> parametersTitles = new ArrayList<>(List.of(dataFileCol.getTitle()));
+      final List<String> parametersDescriptions = new ArrayList<>(
+          List.of(dataFileCol.getDescription()));
+      final List<String> parametersTypes = new ArrayList<>(
+          List.of(dataFileCol.getType().toString()));
 
       for (var column : data.keySet()) {
         parametersTitles.add(column.getTitle());
@@ -109,12 +116,9 @@ public class WideTableIOUtils implements TableIOUtils {
       }
 
       // write the header down
-      bufferedWriter.write(String.join("\t", parametersDescriptions));
-      bufferedWriter.newLine();
-      bufferedWriter.write(String.join("\t", parametersTypes));
-      bufferedWriter.newLine();
-      bufferedWriter.write(String.join("\t", parametersTitles));
-      bufferedWriter.newLine();
+      csvWriter.writeNext(parametersDescriptions.toArray(String[]::new));
+      csvWriter.writeNext(parametersTypes.toArray(String[]::new));
+      csvWriter.writeNext(parametersTitles.toArray(String[]::new));
       logger.info("Header was successfully written down");
 
       // write the parameters value down
@@ -127,12 +131,11 @@ public class WideTableIOUtils implements TableIOUtils {
           Object value = metadataTable.getValue(column.getKey(), rawDataFile);
           lineFieldsValues.add(value == null ? "" : value.toString());
         }
-        String line = String.join("\t", lineFieldsValues);
-        line += System.lineSeparator();
 
-        bufferedWriter.write(line);
+        csvWriter.writeNext(lineFieldsValues.toArray(String[]::new));
       }
 
+      csvWriter.flush();
       logger.info("The metadata table was successfully exported");
     } catch (FileNotFoundException fileNotFoundException) {
       logger.severe(
