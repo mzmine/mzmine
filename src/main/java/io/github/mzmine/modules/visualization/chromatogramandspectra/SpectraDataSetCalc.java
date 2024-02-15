@@ -39,6 +39,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import javafx.beans.property.BooleanProperty;
 
 public class SpectraDataSetCalc extends AbstractTask {
@@ -94,20 +95,21 @@ public class SpectraDataSetCalc extends AbstractTask {
       spectrumPlot.applyWithNotifyChanges(false, true, () -> {
         spectrumPlot.removeAllDataSets();
 
-        filesAndDataSets.keySet().forEach(rawDataFile -> {
-          spectrumPlot.addDataSet(filesAndDataSets.get(rawDataFile), rawDataFile.getColorAWT(),
-              false, false);
+        for (Entry<RawDataFile, ScanDataSet> entry : filesAndDataSets.entrySet()) {
+          RawDataFile rawDataFile = entry.getKey();
+          ScanDataSet dataSet = entry.getValue();
+          spectrumPlot.addDataSet(dataSet, rawDataFile.getColorAWT(), false, false);
 
           // If the scan contains a mass list then add dataset for it
           if (showMassListProperty.getValue()) {
-            MassList massList = filesAndDataSets.get(rawDataFile).getScan().getMassList();
+            MassList massList = dataSet.getScan().getMassList();
             if (massList != null) {
               MassListDataSet massListDataset = new MassListDataSet(massList);
 
               spectrumPlot.addDataSet(massListDataset, rawDataFile.getColorAWT(), false, false);
             }
           }
-        });
+        }
       });
     });
     setStatus(TaskStatus.FINISHED);
@@ -115,7 +117,8 @@ public class SpectraDataSetCalc extends AbstractTask {
 
   private HashMap<RawDataFile, ScanDataSet> createDatasetsForRawFiles() {
     HashMap<RawDataFile, ScanDataSet> filesAndDataSets = new HashMap<>();
-    if (pos.getScan() != null) {
+    if (pos.getScan() != null && pos.getScan().getMSLevel() > 1) {
+      // MSe data shows MS2 as chromatograms thats when MS level is > 1
       ScanDataSet dataSet = new ScanDataSet(pos.getScan());
       filesAndDataSets.put(pos.getDataFile(), dataSet);
       doneFiles++;
@@ -138,6 +141,10 @@ public class SpectraDataSetCalc extends AbstractTask {
         }
         doneFiles++;
       }
+    } else {
+      ScanDataSet dataSet = new ScanDataSet(pos.getScan());
+      filesAndDataSets.put(pos.getDataFile(), dataSet);
+      doneFiles++;
     }
     return filesAndDataSets;
   }
