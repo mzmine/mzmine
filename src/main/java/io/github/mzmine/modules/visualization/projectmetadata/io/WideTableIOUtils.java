@@ -57,13 +57,21 @@ public class WideTableIOUtils implements TableIOUtils {
 
   private final MetadataTable metadataTable;
 
-  // define the header fields names of the file with imported metadata
-  private enum HeaderFields {
-    TITLE, DESC, TYPE
-  }
-
   public WideTableIOUtils(MetadataTable metadataTable) {
     this.metadataTable = metadataTable;
+  }
+
+  private static boolean anyConversionError(final String[] titles, final AvailableTypes[] dataTypes,
+      final Object[][] convertedData) {
+    boolean anyError = false;
+    for (int i = 0; i < convertedData.length; i++) {
+      if (convertedData[i] == null) {
+        String type = Objects.toString(dataTypes[i], "null");
+        logger.warning("Data for column " + titles[i] + " could not be converted to type " + type);
+        anyError = true;
+      }
+    }
+    return anyError;
   }
 
   /**
@@ -90,12 +98,10 @@ public class WideTableIOUtils implements TableIOUtils {
 
       // create the .tsv file header
       StringMetadataColumn dataFileCol = new StringMetadataColumn(FILENAME_HEADER, "");
-      List<String> parametersTitles = new ArrayList<>(
-          List.of(HeaderFields.TITLE.toString(), dataFileCol.getTitle()));
-      List<String> parametersDescriptions = new ArrayList<>(
-          List.of(HeaderFields.DESC.toString(), dataFileCol.getDescription()));
-      List<String> parametersTypes = new ArrayList<>(
-          List.of(HeaderFields.TYPE.toString(), dataFileCol.getType().toString()));
+      List<String> parametersTitles = new ArrayList<>(List.of(dataFileCol.getTitle()));
+      List<String> parametersDescriptions = new ArrayList<>(List.of(dataFileCol.getDescription()));
+      List<String> parametersTypes = new ArrayList<>(List.of(dataFileCol.getType().toString()));
+
       for (var column : data.keySet()) {
         parametersTitles.add(column.getTitle());
         parametersDescriptions.add(column.getDescription());
@@ -114,7 +120,7 @@ public class WideTableIOUtils implements TableIOUtils {
       // write the parameters value down
       RawDataFile[] files = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
       for (var rawDataFile : files) {
-        List<String> lineFieldsValues = new ArrayList<>(List.of("", rawDataFile.getName()));
+        List<String> lineFieldsValues = new ArrayList<>(List.of(rawDataFile.getName()));
         for (var column : data.entrySet()) {
           // get the parameter value
           // [IMPORTANT] "" will be returned in case if it's unset
@@ -138,19 +144,6 @@ public class WideTableIOUtils implements TableIOUtils {
     }
 
     return true;
-  }
-
-  private static boolean anyConversionError(final String[] titles, final AvailableTypes[] dataTypes,
-      final Object[][] convertedData) {
-    boolean anyError = false;
-    for (int i = 0; i < convertedData.length; i++) {
-      if (convertedData[i] == null) {
-        String type = Objects.toString(dataTypes[i], "null");
-        logger.warning("Data for column " + titles[i] + " could not be converted to type " + type);
-        anyError = true;
-      }
-    }
-    return anyError;
   }
 
   @Override
@@ -332,5 +325,10 @@ public class WideTableIOUtils implements TableIOUtils {
       data[col] = dataType.tryCastType(column);
     }
     return data;
+  }
+
+  // define the header fields names of the file with imported metadata
+  private enum HeaderFields {
+    TITLE, DESC, TYPE
   }
 }
