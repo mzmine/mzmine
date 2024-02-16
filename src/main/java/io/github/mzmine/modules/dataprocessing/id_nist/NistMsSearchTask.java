@@ -508,7 +508,7 @@ public class NistMsSearchTask extends AbstractTask {
                   dotProduct, 100, Double.NaN);
 
               final SpectralDBAnnotation libraryID = new SpectralDBAnnotation(entry, similarity,
-                  null, null, row.getAverageMZ());
+                  null, null, row.getAverageMZ(), row.getAverageRT());
 
               ids.add(libraryID);
             }

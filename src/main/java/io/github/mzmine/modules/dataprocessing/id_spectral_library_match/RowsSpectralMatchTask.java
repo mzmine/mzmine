@@ -343,7 +343,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
       final Float precursorCCS = getPrecursorCCSFromMsMs(scan);
 
       for (var entry : entries) {
-        final SpectralSimilarity sim = matchSpectrum(scan.getRetentionTime(), scanPrecursorMZ,
+        float rt = scan.getRetentionTime();
+        final SpectralSimilarity sim = matchSpectrum(rt, scanPrecursorMZ,
             precursorCCS, masses, entry);
         if (sim != null) {
           Float ccsError = PercentTolerance.getPercentError(entry.getOrElse(DBEntryField.CCS, null),
@@ -351,7 +352,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
           matches.incrementAndGet();
           addIdentities(null,
-              List.of(new SpectralDBAnnotation(entry, sim, scan, ccsError, scanPrecursorMZ)));
+              List.of(new SpectralDBAnnotation(entry, sim, scan, ccsError, scanPrecursorMZ, rt)));
         }
       }
     } catch (MissingMassListException e) {
@@ -443,7 +444,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
             Float ccsRelativeError = PercentTolerance.getPercentError(rowCCS, libCCS);
 
             best = new SpectralDBAnnotation(ident, sim, scans.get(i), ccsRelativeError,
-                row.getAverageMZ());
+                row.getAverageMZ(), row.getAverageRT());
           }
         }
         // has match?

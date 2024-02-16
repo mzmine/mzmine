@@ -44,6 +44,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CosineScoreType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -70,7 +71,8 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
   private static final List<DataType> subTypes = List.of(new SpectralLibraryMatchesType(),
       new CompoundNameType(), new IonAdductType(), new FormulaType(), new SmilesStructureType(),
       new InChIStructureType(), new PrecursorMZType(), new NeutralMassType(),
-      new MzAbsoluteDifferenceType(), new MzPpmDifferenceType(), new CosineScoreType(),
+      new MzAbsoluteDifferenceType(), new MzPpmDifferenceType(), new RtAbsoluteDifferenceType(),
+      new CosineScoreType(),
       new MatchingSignalsType(), new CCSType(), new CCSRelativeErrorType(), new CommentType());
 
   @NotNull
@@ -103,6 +105,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       case NeutralMassType __ -> entry.getField(DBEntryField.EXACT_MASS).orElse(null);
       case CCSType __ -> entry.getOrElse(DBEntryField.CCS, null);
       case CCSRelativeErrorType __ -> match.getCCSError();
+      case RtAbsoluteDifferenceType __ -> match.getRtAbsoluteError();
       case MzAbsoluteDifferenceType __ -> match.getMzAbsoluteError();
       case MzPpmDifferenceType __ -> match.getMzPpmError();
       case CommentType __ -> entry.getOrElse(DBEntryField.COMMENT, null);
