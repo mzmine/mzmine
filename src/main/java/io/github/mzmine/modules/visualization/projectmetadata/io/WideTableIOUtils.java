@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,7 @@ package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.FILENAME_HEADER;
 
-import com.opencsv.CSVWriter;
+import com.opencsv.ICSVWriter;
 import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -36,13 +36,11 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTabl
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.util.CSVParsingUtils;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -87,11 +85,10 @@ public class WideTableIOUtils implements TableIOUtils {
   @Override
   public boolean exportTo(File file) {
 
-    try (FileWriter fw = new FileWriter(file,
-        false); BufferedWriter bufferedWriter = new BufferedWriter(fw)) {
+    try (var bufferedWriter = Files.newBufferedWriter(file.toPath(), StandardOpenOption.CREATE,
+        StandardOpenOption.WRITE)) {
 
-      final CSVWriter csvWriter = new CSVWriter(bufferedWriter, '\t', '"',
-          CSVWriter.DEFAULT_ESCAPE_CHARACTER, System.lineSeparator());
+      final ICSVWriter csvWriter = CSVParsingUtils.createDefaultWriter(bufferedWriter, "\t");
 
       var data = metadataTable.getData();
 
@@ -136,6 +133,7 @@ public class WideTableIOUtils implements TableIOUtils {
       }
 
       csvWriter.flush();
+      csvWriter.close();
       logger.info("The metadata table was successfully exported");
     } catch (FileNotFoundException fileNotFoundException) {
       logger.severe(
@@ -161,17 +159,19 @@ public class WideTableIOUtils implements TableIOUtils {
     String[] descriptions = null;
     AvailableTypes[] dataTypes = null;
 
-    try (FileReader fr = new FileReader(file); BufferedReader reader = new BufferedReader(fr)) {
-      // read the header
-      String line;
-      while (titles == null && (line = reader.readLine()) != null) {
-        // split with trailing empty strings removed
-        var cells = line.split(sep, 0);
+    try {
+      final List<String[]> lines = CSVParsingUtils.readData(file, "\t");
+
+      int headerLength = 0;
+      for (int i = 0; i < lines.size(); i++) {
+        String[] cells = lines.get(i);
         if (cells.length == 0) {
           continue;
         }
         if (FILENAME_HEADER.equalsIgnoreCase(cells[0])) {
           titles = cells;
+          headerLength = i+1;
+          break;
         } else if (dataTypes == null) {
           // try to map to types otherwise use as description
           dataTypes = AvailableTypes.tryMap(cells);
@@ -199,9 +199,10 @@ public class WideTableIOUtils implements TableIOUtils {
         return false;
       }
 
-      logger.info("The header size & format correspond, OK");
+      logger.finest("The header size & format correspond, OK");
       // represents the names of the RawDataFiles
-      var columnData = CSVParsingUtils.readDataMapToColumns(reader, sep);
+      var columnData = CSVParsingUtils.readDataMapToColumns(file, sep, headerLength);
+
       final Object[][] convertedData;
 
       if (dataTypes != null) {
