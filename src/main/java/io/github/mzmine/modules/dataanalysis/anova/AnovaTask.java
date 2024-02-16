@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
@@ -63,12 +62,12 @@ public class AnovaTask extends AbstractTask {
   private double finishedPercentage = 0.0;
 
   private final FeatureListRow[] featureListRows;
-  private final UserParameter userParameter;
+  private final String groupingColumn;
 
   public AnovaTask(FeatureListRow[] featureListRows, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.featureListRows = featureListRows;
-    this.userParameter = parameters.getParameter(AnovaParameters.selectionData).getValue();
+    this.groupingColumn = parameters.getValue(AnovaParameters.groupingParameter);
   }
 
   public String getTaskDescription() {
@@ -117,7 +116,7 @@ public class AnovaTask extends AbstractTask {
       return;
     }
 
-    List<Set<RawDataFile>> groups = getGroups(userParameter);
+    List<Set<RawDataFile>> groups = getGroups(groupingColumn);
 
     finishedPercentage = 0.0;
     final double finishedStep = 1.0 / featureListRows.length;
@@ -151,7 +150,7 @@ public class AnovaTask extends AbstractTask {
     }
   }
 
-  private List<Set<RawDataFile>> getGroups(UserParameter factor) {
+  private List<Set<RawDataFile>> getGroups(String groupingColumn) {
 
     MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
 
