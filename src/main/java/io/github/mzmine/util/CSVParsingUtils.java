@@ -46,10 +46,10 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidn
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingColumnException;
+import io.github.mzmine.util.io.WriterOptions;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.Writer;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -310,7 +310,9 @@ public class CSVParsingUtils {
       throws IOException, CsvException {
     try (var reader = Files.newBufferedReader(file.toPath())) {
       List<String[]> rows = readData(reader, sep);
-      rows.removeAll(rows.subList(0, mapStartLine));
+      if(mapStartLine != 0) {
+        rows.removeAll(rows.subList(0, mapStartLine));
+      }
 
       // max columns
       int cols = rows.stream().mapToInt(a -> a.length).max().orElse(0);
@@ -328,7 +330,9 @@ public class CSVParsingUtils {
     }
   }
 
-  public static ICSVWriter createDefaultWriter(Writer writer, String separator) {
+  public static ICSVWriter createDefaultWriter(File file, String separator, WriterOptions option)
+      throws IOException {
+    var writer = Files.newBufferedWriter(file.toPath(), option.toOpenOption());
     char sep = separator.equals("\t") ? '\t' : separator.charAt(0);
     return new CSVWriterBuilder(writer).withSeparator(sep).build();
   }

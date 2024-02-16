@@ -36,11 +36,10 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTabl
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.util.CSVParsingUtils;
+import io.github.mzmine.util.io.WriterOptions;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -85,10 +84,8 @@ public class WideTableIOUtils implements TableIOUtils {
   @Override
   public boolean exportTo(File file) {
 
-    try (var bufferedWriter = Files.newBufferedWriter(file.toPath(), StandardOpenOption.CREATE,
-        StandardOpenOption.WRITE)) {
-
-      final ICSVWriter csvWriter = CSVParsingUtils.createDefaultWriter(bufferedWriter, "\t");
+    try (final ICSVWriter csvWriter = CSVParsingUtils.createDefaultWriter(file, "\t",
+        WriterOptions.REPLACE)) {
 
       var data = metadataTable.getData();
 
@@ -132,8 +129,6 @@ public class WideTableIOUtils implements TableIOUtils {
         csvWriter.writeNext(lineFieldsValues.toArray(String[]::new));
       }
 
-      csvWriter.flush();
-      csvWriter.close();
       logger.info("The metadata table was successfully exported");
     } catch (FileNotFoundException fileNotFoundException) {
       logger.severe(
@@ -160,7 +155,7 @@ public class WideTableIOUtils implements TableIOUtils {
     AvailableTypes[] dataTypes = null;
 
     try {
-      final List<String[]> lines = CSVParsingUtils.readData(file, "\t");
+      final List<String[]> lines = CSVParsingUtils.readData(file, sep);
 
       int headerLength = 0;
       for (int i = 0; i < lines.size(); i++) {
@@ -170,7 +165,7 @@ public class WideTableIOUtils implements TableIOUtils {
         }
         if (FILENAME_HEADER.equalsIgnoreCase(cells[0])) {
           titles = cells;
-          headerLength = i+1;
+          headerLength = i + 1;
           break;
         } else if (dataTypes == null) {
           // try to map to types otherwise use as description
