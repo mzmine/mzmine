@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,10 +34,13 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Date
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 /**
@@ -232,5 +235,16 @@ public class MetadataTable {
    */
   public String[] getColumnTitles() {
     return getColumns().stream().map(MetadataColumn::getTitle).toArray(String[]::new);
+  }
+
+  public <T> Map<T, List<RawDataFile>> groupFilesByColumn(MetadataColumn<T> column) {
+    final Map<RawDataFile, Object> fileValueMap = data.get(column);
+
+    return fileValueMap.entrySet().stream().collect(Collectors.groupingBy(e -> (T) e.getValue(),
+        Collectors.mapping(Entry::getKey, Collectors.toList())));
+  }
+
+  public <T> List<RawDataFile> getMatchingFiles(MetadataColumn<T> column, T value) {
+    return groupFilesByColumn(column).get(value);
   }
 }

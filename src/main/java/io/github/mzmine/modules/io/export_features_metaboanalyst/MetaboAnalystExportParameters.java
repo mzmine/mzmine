@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,16 +27,13 @@ package io.github.mzmine.modules.io.export_features_metaboanalyst;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.util.ExitCode;
 import java.util.List;
-import javafx.application.Platform;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class MetaboAnalystExportParameters extends SimpleParameterSet {
@@ -67,27 +64,6 @@ public class MetaboAnalystExportParameters extends SimpleParameterSet {
 //      "Different formats are supported by MetaboAnalyst and other software tools.",
 //      StatsFormat.values(), StatsFormat.ONE_FACTOR);
 
-  @Override
-  public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    assert Platform.isFxApplicationThread();
-    if ((parameters == null) || (parameters.length == 0)) {
-      return ExitCode.OK;
-    }
-    // make sure to show the latest groups
-    MetadataGroupingParameter.updateMetadataGroups(getParameter(grouping));
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, null);
-
-    // handle visibility
-//    final var groupComp = dialog.getComponentForParameter(getParameter(grouping));
-//    ComboBox<StatsFormat> combo = dialog.getComponentForParameter(getParameter(format));
-//    combo.getSelectionModel().selectedItemProperty()
-//        .addListener((observable, oldValue, newValue) -> {
-//          groupComp.setEditable(newValue == StatsFormat.ONE_FACTOR);
-//        });
-
-    dialog.showAndWait();
-    return dialog.getExitCode();
-  }
 
   public enum StatsFormat {
     ONE_FACTOR, METADATA_TABLE, ALL_FACTORS;
