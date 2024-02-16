@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,10 @@
 
 package io.github.mzmine.util;
 
-import com.Ostermiller.util.CSVParser;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
+import com.opencsv.CSVWriterBuilder;
+import com.opencsv.ICSVWriter;
 import com.opencsv.RFC4180ParserBuilder;
 import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
@@ -45,9 +46,9 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidn
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingColumnException;
+import io.github.mzmine.util.io.WriterOptions;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -55,7 +56,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.SimpleStringProperty;
@@ -170,6 +170,11 @@ public class CSVParsingUtils {
           case IonAdductType ignored -> {
             final IonType ionType = IonTypeParser.parse(line[columnIndex]);
             annotation.putIfNotNull(IonTypeType.class, ionType);
+
+          }
+          case IonTypeType ignored -> {
+            final IonType ionType = IonTypeParser.parse(line[columnIndex]);
+            annotation.putIfNotNull(IonTypeType.class, ionType);
           }
           case StringType st -> annotation.put(st, line[columnIndex]);
           default -> throw new RuntimeException(
@@ -205,56 +210,57 @@ public class CSVParsingUtils {
    *                       IonNetworkLibrary)}.
    */
   public static CompoundDbLoadResult getAnnotationsFromCsvFile(final File peakListFile,
-      char fieldSeparator, @NotNull List<ImportType> types,
+      String fieldSeparator, @NotNull List<ImportType> types,
       @Nullable IonNetworkLibrary ionLibrary) {
-    try (final FileReader dbFileReader = new FileReader(peakListFile)) {
-      List<CompoundDBAnnotation> list = new ArrayList<>();
+    List<CompoundDBAnnotation> list = new ArrayList<>();
 
-      String[][] peakListValues = CSVParser.parse(dbFileReader, fieldSeparator);
+    List<String[]> peakListValues = null;
+    try {
+      peakListValues = readData(peakListFile, fieldSeparator);
+    } catch (IOException | CsvException e) {
 
-      final SimpleStringProperty errorMessage = new SimpleStringProperty();
-      final List<ImportType> lineIds = CSVParsingUtils.findLineIds(types, peakListValues[0],
-          errorMessage);
-
-      if (lineIds == null) {
-        return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR, errorMessage.get());
-      }
-
-      for (int i = 1; i < peakListValues.length; i++) {
-        final CompoundDBAnnotation baseAnnotation = CSVParsingUtils.csvLineToCompoundDBAnnotation(
-            peakListValues[i], lineIds);
-
-        if (!CompoundDBAnnotation.isBaseAnnotationValid(baseAnnotation, ionLibrary != null)) {
-          logger.info(String.format(
-              "Invalid base annotation for compound %s in line %d. Skipping annotation.",
-              baseAnnotation, i));
-          continue;
-        }
-
-        if (ionLibrary != null) {
-          final List<CompoundDBAnnotation> ionizedAnnotations = CompoundDBAnnotation.buildCompoundsWithAdducts(
-              baseAnnotation, ionLibrary);
-          list.addAll(ionizedAnnotations);
-        } else {
-          list.add(baseAnnotation);
-        }
-      }
-
-      if (list.isEmpty()) {
-        return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR,
-            "Did not find any valid compounds in file.");
-      }
-
-      return new CompoundDbLoadResult(list, TaskStatus.FINISHED, null);
-
-    } catch (Exception e) {
-      logger.log(Level.WARNING, "Could not read file " + peakListFile, e);
-      return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR, e.getMessage());
+      throw new RuntimeException(e);
     }
+
+    final SimpleStringProperty errorMessage = new SimpleStringProperty();
+    final List<ImportType> lineIds = CSVParsingUtils.findLineIds(types, peakListValues.get(0),
+        errorMessage);
+
+    if (lineIds == null) {
+      return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR, errorMessage.get());
+    }
+
+    for (int i = 1; i < peakListValues.size(); i++) {
+      final CompoundDBAnnotation baseAnnotation = CSVParsingUtils.csvLineToCompoundDBAnnotation(
+          peakListValues.get(i), lineIds);
+
+      if (!CompoundDBAnnotation.isBaseAnnotationValid(baseAnnotation, ionLibrary != null)) {
+        logger.info(String.format(
+            "Invalid base annotation for compound %s in line %d. Skipping annotation.",
+            baseAnnotation, i));
+        continue;
+      }
+
+      if (ionLibrary != null) {
+        final List<CompoundDBAnnotation> ionizedAnnotations = CompoundDBAnnotation.buildCompoundsWithAdducts(
+            baseAnnotation, ionLibrary);
+        list.addAll(ionizedAnnotations);
+      } else {
+        list.add(baseAnnotation);
+      }
+    }
+
+    if (list.isEmpty()) {
+      return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR,
+          "Did not find any valid compounds in file.");
+    }
+
+    return new CompoundDbLoadResult(list, TaskStatus.FINISHED, null);
   }
 
   /**
-   * Read data until end. Skips empty lines. The returned list is not trimmed to size. If you retain the list than use {@link ArrayList#trimToSize()}.
+   * Read data until end. Skips empty lines. The returned list is not trimmed to size. If you retain
+   * the list than use {@link ArrayList#trimToSize()}.
    *
    * @param separator separator
    * @return List of rows
@@ -268,7 +274,8 @@ public class CSVParsingUtils {
   }
 
   /**
-   * Read data until end. Skips empty lines. The returned list is not trimmed to size. If you retain the list than use {@link ArrayList#trimToSize()}.
+   * Read data until end. Skips empty lines. The returned list is not trimmed to size. If you retain
+   * the list than use {@link ArrayList#trimToSize()}.
    *
    * @param separator separator
    * @return List of rows
@@ -291,44 +298,48 @@ public class CSVParsingUtils {
     }
   }
 
-  /**
-   * Read data until end - then map to columns
-   *
-   * @param sep separator
-   * @return array of [columns][rows]
-   * @throws IOException if read is unsuccessful
-   */
   public static String[][] readDataMapToColumns(final File file, final String sep)
       throws IOException, CsvException {
-    try (var reader = Files.newBufferedReader(file.toPath())) {
-      return readDataMapToColumns(reader, sep);
-    }
+    return readDataMapToColumns(file, sep, 0);
   }
 
   /**
    * Read data until end - then map to columns
    *
-   * @param sep separator
+   * @param sep          separator
+   * @param mapStartLine the line in which to start the mapping. can be used to exclude the header.
    * @return array of [columns][rows]
    * @throws IOException if read is unsuccessful
    */
-  public static String[][] readDataMapToColumns(final BufferedReader reader, final String sep)
+  public static String[][] readDataMapToColumns(final File file, final String sep, int mapStartLine)
       throws IOException, CsvException {
-    List<String[]> rows = readData(reader, sep);
-
-    // max columns
-    int cols = rows.stream().mapToInt(a -> a.length).max().orElse(0);
-
-    String[][] data = new String[cols][rows.size()];
-    for (int r = 0; r < rows.size(); r++) {
-      String[] row = rows.get(r);
-      for (int c = 0; c < row.length; c++) {
-        String v = row[c];
-        data[c][r] = v == null || v.isBlank() ? null : v;
+    try (var reader = Files.newBufferedReader(file.toPath())) {
+      List<String[]> rows = readData(reader, sep);
+      if(mapStartLine > 0) {
+        rows.subList(0, mapStartLine).clear();
       }
-    }
 
-    return data;
+      // max columns
+      int cols = rows.stream().mapToInt(a -> a.length).max().orElse(0);
+
+      String[][] data = new String[cols][rows.size()];
+      for (int r = 0; r < rows.size(); r++) {
+        String[] row = rows.get(r);
+        for (int c = 0; c < row.length; c++) {
+          String v = row[c];
+          data[c][r] = v == null || v.isBlank() ? null : v;
+        }
+      }
+
+      return data;
+    }
+  }
+
+  public static ICSVWriter createDefaultWriter(File file, String separator, WriterOptions option)
+      throws IOException {
+    var writer = Files.newBufferedWriter(file.toPath(), option.toOpenOption());
+    char sep = separator.equals("\t") ? '\t' : separator.charAt(0);
+    return new CSVWriterBuilder(writer).withSeparator(sep).build();
   }
 
   public record CompoundDbLoadResult(@NotNull List<CompoundDBAnnotation> annotations,

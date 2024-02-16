@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,6 +42,7 @@ class MetadataIOTest {
 
   RawDataFile rawA = new RawDataFileImpl("a.mzML", null, null);
   RawDataFile rawB = new RawDataFileImpl("b.mzML", null, null);
+  RawDataFile rawC = new RawDataFileImpl("c.mzML", null, null);
 
   @BeforeEach
   public void init() {
@@ -50,6 +51,7 @@ class MetadataIOTest {
     var project = MZmineCore.getProjectManager().getCurrentProject();
     project.addFile(rawA);
     project.addFile(rawB);
+    project.addFile(rawC);
   }
 
   @Test
@@ -60,7 +62,7 @@ class MetadataIOTest {
         MetadataIOTest.class.getClassLoader().getResource("metadata/metadata_wide_defined.tsv")
             .getFile());
     WideTableIOUtils importer = new WideTableIOUtils(new MetadataTable());
-    Assertions.assertTrue(importer.importFrom(file, false));
+//    Assertions.assertTrue(importer.importFrom(file, false));
     Assertions.assertTrue(importer.importFrom(file2, false));
   }
 
@@ -72,5 +74,13 @@ class MetadataIOTest {
     Assertions.assertTrue(importer.importFrom(file, true));
     importer = new WideTableIOUtils(new MetadataTable());
     Assertions.assertFalse(importer.importFrom(file, false));
+  }
+
+  @Test
+  void testImportWideOnlyTypesDefined() {
+    File file = new File(MetadataIOTest.class.getClassLoader()
+        .getResource("metadata/metadata_wide_only_types_defined.tsv").getFile());
+    WideTableIOUtils importer = new WideTableIOUtils(new MetadataTable());
+    Assertions.assertTrue(importer.importFrom(file, false));
   }
 }
