@@ -40,6 +40,8 @@ import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
+import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
+import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CosineScoreType;
@@ -67,8 +69,9 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
   // Unmodifiable list of all subtypes
   private static final List<DataType> subTypes = List.of(new SpectralLibraryMatchesType(),
       new CompoundNameType(), new IonAdductType(), new FormulaType(), new SmilesStructureType(),
-      new InChIStructureType(), new PrecursorMZType(), new NeutralMassType(), new CosineScoreType(),
-      new MatchingSignalsType(), new CCSType(), new CCSRelativeErrorType());
+      new InChIStructureType(), new PrecursorMZType(), new NeutralMassType(),
+      new MzAbsoluteDifferenceType(), new MzPpmDifferenceType(), new CosineScoreType(),
+      new MatchingSignalsType(), new CCSType(), new CCSRelativeErrorType(), new CommentType());
 
   @NotNull
   @Override
@@ -100,6 +103,9 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       case NeutralMassType __ -> entry.getField(DBEntryField.EXACT_MASS).orElse(null);
       case CCSType __ -> entry.getOrElse(DBEntryField.CCS, null);
       case CCSRelativeErrorType __ -> match.getCCSError();
+      case MzAbsoluteDifferenceType __ -> match.getMzAbsoluteError();
+      case MzPpmDifferenceType __ -> match.getMzPpmError();
+      case CommentType __ -> entry.getOrElse(DBEntryField.COMMENT, null);
       default -> throw new UnsupportedOperationException(
           "DataType %s is not covered in map".formatted(subType.toString()));
     };
