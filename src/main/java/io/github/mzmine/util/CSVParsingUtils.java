@@ -298,6 +298,11 @@ public class CSVParsingUtils {
     }
   }
 
+  public static String[][] readDataMapToColumns(final File file, final String sep)
+      throws IOException, CsvException {
+    return readDataMapToColumns(file, sep, 0);
+  }
+
   /**
    * Read data until end - then map to columns
    *
@@ -310,8 +315,8 @@ public class CSVParsingUtils {
       throws IOException, CsvException {
     try (var reader = Files.newBufferedReader(file.toPath())) {
       List<String[]> rows = readData(reader, sep);
-      if(mapStartLine != 0) {
-        rows.removeAll(rows.subList(0, mapStartLine));
+      if(mapStartLine > 0) {
+        rows.subList(0, mapStartLine).clear();
       }
 
       // max columns
