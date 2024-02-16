@@ -40,7 +40,7 @@ public enum MassDetectorWizardOptions {
   public String toString() {
     return switch (this) {
       case ABSOLUTE_NOISE_LEVEL -> "Absolute intensity";
-      case FACTOR_OF_LOWEST_SIGNAL -> "Factor of lowest signal (requires centroided data)";
+      case FACTOR_OF_LOWEST_SIGNAL -> "Factor of lowest signal";
     };
   }
 
