@@ -29,9 +29,14 @@ import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.numbers.stats.AnovaPValueType;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -41,7 +46,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,13 +65,13 @@ public class AnovaTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private double finishedPercentage = 0.0;
 
-  private final FeatureListRow[] featureListRows;
-  private final String groupingColumn;
+  private final FeatureList flist;
+  private final String groupingColumnName;
 
-  public AnovaTask(FeatureListRow[] featureListRows, ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public AnovaTask(FeatureList flist, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
-    this.featureListRows = featureListRows;
-    this.groupingColumn = parameters.getValue(AnovaParameters.groupingParameter);
+    this.flist = flist;
+    this.groupingColumnName = parameters.getValue(AnovaParameters.groupingParameter);
   }
 
   public String getTaskDescription() {
@@ -88,6 +92,8 @@ public class AnovaTask extends AbstractTask {
 
     setStatus(TaskStatus.PROCESSING);
     logger.info("Started calculating significance values");
+
+    flist.addRowType(DataTypes.get(AnovaPValueType.class));
 
     try {
       calculateSignificance();
@@ -112,29 +118,32 @@ public class AnovaTask extends AbstractTask {
 
   private void calculateSignificance() throws IllegalStateException {
 
-    if (featureListRows.length == 0) {
+    if (flist.getNumberOfRows() == 0) {
       return;
     }
 
-    List<Set<RawDataFile>> groups = getGroups(groupingColumn);
+    final MetadataTable metadata = MZmineCore.getProjectMetadata();
+    final MetadataColumn<?> groupingColumn = metadata.getColumnByName(groupingColumnName);
+    final Map<?, List<RawDataFile>> fileGrouping = metadata.groupFilesByColumn(groupingColumn);
+    final List<List<RawDataFile>> groupedFiles = fileGrouping.values().stream().toList();
 
     finishedPercentage = 0.0;
-    final double finishedStep = 1.0 / featureListRows.length;
+    final double finishedStep = 1.0 / flist.getNumberOfRows();
 
-    for (FeatureListRow row : featureListRows) {
+    flist.stream(true).forEach(row -> {
 
       if (isCanceled()) {
-        break;
+        return;
       }
 
       finishedPercentage += finishedStep;
 
-      double[][] intensityGroups = new double[groups.size()][];
-      for (int i = 0; i < groups.size(); ++i) {
-        Set<RawDataFile> groupFiles = groups.get(i);
-        intensityGroups[i] =
-            row.getFeatures().stream().filter(feature -> groupFiles.contains(feature.getRawDataFile()))
-                .mapToDouble(Feature::getHeight).toArray();
+      double[][] intensityGroups = new double[groupedFiles.size()][];
+      for (int i = 0; i < groupedFiles.size(); ++i) {
+        List<RawDataFile> groupFiles = groupedFiles.get(i);
+        intensityGroups[i] = row.getFeatures().stream()
+            .filter(feature -> groupFiles.contains(feature.getRawDataFile()))
+            .mapToDouble(Feature::getHeight).toArray();
       }
 
       Double pValue = oneWayAnova(intensityGroups);
@@ -144,10 +153,10 @@ public class AnovaTask extends AbstractTask {
       if (featureInformation == null) {
         featureInformation = new SimpleFeatureInformation();
       }
-      featureInformation.getAllProperties().put(P_VALUE_KEY,
-          pValue == null ? EMPTY_STRING : pValue.toString());
+      featureInformation.getAllProperties()
+          .put(P_VALUE_KEY, pValue == null ? EMPTY_STRING : pValue.toString());
       row.setFeatureInformation(featureInformation);
-    }
+    });
   }
 
   private List<Set<RawDataFile>> getGroups(String groupingColumn) {
@@ -187,11 +196,11 @@ public class AnovaTask extends AbstractTask {
     double[] groupMeans = Arrays.stream(intensityGroups)
         .mapToDouble(intensities -> Arrays.stream(intensities).average().orElse(0.0)).toArray();
 
-    double overallMean =
-        Arrays.stream(intensityGroups).flatMapToDouble(Arrays::stream).average().orElse(0.0);
+    double overallMean = Arrays.stream(intensityGroups).flatMapToDouble(Arrays::stream).average()
+        .orElse(0.0);
 
     double sumOfSquaresOfError = IntStream.range(0, intensityGroups.length).mapToDouble(
-        i -> Arrays.stream(intensityGroups[i]).map(x -> x - groupMeans[i]).map(x -> x * x).sum())
+            i -> Arrays.stream(intensityGroups[i]).map(x -> x - groupMeans[i]).map(x -> x * x).sum())
         .sum();
 
     double sumOfSquaresOfTreatment =
@@ -215,8 +224,8 @@ public class AnovaTask extends AbstractTask {
 
     Double pValue = null;
     try {
-      FDistribution distribution =
-          new FDistribution(degreesOfFreedomOfTreatment, degreesOfFreedomOfError);
+      FDistribution distribution = new FDistribution(degreesOfFreedomOfTreatment,
+          degreesOfFreedomOfError);
       pValue = 1.0 - distribution.cumulativeProbability(anovaStatistics);
     } catch (MathIllegalArgumentException ex) {
       logger.warning("Error during F-distribution calculation: " + ex.getMessage());
