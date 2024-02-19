@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,53 +25,32 @@
 
 package io.github.mzmine.modules.dataanalysis.anova;
 
-import io.github.mzmine.datamodel.FeatureInformation;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.stats.AnovaPValueType;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import org.apache.commons.math3.distribution.FDistribution;
-import org.apache.commons.math3.exception.MathIllegalArgumentException;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AnovaTask extends AbstractTask {
 
-  private static final String EMPTY_STRING = "";
-
-  private static final String P_VALUE_KEY = "ANOVA_P_VALUE";
-
+  private final ParameterSet parameters;
   private Logger logger = Logger.getLogger(this.getClass().getName());
-  private double finishedPercentage = 0.0;
 
   private final FeatureList flist;
   private final String groupingColumnName;
+  private AnovaCalculation calc;
 
   public AnovaTask(FeatureList flist, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.flist = flist;
-    this.groupingColumnName = parameters.getValue(AnovaParameters.groupingParameter);
+    this.parameters = parameters;
+    this.groupingColumnName = this.parameters.getValue(AnovaParameters.groupingParameter);
   }
 
   public String getTaskDescription() {
@@ -79,158 +58,26 @@ public class AnovaTask extends AbstractTask {
   }
 
   public double getFinishedPercentage() {
-    return finishedPercentage;
+    return calc != null ? calc.getFinishedPercentage() : 0;
   }
 
   public void run() {
-
     if (isCanceled()) {
       return;
     }
-
-    String errorMsg = null;
 
     setStatus(TaskStatus.PROCESSING);
     logger.info("Started calculating significance values");
 
     flist.addRowType(DataTypes.get(AnovaPValueType.class));
 
-    try {
-      calculateSignificance();
+    calc = new AnovaCalculation(flist, groupingColumnName);
+    calc.process();
+    final List<AnovaResult> anovaResults = calc.get();
 
-      setStatus(TaskStatus.FINISHED);
-      logger.info("Calculating significance is completed");
-    } catch (IllegalStateException e) {
-      errorMsg = e.getMessage();
-    } catch (Exception e) {
-      errorMsg = "'Unknown Error' during significance calculation: " + e.getMessage();
-    } catch (Throwable t) {
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage(t.getMessage());
-      logger.log(Level.SEVERE, "Significance calculation error", t);
-    }
+    anovaResults.forEach(r -> r.row().set(AnovaPValueType.class, r.pValue()));
+    flist.getAppliedMethods()
+        .add(new SimpleFeatureListAppliedMethod(AnovaModule.class, parameters, moduleCallDate));
 
-    if (errorMsg != null) {
-      setErrorMessage(errorMsg);
-      setStatus(TaskStatus.ERROR);
-    }
-  }
-
-  private void calculateSignificance() throws IllegalStateException {
-
-    if (flist.getNumberOfRows() == 0) {
-      return;
-    }
-
-    final MetadataTable metadata = MZmineCore.getProjectMetadata();
-    final MetadataColumn<?> groupingColumn = metadata.getColumnByName(groupingColumnName);
-    final Map<?, List<RawDataFile>> fileGrouping = metadata.groupFilesByColumn(groupingColumn);
-    final List<List<RawDataFile>> groupedFiles = fileGrouping.values().stream().toList();
-
-    finishedPercentage = 0.0;
-    final double finishedStep = 1.0 / flist.getNumberOfRows();
-
-    flist.stream(true).forEach(row -> {
-
-      if (isCanceled()) {
-        return;
-      }
-
-      finishedPercentage += finishedStep;
-
-      double[][] intensityGroups = new double[groupedFiles.size()][];
-      for (int i = 0; i < groupedFiles.size(); ++i) {
-        List<RawDataFile> groupFiles = groupedFiles.get(i);
-        intensityGroups[i] = row.getFeatures().stream()
-            .filter(feature -> groupFiles.contains(feature.getRawDataFile()))
-            .mapToDouble(Feature::getHeight).toArray();
-      }
-
-      Double pValue = oneWayAnova(intensityGroups);
-
-      // Save results
-      FeatureInformation featureInformation = row.getFeatureInformation();
-      if (featureInformation == null) {
-        featureInformation = new SimpleFeatureInformation();
-      }
-      featureInformation.getAllProperties()
-          .put(P_VALUE_KEY, pValue == null ? EMPTY_STRING : pValue.toString());
-      row.setFeatureInformation(featureInformation);
-    });
-  }
-
-  private List<Set<RawDataFile>> getGroups(String groupingColumn) {
-
-    MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
-
-    // Find the parameter value of each data file
-    Map<RawDataFile, Object> paramMap = new HashMap<>();
-    for (FeatureListRow row : featureListRows) {
-      for (RawDataFile file : row.getRawDataFiles()) {
-        Object paramValue = project.getParameterValue(factor, file);
-        if (paramValue != null) {
-          paramMap.put(file, paramValue);
-        }
-      }
-    }
-
-    // Find unique parameter values
-    Object[] paramValues = paramMap.values().stream().distinct().toArray();
-
-    // Form groups of files for each parameter value
-    List<Set<RawDataFile>> groups = new ArrayList<>(paramValues.length);
-    for (Object paramValue : paramValues) {
-      groups.add(paramMap.entrySet().stream().filter(e -> paramValue.equals(e.getValue()))
-          .map(Entry::getKey).collect(Collectors.toSet()));
-    }
-
-    return groups;
-  }
-
-  @Nullable
-  private Double oneWayAnova(@NotNull double[][] intensityGroups) {
-
-    int numGroups = intensityGroups.length;
-    long numIntensities = Arrays.stream(intensityGroups).flatMapToDouble(Arrays::stream).count();
-
-    double[] groupMeans = Arrays.stream(intensityGroups)
-        .mapToDouble(intensities -> Arrays.stream(intensities).average().orElse(0.0)).toArray();
-
-    double overallMean = Arrays.stream(intensityGroups).flatMapToDouble(Arrays::stream).average()
-        .orElse(0.0);
-
-    double sumOfSquaresOfError = IntStream.range(0, intensityGroups.length).mapToDouble(
-            i -> Arrays.stream(intensityGroups[i]).map(x -> x - groupMeans[i]).map(x -> x * x).sum())
-        .sum();
-
-    double sumOfSquaresOfTreatment =
-        (numGroups - 1) * Arrays.stream(groupMeans).map(x -> x - overallMean).map(x -> x * x).sum();
-
-    long degreesOfFreedomOfTreatment = numGroups - 1;
-    long degreesOfFreedomOfError = numIntensities - numGroups;
-
-    if (degreesOfFreedomOfTreatment <= 0 || degreesOfFreedomOfError <= 0) {
-      return null;
-    }
-
-    double meanSquareOfTreatment = sumOfSquaresOfTreatment / degreesOfFreedomOfTreatment;
-    double meanSquareOfError = sumOfSquaresOfError / degreesOfFreedomOfError;
-
-    if (meanSquareOfError == 0.0) {
-      return null;
-    }
-
-    double anovaStatistics = meanSquareOfTreatment / meanSquareOfError;
-
-    Double pValue = null;
-    try {
-      FDistribution distribution = new FDistribution(degreesOfFreedomOfTreatment,
-          degreesOfFreedomOfError);
-      pValue = 1.0 - distribution.cumulativeProbability(anovaStatistics);
-    } catch (MathIllegalArgumentException ex) {
-      logger.warning("Error during F-distribution calculation: " + ex.getMessage());
-    }
-
-    return pValue;
   }
 }
