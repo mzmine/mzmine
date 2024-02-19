@@ -28,7 +28,7 @@ package io.github.mzmine.modules.dataanalysis.anova;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
@@ -49,15 +49,15 @@ import org.jetbrains.annotations.Nullable;
 public class AnovaCalculation extends AbstractTaskSubProcessor implements
     TaskSubSupplier<List<AnovaResult>> {
 
-  private final FeatureList flist;
+  private final List<FeatureListRow> rows;
   private final String groupingColumnName;
 
   private final List<AnovaResult> result = new ArrayList<>();
 
   private final AtomicDouble finishedPercentage = new AtomicDouble(0d);
 
-  public AnovaCalculation(FeatureList flist, String groupingColumnName) {
-    this.flist = flist;
+  public AnovaCalculation(List<FeatureListRow> rows, String groupingColumnName) {
+    this.rows = rows;
     this.groupingColumnName = groupingColumnName;
   }
 
@@ -65,7 +65,7 @@ public class AnovaCalculation extends AbstractTaskSubProcessor implements
 
   private void calculateSignificance() throws IllegalStateException {
 
-    if (flist.getNumberOfRows() == 0) {
+    if (rows.isEmpty()) {
       return;
     }
 
@@ -74,9 +74,9 @@ public class AnovaCalculation extends AbstractTaskSubProcessor implements
     final Map<?, List<RawDataFile>> fileGrouping = metadata.groupFilesByColumn(groupingColumn);
     final List<List<RawDataFile>> groupedFiles = fileGrouping.values().stream().toList();
 
-    final double finishedStep = 1.0 / flist.getNumberOfRows();
+    final double finishedStep = 1.0 / rows.size();
 
-    flist.stream(true).forEach(row -> {
+    rows.forEach(row -> {
 
       if (isCanceled()) {
         return;
@@ -148,7 +148,7 @@ public class AnovaCalculation extends AbstractTaskSubProcessor implements
 
   @Override
   public @NotNull String getTaskDescription() {
-    return STR."Calculating ANOVA values for \{flist != null ? flist.getName() : ""}";
+    return STR."Calculating ANOVA values for \{rows != null ? rows.size() : " rows"}";
   }
 
   @Override

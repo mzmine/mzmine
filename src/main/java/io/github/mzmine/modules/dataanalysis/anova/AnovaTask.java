@@ -71,7 +71,7 @@ public class AnovaTask extends AbstractTask {
 
     flist.addRowType(DataTypes.get(AnovaPValueType.class));
 
-    calc = new AnovaCalculation(flist, groupingColumnName);
+    calc = new AnovaCalculation(flist.getRows(), groupingColumnName);
     calc.process();
     final List<AnovaResult> anovaResults = calc.get();
 
