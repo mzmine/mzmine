@@ -79,8 +79,8 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       new FormulaType(),//
       new SmilesStructureType(),//
       new InChIStructureType(),//
-      new PrecursorMZType(),//
       new NeutralMassType(),//
+      new PrecursorMZType(),//
       new MzAbsoluteDifferenceType(),//
       new MzPpmDifferenceType(),//
       new RtAbsoluteDifferenceType(),//
