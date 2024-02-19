@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.NotAnnotatedType;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.Map;
@@ -222,6 +223,11 @@ public interface ModularDataModel {
    * @return true if the new value is different than the old
    */
   default <T> boolean set(DataType<T> type, T value) {
+    if (type instanceof NotAnnotatedType) {
+      throw new UnsupportedOperationException(
+          STR."Type \{type.getClass()} is not meant to be added to a feature.");
+    }
+
     Object old = getMap().put(type, value);
     // send changes to all listeners for this data type
     List<DataTypeValueChangeListener<?>> listeners = getValueChangeListeners().get(type);
@@ -288,7 +294,6 @@ public interface ModularDataModel {
 
   /**
    * Stream all map.entries
-   *
    */
   default Stream<Entry<DataType, Object>> stream() {
     return getMap().entrySet().stream();
