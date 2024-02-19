@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,24 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.datamodel.features.types.numbers.scores;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
-public class RtRelativeErrorType extends PercentType {
-
-  public RtRelativeErrorType() {
-    super();
-  }
+public class ExplainedIntensityPercentType extends PercentType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "rt_relative_error";
+    return "explained_intensity_percent";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Rt error";
+    return "Explained intensity";
   }
 }

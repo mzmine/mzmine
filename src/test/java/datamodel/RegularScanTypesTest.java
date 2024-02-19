@@ -234,8 +234,8 @@ public class RegularScanTypesTest {
         ScanUtils.extractDataPoints(library), ScanUtils.extractDataPoints(query));
 
     List<SpectralDBAnnotation> value = List.of(
-        new SpectralDBAnnotation(entry, similarity, query, null),
-        new SpectralDBAnnotation(entry, similarity, query, 0.043f));
+        new SpectralDBAnnotation(entry, similarity, query, null, 215.2135, 2.5f),
+        new SpectralDBAnnotation(entry, similarity, query, 0.043f, null, null));
 
     DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, null, null);

@@ -178,7 +178,7 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
             scoringParameters, mzTol, 0, scan.getEntry().getDataPoints(),
             scan.getEntry().getDataPoints());
         // add spectral lib match
-        var match = new SpectralDBAnnotation(scan.getEntry(), similarity, scan, null);
+        var match = new SpectralDBAnnotation(scan.getEntry(), similarity, scan, null, null, null);
         matches.add(match);
       }
       row.addSpectralLibraryMatches(matches);
@@ -216,7 +216,7 @@ public class SpectralLibraryToFeatureListTask extends AbstractTask {
           scoringParameters, mzTol, 0, scan.getEntry().getDataPoints(),
           scan.getEntry().getDataPoints());
       // add spectral lib match
-      var match = new SpectralDBAnnotation(scan.getEntry(), similarity, scan, null);
+      var match = new SpectralDBAnnotation(scan.getEntry(), similarity, scan, null, null, null);
       row.addSpectralLibraryMatch(match);
 
       row.set(FeatureShapeType.class, false);
