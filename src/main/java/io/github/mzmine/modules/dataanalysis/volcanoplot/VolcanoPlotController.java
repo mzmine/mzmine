@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,25 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.anova;
+package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
-import java.util.Set;
+import io.github.mzmine.datamodel.features.FeatureList;
+import java.util.List;
+import javafx.collections.FXCollections;
 
-import io.github.mzmine.datamodel.RawDataFile;
+public class VolcanoPlotController {
+  private final VolcanoPlotModel model;
+  private final VolcanoPlotInteractor interactor;
+  private final VolcanoPlotViewBuilder viewBuilder;
 
-public class Group {
+  public VolcanoPlotController(List<FeatureList> flists) {
+    final List<FeatureList> alignedLists = flists.stream()
+        .filter(flist -> flist.getNumberOfRawDataFiles() > 1).toList();
 
-  private final Set<RawDataFile> files;
+    model = new VolcanoPlotModel();
+    model.setFlists(FXCollections.observableArrayList(alignedLists));
 
-  public Group(Set<RawDataFile> files) throws IllegalArgumentException {
-
-    if (files == null || files.isEmpty())
-      throw new IllegalArgumentException("List of files is empty or does not exist.");
-
-    this.files = files;
+    viewBuilder = new VolcanoPlotViewBuilder(model, this::computeDataset);
+    interactor = null;
   }
 
-  public Set<RawDataFile> getFiles() {
-    return files;
+  private void computeDataset(Runnable runnable) {
+
   }
 }
