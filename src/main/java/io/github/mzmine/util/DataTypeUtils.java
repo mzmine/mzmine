@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,9 +29,11 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
@@ -41,6 +43,7 @@ import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
@@ -54,8 +57,13 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("null")
 public class DataTypeUtils {
@@ -134,5 +142,51 @@ public class DataTypeUtils {
     }
   }
 
+  public static <T extends DataType<?>, M extends ModularDataModel> Map<T, List<M>> mapToBestDataType(
+      List<M> rows, boolean mapMissingValues, T... allowedTypes) {
 
+    final Map<T, List<M>> results = new HashMap<>();
+    final T notAnnotatedType = (T) DataTypes.get(MissingValueType.class);
+
+    for (M row : rows) {
+
+      final T bestAnnotationType = getBestTypeWithValue(row,
+          mapMissingValues ? notAnnotatedType : null, allowedTypes);
+      if (bestAnnotationType != null) {
+        final List<M> rowsWithAnnotation = results.computeIfAbsent(bestAnnotationType,
+            a -> new ArrayList<>());
+        rowsWithAnnotation.add(row);
+      }
+    }
+    return results;
+  }
+
+  public static <T extends DataType<?>, M extends ModularDataModel> T getBestTypeWithValue(M row,
+      T... allowedAnnotations) {
+    return getBestTypeWithValue(row, null, allowedAnnotations);
+  }
+
+  /**
+   * @param row          The row or data model to search.
+   * @param defaultType  The type to return if no match was found. Nullable.
+   * @param allowedTypes All allowed types.
+   * @param <M>          A modular data model, such as
+   *                     {@link io.github.mzmine.datamodel.features.ModularFeatureListRow} or
+   *                     {@link io.github.mzmine.datamodel.features.ModularFeature}
+   * @return The annotation type or the default.
+   */
+  @Nullable
+  public static <T extends DataType<?>, M extends ModularDataModel> T getBestTypeWithValue(M row,
+      @Nullable T defaultType, T... allowedTypes) {
+    for (T allowedType : allowedTypes) {
+      final var type = (DataType<?>) DataTypes.get(allowedType);
+      final Object value = row.get(type);
+      // if the annotation is a list we have to check if the list is not empty
+      if (value != null && (!(value instanceof Collection<?> collection)
+          || !collection.isEmpty())) {
+        return allowedType;
+      }
+    }
+    return defaultType;
+  }
 }

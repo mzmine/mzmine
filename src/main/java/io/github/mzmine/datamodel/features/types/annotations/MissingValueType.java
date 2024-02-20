@@ -26,23 +26,20 @@
 package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.features.types.abstr.BooleanType;
-import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Not to be used for annotation. This type is only required to map feature annotations in
- * {@link io.github.mzmine.util.FeatureUtils#mapRowsToBestAnnotation(List)}.
+ * Not to be used in the datamodel. Only used for grouping
  */
-public class NotAnnotatedType extends BooleanType implements AnnotationType {
+public class MissingValueType extends BooleanType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "not_annotated";
+    return "missing_value";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "not_annotated";
+    return "missing_value";
   }
 }

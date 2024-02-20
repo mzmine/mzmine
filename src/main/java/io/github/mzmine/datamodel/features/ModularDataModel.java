@@ -29,7 +29,7 @@ import static java.util.Objects.requireNonNullElse;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.annotations.NotAnnotatedType;
+import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.Map;
@@ -223,7 +223,7 @@ public interface ModularDataModel {
    * @return true if the new value is different than the old
    */
   default <T> boolean set(DataType<T> type, T value) {
-    if (type instanceof NotAnnotatedType) {
+    if (type instanceof MissingValueType) {
       throw new UnsupportedOperationException(
           STR."Type \{type.getClass()} is not meant to be added to a feature.");
     }
