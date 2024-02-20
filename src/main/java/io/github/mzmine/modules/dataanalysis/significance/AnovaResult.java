@@ -23,10 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.anova;
+package io.github.mzmine.modules.dataanalysis.significance;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 
-public record AnovaResult(FeatureListRow row, String metadataColumnName, Double pValue) {
+public record AnovaResult(FeatureListRow row, String groupingColumn, Double pValue) implements
+    SignificanceTestResult {
 
 }

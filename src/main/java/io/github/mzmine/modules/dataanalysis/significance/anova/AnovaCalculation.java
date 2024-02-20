@@ -23,13 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.anova;
+package io.github.mzmine.modules.dataanalysis.significance.anova;
 
 import com.google.common.util.concurrent.AtomicDouble;
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataanalysis.significance.AnovaResult;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.taskcontrol.operations.AbstractTaskSubProcessor;
@@ -49,19 +50,19 @@ import org.jetbrains.annotations.Nullable;
 public class AnovaCalculation extends AbstractTaskSubProcessor implements
     TaskSubSupplier<List<AnovaResult>> {
 
+  private static final Logger logger = Logger.getLogger(AnovaCalculation.class.getName());
   private final List<FeatureListRow> rows;
   private final String groupingColumnName;
-
+  private final AbundanceMeasure abundanceMeasure;
   private final List<AnovaResult> result = new ArrayList<>();
-
   private final AtomicDouble finishedPercentage = new AtomicDouble(0d);
 
-  public AnovaCalculation(List<FeatureListRow> rows, String groupingColumnName) {
+  public AnovaCalculation(List<FeatureListRow> rows, String groupingColumnName,
+      AbundanceMeasure abundanceMeasure) {
     this.rows = rows;
     this.groupingColumnName = groupingColumnName;
+    this.abundanceMeasure = abundanceMeasure;
   }
-
-  private static final Logger logger = Logger.getLogger(AnovaCalculation.class.getName());
 
   private void calculateSignificance() throws IllegalStateException {
 
@@ -89,7 +90,8 @@ public class AnovaCalculation extends AbstractTaskSubProcessor implements
         List<RawDataFile> groupFiles = groupedFiles.get(i);
         intensityGroups[i] = row.getFeatures().stream()
             .filter(feature -> groupFiles.contains(feature.getRawDataFile()))
-            .mapToDouble(Feature::getHeight).toArray();
+            .mapToDouble(abundanceMeasure::get)
+            .toArray(); // todo what happens here if the calculation is null?
       }
 
       final Double pValue = oneWayAnova(intensityGroups);

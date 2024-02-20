@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2004-2023 The MZmine Development Team
+  ~ Copyright (c) 2004-2024 The MZmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -540,7 +540,7 @@
       <MenuItem text="Heat map plot" onAction="#runModule"
         userData="io.github.mzmine.modules.dataanalysis.heatmaps.HeatMapModule"/>
       <MenuItem text="One-way ANOVA" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataanalysis.anova.AnovaModule"/>
+        userData="io.github.mzmine.modules.dataanalysis.significance.anova.AnovaModule"/>
     </Menu>
   </Menu>
 

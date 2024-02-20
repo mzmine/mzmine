@@ -23,12 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.anova;
+package io.github.mzmine.modules.dataanalysis.significance.anova;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.stats.AnovaPValueType;
+import io.github.mzmine.modules.dataanalysis.significance.AnovaResult;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -39,9 +41,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class AnovaTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(AnovaTask.class.getName());
   private final ParameterSet parameters;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
   private final FeatureList flist;
   private final String groupingColumnName;
   private AnovaCalculation calc;
@@ -71,7 +72,7 @@ public class AnovaTask extends AbstractTask {
 
     flist.addRowType(DataTypes.get(AnovaPValueType.class));
 
-    calc = new AnovaCalculation(flist.getRows(), groupingColumnName);
+    calc = new AnovaCalculation(flist.getRows(), groupingColumnName, AbundanceMeasure.Height);
     calc.process();
     final List<AnovaResult> anovaResults = calc.get();
 
