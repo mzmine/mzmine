@@ -29,7 +29,7 @@ import javafx.scene.layout.Region;
 import javafx.util.Builder;
 
 /**
- * MVCI View base class. Creates the view in the build method.
+ * MVCI View base class. Creates the view on demand in the build method.
  */
 public abstract class FxViewBuilder<ViewModelClass> implements Builder<Region> {
 

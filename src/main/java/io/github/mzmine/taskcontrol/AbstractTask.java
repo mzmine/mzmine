@@ -68,4 +68,9 @@ public abstract class AbstractTask extends AbstractModifiableTask {
   public Instant getModuleCallDate() {
     return moduleCallDate;
   }
+
+  @Override
+  public String toString() {
+    return STR."Task (\{getName()}) description: \{getTaskDescription()}";
+  }
 }

@@ -40,6 +40,9 @@ import javafx.scene.control.TableView;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
+/**
+ * MVCI view that uses a builder to generate a TasksView on demand
+ */
 public class TasksView extends FxViewBuilder<TasksViewModel> {
 
   TasksView(final TasksViewModel model) {

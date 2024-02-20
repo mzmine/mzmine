@@ -47,8 +47,8 @@ public final class MassSpectrometerWizardParameters extends WizardStepParameters
    */
   public static final WizardMassDetectorParameter massDetectorOption = new WizardMassDetectorParameter(
       "Noise threshold", """
-      TOF-MS usually uses an absolute noise level and FTMS uses the 'factor of the lowest signal' mass detector -
-      which is only available for already centroided data.""", MassDetectorWizardOptions.values(),
+      TOF-MS usually uses an absolute noise level and FTMS uses the 'factor of the lowest signal' mass detector.""",
+      MassDetectorWizardOptions.values(),
       true,
       new WizardMassDetectorNoiseLevels(MassDetectorWizardOptions.ABSOLUTE_NOISE_LEVEL, 0, 0));
 

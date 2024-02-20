@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -86,20 +86,20 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
 
   private final MZmineProject project;
   private final RawDataFile dataFile;
-  private FeatureList processedFeatureList;
   private final String suffix;
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
   private final MobilityTolerance mobTol;
   private final double intTolerance;
   private final ParameterSet parameters;
-  private int processedScans;
   private final int totalScans;
   private final File featureListFile;
-  private final char fieldSeparator;
+  private final String fieldSeparator;
   private final int finishedLines = 0;
-  private int ID = 1;
   private final int minDataPoints = 5;
+  private FeatureList processedFeatureList;
+  private int processedScans;
+  private int ID = 1;
 
   TargetedFeatureDetectionModuleTask(MZmineProject project, ParameterSet parameters,
       RawDataFile dataFile, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
@@ -113,11 +113,8 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
         .getValue();
     featureListFile = parameters.getParameter(TargetedFeatureDetectionParameters.featureListFile)
         .getValue();
-    fieldSeparator =
-        parameters.getParameter(TargetedFeatureDetectionParameters.fieldSeparator).getValue()
-            .equals("\\t") ? '\t'
-            : parameters.getParameter(TargetedFeatureDetectionParameters.fieldSeparator).getValue()
-                .charAt(0);
+    fieldSeparator = parameters.getParameter(TargetedFeatureDetectionParameters.fieldSeparator)
+        .getValue();
     intTolerance = parameters.getParameter(TargetedFeatureDetectionParameters.intTolerance)
         .getValue();
     mzTolerance = parameters.getParameter(TargetedFeatureDetectionParameters.mzTolerance)
@@ -144,6 +141,65 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
     totalScans = matchingScans.size();
 
     this.dataFile = dataFile;
+  }
+
+  public static List<OverlappingCompoundAnnotation> findAndMergeOverlaps(
+      final List<CompoundDBAnnotation> annotations, final MZTolerance mzTol,
+      final RTTolerance rtTol, final MobilityTolerance mobTol) {
+
+    // to check for rough overlaps within overlapping annotations. otherwise we don't need to check
+    // the whole bunch.
+    final MZTolerance doubleTolerance = new MZTolerance(mzTol.getMzTolerance() * 2,
+        mzTol.getPpmTolerance() * 2);
+
+    final List<OverlappingCompoundAnnotation> overlappingCompoundAnnotations = new ArrayList<>();
+    final List<CompoundDBAnnotation> sortedAnnotations = new ArrayList(annotations);
+    sortedAnnotations.sort(Comparator.comparingDouble(CompoundDBAnnotation::getPrecursorMZ));
+
+    while (!sortedAnnotations.isEmpty()) {
+      final CompoundDBAnnotation annotation = sortedAnnotations.remove(0);
+
+      final Range<Double> doubleToleranceRange = doubleTolerance.getToleranceRange(
+          annotation.getPrecursorMZ());
+      final double upperBreakPoint = doubleToleranceRange.upperEndpoint();
+      final double lowerBreakPoint = doubleToleranceRange.lowerEndpoint();
+
+      final OverlappingCompoundAnnotation overlappingAnnotation = new OverlappingCompoundAnnotation(
+          annotation, mzTol, rtTol, mobTol);
+
+      // check against all remaining annotations
+      if (sortedAnnotations.isEmpty()) {
+        continue;
+      }
+      for (Iterator<CompoundDBAnnotation> iterator = sortedAnnotations.iterator();
+          iterator.hasNext(); ) {
+        final CompoundDBAnnotation sortedAnnotation = iterator.next();
+        if (sortedAnnotation.getPrecursorMZ() > upperBreakPoint) {
+          break;
+        }
+
+        if (overlappingAnnotation.offerAnnotation(sortedAnnotation)) {
+          iterator.remove();
+        }
+      }
+
+      // check against all already overlapping annotations
+      for (int i = overlappingCompoundAnnotations.size() - 1; i > 0; i--) {
+        final OverlappingCompoundAnnotation otherOverlaps = overlappingCompoundAnnotations.get(i);
+        final List<CompoundDBAnnotation> oldOverlaps = otherOverlaps.getAnnotations();
+        if (oldOverlaps.get(0).getPrecursorMZ() < lowerBreakPoint) {
+          break;
+        }
+
+        for (CompoundDBAnnotation oldOverlap : oldOverlaps) {
+          overlappingAnnotation.offerAnnotation(oldOverlap);
+        }
+      }
+
+      overlappingCompoundAnnotations.add(overlappingAnnotation);
+    }
+
+    return overlappingCompoundAnnotations;
   }
 
   public void run() {
@@ -246,7 +302,8 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
 
   private boolean processImsFile(List<? extends Gap> gaps, IMSRawDataFile imsFile) {
     final MobilityScanDataAccess access = new MobilityScanDataAccess(imsFile,
-        MobilityScanDataType.MASS_LIST, (List<Frame>) processedFeatureList.getSeletedScans(imsFile));
+        MobilityScanDataType.MASS_LIST,
+        (List<Frame>) processedFeatureList.getSeletedScans(imsFile));
     List<ImsGap> imsGaps = (List<ImsGap>) gaps;
 
     while (access.hasNextFrame()) {
@@ -298,65 +355,6 @@ class TargetedFeatureDetectionModuleTask extends AbstractTask {
       }
     }
     return true;
-  }
-
-  public static List<OverlappingCompoundAnnotation> findAndMergeOverlaps(
-      final List<CompoundDBAnnotation> annotations, final MZTolerance mzTol,
-      final RTTolerance rtTol, final MobilityTolerance mobTol) {
-
-    // to check for rough overlaps within overlapping annotations. otherwise we don't need to check
-    // the whole bunch.
-    final MZTolerance doubleTolerance = new MZTolerance(mzTol.getMzTolerance() * 2,
-        mzTol.getPpmTolerance() * 2);
-
-    final List<OverlappingCompoundAnnotation> overlappingCompoundAnnotations = new ArrayList<>();
-    final List<CompoundDBAnnotation> sortedAnnotations = new ArrayList(annotations);
-    sortedAnnotations.sort(Comparator.comparingDouble(CompoundDBAnnotation::getPrecursorMZ));
-
-    while (!sortedAnnotations.isEmpty()) {
-      final CompoundDBAnnotation annotation = sortedAnnotations.remove(0);
-
-      final Range<Double> doubleToleranceRange = doubleTolerance.getToleranceRange(
-          annotation.getPrecursorMZ());
-      final double upperBreakPoint = doubleToleranceRange.upperEndpoint();
-      final double lowerBreakPoint = doubleToleranceRange.lowerEndpoint();
-
-      final OverlappingCompoundAnnotation overlappingAnnotation = new OverlappingCompoundAnnotation(
-          annotation, mzTol, rtTol, mobTol);
-
-      // check against all remaining annotations
-      if (sortedAnnotations.isEmpty()) {
-        continue;
-      }
-      for (Iterator<CompoundDBAnnotation> iterator = sortedAnnotations.iterator();
-          iterator.hasNext(); ) {
-        final CompoundDBAnnotation sortedAnnotation = iterator.next();
-        if (sortedAnnotation.getPrecursorMZ() > upperBreakPoint) {
-          break;
-        }
-
-        if (overlappingAnnotation.offerAnnotation(sortedAnnotation)) {
-          iterator.remove();
-        }
-      }
-
-      // check against all already overlapping annotations
-      for (int i = overlappingCompoundAnnotations.size() - 1; i > 0; i--) {
-        final OverlappingCompoundAnnotation otherOverlaps = overlappingCompoundAnnotations.get(i);
-        final List<CompoundDBAnnotation> oldOverlaps = otherOverlaps.getAnnotations();
-        if (oldOverlaps.get(0).getPrecursorMZ() < lowerBreakPoint) {
-          break;
-        }
-
-        for (CompoundDBAnnotation oldOverlap : oldOverlaps) {
-          overlappingAnnotation.offerAnnotation(oldOverlap);
-        }
-      }
-
-      overlappingCompoundAnnotations.add(overlappingAnnotation);
-    }
-
-    return overlappingCompoundAnnotations;
   }
 
   public double getFinishedPercentage() {

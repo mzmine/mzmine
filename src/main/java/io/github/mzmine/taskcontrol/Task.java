@@ -91,4 +91,5 @@ public interface Task extends Runnable {
   boolean removeTaskStatusListener(TaskStatusListener list);
 
   void clearTaskStatusListener();
+
 }

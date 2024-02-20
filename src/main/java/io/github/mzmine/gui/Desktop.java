@@ -189,6 +189,12 @@ public interface Desktop extends MZmineModule {
 
   @NotNull ExitCode exitMZmine();
 
+  /**
+   * Maybe add a tasksview controller in the future for headless mode?
+   *
+   * @return the tasksview controller if GUI mode
+   */
+  @Nullable
   TasksViewController getTasksViewController();
 
   void openWebPage(@NotNull URL url);

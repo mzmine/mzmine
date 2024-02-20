@@ -30,7 +30,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * MVCI controller with cached view
+ * MVCI controller with cached view. This is usually used when a view is expansive to create and may
+ * be removed/added from/to the scene graph often. Otherwise, use the base implementation {@link FxController}
  */
 public abstract class FxCachedViewController<ViewModelClass> extends FxController<ViewModelClass> {
 

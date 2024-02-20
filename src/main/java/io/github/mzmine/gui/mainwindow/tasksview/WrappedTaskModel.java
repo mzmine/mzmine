@@ -35,6 +35,9 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
+/**
+ * An observable wrapper for each task to be added to a TableView in {@link TasksView}
+ */
 public class WrappedTaskModel {
 
   private final WrappedTask task;

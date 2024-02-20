@@ -61,8 +61,9 @@ public class BatchModeModule implements MZmineProcessingModule {
    * Run from batch file (usually in headless mode)
    *
    * @param batchFile local file
-   * @return exit code that reflects if the batch mode was started
+   * @return the batch task if successful or null on error
    */
+  @Nullable
   public static BatchTask runBatch(@NotNull MZmineProject project, File batchFile,
       @NotNull Instant moduleCallDate) {
     return runBatch(project, batchFile, null, null, moduleCallDate);
@@ -74,8 +75,9 @@ public class BatchModeModule implements MZmineProcessingModule {
    * @param batchFile                    local file
    * @param overrideDataFiles            change the data import to those files if not null
    * @param overrideSpectralLibraryFiles change the spectral libraries imported
-   * @return exit code that reflects if the batch mode was started
+   * @return the batch task if successful or null on error
    */
+  @Nullable
   public static BatchTask runBatch(@NotNull MZmineProject project, File batchFile,
       @Nullable File[] overrideDataFiles, final File[] overrideSpectralLibraryFiles, @NotNull Instant moduleCallDate) {
     if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {

@@ -39,6 +39,10 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 
+/**
+ * The MVCI model contains only observable properties to bind in the {@link TasksView} and is
+ * updated in the {@link TasksViewInteractor}
+ */
 public class TasksViewModel {
 
   private final ObservableList<WrappedTaskModel> tasks = FXCollections.observableArrayList();

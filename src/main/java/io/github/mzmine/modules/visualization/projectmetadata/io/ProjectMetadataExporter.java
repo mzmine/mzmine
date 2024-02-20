@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -62,9 +62,10 @@ public class ProjectMetadataExporter {
   private File chooseFile() {
     FileChooser fileChooser = new FileChooser();
     fileChooser.setTitle("Please select a file containing project parameter values for files.");
-    fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("All Files", "*.*"),
-        new FileChooser.ExtensionFilter("text", "*.txt"),
-        new FileChooser.ExtensionFilter("tsv", "*.tsv"));
+    fileChooser.getExtensionFilters()
+        .addAll(new FileChooser.ExtensionFilter("tab separated values", "*.tsv"),
+            new FileChooser.ExtensionFilter("text", "*.txt"),
+            new FileChooser.ExtensionFilter("All Files", "*.*"));
 
     // setting the initial directory
     File currentFile = currentProject.getProjectFile();

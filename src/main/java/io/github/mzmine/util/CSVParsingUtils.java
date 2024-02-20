@@ -25,7 +25,12 @@
 
 package io.github.mzmine.util;
 
-import com.Ostermiller.util.CSVParser;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.CSVWriterBuilder;
+import com.opencsv.ICSVWriter;
+import com.opencsv.RFC4180ParserBuilder;
+import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
@@ -41,16 +46,16 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidn
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingColumnException;
+import io.github.mzmine.util.io.WriterOptions;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.SimpleStringProperty;
@@ -165,6 +170,11 @@ public class CSVParsingUtils {
           case IonAdductType ignored -> {
             final IonType ionType = IonTypeParser.parse(line[columnIndex]);
             annotation.putIfNotNull(IonTypeType.class, ionType);
+
+          }
+          case IonTypeType ignored -> {
+            final IonType ionType = IonTypeParser.parse(line[columnIndex]);
+            annotation.putIfNotNull(IonTypeType.class, ionType);
           }
           case StringType st -> annotation.put(st, line[columnIndex]);
           default -> throw new RuntimeException(
@@ -200,97 +210,136 @@ public class CSVParsingUtils {
    *                       IonNetworkLibrary)}.
    */
   public static CompoundDbLoadResult getAnnotationsFromCsvFile(final File peakListFile,
-      char fieldSeparator, @NotNull List<ImportType> types,
+      String fieldSeparator, @NotNull List<ImportType> types,
       @Nullable IonNetworkLibrary ionLibrary) {
-    try (final FileReader dbFileReader = new FileReader(peakListFile)) {
-      List<CompoundDBAnnotation> list = new ArrayList<>();
+    List<CompoundDBAnnotation> list = new ArrayList<>();
 
-      String[][] peakListValues = CSVParser.parse(dbFileReader, fieldSeparator);
+    List<String[]> peakListValues = null;
+    try {
+      peakListValues = readData(peakListFile, fieldSeparator);
+    } catch (IOException | CsvException e) {
 
-      final SimpleStringProperty errorMessage = new SimpleStringProperty();
-      final List<ImportType> lineIds = CSVParsingUtils.findLineIds(types, peakListValues[0],
-          errorMessage);
+      throw new RuntimeException(e);
+    }
 
-      if (lineIds == null) {
-        return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR, errorMessage.get());
+    final SimpleStringProperty errorMessage = new SimpleStringProperty();
+    final List<ImportType> lineIds = CSVParsingUtils.findLineIds(types, peakListValues.get(0),
+        errorMessage);
+
+    if (lineIds == null) {
+      return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR, errorMessage.get());
+    }
+
+    for (int i = 1; i < peakListValues.size(); i++) {
+      final CompoundDBAnnotation baseAnnotation = CSVParsingUtils.csvLineToCompoundDBAnnotation(
+          peakListValues.get(i), lineIds);
+
+      if (!CompoundDBAnnotation.isBaseAnnotationValid(baseAnnotation, ionLibrary != null)) {
+        logger.info(String.format(
+            "Invalid base annotation for compound %s in line %d. Skipping annotation.",
+            baseAnnotation, i));
+        continue;
       }
 
-      for (int i = 1; i < peakListValues.length; i++) {
-        final CompoundDBAnnotation baseAnnotation = CSVParsingUtils.csvLineToCompoundDBAnnotation(
-            peakListValues[i], lineIds);
-
-        if (!CompoundDBAnnotation.isBaseAnnotationValid(baseAnnotation, ionLibrary != null)) {
-          logger.info(String.format(
-              "Invalid base annotation for compound %s in line %d. Skipping annotation.",
-              baseAnnotation, i));
-          continue;
-        }
-
-        if (ionLibrary != null) {
-          final List<CompoundDBAnnotation> ionizedAnnotations = CompoundDBAnnotation.buildCompoundsWithAdducts(
-              baseAnnotation, ionLibrary);
-          list.addAll(ionizedAnnotations);
-        } else {
-          list.add(baseAnnotation);
-        }
+      if (ionLibrary != null) {
+        final List<CompoundDBAnnotation> ionizedAnnotations = CompoundDBAnnotation.buildCompoundsWithAdducts(
+            baseAnnotation, ionLibrary);
+        list.addAll(ionizedAnnotations);
+      } else {
+        list.add(baseAnnotation);
       }
+    }
 
-      if (list.isEmpty()) {
-        return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR,
-            "Did not find any valid compounds in file.");
-      }
+    if (list.isEmpty()) {
+      return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR,
+          "Did not find any valid compounds in file.");
+    }
 
-      return new CompoundDbLoadResult(list, TaskStatus.FINISHED, null);
+    return new CompoundDbLoadResult(list, TaskStatus.FINISHED, null);
+  }
 
-    } catch (Exception e) {
-      logger.log(Level.WARNING, "Could not read file " + peakListFile, e);
-      return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR, e.getMessage());
+  /**
+   * Read data until end. Skips empty lines. The returned list is not trimmed to size. If you retain
+   * the list than use {@link ArrayList#trimToSize()}.
+   *
+   * @param separator separator
+   * @return List of rows
+   * @throws IOException if read is unsuccessful
+   */
+  public static List<String[]> readData(final File file, final String separator)
+      throws IOException, CsvException {
+    try (var reader = Files.newBufferedReader(file.toPath())) {
+      return readData(reader, separator);
     }
   }
 
   /**
-   * Read data until end
+   * Read data until end. Skips empty lines. The returned list is not trimmed to size. If you retain
+   * the list than use {@link ArrayList#trimToSize()}.
    *
-   * @param sep separator
-   * @return list of rows
+   * @param separator separator
+   * @return List of rows
    * @throws IOException if read is unsuccessful
    */
-  public static List<String[]> readData(final BufferedReader reader, final String sep)
-      throws IOException {
-    List<String[]> data = new ArrayList<>();
-    String line;
-    while ((line = reader.readLine()) != null) {
-      String[] split = line.split(sep);
-      if (split.length > 0 && split[0].length() > 0) {
-        data.add(split);
+  public static List<String[]> readData(final BufferedReader reader, final String separator)
+      throws IOException, CsvException {
+    char sep = "\\t".equals(separator) ? '\t' : separator.charAt(0);
+    try (CSVReader csvReader = new CSVReaderBuilder(reader).withCSVParser(
+        new RFC4180ParserBuilder().withSeparator(sep).build()).build()) {
+      List<String[]> result = new ArrayList<>(64);
+      String[] row;
+      while ((row = csvReader.readNext()) != null) {
+        boolean empty = Arrays.stream(row).allMatch(s -> s == null || s.isBlank());
+        if (!empty) {
+          result.add(row);
+        }
       }
+      return result;
     }
-    return data;
+  }
+
+  public static String[][] readDataMapToColumns(final File file, final String sep)
+      throws IOException, CsvException {
+    return readDataMapToColumns(file, sep, 0);
   }
 
   /**
    * Read data until end - then map to columns
    *
-   * @param sep separator
+   * @param sep          separator
+   * @param mapStartLine the line in which to start the mapping. can be used to exclude the header.
    * @return array of [columns][rows]
    * @throws IOException if read is unsuccessful
    */
-  public static String[][] readDataMapToColumns(final BufferedReader reader, final String sep)
-      throws IOException {
-    List<String[]> rows = readData(reader, sep);
-    // max columns
-    int cols = rows.stream().mapToInt(a -> a.length).max().orElse(0);
-
-    String[][] data = new String[cols][rows.size()];
-    for (int r = 0; r < rows.size(); r++) {
-      String[] row = rows.get(r);
-      for (int c = 0; c < row.length; c++) {
-        String v = row[c];
-        data[c][r] = v == null || v.isEmpty() ? null : v;
+  public static String[][] readDataMapToColumns(final File file, final String sep, int mapStartLine)
+      throws IOException, CsvException {
+    try (var reader = Files.newBufferedReader(file.toPath())) {
+      List<String[]> rows = readData(reader, sep);
+      if(mapStartLine > 0) {
+        rows.subList(0, mapStartLine).clear();
       }
-    }
 
-    return data;
+      // max columns
+      int cols = rows.stream().mapToInt(a -> a.length).max().orElse(0);
+
+      String[][] data = new String[cols][rows.size()];
+      for (int r = 0; r < rows.size(); r++) {
+        String[] row = rows.get(r);
+        for (int c = 0; c < row.length; c++) {
+          String v = row[c];
+          data[c][r] = v == null || v.isBlank() ? null : v;
+        }
+      }
+
+      return data;
+    }
+  }
+
+  public static ICSVWriter createDefaultWriter(File file, String separator, WriterOptions option)
+      throws IOException {
+    var writer = Files.newBufferedWriter(file.toPath(), option.toOpenOption());
+    char sep = separator.equals("\t") ? '\t' : separator.charAt(0);
+    return new CSVWriterBuilder(writer).withSeparator(sep).build();
   }
 
   public record CompoundDbLoadResult(@NotNull List<CompoundDBAnnotation> annotations,

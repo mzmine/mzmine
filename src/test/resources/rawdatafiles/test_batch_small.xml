@@ -1,29 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!--
-  ~ Copyright (c) 2004-2022 The MZmine Development Team
-  ~
-  ~ Permission is hereby granted, free of charge, to any person
-  ~ obtaining a copy of this software and associated documentation
-  ~ files (the "Software"), to deal in the Software without
-  ~ restriction, including without limitation the rights to use,
-  ~ copy, modify, merge, publish, distribute, sublicense, and/or sell
-  ~ copies of the Software, and to permit persons to whom the
-  ~ Software is furnished to do so, subject to the following
-  ~ conditions:
-  ~
-  ~ The above copyright notice and this permission notice shall be
-  ~ included in all copies or substantial portions of the Software.
-  ~
-  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-  ~ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-  ~ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-  ~ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  ~ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-  ~ OTHER DEALINGS IN THE SOFTWARE.
-  -->
-
-<batch mzmine_version="3.5.5">
+<?xml version="1.0" encoding="UTF-8"?><batch mzmine_version="3.9.0">
     <batchstep method="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule" parameter_version="1">
         <parameter name="File names">
             <file>D:\git\mzmine3\src\test\resources\rawdatafiles\DOM_a.mzML</file>
@@ -439,6 +414,26 @@
             </parameter>
             <parameter name="Min matched isotope signals" selected="false">3</parameter>
             <parameter name="Crop spectra to m/z overlap">false</parameter>
+        </parameter>
+    </batchstep>
+    <batchstep method="io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingModule" parameter_version="1">
+        <parameter name="Feature lists" type="BATCH_LAST_FEATURELISTS"/>
+        <parameter name="m/z tolerance (MS2)">
+            <absolutetolerance>0.003</absolutetolerance>
+            <ppmtolerance>10.0</ppmtolerance>
+        </parameter>
+        <parameter name="Only best MS2 scan">true</parameter>
+        <parameter name="Max precursor m/z delta" selected="true">500.0</parameter>
+        <parameter name="Minimum matched signals">4</parameter>
+        <parameter name="Min cosine similarity">0.7</parameter>
+        <parameter name="Check MS2 neutral loss similarity" selected="false">
+            <parameter name="Maximum DP for differences matching">25</parameter>
+        </parameter>
+        <parameter name="Signal filters">
+            <parameter name="Remove residual precursor m/z" selected="true">10.0</parameter>
+            <parameter name="Crop to top N signals">250</parameter>
+            <parameter name="Signal threshold (intensity filter)">50</parameter>
+            <parameter name="Intensity filter at &gt;N signals">0.98</parameter>
         </parameter>
     </batchstep>
     <batchstep method="io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule" parameter_version="2">

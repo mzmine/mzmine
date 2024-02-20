@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -125,6 +125,13 @@ public class TableViewUtils {
   }
 
 
+  /**
+   * @param name         column name
+   * @param valueFactory defines the value of the cell
+   * @param <MODEL>      the table row data model
+   * @param <V>          the value type of the property
+   * @return a new TableColumn
+   */
   @NotNull
   public static <MODEL, V> TableColumn<MODEL, V> createColumn(@NotNull String name,
       @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {
@@ -133,6 +140,14 @@ public class TableViewUtils {
     return column;
   }
 
+  /**
+   *
+   * @param name column name
+   * @param valueFactory defines the value of the cell
+   * @return a new TableColumn
+   * @param <MODEL> the table row data model
+   * @param <V> the value type of the property
+   */
   @NotNull
   public static <MODEL, V> TableColumn<MODEL, V> createColumn(@NotNull String name, double minWidth,
       @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {
@@ -141,6 +156,14 @@ public class TableViewUtils {
     return column;
   }
 
+  /**
+   *
+   * @param name column name
+   * @param valueFactory defines the value of the cell
+   * @return a new TableColumn
+   * @param <MODEL> the table row data model
+   * @param <V> the value type of the property
+   */
   @NotNull
   public static <MODEL, V> TableColumn<MODEL, V> createColumn(@NotNull String name, double minWidth,
       double maxWidth, @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {

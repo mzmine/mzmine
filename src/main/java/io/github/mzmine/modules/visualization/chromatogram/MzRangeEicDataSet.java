@@ -23,24 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx.mvci;
+package io.github.mzmine.modules.visualization.chromatogram;
+
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.RangeUtils;
+import javafx.scene.paint.Color;
 
 /**
- * MVCI Interactor base class. This class interacts with business logic and updates the data model.
- * The {@link FxController} orchestrates its tasks on specific threads.
+ * Simple dataset for extracted ion chromatograms
  */
-public abstract class FxInteractor<ViewModelClass> {
+public class MzRangeEicDataSet extends ColoredXYDataset {
 
-  protected final ViewModelClass model;
-
-  protected FxInteractor(ViewModelClass model) {
-    this.model = model;
+  public MzRangeEicDataSet(final IonTimeSeries<? extends Scan> series, final Range<Double> mzRange,
+      final Color color, final RunOption runOption) {
+    super(new IonTimeSeriesToXYProvider(series,
+            MZmineCore.getConfiguration().getGuiFormats().mz(RangeUtils.rangeCenter(mzRange)), color),
+        runOption);
   }
-
-  /**
-   * Method designed to be run on the FXAT to load data received via the fetchData() method into the
-   * ViewModel.  This method is called from the load() method of the ScreenController via the
-   * setOnSucceeded() method of a Task.
-   */
-  public abstract void updateModel();
 }

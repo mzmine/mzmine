@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,24 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx.mvci;
+package io.github.mzmine.datamodel.features.types.numbers.scores;
 
-/**
- * MVCI Interactor base class. This class interacts with business logic and updates the data model.
- * The {@link FxController} orchestrates its tasks on specific threads.
- */
-public abstract class FxInteractor<ViewModelClass> {
+import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
+import org.jetbrains.annotations.NotNull;
 
-  protected final ViewModelClass model;
+public class ExplainedIntensityPercentType extends PercentType {
 
-  protected FxInteractor(ViewModelClass model) {
-    this.model = model;
+  @Override
+  public @NotNull String getUniqueID() {
+    return "explained_intensity_percent";
   }
 
-  /**
-   * Method designed to be run on the FXAT to load data received via the fetchData() method into the
-   * ViewModel.  This method is called from the load() method of the ScreenController via the
-   * setOnSucceeded() method of a Task.
-   */
-  public abstract void updateModel();
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Explained intensity";
+  }
 }

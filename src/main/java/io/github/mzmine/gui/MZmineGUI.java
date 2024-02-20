@@ -562,7 +562,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public TasksViewController getTasksViewController() {
+  public @Nullable TasksViewController getTasksViewController() {
     return mainWindowController.getTasksViewController();
   }
 

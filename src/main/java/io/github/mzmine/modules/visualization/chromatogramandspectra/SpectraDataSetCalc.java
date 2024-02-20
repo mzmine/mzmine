@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,12 +39,12 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import javafx.beans.property.BooleanProperty;
 
 public class SpectraDataSetCalc extends AbstractTask {
 
   private final ChromatogramCursorPosition pos;
-  private final HashMap<RawDataFile, ScanDataSet> filesAndDataSets;
   private final Collection<RawDataFile> rawDataFiles;
   private final ScanSelection scanSelection;
   private final boolean showSpectraOfEveryRawFile;
@@ -57,7 +57,6 @@ public class SpectraDataSetCalc extends AbstractTask {
       boolean showSpectraOfEveryRawFile, SpectraPlot spectrumPlot,
       BooleanProperty showMassListProperty) {
     super(null, Instant.now());
-    filesAndDataSets = new HashMap<>();
     this.rawDataFiles = rawDataFiles;
     this.pos = pos;
     doneFiles = 0;
@@ -83,12 +82,52 @@ public class SpectraDataSetCalc extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     // is MS level>2 spectrum? then directly show
+    final HashMap<RawDataFile, ScanDataSet> filesAndDataSets = createDatasetsForRawFiles();
+    if (isCanceled()) {
+      return;
+    }
+
+    MZmineCore.runLater(() -> {
+      if (isCanceled()) {
+        return;
+      }
+      // apply changes after all updates
+      spectrumPlot.applyWithNotifyChanges(false, true, () -> {
+        spectrumPlot.removeAllDataSets();
+
+        for (Entry<RawDataFile, ScanDataSet> entry : filesAndDataSets.entrySet()) {
+          RawDataFile rawDataFile = entry.getKey();
+          ScanDataSet dataSet = entry.getValue();
+          spectrumPlot.addDataSet(dataSet, rawDataFile.getColorAWT(), false, false);
+
+          // If the scan contains a mass list then add dataset for it
+          if (showMassListProperty.getValue()) {
+            MassList massList = dataSet.getScan().getMassList();
+            if (massList != null) {
+              MassListDataSet massListDataset = new MassListDataSet(massList);
+
+              spectrumPlot.addDataSet(massListDataset, rawDataFile.getColorAWT(), false, false);
+            }
+          }
+        }
+      });
+    });
+    setStatus(TaskStatus.FINISHED);
+  }
+
+  private HashMap<RawDataFile, ScanDataSet> createDatasetsForRawFiles() {
+    HashMap<RawDataFile, ScanDataSet> filesAndDataSets = new HashMap<>();
     if (pos.getScan() != null && pos.getScan().getMSLevel() > 1) {
+      // MSe data shows MS2 as chromatograms thats when MS level is > 1
       ScanDataSet dataSet = new ScanDataSet(pos.getScan());
       filesAndDataSets.put(pos.getDataFile(), dataSet);
+      doneFiles++;
     } else if (showSpectraOfEveryRawFile) {
       double rt = pos.getRetentionTime();
-      rawDataFiles.forEach(rawDataFile -> {
+      for (var rawDataFile : rawDataFiles) {
+        if (isCanceled()) {
+          return filesAndDataSets;
+        }
         Scan scan = null;
         var singleMsLevelOrNull = scanSelection.getMsLevelFilter().getSingleMsLevelOrNull();
         if (singleMsLevelOrNull != null) {
@@ -101,41 +140,12 @@ public class SpectraDataSetCalc extends AbstractTask {
           filesAndDataSets.put(rawDataFile, dataSet);
         }
         doneFiles++;
-
-        if (getStatus() == TaskStatus.CANCELED) {
-        }
-
-      });
+      }
     } else {
       ScanDataSet dataSet = new ScanDataSet(pos.getScan());
       filesAndDataSets.put(pos.getDataFile(), dataSet);
       doneFiles++;
     }
-
-    MZmineCore.runLater(() -> {
-      if (getStatus() == TaskStatus.CANCELED) {
-        return;
-      }
-      // apply changes after all updates
-      spectrumPlot.applyWithNotifyChanges(false, true, () -> {
-        spectrumPlot.removeAllDataSets();
-
-        filesAndDataSets.keySet().forEach(rawDataFile -> {
-          spectrumPlot.addDataSet(filesAndDataSets.get(rawDataFile), rawDataFile.getColorAWT(),
-              false, false);
-
-          // If the scan contains a mass list then add dataset for it
-          if (showMassListProperty.getValue()) {
-            MassList massList = filesAndDataSets.get(rawDataFile).getScan().getMassList();
-            if (massList != null) {
-              MassListDataSet massListDataset = new MassListDataSet(massList);
-
-              spectrumPlot.addDataSet(massListDataset, rawDataFile.getColorAWT(), false, false);
-            }
-          }
-        });
-      });
-    });
-    setStatus(TaskStatus.FINISHED);
+    return filesAndDataSets;
   }
 }
