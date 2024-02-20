@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,52 +27,40 @@ package io.github.mzmine.util;
 
 import java.awt.Dimension;
 import org.jfree.chart.ui.Size2D;
-import com.itextpdf.text.Utilities;
 
 public class DimensionUnitUtil {
-  // dimensions
-  public static enum DimUnit {
-    CM, MM, PT, INCH, PX;
-  }
 
   /**
    * Converts a pixel size to the given unit
-   * 
-   * @param val
+   *
    * @param unit
    * @return Float.NaN if the no conversion was defined for this unit
    */
-  public static float getSizeInUnit(float value, DimUnit unit) {
-    switch (unit) {
-      case CM:
-        return Utilities.pointsToMillimeters(value / 10.f);
-      case MM:
-        return Utilities.pointsToMillimeters(value);
-      case INCH:
-        return Utilities.pointsToInches(value);
-      case PX:
-      case PT:
-        return value;
-    }
-    return Float.NaN;
+  public static float getSizeInUnit(float pixel, DimUnit unit) {
+    return switch (unit) { // values derived from unitconverters.net
+      case CM -> getSizeInUnit(pixel, DimUnit.MM) / 10;
+      case MM -> (float) (pixel / 0.352778);
+      case INCH -> (float) (pixel / 0.0138889);
+      case PX, PT -> pixel;
+    };
   }
 
   /**
    * Converts pixel size to the given unit
-   * 
+   *
    * @return Float.NaN if the no conversion was defined for this unit
    */
-  public static float[] getSizeInUnit(float[] value, DimUnit unit) {
-    float[] result = new float[value.length];
+  public static float[] getSizeInUnit(float[] pixel, DimUnit unit) {
+    float[] result = new float[pixel.length];
     for (int i = 0; i < result.length; i++) {
-      result[i] = getSizeInUnit(value[i], unit);
+      result[i] = getSizeInUnit(pixel[i], unit);
     }
     return result;
   }
 
   /**
    * Converts a pixel size to the given unit
-   * 
+   *
    * @return Float.NaN if the no conversion was defined for this unit
    */
   public static Size2D getSizeInUnit(Size2D size, DimUnit unit) {
@@ -82,7 +70,7 @@ public class DimensionUnitUtil {
 
   /**
    * Converts a pixel size to the given unit
-   * 
+   *
    * @return Float.NaN if the no conversion was defined for this unit
    */
   public static Size2D getSizeInUnit(Dimension size, DimUnit unit) {
@@ -92,32 +80,24 @@ public class DimensionUnitUtil {
 
   /**
    * Converts any value+unit to pixel
-   * 
+   *
    * @param value
    * @param unit
    * @return Float.NaN if the no conversion was defined for this unit
    */
   public static float toPixel(float value, DimUnit unit) {
     // convert to pt
-    switch (unit) {
-      case CM:
-        return Utilities.millimetersToPoints(value * 10.f);
-      case MM:
-        return Utilities.millimetersToPoints(value);
-      case INCH:
-        return Utilities.inchesToPoints(value);
-      case PX:
-      case PT:
-        return value;
-    }
-    return Float.NaN;
+    return switch (unit) { // values derived from unitconverters.net
+      case CM -> toPixel(value * 10, DimUnit.MM);
+      case MM -> value * 2.83465f;
+      case INCH -> value * 72f;
+      case PX, PT -> value;
+    };
   }
 
   /**
    * Converts any pixel value to a specified unit (same as getSizeInUnit(val, unit))
-   * 
-   * @param val
-   * @param unit
+   *
    * @return Float.NaN if the no conversion was defined for this unit
    */
   public static float pixelToUnit(float value, DimUnit unit) {
@@ -126,9 +106,7 @@ public class DimensionUnitUtil {
 
   /**
    * Converts any pixel value to a specified unit (same as getSizeInUnit(val, unit))
-   * 
-   * @param val
-   * @param unit
+   *
    * @return Float.NaN if the no conversion was defined for this unit
    */
   public static double pixelToUnit(double value, DimUnit unit) {
@@ -137,7 +115,7 @@ public class DimensionUnitUtil {
 
   /**
    * Converts a value from one to another unit
-   * 
+   *
    * @param val
    * @param startUnit
    * @param resultUnit
@@ -145,9 +123,17 @@ public class DimensionUnitUtil {
    */
   public static float changeUnit(float val, DimUnit startUnit, DimUnit resultUnit) {
     float p = toPixel(val, startUnit);
-    if (Float.isNaN(p))
+    if (Float.isNaN(p)) {
       return p;
-    else
+    } else {
       return pixelToUnit(p, resultUnit);
+    }
   }
+
+  // dimensions
+  public static enum DimUnit {
+    CM, MM, PT, INCH, PX;
+  }
+
+
 }
