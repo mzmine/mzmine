@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,9 +25,29 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.features.ModularDataModel;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+
 /**
  * Used to define the abundance of features
  */
 public enum AbundanceMeasure {
-  Height, Area
+  Height(HeightType.class), Area(AreaType.class);
+
+  final Class<? extends DataType<Float>> type;
+
+  AbundanceMeasure(Class<? extends DataType<Float>> type) {
+    this.type = type;
+  }
+
+  public Class<? extends DataType<Float>> type() {
+    return type;
+  }
+
+  public Float get(ModularDataModel featureOrRow) {
+    return featureOrRow.get(type);
+  }
+
 }
