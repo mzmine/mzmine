@@ -31,14 +31,15 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.AnovaResult;
+import io.github.mzmine.modules.dataanalysis.significance.StatisticUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.taskcontrol.operations.AbstractTaskSubProcessor;
 import io.github.mzmine.taskcontrol.operations.TaskSubSupplier;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -54,8 +55,8 @@ public class AnovaCalculation extends AbstractTaskSubProcessor implements
   private final List<FeatureListRow> rows;
   private final String groupingColumnName;
   private final AbundanceMeasure abundanceMeasure;
-  private final List<AnovaResult> result = new ArrayList<>();
   private final AtomicDouble finishedPercentage = new AtomicDouble(0d);
+  private List<AnovaResult> result = List.of();
 
   public AnovaCalculation(List<FeatureListRow> rows, String groupingColumnName,
       AbundanceMeasure abundanceMeasure) {
@@ -77,28 +78,26 @@ public class AnovaCalculation extends AbstractTaskSubProcessor implements
 
     final double finishedStep = 1.0 / rows.size();
 
-    rows.forEach(row -> {
+    result = rows.stream().map(row -> {
 
       if (isCanceled()) {
-        return;
+        return null;
       }
 
       finishedPercentage.getAndAdd(finishedStep);
 
-      double[][] intensityGroups = new double[groupedFiles.size()][];
-      for (int i = 0; i < groupedFiles.size(); ++i) {
-        List<RawDataFile> groupFiles = groupedFiles.get(i);
-        intensityGroups[i] = row.getFeatures().stream()
-            .filter(feature -> groupFiles.contains(feature.getRawDataFile()))
-            .mapToDouble(abundanceMeasure::get)
-            .toArray(); // todo what happens here if the calculation is null?
-      }
+      final double[][] intensityGroups = groupedFiles.stream()
+          .map(group -> StatisticUtils.extractAbundance(row, group, abundanceMeasure))
+          .toArray(double[][]::new);
 
-      final Double pValue = oneWayAnova(intensityGroups);
-      if (pValue != null) {
-        result.add(new AnovaResult(row, groupingColumnName, pValue));
+      if (checkConditions(intensityGroups)) {
+        final Double pValue = oneWayAnova(intensityGroups);
+        if (pValue != null) {
+          return new AnovaResult(row, groupingColumnName, pValue);
+        }
       }
-    });
+      return null;
+    }).filter(Objects::nonNull).toList();
   }
 
   @Nullable
@@ -136,16 +135,22 @@ public class AnovaCalculation extends AbstractTaskSubProcessor implements
 
     double anovaStatistics = meanSquareOfTreatment / meanSquareOfError;
 
-    Double pValue = null;
     try {
       FDistribution distribution = new FDistribution(degreesOfFreedomOfTreatment,
           degreesOfFreedomOfError);
-      pValue = 1.0 - distribution.cumulativeProbability(anovaStatistics);
+      return 1.0 - distribution.cumulativeProbability(anovaStatistics);
     } catch (MathIllegalArgumentException ex) {
       logger.warning("Error during F-distribution calculation: " + ex.getMessage());
+      return null;
     }
+  }
 
-    return pValue;
+  /**
+   * @param groupAbundances one array of abundances for each group or an 2D
+   *                        array[group][abundances]
+   */
+  private boolean checkConditions(double[]... groupAbundances) {
+    return groupAbundances.length > 2; // anova usually used for more than two groups
   }
 
   @Override
