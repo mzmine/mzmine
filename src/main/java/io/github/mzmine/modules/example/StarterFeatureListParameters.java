@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,43 +25,37 @@
 
 package io.github.mzmine.modules.example;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.util.files.ExtensionFilters;
 
-public class LearnerParameters extends SimpleParameterSet {
-  /*
-   * Define any parameters here (see io.github.mzmine.parameters for parameter types)
-   */
+/**
+ * Define any parameters here (see io.github.mzmine.parameters for parameter types) static is needed
+ * here to use this parameter as a key to lookup values
+ * <p>
+ * var flists = parameters.getValue(EmptyFeatureListParameters.featureLists);
+ */
+public class StarterFeatureListParameters extends SimpleParameterSet {
+
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to feature list name", "deisotoped");
+  // those are just example parameters and should be exchanged
+  public static final FileNameParameter outFile = new FileNameParameter("Export file",
+      "Save results to csv file", ExtensionFilters.CSV_TSV_EXPORT, FileSelectionType.SAVE);
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+  // optional parameters just add a checkbox in front of another parameter
+  public static final OptionalParameter<MZRangeParameter> mzRange = new OptionalParameter<>(
+      new MZRangeParameter());
 
-  public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
-
-  public static final IntegerParameter maximumCharge = new IntegerParameter("Maximum charge",
-      "Maximum charge to consider for detecting the isotope patterns");
-
-  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
-      false);
-
-  /**
-   * Create a new parameterset
-   */
-  public LearnerParameters() {
+  public StarterFeatureListParameters() {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */
-    super(new Parameter[]{featureLists, suffix, mzTolerance, rtTolerance, maximumCharge,
-        handleOriginal});
+    super(featureLists, outFile, mzRange);
   }
 
 }

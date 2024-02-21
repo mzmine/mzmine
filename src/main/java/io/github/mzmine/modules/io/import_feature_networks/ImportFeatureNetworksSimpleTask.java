@@ -65,7 +65,6 @@ public class ImportFeatureNetworksSimpleTask extends AbstractFeatureListTask {
   private final ModularFeatureList featureList;
   private char separator;
   private @NotNull Int2ObjectMap<FeatureListRow> rowIdMap;
-  private long finishedItems;
 
   public ImportFeatureNetworksSimpleTask(final File inputFile, final ModularFeatureList featureList,
       final ParameterSet parameters, final Instant callDate) {
@@ -145,11 +144,6 @@ public class ImportFeatureNetworksSimpleTask extends AbstractFeatureListTask {
   @Override
   public String getTaskDescription() {
     return "Importing networks from tabular data";
-  }
-
-  @Override
-  public long getFinishedItems() {
-    return finishedItems;
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,25 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.example;
+package io.github.mzmine.modules.impl;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.parameters.ParameterSet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class EmptyFeatureListParameters extends SimpleParameterSet {
+/**
+ * A module that processes feature lists or raw data files
+ */
+public abstract class AbstractProcessingModule extends AbstractRunnableModule implements
+    MZmineProcessingModule {
 
-  /*
-   * Define any parameters here (see io.github.mzmine.parameters for parameter types)
-   * static is needed here to use this parameter as a key to lookup values
-   */
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
-
-  public EmptyFeatureListParameters() {
-    /*
-     * The order of the parameters is used to construct the parameter dialog automatically
-     */
-    super(new Parameter[]{featureLists});
+  public AbstractProcessingModule(final @NotNull String name,
+      final @Nullable Class<? extends ParameterSet> parameterSetClass,
+      final @NotNull String description, final @NotNull MZmineModuleCategory moduleCategory,
+      final boolean useMemoryMapping) {
+    super(name, parameterSetClass, description, moduleCategory, useMemoryMapping);
   }
-
 }

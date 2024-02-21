@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import javafx.beans.property.BooleanProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -251,5 +252,10 @@ public interface ParameterSet extends ParameterContainer {
   default boolean hasParameter(Parameter<?> p) {
     return Arrays.stream(getParameters()).map(Parameter::getName)
         .anyMatch(name -> Objects.equals(p.getName(), name));
+  }
+
+  @SuppressWarnings("unchecked")
+  default <T extends Parameter<?>> Stream<T> streamForClass(Class<T> parameterClass) {
+    return Arrays.stream(getParameters()).filter(parameterClass::isInstance).map(p -> (T) p);
   }
 }

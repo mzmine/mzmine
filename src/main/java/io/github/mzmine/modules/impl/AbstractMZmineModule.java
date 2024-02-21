@@ -23,22 +23,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.import_spectral_library;
+package io.github.mzmine.modules.impl;
 
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
-import io.github.mzmine.util.files.ExtensionFilters;
+import io.github.mzmine.parameters.ParameterSet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class SpectralLibraryImportParameters extends SimpleParameterSet {
+public class AbstractMZmineModule {
 
+  protected final @NotNull String name;
+  protected final @Nullable Class<? extends ParameterSet> parameterSetClass;
 
-  public static final FileNamesParameter dataBaseFiles = new FileNamesParameter(
-      "Spectral library files", """
-      Name of file that contains information for peak identification
-      (GNPS json, MONA json, NIST msp, mgf, JCAMP-DX jdx)""", ExtensionFilters.ALL_LIBRARY);
-
-  public SpectralLibraryImportParameters() {
-    super(dataBaseFiles);
+  public AbstractMZmineModule(@NotNull final String name,
+      @Nullable final Class<? extends ParameterSet> parameterSetClass) {
+    this.name = name;
+    this.parameterSetClass = parameterSetClass;
   }
 
+  public @NotNull String getName() {
+    return name;
+  }
+
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return parameterSetClass;
+  }
 }

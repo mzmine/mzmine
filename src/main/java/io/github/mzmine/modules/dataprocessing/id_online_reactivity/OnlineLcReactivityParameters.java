@@ -36,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.io.CSVUtils;
 import io.github.mzmine.util.io.CsvWriter;
+import io.github.mzmine.util.io.WriterOptions;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -102,7 +103,7 @@ public class OnlineLcReactivityParameters extends SimpleParameterSet {
         "([#6][CX3](=O)O)", "([#6][CX3](=O)O).(OC)>>[#6][CX3](=O)OC.O", 123.45));
     try {
       file = CSVUtils.ensureTsvOrCsvFormat(file, "csv");
-      CsvWriter.writeToFile(file, examples, OnlineReaction.class, false);
+      CsvWriter.writeToFile(file, examples, OnlineReaction.class, WriterOptions.REPLACE);
     } catch (IOException e) {
       logger.log(Level.WARNING, "Cannot write example file", e);
     }

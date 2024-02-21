@@ -56,7 +56,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -72,7 +71,6 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
   private final FeatureList flist;
   private final boolean onlyGroupedRows;
 
-  private final AtomicLong finishedItems = new AtomicLong(0);
   private final String description;
   private final List<IonModification> eductAdducts;
   private final List<IonModification> productAdducts;
@@ -117,11 +115,6 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
   @Override
   public String getTaskDescription() {
     return description;
-  }
-
-  @Override
-  public long getFinishedItems() {
-    return finishedItems.get();
   }
 
   @Override

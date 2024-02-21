@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,43 +32,20 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.util.files.ExtensionFilters;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
 
 public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
-  public static final ExtensionFilter ALL_MS_DATA_FILTER = new ExtensionFilter("MS data", "*.mzML",
-      "*.mzml", "*.mzXML", "*.mzxml", "*.imzML", "*.imzml", "*.d", "*.raw", "*.RAW", "*.mzData",
-      "*.netcdf", "*.mzdata", "*.aird");
-
-  public static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("mzML MS data", "*.mzML", "*.mzml"), //
-      new ExtensionFilter("mzXML MS data", "*.mzXML", "*.mzxml"), //
-      new ExtensionFilter("imzML MS imaging data", "*.imzML", "*.imzml"), //
-      new ExtensionFilter("Bruker tdf files", "*.d"), //
-      new ExtensionFilter("Thermo RAW files", "*.raw", "*.RAW"), //
-      new ExtensionFilter("Waters RAW folders", "*.raw", "*.RAW"), //
-      new ExtensionFilter("mzData MS data", "*.mzData", "*.mzdata"),
-      new ExtensionFilter("aird MS data", "*.aird", "*.Aird", "*.AIRD"), //
-      new ExtensionFilter("netCDF", "*.cdf", "*.CDF", "*.netcdf", "*.NETCDF", "*.nc", "*.NC"), //
-      new ExtensionFilter("zip", "*.zip", "*.gz"), //
-      new ExtensionFilter("All files", "*.*") //
-  );
-
-  public static final List<ExtensionFilter> extensionsFolders = List.of( //
-      new ExtensionFilter("Bruker tdf files", "*.d"), //
-      new ExtensionFilter("Waters RAW folders", "*.raw"), //
-      new ExtensionFilter("All files", "*.*") //
-  );
 
   public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
-      extensions);
+      ExtensionFilters.MS_RAW_DATA);
 
   public static final OptionalModuleParameter<AdvancedSpectraImportParameters> advancedImport = new OptionalModuleParameter<>(
       "Advanced import",

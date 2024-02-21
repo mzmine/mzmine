@@ -52,6 +52,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.taskcontrol.threadpools.ThreadPoolTask;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.nio.file.Paths;
@@ -178,7 +179,7 @@ public class BatchTask extends AbstractTask {
         File datasetDir = subDirectories.get(currentDataset);
         datasetName = datasetDir.getName();
         File[] allFiles = FileAndPathUtil.findFilesInDirFlat(datasetDir,
-            AllSpectralDataImportParameters.ALL_MS_DATA_FILTER, searchSubdirs);
+            ExtensionFilters.ALL_MS_DATA_FILTER, searchSubdirs);
 
         logger.info(
             String.format("Processing batch dataset %s (%d/%d)", datasetName, currentDataset + 1,

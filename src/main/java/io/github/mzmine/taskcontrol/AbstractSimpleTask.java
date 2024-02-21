@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +42,7 @@ public abstract class AbstractSimpleTask extends AbstractTask {
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> moduleClass;
   protected long totalItems;
+  protected AtomicLong finishedItems = new AtomicLong(0);
 
   /**
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
@@ -58,7 +60,7 @@ public abstract class AbstractSimpleTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return totalItems != 0 ? getFinishedItems() / (double) totalItems : 0;
+    return totalItems != 0 ? finishedItems.get() / (double) totalItems : 0;
   }
 
   @Override
@@ -74,14 +76,27 @@ public abstract class AbstractSimpleTask extends AbstractTask {
   }
 
   /**
-   * used to compute the finished percentage
-   */
-  public abstract long getFinishedItems();
-
-  /**
    * Do the actual processing. Is automatically called in the {@link #run()} method
    */
   protected abstract void process();
+
+  /**
+   * Add 1 to finished items. Thread safe
+   *
+   * @return the new finished items number
+   */
+  protected long incrementFinishedItems() {
+    return finishedItems.incrementAndGet();
+  }
+
+  /**
+   * Add n to finished items. Thread safe
+   *
+   * @return the new finished items number
+   */
+  private long incrementFinishedItems(final int add) {
+    return finishedItems.addAndGet(add);
+  }
 
   /**
    * Automatically adds the applied method to all the feature lists
