@@ -28,9 +28,9 @@ package io.github.mzmine.modules.dataanalysis.significance.ttest;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.InvalidTestModelException;
+import io.github.mzmine.modules.dataanalysis.significance.StatisticUtils;
 import io.github.mzmine.modules.dataanalysis.significance.TTestResult;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
@@ -40,9 +40,11 @@ import io.github.mzmine.taskcontrol.operations.TaskSubSupplier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 import org.apache.commons.math3.stat.inference.TTest;
+import org.apache.commons.math3.stat.inference.TestUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class TTestCalculation<T> extends AbstractTaskSubProcessor implements
@@ -51,22 +53,30 @@ public class TTestCalculation<T> extends AbstractTaskSubProcessor implements
   private static final Logger logger = Logger.getLogger(TTestCalculation.class.getName());
 
   private final List<FeatureListRow> rows;
+  private final TTestSamplingConfig samplingConfig;
+  private final AbundanceMeasure abundanceMeasure;
   private final String groupingColumnName;
   private final MetadataColumn<T> groupingColumn;
   private final T[] groupingValues;
   private final List<TTestResult> results = new ArrayList<>();
   private AtomicLong processedRows = new AtomicLong(0);
 
-  public TTestCalculation(@NotNull List<FeatureListRow> rows, @NotNull String groupingColumnName) {
+  public TTestCalculation(@NotNull List<FeatureListRow> rows, TTestSamplingConfig testConfig,
+      AbundanceMeasure abundanceMeasure, @NotNull String groupingColumnName) {
     this.rows = rows;
+    this.samplingConfig = testConfig;
+    this.abundanceMeasure = abundanceMeasure;
     this.groupingColumnName = groupingColumnName;
     groupingColumn = null;
     groupingValues = null;
   }
 
-  public TTestCalculation(@NotNull List<FeatureListRow> rows,
-      @NotNull MetadataColumn<T> groupingColumn, @NotNull T[] groupingValues) {
+  public TTestCalculation(@NotNull List<FeatureListRow> rows, TTestSamplingConfig testConfig,
+      AbundanceMeasure abundanceMeasure, @NotNull MetadataColumn<T> groupingColumn,
+      @NotNull T[] groupingValues) {
     this.rows = rows;
+    this.samplingConfig = testConfig;
+    this.abundanceMeasure = abundanceMeasure;
     this.groupingColumnName = groupingColumn.getTitle();
     this.groupingColumn = groupingColumn;
     if (groupingValues.length != 2) {
@@ -74,11 +84,6 @@ public class TTestCalculation<T> extends AbstractTaskSubProcessor implements
           STR."t-Test is only applicable to two values. \{groupingValues.length} selected.");
     }
     this.groupingValues = groupingValues;
-  }
-
-  public static double[] extractAbundance(FeatureListRow row, List<RawDataFile> group,
-      AbundanceMeasure measure) {
-    group.stream().map(file -> measure.get((ModularFeature) row.getFeature(file)))
   }
 
   @Override
@@ -97,10 +102,40 @@ public class TTestCalculation<T> extends AbstractTaskSubProcessor implements
     assert groupedFiles.size() == 2;
 
     TTest test = new TTest();
-    rows.stream().parallel().forEach(row -> {
+    final List<TTestResult> results = rows.stream().map(row -> {
 
-      test.tTest()
-    });
+      final double[] group1Abundance = StatisticUtils.extractAbundance(row, groupedFiles.get(0),
+          abundanceMeasure);
+      final double[] group2Abundance = StatisticUtils.extractAbundance(row, groupedFiles.get(1),
+          abundanceMeasure);
+
+      if (!checkConditions(group1Abundance, group2Abundance)) {
+        return null;
+      }
+      final double p = switch (samplingConfig) {
+        case PAIRED -> TestUtils.pairedTTest(group1Abundance, group2Abundance);
+        case UNPAIRED -> TestUtils.tTest(group1Abundance, group2Abundance);
+      };
+      processedRows.getAndIncrement();
+      return new TTestResult(row, groupingColumnName, p);
+    }).filter(Objects::nonNull).toList();
+  }
+
+  private boolean checkConditions(double[] group1Abundance, double[] group2Abundance) {
+    switch (samplingConfig) {
+      case PAIRED -> {
+        // only perform paired test if the number of abundances is equal (pre/post treatment)
+        if (group1Abundance.length != group2Abundance.length || group1Abundance.length < 2) {
+          return false;
+        }
+      }
+      case UNPAIRED -> {
+        if (group1Abundance.length < 2 || group2Abundance.length < 2) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   private @NotNull List<List<RawDataFile>> groupFiles() {
@@ -108,8 +143,8 @@ public class TTestCalculation<T> extends AbstractTaskSubProcessor implements
       return extractGroupsFromColumn();
     } else {
       final MetadataTable metadata = MZmineCore.getProjectMetadata();
-      final Map<T, List<RawDataFile>> valueFileMap = metadata.getMatchingFiles(groupingColumn,
-          groupingValues);
+      final Map<T, List<RawDataFile>> valueFileMap = metadata.groupFilesByColumnValue(
+          groupingColumn, groupingValues);
       return valueFileMap.values().stream().toList();
     }
   }
