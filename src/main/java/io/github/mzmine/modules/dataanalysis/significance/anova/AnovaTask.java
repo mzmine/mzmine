@@ -30,12 +30,14 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.stats.AnovaPValueType;
+import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -74,17 +76,24 @@ public class AnovaTask extends AbstractTask {
 
     flist.addRowType(DataTypes.get(AnovaPValueType.class));
 
-    calc = new AnovaTest(flist.getRows(), groupingColumnName);
-    final List<AnovaResult> anovaResults = flist.getRows().stream().map(row -> {
+    try {
+
+      calc = new AnovaTest(groupingColumnName);
+      final List<AnovaResult> anovaResults = flist.getRows().stream().map(row -> {
       if (isCanceled()) {
         return null;
       }
-      processed++;
+        processed++;
       return calc.test(row, AbundanceMeasure.Height);
     }).filter(Objects::nonNull).toList();
 
-    anovaResults.forEach(r -> r.row().set(AnovaPValueType.class, r.pValue()));
-    flist.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(AnovaModule.class, parameters, moduleCallDate));
+      anovaResults.forEach(r -> r.row().set(AnovaPValueType.class, r.pValue()));
+      flist.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod(AnovaModule.class, parameters, moduleCallDate));
+    } catch (MetadataColumnDoesNotExistException e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+    }
+
+    setStatus(TaskStatus.FINISHED);
   }
 }

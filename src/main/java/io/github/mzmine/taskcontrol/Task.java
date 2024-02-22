@@ -78,4 +78,15 @@ public interface Task extends Runnable {
 
   void clearTaskStatusListener();
 
+  /**
+   * Executes a runnable on the task thread if this task's status changes to
+   * {@link TaskStatus#FINISHED}. The runnable is not executed if this task is canceled or fails.
+   */
+  default void setOnFinished(Runnable runnable) {
+    addTaskStatusListener((task, newStatus, oldStatus) -> {
+      if (newStatus == TaskStatus.FINISHED) {
+        runnable.run();
+      }
+    });
+  }
 }

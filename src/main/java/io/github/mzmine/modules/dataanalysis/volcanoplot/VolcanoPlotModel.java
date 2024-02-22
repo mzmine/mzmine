@@ -27,7 +27,7 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.Collection;
@@ -41,92 +41,80 @@ public class VolcanoPlotModel {
   private final ObjectProperty<FeatureList> selectedFlist = new SimpleObjectProperty<>();
   private final ObjectProperty<ObservableList<FeatureList>> flists = new SimpleObjectProperty<>();
   private final ObjectProperty<ObservableList<MetadataColumn<?>>> metadataColumns = new SimpleObjectProperty<>();
-  private final ObjectProperty<MetadataColumn<?>> selectedMetadataColumn = new SimpleObjectProperty<>();
   private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>();
-  private final ObjectProperty<Collection<PlotXYZDataProvider>> datasets = new SimpleObjectProperty<>();
+  private final ObjectProperty<Collection<PlotXYDataProvider>> datasets = new SimpleObjectProperty<>();
   private final ObjectProperty<@Nullable RowSignificanceTest> test = new SimpleObjectProperty<>();
-
-  public MetadataColumn<?> getSelectedMetadataColumn() {
-    return selectedMetadataColumn.get();
-  }
-
-  /**
-   * Changed by the {@link VolcanoPlotViewBuilder} and reflects the selected metadata column.
-   */
-  public ObjectProperty<MetadataColumn<?>> selectedMetadataColumnProperty() {
-    return selectedMetadataColumn;
-  }
 
   public FeatureList getSelectedFlist() {
     return selectedFlist.get();
-  }
-
-  public ObjectProperty<FeatureList> selectedFlistProperty() {
-    return selectedFlist;
   }
 
   public void setSelectedFlist(FeatureList selectedFlist) {
     this.selectedFlist.set(selectedFlist);
   }
 
-  public ObservableList<FeatureList> getFlists() {
-    return flists.get();
+  public ObjectProperty<FeatureList> selectedFlistProperty() {
+    return selectedFlist;
   }
 
-  public ObjectProperty<ObservableList<FeatureList>> flistsProperty() {
-    return flists;
+  public ObservableList<FeatureList> getFlists() {
+    return flists.get();
   }
 
   public void setFlists(ObservableList<FeatureList> flists) {
     this.flists.set(flists);
   }
 
-  public ObservableList<MetadataColumn<?>> getMetadataColumns() {
-    return metadataColumns.get();
+  public ObjectProperty<ObservableList<FeatureList>> flistsProperty() {
+    return flists;
   }
 
-  public ObjectProperty<ObservableList<MetadataColumn<?>>> metadataColumnsProperty() {
-    return metadataColumns;
+  public ObservableList<MetadataColumn<?>> getMetadataColumns() {
+    return metadataColumns.get();
   }
 
   public void setMetadataColumns(ObservableList<MetadataColumn<?>> metadataColumns) {
     this.metadataColumns.set(metadataColumns);
   }
 
-  public AbundanceMeasure getAbundanceMeasure() {
-    return abundanceMeasure.get();
+  public ObjectProperty<ObservableList<MetadataColumn<?>>> metadataColumnsProperty() {
+    return metadataColumns;
   }
 
-  public ObjectProperty<AbundanceMeasure> abundanceMeasureProperty() {
-    return abundanceMeasure;
+  public AbundanceMeasure getAbundanceMeasure() {
+    return abundanceMeasure.get();
   }
 
   public void setAbundanceMeasure(AbundanceMeasure abundanceMeasure) {
     this.abundanceMeasure.set(abundanceMeasure);
   }
 
-  public Collection<PlotXYZDataProvider> getDatasets() {
+  public ObjectProperty<AbundanceMeasure> abundanceMeasureProperty() {
+    return abundanceMeasure;
+  }
+
+  public Collection<PlotXYDataProvider> getDatasets() {
     return datasets.get();
   }
 
-  public ObjectProperty<Collection<PlotXYZDataProvider>> datasetsProperty() {
-    return datasets;
+  public void setDatasets(Collection<PlotXYDataProvider> datasets) {
+    this.datasets.set(datasets);
   }
 
-  public void setDatasets(Collection<PlotXYZDataProvider> datasets) {
-    this.datasets.set(datasets);
+  public ObjectProperty<Collection<PlotXYDataProvider>> datasetsProperty() {
+    return datasets;
   }
 
   public @Nullable RowSignificanceTest getTest() {
     return test.get();
   }
 
-  public ObjectProperty<@Nullable RowSignificanceTest> testProperty() {
-    return test;
-  }
-
   public void setTest(@Nullable RowSignificanceTest test) {
     this.test.set(test);
+  }
+
+  public ObjectProperty<@Nullable RowSignificanceTest> testProperty() {
+    return test;
   }
 }
 

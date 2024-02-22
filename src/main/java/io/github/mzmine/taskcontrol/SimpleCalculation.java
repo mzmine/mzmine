@@ -41,13 +41,13 @@ public class SimpleCalculation<T extends TaskSubProcessor> extends AbstractTask 
 
   private final T processor;
 
-  public static <T extends TaskSubProcessor> SimpleCalculation<T> of(T task) {
-    return new SimpleCalculation<>(task);
-  }
-
-  private SimpleCalculation(T processor) {
+  public SimpleCalculation(T processor) {
     super(null, Instant.now());
     this.processor = processor;
+  }
+
+  public static <T extends TaskSubProcessor> SimpleCalculation<T> of(T task) {
+    return new SimpleCalculation<>(task);
   }
 
   @Override

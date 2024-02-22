@@ -32,6 +32,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
 import io.github.mzmine.modules.dataanalysis.significance.StatisticUtils;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import java.util.Objects;
@@ -105,6 +106,16 @@ public final class Student_tTest<T> implements RowSignificanceTest {
 
   public T groupB() {
     return groupB;
+  }
+
+  public List<RawDataFile> getGroupAFiles() {
+    final MetadataTable metadata = MZmineCore.getProjectMetadata();
+    return metadata.getMatchingFiles(column(), groupA());
+  }
+
+  public List<RawDataFile> getGroupBFiles() {
+    final MetadataTable metadata = MZmineCore.getProjectMetadata();
+    return metadata.getMatchingFiles(column(), groupB());
   }
 
   @Override

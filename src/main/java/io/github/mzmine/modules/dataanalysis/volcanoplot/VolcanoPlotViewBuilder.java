@@ -27,21 +27,24 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYZDotRenderer;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModule;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModule.TESTS;
 import io.github.mzmine.parameters.PropertyComponent;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
@@ -53,6 +56,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class VolcanoPlotViewBuilder implements Builder<Region> {
+
+  private static final Logger logger = Logger.getLogger(VolcanoPlotViewBuilder.class.getName());
 
   private final ObjectProperty<@Nullable RowSignificanceTest> test = new SimpleObjectProperty<>();
 
@@ -67,18 +72,25 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
   public Region build() {
 
     final BorderPane mainPane = new BorderPane();
-    final SimpleXYZScatterPlot<PlotXYZDataProvider> chart = new SimpleXYZScatterPlot<>(
-        "Volcano plot");
+    final SimpleXYChart<PlotXYDataProvider> chart = new SimpleXYChart<>("Volcano plot",
+        "-log10(p-Value)", "log2(fold change)");
     mainPane.setCenter(chart);
 
-    final HBox metadataBox = createMetadataBox();
     final HBox abundanceBox = createAbundanceBox();
     final HBox featureListBox = createFeatureListBox();
+    final HBox testConfigPane = createTestParametersPane();
 
-    model.testProperty().bind(test);
-
-    final FlowPane controls = createControlsPane(featureListBox, metadataBox, abundanceBox);
+    final FlowPane controls = createControlsPane(featureListBox, abundanceBox, testConfigPane);
     mainPane.setBottom(controls);
+
+    chart.setDefaultRenderer(new ColoredXYZDotRenderer());
+    model.datasetsProperty().addListener((obs, o, n) -> {
+      chart.applyWithNotifyChanges(false, () -> {
+        chart.removeAllDatasets();
+        chart.addDatasetProviders(n);
+      });
+    });
+
     return mainPane;
   }
 
@@ -107,18 +119,6 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
   }
 
   @NotNull
-  private HBox createMetadataBox() {
-    final ComboBox<MetadataColumn<?>> metadataCombo = new ComboBox<>();
-    metadataCombo.itemsProperty().bind(model.metadataColumnsProperty());
-    model.selectedMetadataColumnProperty()
-        .bind(metadataCombo.getSelectionModel().selectedItemProperty());
-
-    final HBox metadataBox = new HBox(space);
-    metadataBox.getChildren().addAll(new Label("Metadata column:"), metadataCombo);
-    return metadataBox;
-  }
-
-  @NotNull
   private HBox createAbundanceBox() {
     final ComboBox<AbundanceMeasure> abundanceCombo = new ComboBox<>(
         FXCollections.observableList(List.of(AbundanceMeasure.values())));
@@ -130,7 +130,7 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
     return abundanceBox;
   }
 
-  private Node createTestParametersPane() {
+  private HBox createTestParametersPane() {
 
     final ComboBox<RowSignificanceTestModule.TESTS> testComboBox = new ComboBox<>(
         FXCollections.observableList(List.of(RowSignificanceTestModule.TESTS.values())));
@@ -138,6 +138,7 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
 
     HBox testConfigPane = new HBox(5);
 
+    // the combo box allows selection of the test and creates a component to configure the test
     testComboBox.valueProperty().addListener((obs, o, n) -> {
       testConfigPane.getChildren().clear();
       final Label caption = new Label(n.getModule().getName());
@@ -146,9 +147,37 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
       final Region component = n.getModule().createConfigurationComponent();
       testConfigPane.getChildren().add(component);
 
-      ((PropertyComponent<?>)component).valueProperty()
+      ((PropertyComponent<?>) component).valueProperty()
+          .addListener((ChangeListener<Object>) (observableValue, o1, t1) -> {
+            try {
+              // try to update the test
+              final RowSignificanceTest instance = n.getModule()
+                  .getInstance((PropertyComponent) component);
+              test.set(instance);
+            } catch (Exception e) {
+              test.set(null);
+              logger.log(Level.WARNING, e.getMessage(), e);
+            }
+          });
     });
 
+    // listen to external changes of the test and update the combo box accordingly
+    test.addListener((observableValue, rowSignificanceTest, newTest) -> {
+      if (newTest == null) {
+        return;
+      }
+      if (testComboBox.valueProperty().get().getTestClass().isInstance(newTest)) {
+        return;
+      }
+      final TESTS newTestModule = testComboBox.getItems().stream()
+          .filter(t -> t.getTestClass().isInstance(newTest)).findFirst().orElse(null);
+      if (newTestModule != null) {
+        testComboBox.setValue(newTestModule);
+      } else {
+        logger.warning("Selected test is invalid.");
+      }
+    });
 
+    return testConfigPane;
   }
 }
