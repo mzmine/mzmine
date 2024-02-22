@@ -23,23 +23,40 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.significance;
+package io.github.mzmine.parameters.parametertypes.metadata;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.parameters.PropertyComponent;
+import java.util.List;
+import javafx.beans.property.Property;
+import javafx.scene.control.TextField;
+import org.controlsfx.control.textfield.TextFields;
 
-public sealed interface SignificanceTestResult permits AnovaResult, TTestResult {
+public class MetadataGroupingComponent extends TextField implements PropertyComponent<String> {
 
-  Double pValue();
+  private final List<AvailableTypes> availableTypes;
 
-  FeatureListRow row();
+  public MetadataGroupingComponent() {
+    this(AvailableTypes.values());
+  }
 
-  String groupingColumn();
+  public MetadataGroupingComponent(AvailableTypes[] availableTypes) {
+    this(List.of(availableTypes));
+  }
 
-  @Nullable
-  default MetadataColumn<?> column() {
-    return MZmineCore.getProjectMetadata().getColumnByName(groupingColumn());
+  public MetadataGroupingComponent(List<AvailableTypes> types) {
+    super();
+    this.availableTypes = types;
+    final String[] columns = MZmineCore.getProjectMetadata().getColumns().stream()
+        .filter(col -> availableTypes.contains(col.getType())).map(MetadataColumn::getTitle)
+        .toArray(String[]::new);
+    TextFields.bindAutoCompletion(this, columns);
+  }
+
+  @Override
+  public Property<String> valueProperty() {
+    return this.textProperty();
   }
 }

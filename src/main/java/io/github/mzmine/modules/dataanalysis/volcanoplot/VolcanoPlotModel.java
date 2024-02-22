@@ -28,11 +28,13 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
+import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.Collection;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.Nullable;
 
 public class VolcanoPlotModel {
 
@@ -42,6 +44,7 @@ public class VolcanoPlotModel {
   private final ObjectProperty<MetadataColumn<?>> selectedMetadataColumn = new SimpleObjectProperty<>();
   private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>();
   private final ObjectProperty<Collection<PlotXYZDataProvider>> datasets = new SimpleObjectProperty<>();
+  private final ObjectProperty<@Nullable RowSignificanceTest> test = new SimpleObjectProperty<>();
 
   public MetadataColumn<?> getSelectedMetadataColumn() {
     return selectedMetadataColumn.get();
@@ -112,6 +115,18 @@ public class VolcanoPlotModel {
 
   public void setDatasets(Collection<PlotXYZDataProvider> datasets) {
     this.datasets.set(datasets);
+  }
+
+  public @Nullable RowSignificanceTest getTest() {
+    return test.get();
+  }
+
+  public ObjectProperty<@Nullable RowSignificanceTest> testProperty() {
+    return test;
+  }
+
+  public void setTest(@Nullable RowSignificanceTest test) {
+    this.test.set(test);
   }
 }
 

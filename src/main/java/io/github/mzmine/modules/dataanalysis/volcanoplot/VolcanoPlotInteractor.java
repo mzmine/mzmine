@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -35,15 +36,15 @@ import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataanalysis.significance.AnovaResult;
-import io.github.mzmine.modules.dataanalysis.significance.anova.AnovaCalculation;
+import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestProcessor;
+import io.github.mzmine.modules.dataanalysis.significance.anova.AnovaResult;
+import io.github.mzmine.modules.dataanalysis.significance.anova.AnovaTest;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.taskcontrol.SimpleCalculation;
 import io.github.mzmine.util.DataTypeUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.math3.stat.inference.TTest;
 
 public class VolcanoPlotInteractor {
 
@@ -61,8 +62,9 @@ public class VolcanoPlotInteractor {
     final MetadataColumn<?> column = model.getSelectedMetadataColumn();
     final FeatureList flist = model.getSelectedFlist();
 
-    final AnovaCalculation anova = new AnovaCalculation(flist.getRows(), column.getTitle());
-    final SimpleCalculation<AnovaCalculation> calc = SimpleCalculation.of(anova);
+    final AnovaTest anova = new AnovaTest(flist.getRows(), column.getTitle(),
+        AbundanceMeasure.Height);
+    final SimpleCalculation<AnovaTest> calc = SimpleCalculation.of(anova);
 
     final List<AnovaResult> anovaResults = calc.getProcessor().get();
     MZmineCore.getTaskController().addTask(calc);
@@ -73,8 +75,7 @@ public class VolcanoPlotInteractor {
           return best == null ? DataTypes.get(MissingValueType.class) : best;
         }));
 
-    final TTest test = new TTest();
-//    test.
+    final RowSignificanceTestProcessor ttest = new RowSignificanceTestProcessor();
   }
 
 }

@@ -25,20 +25,10 @@
 
 package io.github.mzmine.modules.dataanalysis.significance.ttest;
 
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
 
-public record TTestConfiguration<T>(TTestSamplingConfig samplingConfig, MetadataColumn<T> column,
-                                    T groupA, T groupB) {
+public record TTestResult(FeatureListRow row, String groupingColumn, Double pValue) implements
+    RowSignificanceTestResult {
 
-  // enable when statements before super is enabled.
-  /*public TTestConfiguration(TTestSamplingConfig samplingConfig, MetadataColumn<T> column) {
-    final MetadataTable metadata = MZmineCore.getProjectMetadata();
-    final List<T> distinctColumnValues = metadata.getDistinctColumnValues(column);
-    if (distinctColumnValues.size() != 2) {
-      throw new InvalidTestModelException(
-          STR."t-Test only applies to two groups, \{column.getTitle()} contains \{distinctColumnValues.size()} (\{distinctColumnValues.stream()
-              .map(Objects::toString).collect(Collectors.joining(","))}");
-    }
-    this(samplingConfig, column, distinctColumnValues.get(0), distinctColumnValues.get(1));
-  }*/
 }

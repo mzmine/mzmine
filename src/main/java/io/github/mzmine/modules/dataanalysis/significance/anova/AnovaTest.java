@@ -30,17 +30,14 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataanalysis.significance.AnovaResult;
+import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.StatisticUtils;
+import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.taskcontrol.operations.AbstractTaskSubProcessor;
-import io.github.mzmine.taskcontrol.operations.TaskSubSupplier;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import org.apache.commons.math3.distribution.FDistribution;
@@ -48,56 +45,26 @@ import org.apache.commons.math3.exception.MathIllegalArgumentException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AnovaCalculation extends AbstractTaskSubProcessor implements
-    TaskSubSupplier<List<AnovaResult>> {
+public class AnovaTest implements RowSignificanceTest {
 
-  private static final Logger logger = Logger.getLogger(AnovaCalculation.class.getName());
-  private final List<FeatureListRow> rows;
+  private static final Logger logger = Logger.getLogger(AnovaTest.class.getName());
   private final String groupingColumnName;
-  private final AbundanceMeasure abundanceMeasure;
   private final AtomicDouble finishedPercentage = new AtomicDouble(0d);
+  private final List<List<RawDataFile>> groupedFiles;
   private List<AnovaResult> result = List.of();
 
-  public AnovaCalculation(List<FeatureListRow> rows, String groupingColumnName,
-      AbundanceMeasure abundanceMeasure) {
-    this.rows = rows;
+  public AnovaTest(String groupingColumnName) throws MetadataColumnDoesNotExistException {
     this.groupingColumnName = groupingColumnName;
-    this.abundanceMeasure = abundanceMeasure;
-  }
-
-  private void calculateSignificance() throws IllegalStateException {
-
-    if (rows.isEmpty()) {
-      return;
-    }
 
     final MetadataTable metadata = MZmineCore.getProjectMetadata();
     final MetadataColumn<?> groupingColumn = metadata.getColumnByName(groupingColumnName);
+
+    if (groupingColumn == null) {
+      throw new MetadataColumnDoesNotExistException(groupingColumnName);
+    }
+
     final Map<?, List<RawDataFile>> fileGrouping = metadata.groupFilesByColumn(groupingColumn);
-    final List<List<RawDataFile>> groupedFiles = fileGrouping.values().stream().toList();
-
-    final double finishedStep = 1.0 / rows.size();
-
-    result = rows.stream().map(row -> {
-
-      if (isCanceled()) {
-        return null;
-      }
-
-      finishedPercentage.getAndAdd(finishedStep);
-
-      final double[][] intensityGroups = groupedFiles.stream()
-          .map(group -> StatisticUtils.extractAbundance(row, group, abundanceMeasure))
-          .toArray(double[][]::new);
-
-      if (checkConditions(intensityGroups)) {
-        final Double pValue = oneWayAnova(intensityGroups);
-        if (pValue != null) {
-          return new AnovaResult(row, groupingColumnName, pValue);
-        }
-      }
-      return null;
-    }).filter(Objects::nonNull).toList();
+    groupedFiles = fileGrouping.values().stream().toList();
   }
 
   @Nullable
@@ -154,26 +121,17 @@ public class AnovaCalculation extends AbstractTaskSubProcessor implements
   }
 
   @Override
-  public @NotNull String getTaskDescription() {
-    return STR."Calculating ANOVA values for \{rows != null ? rows.size() : " rows"}";
-  }
+  public AnovaResult test(FeatureListRow row, AbundanceMeasure abundanceMeasure) {
+    final double[][] intensityGroups = groupedFiles.stream()
+        .map(group -> StatisticUtils.extractAbundance(row, group, abundanceMeasure))
+        .toArray(double[][]::new);
 
-  @Override
-  public double getFinishedPercentage() {
-    return finishedPercentage.get();
-  }
-
-  @Override
-  public List<AnovaResult> get() {
-    return result;
-  }
-
-  @Override
-  public void process() {
-    try {
-      calculateSignificance();
-    } catch (Exception e) {
-      logger.log(Level.WARNING, "Error while calculating ANOVA results.", e);
+    if (checkConditions(intensityGroups)) {
+      final Double pValue = oneWayAnova(intensityGroups);
+      if (pValue != null) {
+        return new AnovaResult(row, groupingColumnName, pValue);
+      }
     }
+    return null;
   }
 }

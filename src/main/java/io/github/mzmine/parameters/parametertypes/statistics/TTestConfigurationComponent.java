@@ -29,6 +29,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestSamplingConfig;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.parameters.PropertyComponent;
 import java.util.List;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
@@ -40,7 +41,8 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
 
-public class TTestConfigurationComponent extends GridPane {
+public class TTestConfigurationComponent extends GridPane implements
+    PropertyComponent<StorableTTestConfiguration> {
 
   private final ComboBox<TTestSamplingConfig> samplingCombo;
   private final ComboBox<String> metadataCombo;
@@ -140,6 +142,7 @@ public class TTestConfigurationComponent extends GridPane {
     return valueProperty.get();
   }
 
+  @Override
   public ObjectProperty<StorableTTestConfiguration> valueProperty() {
     return valueProperty;
   }

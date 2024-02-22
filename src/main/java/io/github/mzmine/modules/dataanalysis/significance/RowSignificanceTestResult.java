@@ -23,20 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.significance.ttest;
+package io.github.mzmine.modules.dataanalysis.significance;
 
-public enum TTestSamplingConfig {
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import org.jetbrains.annotations.Nullable;
 
-  UNPAIRED("unpaired",
-      "Used for tests of unrelated groups, e.g., separate patients for control and treatment group."), //
-  PAIRED("paired",
-      "Used for tests of related groups, e.g., same patient before and after treatment."); //
+public interface RowSignificanceTestResult {
 
-  final String name;
-  final String description;
+  Double pValue();
 
-  TTestSamplingConfig(String name, String description) {
-    this.name = name;
-    this.description = description;
+  FeatureListRow row();
+
+  String groupingColumn();
+
+  @Nullable
+  default MetadataColumn<?> column() {
+    return MZmineCore.getProjectMetadata().getColumnByName(groupingColumn());
   }
 }

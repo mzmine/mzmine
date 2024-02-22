@@ -30,12 +30,12 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.stats.AnovaPValueType;
-import io.github.mzmine.modules.dataanalysis.significance.AnovaResult;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +45,8 @@ public class AnovaTask extends AbstractTask {
   private final ParameterSet parameters;
   private final FeatureList flist;
   private final String groupingColumnName;
-  private AnovaCalculation calc;
+  private AnovaTest calc;
+  private int processed;
 
   public AnovaTask(FeatureList flist, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
@@ -54,12 +55,13 @@ public class AnovaTask extends AbstractTask {
     this.groupingColumnName = this.parameters.getValue(AnovaParameters.groupingParameter);
   }
 
-  public String getTaskDescription() {
-    return "Calculating significance... ";
+  @Override
+  public @NotNull String getTaskDescription() {
+    return STR."Calculating ANOVA values for \{flist.getNumberOfRows()} rows";
   }
 
   public double getFinishedPercentage() {
-    return calc != null ? calc.getFinishedPercentage() : 0;
+    return (double) processed / flist.getNumberOfRows();
   }
 
   public void run() {
@@ -72,13 +74,17 @@ public class AnovaTask extends AbstractTask {
 
     flist.addRowType(DataTypes.get(AnovaPValueType.class));
 
-    calc = new AnovaCalculation(flist.getRows(), groupingColumnName, AbundanceMeasure.Height);
-    calc.process();
-    final List<AnovaResult> anovaResults = calc.get();
+    calc = new AnovaTest(flist.getRows(), groupingColumnName);
+    final List<AnovaResult> anovaResults = flist.getRows().stream().map(row -> {
+      if (isCanceled()) {
+        return null;
+      }
+      processed++;
+      return calc.test(row, AbundanceMeasure.Height);
+    }).filter(Objects::nonNull).toList();
 
     anovaResults.forEach(r -> r.row().set(AnovaPValueType.class, r.pValue()));
     flist.getAppliedMethods()
         .add(new SimpleFeatureListAppliedMethod(AnovaModule.class, parameters, moduleCallDate));
-
   }
 }

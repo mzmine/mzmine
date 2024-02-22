@@ -26,7 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.statistics;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestConfiguration;
+import io.github.mzmine.modules.dataanalysis.significance.ttest.Student_tTest;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestSamplingConfig;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
@@ -39,23 +39,11 @@ public record StorableTTestConfiguration(TTestSamplingConfig samplingConfig, Str
 
   private static final Logger logger = Logger.getLogger(StorableTTestConfiguration.class.getName());
 
-  // enable when statements before super is enabled.
-  /*public TTestConfiguration(TTestSamplingConfig samplingConfig, MetadataColumn<T> column) {
-    final MetadataTable metadata = MZmineCore.getProjectMetadata();
-    final List<T> distinctColumnValues = metadata.getDistinctColumnValues(column);
-    if (distinctColumnValues.size() != 2) {
-      throw new InvalidTestModelException(
-          STR."t-Test only applies to two groups, \{column.getTitle()} contains \{distinctColumnValues.size()} (\{distinctColumnValues.stream()
-              .map(Objects::toString).collect(Collectors.joining(","))}");
-    }
-    this(samplingConfig, column, distinctColumnValues.get(0), distinctColumnValues.get(1));
-  }*/
-
   /**
-   * @return A {@link TTestConfiguration} or null. The configuration is only returned if the column
+   * @return A {@link Student_tTest} or null. The configuration is only returned if the column
    * exists and the respective values exist in that column.
    */
-  public <T> TTestConfiguration<T> toValidConfig() {
+  public <T> Student_tTest<T> toValidConfig() {
     final MetadataTable metadata = MZmineCore.getProjectMetadata();
 
     final MetadataColumn<T> col = (MetadataColumn<T>) metadata.getColumnByName(column);
@@ -88,6 +76,6 @@ public record StorableTTestConfiguration(TTestSamplingConfig samplingConfig, Str
       return null;
     }
 
-    return new TTestConfiguration<>(samplingConfig, col, a, b);
+    return new Student_tTest<>(samplingConfig, col, a, b);
   }
 }

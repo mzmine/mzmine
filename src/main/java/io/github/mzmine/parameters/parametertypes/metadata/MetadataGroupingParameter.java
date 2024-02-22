@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,13 +25,10 @@
 
 package io.github.mzmine.parameters.parametertypes.metadata;
 
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import java.util.List;
 import javafx.scene.control.TextField;
-import org.controlsfx.control.textfield.TextFields;
 import org.jetbrains.annotations.NotNull;
 
 public class MetadataGroupingParameter extends StringParameter {
@@ -58,11 +55,6 @@ public class MetadataGroupingParameter extends StringParameter {
 
   @Override
   public TextField createEditingComponent() {
-    var tf = super.createEditingComponent();
-    final String[] columns = MZmineCore.getProjectMetadata().getColumns().stream()
-        .filter(col -> types.contains(col.getType())).map(MetadataColumn::getTitle)
-        .toArray(String[]::new);
-    TextFields.bindAutoCompletion(tf, columns);
-    return tf;
+    return new MetadataGroupingComponent(types);
   }
 }

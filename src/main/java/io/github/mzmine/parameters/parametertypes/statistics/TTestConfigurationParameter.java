@@ -29,13 +29,14 @@ package io.github.mzmine.parameters.parametertypes.statistics;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestSamplingConfig;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.parameters.PropertyParameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 public class TTestConfigurationParameter implements
-    UserParameter<StorableTTestConfiguration, TTestConfigurationComponent> {
+    PropertyParameter<StorableTTestConfiguration, TTestConfigurationComponent> {
 
   private final String name;
   private final String desc;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,13 @@
 
 package io.github.mzmine.datamodel.features;
 
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
+import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +40,15 @@ import org.jetbrains.annotations.NotNull;
  * {@link FeatureAnnotationIterator}
  */
 public enum FeatureAnnotationPriority {
-  MANUAL, SPECTRAL_LIBRARY, LIPID, EXACT_COMPOUND, FORMULA;
+  MANUAL(ManualAnnotationType.class), SPECTRAL_LIBRARY(SpectralLibraryMatchesType.class), LIPID(
+      LipidMatchListType.class), EXACT_COMPOUND(CompoundDatabaseMatchesType.class), FORMULA(
+      FormulaListType.class);
+
+  private final Class<? extends AnnotationType> clazz;
+
+  FeatureAnnotationPriority(Class<? extends AnnotationType> clazz) {
+    this.clazz = clazz;
+  }
 
   @NotNull
   public List<?> getAll(FeatureListRow row) {

@@ -29,13 +29,19 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
+import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
+import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModule;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.parameters.PropertyComponent;
 import java.util.List;
 import java.util.function.Consumer;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
@@ -44,8 +50,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.util.Builder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class VolcanoPlotViewBuilder implements Builder<Region> {
+
+  private final ObjectProperty<@Nullable RowSignificanceTest> test = new SimpleObjectProperty<>();
 
   private final VolcanoPlotModel model;
   private final int space = 5;
@@ -66,6 +75,8 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
     final HBox abundanceBox = createAbundanceBox();
     final HBox featureListBox = createFeatureListBox();
 
+    model.testProperty().bind(test);
+
     final FlowPane controls = createControlsPane(featureListBox, metadataBox, abundanceBox);
     mainPane.setBottom(controls);
     return mainPane;
@@ -78,7 +89,7 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
     flistBox.itemsProperty().bindBidirectional(model.flistsProperty());
     model.selectedFlistProperty().bind(flistBox.getSelectionModel().selectedItemProperty());
     featureListBox.getChildren().addAll(new Label("Feature list:"), flistBox);
-    if(!flistBox.getItems().isEmpty()) {
+    if (!flistBox.getItems().isEmpty()) {
       flistBox.getSelectionModel().select(0);
     }
     return featureListBox;
@@ -99,7 +110,8 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
   private HBox createMetadataBox() {
     final ComboBox<MetadataColumn<?>> metadataCombo = new ComboBox<>();
     metadataCombo.itemsProperty().bind(model.metadataColumnsProperty());
-    model.selectedMetadataColumnProperty().bind(metadataCombo.getSelectionModel().selectedItemProperty());
+    model.selectedMetadataColumnProperty()
+        .bind(metadataCombo.getSelectionModel().selectedItemProperty());
 
     final HBox metadataBox = new HBox(space);
     metadataBox.getChildren().addAll(new Label("Metadata column:"), metadataCombo);
@@ -116,5 +128,27 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
     final HBox abundanceBox = new HBox(space);
     abundanceBox.getChildren().addAll(new Label("Abundance measure:"), abundanceCombo);
     return abundanceBox;
+  }
+
+  private Node createTestParametersPane() {
+
+    final ComboBox<RowSignificanceTestModule.TESTS> testComboBox = new ComboBox<>(
+        FXCollections.observableList(List.of(RowSignificanceTestModule.TESTS.values())));
+    testComboBox.getSelectionModel().selectFirst();
+
+    HBox testConfigPane = new HBox(5);
+
+    testComboBox.valueProperty().addListener((obs, o, n) -> {
+      testConfigPane.getChildren().clear();
+      final Label caption = new Label(n.getModule().getName());
+      testConfigPane.getChildren().add(caption);
+
+      final Region component = n.getModule().createConfigurationComponent();
+      testConfigPane.getChildren().add(component);
+
+      ((PropertyComponent<?>)component).valueProperty()
+    });
+
+
   }
 }

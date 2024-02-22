@@ -29,18 +29,28 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
+import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModule;
+import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.PropertyComponent;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
-public class AnovaModule implements MZmineProcessingModule {
+public class AnovaModule implements MZmineProcessingModule,
+    RowSignificanceTestModule<String> {
+
+  private static final Logger logger = Logger.getLogger(AnovaModule.class.getName());
 
   private static final String MODULE_NAME = "One-way ANOVA Test";
-  private static final String MODULE_DESCRIPTION =
-      "Calculates one-way ANOVA test on the intensities of aligned features.";
+  private static final String MODULE_DESCRIPTION = "Calculates one-way ANOVA test on the intensities of aligned features.";
 
   @Override
   public @NotNull String getName() {
@@ -57,8 +67,8 @@ public class AnovaModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    FeatureList[] featureLists =
-        parameters.getParameter(AnovaParameters.featureLists).getValue().getMatchingFeatureLists();
+    FeatureList[] featureLists = parameters.getParameter(AnovaParameters.featureLists).getValue()
+        .getMatchingFeatureLists();
 
     for (FeatureList featureList : featureLists) {
       tasks.add(new AnovaTask(featureList, parameters, moduleCallDate));
@@ -77,4 +87,20 @@ public class AnovaModule implements MZmineProcessingModule {
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return AnovaParameters.class;
   }
+
+  @Override
+  public RowSignificanceTest getInstance(PropertyComponent<String> component) {
+    try {
+      return new AnovaTest(component.valueProperty().getValue());
+    } catch (MetadataColumnDoesNotExistException e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+      return null;
+    }
+  }
+
+  @Override
+  public @NotNull <C extends Region & PropertyComponent<String>> C createConfigurationComponent() {
+    return (C) new MetadataGroupingComponent();
+  }
+
 }

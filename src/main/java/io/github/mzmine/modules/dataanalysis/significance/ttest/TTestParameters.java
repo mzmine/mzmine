@@ -25,18 +25,15 @@
 
 package io.github.mzmine.modules.dataanalysis.significance.ttest;
 
-public enum TTestSamplingConfig {
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.statistics.TTestConfigurationParameter;
 
-  UNPAIRED("unpaired",
-      "Used for tests of unrelated groups, e.g., separate patients for control and treatment group."), //
-  PAIRED("paired",
-      "Used for tests of related groups, e.g., same patient before and after treatment."); //
+public class TTestParameters extends SimpleParameterSet {
 
-  final String name;
-  final String description;
+  public static final TTestConfigurationParameter config = new TTestConfigurationParameter(
+      "t-Test configuration", "Configure the t-Test.");
 
-  TTestSamplingConfig(String name, String description) {
-    this.name = name;
-    this.description = description;
+  public TTestParameters() {
+    super(config);
   }
 }

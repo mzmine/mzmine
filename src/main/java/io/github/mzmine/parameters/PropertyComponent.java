@@ -23,20 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.significance.ttest;
+package io.github.mzmine.parameters;
 
-public enum TTestSamplingConfig {
+import javafx.beans.property.Property;
 
-  UNPAIRED("unpaired",
-      "Used for tests of unrelated groups, e.g., separate patients for control and treatment group."), //
-  PAIRED("paired",
-      "Used for tests of related groups, e.g., same patient before and after treatment."); //
+/**
+ * Used for response visualisations and previews if binding is required.
+ */
+public interface PropertyComponent<T> {
 
-  final String name;
-  final String description;
-
-  TTestSamplingConfig(String name, String description) {
-    this.name = name;
-    this.description = description;
-  }
+  Property<T> valueProperty();
 }
