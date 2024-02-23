@@ -47,6 +47,9 @@ public enum AbundanceMeasure {
   }
 
   public Float get(ModularDataModel featureOrRow) {
+    if(featureOrRow == null) {
+      return null;
+    }
     return featureOrRow.get(type);
   }
 

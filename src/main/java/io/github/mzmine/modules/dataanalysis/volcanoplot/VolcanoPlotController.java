@@ -28,11 +28,14 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.List;
 import javafx.collections.FXCollections;
+import javafx.scene.layout.Region;
 
 public class VolcanoPlotController {
+
   private final VolcanoPlotModel model;
   private final VolcanoPlotInteractor interactor;
   private final VolcanoPlotViewBuilder viewBuilder;
+  private final Region view;
 
   public VolcanoPlotController(List<FeatureList> flists) {
     final List<FeatureList> alignedLists = flists.stream()
@@ -40,12 +43,42 @@ public class VolcanoPlotController {
 
     model = new VolcanoPlotModel();
     model.setFlists(FXCollections.observableArrayList(alignedLists));
-
     viewBuilder = new VolcanoPlotViewBuilder(model, this::computeDataset);
-    interactor = null;
+    interactor = new VolcanoPlotInteractor(model);
+    view = viewBuilder.build();
+
+    initialiseListeners();
+  }
+
+  private void initialiseListeners() {
+    model.testProperty().addListener((_, _, newValue) -> {
+      if (newValue != null) {
+        computeDataset(() -> {
+        });
+      }
+    });
+    model.flistsProperty().addListener(_ -> {
+      computeDataset(() -> {
+      });
+    });
+    model.abundanceMeasureProperty().addListener(_ -> {
+      computeDataset(() -> {
+      });
+    });
+    model.selectedFlistProperty().addListener(_ -> {
+      computeDataset(() -> {});
+    });
   }
 
   private void computeDataset(Runnable runnable) {
+    interactor.computeDataset(runnable);
+  }
 
+  public void setFeatureList(FeatureList flist) {
+    model.setSelectedFlist(flist);
+  }
+
+  public Region getView() {
+    return view;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,8 +29,12 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.io.WideTableIOUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.File;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,8 +66,32 @@ class MetadataIOTest {
         MetadataIOTest.class.getClassLoader().getResource("metadata/metadata_wide_defined.tsv")
             .getFile());
     WideTableIOUtils importer = new WideTableIOUtils(new MetadataTable());
-//    Assertions.assertTrue(importer.importFrom(file, false));
-    Assertions.assertTrue(importer.importFrom(file2, false));
+    Assertions.assertTrue(importer.importFrom(file, false));
+
+    MetadataTable meta = new MetadataTable();
+    WideTableIOUtils importer2 = new WideTableIOUtils(meta);
+    Assertions.assertTrue(importer2.importFrom(file2, false));
+
+    final MetadataColumn<String> group2Col = (MetadataColumn<String>) meta.getColumnByName(
+        "Group2");
+    Assertions.assertNotNull(group2Col);
+
+    final Map<String, List<RawDataFile>> groupedCol2Files = meta.groupFilesByColumn(group2Col);
+    Assertions.assertEquals(2, groupedCol2Files.size());
+    Assertions.assertEquals(1, groupedCol2Files.get("A").size());
+    Assertions.assertEquals(2, groupedCol2Files.get("B").size());
+
+    final MetadataColumn<Double> numCol = (MetadataColumn<Double>) meta.getColumnByName(
+        "NumberCol");
+    final Map<Double, List<RawDataFile>> groupedNumberColFiles = meta.groupFilesByColumn(numCol);
+    Assertions.assertEquals(2, groupedNumberColFiles.size());
+    Assertions.assertEquals(1, groupedNumberColFiles.get(12d).size());
+    Assertions.assertEquals(1, groupedNumberColFiles.get(0.5).size());
+
+    Assertions.assertTrue(
+        new HashSet<>(meta.getDistinctColumnValues(numCol)).containsAll(List.of(0.5d, 12d)));
+    Assertions.assertTrue(
+        new HashSet<>(meta.getDistinctColumnValues(group2Col)).containsAll(List.of("A", "B")));
   }
 
   @Test

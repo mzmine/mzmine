@@ -23,26 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.annotations;
+package io.github.mzmine.gui.chartbasics.simplechart.datasets;
 
-import io.github.mzmine.datamodel.features.types.abstr.BooleanType;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 
-/**
- * Not to be used in the datamodel. Only used for grouping
- */
-public class MissingValueType extends BooleanType {
+public record ProviderAndRenderer(PlotXYDataProvider provider, XYItemRenderer renderer) {
 
-  public MissingValueType() {
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return "missing_value";
-  }
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "missing_value";
-  }
 }

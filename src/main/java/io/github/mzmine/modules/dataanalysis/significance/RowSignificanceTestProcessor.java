@@ -45,7 +45,7 @@ public class RowSignificanceTestProcessor<T> extends AbstractTaskSubProcessor im
   private final List<FeatureListRow> rows;
   private final AbundanceMeasure abundanceMeasure;
   private final RowSignificanceTest test;
-  private final List<RowSignificanceTestResult> results = new ArrayList<>();
+  private List<RowSignificanceTestResult> results = new ArrayList<>();
   private AtomicLong processedRows = new AtomicLong(0);
 
   public RowSignificanceTestProcessor(@NotNull List<FeatureListRow> rows,
@@ -74,6 +74,7 @@ public class RowSignificanceTestProcessor<T> extends AbstractTaskSubProcessor im
       }
       return test.test(r, abundanceMeasure);
     }).filter(Objects::nonNull).toList();
+    this.results = results;
   }
 
   @Override

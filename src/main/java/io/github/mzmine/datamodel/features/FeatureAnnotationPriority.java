@@ -43,8 +43,8 @@ import org.jetbrains.annotations.NotNull;
  * {@link FeatureAnnotationIterator}
  */
 public enum FeatureAnnotationPriority {
-  MANUAL(ManualAnnotationType.class), SPECTRAL_LIBRARY(SpectralLibraryMatchesType.class), LIPID(
-      LipidMatchListType.class), EXACT_COMPOUND(CompoundDatabaseMatchesType.class), FORMULA(
+  MANUAL(ManualAnnotationType.class), LIPID(LipidMatchListType.class), SPECTRAL_LIBRARY(
+      SpectralLibraryMatchesType.class), EXACT_COMPOUND(CompoundDatabaseMatchesType.class), FORMULA(
       FormulaListType.class);
   private static final DataType<?>[] dataTypes = Arrays.stream(FeatureAnnotationPriority.values())
       .map(FeatureAnnotationPriority::getAnnotationType).map(DataTypes::get)

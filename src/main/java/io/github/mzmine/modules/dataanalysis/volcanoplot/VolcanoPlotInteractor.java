@@ -29,8 +29,11 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ProviderAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.AnyXYProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestProcessor;
@@ -60,8 +63,11 @@ public class VolcanoPlotInteractor {
     this.model = model;
   }
 
-  public void computeDataset() {
+  public void computeDataset(Runnable r) {
     final FeatureList flist = model.getSelectedFlist();
+    if (flist == null) {
+      return;
+    }
 
     final RowSignificanceTest test = model.getTest();
     if (test == null) {
@@ -77,7 +83,7 @@ public class VolcanoPlotInteractor {
     SimpleCalculation<RowSignificanceTestProcessor<?>> task = new SimpleCalculation<>(processor);
 
     MZmineCore.getTaskController().addTask(task);
-
+    lastTask = task;
     task.setOnFinished(() -> {
       lastTask = null;
       final List<RowSignificanceTestResult> rowSignificanceTestResults = task.getProcessor().get();
@@ -94,26 +100,56 @@ public class VolcanoPlotInteractor {
 
       final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
       int colorIndex = 0;
-      List<PlotXYDataProvider> datasets = new ArrayList<>();
+      List<ProviderAndRenderer> datasets = new ArrayList<>();
       for (Entry<DataType<?>, List<RowSignificanceTestResult>> entry : dataTypeMap.entrySet()) {
         final DataType<?> type = entry.getKey();
         final List<RowSignificanceTestResult> testResults = entry.getValue();
 
-        final double[] foldChange = testResults.stream().mapToDouble(result -> MathUtils.log(2,
-            Arrays.stream(StatisticUtils.extractAbundance(result.row(), groupAFiles,
-                model.getAbundanceMeasure())).average().getAsDouble() / Arrays.stream(
-                StatisticUtils.extractAbundance(result.row(), groupBFiles,
-                    model.getAbundanceMeasure())).average().getAsDouble())).toArray();
+        final List<RowSignificanceTestResult> significantRows = testResults.stream()
+            .filter(result -> result.pValue() < 0.05).toList();
+        final List<RowSignificanceTestResult> insignificantRows = testResults.stream()
+            .filter(result -> result.pValue() >= 0.05).toList();
 
-        var provider = new AnyXYProvider(colors.getAWT(colorIndex), type.getHeaderString(),
-            testResults.size(), i -> foldChange[i], i -> -Math.log10(testResults.get(i).pValue()));
-        datasets.add(provider);
+        if (!significantRows.isEmpty()) {
+          final double[] log2FoldChangeSignificant = calculateLog2FoldChange(significantRows,
+              groupAFiles, groupBFiles);
+          var provider = new AnyXYProvider(colors.getAWT(colorIndex),
+              STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "not annotated"
+                  : type.getHeaderString()} (p < 0.05)", significantRows.size(),
+              i -> log2FoldChangeSignificant[i], i -> -Math.log10(significantRows.get(i).pValue()));
+          datasets.add(new ProviderAndRenderer(provider, new ColoredXYShapeRenderer(false)));
+        }
+        if (!insignificantRows.isEmpty()) {
+          final double[] log2FoldChangeInsignificant = calculateLog2FoldChange(insignificantRows,
+              groupAFiles, groupBFiles);
+          var provider = new AnyXYProvider(colors.getAWT(colorIndex),
+              STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "not annotated"
+                  : type.getHeaderString()} (p ≥ 0.05)", insignificantRows.size(),
+              i -> log2FoldChangeInsignificant[i],
+              i -> -Math.log10(insignificantRows.get(i).pValue()));
+          datasets.add(new ProviderAndRenderer(provider, new ColoredXYShapeRenderer(true)));
+        }
+
+        colorIndex++;
       }
 
-      model.setDatasets(datasets);
+      MZmineCore.runOnFxThreadAndWait(() -> {
+        model.setDatasets(datasets);
+      });
+      r.run();
     });
+  }
 
-
+  private double[] calculateLog2FoldChange(List<RowSignificanceTestResult> testResults,
+      List<RawDataFile> groupAFiles, List<RawDataFile> groupBFiles) {
+    return testResults.stream().mapToDouble(result -> {
+      final double[] ab1 = StatisticUtils.extractAbundance(result.row(), groupAFiles,
+          model.getAbundanceMeasure());
+      final double[] abB = StatisticUtils.extractAbundance(result.row(), groupBFiles,
+          model.getAbundanceMeasure());
+      return MathUtils.log(2,
+          Arrays.stream(ab1).average().getAsDouble() / Arrays.stream(abB).average().getAsDouble());
+    }).toArray();
   }
 
 }

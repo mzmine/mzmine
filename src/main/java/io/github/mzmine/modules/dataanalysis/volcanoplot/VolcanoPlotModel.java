@@ -27,10 +27,10 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ProviderAndRenderer;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.Collection;
+import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
@@ -40,9 +40,10 @@ public class VolcanoPlotModel {
 
   private final ObjectProperty<FeatureList> selectedFlist = new SimpleObjectProperty<>();
   private final ObjectProperty<ObservableList<FeatureList>> flists = new SimpleObjectProperty<>();
-  private final ObjectProperty<ObservableList<MetadataColumn<?>>> metadataColumns = new SimpleObjectProperty<>();
-  private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>();
-  private final ObjectProperty<Collection<PlotXYDataProvider>> datasets = new SimpleObjectProperty<>();
+  private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>(
+      AbundanceMeasure.Height);
+  private final ObjectProperty<Collection<ProviderAndRenderer>> datasets = new SimpleObjectProperty<>(
+      List.of());
   private final ObjectProperty<@Nullable RowSignificanceTest> test = new SimpleObjectProperty<>();
 
   public FeatureList getSelectedFlist() {
@@ -69,18 +70,6 @@ public class VolcanoPlotModel {
     return flists;
   }
 
-  public ObservableList<MetadataColumn<?>> getMetadataColumns() {
-    return metadataColumns.get();
-  }
-
-  public void setMetadataColumns(ObservableList<MetadataColumn<?>> metadataColumns) {
-    this.metadataColumns.set(metadataColumns);
-  }
-
-  public ObjectProperty<ObservableList<MetadataColumn<?>>> metadataColumnsProperty() {
-    return metadataColumns;
-  }
-
   public AbundanceMeasure getAbundanceMeasure() {
     return abundanceMeasure.get();
   }
@@ -93,15 +82,15 @@ public class VolcanoPlotModel {
     return abundanceMeasure;
   }
 
-  public Collection<PlotXYDataProvider> getDatasets() {
+  public Collection<ProviderAndRenderer> getDatasets() {
     return datasets.get();
   }
 
-  public void setDatasets(Collection<PlotXYDataProvider> datasets) {
+  public void setDatasets(Collection<ProviderAndRenderer> datasets) {
     this.datasets.set(datasets);
   }
 
-  public ObjectProperty<Collection<PlotXYDataProvider>> datasetsProperty() {
+  public ObjectProperty<Collection<ProviderAndRenderer>> datasetsProperty() {
     return datasets;
   }
 

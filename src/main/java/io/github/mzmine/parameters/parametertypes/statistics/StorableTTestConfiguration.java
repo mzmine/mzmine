@@ -76,6 +76,10 @@ public record StorableTTestConfiguration(TTestSamplingConfig samplingConfig, Str
       return null;
     }
 
+    if(a.equals(b)) {
+      logger.warning(() -> STR."Same grouping parameter selected for both groups of the t-Test. (\{a})");
+    }
+
     return new Student_tTest<>(samplingConfig, col, a, b);
   }
 }

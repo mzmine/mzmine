@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,7 +44,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -408,7 +408,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
                           .getRetentionTime()) + " min",
                       new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))),
                       RunOption.THIS_THREAD);
-                  chart.addDataset(ds, new ColoredXYShapeRenderer());
+                  chart.addDataset(ds, new ColoredAreaShapeRenderer());
                 }
               } else {
                 // for mobility dimension we don't need to remap RT
@@ -427,7 +427,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
                               mobilogram.getMobility(mobilogram.getNumberOfValues() - 1)) + " "
                               + ((Frame) series.getSpectrum(0)).getMobilityType().getUnit()),
                       RunOption.THIS_THREAD);
-                  chart.addDataset(ds, new ColoredXYShapeRenderer());
+                  chart.addDataset(ds, new ColoredAreaShapeRenderer());
                 }
               }
             }
@@ -442,7 +442,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
               }
               ColoredXYDataset ds = new ColoredXYDataset(rp, RunOption.THIS_THREAD);
               ds.setColor(FxColorUtil.fxColorToAWT(palette.get(resolvedFeatureCounter++)));
-              chart.addDataset(ds, new ColoredXYShapeRenderer());
+              chart.addDataset(ds, new ColoredAreaShapeRenderer());
             }
           }
         });

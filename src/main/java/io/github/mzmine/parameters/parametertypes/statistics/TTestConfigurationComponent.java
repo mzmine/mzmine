@@ -67,7 +67,7 @@ public class TTestConfigurationComponent extends GridPane implements
     // using an actual combo here. TTest is used for visualisation which is not available in headless mode.
     final MetadataTable metadata = MZmineCore.getProjectMetadata();
     metadataCombo = new ComboBox<>(FXCollections.observableList(
-        metadata.getColumns().stream().map(MetadataColumn::toString).sorted().toList()));
+        metadata.getColumns().stream().map(MetadataColumn::getTitle).sorted().toList()));
 
     // todo check if this actually works or throws type exceptions.
     groupACombo = new ComboBox<>();
@@ -77,8 +77,8 @@ public class TTestConfigurationComponent extends GridPane implements
       final MetadataTable meta = MZmineCore.getProjectMetadata();
       var col = meta.getColumnByName(newColName);
       if (col == null) {
-        groupACombo.getItems().clear();
-        groupBCombo.getItems().clear();
+        groupACombo.setItems(FXCollections.observableList(List.of()));
+        groupBCombo.setItems(FXCollections.observableList(List.of()));
         return;
       }
       final List<?> distinctColumnValues = meta.getDistinctColumnValues(col);
@@ -130,7 +130,7 @@ public class TTestConfigurationComponent extends GridPane implements
       return;
     }
 
-    final String b = groupACombo.getValue();
+    final String b = groupBCombo.getValue();
     if (b == null) {
       return;
     }

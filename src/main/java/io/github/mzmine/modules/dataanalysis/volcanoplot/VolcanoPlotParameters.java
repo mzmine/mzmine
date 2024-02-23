@@ -23,26 +23,35 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.annotations;
+package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
-import io.github.mzmine.datamodel.features.types.abstr.BooleanType;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import java.util.Collection;
 
-/**
- * Not to be used in the datamodel. Only used for grouping
- */
-public class MissingValueType extends BooleanType {
+public class VolcanoPlotParameters extends SimpleParameterSet {
 
-  public MissingValueType() {
+  public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1);
+
+  public VolcanoPlotParameters() {
+    super(flist);
   }
 
   @Override
-  public @NotNull String getUniqueID() {
-    return "missing_value";
-  }
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      boolean skipRawDataAndFeatureListParameters) {
+    boolean superCheck = super.checkParameterValues(errorMessages,
+        skipRawDataAndFeatureListParameters);
+    if (!superCheck) {
+      return superCheck;
+    }
 
-  @Override
-  public @NotNull String getHeaderString() {
-    return "missing_value";
+    final ModularFeatureList[] matchingFeatureLists = getValue(flist).getMatchingFeatureLists();
+    if (matchingFeatureLists[0].getNumberOfRawDataFiles() < 2) {
+      errorMessages.add("Selected feature list is not an aligned feature list.");
+      return false;
+    }
+    return true;
   }
 }

@@ -223,8 +223,8 @@
         userData="io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule"/>
     </Menu>
     <Menu text="GC-MS">
-          <MenuItem onAction="#runModule" text="ADAP chromatogram builder"
-            userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule"/>
+      <MenuItem onAction="#runModule" text="ADAP chromatogram builder"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule"/>
     </Menu>
     <Menu text="LC-IMS-MS">
       <MenuItem onAction="#runModule"
@@ -289,12 +289,12 @@
 
   <!-- FEATURE LIST METHODS -->
   <Menu text="Feature list methods">
-<!--    <Menu text="Import feature list">-->
-<!--      <MenuItem text="mzTab-m" onAction="#runModule"-->
-<!--        userData="io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule"/>-->
-<!--      <MenuItem text="csv" onAction="#runModule"-->
-<!--        userData="io.github.mzmine.modules.io.import_features_csv.CsvImportModule"/>-->
-<!--    </Menu>-->
+    <!--    <Menu text="Import feature list">-->
+    <!--      <MenuItem text="mzTab-m" onAction="#runModule"-->
+    <!--        userData="io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule"/>-->
+    <!--      <MenuItem text="csv" onAction="#runModule"-->
+    <!--        userData="io.github.mzmine.modules.io.import_features_csv.CsvImportModule"/>-->
+    <!--    </Menu>-->
 
     <Menu text="Export feature list">
       <Menu text="Graphics">
@@ -305,7 +305,7 @@
       <MenuItem text="CSV" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule"/>
       <MenuItem text="Export compound annotations to csv" onAction="#runModule"
-                userData="io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule"/>
+        userData="io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule"/>
       <MenuItem text="CSV (legacy MZmine 2)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportModule"/>
       <MenuItem text="Venn diagram export" onAction="#runModule"
@@ -320,7 +320,8 @@
         userData="io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule"/>
       <MenuItem text="MGF file (ADAP)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule"/>
-      <MenuItem text="Molecular networking files (e.g., GNPS, FBMN, IIMN, MetGem)" onAction="#runModule"
+      <MenuItem text="Molecular networking files (e.g., GNPS, FBMN, IIMN, MetGem)"
+        onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule"/>
       <MenuItem text="GNPS-GC-MS (with ADAP)"
         onAction="#runModule"
@@ -339,8 +340,8 @@
         userData="io.github.mzmine.modules.io.export_library_gnps_batch.GNPSLibraryBatchExportModule"/>
       <MenuItem text="FeatureML" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_featureML.FeatureMLExportModularModule"/>
-        <MenuItem text="CCSBase export" onAction="#runModule"
-                userData="io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule"/>
+      <MenuItem text="CCSBase export" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule"/>
     </Menu>
 
     <Menu text="Processing">
@@ -518,6 +519,9 @@
     </Menu>
 
     <Menu text="Data analysis">
+      <MenuItem text="Volcano plot"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotModule"/>
       <Menu text="Bubble plots">
         <MenuItem text="Coefficient of variation (CV) plot"
           onAction="#runModule"
@@ -578,7 +582,8 @@
 
     <MenuItem onAction="#runModule" text="MS/MS scatter plot"
       userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
-    <MenuItem onAction="#runModule" text="Feature overview / Interactive Ion Identity Molecular Networks"
+    <MenuItem onAction="#runModule"
+      text="Feature overview / Interactive Ion Identity Molecular Networks"
       userData="io.github.mzmine.modules.visualization.network_overview.FeatureNetworkOverviewModule"/>
     <MenuItem onAction="#runModule" text="Correlated features Δm/z histogram"
       userData="io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule"/>
@@ -614,19 +619,19 @@
 
   <!-- TOOLS -->
   <Menu text="Tools">
-      <MenuItem onAction="#openQuickSearch" text="Quick search">
-        <accelerator>
-          <KeyCodeCombination alt="UP" code="F"
-            control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
-        </accelerator>
-      </MenuItem>
+    <MenuItem onAction="#openQuickSearch" text="Quick search">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="F"
+          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+      </accelerator>
+    </MenuItem>
     <MenuItem text="Isotope pattern preview" onAction="#runModule"
       userData="io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule"/>
     <MenuItem onAction="#showSpectralMirrorDialog" text="Spectral mirror (USI enabled)"/>
-<!--    There is an exception with a combobox value being null in the dialog. not sure how to fix -->
-<!--    <MenuItem text="Kovats index extraction"-->
-<!--      onAction="#runModule"-->
-<!--      userData="io.github.mzmine.modules.tools.kovats.KovatsIndexExtractionModule"/>-->
+    <!--    There is an exception with a combobox value being null in the dialog. not sure how to fix -->
+    <!--    <MenuItem text="Kovats index extraction"-->
+    <!--      onAction="#runModule"-->
+    <!--      userData="io.github.mzmine.modules.tools.kovats.KovatsIndexExtractionModule"/>-->
     <MenuItem text="Calculate quality parameters"
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule"/>
@@ -636,9 +641,9 @@
       userData="io.github.mzmine.modules.io.export_msmsquality.MsMsQualityExportModule"/>
     <Menu text="timsTOF fleX">
       <MenuItem onAction="#runModule" text="timsTOF MALDI dried-droplet MS2"
-            userData="io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule"/>
+        userData="io.github.mzmine.modules.tools.timstofmaldiacq.TimsTOFMaldiAcquisitionModule"/>
       <MenuItem onAction="#runModule" text="timsTOF SIMSEF imaging scheduler"
-            userData="io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule"/>
+        userData="io.github.mzmine.modules.tools.timstofmaldiacq.imaging.SimsefImagingSchedulerModule"/>
     </Menu>
   </Menu>
 

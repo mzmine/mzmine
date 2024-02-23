@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYZDotRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModule;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModule.TESTS;
@@ -45,6 +45,7 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
@@ -73,23 +74,25 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
 
     final BorderPane mainPane = new BorderPane();
     final SimpleXYChart<PlotXYDataProvider> chart = new SimpleXYChart<>("Volcano plot",
-        "-log10(p-Value)", "log2(fold change)");
+        "log2(fold change)", "-log10(p-Value)");
     mainPane.setCenter(chart);
 
     final HBox abundanceBox = createAbundanceBox();
     final HBox featureListBox = createFeatureListBox();
-    final HBox testConfigPane = createTestParametersPane();
+    final Region testConfigPane = createTestParametersPane();
 
     final FlowPane controls = createControlsPane(featureListBox, abundanceBox, testConfigPane);
     mainPane.setBottom(controls);
 
-    chart.setDefaultRenderer(new ColoredXYZDotRenderer());
+    chart.setDefaultRenderer(new ColoredXYShapeRenderer());
     model.datasetsProperty().addListener((obs, o, n) -> {
       chart.applyWithNotifyChanges(false, () -> {
         chart.removeAllDatasets();
-        chart.addDatasetProviders(n);
+        n.forEach(chart::addDataset);
       });
     });
+
+    test.bindBidirectional(model.testProperty());
 
     return mainPane;
   }
@@ -99,7 +102,7 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
     final HBox featureListBox = new HBox(space);
     final ComboBox<FeatureList> flistBox = new ComboBox<>();
     flistBox.itemsProperty().bindBidirectional(model.flistsProperty());
-    model.selectedFlistProperty().bind(flistBox.getSelectionModel().selectedItemProperty());
+    flistBox.valueProperty().bindBidirectional(model.selectedFlistProperty());
     featureListBox.getChildren().addAll(new Label("Feature list:"), flistBox);
     if (!flistBox.getItems().isEmpty()) {
       flistBox.getSelectionModel().select(0);
@@ -122,28 +125,29 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
   private HBox createAbundanceBox() {
     final ComboBox<AbundanceMeasure> abundanceCombo = new ComboBox<>(
         FXCollections.observableList(List.of(AbundanceMeasure.values())));
-    model.abundanceMeasureProperty()
-        .bind(abundanceCombo.getSelectionModel().selectedItemProperty());
+    abundanceCombo.setValue(model.getAbundanceMeasure());
+    model.abundanceMeasureProperty().bindBidirectional(abundanceCombo.valueProperty());
 
     final HBox abundanceBox = new HBox(space);
     abundanceBox.getChildren().addAll(new Label("Abundance measure:"), abundanceCombo);
     return abundanceBox;
   }
 
-  private HBox createTestParametersPane() {
+  private Region createTestParametersPane() {
 
     final ComboBox<RowSignificanceTestModule.TESTS> testComboBox = new ComboBox<>(
         FXCollections.observableList(List.of(RowSignificanceTestModule.TESTS.values())));
-    testComboBox.getSelectionModel().selectFirst();
+
+    FlowPane controls = new FlowPane(Orientation.HORIZONTAL, 5, 5);
+    controls.setRowValignment(VPos.CENTER);
+    controls.getChildren().addAll(new Label("Test type:"), testComboBox);
 
     HBox testConfigPane = new HBox(5);
+    controls.getChildren().add(testConfigPane);
 
     // the combo box allows selection of the test and creates a component to configure the test
     testComboBox.valueProperty().addListener((obs, o, n) -> {
       testConfigPane.getChildren().clear();
-      final Label caption = new Label(n.getModule().getName());
-      testConfigPane.getChildren().add(caption);
-
       final Region component = n.getModule().createConfigurationComponent();
       testConfigPane.getChildren().add(component);
 
@@ -166,9 +170,9 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
       if (newTest == null) {
         return;
       }
-      if (testComboBox.valueProperty().get().getTestClass().isInstance(newTest)) {
-        return;
-      }
+//      if (testComboBox.valueProperty().get().getTestClass().isInstance(newTest)) {
+//        return;
+//      }
       final TESTS newTestModule = testComboBox.getItems().stream()
           .filter(t -> t.getTestClass().isInstance(newTest)).findFirst().orElse(null);
       if (newTestModule != null) {
@@ -178,6 +182,7 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
       }
     });
 
-    return testConfigPane;
+    testComboBox.getSelectionModel().selectFirst();
+    return controls;
   }
 }
