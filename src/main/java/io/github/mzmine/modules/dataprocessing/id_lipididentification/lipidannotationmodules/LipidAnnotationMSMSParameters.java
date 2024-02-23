@@ -48,4 +48,8 @@ public class LipidAnnotationMSMSParameters extends SimpleParameterSet {
     super(mzToleranceMS2, minimumMsMsScore, keepUnconfirmedAnnotations);
   }
 
+  @Override
+  public int getVersion() {
+    return 2;
+  }
 }
