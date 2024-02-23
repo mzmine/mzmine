@@ -40,9 +40,13 @@ import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
+import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
+import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CosineScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.ExplainedIntensityPercentType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
@@ -65,10 +69,24 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
     AnnotationType {
 
   // Unmodifiable list of all subtypes
-  private static final List<DataType> subTypes = List.of(new SpectralLibraryMatchesType(),
-      new CompoundNameType(), new IonAdductType(), new FormulaType(), new SmilesStructureType(),
-      new InChIStructureType(), new PrecursorMZType(), new NeutralMassType(), new CosineScoreType(),
-      new MatchingSignalsType(), new CCSType(), new CCSRelativeErrorType());
+  private static final List<DataType> subTypes = List.of( //
+      new SpectralLibraryMatchesType(), //
+      new CompoundNameType(), //
+      new CosineScoreType(),//
+      new MatchingSignalsType(),//
+      new ExplainedIntensityPercentType(),//
+      new IonAdductType(), //
+      new FormulaType(),//
+      new SmilesStructureType(),//
+      new InChIStructureType(),//
+      new NeutralMassType(),//
+      new PrecursorMZType(),//
+      new MzAbsoluteDifferenceType(),//
+      new MzPpmDifferenceType(),//
+      new RtAbsoluteDifferenceType(),//
+      new CCSType(),//
+      new CCSRelativeErrorType(),//
+      new CommentType());
 
   @NotNull
   @Override
@@ -95,11 +113,16 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       case SmilesStructureType __ -> entry.getField(DBEntryField.SMILES).orElse("").toString();
       case InChIStructureType __ -> entry.getField(DBEntryField.INCHI).orElse("").toString();
       case CosineScoreType __ -> (float) match.getSimilarity().getScore();
+      case ExplainedIntensityPercentType __ -> match.getSimilarity().getExplainedLibraryIntensity();
       case MatchingSignalsType __ -> match.getSimilarity().getOverlap();
       case PrecursorMZType __ -> entry.getField(DBEntryField.PRECURSOR_MZ).orElse(null);
       case NeutralMassType __ -> entry.getField(DBEntryField.EXACT_MASS).orElse(null);
       case CCSType __ -> entry.getOrElse(DBEntryField.CCS, null);
       case CCSRelativeErrorType __ -> match.getCCSError();
+      case RtAbsoluteDifferenceType __ -> match.getRtAbsoluteError();
+      case MzAbsoluteDifferenceType __ -> match.getMzAbsoluteError();
+      case MzPpmDifferenceType __ -> match.getMzPpmError();
+      case CommentType __ -> entry.getOrElse(DBEntryField.COMMENT, null);
       default -> throw new UnsupportedOperationException(
           "DataType %s is not covered in map".formatted(subType.toString()));
     };

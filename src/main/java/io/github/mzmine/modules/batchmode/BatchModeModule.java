@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,6 @@ import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import java.io.File;
@@ -62,9 +61,10 @@ public class BatchModeModule implements MZmineProcessingModule {
    * Run from batch file (usually in headless mode)
    *
    * @param batchFile local file
-   * @return exit code that reflects if the batch mode was started
+   * @return the batch task if successful or null on error
    */
-  public static ExitCode runBatch(@NotNull MZmineProject project, File batchFile,
+  @Nullable
+  public static BatchTask runBatch(@NotNull MZmineProject project, File batchFile,
       @NotNull Instant moduleCallDate) {
     return runBatch(project, batchFile, null, null, moduleCallDate);
   }
@@ -75,14 +75,15 @@ public class BatchModeModule implements MZmineProcessingModule {
    * @param batchFile                    local file
    * @param overrideDataFiles            change the data import to those files if not null
    * @param overrideSpectralLibraryFiles change the spectral libraries imported
-   * @return exit code that reflects if the batch mode was started
+   * @return the batch task if successful or null on error
    */
-  public static ExitCode runBatch(@NotNull MZmineProject project, File batchFile,
+  @Nullable
+  public static BatchTask runBatch(@NotNull MZmineProject project, File batchFile,
       @Nullable File[] overrideDataFiles, final File[] overrideSpectralLibraryFiles, @NotNull Instant moduleCallDate) {
     if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
       MZmineCore.getDesktop().displayErrorMessage(
           "Cannot run a second batch while the current batch is not finished.");
-      return ExitCode.ERROR;
+      return null;
     }
 
     logger.info("Running batch from file " + batchFile);
@@ -119,23 +120,18 @@ public class BatchModeModule implements MZmineProcessingModule {
                     .map(file -> file != null ? file.getAbsolutePath() : "null")
                     .collect(Collectors.joining("\n")));
           }
-          return ExitCode.ERROR;
+          return null;
         }
       }
 
       ParameterSet parameters = new BatchModeParameters();
       parameters.getParameter(BatchModeParameters.batchQueue).setValue(newQueue);
-      Task batchTask = new BatchTask(project, parameters, moduleCallDate);
+      BatchTask batchTask = new BatchTask(project, parameters, moduleCallDate);
       batchTask.run();
-      if (batchTask.getStatus() == TaskStatus.FINISHED) {
-        return ExitCode.OK;
-      } else {
-        return ExitCode.ERROR;
-      }
+      return batchTask;
     } catch (Throwable e) {
       logger.log(Level.SEVERE, "Error while running batch. " + e.getMessage(), e);
-      e.printStackTrace();
-      return ExitCode.ERROR;
+      return null;
     }
   }
 

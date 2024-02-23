@@ -25,6 +25,7 @@
 
 package import_data.speed;
 
-public record SpeedMeasurement(String name, String description, int files, double timeSeconds) {
+public record SpeedMeasurement(String name, String batchFile, String description, int files,
+                               double timeSeconds) {
 
 }

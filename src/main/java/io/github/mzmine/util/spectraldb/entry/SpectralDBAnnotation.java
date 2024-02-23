@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointSorter;
+import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -57,25 +58,35 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
 
   public static final String XML_ATTR = "spectral_library_annotation";
   private static final String XML_CCS_ERROR_ELEMENT = "ccserror";
+  private static final String XML_TESTED_RT_ELEMENT = "testedrt";
+  private static final String XML_TESTED_MZ_ELEMENT = "testedmz";
 
   private static final Logger logger = Logger.getLogger(SpectralDBAnnotation.class.getName());
 
   private final SpectralLibraryEntry entry;
   private final SpectralSimilarity similarity;
+  @Nullable
   private final Float ccsError;
+  @Nullable
+  private final Double testedPrecursorMz;
+  @Nullable
+  private final Float testedRt;
   @Nullable
   private final Scan queryScan;
 
   public SpectralDBAnnotation(SpectralLibraryEntry entry, SpectralSimilarity similarity,
-      Scan queryScan, @Nullable Float ccsError) {
+      Scan queryScan, @Nullable Float ccsError, @Nullable Double testedPrecursorMz,
+      @Nullable Float testedRt) {
     this.queryScan = queryScan;
     this.entry = entry;
     this.similarity = similarity;
     this.ccsError = ccsError;
+    this.testedPrecursorMz = testedPrecursorMz;
+    this.testedRt = testedRt;
   }
 
   public SpectralDBAnnotation(SpectralDBFeatureIdentity id) {
-    this(id.getEntry(), id.getSimilarity(), id.getQueryScan(), id.getCCSError());
+    this(id.getEntry(), id.getSimilarity(), id.getQueryScan(), id.getCCSError(), null, null);
   }
 
   public static FeatureAnnotation loadFromXML(XMLStreamReader reader, MZmineProject project,
@@ -89,6 +100,8 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
     SpectralSimilarity similarity = null;
     Scan scan = null;
     Float ccsError = null;
+    Float testedRt = null;
+    Double testedPrecursorMz = null;
 
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
         .equals(FeatureAnnotation.XML_ELEMENT))) {
@@ -102,16 +115,18 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
             entry = SpectralLibraryEntry.loadFromXML(reader, project);
         case SpectralSimilarity.XML_ELEMENT -> similarity = SpectralSimilarity.loadFromXML(reader);
         case CONST.XML_RAW_FILE_SCAN_ELEMENT -> scan = Scan.loadScanFromXML(reader, possibleFiles);
-        case XML_CCS_ERROR_ELEMENT -> {
-          final String content = ParsingUtils.readNullableString(reader.getElementText());
-          ccsError = content != null ? Float.valueOf(content) : null;
-        }
+        case XML_CCS_ERROR_ELEMENT ->
+            ccsError = ParsingUtils.stringToFloat(reader.getElementText());
+        case XML_TESTED_RT_ELEMENT ->
+            testedRt = ParsingUtils.stringToFloat(reader.getElementText());
+        case XML_TESTED_MZ_ELEMENT ->
+            testedPrecursorMz = ParsingUtils.stringToDouble(reader.getElementText());
       }
     }
 
     assert entry != null && similarity != null;
 
-    return new SpectralDBAnnotation(entry, similarity, scan, ccsError);
+    return new SpectralDBAnnotation(entry, similarity, scan, ccsError, testedPrecursorMz, testedRt);
   }
 
   @Override
@@ -125,6 +140,16 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
     writer.writeStartElement(XML_CCS_ERROR_ELEMENT);
     writer.writeCharacters(ParsingUtils.parseNullableString(
         this.ccsError != null ? String.valueOf(this.ccsError) : null));
+    writer.writeEndElement();
+
+    writer.writeStartElement(XML_TESTED_MZ_ELEMENT);
+    writer.writeCharacters(ParsingUtils.parseNullableString(
+        this.testedPrecursorMz != null ? String.valueOf(this.testedPrecursorMz) : null));
+    writer.writeEndElement();
+
+    writer.writeStartElement(XML_TESTED_RT_ELEMENT);
+    writer.writeCharacters(ParsingUtils.parseNullableString(
+        this.testedRt != null ? String.valueOf(this.testedRt) : null));
     writer.writeEndElement();
 
     if (queryScan != null) {
@@ -252,10 +277,42 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
     return similarity;
   }
 
+  @Nullable
   public Float getCCSError() {
     return ccsError;
   }
 
+  @Nullable
+  public Double getTestedPrecursorMz() {
+    return testedPrecursorMz;
+  }
+
+  @Nullable
+  public Double getMzPpmError() {
+    Double libMz = getPrecursorMZ();
+    if (libMz == null || testedPrecursorMz == null) {
+      return null;
+    }
+    return MathUtils.getPpmDiff(libMz, testedPrecursorMz);
+  }
+
+  @Nullable
+  public Double getMzAbsoluteError() {
+    Double libMz = getPrecursorMZ();
+    if (libMz == null || testedPrecursorMz == null) {
+      return null;
+    }
+    return testedPrecursorMz - libMz;
+  }
+
+  @Nullable
+  public Float getRtAbsoluteError() {
+    Float libRt = getRT();
+    if (libRt == null || testedRt == null) {
+      return null;
+    }
+    return testedRt - libRt;
+  }
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -268,7 +325,7 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
     return Objects.equals(getEntry(), that.getEntry()) && Objects.equals(getSimilarity(),
         that.getSimilarity()) && Objects.equals(ccsError, that.ccsError) && Objects.equals(
         getQueryScan().getScanNumber(), that.getQueryScan().getScanNumber())
-           && getQueryScan().getDataFile().equals(that.getQueryScan().getDataFile());
+        && getQueryScan().getDataFile().equals(that.getQueryScan().getDataFile());
   }
 
   @Override

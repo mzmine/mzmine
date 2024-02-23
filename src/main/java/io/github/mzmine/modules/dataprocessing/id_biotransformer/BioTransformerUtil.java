@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,9 +54,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class BioTransformerUtil {
 
-  private BioTransformerUtil() {
-  }
-
   private static final List<ImportType> types = List.of(
       new ImportType(true, "Molecular formula", DataTypes.get(FormulaType.class)),
       new ImportType(true, "SMILES", DataTypes.get(SmilesStructureType.class)),
@@ -67,6 +64,9 @@ public class BioTransformerUtil {
       new ImportType(true, "ALogP", DataTypes.get(ALogPType.class)),
       new ImportType(true, "Metabolite ID", DataTypes.get(CompoundNameType.class)));
   private static final Logger logger = Logger.getLogger(BioTransformerUtil.class.getName());
+
+  private BioTransformerUtil() {
+  }
 
   @NotNull
   public static List<String> buildCommandLineArguments(@NotNull String smiles,
@@ -103,7 +103,7 @@ public class BioTransformerUtil {
   public static List<CompoundDBAnnotation> parseLibrary(final File file,
       IonNetworkLibrary library) {
     final CompoundDbLoadResult annotationResults = CSVParsingUtils.getAnnotationsFromCsvFile(file,
-        ',', types, library);
+        ",", types, library);
     if (annotationResults.status() != TaskStatus.ERROR) {
       return annotationResults.annotations();
     } else {

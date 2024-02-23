@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,8 @@ package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import static io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn.FILENAME_HEADER;
 
+import com.opencsv.ICSVWriter;
+import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
@@ -34,12 +36,9 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTabl
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
 import io.github.mzmine.util.CSVParsingUtils;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import io.github.mzmine.util.io.WriterOptions;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,87 +55,8 @@ public class WideTableIOUtils implements TableIOUtils {
 
   private final MetadataTable metadataTable;
 
-  // define the header fields names of the file with imported metadata
-  private enum HeaderFields {
-    TITLE, DESC, TYPE
-  }
-
   public WideTableIOUtils(MetadataTable metadataTable) {
     this.metadataTable = metadataTable;
-  }
-
-  /**
-   * File header would be: ============================================ Title         |  Datafile  |
-   * Path        | Description   |  file name |  file path  | ... Type          |  TEXT      | TEXT
-   * | -------------------------------------------- a.mzML        ../../a.mzML b.mzML ../../b.mzML
-   * ... ============================================
-   *
-   * @param file the file in which exported metadata will be stored
-   * @return true if the export was successful, false otherwise
-   */
-  @Override
-  public boolean exportTo(File file) {
-    try (FileWriter fw = new FileWriter(file,
-        false); BufferedWriter bufferedWriter = new BufferedWriter(fw)) {
-
-      var data = metadataTable.getData();
-
-      // in case if there's no metadata to export
-      if (data.isEmpty()) {
-        logger.warning("There's no metadata to export");
-        return false;
-      }
-
-      // create the .tsv file header
-      StringMetadataColumn dataFileCol = new StringMetadataColumn(FILENAME_HEADER, "");
-      List<String> parametersTitles = new ArrayList<>(
-          List.of(HeaderFields.TITLE.toString(), dataFileCol.getTitle()));
-      List<String> parametersDescriptions = new ArrayList<>(
-          List.of(HeaderFields.DESC.toString(), dataFileCol.getDescription()));
-      List<String> parametersTypes = new ArrayList<>(
-          List.of(HeaderFields.TYPE.toString(), dataFileCol.getType().toString()));
-      for (var column : data.keySet()) {
-        parametersTitles.add(column.getTitle());
-        parametersDescriptions.add(column.getDescription());
-        parametersTypes.add(column.getType().toString());
-      }
-
-      // write the header down
-      bufferedWriter.write(String.join("\t", parametersDescriptions));
-      bufferedWriter.newLine();
-      bufferedWriter.write(String.join("\t", parametersTypes));
-      bufferedWriter.newLine();
-      bufferedWriter.write(String.join("\t", parametersTitles));
-      bufferedWriter.newLine();
-      logger.info("Header was successfully written down");
-
-      // write the parameters value down
-      RawDataFile[] files = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-      for (var rawDataFile : files) {
-        List<String> lineFieldsValues = new ArrayList<>(List.of("", rawDataFile.getName()));
-        for (var column : data.entrySet()) {
-          // get the parameter value
-          // [IMPORTANT] "" will be returned in case if it's unset
-          Object value = metadataTable.getValue(column.getKey(), rawDataFile);
-          lineFieldsValues.add(value == null ? "" : value.toString());
-        }
-        String line = String.join("\t", lineFieldsValues);
-        line += System.lineSeparator();
-
-        bufferedWriter.write(line);
-      }
-
-      logger.info("The metadata table was successfully exported");
-    } catch (FileNotFoundException fileNotFoundException) {
-      logger.severe(
-          "Couldn't open file for metadata export: " + fileNotFoundException.getMessage());
-      return false;
-    } catch (IOException ioException) {
-      logger.severe("Error while writing the exported metadata down: " + ioException.getMessage());
-      return false;
-    }
-
-    return true;
   }
 
   private static boolean anyConversionError(final String[] titles, final AvailableTypes[] dataTypes,
@@ -152,6 +72,76 @@ public class WideTableIOUtils implements TableIOUtils {
     return anyError;
   }
 
+  /**
+   * File header would be: ============================================ Title         |  Datafile  |
+   * Path        | Description   |  file name |  file path  | ... Type          |  TEXT      | TEXT
+   * | -------------------------------------------- a.mzML        ../../a.mzML b.mzML ../../b.mzML
+   * ... ============================================
+   *
+   * @param file the file in which exported metadata will be stored
+   * @return true if the export was successful, false otherwise
+   */
+  @Override
+  public boolean exportTo(File file) {
+
+    try (final ICSVWriter csvWriter = CSVParsingUtils.createDefaultWriter(file, "\t",
+        WriterOptions.REPLACE)) {
+
+      var data = metadataTable.getData();
+
+      // in case if there's no metadata to export
+      if (data.isEmpty()) {
+        logger.warning("There's no metadata to export");
+        return false;
+      }
+
+      // create the .tsv file header
+      StringMetadataColumn dataFileCol = new StringMetadataColumn(FILENAME_HEADER, "");
+      final List<String> parametersTitles = new ArrayList<>(List.of(dataFileCol.getTitle()));
+      final List<String> parametersDescriptions = new ArrayList<>(
+          List.of(dataFileCol.getDescription()));
+      final List<String> parametersTypes = new ArrayList<>(
+          List.of(dataFileCol.getType().toString()));
+
+      for (var column : data.keySet()) {
+        parametersTitles.add(column.getTitle());
+        parametersDescriptions.add(column.getDescription());
+        parametersTypes.add(column.getType().toString());
+      }
+
+      // write the header down
+      csvWriter.writeNext(parametersDescriptions.toArray(String[]::new));
+      csvWriter.writeNext(parametersTypes.toArray(String[]::new));
+      csvWriter.writeNext(parametersTitles.toArray(String[]::new));
+      logger.info("Header was successfully written down");
+
+      // write the parameters value down
+      RawDataFile[] files = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+      for (var rawDataFile : files) {
+        List<String> lineFieldsValues = new ArrayList<>(List.of(rawDataFile.getName()));
+        for (var column : data.entrySet()) {
+          // get the parameter value
+          // [IMPORTANT] "" will be returned in case if it's unset
+          Object value = metadataTable.getValue(column.getKey(), rawDataFile);
+          lineFieldsValues.add(value == null ? "" : value.toString());
+        }
+
+        csvWriter.writeNext(lineFieldsValues.toArray(String[]::new));
+      }
+
+      logger.info("The metadata table was successfully exported");
+    } catch (FileNotFoundException fileNotFoundException) {
+      logger.severe(
+          "Couldn't open file for metadata export: " + fileNotFoundException.getMessage());
+      return false;
+    } catch (IOException ioException) {
+      logger.severe("Error while writing the exported metadata down: " + ioException.getMessage());
+      return false;
+    }
+
+    return true;
+  }
+
   @Override
   public boolean importFrom(File file, final boolean skipColOnError) {
     // different file formats are supported.
@@ -164,17 +154,19 @@ public class WideTableIOUtils implements TableIOUtils {
     String[] descriptions = null;
     AvailableTypes[] dataTypes = null;
 
-    try (FileReader fr = new FileReader(file); BufferedReader reader = new BufferedReader(fr)) {
-      // read the header
-      String line;
-      while (titles == null && (line = reader.readLine()) != null) {
-        // split with trailing empty strings removed
-        var cells = line.split(sep, 0);
+    try {
+      final List<String[]> lines = CSVParsingUtils.readData(file, sep);
+
+      int headerLength = 0;
+      for (int i = 0; i < lines.size(); i++) {
+        String[] cells = lines.get(i);
         if (cells.length == 0) {
           continue;
         }
         if (FILENAME_HEADER.equalsIgnoreCase(cells[0])) {
           titles = cells;
+          headerLength = i + 1;
+          break;
         } else if (dataTypes == null) {
           // try to map to types otherwise use as description
           dataTypes = AvailableTypes.tryMap(cells);
@@ -202,9 +194,10 @@ public class WideTableIOUtils implements TableIOUtils {
         return false;
       }
 
-      logger.info("The header size & format correspond, OK");
+      logger.finest("The header size & format correspond, OK");
       // represents the names of the RawDataFiles
-      var columnData = CSVParsingUtils.readDataMapToColumns(reader, sep);
+      var columnData = CSVParsingUtils.readDataMapToColumns(file, sep, headerLength);
+
       final Object[][] convertedData;
 
       if (dataTypes != null) {
@@ -269,6 +262,9 @@ public class WideTableIOUtils implements TableIOUtils {
     } catch (IOException ioException) {
       logger.severe("Error while reading the metadata: " + ioException.getMessage());
       return false;
+    } catch (CsvException ioException) {
+      logger.severe("Error while parsing the metadata: " + ioException.getMessage());
+      return false;
     }
     return true;
   }
@@ -328,5 +324,10 @@ public class WideTableIOUtils implements TableIOUtils {
       data[col] = dataType.tryCastType(column);
     }
     return data;
+  }
+
+  // define the header fields names of the file with imported metadata
+  private enum HeaderFields {
+    TITLE, DESC, TYPE
   }
 }

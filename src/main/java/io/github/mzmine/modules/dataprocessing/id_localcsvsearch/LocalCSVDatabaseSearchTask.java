@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
-import com.Ostermiller.util.CSVParser;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -64,9 +63,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FeatureListUtils;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -134,7 +131,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final List<RawDataFile> allRawDataFiles;
   private IonNetworkLibrary ionNetworkLibrary;
 
-  private String[][] databaseValues;
+  private List<String[]> databaseValues;
   private int finishedLines = 0;
   private int sampleColIndex = -1;
 
@@ -199,7 +196,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     if (databaseValues == null) {
       return 0;
     }
-    return ((double) finishedLines) / databaseValues.length;
+    return ((double) finishedLines) / databaseValues.size();
   }
 
   @Override
@@ -211,10 +208,9 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    try (BufferedReader dbFileReader = new BufferedReader(new FileReader(dataBaseFile))) {
+    try {
       // read database contents in memory
-      databaseValues = CSVParser.parse(dbFileReader,
-          "\\t".equals(fieldSeparator) ? '\t' : fieldSeparator.charAt(0));
+      databaseValues = CSVParsingUtils.readData(dataBaseFile, fieldSeparator);
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
       setStatus(TaskStatus.ERROR);
@@ -228,8 +224,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
               mzTolerance) : null;
 
       final StringProperty error = new SimpleStringProperty();
-      final List<ImportType> lineIds = CSVParsingUtils.findLineIds(importTypes, databaseValues[0],
-          error);
+      final List<ImportType> lineIds = CSVParsingUtils.findLineIds(importTypes,
+          databaseValues.getFirst(), error);
       if (lineIds == null) {
         setErrorMessage(error.get());
         setStatus(TaskStatus.ERROR);
@@ -245,7 +241,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
       // sample header index
       if (filterSamples) {
-        sampleColIndex = getHeaderColumnIndex(databaseValues[0], sampleHeader);
+        sampleColIndex = getHeaderColumnIndex(databaseValues.getFirst(), sampleHeader);
         if (sampleColIndex == -1) {
           setErrorMessage("Sample header " + sampleHeader + " not found");
           setStatus(TaskStatus.ERROR);
@@ -257,14 +253,15 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       var mzSortedRows = Arrays.stream(featureLists)
           .map(flist -> flist.getRows().sorted(FeatureListRowSorter.MZ_ASCENDING)).toList();
 
-      // finished header
-      finishedLines++;
-      for (; finishedLines < databaseValues.length; finishedLines++) {
+      for (String[] currentLine : databaseValues) {
+        if (finishedLines == 0) {
+          finishedLines++;
+          continue; // skip header
+        }
         if (isCanceled()) {
           return;
         }
         try {
-          String[] currentLine = databaseValues[finishedLines];
           // check already once for all raw data files
           if (filterSamples && !matchSample(allRawDataFiles, currentLine[sampleColIndex])) {
             // sample mismatch for this line
@@ -275,6 +272,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
         } catch (Exception e) {
           logger.log(Level.FINE, "Exception while processing csv line " + finishedLines, e);
         }
+        finishedLines++;
       }
 
       for (final SortedList<FeatureListRow> flist : mzSortedRows) {
@@ -313,8 +311,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   }
 
   private void refineAnnotationsByIsotopes(FeatureList flist) {
-      DatabaseIsotopeRefinerScanBased.refineAnnotationsByIsotopesDifferentResolutions(flist.getRows(), isotopeMzTolerance,
-          minRelativeIsotopeIntensity, minIsotopeScore);
+    DatabaseIsotopeRefinerScanBased.refineAnnotationsByIsotopesDifferentResolutions(flist.getRows(),
+        isotopeMzTolerance, minRelativeIsotopeIntensity, minIsotopeScore);
   }
 
   /**
@@ -332,7 +330,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           .map(s -> new ImportType(true, s, type)).toList();
       if (!commentFields.isEmpty()) {
         final SimpleStringProperty error = new SimpleStringProperty();
-        commentFields = CSVParsingUtils.findLineIds(commentFields, databaseValues[0], error);
+        commentFields = CSVParsingUtils.findLineIds(commentFields, databaseValues.getFirst(),
+            error);
         if (commentFields == null) {
           setErrorMessage(error.get());
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,11 +27,14 @@ package io.github.mzmine.util.javafx;
 
 import com.google.common.collect.Range;
 import java.text.NumberFormat;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import javafx.beans.binding.DoubleExpression;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Options to manipulate table views and maybe treetableviews
@@ -48,14 +51,14 @@ public class TableViewUtils {
 
   public static void autoFitLastColumn(TableView<?> table, DoubleExpression tableWidth) {
     var cols = table.getColumns();
-    if (cols.size() < 1) {
+    if (cols.isEmpty()) {
       throw new IllegalArgumentException("Table must contain 1 or more columns");
     }
     // target column to resize
-    TableColumn<?, ?> lastCol = cols.get(cols.size() - 1);
+    TableColumn<?, ?> lastCol = cols.getLast();
     // subtract all widths from the table width
     DoubleExpression remainingWidth = tableWidth;
-    for (int i = 0; i < cols.size()-1; i++) {
+    for (int i = 0; i < cols.size() - 1; i++) {
       var col = cols.get(i);
       if (col != lastCol) {
         remainingWidth = remainingWidth.subtract(col.widthProperty());
@@ -74,7 +77,7 @@ public class TableViewUtils {
    */
   public static <T, S extends Number> void setFormattedCellFactory(TableColumn<T, S> col,
       NumberFormat format) {
-    col.setCellFactory(column -> new TableCell<>() {
+    col.setCellFactory(__ -> new TableCell<>() {
 
       @Override
       public void updateItem(S value, boolean empty) {
@@ -100,9 +103,9 @@ public class TableViewUtils {
    * @param <T>    type of the table data
    * @param <S>    type of the column data (numbers)
    */
-  public static <T, S extends Number & Comparable> void setFormattedRangeCellFactory(
+  public static <T, S extends Number & Comparable<?>> void setFormattedRangeCellFactory(
       TableColumn<T, Range<S>> col, NumberFormat format) {
-    col.setCellFactory(column -> new TableCell<>() {
+    col.setCellFactory(_ -> new TableCell<>() {
 
       @Override
       public void updateItem(Range<S> value, boolean empty) {
@@ -120,4 +123,53 @@ public class TableViewUtils {
       }
     });
   }
+
+
+  /**
+   * @param name         column name
+   * @param valueFactory defines the value of the cell
+   * @param <MODEL>      the table row data model
+   * @param <V>          the value type of the property
+   * @return a new TableColumn
+   */
+  @NotNull
+  public static <MODEL, V> TableColumn<MODEL, V> createColumn(@NotNull String name,
+      @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {
+    TableColumn<MODEL, V> column = new TableColumn<>(name);
+    column.setCellValueFactory(row -> valueFactory.apply(row.getValue()));
+    return column;
+  }
+
+  /**
+   *
+   * @param name column name
+   * @param valueFactory defines the value of the cell
+   * @return a new TableColumn
+   * @param <MODEL> the table row data model
+   * @param <V> the value type of the property
+   */
+  @NotNull
+  public static <MODEL, V> TableColumn<MODEL, V> createColumn(@NotNull String name, double minWidth,
+      @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {
+    var column = createColumn(name, valueFactory);
+    column.setMinWidth(minWidth);
+    return column;
+  }
+
+  /**
+   *
+   * @param name column name
+   * @param valueFactory defines the value of the cell
+   * @return a new TableColumn
+   * @param <MODEL> the table row data model
+   * @param <V> the value type of the property
+   */
+  @NotNull
+  public static <MODEL, V> TableColumn<MODEL, V> createColumn(@NotNull String name, double minWidth,
+      double maxWidth, @NotNull Function<MODEL, ObservableValue<V>> valueFactory) {
+    var column = createColumn(name, minWidth, valueFactory);
+    column.setMaxWidth(maxWidth);
+    return column;
+  }
+
 }

@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -116,7 +117,7 @@ public class MsnTreeFeatureDetectionTask extends AbstractTask {
         .mapToObj(mzTol::getToleranceRange).toList();
 
     extractorFunction = new ExtractMzRangesIonSeriesFunction(dataFile, scanSelection,
-        mzRangesSorted, this);
+        mzRangesSorted, ScanDataType.MASS_LIST, this);
     BuildingIonSeries[] chromatograms = extractorFunction.get();
 
     if (isCanceled()) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,9 +28,9 @@ package io.github.mzmine.gui;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.net.URL;
@@ -42,10 +42,10 @@ import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 public class HeadLessDesktop implements Desktop {
@@ -88,7 +88,6 @@ public class HeadLessDesktop implements Desktop {
   @Override
   public void displayException(Exception e) {
     logger.log(Level.SEVERE, e.toString(), e);
-    e.printStackTrace();
   }
 
   @Override
@@ -123,7 +122,7 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  public TableView<WrappedTask> getTasksView() {
+  public @Nullable TasksViewController getTasksViewController() {
     return null;
   }
 

@@ -217,4 +217,8 @@ public class MZmineTestUtil {
     return fileNames.stream().map(n -> new File(n).getName())
         .map(MZmineTestUtil::getRawFromProject);
   }
+
+  public static void startMzmineCore() {
+    MZmineCore.main(new String[]{"-r", "-m", "all"});
+  }
 }

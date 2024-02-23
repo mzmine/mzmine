@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,131 +25,82 @@
 
 package io.github.mzmine.gui.mainwindow.tasksview;
 
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.TaskController;
+import static io.github.mzmine.util.javafx.TableViewUtils.createColumn;
+
+import io.github.mzmine.gui.framework.fx.components.LabeledProgressBarCell;
+import io.github.mzmine.gui.framework.fx.components.MenuItems;
+import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
 import io.github.mzmine.taskcontrol.TaskPriority;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.taskcontrol.impl.WrappedTask;
-import java.io.IOException;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.collections.ObservableList;
-import javafx.event.Event;
-import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.TableCell;
+import io.github.mzmine.util.javafx.TableViewUtils;
+import javafx.event.ActionEvent;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Menu;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 
-public class TasksView extends VBox {
+/**
+ * MVCI view that uses a builder to generate a TasksView on demand
+ */
+public class TasksView extends FxViewBuilder<TasksViewModel> {
 
-  private final NumberFormat format = new DecimalFormat("0%");
-  @FXML
-  private TableColumn<WrappedTask, String> taskNameColumn;
-  @FXML
-  private TableColumn<WrappedTask, String> taskPriorityColumn;
-  @FXML
-  private TableColumn<WrappedTask, Double> taskProgressColumn;
-  @FXML
-  private TableColumn<WrappedTask, TaskStatus> taskStatusColumn;
-  @FXML
-  private TableView<WrappedTask> table;
-
-  public TasksView() {
-    setFillWidth(true);
-    FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("TasksView.fxml"));
-    fxmlLoader.setController(this);
-
-    try {
-      table = fxmlLoader.load();
-      getChildren().add(table);
-      VBox.setVgrow(table, Priority.ALWAYS);
-    } catch (IOException exception) {
-      throw new RuntimeException(exception);
-    }
+  TasksView(final TasksViewModel model) {
+    super(model);
   }
 
-  public void initialize() {
-    initTaskView();
+  @Override
+  public Region build() {
+    TableView<WrappedTaskModel> table = createTable();
+    createContextMenu(table);
+
+    return new StackPane(table);
   }
 
-  private void initTaskView() {
-    ObservableList<WrappedTask> tasksQueue = MZmineCore.getTaskController().getTaskQueue()
-        .getTasks();
-    table.setItems(tasksQueue);
+  private TableView<WrappedTaskModel> createTable() {
+    TableView<WrappedTaskModel> table = new TableView<>(model.getTasks());
+    var columns = table.getColumns();
+    columns.add(createColumn("Task", 300, WrappedTaskModel::nameProperty));
+    columns.add(createColumn("Status", 100, 100, WrappedTaskModel::statusProperty));
+    columns.add(createColumn("Priority", 100, 100, WrappedTaskModel::priorityProperty));
+    TableColumn<WrappedTaskModel, Number> progressCol = createColumn("Progress", 100,
+        WrappedTaskModel::progressProperty);
+    columns.add(progressCol);
 
-    taskNameColumn.setCellValueFactory(
-        cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getActualTask().getTaskDescription()));
-    taskPriorityColumn.setCellValueFactory(new PropertyValueFactory<>("priority"));
+    // progress bar
+    progressCol.setCellFactory(__ -> new LabeledProgressBarCell<>());
 
-    taskStatusColumn.setCellValueFactory(
-        cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getActualTask().getStatus()));
-    taskProgressColumn.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(
-        cell.getValue().getActualTask().getFinishedPercentage()));
-    taskProgressColumn.setCellFactory(column -> new TableCell<>() {
-
-      @Override
-      public void updateItem(Double value, boolean empty) {
-        super.updateItem(value, empty);
-        if (empty) {
-          return;
-        }
-        ProgressBar progressBar = new ProgressBar(value);
-        progressBar.setOpacity(0.3);
-        progressBar.prefWidthProperty().bind(taskProgressColumn.widthProperty().subtract(20));
-        String labelText = format.format(value);
-        Label percentLabel = new Label(labelText);
-        StackPane stack = new StackPane();
-        stack.setManaged(true);
-        stack.getChildren().addAll(progressBar, percentLabel);
-        setGraphic(stack);
-        setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-      }
-    });
-  }
-
-  public TableView<WrappedTask> getTable() {
+    TableViewUtils.autoFitLastColumn(table);
     return table;
   }
 
-  @FXML
-  public void handleCancelTask(Event event) {
+  private void createContextMenu(final TableView<WrappedTaskModel> table) {
+    Menu prio = new Menu("Set priority", null,
+        MenuItems.create("High", event -> setTaskPriority(table, TaskPriority.HIGH)),
+        MenuItems.create("Normal", event -> setTaskPriority(table, TaskPriority.NORMAL)));
+
+    ContextMenu menu = new ContextMenu(
+        MenuItems.create("Cancel selected tasks", event -> handleCancelTask(table, event)),
+        MenuItems.create("Cancel all tasks", model.onCancelAllTasksProperty()),
+        MenuItems.create("Cancel batch task", model.onCancelBatchTaskProperty()), //
+        prio);
+
+    table.setContextMenu(menu);
+  }
+
+  private void setTaskPriority(final TableView<WrappedTaskModel> table, TaskPriority prio) {
     var selectedTasks = table.getSelectionModel().getSelectedItems();
-    for (WrappedTask t : selectedTasks) {
-      t.getActualTask().cancel();
+    for (WrappedTaskModel t : selectedTasks) {
+      // TODO reflec this in the thread pool
+      // there is a version of PriorityQueue that may be used
+      t.getTask().setPriority(prio);
     }
   }
 
-  @FXML
-  public void handleCancelAllTasks(Event event) {
-    for (WrappedTask t : table.getItems()) {
-      t.getActualTask().cancel();
-    }
-  }
-
-  @FXML
-  public void handleSetHighPriority(Event event) {
-    TaskController taskController = MZmineCore.getTaskController();
+  public void handleCancelTask(final TableView<WrappedTaskModel> table, ActionEvent event) {
     var selectedTasks = table.getSelectionModel().getSelectedItems();
-    for (WrappedTask t : selectedTasks) {
-      taskController.setTaskPriority(t.getActualTask(), TaskPriority.HIGH);
-    }
-  }
-
-  @FXML
-  public void handleSetNormalPriority(Event event) {
-    TaskController taskController = MZmineCore.getTaskController();
-    var selectedTasks = table.getSelectionModel().getSelectedItems();
-    for (WrappedTask t : selectedTasks) {
-      taskController.setTaskPriority(t.getActualTask(), TaskPriority.NORMAL);
+    for (WrappedTaskModel t : selectedTasks) {
+      t.getTask().cancel();
     }
   }
 

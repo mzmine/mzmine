@@ -56,9 +56,6 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrou
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
-import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -70,7 +67,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
-import java.io.File;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -121,9 +118,10 @@ public class FeatureFindingTest {
   @BeforeAll
   public void init() {
     //    logger.info("Running MZmine");
-    //    MZmineCore.main(new String[]{"-r", "-m", "all"});
+    MZmineTestUtil.startMzmineCore();
     logger.info("Getting project");
     project = MZmineCore.getProjectManager().getCurrentProject();
+
   }
 
   @AfterAll
@@ -137,25 +135,20 @@ public class FeatureFindingTest {
   @Order(1)
   @DisplayName("Test advanced data import of mzML and mzXML with mass detection")
   void dataImportTest() throws InterruptedException {
-    File[] files = new File[]{new File(
-        FeatureFindingTest.class.getClassLoader().getResource("rawdatafiles/DOM_a.mzML").getFile()),
-        new File(FeatureFindingTest.class.getClassLoader().getResource("rawdatafiles/DOM_b.mzXML")
-            .getFile())};
-
-    ParameterSet paramDataImport = new AllSpectralDataImportParameters().cloneParameterSet();
-    paramDataImport.setParameter(AllSpectralDataImportParameters.fileNames, files);
-    paramDataImport.setParameter(SpectralLibraryImportParameters.dataBaseFiles, new File[0]);
-    paramDataImport.setParameter(AllSpectralDataImportParameters.advancedImport, true);
+//    File[] files = new File[]{new File(
+//        FeatureFindingTest.class.getClassLoader().getResource("rawdatafiles/DOM_a.mzML").getFile()),
+//        new File(FeatureFindingTest.class.getClassLoader().getResource("rawdatafiles/DOM_b.mzXML")
+//            .getFile())};
+    List<String> files = List.of("rawdatafiles/DOM_a.mzML", "rawdatafiles/DOM_b.mzXML");
 
     var advancedImport = AdvancedSpectraImportParameters.create(
         MassDetectorWizardOptions.ABSOLUTE_NOISE_LEVEL, 0d, 0d, null, ScanSelection.ALL_SCANS,
         false);
-    paramDataImport.getParameter(AllSpectralDataImportParameters.advancedImport)
-        .setEmbeddedParameters(advancedImport);
 
     logger.info("Testing advanced data import of mzML and mzXML with direct mass detection");
-    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30,
-        AllSpectralDataImportModule.class, paramDataImport);
+    TaskResult finished = MZmineTestUtil.importFiles(files, 30, advancedImport);
+//    TaskResult finished = MZmineTestUtil.callModuleWithTimeout(30,
+//        AllSpectralDataImportModule.class, paramDataImport);
 
     // should have finished by now
     Assertions.assertInstanceOf(TaskResult.FINISHED.class, finished, finished.description());
@@ -604,3 +597,4 @@ public class FeatureFindingTest {
     return flist.getName().equals(getName(sample, suffix));
   }
 }
+
