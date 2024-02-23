@@ -85,7 +85,7 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
       case FormulaType __ ->
           MolecularFormulaManipulator.getString(match.getLipidAnnotation().getMolecularFormula());
       case CommentType __ -> match.getComment() != null ? match.getComment() : "";
-      case ExplainedIntensityPercentType __ -> match.getMsMsScore().floatValue() / 100;
+      case ExplainedIntensityPercentType __ -> match.getMsMsScore().floatValue();
       case LipidSpectrumType __ -> true;
       case MzPpmDifferenceType __ -> {
         // calc ppm error?
