@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,10 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import org.jetbrains.annotations.NotNull;
-
+/**
+ * @deprecated Instead of this class use {@link ExplainedIntensityPercentType}.
+ */
+@Deprecated
 public class LipidAnnotationMsMsScoreType extends ScoreType {
 
   public LipidAnnotationMsMsScoreType() {
