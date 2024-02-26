@@ -37,7 +37,7 @@ public class LipidAnnotationMSMSParameters extends SimpleParameterSet {
       "Enter m/z tolerance for exact mass database matching on MS2 level", 0.005, 10);
 
   public static final PercentParameter minimumMsMsScore = new PercentParameter(
-      "Minimum MS/MS score:", "Explained intensity [%] of all signals in MS/MS spectrum", 0.6);
+      "Explained intensity [%]:", "Explained intensity [%] of all signals in MS/MS spectrum", 0.6);
 
   public static final BooleanParameter keepUnconfirmedAnnotations = new BooleanParameter(
       "Keep unconfirmed annotations",
@@ -48,4 +48,8 @@ public class LipidAnnotationMSMSParameters extends SimpleParameterSet {
     super(mzToleranceMS2, minimumMsMsScore, keepUnconfirmedAnnotations);
   }
 
+  @Override
+  public int getVersion() {
+    return 2;
+  }
 }
