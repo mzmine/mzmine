@@ -75,24 +75,26 @@ public class AnovaTask extends AbstractTask {
     logger.info("Started calculating significance values");
 
     flist.addRowType(DataTypes.get(AnovaPValueType.class));
-
     try {
-
       calc = new AnovaTest(groupingColumnName);
-      final List<AnovaResult> anovaResults = flist.getRows().stream().map(row -> {
+    } catch (MetadataColumnDoesNotExistException e) {
+      setErrorMessage(e.getMessage());
+      logger.log(Level.WARNING, e.getMessage(), e);
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+
+    final List<AnovaResult> anovaResults = flist.getRows().stream().map(row -> {
       if (isCanceled()) {
         return null;
       }
-        processed++;
+      processed++;
       return calc.test(row, AbundanceMeasure.Height);
     }).filter(Objects::nonNull).toList();
 
-      anovaResults.forEach(r -> r.row().set(AnovaPValueType.class, r.pValue()));
-      flist.getAppliedMethods()
-          .add(new SimpleFeatureListAppliedMethod(AnovaModule.class, parameters, moduleCallDate));
-    } catch (MetadataColumnDoesNotExistException e) {
-      logger.log(Level.WARNING, e.getMessage(), e);
-    }
+    anovaResults.forEach(r -> r.row().set(AnovaPValueType.class, r.pValue()));
+    flist.getAppliedMethods()
+        .add(new SimpleFeatureListAppliedMethod(AnovaModule.class, parameters, moduleCallDate));
 
     setStatus(TaskStatus.FINISHED);
   }
