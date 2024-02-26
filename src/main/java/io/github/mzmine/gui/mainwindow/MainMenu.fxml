@@ -522,7 +522,7 @@
       <MenuItem text="Volcano plot"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotModule"/>
-      <Menu text="Bubble plots">
+      <!--<Menu text="Bubble plots">
         <MenuItem text="Coefficient of variation (CV) plot"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataanalysis.bubbleplots.cvplot.CVPlotModule"/>
@@ -544,7 +544,7 @@
       <MenuItem text="Heat map plot" onAction="#runModule"
         userData="io.github.mzmine.modules.dataanalysis.heatmaps.HeatMapModule"/>
       <MenuItem text="One-way ANOVA" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataanalysis.significance.anova.AnovaModule"/>
+        userData="io.github.mzmine.modules.dataanalysis.significance.anova.AnovaModule"/>-->
     </Menu>
   </Menu>
 

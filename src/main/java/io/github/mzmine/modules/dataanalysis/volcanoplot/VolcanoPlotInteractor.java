@@ -44,6 +44,7 @@ import io.github.mzmine.taskcontrol.SimpleCalculation;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -99,8 +100,8 @@ public class VolcanoPlotInteractor {
       final List<RawDataFile> groupBFiles = ttest.getGroupBFiles();
 
       final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
-      int colorIndex = 0;
       List<ProviderAndRenderer> datasets = new ArrayList<>();
+      colors.resetColorCounter(); // set color index to 0
       for (Entry<DataType<?>, List<RowSignificanceTestResult>> entry : dataTypeMap.entrySet()) {
         final DataType<?> type = entry.getKey();
         final List<RowSignificanceTestResult> testResults = entry.getValue();
@@ -110,10 +111,11 @@ public class VolcanoPlotInteractor {
         final List<RowSignificanceTestResult> insignificantRows = testResults.stream()
             .filter(result -> result.pValue() >= 0.05).toList();
 
+        final Color color = colors.getNextColorAWT();
         if (!significantRows.isEmpty()) {
           final double[] log2FoldChangeSignificant = calculateLog2FoldChange(significantRows,
               groupAFiles, groupBFiles);
-          var provider = new AnyXYProvider(colors.getAWT(colorIndex),
+          var provider = new AnyXYProvider(color,
               STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "not annotated"
                   : type.getHeaderString()} (p < 0.05)", significantRows.size(),
               i -> log2FoldChangeSignificant[i], i -> -Math.log10(significantRows.get(i).pValue()));
@@ -122,15 +124,13 @@ public class VolcanoPlotInteractor {
         if (!insignificantRows.isEmpty()) {
           final double[] log2FoldChangeInsignificant = calculateLog2FoldChange(insignificantRows,
               groupAFiles, groupBFiles);
-          var provider = new AnyXYProvider(colors.getAWT(colorIndex),
+          var provider = new AnyXYProvider(color,
               STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "not annotated"
                   : type.getHeaderString()} (p ≥ 0.05)", insignificantRows.size(),
               i -> log2FoldChangeInsignificant[i],
               i -> -Math.log10(insignificantRows.get(i).pValue()));
           datasets.add(new ProviderAndRenderer(provider, new ColoredXYShapeRenderer(true)));
         }
-
-        colorIndex++;
       }
 
       MZmineCore.runOnFxThreadAndWait(() -> {

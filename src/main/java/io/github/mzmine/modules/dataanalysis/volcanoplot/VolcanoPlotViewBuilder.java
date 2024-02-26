@@ -30,10 +30,13 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModule;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModule.TESTS;
 import io.github.mzmine.parameters.PropertyComponent;
+import java.awt.BasicStroke;
+import java.awt.Stroke;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -55,6 +58,7 @@ import javafx.scene.layout.Region;
 import javafx.util.Builder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.annotations.XYLineAnnotation;
 
 public class VolcanoPlotViewBuilder implements Builder<Region> {
 
@@ -64,6 +68,7 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
 
   private final VolcanoPlotModel model;
   private final int space = 5;
+  private final Stroke annotationStroke = new BasicStroke(1.0f);
 
   public VolcanoPlotViewBuilder(VolcanoPlotModel model, Consumer<Runnable> onDatasetRequired) {
     this.model = model;
@@ -87,8 +92,21 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
     chart.setDefaultRenderer(new ColoredXYShapeRenderer());
     model.datasetsProperty().addListener((obs, o, n) -> {
       chart.applyWithNotifyChanges(false, () -> {
+        final var neutralColor = MZmineCore.getConfiguration().getDefaultColorPalette()
+            .getNeutralColorAWT();
         chart.removeAllDatasets();
+        chart.getXYPlot().clearAnnotations();
         n.forEach(chart::addDataset);
+
+        final XYLineAnnotation pValueLine = new XYLineAnnotation(-100d, 1.301029996, 100d,
+            1.301029996, annotationStroke, neutralColor);
+        final XYLineAnnotation leftFoldChange = new XYLineAnnotation(-1, 100, -1, -100,
+            annotationStroke, neutralColor);
+        final XYLineAnnotation rightFoldChange = new XYLineAnnotation(1, 100, 1, -100,
+            annotationStroke, neutralColor);
+        chart.getXYPlot().addAnnotation(pValueLine);
+        chart.getXYPlot().addAnnotation(leftFoldChange);
+        chart.getXYPlot().addAnnotation(rightFoldChange);
       });
     });
 
