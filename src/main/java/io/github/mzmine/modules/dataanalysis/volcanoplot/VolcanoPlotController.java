@@ -51,10 +51,10 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> {
     interactor = new VolcanoPlotInteractor(model);
     view = viewBuilder.build();
 
-    initialiseListeners();
+    initializeListeners();
   }
 
-  private void initialiseListeners() {
+  private void initializeListeners() {
     model.testProperty().addListener((_, _, newValue) -> {
       if (newValue != null) {
         computeDataset(() -> {
