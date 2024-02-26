@@ -145,7 +145,7 @@ public class SiriusExportTask extends AbstractTask {
     } else if (f.getMostIntenseFragmentScan().getMsMsInfo() instanceof DDAMsMsInfo dda) {
       charge = dda.getPrecursorCharge() != null ? dda.getPrecursorCharge() : charge;
     }
-    charge = Math.max(charge, 1); // no zero charge
+    charge = charge != 0 ? Math.abs(charge) : 1; // no zero charge, polarity added below.
 
     entry.putIfNotNull(DBEntryField.FEATURE_ID, f.getRow().getID());
     // replicate what GNPS does - some tools rely on the scan number to be there
