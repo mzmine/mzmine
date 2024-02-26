@@ -38,7 +38,11 @@ import java.util.List;
 import java.util.Objects;
 import org.apache.commons.math3.stat.inference.TestUtils;
 
-public final class Student_tTest<T> implements RowSignificanceTest {
+/**
+ *
+ * @param <T> Type of the metadata column.
+ */
+public final class StudentTTest<T> implements RowSignificanceTest {
 
   private final TTestSamplingConfig samplingConfig;
   private final MetadataColumn<T> column;
@@ -47,7 +51,7 @@ public final class Student_tTest<T> implements RowSignificanceTest {
   private final List<RawDataFile> groupedFilesA;
   private final List<RawDataFile> groupedFilesB;
 
-  public Student_tTest(TTestSamplingConfig samplingConfig, MetadataColumn<T> column, T groupA,
+  public StudentTTest(TTestSamplingConfig samplingConfig, MetadataColumn<T> column, T groupA,
       T groupB) {
     this.samplingConfig = samplingConfig;
     this.column = column;
@@ -126,7 +130,7 @@ public final class Student_tTest<T> implements RowSignificanceTest {
     if (obj == null || obj.getClass() != this.getClass()) {
       return false;
     }
-    var that = (Student_tTest) obj;
+    var that = (StudentTTest) obj;
     return Objects.equals(this.samplingConfig, that.samplingConfig) && Objects.equals(this.column,
         that.column) && Objects.equals(this.groupA, that.groupA) && Objects.equals(this.groupB,
         that.groupB);
@@ -139,7 +143,7 @@ public final class Student_tTest<T> implements RowSignificanceTest {
 
   @Override
   public String toString() {
-    return "Student_tTest{" + "samplingConfig=" + samplingConfig + ", column=" + column
+    return "StudentTTest{" + "samplingConfig=" + samplingConfig + ", column=" + column
         + ", groupA=" + groupA + ", groupB=" + groupB + ", groupedFilesA=" + groupedFilesA
         + ", groupedFilesB=" + groupedFilesB + '}';
   }

@@ -26,7 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.statistics;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.Student_tTest;
+import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestSamplingConfig;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
@@ -40,10 +40,10 @@ public record StorableTTestConfiguration(TTestSamplingConfig samplingConfig, Str
   private static final Logger logger = Logger.getLogger(StorableTTestConfiguration.class.getName());
 
   /**
-   * @return A {@link Student_tTest} or null. The configuration is only returned if the column
+   * @return A {@link StudentTTest} or null. The configuration is only returned if the column
    * exists and the respective values exist in that column.
    */
-  public <T> Student_tTest<T> toValidConfig() {
+  public <T> StudentTTest<T> toValidConfig() {
     final MetadataTable metadata = MZmineCore.getProjectMetadata();
 
     final MetadataColumn<T> col = (MetadataColumn<T>) metadata.getColumnByName(column);
@@ -80,6 +80,6 @@ public record StorableTTestConfiguration(TTestSamplingConfig samplingConfig, Str
       logger.warning(() -> STR."Same grouping parameter selected for both groups of the t-Test. (\{a})");
     }
 
-    return new Student_tTest<>(samplingConfig, col, a, b);
+    return new StudentTTest<>(samplingConfig, col, a, b);
   }
 }

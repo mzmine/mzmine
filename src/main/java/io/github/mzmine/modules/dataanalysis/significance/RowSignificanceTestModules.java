@@ -28,12 +28,12 @@ package io.github.mzmine.modules.dataanalysis.significance;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.anova.AnovaModule;
 import io.github.mzmine.modules.dataanalysis.significance.anova.AnovaTest;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.Student_tTest;
+import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestModule;
 import java.util.List;
 
 public enum RowSignificanceTestModules {
-  TTEST(MZmineCore.getModuleInstance(TTestModule.class), Student_tTest.class), ANOVA(
+  TTEST(MZmineCore.getModuleInstance(TTestModule.class), StudentTTest.class), ANOVA(
       MZmineCore.getModuleInstance(AnovaModule.class), AnovaTest.class);
 
   public static final List<RowSignificanceTestModules> TWO_GROUP_TESTS = List.of(TTEST);

@@ -29,6 +29,7 @@ import static io.github.mzmine.modules.visualization.projectmetadata.table.colum
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
+import io.github.mzmine.modules.visualization.projectmetadata.MetadataValueDoesNotExistException;
 import io.github.mzmine.modules.visualization.projectmetadata.io.TableIOUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.io.WideTableIOUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.DateMetadataColumn;
@@ -39,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -257,26 +259,35 @@ public class MetadataTable {
    * @return A list of files associated to the column value or null, if the column value does not
    * exist.
    */
-  public <T> List<RawDataFile> getMatchingFiles(@NotNull MetadataColumn<T> column, T value)
-      throws MetadataColumnDoesNotExistException {
+  public <T> List<RawDataFile> getMatchingFiles(@NotNull MetadataColumn<T> column, @NotNull T value)
+      throws MetadataColumnDoesNotExistException, MetadataValueDoesNotExistException {
+    final Map<T, List<RawDataFile>> valueFilesMap = groupFilesByColumn(column);
+    final List<RawDataFile> files = valueFilesMap.get(value);
+    if (files == null) {
+      throw new MetadataValueDoesNotExistException(column, value.toString());
+    }
     return groupFilesByColumn(column).get(value);
   }
 
   /**
    * @param column The column
    * @param value  The column value to match to.
-   * @return A list of files associated to the column value or null, if the column value does not
-   * exist.
+   * @return A list of files associated to the column value or an empty list if the column value
+   * does not exist.
    */
-  public <T> Map<T, List<RawDataFile>> groupFilesByColumnValue(@NotNull MetadataColumn<T> column,
-      T[] columnValue) throws MetadataColumnDoesNotExistException {
+  public <T> Map<T, List<RawDataFile>> groupFilesByColumnValues(@NotNull MetadataColumn<T> column,
+      T[] columnValues)
+      throws MetadataColumnDoesNotExistException, MetadataValueDoesNotExistException {
     final Map<T, List<RawDataFile>> groupedFiles = groupFilesByColumn(column);
-    return Arrays.stream(columnValue)
-        .collect(Collectors.toMap(colVal -> colVal, groupedFiles::get));
+    return Arrays.stream(columnValues).collect(Collectors.toMap(colVal -> colVal,
+        colVal -> Optional.ofNullable(groupedFiles.get(colVal)).orElse(List.of())));
   }
 
   public <T> List<T> getDistinctColumnValues(MetadataColumn<T> column) {
     final Map<RawDataFile, Object> fileValueMap = data.get(column);
+    if (fileValueMap == null) {
+      throw new MetadataColumnDoesNotExistException(column.getTitle());
+    }
     return fileValueMap.values().stream().distinct().map(o -> (T) o).toList();
   }
 }
