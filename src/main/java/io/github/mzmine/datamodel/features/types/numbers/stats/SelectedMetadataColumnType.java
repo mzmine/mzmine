@@ -25,36 +25,18 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.stats;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import org.jetbrains.annotations.NotNull;
 
-public class AnovaPValueType extends DoubleType {
-
-  private static final DecimalFormat format = new DecimalFormat("0.###");
-
-  public AnovaPValueType() {
-    super(format);
-  }
+public class SelectedMetadataColumnType extends StringType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "anova_p_value";
+    return "metadata_column";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "ANOVA p";
-  }
-
-  @Override
-  public NumberFormat getFormat() {
-    return format;
-  }
-
-  @Override
-  public NumberFormat getExportFormat() {
-    return format;
+    return "Metadata column";
   }
 }

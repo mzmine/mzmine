@@ -30,22 +30,22 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import org.jetbrains.annotations.NotNull;
 
-public class AnovaPValueType extends DoubleType {
+public class AnovaFValueType extends DoubleType {
 
   private static final DecimalFormat format = new DecimalFormat("0.###");
 
-  public AnovaPValueType() {
+  public AnovaFValueType() {
     super(format);
   }
 
   @Override
   public @NotNull String getUniqueID() {
-    return "anova_p_value";
+    return "anova_f_value";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "ANOVA p";
+    return "ANOVA f";
   }
 
   @Override

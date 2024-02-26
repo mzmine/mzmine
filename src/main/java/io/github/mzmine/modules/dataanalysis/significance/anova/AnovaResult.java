@@ -26,9 +26,24 @@
 package io.github.mzmine.modules.dataanalysis.significance.anova;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularDataRecord;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.numbers.stats.AnovaFValueType;
+import io.github.mzmine.datamodel.features.types.numbers.stats.AnovaPValueType;
+import io.github.mzmine.datamodel.features.types.numbers.stats.SelectedMetadataColumnType;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
+import org.jetbrains.annotations.NotNull;
 
-public record AnovaResult(FeatureListRow row, String groupingColumn, double pValue) implements
-    RowSignificanceTestResult {
+public record AnovaResult(FeatureListRow row, String groupingColumn, double pValue, double fValue) implements
+    RowSignificanceTestResult, ModularDataRecord {
 
+  @Override
+  public Object getValue(@NotNull DataType<?> sub) {
+    return switch (sub) {
+      case AnovaPValueType _ -> pValue();
+      case AnovaFValueType _ -> fValue();
+      case SelectedMetadataColumnType _ -> groupingColumn();
+      default ->  null;
+    };
+  }
 }
