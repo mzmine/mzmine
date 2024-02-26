@@ -98,11 +98,11 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
         chart.getXYPlot().clearAnnotations();
         n.forEach(chart::addDataset);
 
-        final XYLineAnnotation pValueLine = new XYLineAnnotation(-100d, 1.301029996, 100d,
+        final XYLineAnnotation pValueLine = new XYLineAnnotation(-1000d, 1.301029996, 1000d,
             1.301029996, annotationStroke, neutralColor);
-        final XYLineAnnotation leftFoldChange = new XYLineAnnotation(-1, 100, -1, -100,
+        final XYLineAnnotation leftFoldChange = new XYLineAnnotation(-1, 1000, -1, -1000,
             annotationStroke, neutralColor);
-        final XYLineAnnotation rightFoldChange = new XYLineAnnotation(1, 100, 1, -100,
+        final XYLineAnnotation rightFoldChange = new XYLineAnnotation(1, 1000, 1, -1000,
             annotationStroke, neutralColor);
         chart.getXYPlot().addAnnotation(pValueLine);
         chart.getXYPlot().addAnnotation(leftFoldChange);

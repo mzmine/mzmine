@@ -218,9 +218,9 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
         //}
         if (this.getDrawOutlines()) {
           if (getUseOutlinePaint()) {
-            g2.setPaint(getItemOutlinePaint(series, item));
+            g2.setPaint(getPaint(dataset, series, item));
           } else {
-            g2.setPaint(getItemPaint(series, item));
+            g2.setPaint(getPaint(dataset, series, item));
           }
           g2.setStroke(getItemOutlineStroke(series, item));
           g2.draw(shape);
