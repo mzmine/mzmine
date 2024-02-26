@@ -158,8 +158,6 @@ dependencies {
     implementation "org.jfree:jfreechart:1.5.3"
     implementation "org.jfree:org.jfree.chart.fx:2.0.1"
     implementation "org.jfree:org.jfree.fxgraphics2d:2.1.1"
-    implementation "org.jfree:org.jfree.svg:4.1"
-    implementation "org.jfree:org.jfree.pdf:2.0"
     implementation "com.google.guava:guava:$guavaVersion"
     implementation "org.apache.commons:commons-math:2.2"
     implementation "edu.ucar:netcdf4:4.5.5"
@@ -208,7 +206,7 @@ dependencies {
     implementation "org.xerial:sqlite-jdbc:3.40.0.0"
     implementation "gnf:clustering:20210422"
     implementation 'it.unimi.dsi:fastutil:8.5.6'
-    implementation 'com.itextpdf:itextpdf:5.5.13.2'
+    implementation 'com.github.librepdf:openpdf:2.0.0'
     implementation 'org.apache.xmlgraphics:xmlgraphics-commons:2.6'
     implementation "org.apache.xmlgraphics:batik-util:$batikVersion"
     implementation "org.apache.xmlgraphics:batik-transcoder:$batikVersion"
