@@ -28,7 +28,7 @@ package io.github.mzmine.modules.dataanalysis.significance.ttest;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
 
-public record TTestResult(FeatureListRow row, String groupingColumn, Double pValue) implements
+public record TTestResult(FeatureListRow row, String groupingColumn, double pValue) implements
     RowSignificanceTestResult {
 
 }

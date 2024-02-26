@@ -32,8 +32,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
-import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModule;
-import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModule.TESTS;
+import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModules;
 import io.github.mzmine.parameters.PropertyComponent;
 import java.awt.BasicStroke;
 import java.awt.Stroke;
@@ -153,8 +152,8 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
 
   private Region createTestParametersPane() {
 
-    final ComboBox<RowSignificanceTestModule.TESTS> testComboBox = new ComboBox<>(
-        FXCollections.observableList(List.of(RowSignificanceTestModule.TESTS.values())));
+    final ComboBox<RowSignificanceTestModules> testComboBox = new ComboBox<>(
+        FXCollections.observableList(RowSignificanceTestModules.TWO_GROUP_TESTS));
 
     FlowPane controls = new FlowPane(Orientation.HORIZONTAL, 5, 5);
     controls.setRowValignment(VPos.CENTER);
@@ -191,7 +190,7 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
 //      if (testComboBox.valueProperty().get().getTestClass().isInstance(newTest)) {
 //        return;
 //      }
-      final TESTS newTestModule = testComboBox.getItems().stream()
+      final RowSignificanceTestModules newTestModule = testComboBox.getItems().stream()
           .filter(t -> t.getTestClass().isInstance(newTest)).findFirst().orElse(null);
       if (newTestModule != null) {
         testComboBox.setValue(newTestModule);

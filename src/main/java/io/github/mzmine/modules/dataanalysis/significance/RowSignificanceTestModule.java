@@ -25,12 +25,7 @@
 
 package io.github.mzmine.modules.dataanalysis.significance;
 
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.dataanalysis.significance.anova.AnovaModule;
-import io.github.mzmine.modules.dataanalysis.significance.anova.AnovaTest;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.Student_tTest;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestModule;
 import io.github.mzmine.parameters.PropertyComponent;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
@@ -41,28 +36,6 @@ import org.jetbrains.annotations.Nullable;
  *            {@link this#getInstance(PropertyComponent)}
  */
 public interface RowSignificanceTestModule<T> extends MZmineModule {
-
-  enum TESTS {
-    TTEST(MZmineCore.getModuleInstance(TTestModule.class), Student_tTest.class), ANOVA(
-        MZmineCore.getModuleInstance(AnovaModule.class), AnovaTest.class);
-
-    private final RowSignificanceTestModule<?> module;
-
-    private final Class<? extends RowSignificanceTest> testClass;
-    TESTS(RowSignificanceTestModule<?> module,
-        Class<? extends RowSignificanceTest> testClass) {
-      this.module = module;
-      this.testClass = testClass;
-    }
-
-    public RowSignificanceTestModule<?> getModule() {
-      return module;
-    }
-
-    public Class<? extends RowSignificanceTest> getTestClass() {
-      return testClass;
-    }
-  }
 
   @NotNull <C extends Region & PropertyComponent<T>> C createConfigurationComponent();
 

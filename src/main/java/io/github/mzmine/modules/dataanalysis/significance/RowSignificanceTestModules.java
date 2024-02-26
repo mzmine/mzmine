@@ -25,21 +25,35 @@
 
 package io.github.mzmine.modules.dataanalysis.significance;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.modules.dataanalysis.significance.anova.AnovaModule;
+import io.github.mzmine.modules.dataanalysis.significance.anova.AnovaTest;
+import io.github.mzmine.modules.dataanalysis.significance.ttest.Student_tTest;
+import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestModule;
+import java.util.List;
 
-public interface RowSignificanceTestResult {
+public enum RowSignificanceTestModules {
+  TTEST(MZmineCore.getModuleInstance(TTestModule.class), Student_tTest.class), ANOVA(
+      MZmineCore.getModuleInstance(AnovaModule.class), AnovaTest.class);
 
-  double pValue();
+  public static final List<RowSignificanceTestModules> TWO_GROUP_TESTS = List.of(TTEST);
+  public static final List<RowSignificanceTestModules> TWO_OR_MORE_GROUP_TESTS = List.of(TTEST, ANOVA);
 
-  FeatureListRow row();
+  private final RowSignificanceTestModule<?> module;
 
-  String groupingColumn();
+  private final Class<? extends RowSignificanceTest> testClass;
 
-  @Nullable
-  default MetadataColumn<?> column() {
-    return MZmineCore.getProjectMetadata().getColumnByName(groupingColumn());
+  RowSignificanceTestModules(RowSignificanceTestModule<?> module,
+      Class<? extends RowSignificanceTest> testClass) {
+    this.module = module;
+    this.testClass = testClass;
+  }
+
+  public RowSignificanceTestModule<?> getModule() {
+    return module;
+  }
+
+  public Class<? extends RowSignificanceTest> getTestClass() {
+    return testClass;
   }
 }
