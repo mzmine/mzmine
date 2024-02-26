@@ -61,7 +61,7 @@ public class MSMSLipidTools {
     }
     Double intensityMatchedSignals = annotatedFragments.stream().map(LipidFragment::getDataPoint)
         .mapToDouble(DataPoint::getIntensity).sum();
-    return (intensityMatchedSignals / intensityAllSignals) * 100;
+    return (intensityMatchedSignals / intensityAllSignals);
   }
 
   public static Pair<Integer, Integer> getCarbonandDBEFromLipidAnnotaitonString(

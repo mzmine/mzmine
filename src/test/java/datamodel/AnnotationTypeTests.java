@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -58,7 +58,6 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.MsMsMultimerVer
 import io.github.mzmine.datamodel.features.types.annotations.iin.PartnerIdsType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.LipidAnnotationMsMsScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -225,13 +224,6 @@ public class AnnotationTypeTests {
     InChIStructureType type = new InChIStructureType();
     String value = "1S/C18H24I3N3O8/c1-24(4-9(28)6-26)18(31)12-13(19)11(17(30)22-3-8(27)5-25)14"
         + "(20)16(15(12)21)23-10(29)7-32-2/h8-9,25-28H,3-7H2,1-2H3,(H,22,30)(H,23,29)";
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
-  }
-
-  @Test
-  void lipidAnotationMsMsScoreTypeTest() {
-    LipidAnnotationMsMsScoreType type = new LipidAnnotationMsMsScoreType();
-    Float value = 0.978f;
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,36 +25,18 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.scores;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
 import org.jetbrains.annotations.NotNull;
 
-public class LipidAnnotationMsMsScoreType extends ScoreType {
-
-  public LipidAnnotationMsMsScoreType() {
-    super();
-  }
+public class ExplainedIntensityPercentType extends PercentType {
 
   @Override
-  public NumberFormat getFormat() {
-    return new DecimalFormat("0.0");
+  public @NotNull String getUniqueID() {
+    return "explained_intensity_percent";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "MS/MS Score";
-  }
-
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "lipid_msms_score";
-  }
-
-  @Override
-  public boolean getDefaultVisibility() {
-    return true;
+    return "Explained intensity";
   }
 }

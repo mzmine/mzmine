@@ -271,8 +271,8 @@ public class IMSScanTypesTest {
         ScanUtils.extractDataPoints(library), ScanUtils.extractDataPoints(query));
 
     List<SpectralDBAnnotation> value = List.of(
-        new SpectralDBAnnotation(entry, similarity, query, null),
-        new SpectralDBAnnotation(entry, similarity, query, 0.034f));
+        new SpectralDBAnnotation(entry, similarity, query, null, 215.1234, 2.5f),
+        new SpectralDBAnnotation(entry, similarity, query, 0.034f, null, null));
 
     DataTypeTestUtils.testSaveLoad(type, value, project, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), project, flist, row, null, null);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.visualization.massvoltammogram.io;
 
-import com.itextpdf.text.DocumentException;
 import io.github.mzmine.modules.visualization.massvoltammogram.plot.MassvoltammogramPlotPanel;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.MassvoltammogramScan;
@@ -288,9 +287,8 @@ public class MassvoltammogramExportTask extends AbstractTask {
     try {
       SwingExportUtil.writeToPDF(massvoltammogram.getPlot(), file);
 
-    } catch (IOException | DocumentException e) {
-      e.printStackTrace();
-      logger.log(Level.WARNING, e.getMessage());
+    } catch (IOException e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
   }
 
