@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
+import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModules;
@@ -40,8 +41,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -54,23 +53,18 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.util.Builder;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.annotations.XYLineAnnotation;
 
-public class VolcanoPlotViewBuilder implements Builder<Region> {
+public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
   private static final Logger logger = Logger.getLogger(VolcanoPlotViewBuilder.class.getName());
 
-  private final ObjectProperty<@Nullable RowSignificanceTest> test = new SimpleObjectProperty<>();
-
-  private final VolcanoPlotModel model;
   private final int space = 5;
   private final Stroke annotationStroke = new BasicStroke(1.0f);
 
   public VolcanoPlotViewBuilder(VolcanoPlotModel model, Consumer<Runnable> onDatasetRequired) {
-    this.model = model;
+    super(model);
   }
 
   @Override
@@ -108,8 +102,6 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
         chart.getXYPlot().addAnnotation(rightFoldChange);
       });
     });
-
-    test.bindBidirectional(model.testProperty());
 
     return mainPane;
   }
@@ -174,22 +166,19 @@ public class VolcanoPlotViewBuilder implements Builder<Region> {
               // try to update the test
               final RowSignificanceTest instance = n.getModule()
                   .getInstance((PropertyComponent) component);
-              test.set(instance);
+              model.setTest(instance);
             } catch (Exception e) {
-              test.set(null);
+              model.setTest(null);
               logger.log(Level.WARNING, e.getMessage(), e);
             }
           });
     });
 
     // listen to external changes of the test and update the combo box accordingly
-    test.addListener((observableValue, rowSignificanceTest, newTest) -> {
+    model.testProperty().addListener((observableValue, rowSignificanceTest, newTest) -> {
       if (newTest == null) {
         return;
       }
-//      if (testComboBox.valueProperty().get().getTestClass().isInstance(newTest)) {
-//        return;
-//      }
       final RowSignificanceTestModules newTestModule = testComboBox.getItems().stream()
           .filter(t -> t.getTestClass().isInstance(newTest)).findFirst().orElse(null);
       if (newTestModule != null) {

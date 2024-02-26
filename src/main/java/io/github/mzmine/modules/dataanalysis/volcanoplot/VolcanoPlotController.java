@@ -26,22 +26,26 @@
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.framework.fx.mvci.FxController;
+import io.github.mzmine.gui.framework.fx.mvci.FxInteractor;
+import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
 import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Region;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class VolcanoPlotController {
+public class VolcanoPlotController extends FxController<VolcanoPlotModel> {
 
-  private final VolcanoPlotModel model;
   private final VolcanoPlotInteractor interactor;
   private final VolcanoPlotViewBuilder viewBuilder;
   private final Region view;
 
   public VolcanoPlotController(List<FeatureList> flists) {
+    super(new VolcanoPlotModel());
     final List<FeatureList> alignedLists = flists.stream()
         .filter(flist -> flist.getNumberOfRawDataFiles() > 1).toList();
 
-    model = new VolcanoPlotModel();
     model.setFlists(FXCollections.observableArrayList(alignedLists));
     viewBuilder = new VolcanoPlotViewBuilder(model, this::computeDataset);
     interactor = new VolcanoPlotInteractor(model);
@@ -80,5 +84,15 @@ public class VolcanoPlotController {
 
   public Region getView() {
     return view;
+  }
+
+  @Override
+  protected @Nullable FxInteractor<VolcanoPlotModel> getInteractor() {
+    return interactor;
+  }
+
+  @Override
+  protected @NotNull FxViewBuilder<VolcanoPlotModel> getViewBuilder() {
+    return viewBuilder;
   }
 }

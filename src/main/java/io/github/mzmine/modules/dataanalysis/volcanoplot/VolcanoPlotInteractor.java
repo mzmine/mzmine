@@ -34,12 +34,13 @@ import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ProviderAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.AnyXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
+import io.github.mzmine.gui.framework.fx.mvci.FxInteractor;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestProcessor;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
 import io.github.mzmine.modules.dataanalysis.significance.StatisticUtils;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.Student_tTest;
+import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
 import io.github.mzmine.taskcontrol.SimpleCalculation;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.DataTypeUtils;
@@ -52,16 +53,17 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.commons.math.util.MathUtils;
 
-public class VolcanoPlotInteractor {
-
-  private static final DataType<?>[] annotationTypeHierarchy = FeatureAnnotationPriority.getDataTypesInOrder();
-
-  private final VolcanoPlotModel model;
+public class VolcanoPlotInteractor extends FxInteractor<VolcanoPlotModel> {
 
   private Task lastTask = null;
 
   public VolcanoPlotInteractor(VolcanoPlotModel model) {
-    this.model = model;
+    super(model);
+  }
+
+  @Override
+  public void updateModel() {
+    // ?????
   }
 
   public void computeDataset(Runnable r) {
@@ -90,9 +92,9 @@ public class VolcanoPlotInteractor {
       final List<RowSignificanceTestResult> rowSignificanceTestResults = task.getProcessor().get();
       final Map<DataType<?>, List<RowSignificanceTestResult>> dataTypeMap = DataTypeUtils.groupByBestDataType(
           rowSignificanceTestResults, RowSignificanceTestResult::row, true,
-          annotationTypeHierarchy);
+          FeatureAnnotationPriority.getDataTypesInOrder());
 
-      if (!(test instanceof Student_tTest<?> ttest)) {
+      if (!(test instanceof StudentTTest<?> ttest)) {
         return;
       }
 
