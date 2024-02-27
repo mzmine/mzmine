@@ -57,25 +57,16 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> {
   private void initializeListeners() {
     model.testProperty().addListener((_, _, newValue) -> {
       if (newValue != null) {
-        computeDataset(() -> {
-        });
+        computeDataset();
       }
     });
-    model.flistsProperty().addListener(_ -> {
-      computeDataset(() -> {
-      });
-    });
-    model.abundanceMeasureProperty().addListener(_ -> {
-      computeDataset(() -> {
-      });
-    });
-    model.selectedFlistProperty().addListener(_ -> {
-      computeDataset(() -> {});
-    });
+    model.flistsProperty().addListener(_ -> computeDataset());
+    model.abundanceMeasureProperty().addListener(_ -> computeDataset());
+    model.selectedFlistProperty().addListener(_ -> computeDataset());
   }
 
-  private void computeDataset(Runnable runnable) {
-    interactor.computeDataset(runnable);
+  private void computeDataset() {
+    interactor.computeDataset();
   }
 
   public void setFeatureList(FeatureList flist) {

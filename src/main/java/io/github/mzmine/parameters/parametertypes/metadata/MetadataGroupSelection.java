@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,8 +44,8 @@ public record MetadataGroupSelection(@NotNull String columnName, @NotNull String
    * value. Case sensitive.
    */
   public boolean isValid() {
-    if (columnName == null || columnName.trim().isEmpty() || groupStr == null
-        || groupStr.isEmpty()) {
+    if (columnName == null || columnName.isBlank() || groupStr == null
+        || groupStr.isBlank()) {
       return false;
     }
 
@@ -66,7 +66,6 @@ public record MetadataGroupSelection(@NotNull String columnName, @NotNull String
    */
   @Nullable
   public MetadataColumn<?> getColumn() {
-
     return MZmineCore.getProjectMetadata().getColumnByName(columnName());
   }
 

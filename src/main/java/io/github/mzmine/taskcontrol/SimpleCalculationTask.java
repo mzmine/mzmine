@@ -35,19 +35,19 @@ import java.util.logging.Logger;
  * functionality of the more sophisticated {@link AbstractTask} or {@link AbstractSimpleTask}
  * classes.
  */
-public class SimpleCalculation<T extends TaskSubProcessor> extends AbstractTask {
+public class SimpleCalculationTask<T extends TaskSubProcessor> extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(SimpleCalculation.class.getName());
+  private static final Logger logger = Logger.getLogger(SimpleCalculationTask.class.getName());
 
   private final T processor;
 
-  public SimpleCalculation(T processor) {
+  public SimpleCalculationTask(T processor) {
     super(null, Instant.now());
     this.processor = processor;
   }
 
-  public static <T extends TaskSubProcessor> SimpleCalculation<T> of(T task) {
-    return new SimpleCalculation<>(task);
+  public static <T extends TaskSubProcessor> SimpleCalculationTask<T> of(T task) {
+    return new SimpleCalculationTask<>(task);
   }
 
   @Override
@@ -67,6 +67,8 @@ public class SimpleCalculation<T extends TaskSubProcessor> extends AbstractTask 
       processor.process();
     } catch (RuntimeException e) {
       logger.log(Level.SEVERE, e.getMessage(), e);
+      setStatus(TaskStatus.ERROR);
+      return;
     }
     setStatus(TaskStatus.FINISHED);
   }

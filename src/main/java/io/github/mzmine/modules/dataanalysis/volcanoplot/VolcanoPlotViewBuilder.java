@@ -125,7 +125,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
     controls.setHgap(space);
     controls.setVgap(space);
     controls.getChildren().addAll(panes);
-    controls.setPadding(new Insets(5));
+    controls.setPadding(new Insets(space));
     controls.setAlignment(Pos.CENTER);
     return controls;
   }
@@ -147,7 +147,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
     final ComboBox<RowSignificanceTestModules> testComboBox = new ComboBox<>(
         FXCollections.observableList(RowSignificanceTestModules.TWO_GROUP_TESTS));
 
-    FlowPane controls = new FlowPane(Orientation.HORIZONTAL, 5, 5);
+    FlowPane controls = new FlowPane(Orientation.HORIZONTAL, space, space);
     controls.setRowValignment(VPos.CENTER);
     controls.getChildren().addAll(new Label("Test type:"), testComboBox);
 

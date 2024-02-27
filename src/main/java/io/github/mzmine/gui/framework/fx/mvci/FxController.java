@@ -66,6 +66,7 @@ public abstract class FxController<ViewModelClass> {
    */
   public void onTaskThread(@NotNull Runnable task, @Nullable Runnable postTaskGuiTask) {
     // TODO change to taskController once all PR are merged
+
     Task<Void> fxTask = new Task<>() {
       @Override
       protected Void call() {

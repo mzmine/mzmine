@@ -41,7 +41,7 @@ import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestPro
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
 import io.github.mzmine.modules.dataanalysis.significance.StatisticUtils;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
-import io.github.mzmine.taskcontrol.SimpleCalculation;
+import io.github.mzmine.taskcontrol.SimpleCalculationTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -66,7 +66,7 @@ public class VolcanoPlotInteractor extends FxInteractor<VolcanoPlotModel> {
     // ?????
   }
 
-  public void computeDataset(Runnable r) {
+  public void computeDataset() {
     final FeatureList flist = model.getSelectedFlist();
     if (flist == null) {
       return;
@@ -83,7 +83,7 @@ public class VolcanoPlotInteractor extends FxInteractor<VolcanoPlotModel> {
 
     RowSignificanceTestProcessor<?> processor = new RowSignificanceTestProcessor<>(flist.getRows(),
         model.getAbundanceMeasure(), test);
-    SimpleCalculation<RowSignificanceTestProcessor<?>> task = new SimpleCalculation<>(processor);
+    SimpleCalculationTask<RowSignificanceTestProcessor<?>> task = new SimpleCalculationTask<>(processor);
 
     MZmineCore.getTaskController().addTask(task);
     lastTask = task;
@@ -138,7 +138,6 @@ public class VolcanoPlotInteractor extends FxInteractor<VolcanoPlotModel> {
       MZmineCore.runOnFxThreadAndWait(() -> {
         model.setDatasets(datasets);
       });
-      r.run();
     });
   }
 

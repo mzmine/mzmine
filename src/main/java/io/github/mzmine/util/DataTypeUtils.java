@@ -229,8 +229,7 @@ public class DataTypeUtils {
   public static <T extends DataType<?>, M extends ModularDataModel> T getBestTypeWithValue(M row,
       @Nullable T defaultType, T... allowedTypes) {
     for (T allowedType : allowedTypes) {
-      final var type = (DataType<?>) DataTypes.get(allowedType);
-      final Object value = row.get(type);
+      final Object value = row.get((DataType<?>) allowedType);
       // if the annotation is a list we have to check if the list is not empty
       if (value != null && (!(value instanceof Collection<?> collection)
           || !collection.isEmpty())) {

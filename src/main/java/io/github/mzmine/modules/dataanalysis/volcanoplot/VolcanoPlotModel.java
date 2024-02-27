@@ -31,7 +31,9 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ProviderAndRenderer
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import java.util.Collection;
 import java.util.List;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.Nullable;
@@ -45,6 +47,8 @@ public class VolcanoPlotModel {
   private final ObjectProperty<Collection<ProviderAndRenderer>> datasets = new SimpleObjectProperty<>(
       List.of());
   private final ObjectProperty<@Nullable RowSignificanceTest> test = new SimpleObjectProperty<>();
+
+  private final DoubleProperty pValue = new SimpleDoubleProperty(0.05);
 
   public FeatureList getSelectedFlist() {
     return selectedFlist.get();
@@ -104,6 +108,18 @@ public class VolcanoPlotModel {
 
   public ObjectProperty<@Nullable RowSignificanceTest> testProperty() {
     return test;
+  }
+
+  public double getpValue() {
+    return pValue.get();
+  }
+
+  public DoubleProperty pValueProperty() {
+    return pValue;
+  }
+
+  public void setpValue(double pValue) {
+    this.pValue.set(pValue);
   }
 }
 
