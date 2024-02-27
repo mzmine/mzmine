@@ -29,8 +29,10 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import org.apache.commons.math.util.MathUtils;
 
 public class StatisticUtils {
 
@@ -38,5 +40,23 @@ public class StatisticUtils {
       AbundanceMeasure measure) {
     return group.stream().map(file -> measure.get((ModularFeature) row.getFeature(file)))
         .filter(Objects::nonNull).mapToDouble(Float::doubleValue).toArray();
+  }
+
+  public static double[] calculateLog2FoldChange(List<RowSignificanceTestResult> testResults,
+      List<RawDataFile> groupAFiles, List<RawDataFile> groupBFiles,
+      AbundanceMeasure abundanceMeasure) {
+    return testResults.stream().mapToDouble(result -> {
+      return calculateLog2FoldChange(groupAFiles, groupBFiles, abundanceMeasure, result);
+    }).toArray();
+  }
+
+  public static double calculateLog2FoldChange(List<RawDataFile> groupAFiles, List<RawDataFile> groupBFiles,
+      AbundanceMeasure abundanceMeasure, RowSignificanceTestResult result) {
+    final double[] ab1 = StatisticUtils.extractAbundance(result.row(), groupAFiles,
+        abundanceMeasure);
+    final double[] abB = StatisticUtils.extractAbundance(result.row(), groupBFiles,
+        abundanceMeasure);
+    return MathUtils.log(2,
+        Arrays.stream(ab1).average().getAsDouble() / Arrays.stream(abB).average().getAsDouble());
   }
 }

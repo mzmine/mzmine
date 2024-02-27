@@ -23,17 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.chartbasics.simplechart.providers;
+package io.github.mzmine.gui.chartbasics.simplechart.datasets;
 
-/**
- * This provider holds objects (scans or features) that are connected to the XYItems in an XYDataSet
- * and chart.
- *
- * @param <T>
- * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
- */
-public interface XYItemObjectProvider<T> {
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 
-  T getItemObject(int item);
+public record DatasetAndRenderer(ColoredXYDataset dataset, XYItemRenderer renderer) {
 
 }

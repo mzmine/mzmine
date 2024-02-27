@@ -26,18 +26,25 @@
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModules;
+import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
 import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import java.awt.BasicStroke;
 import java.awt.Stroke;
 import java.text.DecimalFormat;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -57,6 +64,7 @@ import javafx.scene.layout.Region;
 import org.apache.commons.math.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.annotations.XYLineAnnotation;
+import org.jfree.data.xy.XYDataset;
 
 public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
@@ -64,6 +72,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
   private final int space = 5;
   private final Stroke annotationStroke = new BasicStroke(1.0f);
+  private SimpleXYChart<PlotXYDataProvider> chart;
 
   public VolcanoPlotViewBuilder(VolcanoPlotModel model) {
     super(model);
@@ -73,8 +82,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
   public Region build() {
 
     final BorderPane mainPane = new BorderPane();
-    final SimpleXYChart<PlotXYDataProvider> chart = new SimpleXYChart<>("Volcano plot",
-        "log2(fold change)", "-log10(p-Value)");
+    chart = new SimpleXYChart<>("Volcano plot", "log2(fold change)", "-log10(p-Value)");
     mainPane.setCenter(chart);
 
     final HBox pValueBox = createPValueBox();
@@ -91,7 +99,11 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
             .getNeutralColorAWT();
         chart.removeAllDatasets();
         chart.getXYPlot().clearAnnotations();
-        n.forEach(chart::addDataset);
+        if (n == null) {
+          return;
+        }
+        n.forEach(datasetAndRenderer -> chart.addDataset(datasetAndRenderer.dataset(),
+            datasetAndRenderer.renderer()));
 
         // p-Value line
         final XYLineAnnotation pValueLine = new XYLineAnnotation(-1000d,
@@ -109,19 +121,20 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
       });
     });
 
+    addChartValueListener();
+
     return mainPane;
   }
 
   @NotNull
   private HBox createPValueBox() {
     final HBox pValueBox = new HBox(space);
-
-    Label label = new Label("p-Value");
-    final DoubleComponent pValueComponent = new DoubleComponent(20, 0.0, 1d,
+    Label label = new Label("p-Value:");
+    final DoubleComponent pValueComponent = new DoubleComponent(100, 0.0, 1d,
         new DecimalFormat("0.###"), 0.05);
     Bindings.bindBidirectional(pValueComponent.getTextField().textProperty(),
         model.pValueProperty(), new DecimalFormat("0.###"));
-    pValueBox.getChildren().addAll(label, pValueComponent);
+    pValueBox.getChildren().addAll(label, pValueComponent.getTextField());
     return pValueBox;
   }
 
@@ -196,5 +209,68 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
     testComboBox.getSelectionModel().selectFirst();
     return controls;
+  }
+
+  private void addChartValueListener() {
+    chart.cursorPositionProperty().addListener((obs, o, pos) -> {
+      final XYDataset dataset = pos.getDataset();
+      if (!(dataset instanceof ColoredXYDataset cds)) {
+        return;
+      }
+      if (!(cds.getValueProvider() instanceof XYItemObjectProvider<?> provider)) {
+        return;
+      }
+      final int index = pos.getValueIndex();
+      final Object item = provider.getItemObject(index);
+      if (item instanceof RowSignificanceTestResult testResult) {
+        model.selectedRowsProperty().set(List.of(testResult.row()));
+      }
+    });
+  }
+
+  // todo: enable as soon as we merge the pr with mvci row listener interfaces.
+  private void initializeExternalSelectedRowListener() {
+    model.selectedRowsProperty().addListener((obs, o, rows) -> {
+      // todo: this listener should be executed on a seperate thread to not stop the gui from
+      //  working while looping through the values
+      //  is it best practice to do this searching from the controller?
+      //  then the controller needs to access this view's chart.
+      //  Otherwise this view needs to be able to start a task on the controller.
+      if (rows.isEmpty()) {
+        return;
+      }
+
+      final FeatureListRow selectedRow = rows.get(0);
+      final LinkedHashMap<Integer, XYDataset> datasets = chart.getAllDatasets();
+      for (XYDataset dataset : datasets.values()) {
+        if (!(dataset instanceof ColoredXYDataset cds)) {
+          continue;
+        }
+        final XYValueProvider valueProvider = cds.getValueProvider();
+        if (!(valueProvider instanceof XYItemObjectProvider<?> provider)) {
+          return;
+        }
+        for (int i = 0; i < valueProvider.getValueCount(); i++) {
+          final Object itemObject = provider.getItemObject(i);
+          if (!(itemObject instanceof RowSignificanceTestResult result)) {
+            continue;
+          }
+          if (result.row().equals(selectedRow)) {
+            logger.finest(
+                STR."Selecting row id \{selectedRow.getID()} in dataset \{cds.getSeriesKey()}.");
+
+            int finalI = i;
+            // todo: only this should be done on the fx thread
+            chart.applyWithNotifyChanges(false, () -> {
+              chart.setCursorPosition(new PlotCursorPosition(valueProvider.getDomainValue(finalI),
+                  valueProvider.getRangeValue(finalI), finalI, dataset));
+              chart.getXYPlot().setDomainCrosshairValue(valueProvider.getDomainValue(finalI));
+              chart.getXYPlot().setRangeCrosshairValue(valueProvider.getRangeValue(finalI));
+            });
+            return;
+          }
+        }
+      }
+    });
   }
 }

@@ -30,6 +30,7 @@ import io.github.mzmine.gui.framework.fx.mvci.FxController;
 import io.github.mzmine.gui.framework.fx.mvci.FxInteractor;
 import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
 import java.util.List;
+import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
@@ -63,14 +64,19 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> {
     model.flistsProperty().addListener(_ -> computeDataset());
     model.abundanceMeasureProperty().addListener(_ -> computeDataset());
     model.selectedFlistProperty().addListener(_ -> computeDataset());
+    model.pValueProperty().addListener(_ -> computeDataset());
   }
 
   private void computeDataset() {
-    interactor.computeDataset();
+    onTaskThread("compute dataset", interactor::computeDataset, interactor::updateModel);
   }
 
   public void setFeatureList(FeatureList flist) {
     model.setSelectedFlist(flist);
+  }
+
+  public ObjectProperty<List<FeatureList>> featureListsProperty() {
+    return model.flistsProperty();
   }
 
   public Region getView() {

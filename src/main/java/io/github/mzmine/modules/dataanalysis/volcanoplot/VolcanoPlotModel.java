@@ -27,7 +27,8 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.ProviderAndRenderer;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import java.util.Collection;
 import java.util.List;
@@ -35,20 +36,21 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.Nullable;
 
 public class VolcanoPlotModel {
 
   private final ObjectProperty<FeatureList> selectedFlist = new SimpleObjectProperty<>();
-  private final ObjectProperty<ObservableList<FeatureList>> flists = new SimpleObjectProperty<>();
+  private final ObjectProperty<List<FeatureList>> flists = new SimpleObjectProperty<>();
   private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>(
       AbundanceMeasure.Height);
-  private final ObjectProperty<Collection<ProviderAndRenderer>> datasets = new SimpleObjectProperty<>(
+  private final ObjectProperty<Collection<DatasetAndRenderer>> datasets = new SimpleObjectProperty<>(
       List.of());
   private final ObjectProperty<@Nullable RowSignificanceTest> test = new SimpleObjectProperty<>();
 
   private final DoubleProperty pValue = new SimpleDoubleProperty(0.05);
+
+  private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
 
   public FeatureList getSelectedFlist() {
     return selectedFlist.get();
@@ -62,16 +64,16 @@ public class VolcanoPlotModel {
     return selectedFlist;
   }
 
-  public ObservableList<FeatureList> getFlists() {
+  public List<FeatureList> getFlists() {
     return flists.get();
   }
 
-  public void setFlists(ObservableList<FeatureList> flists) {
-    this.flists.set(flists);
+  public ObjectProperty<List<FeatureList>> flistsProperty() {
+    return flists;
   }
 
-  public ObjectProperty<ObservableList<FeatureList>> flistsProperty() {
-    return flists;
+  public void setFlists(List<FeatureList> flists) {
+    this.flists.set(flists);
   }
 
   public AbundanceMeasure getAbundanceMeasure() {
@@ -86,15 +88,15 @@ public class VolcanoPlotModel {
     return abundanceMeasure;
   }
 
-  public Collection<ProviderAndRenderer> getDatasets() {
+  public Collection<DatasetAndRenderer> getDatasets() {
     return datasets.get();
   }
 
-  public void setDatasets(Collection<ProviderAndRenderer> datasets) {
+  public void setDatasets(Collection<DatasetAndRenderer> datasets) {
     this.datasets.set(datasets);
   }
 
-  public ObjectProperty<Collection<ProviderAndRenderer>> datasetsProperty() {
+  public ObjectProperty<Collection<DatasetAndRenderer>> datasetsProperty() {
     return datasets;
   }
 
@@ -120,6 +122,18 @@ public class VolcanoPlotModel {
 
   public void setpValue(double pValue) {
     this.pValue.set(pValue);
+  }
+
+  public List<FeatureListRow> getSelectedRows() {
+    return selectedRows.get();
+  }
+
+  public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
+    return selectedRows;
+  }
+
+  public void setSelectedRows(List<FeatureListRow> selectedRows) {
+    this.selectedRows.set(selectedRows);
   }
 }
 
