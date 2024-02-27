@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -88,4 +88,14 @@ public class MetadataGroupSelectionComponent extends VBox {
     return new MetadataGroupSelection(column.trim(), group.trim());
   }
 
+  public void setValue(MetadataGroupSelection value) {
+    if (value == null) {
+      groupField.setText("");
+      columnField.setText("");
+      return;
+    }
+
+    groupField.setText(value.groupStr());
+    columnField.setText(value.columnName());
+  }
 }

@@ -99,18 +99,24 @@ public class MetadataGroupSelectionParameter implements
   @Override
   public void setValueFromComponent(
       MetadataGroupSelectionComponent metadataGroupSelectionComponent) {
-
+    this.value = metadataGroupSelectionComponent.getValue();
   }
 
   @Override
   public void setValueToComponent(MetadataGroupSelectionComponent metadataGroupSelectionComponent,
       @Nullable MetadataGroupSelection newValue) {
-
+    metadataGroupSelectionComponent.setValue(newValue);
   }
 
   @Override
   public UserParameter<MetadataGroupSelection, MetadataGroupSelectionComponent> cloneParameter() {
-    return null;
+    final MetadataGroupSelectionParameter param = new MetadataGroupSelectionParameter(name, descr);
+    if (value == null) {
+      param.setValue(null);
+      return param;
+    }
+    param.setValue(new MetadataGroupSelection(value.columnName(), value.groupStr()));
+    return param;
   }
 
 }
