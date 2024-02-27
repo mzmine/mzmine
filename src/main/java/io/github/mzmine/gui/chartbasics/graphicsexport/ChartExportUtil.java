@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,18 @@
 
 package io.github.mzmine.gui.chartbasics.graphicsexport;
 
+import com.lowagie.text.Document;
+import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.DefaultFontMapper;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfTemplate;
+import com.lowagie.text.pdf.PdfWriter;
+import io.github.mzmine.gui.chartbasics.ChartLogics;
+import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
+import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters.FixedSize;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -42,6 +54,8 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import javax.swing.JMenuItem;
+import net.sf.epsgraphics.ColorMode;
+import net.sf.epsgraphics.EpsGraphics;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.batik.svggen.SVGGraphics2DIOException;
@@ -56,21 +70,6 @@ import org.jfree.chart.encoders.ImageFormat;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.util.Args;
 import org.w3c.dom.DOMImplementation;
-import com.itextpdf.awt.DefaultFontMapper;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.pdf.PdfContentByte;
-import com.itextpdf.text.pdf.PdfTemplate;
-import com.itextpdf.text.pdf.PdfWriter;
-import io.github.mzmine.gui.chartbasics.ChartLogics;
-import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
-import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportParameters.FixedSize;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.javafx.FxColorUtil;
-import net.sf.epsgraphics.ColorMode;
-import net.sf.epsgraphics.EpsGraphics;
 
 /**
  * Graphics export of JFreeCharts to different vector and pixel graphics formats.
@@ -89,10 +88,10 @@ public class ChartExportUtil {
   public static void addExportDialogToMenu(final ChartPanel cp) {
     JMenuItem exportGraphics = new JMenuItem("Export graphics...");
     exportGraphics.addActionListener(e -> {
-      
-      GraphicsExportParameters parameters = (GraphicsExportParameters) MZmineCore
-          .getConfiguration().getModuleParameters(GraphicsExportModule.class);
-      
+
+      GraphicsExportParameters parameters = (GraphicsExportParameters) MZmineCore.getConfiguration()
+          .getModuleParameters(GraphicsExportModule.class);
+
       MZmineCore.getModuleInstance(GraphicsExportModule.class)
           .openDialog(cp.getChart(), parameters);
     });
@@ -143,7 +142,7 @@ public class ChartExportUtil {
     // reset size
     sett.setPixelSize(oldW, oldH);
   }
-  
+
   /**
    * takes Only Width in account
    *
@@ -247,12 +246,15 @@ public class ChartExportUtil {
     //
     chart.setBackgroundPaint(saved);
     chart.setBackgroundImageAlpha(255);
-    if (chart.getLegend() != null)
+    if (chart.getLegend() != null) {
       chart.getLegend().setBackgroundPaint(saved);
+    }
     // legends and stuff
-    for (int i = 0; i < chart.getSubtitleCount(); i++)
-      if (PaintScaleLegend.class.isAssignableFrom(chart.getSubtitle(i).getClass()))
+    for (int i = 0; i < chart.getSubtitleCount(); i++) {
+      if (PaintScaleLegend.class.isAssignableFrom(chart.getSubtitle(i).getClass())) {
         ((PaintScaleLegend) chart.getSubtitle(i)).setBackgroundPaint(saved);
+      }
+    }
 
     // apply bg
     chart.getPlot().setBackgroundPaint(saved);
@@ -307,9 +309,9 @@ public class ChartExportUtil {
 
   public static void writeChartToPNG(JFreeChart chart, ChartRenderingInfo info, int width,
       int height, File fileName, int resolution) throws IOException {
-    if (resolution == 72)
+    if (resolution == 72) {
       writeChartToPNG(chart, info, width, height, fileName);
-    else {
+    } else {
       OutputStream out = new BufferedOutputStream(new FileOutputStream(fileName));
       try {
         BufferedImage image = paintScaledChartToBufferedImage(chart, info, out, width, height,
@@ -333,20 +335,23 @@ public class ChartExportUtil {
     if (((Color) saved).getAlpha() == 0) {
       chart.setBackgroundPaint(Color.WHITE);
       chart.setBackgroundImageAlpha(255);
-      if (chart.getLegend() != null)
+      if (chart.getLegend() != null) {
         chart.getLegend().setBackgroundPaint(Color.WHITE);
+      }
       // legends and stuff
-      for (int i = 0; i < chart.getSubtitleCount(); i++)
-        if (PaintScaleLegend.class.isAssignableFrom(chart.getSubtitle(i).getClass()))
+      for (int i = 0; i < chart.getSubtitleCount(); i++) {
+        if (PaintScaleLegend.class.isAssignableFrom(chart.getSubtitle(i).getClass())) {
           ((PaintScaleLegend) chart.getSubtitle(i)).setBackgroundPaint(Color.WHITE);
+        }
+      }
 
       // apply bg
       chart.getPlot().setBackgroundPaint(Color.WHITE);
     }
     //
-    if (resolution == 72)
+    if (resolution == 72) {
       writeChartToJPEG(chart, width, height, fileName);
-    else {
+    } else {
       OutputStream out = new BufferedOutputStream(new FileOutputStream(fileName));
       try {
         BufferedImage image = paintScaledChartToBufferedImage(chart, info, out, width, height,

@@ -118,7 +118,7 @@ public class LipidAnnotationTask extends AbstractTask {
           .getParameter(LipidAnnotationMSMSParameters.keepUnconfirmedAnnotations).getValue();
       this.minMsMsScore = (parameters.getParameter(LipidAnnotationParameters.searchForMSMSFragments)
           .getEmbeddedParameters().getParameter(LipidAnnotationMSMSParameters.minimumMsMsScore)
-          .getValue() * 100);
+          .getValue());
     } else {
       this.keepUnconfirmedAnnotations = true;
     }

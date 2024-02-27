@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,15 @@
 
 package io.github.mzmine.util.swing;
 
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfGraphics2D;
+import com.lowagie.text.pdf.PdfTemplate;
+import com.lowagie.text.pdf.PdfWriter;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.io.File;
@@ -35,39 +44,24 @@ import java.io.Writer;
 import java.text.MessageFormat;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
+import net.sf.epsgraphics.ColorMode;
+import net.sf.epsgraphics.EpsGraphics;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.freehep.graphics2d.VectorGraphics;
 import org.freehep.graphicsio.emf.EMFGraphics2D;
 import org.w3c.dom.DOMImplementation;
-import com.itextpdf.awt.DefaultFontMapper;
-import com.itextpdf.awt.PdfGraphics2D;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.pdf.PdfContentByte;
-import com.itextpdf.text.pdf.PdfTemplate;
-import com.itextpdf.text.pdf.PdfWriter;
-
-import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
-import net.sf.epsgraphics.ColorMode;
-import net.sf.epsgraphics.EpsGraphics;
 
 /**
  * Export swing components to pdf, emf, eps
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class SwingExportUtil {
+
   private static final Logger logger = Logger.getLogger(SwingExportUtil.class.getName());
 
   /**
-   * 
-   * @param panel
-   * @param path
-   * @param fileName
    * @param format without . (ALL, PDF, EMF, EPS, SVG). ALL = export all at once
    */
   public static void writeToGraphics(JComponent panel, File file, String format)
@@ -104,7 +98,7 @@ public class SwingExportUtil {
 
   /**
    * Writes swing to pdf
-   * 
+   *
    * @param panel
    * @param fileName
    * @throws DocumentException
@@ -125,7 +119,7 @@ public class SwingExportUtil {
       document.open();
       PdfContentByte contentByte = writer.getDirectContent();
       PdfTemplate template = contentByte.createTemplate(width, height);
-      Graphics2D g2 = new PdfGraphics2D(contentByte, width, height, new DefaultFontMapper());
+      Graphics2D g2 = new PdfGraphics2D(contentByte, width, height);
       panel.print(g2);
       g2.dispose();
       contentByte.addTemplate(template, 0, 0);
@@ -140,7 +134,7 @@ public class SwingExportUtil {
 
   /**
    * Writes swing to EPS
-   * 
+   *
    * @param panel
    * @param fileName
    * @throws Exception
@@ -161,7 +155,7 @@ public class SwingExportUtil {
 
   /**
    * Writes swing to EMF
-   * 
+   *
    * @param panel
    * @param fileName
    * @throws Exception
@@ -204,7 +198,7 @@ public class SwingExportUtil {
 
   /**
    * Writes swing to pdf
-   * 
+   *
    * @param panel
    * @param path
    * @param fileName
@@ -217,7 +211,7 @@ public class SwingExportUtil {
 
   /**
    * Writes swing to EPS
-   * 
+   *
    * @param panel
    * @param path
    * @param fileName
@@ -229,7 +223,7 @@ public class SwingExportUtil {
 
   /**
    * Writes swing to EMF
-   * 
+   *
    * @param panel
    * @param path
    * @param fileName
@@ -241,7 +235,7 @@ public class SwingExportUtil {
 
   /**
    * Writes swing to SVG (scalable vector graphics)
-   * 
+   *
    * @param panel
    * @param path
    * @param fileName
