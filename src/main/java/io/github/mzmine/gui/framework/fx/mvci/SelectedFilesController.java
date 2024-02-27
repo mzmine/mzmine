@@ -25,13 +25,10 @@
 
 package io.github.mzmine.gui.framework.fx.mvci;
 
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.RawDataFile;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
-import org.jetbrains.annotations.Nullable;
 
-public interface SelectedFeatureController {
-
-  ObjectProperty<@Nullable Feature> selectedFeatureProperty();
-  ObjectProperty<List<Feature>> selectedFeaturesProperty();
+public interface SelectedFilesController {
+  ObjectProperty<List<RawDataFile>> selectedRawFilesProperty();
 }
