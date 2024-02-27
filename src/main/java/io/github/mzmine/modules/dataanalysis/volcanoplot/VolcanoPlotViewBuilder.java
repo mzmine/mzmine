@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
@@ -35,11 +34,14 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModules;
 import io.github.mzmine.parameters.ValuePropertyComponent;
+import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import java.awt.BasicStroke;
 import java.awt.Stroke;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -52,6 +54,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import org.apache.commons.math.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.annotations.XYLineAnnotation;
 
@@ -74,11 +77,11 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
         "log2(fold change)", "-log10(p-Value)");
     mainPane.setCenter(chart);
 
+    final HBox pValueBox = createPValueBox();
     final HBox abundanceBox = createAbundanceBox();
-    final HBox featureListBox = createFeatureListBox();
     final Region testConfigPane = createTestParametersPane();
 
-    final FlowPane controls = createControlsPane(featureListBox, abundanceBox, testConfigPane);
+    final FlowPane controls = createControlsPane(pValueBox, abundanceBox, testConfigPane);
     mainPane.setBottom(controls);
 
     chart.setDefaultRenderer(new ColoredXYShapeRenderer());
@@ -90,10 +93,14 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
         chart.getXYPlot().clearAnnotations();
         n.forEach(chart::addDataset);
 
-        final XYLineAnnotation pValueLine = new XYLineAnnotation(-1000d, 1.301029996, 1000d,
-            1.301029996, annotationStroke, neutralColor);
-        final XYLineAnnotation leftFoldChange = new XYLineAnnotation(-1, 1000, -1, -1000,
-            annotationStroke, neutralColor);
+        // p-Value line
+        final XYLineAnnotation pValueLine = new XYLineAnnotation(-1000d,
+            -Math.log10(model.getpValue()), 1000d, -Math.log10(model.getpValue()), annotationStroke,
+            neutralColor);
+        // annotation for fold change (a/b) = 0.5 (half)
+        final XYLineAnnotation leftFoldChange = new XYLineAnnotation(MathUtils.log(2, 0.5), 1000,
+            MathUtils.log(2, 0.5), -1000, annotationStroke, neutralColor);
+        // annotation for fold change (a/b) = 2 (double)
         final XYLineAnnotation rightFoldChange = new XYLineAnnotation(1, 1000, 1, -1000,
             annotationStroke, neutralColor);
         chart.getXYPlot().addAnnotation(pValueLine);
@@ -106,16 +113,16 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
   }
 
   @NotNull
-  private HBox createFeatureListBox() {
-    final HBox featureListBox = new HBox(space);
-    final ComboBox<FeatureList> flistBox = new ComboBox<>();
-    flistBox.itemsProperty().bindBidirectional(model.flistsProperty());
-    flistBox.valueProperty().bindBidirectional(model.selectedFlistProperty());
-    featureListBox.getChildren().addAll(new Label("Feature list:"), flistBox);
-    if (!flistBox.getItems().isEmpty()) {
-      flistBox.getSelectionModel().select(0);
-    }
-    return featureListBox;
+  private HBox createPValueBox() {
+    final HBox pValueBox = new HBox(space);
+
+    Label label = new Label("p-Value");
+    final DoubleComponent pValueComponent = new DoubleComponent(20, 0.0, 1d,
+        new DecimalFormat("0.###"), 0.05);
+    Bindings.bindBidirectional(pValueComponent.getTextField().textProperty(),
+        model.pValueProperty(), new DecimalFormat("0.###"));
+    pValueBox.getChildren().addAll(label, pValueComponent);
+    return pValueBox;
   }
 
   @NotNull

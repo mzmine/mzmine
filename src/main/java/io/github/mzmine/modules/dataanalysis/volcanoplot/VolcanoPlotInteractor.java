@@ -56,6 +56,7 @@ import org.apache.commons.math.util.MathUtils;
 public class VolcanoPlotInteractor extends FxInteractor<VolcanoPlotModel> {
 
   private Task lastTask = null;
+  private List<ProviderAndRenderer> temporaryDatasets;
 
   public VolcanoPlotInteractor(VolcanoPlotModel model) {
     super(model);
@@ -63,7 +64,8 @@ public class VolcanoPlotInteractor extends FxInteractor<VolcanoPlotModel> {
 
   @Override
   public void updateModel() {
-    // ?????
+    model.setDatasets(temporaryDatasets);
+    temporaryDatasets = null;
   }
 
   public void computeDataset() {
@@ -83,62 +85,66 @@ public class VolcanoPlotInteractor extends FxInteractor<VolcanoPlotModel> {
 
     RowSignificanceTestProcessor<?> processor = new RowSignificanceTestProcessor<>(flist.getRows(),
         model.getAbundanceMeasure(), test);
-    SimpleCalculationTask<RowSignificanceTestProcessor<?>> task = new SimpleCalculationTask<>(processor);
+    SimpleCalculationTask<RowSignificanceTestProcessor<?>> task = new SimpleCalculationTask<>(
+        processor);
 
     MZmineCore.getTaskController().addTask(task);
     lastTask = task;
     task.setOnFinished(() -> {
-      lastTask = null;
-      final List<RowSignificanceTestResult> rowSignificanceTestResults = task.getProcessor().get();
-      final Map<DataType<?>, List<RowSignificanceTestResult>> dataTypeMap = DataTypeUtils.groupByBestDataType(
-          rowSignificanceTestResults, RowSignificanceTestResult::row, true,
-          FeatureAnnotationPriority.getDataTypesInOrder());
-
-      if (!(test instanceof StudentTTest<?> ttest)) {
-        return;
-      }
-
-      final List<RawDataFile> groupAFiles = ttest.getGroupAFiles();
-      final List<RawDataFile> groupBFiles = ttest.getGroupBFiles();
-
-      final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
-      List<ProviderAndRenderer> datasets = new ArrayList<>();
-      colors.resetColorCounter(); // set color index to 0
-      for (Entry<DataType<?>, List<RowSignificanceTestResult>> entry : dataTypeMap.entrySet()) {
-        final DataType<?> type = entry.getKey();
-        final List<RowSignificanceTestResult> testResults = entry.getValue();
-
-        final List<RowSignificanceTestResult> significantRows = testResults.stream()
-            .filter(result -> result.pValue() < 0.05).toList();
-        final List<RowSignificanceTestResult> insignificantRows = testResults.stream()
-            .filter(result -> result.pValue() >= 0.05).toList();
-
-        final Color color = colors.getNextColorAWT();
-        if (!significantRows.isEmpty()) {
-          final double[] log2FoldChangeSignificant = calculateLog2FoldChange(significantRows,
-              groupAFiles, groupBFiles);
-          var provider = new AnyXYProvider(color,
-              STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "not annotated"
-                  : type.getHeaderString()} (p < 0.05)", significantRows.size(),
-              i -> log2FoldChangeSignificant[i], i -> -Math.log10(significantRows.get(i).pValue()));
-          datasets.add(new ProviderAndRenderer(provider, new ColoredXYShapeRenderer(false)));
-        }
-        if (!insignificantRows.isEmpty()) {
-          final double[] log2FoldChangeInsignificant = calculateLog2FoldChange(insignificantRows,
-              groupAFiles, groupBFiles);
-          var provider = new AnyXYProvider(color,
-              STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "not annotated"
-                  : type.getHeaderString()} (p ≥ 0.05)", insignificantRows.size(),
-              i -> log2FoldChangeInsignificant[i],
-              i -> -Math.log10(insignificantRows.get(i).pValue()));
-          datasets.add(new ProviderAndRenderer(provider, new ColoredXYShapeRenderer(true)));
-        }
-      }
-
-      MZmineCore.runOnFxThreadAndWait(() -> {
-        model.setDatasets(datasets);
-      });
+      prepareTestResultsForPresentation(task, test);
     });
+  }
+
+  private void prepareTestResultsForPresentation(
+      SimpleCalculationTask<RowSignificanceTestProcessor<?>> task, RowSignificanceTest test) {
+    lastTask = null;
+    final List<RowSignificanceTestResult> rowSignificanceTestResults = task.getProcessor().get();
+    final Map<DataType<?>, List<RowSignificanceTestResult>> dataTypeMap = DataTypeUtils.groupByBestDataType(
+        rowSignificanceTestResults, RowSignificanceTestResult::row, true,
+        FeatureAnnotationPriority.getDataTypesInOrder());
+
+    if (!(test instanceof StudentTTest<?> ttest)) {
+      return;
+    }
+
+    final List<RawDataFile> groupAFiles = ttest.getGroupAFiles();
+    final List<RawDataFile> groupBFiles = ttest.getGroupBFiles();
+
+    final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
+    temporaryDatasets = new ArrayList<>();
+    colors.resetColorCounter(); // set color index to 0
+    for (Entry<DataType<?>, List<RowSignificanceTestResult>> entry : dataTypeMap.entrySet()) {
+      final DataType<?> type = entry.getKey();
+      final List<RowSignificanceTestResult> testResults = entry.getValue();
+
+      final double pValue = model.getpValue();
+
+      final List<RowSignificanceTestResult> significantRows = testResults.stream()
+          .filter(result -> result.pValue() < pValue).toList();
+      final List<RowSignificanceTestResult> insignificantRows = testResults.stream()
+          .filter(result -> result.pValue() >= pValue).toList();
+
+      final Color color = colors.getNextColorAWT();
+      if (!significantRows.isEmpty()) {
+        final double[] log2FoldChangeSignificant = calculateLog2FoldChange(significantRows,
+            groupAFiles, groupBFiles);
+        var provider = new AnyXYProvider(color,
+            STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "not annotated"
+                : type.getHeaderString()} (p < \{pValue})", significantRows.size(),
+            i -> log2FoldChangeSignificant[i], i -> -Math.log10(significantRows.get(i).pValue()));
+        temporaryDatasets.add(new ProviderAndRenderer(provider, new ColoredXYShapeRenderer(false)));
+      }
+      if (!insignificantRows.isEmpty()) {
+        final double[] log2FoldChangeInsignificant = calculateLog2FoldChange(insignificantRows,
+            groupAFiles, groupBFiles);
+        var provider = new AnyXYProvider(color,
+            STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "not annotated"
+                : type.getHeaderString()} (p ≥ \{pValue})", insignificantRows.size(),
+            i -> log2FoldChangeInsignificant[i],
+            i -> -Math.log10(insignificantRows.get(i).pValue()));
+        temporaryDatasets.add(new ProviderAndRenderer(provider, new ColoredXYShapeRenderer(true)));
+      }
+    }
   }
 
   private double[] calculateLog2FoldChange(List<RowSignificanceTestResult> testResults,
