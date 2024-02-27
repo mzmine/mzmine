@@ -41,9 +41,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A module that creates one task per feature list
+ * A module that creates one single task for all FeatureLists
  */
-public abstract class TaskPerFeatureListModule extends AbstractProcessingModule {
+public abstract class SingleTaskFeatureListsModule extends AbstractProcessingModule {
 
   /**
    * @param name              name of the module in the menu and quick access
@@ -51,7 +51,7 @@ public abstract class TaskPerFeatureListModule extends AbstractProcessingModule 
    * @param moduleCategory    module category for quick access and batch mode
    * @param description       the description of the task
    */
-  public TaskPerFeatureListModule(final @NotNull String name,
+  public SingleTaskFeatureListsModule(final @NotNull String name,
       final @Nullable Class<? extends ParameterSet> parameterSetClass,
       final @NotNull MZmineModuleCategory moduleCategory, final @NotNull String description) {
     super(name, parameterSetClass, moduleCategory, description);
@@ -70,7 +70,7 @@ public abstract class TaskPerFeatureListModule extends AbstractProcessingModule 
   @NotNull
   public abstract Task createTask(final @NotNull MZmineProject project,
       final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
-      @Nullable final MemoryMapStorage storage, @NotNull final FeatureList featureList);
+      @Nullable final MemoryMapStorage storage, @NotNull final FeatureList[] featureList);
 
   @Override
   public @NotNull ExitCode runModule(@NotNull final MZmineProject project,
@@ -81,12 +81,9 @@ public abstract class TaskPerFeatureListModule extends AbstractProcessingModule 
 
       MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
-      // create and start one task for each feature list
-      for (final FeatureList featureList : featureLists) {
-        Task newTask = createTask(project, parameters, moduleCallDate, storage, featureList);
-        // task is added to TaskManager that schedules later
-        tasks.add(newTask);
-      }
+      // create single task for all feature lists
+      Task newTask = createTask(project, parameters, moduleCallDate, storage, featureLists);
+      tasks.add(newTask);
 
     } catch (IllegalStateException ex) {
       MZmineCore.getDesktop().displayErrorMessage(ex.getMessage());

@@ -32,7 +32,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.taskcontrol.AbstractModifiableTask;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
@@ -133,7 +132,7 @@ class PrecursorDBSearchTask extends AbstractTask {
         }
         // cancelled
         if (isCanceled()) {
-          tasks.stream().forEach(AbstractModifiableTask::cancel);
+          tasks.forEach(AbstractTask::cancel);
         }
       } else {
         setStatus(TaskStatus.ERROR);

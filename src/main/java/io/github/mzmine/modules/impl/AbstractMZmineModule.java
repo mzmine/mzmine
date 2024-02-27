@@ -25,11 +25,12 @@
 
 package io.github.mzmine.modules.impl;
 
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AbstractMZmineModule {
+public class AbstractMZmineModule implements MZmineModule {
 
   protected final @NotNull String name;
   protected final @Nullable Class<? extends ParameterSet> parameterSetClass;
@@ -40,10 +41,12 @@ public class AbstractMZmineModule {
     this.parameterSetClass = parameterSetClass;
   }
 
+  @Override
   public @NotNull String getName() {
     return name;
   }
 
+  @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
     return parameterSetClass;
   }

@@ -255,7 +255,7 @@ public interface ParameterSet extends ParameterContainer {
   }
 
   @SuppressWarnings("unchecked")
-  default <T extends Parameter<?>> Stream<T> streamForClass(Class<T> parameterClass) {
+  default <V, T extends Parameter<V>> Stream<T> streamForClass(Class<T> parameterClass) {
     return Arrays.stream(getParameters()).filter(parameterClass::isInstance).map(p -> (T) p);
   }
 }

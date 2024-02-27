@@ -26,12 +26,18 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This is a simple column with type information as string. It may be used within many
+ * {@link SubColumnsFactory} types.
+ */
 public class TypeStringType extends StringType {
 
   @Override
   public @NotNull String getUniqueID() {
+    // DO NOT CHANGE
     return "type";
   }
 

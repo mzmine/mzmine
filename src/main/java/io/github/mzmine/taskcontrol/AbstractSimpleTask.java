@@ -37,6 +37,14 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * A simple task that may produce feature lists or run on raw data files. Applied methods will be
+ * added automatically to the processed files and feature lists.
+ * <p>
+ * Logic should be implemented in {@link #process()}. Progress is calculated from
+ * {@link #totalItems} and {@link #finishedItems} and incremented via
+ * {@link #incrementFinishedItems()}.
+ */
 public abstract class AbstractSimpleTask extends AbstractTask {
 
   private final ParameterSet parameters;
@@ -48,7 +56,7 @@ public abstract class AbstractSimpleTask extends AbstractTask {
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
    *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
    *                       stored in ram. For now, one storage should be created per module call in
-   * @param moduleCallDate
+   * @param moduleCallDate the call date of module to order execution order
    */
   protected AbstractSimpleTask(@Nullable final MemoryMapStorage storage,
       @NotNull final Instant moduleCallDate, @NotNull ParameterSet parameters,

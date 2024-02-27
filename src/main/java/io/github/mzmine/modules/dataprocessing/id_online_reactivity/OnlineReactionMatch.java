@@ -33,18 +33,29 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * An online reaction educt -> product relationship. Can be visualized in network
+ */
 public class OnlineReactionMatch extends InternalTypedRowsRelationship {
 
   private final OnlineReaction reaction;
 
   // internally a.getID < b.getID so they may be swapped
   private final boolean isSwappedAB;
+  private final OnlineReaction.Type typeOfThisRow;
 
+  /**
+   * @param educt         the educt row
+   * @param product       the product row
+   * @param reaction      the reaction
+   * @param typeOfThisRow the type of the row that this match was added to
+   */
   public OnlineReactionMatch(final FeatureListRow educt, final FeatureListRow product,
-      OnlineReaction reaction) {
+      OnlineReaction reaction, OnlineReaction.Type typeOfThisRow) {
     super(educt, product, Type.ONLINE_REACTION);
     this.reaction = reaction;
     isSwappedAB = getRowA() != educt;
+    this.typeOfThisRow = typeOfThisRow;
   }
 
   @Override
@@ -59,6 +70,13 @@ public class OnlineReactionMatch extends InternalTypedRowsRelationship {
 
   public OnlineReaction getReaction() {
     return reaction;
+  }
+
+  /**
+   * The type of the row this match was added to. Needed for visualization in table
+   */
+  public OnlineReaction.Type getTypeOfThisRow() {
+    return typeOfThisRow;
   }
 
   /**

@@ -28,6 +28,12 @@ package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
 import io.github.mzmine.datamodel.RawDataFile;
 import java.util.List;
 
-public record ReactionMatchingRawFiles(OnlineReaction reaction, List<RawDataFile> raws) {
+/**
+ * Intermediate record holding the matching {@link RawDataFile} for a reaction
+ *
+ * @param reaction a reaction
+ * @param raws     data files matching the filenameContains naming pattern in reaction
+ */
+record ReactionMatchingRawFiles(OnlineReaction reaction, List<RawDataFile> raws) {
 
 }

@@ -37,10 +37,16 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AbstractProcessingModule extends AbstractRunnableModule implements
     MZmineProcessingModule {
 
+  /**
+   * @param name              name of the module in the menu and quick access
+   * @param parameterSetClass the class of the parameters
+   * @param moduleCategory    module category for quick access and batch mode
+   * @param description       the description of the task
+   */
   public AbstractProcessingModule(final @NotNull String name,
       final @Nullable Class<? extends ParameterSet> parameterSetClass,
-      final @NotNull String description, final @NotNull MZmineModuleCategory moduleCategory,
-      final boolean useMemoryMapping) {
-    super(name, parameterSetClass, description, moduleCategory, useMemoryMapping);
+      final @NotNull MZmineModuleCategory moduleCategory, final @NotNull String description) {
+    super(name, parameterSetClass, moduleCategory, description);
   }
+
 }

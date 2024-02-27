@@ -51,8 +51,10 @@ public class OnlineLcReactivityModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getDescription() {
-    // TODO add later
-    return "";
+    return """
+        Searches for educt -> product relationships based on a
+        list of transformations/and reactions as smarts with delta masses.
+        """;
   }
 
   @Override

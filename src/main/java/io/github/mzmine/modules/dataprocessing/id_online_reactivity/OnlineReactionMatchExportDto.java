@@ -44,7 +44,7 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
  */
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
-public record OnlineReactionMatchExportDto(Type compoundType,
+record OnlineReactionMatchExportDto(Type compoundType,
                                            @JsonUnwrapped OnlineReaction reaction,
                                            int[] linkedIds) {
 

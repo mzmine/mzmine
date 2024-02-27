@@ -47,8 +47,8 @@ import org.jetbrains.annotations.Nullable;
 public class CodingDemoModule extends TaskPerFeatureListModule {
 
   public CodingDemoModule() {
-    super("PreDemo module", "This is a description of the amazing quest we have...",
-        MZmineModuleCategory.FEATURELISTEXPORT, false, CodingDemoParameters.class);
+    super("PreDemo module", CodingDemoParameters.class, MZmineModuleCategory.FEATURELISTEXPORT,
+        "This is a description of the amazing quest we have...");
   }
 
   @Override

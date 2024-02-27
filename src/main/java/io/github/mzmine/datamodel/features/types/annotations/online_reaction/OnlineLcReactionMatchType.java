@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.features.types.annotations.online_reaction;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.TypeStringType;
 import io.github.mzmine.datamodel.features.types.annotations.SmartsEductStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmartsReactionStructureType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
@@ -43,6 +44,7 @@ public class OnlineLcReactionMatchType extends ListWithSubsType<OnlineReactionMa
       new OnlineLcReactionMatchType(), //
       new EductIdType(), //
       new ProductIdType(), //
+      new TypeStringType(), //
       new MzAbsoluteDifferenceType(), //
       new SmartsEductStructureType(), //
       new SmartsReactionStructureType() //
@@ -63,6 +65,7 @@ public class OnlineLcReactionMatchType extends ListWithSubsType<OnlineReactionMa
       case OnlineLcReactionMatchType __ -> match;
       case EductIdType __ -> match.getEductRow().getID();
       case ProductIdType __ -> match.getProductRow().getID();
+      case TypeStringType __ -> match.getTypeOfThisRow();
       case SmartsEductStructureType __ -> reaction.eductSmarts();
       case SmartsReactionStructureType __ -> reaction.reactionSmarts();
       case MzAbsoluteDifferenceType __ -> reaction.deltaMz();

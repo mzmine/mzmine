@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.AbstractModifiableTask;
+import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.operations.AbstractTaskSubProcessor;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.SortingDirection;
@@ -60,7 +60,7 @@ public class GroupedMs2RefinementProcessor extends AbstractTaskSubProcessor {
   private final AtomicLong totalUniqueScans = new AtomicLong(0);
   private final @NotNull String description;
 
-  public GroupedMs2RefinementProcessor(AbstractModifiableTask parentTask,
+  public GroupedMs2RefinementProcessor(Task parentTask,
       final FeatureList featureList, final double minRelFeatureHeight,
       final double minAbsFeatureHeight) {
     super(parentTask);

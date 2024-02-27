@@ -29,7 +29,13 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,10 +43,30 @@ import org.jetbrains.annotations.Nullable;
  * An abstract implementation of task which defines common methods to make Task implementation
  * easier. Added task status listener
  */
-public abstract class AbstractTask extends AbstractModifiableTask {
+public abstract class AbstractTask implements Task {
 
+  private static final Logger logger = Logger.getLogger(AbstractTask.class.getName());
   protected final MemoryMapStorage storage;
   protected final Instant moduleCallDate;
+  private final StringProperty name = new SimpleStringProperty("Task name");
+  private TaskStatus status = TaskStatus.WAITING;
+  private String errorMessage = null;
+  // listener to control status changes
+  private List<TaskStatusListener> listener;
+
+  /**
+   * @param moduleCallDate the call date of module to order execution order
+   */
+  protected AbstractTask(@NotNull Instant moduleCallDate) {
+    this(moduleCallDate, "Task name");
+  }
+
+  /**
+   * @param moduleCallDate the call date of module to order execution order
+   */
+  protected AbstractTask(@NotNull Instant moduleCallDate, @NotNull String name) {
+    this(null, moduleCallDate, name);
+  }
 
   /**
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
@@ -49,11 +75,116 @@ public abstract class AbstractTask extends AbstractModifiableTask {
    *                       {@link
    *                       io.github.mzmine.modules.MZmineRunnableModule#runModule(MZmineProject,
    *                       ParameterSet, Collection, Instant)}.
-   * @param moduleCallDate
+   * @param moduleCallDate the call date of module to order execution order
    */
   protected AbstractTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    this(storage, moduleCallDate, "Task name");
+  }
+
+  /**
+   * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
+   *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
+   *                       stored in ram. For now, one storage should be created per module call in
+   *                       {@link
+   *                       io.github.mzmine.modules.MZmineRunnableModule#runModule(MZmineProject,
+   *                       ParameterSet, Collection, Instant)}.
+   * @param moduleCallDate the call date of module to order execution order
+   */
+  protected AbstractTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
+      @NotNull String name) {
+    this.name.set(name);
     this.storage = storage;
     this.moduleCallDate = moduleCallDate;
+  }
+
+
+  public final String getName() {
+    return name.get();
+  }
+
+  public final void setName(String value) {
+    name.set(value);
+  }
+
+  public StringProperty nameProperty() {
+    return name;
+  }
+
+  @Override
+  public void cancel() {
+    if (!isFinished()) {
+      setStatus(TaskStatus.CANCELED);
+    }
+  }
+
+  @Override
+  public void error(@NotNull String message, @Nullable Exception exceptionToLog) {
+    if (exceptionToLog != null) {
+      logger.log(Level.SEVERE, message, exceptionToLog);
+    }
+    setErrorMessage(message);
+    setStatus(TaskStatus.ERROR);
+  }
+
+  @Override
+  public final String getErrorMessage() {
+    return errorMessage;
+  }
+
+  public final void setErrorMessage(String errorMessage) {
+    this.errorMessage = errorMessage;
+  }
+
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.NORMAL;
+  }
+
+  /**
+   * Returns the TaskStatus of this Task
+   *
+   * @return The current status of this task
+   */
+  @Override
+  public final TaskStatus getStatus() {
+    return this.status;
+  }
+
+  /**
+   *
+   */
+  public final void setStatus(TaskStatus newStatus) {
+    TaskStatus old = status;
+    this.status = newStatus;
+    if (listener != null && !status.equals(old)) {
+      for (int i = 0; i < listener.size(); i++) {
+        listener.get(i).taskStatusChanged(this, status, old);
+      }
+    }
+  }
+
+  @Override
+  public void addTaskStatusListener(TaskStatusListener list) {
+    if (listener == null) {
+      listener = new ArrayList<>();
+    }
+    listener.add(list);
+  }
+
+  @Override
+  public boolean removeTaskStatusListener(TaskStatusListener list) {
+    if (listener != null) {
+      return listener.remove(list);
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public void clearTaskStatusListener() {
+    if (listener != null) {
+      listener.clear();
+    }
   }
 
   /**

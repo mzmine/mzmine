@@ -34,6 +34,9 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * A {@link AbstractSimpleTask} that produces raw data files.
+ */
 public abstract class AbstractRawDataFileTask extends AbstractSimpleTask {
 
 
@@ -41,7 +44,7 @@ public abstract class AbstractRawDataFileTask extends AbstractSimpleTask {
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
    *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
    *                       stored in ram. For now, one storage should be created per module call in
-   * @param moduleCallDate
+   * @param moduleCallDate the call date of module to order execution order
    */
   protected AbstractRawDataFileTask(@Nullable final MemoryMapStorage storage,
       @NotNull final Instant moduleCallDate, @NotNull ParameterSet parameters,

@@ -47,8 +47,8 @@ import org.jetbrains.annotations.Nullable;
 public class StarterFeatureListModule extends TaskPerFeatureListModule {
 
   public StarterFeatureListModule() {
-    super("name", "description", MZmineModuleCategory.FEATURELISTFILTERING, false,
-        StarterFeatureListParameters.class);
+    super("name", StarterFeatureListParameters.class, MZmineModuleCategory.FEATURELISTFILTERING,
+        "description");
   }
 
   @Override

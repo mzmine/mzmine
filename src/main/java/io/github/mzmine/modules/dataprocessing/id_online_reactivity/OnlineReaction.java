@@ -32,6 +32,16 @@ import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A reaction that can be loaded from csv/tsv or json
+ *
+ * @param reactionName     the name of a reaction
+ * @param filenameContains raw data file names will be filtered to contain this sub string (case
+ *                         insensitive)
+ * @param eductSmarts
+ * @param reactionSmarts
+ * @param deltaMz
+ */
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
 public record OnlineReaction(String reactionName, String filenameContains, String eductSmarts,

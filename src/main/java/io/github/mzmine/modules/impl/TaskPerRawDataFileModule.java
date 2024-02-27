@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -44,11 +45,18 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class TaskPerRawDataFileModule extends AbstractProcessingModule {
 
-  public TaskPerRawDataFileModule(@NotNull final String name, @NotNull final String description,
-      @NotNull final MZmineModuleCategory moduleCategory, final boolean useMemoryMapping,
-      @Nullable final Class<? extends ParameterSet> parameterSetClass) {
-    super(name, parameterSetClass, description, moduleCategory, useMemoryMapping);
+  /**
+   * @param name              name of the module in the menu and quick access
+   * @param parameterSetClass the class of the parameters
+   * @param moduleCategory    module category for quick access and batch mode
+   * @param description       the description of the task
+   */
+  public TaskPerRawDataFileModule(final @NotNull String name,
+      final @Nullable Class<? extends ParameterSet> parameterSetClass,
+      final @NotNull MZmineModuleCategory moduleCategory, final @NotNull String description) {
+    super(name, parameterSetClass, moduleCategory, description);
   }
+
 
   /**
    * Creates a task for each RawDataFile
@@ -56,7 +64,7 @@ public abstract class TaskPerRawDataFileModule extends AbstractProcessingModule 
    * @param project        the mzmine project
    * @param parameters     the parameter set
    * @param moduleCallDate call date of the module
-   * @param storage        memory mapping if active by {@link #useMemoryMapping}
+   * @param storage        memory mapping if active in config
    * @param raw            the raw data file extracted from a {@link RawDataFilesParameter}
    * @return a new task instance that will be added to the task controller
    */
@@ -70,30 +78,22 @@ public abstract class TaskPerRawDataFileModule extends AbstractProcessingModule 
       @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
       @NotNull final Instant moduleCallDate) {
 
-    // get parameters here only needed to run one task per RawDataFile
-    var rawFilesParameter = parameters.streamForClass(RawDataFilesParameter.class).toList();
-    int nRawFiles = rawFilesParameter.size();
-    if (rawFilesParameter.isEmpty()) {
-      MZmineCore.getDesktop().displayErrorMessage(
-          "There is no RawDataFilesParameter (needs 1) in class " + getClass().getName());
-      return ExitCode.ERROR;
-    }
-    if (nRawFiles > 1) {
-      MZmineCore.getDesktop().displayErrorMessage(
-          STR."There are too many (\{nRawFiles}) RawDataFilesParameter in class \{getClass().getName()}. Can only have 1. Coding error.");
-      return ExitCode.ERROR;
-    }
-    // exactly one parameter for RawDataFiles found
-    var rawFiles = parameters.getValue(rawFilesParameter.getFirst()).getMatchingRawDataFiles();
+    try {
+      var rawFiles = ParameterUtils.getMatchingRawDataFilesFromParameter(parameters);
 
-    // raw data processing modules memory map to mass list storage
-    MemoryMapStorage storage = useMemoryMapping ? MemoryMapStorage.forMassList() : null;
+      // raw data processing modules memory map to mass list storage
+      MemoryMapStorage storage = MemoryMapStorage.forMassList();
 
-    // create and start one task for each RawDataFile
-    for (final var raw : rawFiles) {
-      Task newTask = createTask(project, parameters, moduleCallDate, storage, raw);
-      // task is added to TaskManager that schedules later
-      tasks.add(newTask);
+      // create and start one task for each RawDataFile
+      for (final var raw : rawFiles) {
+        Task newTask = createTask(project, parameters, moduleCallDate, storage, raw);
+        // task is added to TaskManager that schedules later
+        tasks.add(newTask);
+      }
+
+    } catch (IllegalStateException ex) {
+      MZmineCore.getDesktop().displayErrorMessage(ex.getMessage());
+      return ExitCode.ERROR;
     }
 
     return ExitCode.OK;

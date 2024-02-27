@@ -41,17 +41,21 @@ public abstract class AbstractRunnableModule extends AbstractMZmineModule implem
 
   protected final @NotNull String description;
   protected final @NotNull MZmineModuleCategory moduleCategory;
-  protected final boolean useMemoryMapping;
 
+  /**
+   * @param name              name of the module in the menu and quick access
+   * @param parameterSetClass the class of the parameters
+   * @param moduleCategory    module category for quick access and batch mode
+   * @param description       the description of the task
+   */
   public AbstractRunnableModule(@NotNull final String name,
       @Nullable final Class<? extends ParameterSet> parameterSetClass,
-      @NotNull final String description, @NotNull final MZmineModuleCategory moduleCategory,
-      final boolean useMemoryMapping) {
+      @NotNull final MZmineModuleCategory moduleCategory, @NotNull final String description) {
     super(name, parameterSetClass);
     this.description = description;
     this.moduleCategory = moduleCategory;
-    this.useMemoryMapping = useMemoryMapping;
   }
+
 
   @Override
   public @NotNull String getDescription() {
@@ -62,4 +66,5 @@ public abstract class AbstractRunnableModule extends AbstractMZmineModule implem
   public @NotNull MZmineModuleCategory getModuleCategory() {
     return moduleCategory;
   }
+
 }

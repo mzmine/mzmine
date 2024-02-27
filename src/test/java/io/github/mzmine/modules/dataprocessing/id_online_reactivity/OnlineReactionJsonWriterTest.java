@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReaction.Type;
 import io.github.mzmine.util.io.CsvReader;
 import java.io.File;
 import java.io.IOException;
@@ -70,8 +71,8 @@ class OnlineReactionJsonWriterTest {
     List<OnlineReactionMatch> matches = new ArrayList<>();
     for (final OnlineReaction reaction : list) {
       // just for testing row 1 will be both a product and an educt
-      matches.add(new OnlineReactionMatch(row1, row2, reaction));
-      matches.add(new OnlineReactionMatch(row1, row3, reaction));
+      matches.add(new OnlineReactionMatch(row1, row2, reaction, Type.Educt));
+      matches.add(new OnlineReactionMatch(row1, row3, reaction, Type.Product));
     }
 
     OnlineReactionJsonWriter writer = new OnlineReactionJsonWriter(false);

@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.online_reaction.OnlineLcReactionMatchType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReaction.Type;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
@@ -231,8 +232,13 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
     flist.getRowMaps().addAllRowsRelationships(r2rMap, RowsRelationship.Type.ONLINE_REACTION);
   }
 
+  /**
+   * Load reactions and filter them out if there is no raw data file matching
+   *
+   * @return modifiable list
+   */
   @NotNull
-  private ArrayList<ReactionMatchingRawFiles> loadReactionsFilteredByRawFiles(
+  private List<ReactionMatchingRawFiles> loadReactionsFilteredByRawFiles(
       final List<RawDataFile> raws) {
     return loadReactions(reactionsFile).stream().map(reaction -> filterByRawFiles(reaction, raws))
         .filter(Objects::nonNull).collect(toCollection(ArrayList::new));
@@ -302,13 +308,13 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
         } else if (anyRawFileOverlapWithReaction(reaction, rowA, rowB)) {
           // match needs to happen also in the same raw data file
           // a is educt b is product
-          OnlineReactionMatch match = new OnlineReactionMatch(rowA, rowB, reaction.reaction());
-          matchesToAdd.add(match);
+          matchesToAdd.add(new OnlineReactionMatch(rowA, rowB, reaction.reaction(), Type.Educt));
           matches++;
 
           // add products later on one thread
           // can use the same object
-          productMatchesToAdd.add(match);
+          productMatchesToAdd.add(
+              new OnlineReactionMatch(rowA, rowB, reaction.reaction(), Type.Product));
         }
       }
     }
