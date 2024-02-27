@@ -26,7 +26,13 @@
 package io.github.mzmine.gui.framework.fx.mvci;
 
 import io.github.mzmine.main.MZmineCore;
-import javafx.concurrent.Task;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.utils.TaskUtils;
+import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +45,9 @@ import org.jetbrains.annotations.Nullable;
  * GUI or other managed thread.
  */
 public abstract class FxController<ViewModelClass> {
+
+  private final CloseableReentrantReadWriteLock taskLock = new CloseableReentrantReadWriteLock();
+  private Map<String, Task> runningTasks;
 
   @NotNull
   protected final ViewModelClass model;
@@ -58,30 +67,88 @@ public abstract class FxController<ViewModelClass> {
     MZmineCore.runLater(task);
   }
 
+
+  /**
+   * Run a task on a separate thread - for GUI updates after completion see
+   * {@link #onTaskThread(String, Runnable, Runnable)}
+   *
+   * @param task primary task run on separate thread
+   */
+  public void onTaskThread(final @NotNull Runnable task) {
+    onTaskThread(task, TaskPriority.NORMAL);
+  }
+
+  /**
+   * Run a task on a separate thread - for GUI updates after completion see
+   * {@link #onTaskThread(String, Runnable, Runnable)}
+   *
+   * @param task primary task run on separate thread
+   */
+  public void onTaskThread(final @NotNull Runnable task, final @NotNull TaskPriority priority) {
+    onTaskThread("", priority, task, null);
+  }
+
   /**
    * Run a task on a separate thread and then finally update the GUI after success
    *
+   * @param uniqueTaskName  the task name to store and find the most recent task run
    * @param task            primary task run on separate thread
-   * @param postTaskGuiTask post GUI update task
+   * @param postTaskGuiTask post GUI update task - only runs if the still running task is still the
+   *                        latest. If new tasks are scheduled this GUI task will be skipped.
    */
-  public void onTaskThread(@NotNull Runnable task, @Nullable Runnable postTaskGuiTask) {
-    // TODO change to taskController once all PR are merged
+  public void onTaskThread(final @NotNull String uniqueTaskName, final @NotNull Runnable task,
+      final @Nullable Runnable postTaskGuiTask) {
+    onTaskThread(uniqueTaskName, TaskPriority.NORMAL, task, postTaskGuiTask);
+  }
 
-    Task<Void> fxTask = new Task<>() {
-      @Override
-      protected Void call() {
-        task.run();
-        return null; // success return null
-      }
-    };
+  /**
+   * Run a task on a separate thread and then finally update the GUI after success
+   *
+   * @param uniqueTaskName  the task name to store and find the most recent task run
+   * @param task            primary task run on separate thread
+   * @param postTaskGuiTask post GUI update task - only runs if the still running task is still the
+   *                        latest. If new tasks are scheduled this GUI task will be skipped.
+   */
+  public void onTaskThread(final @NotNull String uniqueTaskName,
+      final @NotNull TaskPriority priority, final @NotNull Runnable task,
+      final @Nullable Runnable postTaskGuiTask) {
+    final Task runningTask = TaskUtils.wrapTask(task);
+
+    // if gui is updated after - add checks for latest task completion
     if (postTaskGuiTask != null) {
-      fxTask.setOnSucceeded(evt -> {
-        postTaskGuiTask.run();
+      try (var _ = taskLock.lockWrite()) {
+        if (runningTasks == null) {
+          runningTasks = new HashMap<>();
+        }
+        var oldTask = runningTasks.put(uniqueTaskName, runningTask);
+        if (oldTask != null) {
+          oldTask.cancel();
+        }
+      }
+
+      runningTask.setOnFinished(() -> {
+        // remove the old task from map and compare with the running task if equal
+        final Task oldTask = removeOldTask(uniqueTaskName);
+        if (Objects.equals(oldTask, runningTask)) {
+          // only update gui if still latest task
+          MZmineCore.runLater(postTaskGuiTask);
+        }
       });
     }
-    Thread taskThread = new Thread(fxTask);
-    taskThread.setDaemon(true);
-    taskThread.start();
+    // schedule
+    MZmineCore.getTaskController().addTask(runningTask, priority);
+  }
+
+  /**
+   * removes the task with a write lock
+   *
+   * @param taskName the name of the task in map
+   * @return the old task in map
+   */
+  private Task removeOldTask(final @NotNull String taskName) {
+    try (var _ = taskLock.lockWrite()) {
+      return runningTasks.remove(taskName);
+    }
   }
 
   /**
