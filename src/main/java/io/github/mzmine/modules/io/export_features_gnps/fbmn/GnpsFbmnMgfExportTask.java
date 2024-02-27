@@ -42,7 +42,6 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
@@ -51,6 +50,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -262,16 +262,10 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
       writer.append("SCANS=").append(rowID).write(newLine);
       writer.append("RTINSECONDS=").append(rtsForm.format(retTimeInSeconds)).write(newLine);
 
-      int msmsCharge = 1;
-      PolarityType polarity = row.getBestFeature().getRepresentativeScan().getPolarity();
-      if (row.getRowCharge() != null && row.getRowCharge() != 0) {
-        msmsCharge = row.getRowCharge();
-      } else if (msmsScan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
-        msmsCharge = dda.getPrecursorCharge() != null ? dda.getPrecursorCharge() : msmsCharge;
-      }
-      msmsCharge = msmsCharge != 0 ? Math.abs(msmsCharge) : 1; // no zero charge
+      final int charge = FeatureUtils.extractBestAbsoluteChargeState(row, msmsScan);
+      final PolarityType pol = FeatureUtils.extractBestPolarity(row, msmsScan);
+      writer.write(STR."CHARGE=\{charge}\{pol.asSingleChar()}\{newLine}");
 
-      writer.write("CHARGE=" + msmsCharge + polarity.asSingleChar() + newLine);
       writer.append("MSLEVEL=2").write(newLine);
 
       DataPoint[] dataPoints = null;
