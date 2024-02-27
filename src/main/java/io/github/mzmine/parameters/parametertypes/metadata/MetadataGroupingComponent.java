@@ -28,13 +28,13 @@ package io.github.mzmine.parameters.parametertypes.metadata;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.parameters.PropertyComponent;
+import io.github.mzmine.parameters.ValuePropertyComponent;
 import java.util.List;
 import javafx.beans.property.Property;
 import javafx.scene.control.TextField;
 import org.controlsfx.control.textfield.TextFields;
 
-public class MetadataGroupingComponent extends TextField implements PropertyComponent<String> {
+public class MetadataGroupingComponent extends TextField implements ValuePropertyComponent<String> {
 
   private final List<AvailableTypes> availableTypes;
 

@@ -28,7 +28,7 @@ package io.github.mzmine.modules.dataanalysis.significance.ttest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.PropertyComponent;
+import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.statistics.StorableTTestConfiguration;
 import io.github.mzmine.parameters.parametertypes.statistics.TTestConfigurationComponent;
 import javafx.scene.layout.Region;
@@ -48,13 +48,13 @@ public class TTestModule implements RowSignificanceTestModule<StorableTTestConfi
   }
 
   @Override
-  public @NotNull <C extends Region & PropertyComponent<StorableTTestConfiguration>> C createConfigurationComponent() {
+  public @NotNull <C extends Region & ValuePropertyComponent<StorableTTestConfiguration>> C createConfigurationComponent() {
     return (C) new TTestConfigurationComponent();
   }
 
   @Override
   public RowSignificanceTest getInstance(
-      @NotNull PropertyComponent<StorableTTestConfiguration> parameterComponent) {
+      @NotNull ValuePropertyComponent<StorableTTestConfiguration> parameterComponent) {
     final StorableTTestConfiguration value = parameterComponent.valueProperty().getValue();
     return value.toValidConfig();
   }

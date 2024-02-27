@@ -34,11 +34,10 @@ import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModules;
-import io.github.mzmine.parameters.PropertyComponent;
+import io.github.mzmine.parameters.ValuePropertyComponent;
 import java.awt.BasicStroke;
 import java.awt.Stroke;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.value.ChangeListener;
@@ -63,7 +62,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
   private final int space = 5;
   private final Stroke annotationStroke = new BasicStroke(1.0f);
 
-  public VolcanoPlotViewBuilder(VolcanoPlotModel model, Consumer<Runnable> onDatasetRequired) {
+  public VolcanoPlotViewBuilder(VolcanoPlotModel model) {
     super(model);
   }
 
@@ -160,12 +159,12 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
       final Region component = n.getModule().createConfigurationComponent();
       testConfigPane.getChildren().add(component);
 
-      ((PropertyComponent<?>) component).valueProperty()
+      ((ValuePropertyComponent<?>) component).valueProperty()
           .addListener((ChangeListener<Object>) (observableValue, o1, t1) -> {
             try {
               // try to update the test
               final RowSignificanceTest instance = n.getModule()
-                  .getInstance((PropertyComponent) component);
+                  .getInstance((ValuePropertyComponent) component);
               model.setTest(instance);
             } catch (Exception e) {
               model.setTest(null);

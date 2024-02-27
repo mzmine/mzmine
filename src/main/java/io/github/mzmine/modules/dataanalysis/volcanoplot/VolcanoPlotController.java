@@ -47,7 +47,7 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> {
         .filter(flist -> flist.getNumberOfRawDataFiles() > 1).toList();
 
     model.setFlists(FXCollections.observableArrayList(alignedLists));
-    viewBuilder = new VolcanoPlotViewBuilder(model, this::computeDataset);
+    viewBuilder = new VolcanoPlotViewBuilder(model);
     interactor = new VolcanoPlotInteractor(model);
     view = viewBuilder.build();
 

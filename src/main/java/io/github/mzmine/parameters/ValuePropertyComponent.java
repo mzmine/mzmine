@@ -30,7 +30,7 @@ import javafx.beans.property.Property;
 /**
  * Used for response visualisations and previews if binding is required.
  */
-public interface PropertyComponent<T> {
+public interface ValuePropertyComponent<T> {
 
   Property<T> valueProperty();
 }

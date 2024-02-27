@@ -33,7 +33,7 @@ import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModule;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.PropertyComponent;
+import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -89,7 +89,7 @@ public class AnovaModule implements MZmineProcessingModule,
   }
 
   @Override
-  public RowSignificanceTest getInstance(PropertyComponent<String> component) {
+  public RowSignificanceTest getInstance(ValuePropertyComponent<String> component) {
     try {
       return new AnovaTest(component.valueProperty().getValue());
     } catch (MetadataColumnDoesNotExistException e) {
@@ -99,7 +99,7 @@ public class AnovaModule implements MZmineProcessingModule,
   }
 
   @Override
-  public @NotNull <C extends Region & PropertyComponent<String>> C createConfigurationComponent() {
+  public @NotNull <C extends Region & ValuePropertyComponent<String>> C createConfigurationComponent() {
     return (C) new MetadataGroupingComponent();
   }
 

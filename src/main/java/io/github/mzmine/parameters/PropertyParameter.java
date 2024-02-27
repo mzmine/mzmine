@@ -30,7 +30,7 @@ import javafx.scene.Node;
 /**
  * Used for response visualisations and previews if binding is required.
  */
-public interface PropertyParameter<ValueType, ComponentType extends Node & PropertyComponent<ValueType>> extends
+public interface PropertyParameter<ValueType, ComponentType extends Node & ValuePropertyComponent<ValueType>> extends
     UserParameter<ValueType, ComponentType> {
 
 }

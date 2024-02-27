@@ -26,22 +26,22 @@
 package io.github.mzmine.modules.dataanalysis.significance;
 
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.PropertyComponent;
+import io.github.mzmine.parameters.ValuePropertyComponent;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * @param <T> The value type required to construct an instance of this test using
- *            {@link this#getInstance(PropertyComponent)}
+ *            {@link this#getInstance(ValuePropertyComponent)}
  */
 public interface RowSignificanceTestModule<T> extends MZmineModule {
 
-  @NotNull <C extends Region & PropertyComponent<T>> C createConfigurationComponent();
+  @NotNull <C extends Region & ValuePropertyComponent<T>> C createConfigurationComponent();
 
   /**
    * @param parameterComponent A component to construct the test from.
    * @return A test or null if the configuration was invalid.
    */
-  @Nullable RowSignificanceTest getInstance(@NotNull PropertyComponent<T> parameterComponent);
+  @Nullable RowSignificanceTest getInstance(@NotNull ValuePropertyComponent<T> parameterComponent);
 }
