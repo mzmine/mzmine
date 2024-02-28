@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.parameters.parametertypes.filenames;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.Consumer;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
@@ -36,6 +37,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -50,6 +52,11 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
 
   public FileNameComponent(List<File> lastFiles, FileSelectionType type,
       final List<ExtensionFilter> filters) {
+    this(lastFiles, type, filters, null);
+  }
+
+  public FileNameComponent(List<File> lastFiles, FileSelectionType type,
+      final List<ExtensionFilter> filters, @Nullable Consumer<File> exportExamples) {
     // setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
 
     this.type = type;
@@ -63,42 +70,7 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
 
     Button btnFileBrowser = new Button("Select");
     btnFileBrowser.setOnAction(e -> {
-      // Create chooser.
-      FileChooser fileChooser = new FileChooser();
-      fileChooser.setTitle("Select file");
-      if (filters != null) {
-        fileChooser.getExtensionFilters().addAll(filters);
-      }
-
-      // Set current directory.
-      boolean initDirFound = false;
-      final String currentPath = txtFilename.getText();
-      try {
-        if (currentPath.length() > 0) {
-
-          final File currentFile = new File(currentPath);
-          final File currentDir = currentFile.getParentFile();
-          if (currentDir != null && currentDir.exists()) {
-            fileChooser.setInitialDirectory(currentDir);
-            initDirFound = true;
-          }
-        }
-      } catch (Exception ex) {
-      }
-
-      if (!initDirFound && lastFiles != null && !lastFiles.isEmpty()) {
-        final File lastDir = lastFiles.get(0).getParentFile();
-        if (lastDir != null && lastDir.exists()) {
-          fileChooser.setInitialDirectory(lastDir);
-        }
-      }
-      // Open chooser.
-      File selectedFile = null;
-      if (type == FileSelectionType.OPEN) {
-        selectedFile = fileChooser.showOpenDialog(null);
-      } else {
-        selectedFile = fileChooser.showSaveDialog(null);
-      }
+      var selectedFile = openSelectDialog(lastFiles, type, filters);
 
       if (selectedFile == null) {
         return;
@@ -107,10 +79,66 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
     });
 
     getChildren().addAll(txtFilename, btnLastFiles, btnFileBrowser);
+    if (exportExamples != null) {
+      Button button = new Button("Example");
+      Tooltip.install(button, new Tooltip("Export an example file with expected format"));
+      button.setOnAction(event -> {
+        var selectedFile = openSelectDialog(lastFiles, FileSelectionType.SAVE, filters);
+
+        if (selectedFile == null) {
+          return;
+        }
+        exportExamples.accept(selectedFile);
+      });
+      getChildren().add(button);
+    }
+
     setAlignment(Pos.CENTER_LEFT);
     setSpacing(5);
     HBox.setHgrow(txtFilename, Priority.ALWAYS);
     setLastFiles(lastFiles);
+  }
+
+
+  private File openSelectDialog(final List<File> lastFiles, final FileSelectionType type,
+      final List<ExtensionFilter> filters) {
+    // Create chooser.
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.setTitle("Select file");
+    if (filters != null) {
+      fileChooser.getExtensionFilters().addAll(filters);
+    }
+
+    // Set current directory.
+    boolean initDirFound = false;
+    final String currentPath = txtFilename.getText();
+    try {
+      if (currentPath.length() > 0) {
+
+        final File currentFile = new File(currentPath);
+        final File currentDir = currentFile.getParentFile();
+        if (currentDir != null && currentDir.exists()) {
+          fileChooser.setInitialDirectory(currentDir);
+          initDirFound = true;
+        }
+      }
+    } catch (Exception ex) {
+    }
+
+    if (!initDirFound && lastFiles != null && !lastFiles.isEmpty()) {
+      final File lastDir = lastFiles.get(0).getParentFile();
+      if (lastDir != null && lastDir.exists()) {
+        fileChooser.setInitialDirectory(lastDir);
+      }
+    }
+    // Open chooser.
+    File selectedFile = null;
+    if (type == FileSelectionType.OPEN) {
+      selectedFile = fileChooser.showOpenDialog(null);
+    } else {
+      selectedFile = fileChooser.showSaveDialog(null);
+    }
+    return selectedFile;
   }
 
   @Override

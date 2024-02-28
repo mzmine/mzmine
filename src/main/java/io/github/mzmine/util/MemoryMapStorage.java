@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -72,6 +72,18 @@ import sun.misc.Unsafe;
 public class MemoryMapStorage {
 
   /**
+   * @return The {@link MemoryMapStorage} or null, if the data shall be stored in ram.
+   */
+  @Nullable
+  public static MemoryMapStorage forSource(Source source) {
+    return switch (source) {
+      case RAW -> forRawDataFile();
+      case MASS_LISTS -> forMassList();
+      case FEATURE_LIST -> forFeatureList();
+    };
+  }
+
+  /**
    * One temporary file can store STORAGE_FILE_CAPACITY bytes. We need to fit within 2GB limit for a
    * single MappedByteBuffer. 1 GB per file seems like a good start.
    */
@@ -98,6 +110,40 @@ public class MemoryMapStorage {
   @Nullable
   public static MemoryMapStorage forFeatureList() {
     return storeFeaturesInRam ? null : new MemoryMapStorage();
+  }
+
+  /**
+   * Creates a new temporary file, maps it into memory, and returns the corresponding
+   * MappedByteBuffer. The capacity of the buffer is STORAGE_FILE_CAPACITY bytes.
+   *
+   * @return a MappedByteBuffer corresponding to the memory-mapped temporary file
+   * @throws IOException
+   */
+  private MappedByteBuffer createNewMappedFile() throws IOException {
+
+    // Create the temporary storage file
+    File storageFileName = FileAndPathUtil.createTempFile("mzmine", ".tmp");
+    temporaryFiles.add(storageFileName);
+    logger.finest("Created a temporary file " + storageFileName);
+
+    // Open the file for writing
+    RandomAccessFile storageFile = new RandomAccessFile(storageFileName, "rw");
+
+    // Map the file into memory
+    MappedByteBuffer mappedFileBuffer = storageFile.getChannel()
+        .map(FileChannel.MapMode.READ_WRITE, 0, STORAGE_FILE_CAPACITY);
+    mappedByteBufferList.add(mappedFileBuffer);
+
+    // Close the temporary file, the memory mapping will remain
+    storageFile.close();
+
+    // Unfortunately, deleteOnExit() doesn't work on Windows, see JDK
+    // bug #4171239. We will try to remove the temporary files in a
+    // shutdown hook registered in the main.ShutDownHook class.
+    storageFileName.deleteOnExit();
+
+    return mappedFileBuffer;
+
   }
 
   /**
@@ -157,40 +203,6 @@ public class MemoryMapStorage {
   }
 
   /**
-   * Creates a new temporary file, maps it into memory, and returns the corresponding
-   * MappedByteBuffer. The capacity of the buffer is STORAGE_FILE_CAPACITY bytes.
-   *
-   * @return a MappedByteBuffer corresponding to the memory-mapped temporary file
-   * @throws IOException
-   */
-  private MappedByteBuffer createNewMappedFile() throws IOException {
-
-    // Create the temporary storage file
-    File storageFileName = FileAndPathUtil.createTempFile("mzmine", ".tmp");
-    temporaryFiles.add(storageFileName);
-    logger.finest("Created a temporary file " + storageFileName);
-
-    // Open the file for writing
-    RandomAccessFile storageFile = new RandomAccessFile(storageFileName, "rw");
-
-    // Map the file into memory
-    MappedByteBuffer mappedFileBuffer =
-        storageFile.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, STORAGE_FILE_CAPACITY);
-    mappedByteBufferList.add(mappedFileBuffer);
-
-    // Close the temporary file, the memory mapping will remain
-    storageFile.close();
-
-    // Unfortunately, deleteOnExit() doesn't work on Windows, see JDK
-    // bug #4171239. We will try to remove the temporary files in a
-    // shutdown hook registered in the main.ShutDownHook class.
-    storageFileName.deleteOnExit();
-
-    return mappedFileBuffer;
-
-  }
-
-  /**
    * Store the given double[] array in a memory-mapped temporary file and return a read-only
    * DoubleBuffer that can access the data.
    *
@@ -199,8 +211,7 @@ public class MemoryMapStorage {
    * @throws IOException
    */
   @NotNull
-  public synchronized DoubleBuffer storeData(@NotNull final double data[])
-      throws IOException {
+  public synchronized DoubleBuffer storeData(@NotNull final double data[]) throws IOException {
     return storeData(data, 0, data.length);
   }
 
@@ -215,12 +226,12 @@ public class MemoryMapStorage {
    * @throws IOException
    */
   @NotNull
-  public synchronized DoubleBuffer storeData(@NotNull final double data[], int offset,
-      int length) throws IOException {
+  public synchronized DoubleBuffer storeData(@NotNull final double data[], int offset, int length)
+      throws IOException {
 
     // If we have no storage file or if the current file is full, create a new one
-    if ((currentMappedFile == null)
-        || (currentMappedFile.position() + (length * Double.BYTES) > STORAGE_FILE_CAPACITY)) {
+    if ((currentMappedFile == null) || (currentMappedFile.position() + (length * Double.BYTES)
+                                        > STORAGE_FILE_CAPACITY)) {
       currentMappedFile = createNewMappedFile();
     }
 
@@ -256,8 +267,7 @@ public class MemoryMapStorage {
    * @throws IOException
    */
   @NotNull
-  public synchronized FloatBuffer storeData(@NotNull final float data[])
-      throws IOException {
+  public synchronized FloatBuffer storeData(@NotNull final float data[]) throws IOException {
     return storeData(data, 0, data.length);
   }
 
@@ -272,12 +282,12 @@ public class MemoryMapStorage {
    * @throws IOException
    */
   @NotNull
-  public synchronized FloatBuffer storeData(@NotNull final float data[], int offset,
-      int length) throws IOException {
+  public synchronized FloatBuffer storeData(@NotNull final float data[], int offset, int length)
+      throws IOException {
 
     // If we have no storage file or if the current file is full, create a new one
-    if ((currentMappedFile == null)
-        || (currentMappedFile.position() + (length * Float.BYTES) > STORAGE_FILE_CAPACITY)) {
+    if ((currentMappedFile == null) || (currentMappedFile.position() + (length * Float.BYTES)
+                                        > STORAGE_FILE_CAPACITY)) {
       currentMappedFile = createNewMappedFile();
     }
 
@@ -308,19 +318,6 @@ public class MemoryMapStorage {
    * Store the given int[] array in a memory-mapped temporary file and return a read-only IntBuffer
    * that can access the data.
    *
-   * @param data the int[] array with the data
-   * @return a read-only IntBuffer that is directly mapped to the stored data on the disk
-   * @throws IOException
-   */
-  @NotNull
-  public synchronized IntBuffer storeData(@NotNull final int data[]) throws IOException {
-    return storeData(data, 0, data.length);
-  }
-
-  /**
-   * Store the given int[] array in a memory-mapped temporary file and return a read-only IntBuffer
-   * that can access the data.
-   *
    * @param data   the int[] array with the data
    * @param offset offset of the stored portion of the data[] array
    * @param length size of the stored portion of the data[] array
@@ -328,12 +325,12 @@ public class MemoryMapStorage {
    * @throws IOException
    */
   @NotNull
-  public synchronized IntBuffer storeData(@NotNull final int data[], int offset,
-      int length) throws IOException {
+  public synchronized IntBuffer storeData(@NotNull final int data[], int offset, int length)
+      throws IOException {
 
     // If we have no storage file or if the current file is full, create a new one
-    if ((currentMappedFile == null)
-        || (currentMappedFile.position() + (length * Integer.BYTES) > STORAGE_FILE_CAPACITY)) {
+    if ((currentMappedFile == null) || (currentMappedFile.position() + (length * Integer.BYTES)
+                                        > STORAGE_FILE_CAPACITY)) {
       currentMappedFile = createNewMappedFile();
     }
 
@@ -358,6 +355,23 @@ public class MemoryMapStorage {
 
     return readOnlySlice;
 
+  }
+
+  /**
+   * Store the given int[] array in a memory-mapped temporary file and return a read-only IntBuffer
+   * that can access the data.
+   *
+   * @param data the int[] array with the data
+   * @return a read-only IntBuffer that is directly mapped to the stored data on the disk
+   * @throws IOException
+   */
+  @NotNull
+  public synchronized IntBuffer storeData(@NotNull final int data[]) throws IOException {
+    return storeData(data, 0, data.length);
+  }
+
+  public enum Source {
+    RAW, MASS_LISTS, FEATURE_LIST
   }
 
   /**

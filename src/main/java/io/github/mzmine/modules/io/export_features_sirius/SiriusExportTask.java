@@ -44,6 +44,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionJsonWriter;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergeMode;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
@@ -100,6 +101,7 @@ public class SiriusExportTask extends AbstractTask {
   private final MergeMode mergeMode;
   private final AtomicInteger exportedRows = new AtomicInteger(0);
   private final AtomicInteger processedRows = new AtomicInteger(0);
+  private final OnlineReactionJsonWriter reactionJsonWriter;
 
 
   protected SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
@@ -122,7 +124,8 @@ public class SiriusExportTask extends AbstractTask {
     excludeMultimers = parameters.getValue(SiriusExportParameters.EXCLUDE_MULTIMERS);
     needAnnotation = parameters.getValue(SiriusExportParameters.NEED_ANNOTATION);
     mergeMode = mergeParameters.getValue(MsMsSpectraMergeParameters.MERGE_MODE);
-    // experimental
+
+    reactionJsonWriter = new OnlineReactionJsonWriter(false);
 
     totalRows = Arrays.stream(featureLists).mapToInt(FeatureList::getNumberOfRows).sum();
   }
@@ -290,26 +293,37 @@ public class SiriusExportTask extends AbstractTask {
     };
 
     putFeatureFieldsIntoEntry(f, entry);
+    FeatureListRow row = f.getRow();
 
     switch (spectrumType) {
       case CORRELATED -> {
         entry.putIfNotNull(DBEntryField.MS_LEVEL, 1);
         entry.putIfNotNull(DBEntryField.MERGED_SPEC_TYPE, "CORRELATED MS");
         entry.putIfNotNull(DBEntryField.FILENAME,
-            f.getRow().getFeatures().stream().map(Feature::getRawDataFile).filter(Objects::nonNull)
+            row.getFeatures().stream().map(Feature::getRawDataFile).filter(Objects::nonNull)
                 .map(RawDataFile::getName).collect(Collectors.joining(";")));
       }
       case MS -> entry.putIfNotNull(DBEntryField.MS_LEVEL, 1);
       case MSMS -> entry.putIfNotNull(DBEntryField.MS_LEVEL, 2);
     }
 
-    final IonIdentity ionType = f.getRow().getBestIonIdentity();
+    final IonIdentity ionType = row.getBestIonIdentity();
     if (ionType != null) {
       entry.putIfNotNull(DBEntryField.ION_TYPE, ionType.getAdduct());
     }
 
     if (spectrum instanceof MergedSpectrum spec) {
       putMergedSpectrumFieldsIntoEntry(spec, entry);
+    }
+
+    // reactivity only for MS1
+    if (entry.getMsLevel().stream().anyMatch(msLevel -> msLevel == 1)) {
+      String reactivityString = reactionJsonWriter.createReactivityString(row,
+          row.getOnlineReactionMatches());
+
+      if (reactivityString != null) {
+        entry.putIfNotNull(DBEntryField.ONLINE_REACTIVITY, reactivityString);
+      }
     }
 
     return entry;
@@ -493,8 +507,8 @@ public class SiriusExportTask extends AbstractTask {
    * the correlated ions and thus be added from the isotope pattern of the monoisotopic mass and as
    * a correlated ion.
    *
-   * @param sortedDp  data points sorted by mz.
-   * @param mzTol MZ tolerance to filter equal data points.
+   * @param sortedDp data points sorted by mz.
+   * @param mzTol    MZ tolerance to filter equal data points.
    */
   private void removeDuplicateDataPoints(List<DataPoint> sortedDp, MZTolerance mzTol) {
     for (int i = sortedDp.size() - 2; i >= 0; i--) {
@@ -507,6 +521,7 @@ public class SiriusExportTask extends AbstractTask {
       }
     }
   }
+
 
   private enum MsType {
     /**

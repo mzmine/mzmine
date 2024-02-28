@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -66,6 +67,11 @@ public abstract class AbstractDataImportTest {
   }
 
   public abstract List<String> getFileNames();
+
+  @BeforeAll
+  public void setUp() {
+    MZmineTestUtil.startMzmineCore();
+  }
 
   @AfterAll
   public void tearDown() {

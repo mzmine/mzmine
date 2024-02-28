@@ -48,6 +48,7 @@ import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationTyp
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
+import io.github.mzmine.datamodel.features.types.annotations.online_reaction.OnlineLcReactionMatchType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
@@ -64,6 +65,7 @@ import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineReactionMatch;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.SortingDirection;
@@ -582,6 +584,12 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public @NotNull List<SpectralDBAnnotation> getSpectralLibraryMatches() {
     List<SpectralDBAnnotation> matches = get(SpectralLibraryMatchesType.class);
+    return matches == null ? List.of() : matches;
+  }
+
+  @Override
+  public @NotNull List<OnlineReactionMatch> getOnlineReactionMatches() {
+    List<OnlineReactionMatch> matches = get(OnlineLcReactionMatchType.class);
     return matches == null ? List.of() : matches;
   }
 

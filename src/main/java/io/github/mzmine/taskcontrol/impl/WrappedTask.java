@@ -36,6 +36,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -79,6 +80,11 @@ public class WrappedTask implements Task {
   @Override
   public TaskStatus getStatus() {
     return task.getStatus();
+  }
+
+  @Override
+  public void error(@NotNull final String message, @Nullable final Exception exceptionToLog) {
+    task.error(message, exceptionToLog);
   }
 
   @Override

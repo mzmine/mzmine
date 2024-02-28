@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -113,7 +113,7 @@ public class IonModificationParameter implements
     modification.setValue(selectionsMod.toArray(new IonModification[selectionsMod.size()]));
   }
 
-  private void loadAdducts(final Element xmlElement, String TAG,
+  public static void loadAdducts(final Element xmlElement, String TAG,
       ArrayList<IonModification> newChoices, ArrayList<IonModification> selections) {
     NodeList adductElements = xmlElement.getChildNodes();
     for (int i = 0; i < adductElements.getLength(); i++) {
@@ -187,23 +187,17 @@ public class IonModificationParameter implements
    * for(ESIAdductType a : adducts) { if(a.equals(na)) return true; } return false; }
    */
 
-  @Override
-  public void saveValueToXML(final Element xmlElement) {
+  public static void saveIonsToXML(final Element xmlElement, final IonModification[] value,
+      final IonModification[] choices, final String xmlTag) {
+    final List<IonModification> selections = Arrays.asList(
+        value == null ? new IonModification[0] : value);
 
-    // Get choices and selections.
-    for (int i = 0; i < 2; i++) {
-      final IonModification[] choices = i == 0 ? adducts.getChoices() : modification.getChoices();
-      final IonModification[] value = i == 0 ? adducts.getValue() : modification.getValue();
-      final List<IonModification> selections = Arrays.asList(
-          value == null ? new IonModification[0] : value);
-
-      if (choices != null) {
-        final Document parent = xmlElement.getOwnerDocument();
-        for (final IonModification item : choices) {
-          final Element element = parent.createElement(i == 0 ? ADDUCTS_TAG : MODIFICTAION_TAG);
-          saveTypeToXML(parent, element, item, selections);
-          xmlElement.appendChild(element);
-        }
+    if (choices != null) {
+      final Document parent = xmlElement.getOwnerDocument();
+      for (final IonModification item : choices) {
+        final Element element = parent.createElement(xmlTag);
+        saveTypeToXML(parent, element, item, selections);
+        xmlElement.appendChild(element);
       }
     }
   }
@@ -215,7 +209,7 @@ public class IonModificationParameter implements
    * @param parentElement
    * @param selections
    */
-  private void saveTypeToXML(Document parent, Element parentElement, IonModification type,
+  public static void saveTypeToXML(Document parent, Element parentElement, IonModification type,
       List<IonModification> selections) {
     parentElement.setAttribute(SELECTED_ATTRIBUTE, Boolean.toString(selections.contains(type)));
     // all adducts
@@ -228,6 +222,13 @@ public class IonModificationParameter implements
       element.setAttribute(TYPE_ATTRIBUTE, item.getType().name());
       parentElement.appendChild(element);
     }
+  }
+
+  @Override
+  public void saveValueToXML(final Element xmlElement) {
+    // Get choices and selections.
+    saveIonsToXML(xmlElement, adducts.getValue(), adducts.getChoices(), ADDUCTS_TAG);
+    saveIonsToXML(xmlElement, modification.getValue(), modification.getChoices(), MODIFICTAION_TAG);
   }
 
   @Override
