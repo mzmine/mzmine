@@ -33,9 +33,9 @@ import java.nio.file.StandardCopyOption
 import java.util.function.Consumer
 
 plugins {
-    id "java"
-    id "application"
-    id "org.openjfx.javafxplugin" version "0.0.14"
+    id("buildlogic.java-library-conventions")
+    id("buildlogic.javafx-conventions")
+
     id "org.beryx.runtime" version "1.12.7"
 
     // versioning now in version.properties file
@@ -56,12 +56,12 @@ semver {
 group = "io.github.mzmine"
 description = "MZmine"
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+//java {
+//    toolchain {
+//        languageVersion = JavaLanguageVersion.of(21)
 //        vendor = JvmVendorSpec.ADOPTIUM  // force use ADOPTIUM TEMURIN JDK
-    }
-}
+//    }
+//}
 defaultTasks "test", "jpackage", "notarizeApp"
 
 // Check the OS
@@ -101,6 +101,7 @@ println "OS detected as " + project.ext.osSuffix
 repositories {
 
     // TODO change to mavenCentral()
+    mavenCentral()
     // mavenLocal()
     maven { url = "https://repo.maven.apache.org/maven2" }
     // local libraries
@@ -138,14 +139,14 @@ ext {
 }
 
 // patch out all the log4j dependencies
-configurations.all {
-    resolutionStrategy.eachDependency { details ->
-        if (details.requested.group == 'org.apache.logging.log4j') {
-            details.useVersion '2.22.0'  // strict version
-            details.because 'patch all transitive dependencies to latest version'
-        }
-    }
-}
+//configurations.all {
+//    resolutionStrategy.eachDependency { details ->
+//        if (details.requested.group == 'org.apache.logging.log4j') {
+//            details.useVersion '2.22.0'  // strict version
+//            details.because 'patch all transitive dependencies to latest version'
+//        }
+//    }
+//}
 
 dependencies {
     // MZmine version parsing
@@ -308,17 +309,17 @@ configurations.all {
 /*
  * Include JavaFX modules
  */
-javafx {
+//javafx {
 // currently there is an issue with the jfx>16 and the feature table on windows
 // scrolling lets the table jump
 // jfx19 fixes remote connection issues though
-    version = "21"
-    modules = ["javafx.controls",
-               "javafx.swing",
-               "javafx.fxml",
-               "javafx.web",
-               "javafx.graphics"]
-}
+//    version = "21"
+//    modules = ["javafx.controls",
+//               "javafx.swing",
+//               "javafx.fxml",
+//               "javafx.web",
+//               "javafx.graphics"]
+//}
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
