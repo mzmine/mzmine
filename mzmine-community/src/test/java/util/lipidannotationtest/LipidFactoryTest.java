@@ -3,10 +3,10 @@ package util.lipidannotationtest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.LipidFragmentationRule;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidClasses;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.util.FormulaUtils;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;

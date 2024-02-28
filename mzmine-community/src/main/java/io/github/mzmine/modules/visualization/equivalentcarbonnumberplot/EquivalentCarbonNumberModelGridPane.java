@@ -2,12 +2,12 @@ package io.github.mzmine.modules.visualization.equivalentcarbonnumberplot;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.MSMSLipidTools;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.molecularspecieslevelidentities.MolecularSpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.specieslevellipidmatches.SpeciesLevelAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MSMSLipidTools;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.species_level.SpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;

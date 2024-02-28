@@ -1,9 +1,9 @@
 package io.github.mzmine.modules.visualization.equivalentcarbonnumberplot;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.ILipidClass;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.lipidchain.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidClass;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.LipidChainType;
 import io.github.mzmine.util.color.ColorScaleUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.util.Arrays;

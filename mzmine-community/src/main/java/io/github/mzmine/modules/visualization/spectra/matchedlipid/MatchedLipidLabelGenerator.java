@@ -26,8 +26,8 @@
 package io.github.mzmine.modules.visualization.spectra.matchedlipid;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidAnnotationLevel;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipids.LipidFragment;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import java.util.List;
 import java.util.Map;

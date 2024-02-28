@@ -3,7 +3,7 @@ package io.github.mzmine.modules.visualization.equivalentcarbonnumberplot;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import java.util.Arrays;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.labels.XYItemLabelGenerator;

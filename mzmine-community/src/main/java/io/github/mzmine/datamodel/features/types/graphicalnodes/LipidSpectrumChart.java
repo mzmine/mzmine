@@ -29,7 +29,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.LipidSpectrumPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import org.jetbrains.annotations.NotNull;

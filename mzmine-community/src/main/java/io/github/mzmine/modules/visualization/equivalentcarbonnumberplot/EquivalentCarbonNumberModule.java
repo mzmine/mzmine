@@ -33,8 +33,8 @@ import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.common.lipididentificationtools.matchedlipidannotations.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -50,7 +50,7 @@ import org.jetbrains.annotations.Nullable;
  * This module is designed to plot Equivalent Carbon Number (ECN) models for feature lists after
  * they were annotated using
  * {@link
- * io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationModule}.
+ * io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule}.
  * The ECN plot provides a visualization of lipid annotations based on their equivalent carbon
  * number.
  * <p>
@@ -58,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
  * and number of DBEs and creates ECN plots for each group. If no lipid annotations are present, it
  * alerts the user to run the
  * {@link
- * io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationModule}
+ * io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule}
  * module first.
  * <p>
  */

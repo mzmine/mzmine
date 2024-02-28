@@ -491,7 +491,7 @@
       <Menu text="Search spectra">
         <MenuItem onAction="#runModule"
           text="Lipid Annotation"
-          userData="io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidannotationmodules.LipidAnnotationModule"/>
+          userData="io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule"/>
         <MenuItem onAction="#runModule"
           text="Import spectral libraries"
           userData="io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule"/>
