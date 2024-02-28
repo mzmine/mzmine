@@ -42,7 +42,8 @@ import org.jetbrains.annotations.Nullable;
  * initializes the ViewModel that contains only observable properties. The {@link FxViewBuilder}
  * creates the layout and adds bindings to the model. The {@link FxInteractor} interacts with
  * business logic and is called by the {@link FxController}, which handles the calling thread to be
- * GUI or other managed thread.
+ * GUI or other managed thread. Use {@link FxUpdateTask} to run a heavy process on a separate thread
+ * and then update the model on GUI thread.
  */
 public abstract class FxController<ViewModelClass> {
 
@@ -56,7 +57,13 @@ public abstract class FxController<ViewModelClass> {
     this.model = model;
   }
 
-  protected abstract @Nullable FxInteractor<ViewModelClass> getInteractor();
+  /**
+   * Interactor is optional and only used to separate logic from the controller. Also see
+   * {@link FxUpdateTask} if updates need to run on a separate task.
+   */
+  protected @Nullable FxInteractor<ViewModelClass> getInteractor() {
+    return null;
+  }
 
   protected abstract @NotNull FxViewBuilder<ViewModelClass> getViewBuilder();
 
@@ -69,8 +76,7 @@ public abstract class FxController<ViewModelClass> {
 
 
   /**
-   * Run a task on a separate thread - for GUI updates after completion see
-   * {@link #onTaskThread(String, Runnable, Runnable)}
+   * Run a task on a separate thread - for GUI updates after completion use {@link FxUpdateTask}
    *
    * @param task primary task run on separate thread
    */
@@ -79,43 +85,21 @@ public abstract class FxController<ViewModelClass> {
   }
 
   /**
-   * Run a task on a separate thread - for GUI updates after completion see
-   * {@link #onTaskThread(String, Runnable, Runnable)}
+   * Run a task on a separate thread - for GUI updates after completion use {@link FxUpdateTask}
    *
    * @param task primary task run on separate thread
    */
   public void onTaskThread(final @NotNull Runnable task, final @NotNull TaskPriority priority) {
-    onTaskThread("", priority, task, null);
-  }
-
-  /**
-   * Run a task on a separate thread and then finally update the GUI after success
-   *
-   * @param uniqueTaskName  the task name to store and find the most recent task run
-   * @param task            primary task run on separate thread
-   * @param postTaskGuiTask post GUI update task - only runs if the still running task is still the
-   *                        latest. If new tasks are scheduled this GUI task will be skipped.
-   */
-  public void onTaskThread(final @NotNull String uniqueTaskName, final @NotNull Runnable task,
-      final @Nullable Runnable postTaskGuiTask) {
-    onTaskThread(uniqueTaskName, TaskPriority.NORMAL, task, postTaskGuiTask);
-  }
-
-  /**
-   * Run a task on a separate thread and then finally update the GUI after success
-   *
-   * @param uniqueTaskName  the task name to store and find the most recent task run
-   * @param task            primary task run on separate thread
-   * @param postTaskGuiTask post GUI update task - only runs if the still running task is still the
-   *                        latest. If new tasks are scheduled this GUI task will be skipped.
-   */
-  public void onTaskThread(final @NotNull String uniqueTaskName,
-      final @NotNull TaskPriority priority, final @NotNull Runnable task,
-      final @Nullable Runnable postTaskGuiTask) {
     final Task runningTask = TaskUtils.wrapTask(task);
 
     // if gui is updated after - add checks for latest task completion
-    if (postTaskGuiTask != null) {
+    if (task instanceof FxUpdateTask<?> fxUpdateTask) {
+      if (!fxUpdateTask.checkPreConditions()) {
+        return;
+      }
+
+      String uniqueTaskName = fxUpdateTask.getName();
+
       try (var _ = taskLock.lockWrite()) {
         if (runningTasks == null) {
           runningTasks = new HashMap<>();
@@ -129,15 +113,16 @@ public abstract class FxController<ViewModelClass> {
       runningTask.setOnFinished(() -> {
         // remove the old task from map and compare with the running task if equal
         final Task oldTask = removeOldTask(uniqueTaskName);
-        if (Objects.equals(oldTask, runningTask)) {
+        if (oldTask.isFinished() && Objects.equals(oldTask, runningTask)) {
           // only update gui if still latest task
-          MZmineCore.runLater(postTaskGuiTask);
+          MZmineCore.runLater(fxUpdateTask::updateGuiModel);
         }
       });
     }
     // schedule
     MZmineCore.getTaskController().addTask(runningTask, priority);
   }
+
 
   /**
    * removes the task with a write lock

@@ -25,8 +25,10 @@
 
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
@@ -34,12 +36,12 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
-import io.github.mzmine.gui.framework.fx.mvci.FxInteractor;
+import io.github.mzmine.gui.framework.fx.mvci.FxUpdateTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
-import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestProcessor;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
+import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
@@ -47,42 +49,51 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.jetbrains.annotations.Nullable;
 
-public class VolcanoPlotInteractor extends FxInteractor<VolcanoPlotModel> {
+/**
+ * Creates new datasets and updates the data model on FX thread, only if still the latest scheduled
+ * task
+ */
+class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
 
-  private List<DatasetAndRenderer> temporaryDatasets;
+  private final FeatureList flist;
+  private final RowSignificanceTest test;
+  private final AbundanceMeasure abundanceMeasure;
+  private final double pValue;
+  private final TotalFinishedItemsProgress progress = new TotalFinishedItemsProgress();
+  private @Nullable List<DatasetAndRenderer> temporaryDatasets;
 
-  public VolcanoPlotInteractor(VolcanoPlotModel model) {
-    super(model);
+
+  VolcanoPlotUpdateTask(VolcanoPlotModel model) {
+    super("volcanoplot_update", model);
+
+    flist = model.getSelectedFlist();
+    test = model.getTest();
+    abundanceMeasure = model.getAbundanceMeasure();
+    pValue = model.getpValue();
+    progress.setTotal(flist.getNumberOfRows());
   }
 
   @Override
-  public void updateModel() {
-    model.setDatasets(temporaryDatasets);
-    temporaryDatasets = null;
+  public boolean checkPreConditions() {
+    return flist == null || test == null;
   }
 
-  public void computeDataset() {
-
-    final FeatureList flist = model.getSelectedFlist();
-    if (flist == null) {
+  @Override
+  protected void process() {
+    if (checkPreConditions()) {
       return;
     }
-
-    final RowSignificanceTest test = model.getTest();
-    if (test == null) {
-      return;
+    List<RowSignificanceTestResult> rowSignificanceTestResults = new ArrayList<>();
+    for (final FeatureListRow row : flist.getRows()) {
+      if (isCanceled()) {
+        return;
+      }
+      rowSignificanceTestResults.add(test.test(row, abundanceMeasure));
+      progress.getAndIncrement();
     }
 
-    RowSignificanceTestProcessor<?> processor = new RowSignificanceTestProcessor<>(flist.getRows(),
-        model.getAbundanceMeasure(), test);
-    processor.process();
-    prepareTestResultsForPresentation(processor, test);
-  }
-
-  private void prepareTestResultsForPresentation(RowSignificanceTestProcessor<?> task,
-      RowSignificanceTest test) {
-    final List<RowSignificanceTestResult> rowSignificanceTestResults = task.get();
     final Map<DataType<?>, List<RowSignificanceTestResult>> dataTypeMap = DataTypeUtils.groupByBestDataType(
         rowSignificanceTestResults, RowSignificanceTestResult::row, true,
         FeatureAnnotationPriority.getDataTypesInOrder());
@@ -99,7 +110,6 @@ public class VolcanoPlotInteractor extends FxInteractor<VolcanoPlotModel> {
       final DataType<?> type = entry.getKey();
       final List<RowSignificanceTestResult> testResults = entry.getValue();
 
-      final double pValue = model.getpValue();
       final List<RowSignificanceTestResult> significantRows = testResults.stream()
           .filter(result -> result.pValue() < pValue).toList();
       final List<RowSignificanceTestResult> insignificantRows = testResults.stream()
@@ -109,7 +119,7 @@ public class VolcanoPlotInteractor extends FxInteractor<VolcanoPlotModel> {
       if (!significantRows.isEmpty()) {
         var provider = new VolcanoDatasetProvider(ttest, significantRows, color,
             STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "not annotated"
-                : type.getHeaderString()} (p < \{pValue})", model.getAbundanceMeasure());
+                : type.getHeaderString()} (p < \{pValue})", abundanceMeasure);
         temporaryDatasets.add(
             new DatasetAndRenderer(new ColoredXYDataset(provider, RunOption.THIS_THREAD),
                 new ColoredXYShapeRenderer(false)));
@@ -117,11 +127,31 @@ public class VolcanoPlotInteractor extends FxInteractor<VolcanoPlotModel> {
       if (!insignificantRows.isEmpty()) {
         var provider = new VolcanoDatasetProvider(ttest, insignificantRows, color,
             STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "not annotated"
-                : type.getHeaderString()} (p < \{pValue})", model.getAbundanceMeasure());
+                : type.getHeaderString()} (p < \{pValue})", abundanceMeasure);
         temporaryDatasets.add(
             new DatasetAndRenderer(new ColoredXYDataset(provider, RunOption.THIS_THREAD),
                 new ColoredXYShapeRenderer(true)));
       }
     }
   }
+
+  @Override
+  protected void updateGuiModel() {
+    if (temporaryDatasets == null && !isFinished()) {
+      return;
+    }
+    model.setDatasets(temporaryDatasets);
+  }
+
+  @Override
+  public String getTaskDescription() {
+    return "Updating volcano plot";
+  }
+
+  @Override
+  public double getFinishedPercentage() {
+    return progress.progress();
+  }
+
+
 }

@@ -38,7 +38,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class VolcanoPlotController extends FxController<VolcanoPlotModel> {
 
-  private final VolcanoPlotInteractor interactor;
   private final VolcanoPlotViewBuilder viewBuilder;
   private final Region view;
 
@@ -49,7 +48,6 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> {
 
     model.setFlists(FXCollections.observableArrayList(alignedLists));
     viewBuilder = new VolcanoPlotViewBuilder(model);
-    interactor = new VolcanoPlotInteractor(model);
     view = viewBuilder.build();
 
     initializeListeners();
@@ -68,7 +66,7 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> {
   }
 
   private void computeDataset() {
-    onTaskThread("compute dataset", interactor::computeDataset, interactor::updateModel);
+    onTaskThread(new VolcanoPlotUpdateTask(model));
   }
 
   public void setFeatureList(FeatureList flist) {
@@ -85,7 +83,7 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> {
 
   @Override
   protected @Nullable FxInteractor<VolcanoPlotModel> getInteractor() {
-    return interactor;
+    return null;
   }
 
   @Override
