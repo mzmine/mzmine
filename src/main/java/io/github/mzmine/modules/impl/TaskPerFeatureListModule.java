@@ -45,16 +45,22 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class TaskPerFeatureListModule extends AbstractProcessingModule {
 
+  private final boolean requiresMemoryMapping;
+
   /**
    * @param name              name of the module in the menu and quick access
    * @param parameterSetClass the class of the parameters
    * @param moduleCategory    module category for quick access and batch mode
+   * @param requiresMemoryMapping if true and if memory mapping is activated, task will get a memory
+   *                              map storage
    * @param description       the description of the task
    */
   public TaskPerFeatureListModule(final @NotNull String name,
       final @Nullable Class<? extends ParameterSet> parameterSetClass,
-      final @NotNull MZmineModuleCategory moduleCategory, final @NotNull String description) {
+      final @NotNull MZmineModuleCategory moduleCategory, final boolean requiresMemoryMapping,
+      final @NotNull String description) {
     super(name, parameterSetClass, moduleCategory, description);
+    this.requiresMemoryMapping = requiresMemoryMapping;
   }
 
   /**
@@ -79,7 +85,7 @@ public abstract class TaskPerFeatureListModule extends AbstractProcessingModule 
     try {
       var featureLists = ParameterUtils.getMatchingFeatureListsFromParameter(parameters);
 
-      MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
+      MemoryMapStorage storage = requiresMemoryMapping ? MemoryMapStorage.forFeatureList() : null;
 
       // create and start one task for each feature list
       for (final FeatureList featureList : featureLists) {

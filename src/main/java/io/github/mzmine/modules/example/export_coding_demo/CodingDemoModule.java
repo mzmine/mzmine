@@ -48,7 +48,7 @@ public class CodingDemoModule extends TaskPerFeatureListModule {
 
   public CodingDemoModule() {
     super("PreDemo module", CodingDemoParameters.class, MZmineModuleCategory.FEATURELISTEXPORT,
-        "This is a description of the amazing quest we have...");
+        false, "This is a description of the amazing quest we have...");
   }
 
   @Override

@@ -37,26 +37,33 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A module that creates one task per RawDataFile
  */
-public abstract class TaskPerRawDataFileModule extends AbstractProcessingModule {
+public abstract class TaskPerRawDataFileModule extends AbstractProcessingModule implements
+    Supplier<MemoryMapStorage> {
+
+  private final boolean requiresMemoryMapping;
 
   /**
-   * @param name              name of the module in the menu and quick access
-   * @param parameterSetClass the class of the parameters
-   * @param moduleCategory    module category for quick access and batch mode
-   * @param description       the description of the task
+   * @param name                  name of the module in the menu and quick access
+   * @param parameterSetClass     the class of the parameters
+   * @param moduleCategory        module category for quick access and batch mode
+   * @param requiresMemoryMapping if true and if memory mapping is activated, task will get a memory
+   *                              map storage
+   * @param description           the description of the task
    */
   public TaskPerRawDataFileModule(final @NotNull String name,
       final @Nullable Class<? extends ParameterSet> parameterSetClass,
-      final @NotNull MZmineModuleCategory moduleCategory, final @NotNull String description) {
+      final @NotNull MZmineModuleCategory moduleCategory, final boolean requiresMemoryMapping,
+      final @NotNull String description) {
     super(name, parameterSetClass, moduleCategory, description);
+    this.requiresMemoryMapping = requiresMemoryMapping;
   }
-
 
   /**
    * Creates a task for each RawDataFile
@@ -82,7 +89,7 @@ public abstract class TaskPerRawDataFileModule extends AbstractProcessingModule 
       var rawFiles = ParameterUtils.getMatchingRawDataFilesFromParameter(parameters);
 
       // raw data processing modules memory map to mass list storage
-      MemoryMapStorage storage = MemoryMapStorage.forMassList();
+      MemoryMapStorage storage = requiresMemoryMapping ? MemoryMapStorage.forMassList() : null;
 
       // create and start one task for each RawDataFile
       for (final var raw : rawFiles) {

@@ -48,6 +48,7 @@ public class StarterFeatureListModule extends TaskPerFeatureListModule {
 
   public StarterFeatureListModule() {
     super("name", StarterFeatureListParameters.class, MZmineModuleCategory.FEATURELISTFILTERING,
+        false,
         "description");
   }
 
