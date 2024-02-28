@@ -27,12 +27,14 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
 import io.github.mzmine.modules.dataanalysis.significance.StatisticUtils;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureUtils;
 import java.awt.Color;
 import java.text.DecimalFormat;
 import java.util.List;
@@ -63,10 +65,15 @@ public class VolcanoDatasetProvider extends SimpleXYProvider implements
   @Override
   public @Nullable String getToolTipText(int index) {
     RowSignificanceTestResult result = results.get(index);
-    return STR."""
-    \{result.row()}
-    log2(FC)=\{getFormattedDomainValue(index)}
-    -log10(p)=\{getFormattedRangeValue(index)}""";
+    final FeatureAnnotation bestAnnotation = FeatureUtils.getBestFeatureAnnotation(result.row());
+    String name = result.row().toString();
+    if (bestAnnotation != null) {
+      name += STR.", \{bestAnnotation.getCompoundName()}";
+    }
+    return String.format("""
+        %s
+        Fold change: %.3f
+        p-Value: %.3f""", name, Math.pow(2, getDomainValue(index)), result.pValue());
   }
 
   @Override
