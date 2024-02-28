@@ -55,12 +55,15 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
+import javafx.scene.control.Accordion;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import org.apache.commons.math.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.annotations.XYLineAnnotation;
@@ -87,10 +90,14 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
     final HBox pValueBox = createPValueBox();
     final HBox abundanceBox = createAbundanceBox();
+    final VBox pAndAbundance = new VBox(space, pValueBox, abundanceBox);
     final Region testConfigPane = createTestParametersPane();
 
-    final FlowPane controls = createControlsPane(pValueBox, abundanceBox, testConfigPane);
-    mainPane.setBottom(controls);
+    final TitledPane controls = new TitledPane("Settings",
+        createControlsPane(pAndAbundance, testConfigPane));
+    final Accordion accordion = new Accordion(controls);
+    accordion.setExpandedPane(controls);
+    mainPane.setBottom(accordion);
 
     chart.setDefaultRenderer(new ColoredXYShapeRenderer());
     model.datasetsProperty().addListener((obs, o, n) -> {
@@ -145,7 +152,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
     controls.setVgap(space);
     controls.getChildren().addAll(panes);
     controls.setPadding(new Insets(space));
-    controls.setAlignment(Pos.CENTER);
+    controls.setAlignment(Pos.TOP_LEFT);
     return controls;
   }
 
