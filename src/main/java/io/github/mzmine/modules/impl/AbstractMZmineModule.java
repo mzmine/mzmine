@@ -28,15 +28,14 @@ package io.github.mzmine.modules.impl;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AbstractMZmineModule implements MZmineModule {
 
   protected final @NotNull String name;
-  protected final @Nullable Class<? extends ParameterSet> parameterSetClass;
+  protected final @NotNull Class<? extends ParameterSet> parameterSetClass;
 
   public AbstractMZmineModule(@NotNull final String name,
-      @Nullable final Class<? extends ParameterSet> parameterSetClass) {
+      @NotNull final Class<? extends ParameterSet> parameterSetClass) {
     this.name = name;
     this.parameterSetClass = parameterSetClass;
   }
@@ -47,7 +46,7 @@ public class AbstractMZmineModule implements MZmineModule {
   }
 
   @Override
-  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return parameterSetClass;
   }
 }
