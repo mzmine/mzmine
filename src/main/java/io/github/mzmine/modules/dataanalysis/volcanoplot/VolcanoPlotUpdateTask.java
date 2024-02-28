@@ -90,7 +90,10 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
       if (isCanceled()) {
         return;
       }
-      rowSignificanceTestResults.add(test.test(row, abundanceMeasure));
+      RowSignificanceTestResult result = test.test(row, abundanceMeasure);
+      if (result != null) {
+        rowSignificanceTestResults.add(result);
+      }
       progress.getAndIncrement();
     }
 
