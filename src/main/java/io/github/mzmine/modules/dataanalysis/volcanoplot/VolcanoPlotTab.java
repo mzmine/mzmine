@@ -35,11 +35,15 @@ import org.jetbrains.annotations.NotNull;
 
 public class VolcanoPlotTab extends MZmineTab {
 
-  private final VolcanoPlotController controller = new VolcanoPlotController(List.of());
+  private final VolcanoPlotController controller;
 
   public VolcanoPlotTab() {
-    super("Volcano plot", true, false);
+    this(null);
+  }
 
+  public VolcanoPlotTab(FeatureList flist) {
+    super("Volcano plot", true, false);
+    controller = new VolcanoPlotController(flist);
     final Region plot = controller.buildView();
     setContent(plot);
   }

@@ -68,11 +68,16 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
   VolcanoPlotUpdateTask(VolcanoPlotModel model) {
     super("volcanoplot_update", model);
 
-    flist = model.getSelectedFlist();
+    final List<FeatureList> flists = model.getFlists();
+    if(flists != null && !flists.isEmpty()) {
+      flist = flists.getFirst();
+    } else {
+      flist = null;
+    }
     test = model.getTest();
     abundanceMeasure = model.getAbundanceMeasure();
     pValue = model.getpValue();
-    progress.setTotal(flist.getNumberOfRows());
+    progress.setTotal(flist != null ? flist.getNumberOfRows() : 0);
   }
 
   @Override

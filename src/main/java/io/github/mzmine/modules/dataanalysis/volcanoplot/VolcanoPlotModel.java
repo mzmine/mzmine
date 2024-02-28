@@ -40,7 +40,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class VolcanoPlotModel {
 
-  private final ObjectProperty<FeatureList> selectedFlist = new SimpleObjectProperty<>();
   private final ObjectProperty<List<FeatureList>> flists = new SimpleObjectProperty<>();
   private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>(
       AbundanceMeasure.Height);
@@ -51,18 +50,6 @@ public class VolcanoPlotModel {
   private final DoubleProperty pValue = new SimpleDoubleProperty(0.05);
 
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
-
-  public FeatureList getSelectedFlist() {
-    return selectedFlist.get();
-  }
-
-  public void setSelectedFlist(FeatureList selectedFlist) {
-    this.selectedFlist.set(selectedFlist);
-  }
-
-  public ObjectProperty<FeatureList> selectedFlistProperty() {
-    return selectedFlist;
-  }
 
   public List<FeatureList> getFlists() {
     return flists.get();

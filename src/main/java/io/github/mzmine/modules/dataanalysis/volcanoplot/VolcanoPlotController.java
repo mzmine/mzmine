@@ -31,7 +31,6 @@ import io.github.mzmine.gui.framework.fx.mvci.FxInteractor;
 import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
-import javafx.collections.FXCollections;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,12 +40,10 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> {
   private final VolcanoPlotViewBuilder viewBuilder;
   private final Region view;
 
-  public VolcanoPlotController(List<FeatureList> flists) {
+  public VolcanoPlotController(FeatureList flist) {
     super(new VolcanoPlotModel());
-    final List<FeatureList> alignedLists = flists.stream()
-        .filter(flist -> flist.getNumberOfRawDataFiles() > 1).toList();
 
-    model.setFlists(FXCollections.observableArrayList(alignedLists));
+    model.setFlists(flist != null ? List.of(flist) : null);
     viewBuilder = new VolcanoPlotViewBuilder(model);
     view = viewBuilder.build();
 
@@ -61,16 +58,11 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> {
     });
     model.flistsProperty().addListener(_ -> computeDataset());
     model.abundanceMeasureProperty().addListener(_ -> computeDataset());
-    model.selectedFlistProperty().addListener(_ -> computeDataset());
     model.pValueProperty().addListener(_ -> computeDataset());
   }
 
   private void computeDataset() {
     onTaskThread(new VolcanoPlotUpdateTask(model));
-  }
-
-  public void setFeatureList(FeatureList flist) {
-    model.setSelectedFlist(flist);
   }
 
   public ObjectProperty<List<FeatureList>> featureListsProperty() {
