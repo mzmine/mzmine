@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,7 +35,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingTask.SmoothingDimension;
@@ -61,10 +61,10 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
   protected final NumberFormat rtFormat;
   protected final NumberFormat intensityFormat;
   private final SimpleXYChart<IonTimeSeriesToXYProvider> previewChart;
-  private final ColoredXYShapeRenderer smoothedRenderer;
+  private final ColoredAreaShapeRenderer smoothedRenderer;
   protected ComboBox<FeatureList> flistBox;
   protected SortableFeatureComboBox fBox;
-  protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
+  protected ColoredAreaShapeRenderer shapeRenderer = new ColoredAreaShapeRenderer();
   protected SmoothingDimension previewDimension;
 
   public SmoothingSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
@@ -79,7 +79,7 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     previewChart.setDomainAxisLabel(uf.format("Retention time", "min"));
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
     previewChart.setMinHeight(400);
-    smoothedRenderer = new ColoredXYShapeRenderer();
+    smoothedRenderer = new ColoredAreaShapeRenderer();
 
     previewDimension = SmoothingDimension.RETENTION_TIME;
     previewChart.setDomainAxisNumberFormatOverride(rtFormat);

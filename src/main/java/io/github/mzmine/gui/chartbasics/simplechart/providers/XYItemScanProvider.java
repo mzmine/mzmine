@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.Scan;
  *
  * @author Robin Schmid <a href="https://github.com/robinschmid">https://github.com/robinschmid</a>
  */
-public non-sealed interface XYItemScanProvider extends XYItemObjectProvider<Scan> {
+public interface XYItemScanProvider extends XYItemObjectProvider<Scan> {
 
   Scan getScan(int item);
 

@@ -29,6 +29,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.RFC4180ParserBuilder;
 import com.opencsv.exceptions.CsvValidationException;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -183,5 +184,10 @@ public class ImportFeatureNetworksSimpleTask extends AbstractFeatureListTask {
   @Override
   protected @NotNull List<FeatureList> getProcessedFeatureLists() {
     return List.of(featureList);
+  }
+
+  @Override
+  protected @NotNull List<RawDataFile> getProcessedDataFiles() {
+    return List.of();
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,59 +23,54 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.anova;
+package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class AnovaModule implements MZmineProcessingModule {
-
-  private static final String MODULE_NAME = "One-way ANOVA Test";
-  private static final String MODULE_DESCRIPTION =
-      "Calculates one-way ANOVA test on the intensities of aligned features.";
+public class VolcanoPlotModule implements MZmineRunnableModule {
 
   @Override
   public @NotNull String getName() {
-    return MODULE_NAME;
+    return "Volcano plot";
+  }
+
+  @Override
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return VolcanoPlotParameters.class;
   }
 
   @Override
   public @NotNull String getDescription() {
-    return MODULE_DESCRIPTION;
+    return "Interactive Volcano Plot visualization";
   }
 
   @Override
-  @NotNull
-  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Instant moduleCallDate) {
 
-    FeatureList[] featureLists =
-        parameters.getParameter(AnovaParameters.featureLists).getValue().getMatchingFeatureLists();
-
-    for (FeatureList featureList : featureLists) {
-      tasks.add(new AnovaTask(featureList.getRows().toArray(FeatureListRow[]::new), parameters, moduleCallDate));
-    }
+    VolcanoPlotController controller = new VolcanoPlotController(project.getCurrentFeatureLists());
+    controller.setFeatureList(
+        parameters.getValue(VolcanoPlotParameters.flist).getMatchingFeatureLists()[0]);
+    SimpleTab tab = new SimpleTab("Volcano plot", controller.getView(), false, false);
+    MZmineCore.getDesktop().addTab(tab);
 
     return ExitCode.OK;
-
   }
 
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.DATAANALYSIS;
-  }
-
-  @Override
-  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return AnovaParameters.class;
+    return null;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,7 +46,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemScanProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -149,7 +149,7 @@ public class InjectTimeAnalysisTask extends AbstractTask {
             RunOption.THIS_THREAD)).toList();
 
     for (ColoredXYDataset dataset : datasets) {
-      var defaultRenderer = new ColoredXYShapeRenderer();
+      var defaultRenderer = new ColoredAreaShapeRenderer();
       Color color = dataset.getAWTColor();
       defaultRenderer.setSeriesPaint(0, color);
       defaultRenderer.setSeriesToolTipGenerator(0, new SimpleToolTipGenerator());

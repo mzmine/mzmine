@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,25 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.anova;
+package io.github.mzmine.modules.visualization.projectmetadata;
 
-import java.util.Set;
+import io.github.mzmine.main.MZmineCore;
 
-import io.github.mzmine.datamodel.RawDataFile;
+public class MetadataColumnDoesNotExistException extends RuntimeException {
 
-public class Group {
-
-  private final Set<RawDataFile> files;
-
-  public Group(Set<RawDataFile> files) throws IllegalArgumentException {
-
-    if (files == null || files.isEmpty())
-      throw new IllegalArgumentException("List of files is empty or does not exist.");
-
-    this.files = files;
-  }
-
-  public Set<RawDataFile> getFiles() {
-    return files;
+  public MetadataColumnDoesNotExistException(String requestedColumn) {
+    super("Metadata column %s does not exist. Existing headers: %s".formatted(requestedColumn,
+        String.join(", ", MZmineCore.getProjectMetadata().getColumnTitles())));
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,25 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.parameters.parametertypes;
+package io.github.mzmine.modules.dataanalysis.significance;
 
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import org.jetbrains.annotations.Nullable;
 
-public class MetadataGroupingParameter extends ComboParameter<String> {
+public interface RowSignificanceTest {
 
-  public MetadataGroupingParameter(final String name, final String description) {
-    // extract column titles from metadata
-    super(name, description, MZmineCore.getProjectMetadata().getColumnTitles());
-  }
-
-  public MetadataGroupingParameter() {
-    this("Metadata grouping",
-        "Group based on metadata column. Open sample metadata from the 'Project' menu, "
-            + "\nadd metadata, and open this dialog again.");
-  }
-
-  public static void updateMetadataGroups(ComboParameter<String> p) {
-    p.setChoices(MZmineCore.getProjectMetadata().getColumnTitles());
-  }
+  /**
+   * @return The result of this test or null of the test failed.
+   */
+  @Nullable RowSignificanceTestResult test(FeatureListRow row, AbundanceMeasure abundanceMeasure);
 
 }

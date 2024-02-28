@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
@@ -58,12 +58,12 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
 
   protected final Label lbkApproxBinSize = new Label();
   private final SimpleXYChart<SummedMobilogramXYProvider> previewChart;
-  private final ColoredXYShapeRenderer processedRenderer;
+  private final ColoredAreaShapeRenderer processedRenderer;
   private final NumberFormat intensityFormat;
   private final NumberFormat mobilityFormat;
   protected ComboBox<FeatureList> flistBox;
   protected SortableFeatureComboBox fBox;
-  protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
+  protected ColoredAreaShapeRenderer shapeRenderer = new ColoredAreaShapeRenderer();
   protected BinningMobilogramDataAccess summedMobilogramAccess;
 
   public MobilogramBinningSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
@@ -79,7 +79,7 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
     previewChart.setDomainAxisNumberFormatOverride(
         MZmineCore.getConfiguration().getMobilityFormat());
     previewChart.setMinHeight(400);
-    processedRenderer = new ColoredXYShapeRenderer();
+    processedRenderer = new ColoredAreaShapeRenderer();
 
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
     ObservableList<FeatureList> flists = FXCollections.observableArrayList(

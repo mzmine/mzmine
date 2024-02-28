@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,8 +39,8 @@ import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGene
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleXYLabelGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ExampleXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
-import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import java.text.NumberFormat;
@@ -109,7 +109,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
   protected SimpleXYLabelGenerator defaultLabelGenerator;
   protected SimpleToolTipGenerator defaultToolTipGenerator;
   protected ColoredXYLineRenderer defaultLineRenderer;
-  protected ColoredXYShapeRenderer defaultShapeRenderer;
+  protected ColoredAreaShapeRenderer defaultShapeRenderer;
 
   private int nextDataSetNum;
 
@@ -164,7 +164,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
 
     defaultLabelGenerator = new SimpleXYLabelGenerator(this);
     defaultToolTipGenerator = new SimpleToolTipGenerator();
-    defaultShapeRenderer = new ColoredXYShapeRenderer();
+    defaultShapeRenderer = new ColoredAreaShapeRenderer();
     defaultLineRenderer = new ColoredXYLineRenderer();
     defaultRenderer = new SimpleObjectProperty<>();
     defaultRenderer.addListener((obs, old, newValue) -> {
@@ -238,6 +238,15 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     }
     ColoredXYDataset dataset = new ColoredXYDataset(datasetProvider);
     return addDataset(dataset, defaultRenderer.get());
+  }
+
+  @Override
+  public synchronized int addDataset(T datasetProvider, XYItemRenderer renderer) {
+    if (datasetProvider instanceof XYDataset) {
+      return addDataset((XYDataset) datasetProvider, renderer);
+    }
+    ColoredXYDataset dataset = new ColoredXYDataset(datasetProvider);
+    return addDataset(dataset, renderer);
   }
 
   /**
