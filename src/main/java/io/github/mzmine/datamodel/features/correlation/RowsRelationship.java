@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportTask;
+import io.github.mzmine.modules.dataprocessing.id_online_reactivity.OnlineLcReactivityTask;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -142,6 +143,10 @@ public interface RowsRelationship {
      */
     MS2_GNPS_COSINE_SIM,
     /**
+     * {@link OnlineLcReactivityTask}
+     */
+    ONLINE_REACTION,
+    /**
      * External or other undefined
      */
     OTHER;
@@ -169,6 +174,7 @@ public interface RowsRelationship {
         case MS2_COSINE_SIM -> "MS2 mod-cosine";
         case MS2_NEUTRAL_LOSS_SIM -> "MS2 neutral loss cosine";
         case MS2_GNPS_COSINE_SIM -> "GNPS mod-cosine";
+        case ONLINE_REACTION -> "Online reaction";
         case OTHER -> "Other";
       };
     }

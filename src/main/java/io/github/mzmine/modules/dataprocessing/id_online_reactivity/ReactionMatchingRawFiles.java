@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,25 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.example;
+package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.datamodel.RawDataFile;
+import java.util.List;
 
-public class EmptyFeatureListParameters extends SimpleParameterSet {
-
-  /*
-   * Define any parameters here (see io.github.mzmine.parameters for parameter types)
-   * static is needed here to use this parameter as a key to lookup values
-   */
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
-
-  public EmptyFeatureListParameters() {
-    /*
-     * The order of the parameters is used to construct the parameter dialog automatically
-     */
-    super(new Parameter[]{featureLists});
-  }
+/**
+ * Intermediate record holding the matching {@link RawDataFile} for a reaction
+ *
+ * @param reaction a reaction
+ * @param raws     data files matching the filenameContains naming pattern in reaction
+ */
+record ReactionMatchingRawFiles(OnlineReaction reaction, List<RawDataFile> raws) {
 
 }

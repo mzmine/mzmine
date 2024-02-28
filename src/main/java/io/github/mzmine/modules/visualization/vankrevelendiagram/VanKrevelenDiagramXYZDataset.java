@@ -42,9 +42,12 @@ import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.data.xy.AbstractXYZDataset;
 import org.openscience.cdk.config.Elements;
 import org.openscience.cdk.interfaces.IElement;
@@ -57,6 +60,9 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  */
 class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, XYZBubbleDataset {
 
+  // TODO replace with getTask or AbstractTaskXYZDataset
+  private static final Logger logger = Logger.getLogger(
+      VanKrevelenDiagramXYZDataset.class.getName());
   protected final @NotNull Property<TaskStatus> status = new SimpleObjectProperty<>(
       TaskStatus.WAITING);
   protected String errorMessage = null;
@@ -119,7 +125,7 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
               Objects.requireNonNull(FormulaUtils.createMajorIsotopeMolFormula(formula)),
               elementTwo);
           values[i] = (elementOneCount > 0 && elementTwoCount > 0) ? (double) elementOneCount
-              / elementTwoCount : 0.0;
+                                                                     / elementTwoCount : 0.0;
         } else {
           values[i] = 0.0;
         }
@@ -299,5 +305,13 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset implements Task, X
     if (listener != null) {
       listener.clear();
     }
+  }
+
+  @Override
+  public void error(@NotNull String message, @Nullable Exception exceptionToLog) {
+    if (exceptionToLog != null) {
+      logger.log(Level.SEVERE, message, exceptionToLog);
+    }
+    setStatus(TaskStatus.ERROR);
   }
 }

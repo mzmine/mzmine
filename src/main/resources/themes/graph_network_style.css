@@ -4,7 +4,7 @@ graph {
 
 edge {
   text-visibility-mode: under-zoom;
-  text-visibility: 0.3;
+  text-visibility: 0.7;
   text-alignment: along;
   fill-mode: plain;
   fill-color: rgb(108, 108, 108);

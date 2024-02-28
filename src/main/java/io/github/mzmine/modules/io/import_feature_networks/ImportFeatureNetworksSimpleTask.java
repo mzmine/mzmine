@@ -36,7 +36,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.SimpleRowsRelationship;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.AbstractSimpleTask;
+import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.FeatureListUtils;
@@ -55,7 +55,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
-public class ImportFeatureNetworksSimpleTask extends AbstractSimpleTask {
+public class ImportFeatureNetworksSimpleTask extends AbstractFeatureListTask {
 
   private static final Logger logger = Logger.getLogger(
       ImportFeatureNetworksSimpleTask.class.getName());

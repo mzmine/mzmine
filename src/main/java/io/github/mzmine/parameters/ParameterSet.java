@@ -38,7 +38,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import javafx.beans.property.BooleanProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,6 +100,18 @@ public interface ParameterSet extends ParameterContainer {
       return actualParam == null ? null : actualParam.getValue();
     }
     return defaultValue;
+  }
+
+  /**
+   * can be used to map the resulting value
+   */
+  default <V, T extends UserParameter<V, ?>> Optional<V> getOptionalValue(
+      OptionalParameter<T> parameter) {
+    if (getValue(parameter)) {
+      final UserParameter<V, ?> actualParam = getParameter(parameter).getEmbeddedParameter();
+      return actualParam == null ? Optional.empty() : Optional.ofNullable(actualParam.getValue());
+    }
+    return Optional.empty();
   }
 
   /**
@@ -238,5 +252,10 @@ public interface ParameterSet extends ParameterContainer {
   default boolean hasParameter(Parameter<?> p) {
     return Arrays.stream(getParameters()).map(Parameter::getName)
         .anyMatch(name -> Objects.equals(p.getName(), name));
+  }
+
+  @SuppressWarnings("unchecked")
+  default <V, T extends Parameter<V>> Stream<T> streamForClass(Class<T> parameterClass) {
+    return Arrays.stream(getParameters()).filter(parameterClass::isInstance).map(p -> (T) p);
   }
 }

@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.operations.AbstractTaskSubProcessor;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.SortingDirection;
@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Filters out feature list rows.
@@ -61,7 +60,7 @@ public class GroupedMs2RefinementProcessor extends AbstractTaskSubProcessor {
   private final AtomicLong totalUniqueScans = new AtomicLong(0);
   private final @NotNull String description;
 
-  public GroupedMs2RefinementProcessor(@Nullable AbstractTask parentTask,
+  public GroupedMs2RefinementProcessor(Task parentTask,
       final FeatureList featureList, final double minRelFeatureHeight,
       final double minAbsFeatureHeight) {
     super(parentTask);

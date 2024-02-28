@@ -25,7 +25,7 @@
 
 package io.github.mzmine.taskcontrol.operations;
 
-import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.Task;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -33,12 +33,12 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface ParentTaskDependent {
 
-  @Nullable AbstractTask getParentTask();
+  Task getParentTask();
 
-  void setParentTask(final @Nullable AbstractTask parentTask);
+  void setParentTask(final @Nullable Task parentTask);
 
   default boolean isCanceled() {
-    AbstractTask parentTask = getParentTask();
+    Task parentTask = getParentTask();
     return parentTask != null && parentTask.isCanceled();
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,23 +27,15 @@ package io.github.mzmine.modules.io.import_spectral_library;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
-import java.util.List;
-import javafx.stage.FileChooser.ExtensionFilter;
+import io.github.mzmine.util.files.ExtensionFilters;
 
 public class SpectralLibraryImportParameters extends SimpleParameterSet {
 
-  public static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("json files from MoNA or GNPS", "*.json"), //
-      new ExtensionFilter("mgf files", "*.mgf"), //
-      new ExtensionFilter("msp files from NIST", "*.msp"), //
-      new ExtensionFilter("JCAM-DX files", "*.jdx"), //
-      new ExtensionFilter("All files", "*.*") //
-  );
 
   public static final FileNamesParameter dataBaseFiles = new FileNamesParameter(
-      "Spectral library files",
-      "Name of file that contains information for peak identification\n(GNPS json, MONA json, NIST msp, mgf, JCAMP-DX jdx)",
-      extensions);
+      "Spectral library files", """
+      Name of file that contains information for peak identification
+      (GNPS json, MONA json, NIST msp, mgf, JCAMP-DX jdx)""", ExtensionFilters.ALL_LIBRARY);
 
   public SpectralLibraryImportParameters() {
     super(dataBaseFiles);

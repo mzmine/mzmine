@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,13 @@
 
 package io.github.mzmine.parameters;
 
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,6 +45,61 @@ import org.jetbrains.annotations.NotNull;
 public class ParameterUtils {
 
   private static final Logger logger = Logger.getLogger(ParameterUtils.class.getName());
+
+
+  /**
+   * Get the matching feature lists from {@link FeatureListsParameter}.
+   *
+   * @param parameters the parameters to search in
+   * @return the matching featurelist selection
+   * @throws IllegalStateException if there are != 1 FeatureListsParameters in the parameters
+   */
+  @NotNull
+  public static FeatureList[] getMatchingFeatureListsFromParameter(
+      final @NotNull ParameterSet parameters) throws IllegalStateException {
+    // get parameters here only needed to run one task per featureList
+    var featureListParameters = parameters.streamForClass(FeatureListsParameter.class).toList();
+    int nFlistParams = featureListParameters.size();
+    if (featureListParameters.isEmpty()) {
+      throw new IllegalStateException(
+          "There is no FeatureListsParameter (needs 1) in class " + parameters.getClass()
+              .getName());
+    }
+    if (nFlistParams > 1) {
+      throw new IllegalStateException(
+          STR."There are too many (\{nFlistParams}) FeatureListsParameter in class \{parameters.getClass()
+              .getName()}. Can only have 1. Coding error.");
+    }
+    // exactly one parameter for feature lists found
+    return parameters.getValue(featureListParameters.getFirst()).getMatchingFeatureLists();
+  }
+
+  /**
+   * Get the matching raw data files from {@link RawDataFilesParameter}.
+   *
+   * @param parameters the parameters to search in
+   * @return the matching RawDataFile selection
+   * @throws IllegalStateException if there are != 1 RawDataFilesParameter in the parameters
+   */
+  @NotNull
+  public static RawDataFile[] getMatchingRawDataFilesFromParameter(
+      final @NotNull ParameterSet parameters) throws IllegalStateException {
+    // get parameters here only needed to run one task per RawDataFile
+    var rawFilesParameter = parameters.streamForClass(RawDataFilesParameter.class).toList();
+    int nRawFiles = rawFilesParameter.size();
+    if (rawFilesParameter.isEmpty()) {
+      throw new IllegalStateException(
+          "There is no RawDataFilesParameter (needs 1) in class " + parameters.getClass()
+              .getName());
+    }
+    if (nRawFiles > 1) {
+      throw new IllegalStateException(
+          STR."There are too many (\{nRawFiles}) RawDataFilesParameter in class \{parameters.getClass()
+              .getName()}. Can only have 1. Coding error.");
+    }
+    // exactly one parameter for RawDataFiles found
+    return parameters.getValue(rawFilesParameter.getFirst()).getMatchingRawDataFiles();
+  }
 
   /**
    * Attemp to copy parameters by name (this is how its usually done in MZmine). Exceptions because
@@ -126,8 +184,8 @@ public class ParameterUtils {
         if (param1.getClass() != param2.getClass()) {
           logger.finest(
               () -> "Parameters " + param1.getName() + "(" + param1.getClass().getName() + ") and "
-                  + param2.getName() + " (" + param2.getClass().getName()
-                  + ") are not of the same class.");
+                    + param2.getName() + " (" + param2.getClass().getName()
+                    + ") are not of the same class.");
           return false;
         }
 
@@ -152,7 +210,7 @@ public class ParameterUtils {
           logger.finest(
               () -> "Parameter \"" + param1.getName() + "\" of parameter set " + a.getClass()
                   .getName() + " has different values: " + param1.getValue() + " and "
-                  + param2.getValue());
+                    + param2.getValue());
           return false;
         }
 

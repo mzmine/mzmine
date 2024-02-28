@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,7 @@ package io.github.mzmine.modules.io.import_feature_networks;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.files.ExtensionFilters;
 
 public class ImportFeatureNetworksSimpleParameters extends SimpleParameterSet {
 
@@ -40,7 +40,7 @@ public class ImportFeatureNetworksSimpleParameters extends SimpleParameterSet {
       ID1 and ID2 need to correspond to feature list row IDs in the selected feature lists.
       EdgeType and EdgeAnnotation are strings to define the method used and annotations of the edge
       EdgeScore is a floating point number
-      """, FileAndPathUtil.CSV_TSV_FILTER);
+      """, ExtensionFilters.CSV_TSV_IMPORT);
 
   public ImportFeatureNetworksSimpleParameters() {
     super(flist, input);

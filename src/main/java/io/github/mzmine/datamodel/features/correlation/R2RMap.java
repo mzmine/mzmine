@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -97,5 +97,14 @@ public class R2RMap<T> extends ConcurrentHashMap<Integer, T> {
         consumer.accept(relationship);
       }
     });
+  }
+
+  /**
+   * The order of arguments does not matter
+   *
+   * @return true if get(a,b) is not null
+   */
+  public boolean contains(final FeatureListRow a, final FeatureListRow b) {
+    return get(a, b) != null;
   }
 }

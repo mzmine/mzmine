@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,8 +30,9 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -48,7 +49,7 @@ import java.util.Map.Entry;
 import javax.annotation.processing.Generated;
 import org.jetbrains.annotations.Nullable;
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@JsonNaming(SnakeCaseStrategy.class)
 @JsonPropertyOrder({"softwaresource", "mergedSpectrumType", "entry_id", "ms_level", "polarity",
     "compound_name", "synonyms", "adduct", "charge", "precursor_mz", "exact_mass", "rt", "ccs",
 
@@ -73,7 +74,7 @@ import org.jetbrains.annotations.Nullable;
     // data
     "num_signals", "signals"})
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(Include.NON_NULL)
 @Generated("jsonschema2pojo")
 public class MZmineJsonLibraryEntry {
 
@@ -103,7 +104,7 @@ public class MZmineJsonLibraryEntry {
   public Double purity;
   public Integer numSignals;
 
-  @JsonDeserialize(using = io.github.mzmine.util.spectraldb.parser.mzmine.SpectrumDeserializer.class)
+  @JsonDeserialize(using = SpectrumDeserializer.class)
   public double[][] signals;
   @JsonIgnore
   private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -154,6 +155,7 @@ public class MZmineJsonLibraryEntry {
       case COLLISION_ENERGY -> fragmentationEnergy;
       case FRAGMENTATION_METHOD -> fragmentationMethod;
       case ISOLATION_WINDOW -> isolationWindow;
+      case ONLINE_REACTIVITY -> null;
       case NUM_PEAKS -> numSignals;
       case ACQUISITION -> compoundSource;
       case MSN_COLLISION_ENERGIES ->

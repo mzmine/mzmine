@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,15 +32,20 @@ import io.github.mzmine.taskcontrol.TaskStatusListener;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.data.xy.AbstractXYDataset;
 
 public abstract class AbstractTaskXYDataset extends AbstractXYDataset implements Task {
+  // TODO replace with internal getTask method and use AbstractModifiableTask
 
+  private static final Logger logger = Logger.getLogger(AbstractTaskXYDataset.class.getName());
   @Serial
   private static final long serialVersionUID = 1L;
   private final StringProperty name = new SimpleStringProperty("Task name");
@@ -159,5 +164,14 @@ public abstract class AbstractTaskXYDataset extends AbstractXYDataset implements
     }
   }
 
+
+  @Override
+  public void error(@NotNull String message, @Nullable Exception exceptionToLog) {
+    if (exceptionToLog != null) {
+      logger.log(Level.SEVERE, message, exceptionToLog);
+    }
+    setErrorMessage(message);
+    setStatus(TaskStatus.ERROR);
+  }
 }
 
