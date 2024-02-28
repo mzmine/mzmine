@@ -77,7 +77,6 @@ public class BatchComponentController implements LastFilesComponent {
 
   private final static Logger logger = Logger.getLogger(BatchComponentController.class.getName());
 
-
   @FXML
   public AnchorPane root;
   @FXML

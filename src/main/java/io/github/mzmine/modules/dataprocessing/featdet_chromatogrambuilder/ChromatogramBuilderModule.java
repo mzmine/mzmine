@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.batchmode.DeprecatedModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -38,7 +39,7 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 @Deprecated
-public class ChromatogramBuilderModule implements MZmineProcessingModule {
+public class ChromatogramBuilderModule implements MZmineProcessingModule, DeprecatedModule {
 
   private static final String MODULE_NAME = "Chromatogram builder (deprecated, see Help)";
   private static final String MODULE_DESCRIPTION = "This module connects data points from mass lists and builds chromatograms.";
