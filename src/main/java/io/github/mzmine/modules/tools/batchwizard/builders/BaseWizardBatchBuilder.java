@@ -566,7 +566,12 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         param));
   }
 
-  protected void makeAndAddGapFillStep(final BatchQueue q, final @Nullable RTTolerance rtTol) {
+  /**
+   * @param minRtDataPoints The minimum rt data points used during initial feature finding. This
+   *                        value is slightly reduced in this method  for the gap filling (3/5).
+   */
+  protected void makeAndAddGapFillStep(final BatchQueue q, final @Nullable RTTolerance rtTol,
+      final int minRtDataPoints) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(MultiThreadPeakFinderModule.class).cloneParameterSet();
 
@@ -579,6 +584,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(MultiThreadPeakFinderParameters.intTolerance, 0.2);
     param.setParameter(MultiThreadPeakFinderParameters.handleOriginal, handleOriginalFeatureLists);
     param.setParameter(MultiThreadPeakFinderParameters.suffix, "gaps");
+    param.setParameter(MultiThreadPeakFinderParameters.minDataPoints, minRtDataPoints * 3 / 5);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(MultiThreadPeakFinderModule.class), param));
