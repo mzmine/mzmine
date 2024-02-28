@@ -27,50 +27,32 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
 import io.github.mzmine.modules.dataanalysis.significance.StatisticUtils;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
+import java.text.DecimalFormat;
 import java.util.List;
 import javafx.beans.property.Property;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class VolcanoDatasetProvider implements PlotXYDataProvider,
+public class VolcanoDatasetProvider extends SimpleXYProvider implements
     XYItemObjectProvider<RowSignificanceTestResult> {
 
   private final StudentTTest<?> test;
   private final List<RowSignificanceTestResult> results;
-  private final Color color;
 
-  private final String key;
   private final AbundanceMeasure abundanceMeasure;
-  private double[] log2FoldChange;
-  private double[] minusLog10PValue;
 
   public VolcanoDatasetProvider(StudentTTest<?> test, List<RowSignificanceTestResult> results,
       Color color, String key, AbundanceMeasure abundanceMeasure) {
+    super(key, color, new DecimalFormat("0.0"), new DecimalFormat("0.0"));
     this.test = test;
     this.results = results;
-    this.color = color;
-    this.key = key;
     this.abundanceMeasure = abundanceMeasure;
-  }
-
-  @NotNull
-  @Override
-  public Color getAWTColor() {
-    return color;
-  }
-
-  @NotNull
-  @Override
-  public javafx.scene.paint.Color getFXColor() {
-    return FxColorUtil.awtColorToFX(color);
   }
 
   @Override
@@ -79,13 +61,12 @@ public class VolcanoDatasetProvider implements PlotXYDataProvider,
   }
 
   @Override
-  public @NotNull Comparable<?> getSeriesKey() {
-    return key;
-  }
-
-  @Override
-  public @Nullable String getToolTipText(int itemIndex) {
-    return results.get(itemIndex).row().toString();
+  public @Nullable String getToolTipText(int index) {
+    RowSignificanceTestResult result = results.get(index);
+    return STR."""
+    \{result.row()}
+    log2(FC)=\{getFormattedDomainValue(index)}
+    -log10(p)=\{getFormattedRangeValue(index)}""";
   }
 
   @Override
@@ -95,35 +76,18 @@ public class VolcanoDatasetProvider implements PlotXYDataProvider,
 
   @Override
   public void computeValues(Property<TaskStatus> status) {
-    minusLog10PValue = new double[results.size()];
+    double[] minusLog10PValue = new double[results.size()];
     final List<RawDataFile> groupAFiles = test.getGroupAFiles();
     final List<RawDataFile> groupBFiles = test.getGroupBFiles();
 
     for (int i = 0; i < results.size(); i++) {
       minusLog10PValue[i] = -Math.log10(results.get(i).pValue());
     }
-    log2FoldChange = StatisticUtils.calculateLog2FoldChange(results, groupAFiles, groupBFiles,
-        abundanceMeasure);
-  }
+    double[] log2FoldChange = StatisticUtils.calculateLog2FoldChange(results, groupAFiles,
+        groupBFiles, abundanceMeasure);
 
-  @Override
-  public double getDomainValue(int index) {
-    return log2FoldChange[index];
-  }
-
-  @Override
-  public double getRangeValue(int index) {
-    return minusLog10PValue[index];
-  }
-
-  @Override
-  public int getValueCount() {
-    return results.size();
-  }
-
-  @Override
-  public double getComputationFinishedPercentage() {
-    return 0;
+    setxValues(log2FoldChange);
+    setyValues(minusLog10PValue);
   }
 
 }
