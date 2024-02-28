@@ -82,7 +82,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
 
   @Override
   protected void process() {
-    if (checkPreConditions()) {
+    if (!checkPreConditions()) {
       return;
     }
     List<RowSignificanceTestResult> rowSignificanceTestResults = new ArrayList<>();
