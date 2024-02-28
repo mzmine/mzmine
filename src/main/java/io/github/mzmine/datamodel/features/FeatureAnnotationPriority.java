@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,16 @@
 
 package io.github.mzmine.datamodel.features;
 
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
+import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +43,43 @@ import org.jetbrains.annotations.NotNull;
  * {@link FeatureAnnotationIterator}
  */
 public enum FeatureAnnotationPriority {
-  MANUAL, SPECTRAL_LIBRARY, LIPID, EXACT_COMPOUND, FORMULA;
+  MANUAL(ManualAnnotationType.class), LIPID(LipidMatchListType.class), SPECTRAL_LIBRARY(
+      SpectralLibraryMatchesType.class), EXACT_COMPOUND(CompoundDatabaseMatchesType.class), FORMULA(
+      FormulaListType.class);
+  private static final DataType<?>[] dataTypes = Arrays.stream(FeatureAnnotationPriority.values())
+      .map(FeatureAnnotationPriority::getAnnotationType).map(DataTypes::get)
+      .toArray(DataType<?>[]::new);
+
+  private final DataType<?> type;
+
+  FeatureAnnotationPriority(Class<? extends DataType<?>> clazz) {
+    this.type = DataTypes.get(clazz);
+  }
+
+  /**
+   * Returns the priority ordinal of the given annotation type in this enum or the lowest priority
+   * specified by this enum + 1 (the length of this enum). The smaller the integer, the higher the
+   * priority.
+   */
+  public static <T extends DataType<?> & AnnotationType> int getPriority(Class<T> clazz) {
+    return getPriority(DataTypes.get(clazz));
+  }
+
+  /**
+   * Returns the priority ordinal of the given annotation type in this enum or the lowest priority
+   * specified by this enum + 1 (the length of this enum). The smaller the integer, the higher the
+   * priority.
+   */
+  public static <T extends DataType<?> & AnnotationType> int getPriority(T clazz) {
+    final FeatureAnnotationPriority prio = Arrays.stream(FeatureAnnotationPriority.values())
+        .filter(p -> p.type.getClass().getName().equalsIgnoreCase(clazz.getClass().getName()))
+        .findFirst().orElse(null);
+    return prio != null ? prio.ordinal() : FeatureAnnotationPriority.values().length;
+  }
+
+  public static DataType<?>[] getDataTypesInOrder() {
+    return dataTypes;
+  }
 
   @NotNull
   public List<?> getAll(FeatureListRow row) {
@@ -55,4 +100,7 @@ public enum FeatureAnnotationPriority {
     };
   }
 
+  public DataType<?> getAnnotationType() {
+    return type;
+  }
 }

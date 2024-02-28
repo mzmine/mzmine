@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ProviderAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import java.text.NumberFormat;
 import java.util.LinkedHashMap;
@@ -60,6 +61,12 @@ public interface SimpleChart<T extends PlotXYDataProvider> {
   public XYPlot getXYPlot();
 
   public int addDataset(T datasetProvider);
+
+  int addDataset(T datasetProvider, XYItemRenderer renderer);
+
+  default int addDataset(ProviderAndRenderer data) {
+    return addDataset((T) data.provider(), data.renderer());
+  }
 
   public void removeAllDatasets();
 

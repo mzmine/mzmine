@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,7 +34,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -91,16 +90,16 @@ class MetaboAnalystExportTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     if (metadataColumn == null) {
-      return "Error: Metadata column not found for " + grouping;
+      return "Error: Metadata columnName not found for " + grouping;
     }
     return "Exporting feature list(s) " + Arrays.toString(featureLists)
-        + " to MetaboAnalyst CSV file(s) for metadata column " + grouping;
+        + " to MetaboAnalyst CSV file(s) for metadata columnName " + grouping;
   }
 
   @Override
   public void run() {
     if (metadataColumn == null) {
-      setErrorMessage("Error: Metadata column not found for " + grouping);
+      setErrorMessage("Error: Metadata columnName not found for " + grouping);
       setStatus(TaskStatus.ERROR);
       return;
     }

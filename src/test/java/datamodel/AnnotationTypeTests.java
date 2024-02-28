@@ -58,10 +58,12 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.MsMsMultimerVer
 import io.github.mzmine.datamodel.features.types.annotations.iin.PartnerIdsType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.numbers.stats.AnovaResultsType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.modules.dataanalysis.significance.anova.AnovaResult;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
@@ -77,6 +79,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
@@ -365,5 +368,16 @@ public class AnnotationTypeTests {
     final FormulaListType type = new FormulaListType();
 
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
+  }
+
+  @Test
+  public void testAnovaType() {
+    final MZmineProject project = Mockito.mock(MZmineProject.class);
+    final ModularFeatureList flist = Mockito.mock(ModularFeatureList.class);
+    final ModularFeatureListRow row = Mockito.mock(ModularFeatureListRow.class);
+
+    AnovaResult result = new AnovaResult(row, "test_column", 0.03, .98);
+    DataTypeTestUtils.testSaveLoad(new AnovaResultsType(), result, project, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(new AnovaResultsType(), null, project, flist, row, null, null);
   }
 }

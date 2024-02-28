@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import java.awt.Color;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import javafx.beans.property.Property;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Example implementation of a PlotXYDatasetProvider. This can be your usual data-class, you just
@@ -42,8 +43,8 @@ public class SimpleXYProvider implements PlotXYDataProvider {
 
   private final String seriesKey;
   private final Color awt;
-  private final NumberFormat rangeFormat;
-  private final NumberFormat domainFormat;
+  private final @NotNull NumberFormat rangeFormat;
+  private final @NotNull NumberFormat domainFormat;
   /**
    * These will be passed to the plot.
    */
@@ -52,11 +53,16 @@ public class SimpleXYProvider implements PlotXYDataProvider {
   private double finishedPercentage;
 
   public SimpleXYProvider(String seriesKey, Color awt) {
-    this(seriesKey, awt, null, null);
+    this(seriesKey, awt, null, null, new DecimalFormat(), new DecimalFormat());
   }
 
   public SimpleXYProvider(String seriesKey, Color awt, double[] xValues, double[] yValues) {
     this(seriesKey, awt, xValues, yValues, new DecimalFormat(), new DecimalFormat());
+  }
+
+  public SimpleXYProvider(String seriesKey, Color awt, @NotNull NumberFormat domainFormat,
+      @NotNull NumberFormat rangeFormat) {
+    this(seriesKey, awt, null, null, domainFormat, rangeFormat);
   }
 
   public SimpleXYProvider(String seriesKey, Color awt, double[] xValues, double[] yValues,
@@ -101,6 +107,14 @@ public class SimpleXYProvider implements PlotXYDataProvider {
   public String getToolTipText(int itemIndex) {
     return "\nx: " + domainFormat.format(getDomainValue(itemIndex)) + "\ny: " + rangeFormat.format(
         getRangeValue(itemIndex));
+  }
+
+  public String getFormattedDomainValue(int index) {
+    return domainFormat.format(xValues[index]);
+  }
+
+  public String getFormattedRangeValue(int index) {
+    return rangeFormat.format(yValues[index]);
   }
 
   @Override
