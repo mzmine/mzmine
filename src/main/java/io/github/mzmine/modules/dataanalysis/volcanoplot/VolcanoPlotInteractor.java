@@ -117,7 +117,7 @@ public class VolcanoPlotInteractor extends FxInteractor<VolcanoPlotModel> {
       if (!insignificantRows.isEmpty()) {
         var provider = new VolcanoDatasetProvider(ttest, insignificantRows, color,
             STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "not annotated"
-                : type.getHeaderString()} (p < \{pValue})", model.getAbundanceMeasure());
+                : type.getHeaderString()} (p ≥ \{pValue})", model.getAbundanceMeasure());
         temporaryDatasets.add(
             new DatasetAndRenderer(new ColoredXYDataset(provider, RunOption.THIS_THREAD),
                 new ColoredXYShapeRenderer(true)));

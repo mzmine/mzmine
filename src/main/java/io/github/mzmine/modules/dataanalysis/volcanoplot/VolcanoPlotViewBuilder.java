@@ -55,8 +55,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
+import javafx.scene.control.Accordion;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
@@ -87,10 +89,12 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
     final HBox pValueBox = createPValueBox();
     final HBox abundanceBox = createAbundanceBox();
+    final HBox pAndAbundance = new HBox(space, pValueBox, abundanceBox);
     final Region testConfigPane = createTestParametersPane();
 
-    final FlowPane controls = createControlsPane(pValueBox, abundanceBox, testConfigPane);
-    mainPane.setBottom(controls);
+    final FlowPane controls = createControlsPane(pAndAbundance, testConfigPane);
+    final Accordion accordion = new Accordion(new TitledPane("Settings", controls));
+    mainPane.setBottom(accordion);
 
     chart.setDefaultRenderer(new ColoredXYShapeRenderer());
     model.datasetsProperty().addListener((obs, o, n) -> {
