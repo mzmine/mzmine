@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
@@ -52,6 +53,7 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMat
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
@@ -601,4 +603,61 @@ public class FeatureUtils {
     return result;
   }
 
+  public static Integer extractBestAbsoluteChargeState(FeatureListRow row) {
+    return extractBestAbsoluteChargeState(row, row.getMostIntenseFragmentScan());
+  }
+
+  /**
+   * Get the absolute/unsigned polarity of this row. Checks the row charge first, then the supplied
+   * scan and then the best feature. If the charge is undetermined, the default of 1 is returned.
+   */
+  public static int extractBestAbsoluteChargeState(FeatureListRow row, Scan scan) {
+    final Integer rowCharge = row.getRowCharge();
+    if (rowCharge != null && rowCharge != 0) {
+      return Math.abs(rowCharge);
+    }
+    if (scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
+      final Integer precursorCharge = dda.getPrecursorCharge();
+      if (precursorCharge != null && precursorCharge != 0) {
+        return Math.abs(precursorCharge);
+      }
+    }
+    final Integer featureCharge = row.getBestFeature().getCharge();
+    if (featureCharge != null && featureCharge != 0) {
+      return Math.abs(featureCharge);
+    }
+
+    return 1;
+  }
+
+  public static PolarityType extractBestPolarity(FeatureListRow row) {
+    return extractBestPolarity(row, null);
+  }
+
+  /**
+   * Extracts the best polarity from the row. Checks the supplied scan first, then the row fragment
+   * scan and then the best feature fragment scan. IF no polarity is found, positive
+   */
+  public static PolarityType extractBestPolarity(FeatureListRow row, Scan scan) {
+    if (scan != null && scan.getPolarity() != null) {
+      return scan.getPolarity();
+    }
+    if (row.getMostIntenseFragmentScan() != null) {
+      return row.getMostIntenseFragmentScan().getPolarity();
+    }
+    if (row.getBestFeature().getRepresentativeScan() != null) {
+      final PolarityType pol = row.getBestFeature().getRepresentativeScan().getPolarity();
+      if (pol != null) {
+        return pol;
+      }
+    }
+    return PolarityType.POSITIVE;
+  }
+
+  public static Integer extractBestSignedChargeState(FeatureListRow row, Scan scan) {
+    final int absCharge = extractBestAbsoluteChargeState(row, scan);
+    final PolarityType pol = extractBestPolarity(row, scan);
+
+    return absCharge * pol.getSign();
+  }
 }

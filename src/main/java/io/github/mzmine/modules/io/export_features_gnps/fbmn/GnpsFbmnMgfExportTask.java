@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ package io.github.mzmine.modules.io.export_features_gnps.fbmn;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -49,6 +50,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -63,7 +65,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -261,13 +262,10 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
       writer.append("SCANS=").append(rowID).write(newLine);
       writer.append("RTINSECONDS=").append(rtsForm.format(retTimeInSeconds)).write(newLine);
 
-      int msmsCharge = Objects.requireNonNullElse(msmsScan.getPrecursorCharge(), 1);
-      String msmsPolarity = msmsScan.getPolarity().asSingleChar();
-      if (!(msmsPolarity.equals("+") || msmsPolarity.equals("-"))) {
-        msmsPolarity = "";
-      }
+      final int charge = FeatureUtils.extractBestAbsoluteChargeState(row, msmsScan);
+      final PolarityType pol = FeatureUtils.extractBestPolarity(row, msmsScan);
+      writer.write(STR."CHARGE=\{charge}\{pol.asSingleChar()}\{newLine}");
 
-      writer.write("CHARGE=" + msmsCharge + msmsPolarity + newLine);
       writer.append("MSLEVEL=2").write(newLine);
 
       DataPoint[] dataPoints = null;
