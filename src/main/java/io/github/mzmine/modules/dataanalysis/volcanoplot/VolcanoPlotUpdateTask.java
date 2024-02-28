@@ -77,7 +77,7 @@ class VolcanoPlotUpdateTask extends FxUpdateTask<VolcanoPlotModel> {
 
   @Override
   public boolean checkPreConditions() {
-    return flist == null || test == null;
+    return flist != null && test != null;
   }
 
   @Override
