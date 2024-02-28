@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -60,10 +60,9 @@ public class VolcanoPlotModule implements MZmineRunnableModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    VolcanoPlotController controller = new VolcanoPlotController(project.getCurrentFeatureLists());
-    controller.setFeatureList(
-        parameters.getValue(VolcanoPlotParameters.flist).getMatchingFeatureLists()[0]);
-    SimpleTab tab = new SimpleTab("Volcano plot", controller.getView(), false, false);
+    final ModularFeatureList flist = parameters.getValue(VolcanoPlotParameters.flist)
+        .getMatchingFeatureLists()[0];
+    final VolcanoPlotTab tab = new VolcanoPlotTab(flist);
     MZmineCore.getDesktop().addTab(tab);
 
     return ExitCode.OK;
