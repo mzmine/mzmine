@@ -25,6 +25,43 @@
 
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
-public class PCAViewBuilder {
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
+import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 
+public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
+
+  private static final int space = 5;
+
+  private final SimpleXYChart<?> scoresPlot = new SimpleXYChart<>("Scores plot", "PC1", "PC2");
+  private final SimpleXYChart<?> loadingsPlot = new SimpleXYChart<>("Loadings plot", "PC1", "PC2");
+
+  public PCAViewBuilder(PCAModel model) {
+    super(model);
+  }
+
+  @Override
+  public Region build() {
+
+    final BorderPane pane = new BorderPane();
+
+    final Label domainLabel = new Label("Domain PC:");
+    final ComboBox<Integer> domainPcSelector = new ComboBox<>(model.getAvailablePCs());
+    final HBox domain = new HBox(5, domainLabel, domainPcSelector);
+
+    final Label rangeLabel = new Label("Range PC:");
+    final ComboBox<Integer> rangePcSelector = new ComboBox<>(model.getAvailablePCs());
+    final HBox range = new HBox(5, rangeLabel, rangePcSelector);
+
+    pane.setBottom(new FlowPane(space, space, domain, range));
+
+    pane.setCenter(new HBox(scoresPlot, loadingsPlot));
+
+    return pane;
+  }
 }

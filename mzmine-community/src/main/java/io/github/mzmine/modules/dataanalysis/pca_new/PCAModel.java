@@ -25,6 +25,43 @@
 
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 public class PCAModel {
 
+  private final ObservableList<Integer> availablePCs = FXCollections.observableArrayList();
+
+  private final IntegerProperty domainPc = new SimpleIntegerProperty(1);
+  private final IntegerProperty rangePc = new SimpleIntegerProperty(2);
+
+  public ObservableList<Integer> getAvailablePCs() {
+    return availablePCs;
+  }
+
+  public int getDomainPc() {
+    return domainPc.get();
+  }
+
+  public IntegerProperty domainPcProperty() {
+    return domainPc;
+  }
+
+  public void setDomainPc(int domainPc) {
+    this.domainPc.set(domainPc);
+  }
+
+  public int getRangePc() {
+    return rangePc.get();
+  }
+
+  public IntegerProperty rangePcProperty() {
+    return rangePc;
+  }
+
+  public void setRangePc(int rangePc) {
+    this.rangePc.set(rangePc);
+  }
 }

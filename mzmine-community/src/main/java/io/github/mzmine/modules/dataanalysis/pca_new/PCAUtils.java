@@ -55,9 +55,7 @@ public class PCAUtils {
       final double mean = sum / columnVector.getDimension();
 
       var resultVector = result.getColumnVector(col);
-      for (int row = 0; row < columnVector.getDimension(); row++) {
-        resultVector.setEntry(row, columnVector.getEntry(row) - mean);
-      }
+      resultVector = columnVector.mapSubtract(mean);
       result.setColumnVector(col, resultVector);
     }
     return result;
@@ -109,7 +107,8 @@ public class PCAUtils {
     return new PCAResult(data, centeredMatrix, svd, loadings, principalComponentMatrix);
   }
 
-  public static PCARowsResult performPCAOnRows(List<FeatureListRow> rows, AbundanceMeasure measure) {
+  public static PCARowsResult performPCAOnRows(List<FeatureListRow> rows,
+      AbundanceMeasure measure) {
     final List<RawDataFile> files = rows.stream().flatMap(row -> row.getRawDataFiles().stream())
         .distinct().toList();
     final RealMatrix data = createDatasetFromRows(rows, files, measure);
