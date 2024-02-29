@@ -57,6 +57,7 @@ description = "MZmine"
 
 defaultTasks "test", "jpackage", "notarizeApp"
 
+
 // Check the OS
 project.ext.osSuffix = OperatingSystem.current().getName().replaceAll(" ", "_")
 if (OperatingSystem.current().isLinux()) project.ext.osSuffix = "Linux"
@@ -85,11 +86,21 @@ if (OperatingSystem.current().isMacOsX()) {
         project.ext.macSigning = false
     }
 
-    project.ext.imageDir = layout.buildDirectory.dir('jpackage/MZmine.app')
-    project.ext.jarsDir = imageDir.toPath().resolve('Contents').resolve('app').toFile()
+    project.ext.imageDir = layout.buildDirectory.dir('jpackage/MZmine.app').get().asFile.toPath()
+    project.ext.jarsDir = imageDir.resolve('Contents').resolve('app')
+
+    getLogger().info("imageDir " + imageDir)
+    getLogger().info("jarsDir " + jarsDir)
 }
 println "OS detected as " + project.ext.osSuffix
 
+//getLogger().info("build dir " + layout.buildDirectory)
+//getLogger().info("project dir " + layout.projectDirectory)
+//getLogger().info("build dir jpack fileget " + layout.buildDirectory.file("jpackage").get())
+//getLogger().info("build dir jpack file " + layout.buildDirectory.file("jpackage"))
+//getLogger().info("build dir jpack2 " + layout.buildDirectory.dir("jpackage").get())
+//getLogger().info("build dir jpack3 " + layout.buildDirectory.dir("jpackage").get().asFile)
+//getLogger().info("build dir jpackpath " + layout.buildDirectory.dir("jpackage").get().asFile.path)
 
 repositories {
 
@@ -352,9 +363,7 @@ task signApp(dependsOn: jpackage) {
     if (OperatingSystem.current().isMacOsX() && macSigning) {
 
         doLast {
-
-            Path entitlementsPth = getRootProject().getProjectDir().toPath().resolve("gradle")
-                    .resolve("macos.entitlements").toAbsolutePath()
+            Path entitlementsPth = layout.projectDirectory.dir('gradle/macos.entitlements').asFile.toPath()
 
             // Define codesign command
             Consumer<Path> codesign = (Path p) -> exec {
@@ -379,7 +388,7 @@ task signApp(dependsOn: jpackage) {
             }
 
             // Sign ThermoRawFileParser content
-            for (File f : jarsDir.toPath().resolve(mzmineJarName).resolve('vendorlib').resolve('thermo')
+            for (File f : jarsDir.resolve(mzmineJarName).resolve('vendorlib').resolve('thermo')
                     .resolve('ThermoRawFileParser').toFile().listFiles()) {
 
                 // ThermoRawFileParserMac is signed by jpackage
@@ -400,7 +409,7 @@ task signApp(dependsOn: jpackage) {
             getLogger().lifecycle("Signing native libraries...")
 
             // Traverse over whole .app and sign each native library
-            for (Path nativeLib : Files.find(imageDir.toPath(), 999, (p, bfa)  // 999 is a recursive depth
+            for (Path nativeLib : Files.find(imageDir, 999, (p, bfa)  // 999 is a recursive depth
                     -> bfa.isRegularFile() && p.getFileName().toString().matches(".*\\.dylib|.*\\.so|.*\\.dll|.*\\.a|.*\\.lib"))) {
                 getLogger().lifecycle("Signing native lib '${nativeLib}'")
                 codesign(nativeLib.toAbsolutePath())
@@ -410,17 +419,13 @@ task signApp(dependsOn: jpackage) {
 
             // Define native libraries nested in jars that are to be signed
             ArrayList<Path> jarNestedLibs = [
-                    FileSystems.newFileSystem(imageDir.toPath().resolve("Contents").resolve("app")
-                            .resolve("jna-inchi-darwin-x86-64-1.0.1.jar")).getPath("darwin-x86-64/libjnainchi.dylib"),
-                    FileSystems.newFileSystem(imageDir.toPath().resolve("Contents").resolve("app")
-                            .resolve("jna-inchi-darwin-aarch64-1.0.1.jar")).getPath("darwin-aarch64/libjnainchi.dylib"),
-                    FileSystems.newFileSystem(imageDir.toPath().resolve("Contents").resolve("app")
-                            .resolve("adap-4.1.10.jar")).getPath("lib/macosx-x86_64/libadapwavelet.so"),
+                    FileSystems.newFileSystem(jarsDir.resolve("jna-inchi-darwin-x86-64-1.0.1.jar")).getPath("darwin-x86-64/libjnainchi.dylib"),
+                    FileSystems.newFileSystem(jarsDir.resolve("jna-inchi-darwin-aarch64-1.0.1.jar")).getPath("darwin-aarch64/libjnainchi.dylib"),
+                    FileSystems.newFileSystem(jarsDir.resolve("adap-4.1.10.jar")).getPath("lib/macosx-x86_64/libadapwavelet.so"),
             ]
 
             // Move each library out of .jar, sign it, and put it back
-            Path tmpJarsDir = getBuildDir().toPath().resolve("tmp").resolve("jarLibs")
-//            layout.buildDirectory.dir("tmp/jarLibs").asFile.path
+            Path tmpJarsDir = layout.buildDirectory.dir("tmp/jarLibs").get().asFile.toPath()
             Files.createDirectories(tmpJarsDir)
             for (Path inJar : jarNestedLibs) {
                 Path tmpPath = tmpJarsDir.resolve(inJar.getFileName().toString())
@@ -433,7 +438,7 @@ task signApp(dependsOn: jpackage) {
             getLogger().lifecycle("Signing jars...")
 
             // Traverse over entire .app and sign each .jar
-            for (Path jar : Files.find(imageDir.toPath(), 999, (p, bfa)  // 999 is a recursive depth
+            for (Path jar : Files.find(imageDir, 999, (p, bfa)  // 999 is a recursive depth
                     -> bfa.isRegularFile() && p.getFileName().toString().matches(".*\\.jar"))) {
                 getLogger().lifecycle("Signing jar '${jar}'")
                 codesign(jar.toAbsolutePath())
@@ -441,11 +446,11 @@ task signApp(dependsOn: jpackage) {
 
             // Sign .app directory
             getLogger().lifecycle("Signing .app directory...")
-            codesign(imageDir.toPath())
+            codesign(imageDir)
 
             getLogger().lifecycle("Zipping .app directory...")
             exec {
-                commandLine(['sh', '-c', "cd ${buildDir.toPath().resolve('jpackage')} " +
+                commandLine(['sh', '-c', "cd ${layout.buildDirectory.dir("jpackage").get()} " +
                         "&& zip -rq MZmine_macOS_portable.zip MZmine.app"])
             }
         }
@@ -463,7 +468,7 @@ task notarizeApp(dependsOn: signApp) {
             ExecResult execResult = exec {
                 commandLine(["xcrun", "notarytool", "submit", "--wait", "--apple-id", "${appleID}",
                              "--password", "${appleIDPassword}", "--team-id", "${appleTeamID}",
-                             "${buildDir.toPath().resolve('jpackage').resolve('MZmine_macOS_portable.zip')}"])
+                             "${layout.buildDirectory.dir("jpackage/MZmine_macOS_portable.zip").get()}"])
             }
             int returnCode = execResult.getExitValue()
             if (returnCode != 0) {
@@ -473,7 +478,7 @@ task notarizeApp(dependsOn: signApp) {
             getLogger().lifecycle("Stapling .app...")
 
             execResult = exec {
-                commandLine(["xcrun", "stapler", "staple", "${imageDir.toPath()}"])
+                commandLine(["xcrun", "stapler", "staple", "${imageDir}"])
             }
             returnCode = execResult.getExitValue()
             if (returnCode != 0) {
@@ -501,7 +506,7 @@ test {
 }
 
 task copyTestResources(type: Copy) {
-    from "${projectDir}/src/test/resources"
-    into "${buildDir}/classes/test"
+    from layout.projectDirectory.dir("src/test/resources")
+    into layout.buildDirectory.dir("classes/test")
 }
 processTestResources.dependsOn copyTestResources

@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationChainParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.fragmentation.ILipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.fragmentation.LipidFragmentFactory;
@@ -54,7 +55,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.ILipidAn
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.utils.LipidFactory;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationChainParameters;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.RawDataFileImpl;
@@ -718,19 +718,19 @@ class LipidAnnotationTest {
             testResource.getTestLipid().getAnnotation());
       }
       Set<LipidFragment> matchedFragments = matchedLipid.getMatchedFragments();
-      System.out.println(
-          "\n---Test BestDataPoint for " + testResource.getTestLipid().getAnnotation() + " "
-              + testResource.getIonizationType() + " ---------");
-      System.out.println(
-          "Matched " + matchedFragments.size() + " of " + testResource.getMzFragments().length
-              + " possible signals");
-      System.out.println("MS/MS score " + matchedLipid.getMsMsScore());
-      System.out.println("Pseudo signals:");
-      for (LipidFragment fragment : matchedFragments) {
-        System.out.println("\t" + fragment.getLipidFragmentInformationLevelType().toString());
-        System.out.println("\tAccurate m/z: " + fragment.getDataPoint().getMZ());
-        System.out.println("\tExact m/z: " + fragment.getMzExact());
-      }
+//      System.out.println(
+//          "\n---Test BestDataPoint for " + testResource.getTestLipid().getAnnotation() + " "
+//              + testResource.getIonizationType() + " ---------");
+//      System.out.println(
+//          "Matched " + matchedFragments.size() + " of " + testResource.getMzFragments().length
+//              + " possible signals");
+//      System.out.println("MS/MS score " + matchedLipid.getMsMsScore());
+//      System.out.println("Pseudo signals:");
+//      for (LipidFragment fragment : matchedFragments) {
+//        System.out.println("\t" + fragment.getLipidFragmentInformationLevelType().toString());
+//        System.out.println("\tAccurate m/z: " + fragment.getDataPoint().getMZ());
+//        System.out.println("\tExact m/z: " + fragment.getMzExact());
+//      }
     }
   }
 
