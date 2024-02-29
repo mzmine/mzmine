@@ -272,7 +272,7 @@ application {
  * Build the JVM runtime using jlink
  */
 runtime {
-    options = ["--compress=2", "--vm=server", "--no-header-files", "--no-man-pages", "--output", "jre/jre"]
+    options = ["--compress=0", "--vm=server", "--no-header-files", "--no-man-pages", "--output", "jre/jre"]
     modules = ["java.desktop",
                "java.logging",
                "java.net.http",
@@ -374,7 +374,7 @@ task signApp(dependsOn: jpackage) {
             getLogger().lifecycle('Deleting unused "non-notarizable" libraries...')
 
             // Delete unused dependencies of dependencies causing notarization issues
-            jarsDir.listFiles((FilenameFilter) ((d, n) -> n.startsWith('netlib') || n.startsWith('jblas')
+            jarsDir.toFile().listFiles((FilenameFilter) ((d, n) -> n.startsWith('netlib') || n.startsWith('jblas')
                     || n.startsWith('jocl'))).stream().forEach(File::delete)
 
             getLogger().lifecycle("Signing native ThermoRawFileParser...")
