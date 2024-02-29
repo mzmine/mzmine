@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
 import io.github.mzmine.project.ProjectManager;
-import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
@@ -135,13 +134,13 @@ public class TmpFileCleanup implements Runnable {
       }
     }
 
-    for (final MemoryMapStorage storage : MZmineCore.getStorageList()) {
+    /*for (final MemoryMapStorage storage : MZmineCore.getStorageList()) {
       try {
         storage.discard(theUnsafe);
       } catch (IOException e) {
         e.printStackTrace();
       }
-    }
+    }*/
 
   }
 
