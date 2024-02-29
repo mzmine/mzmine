@@ -102,7 +102,7 @@ jobs:
           security unlock-keychain -p abc123 build.keychain
           security import certificate.p12 -k build.keychain -P "$MACOS_DEVELOPER_CERTIFICATE_PWD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 build.keychain
-          ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
+          ./gradlew -p mzmine-community --warning-mode all
         env:
           MACOS_DEVELOPER_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERTIFICATE }}
           MACOS_DEVELOPER_CERTIFICATE_PWD: ${{ secrets.MACOS_DEVELOPER_CERTIFICATE_PWD }}
