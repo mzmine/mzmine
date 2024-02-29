@@ -23,36 +23,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package stats;
+package io.github.mzmine.modules.dataanalysis.pca_new;
 
-
-import io.github.mzmine.modules.dataanalysis.pca_new.PCAResult;
-import io.github.mzmine.modules.dataanalysis.pca_new.PCAUtils;
-import java.util.logging.Logger;
-import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.junit.jupiter.api.Test;
+import org.apache.commons.math3.linear.SingularValueDecomposition;
 
-public class PcaTest {
+public record PCAResult(RealMatrix data, RealMatrix dataMeanCentered,
+                        SingularValueDecomposition svd, RealMatrix loadings,
+                        RealMatrix principalComponents) {
 
-  private static final Logger logger = Logger.getLogger(PcaTest.class.getName());
-
-  @Test
-  void pcaTest() {
-    double[][] data = new double[][]{{5.1, 3.5, 1.4, 0.2, 1}, {4.9, 3.0, 1.4, 0.2, 1},
-        {4.7, 3.2, 1.3, 0.2, 1}, {4.6, 3.1, 1.5, 0.2, 1}, {5.0, 3.6, 1.4, 0.2, 1}};
-
-    RealMatrix matrix = new Array2DRowRealMatrix(data);
-
-    final RealMatrix centered = PCAUtils.performMeanCenter(matrix, false);
-    logger.info(centered.toString());
-
-    final PCAResult pcaResult = PCAUtils.calculatePCA(matrix);
-
-    final RealMatrix principalComponentMatrix = pcaResult.principalComponents();
-    logger.info(() -> STR."Scores: \{principalComponentMatrix.toString()}");
-    logger.info(() -> STR."Loadings: \{pcaResult.loadings().toString()}");
-
+  public RealMatrix getFirstNComponents(int numComponents) {
+    return principalComponents.getSubMatrix(0, principalComponents.getRowDimension() - 1, 0,
+        numComponents);
   }
 
+  public RealMatrix projectDataToScores(int numComponents) {
+    return data.multiply(getFirstNComponents(numComponents));
+  }
 }

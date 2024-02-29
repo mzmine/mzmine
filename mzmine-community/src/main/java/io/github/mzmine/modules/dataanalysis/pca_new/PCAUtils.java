@@ -37,19 +37,9 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 
-public class PCACalculator {
+public class PCAUtils {
 
-  private static final Logger logger = Logger.getLogger(PCACalculator.class.getName());
-  private final RealMatrix data;
-  private SingularValueDecomposition svd;
-  private RealMatrix loadings;
-  private RealMatrix projectData;
-  private boolean computed = false;
-  private RealMatrix principalComponentMatrix;
-
-  public PCACalculator(RealMatrix data) {
-    this.data = data;
-  }
+  private static final Logger logger = Logger.getLogger(PCAUtils.class.getName());
 
   public static RealMatrix performMeanCenter(RealMatrix data, boolean inPlace) {
 
@@ -102,83 +92,28 @@ public class PCACalculator {
     return data;
   }
 
-  public void performPCA(int numComponents) {
+  public static PCAResult calculatePCA(RealMatrix data) {
 
     logger.finest(() -> "Performing mean centering");
     final RealMatrix centeredMatrix = performMeanCenter(data, false);
 
-    logger.finest(() -> "Performing singular value decomposition");
-    svd = new SingularValueDecomposition(centeredMatrix);
+    logger.finest(() -> "Performing singular value decomposition. This may take a while");
+    SingularValueDecomposition svd = new SingularValueDecomposition(centeredMatrix);
 
     // Get principal components (columns of the orthogonal matrix U)
-    principalComponentMatrix = svd.getU();
-    final RealMatrix principalComponents = principalComponentMatrix.getSubMatrix(0,
-        principalComponentMatrix.getRowDimension() - 1, 0, numComponents);
+    RealMatrix principalComponentMatrix = svd.getU();
 
     // Get loadings (right singular vectors, columns of the orthogonal matrix V)
-    loadings = svd.getV();
+    RealMatrix loadings = svd.getV();
 
-    setComputed(true);
+    return new PCAResult(data, centeredMatrix, svd, loadings, principalComponentMatrix);
   }
 
-  public RealMatrix getPrincipalComponentMatrix() {
-    if (!isComputed()) {
-      throw new PcaNotComputedException();
-    }
-    return principalComponentMatrix;
-  }
-
-  private void setPrincipalComponentMatrix(RealMatrix principalComponentMatrix) {
-    this.principalComponentMatrix = principalComponentMatrix;
-  }
-
-  public RealMatrix getPrincipalComponents(int num) {
-    if (!isComputed()) {
-      throw new PcaNotComputedException();
-    }
-
-    return principalComponentMatrix.getSubMatrix(0, principalComponentMatrix.getRowDimension() - 1,
-        0, num);
-  }
-
-  public SingularValueDecomposition getSvd() {
-    if (!isComputed()) {
-      throw new PcaNotComputedException();
-    }
-    return svd;
-  }
-
-  private void setSvd(SingularValueDecomposition svd) {
-    this.svd = svd;
-  }
-
-  public RealMatrix getLoadings() {
-    if (!isComputed()) {
-      throw new PcaNotComputedException();
-    }
-    return loadings;
-  }
-
-  private void setLoadings(RealMatrix loadings) {
-    this.loadings = loadings;
-  }
-
-  public RealMatrix getProjectData() {
-    if (!isComputed()) {
-      throw new PcaNotComputedException();
-    }
-    return projectData;
-  }
-
-  private void setProjectData(RealMatrix projectData) {
-    this.projectData = projectData;
-  }
-
-  public boolean isComputed() {
-    return computed;
-  }
-
-  private void setComputed(boolean computed) {
-    this.computed = computed;
+  public static PCARowsResult performPCAOnRows(List<FeatureListRow> rows, AbundanceMeasure measure) {
+    final List<RawDataFile> files = rows.stream().flatMap(row -> row.getRawDataFiles().stream())
+        .distinct().toList();
+    final RealMatrix data = createDatasetFromRows(rows, files, measure);
+    final PCAResult pcaResult = calculatePCA(data);
+    return new PCARowsResult(pcaResult, rows, files);
   }
 }

@@ -25,9 +25,6 @@
 
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
-public class PcaNotComputedException extends RuntimeException {
+public class PCAViewBuilder {
 
-  public PcaNotComputedException() {
-    super("Computation of this PCA has not finished or has not started yet.");
-  }
 }
