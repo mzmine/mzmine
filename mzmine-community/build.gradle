@@ -387,11 +387,17 @@ task signApp(dependsOn: jpackage) {
             // Unzip ThermoRawFileParser.zip
             String mzmineJarName = "mzmine3-${semver.version}"
             getLogger().info("tmp mzmine jar unzip to " + "${jarsDir}/${mzmineJarName}/vendorlib/thermo")
+            getLogger().info("check if jar exists " + "${jarsDir.resolve(mzmineJarName).toFile().exists()}")
             exec { commandLine(['sh', '-c', "cd ${jarsDir} && unzip -q ${mzmineJarName}.jar -d ${mzmineJarName}"]) }
             exec {
                 commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo && unzip -q " +
                         "ThermoRawFileParser.zip -d ThermoRawFileParser"])
             }
+//            exec { commandLine(['sh', '-c', "cd ${jarsDir} && unzip -q ${mzmineJarName}.jar -d ${mzmineJarName}"]) }
+//            exec {
+//                commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo && unzip -q " +
+//                        "ThermoRawFileParser.zip -d ThermoRawFileParser"])
+//            }
 
             // Sign ThermoRawFileParser content
             for (File f : jarsDir.resolve(mzmineJarName).resolve('vendorlib').resolve('thermo')
