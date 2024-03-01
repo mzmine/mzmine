@@ -34,7 +34,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.misc.ExitCode;
 import java.util.List;
 import java.util.Map;
 import javafx.application.Platform;

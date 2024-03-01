@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.AbstractTaskXYDataset;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -275,7 +275,7 @@ public class ClusteringTask extends AbstractTaskXYDataset implements ProjectionP
       List<Integer> clusteringResult = result.getClusters();
 
       // Report window
-      Desktop desktop = MZmineCore.getDesktop();
+      MZmineDesktop desktop = MZmineCore.getDesktop();
       if (typeOfData == ClusteringDataType.SAMPLES) {
         String[] sampleNames = new String[selectedRawDataFiles.length];
         for (int i = 0; i < selectedRawDataFiles.length; i++) {

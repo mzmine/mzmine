@@ -27,7 +27,7 @@ package io.github.mzmine.parameters.impl;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.misc.ExitCode;
 import java.util.Collection;
 import javafx.beans.property.BooleanProperty;
 import org.jetbrains.annotations.Nullable;

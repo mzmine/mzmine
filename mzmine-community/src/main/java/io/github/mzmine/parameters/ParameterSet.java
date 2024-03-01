@@ -32,7 +32,7 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.misc.ExitCode;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;

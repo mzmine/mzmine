@@ -27,7 +27,7 @@ package io.github.mzmine.modules.io.projectsave;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.misc.ExitCode;
 import java.io.File;
 import java.util.Objects;
 

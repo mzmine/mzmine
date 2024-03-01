@@ -25,12 +25,13 @@
 
 package io.github.mzmine.taskcontrol.impl;
 
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
-import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.concurrent.threading.FxThread;
+import io.github.mzmine.util.exceptions.ExceptionUtils;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -127,7 +128,7 @@ public class WrappedTask implements Task {
    * @param priority The priority to set.
    */
   public void setPriority(TaskPriority priority) {
-    MZmineCore.runLater(() -> this.priority.setValue(priority));
+    FxThread.runLater(() -> this.priority.setValue(priority));
   }
 
   public Property<TaskPriority> priorityProperty() {
@@ -171,7 +172,7 @@ public class WrappedTask implements Task {
         // Log the error
         logger.severe("Error of task " + actualTask.getTaskDescription() + ": " + errorMsg);
 
-        MZmineCore.getDesktop().displayErrorMessage(errorMsg);
+        DesktopService.getDesktop().displayErrorMessage(errorMsg);
       } else {
         // Log the finish
         logger.info("Processing of task " + actualTask.getTaskDescription() + " done, status "
@@ -188,7 +189,7 @@ public class WrappedTask implements Task {
           "Unhandled exception " + e + " while processing task " + actualTask.getTaskDescription(),
           e);
 
-      MZmineCore.getDesktop().displayErrorMessage(
+      DesktopService.getDesktop().displayErrorMessage(
           "Unhandled exception in task " + actualTask.getTaskDescription() + ": "
           + ExceptionUtils.exceptionToString(e));
 
@@ -210,7 +211,7 @@ public class WrappedTask implements Task {
    * if run method is complete its finished the state of the task may be finished, canceled or error
    * though
    */
-  boolean isWorkFinished() {
+  public boolean isWorkFinished() {
     return finished;
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,11 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util;
+package io.github.mzmine.gui;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Simple enum for for exit codes
+ * Get the desktop that may be headless or GUI
  */
-public enum ExitCode {
-  UNKNOWN, OK, CANCEL, ERROR
+public class DesktopService {
+
+  public static Desktop instance = new DefaultHeadlessDesktop();
+
+  public static synchronized void setDesktop(@NotNull Desktop desktop) {
+    instance = desktop;
+  }
+
+  @NotNull
+  public static Desktop getDesktop() {
+    return instance;
+  }
+
 }

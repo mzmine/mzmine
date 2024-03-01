@@ -26,7 +26,7 @@
 package io.github.mzmine.util.interpolatinglookuppaintscale;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.misc.ExitCode;
 import io.github.mzmine.util.components.ColorPickerTableCell;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.util.TreeMap;

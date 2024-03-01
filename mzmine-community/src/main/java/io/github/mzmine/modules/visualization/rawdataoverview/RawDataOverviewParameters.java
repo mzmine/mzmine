@@ -28,7 +28,7 @@ package io.github.mzmine.modules.visualization.rawdataoverview;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.misc.ExitCode;
 
 /*
  * Raw data overview parameter class

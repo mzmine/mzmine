@@ -81,8 +81,6 @@ public interface TaskController {
 
   void setTaskPriority(Task task, TaskPriority priority);
 
-  void cancelBatchTasks();
-
   /**
    * Keep an instance of the read only list view as long as the other object is alive and listening
    * to changes.
@@ -95,8 +93,14 @@ public interface TaskController {
 
   void setNumberOfThreads(int numThreads);
 
+  int getNumberOfThreads();
+
   boolean isTaskInstanceRunningOrQueued(Class<? extends AbstractTask> clazz);
 
   void cancelAllTasks();
 
+  /**
+   * cancel all tasks of class
+   */
+  void cancelAllTasks(@NotNull Class<? extends Task> taskClass);
 }

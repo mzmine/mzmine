@@ -25,13 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters.roundresample;
 
-import java.awt.Window;
-
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilterSetupDialog;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.misc.ExitCode;
 
 public class RndResampleFilterParameters extends SimpleParameterSet {
 

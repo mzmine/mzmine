@@ -25,13 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters.mean;
 
-import java.awt.Window;
-
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilterSetupDialog;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.misc.ExitCode;
 
 public class MeanFilterParameters extends SimpleParameterSet {
 

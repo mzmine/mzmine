@@ -25,37 +25,30 @@
 
 package io.github.mzmine.gui;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
-import io.github.mzmine.util.concurrent.threading.FxThread;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
+import io.github.mzmine.util.misc.ExitCode;
 import java.net.URL;
-import java.util.List;
 import java.util.function.Consumer;
 import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
-import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This interface represents the application GUI
+ * This interface represents the application GUI or headless
  */
-public interface Desktop extends MZmineModule {
-
-  void handleShowTaskView();
+public interface Desktop {
 
   /**
-   * Returns a reference to main application window. May return null if MZmine is running in
-   * headless (batch) mode.
-   *
-   * @return Main window
+   * GUI application
    */
-  Stage getMainWindow();
+  boolean isGUI();
+
+  /**
+   * CLI application
+   */
+  default boolean isHeadLess() {
+    return !isGUI();
+  }
 
   /**
    * Displays a given text on the application status bar in black color
@@ -108,7 +101,7 @@ public interface Desktop extends MZmineModule {
    *
    * @param title Message box title
    * @param msg   Text to show
-   * @param url url to open
+   * @param url   url to open
    */
   void displayMessage(String title, String msg, String url);
 
@@ -167,63 +160,10 @@ public interface Desktop extends MZmineModule {
       String optOutMessage, Consumer<Boolean> optOutAction);
 
 
-  /**
-   * Returns array of currently selected raw data files in GUI
-   *
-   * @return Array of selected raw data files
-   */
-  RawDataFile[] getSelectedDataFiles();
-
-  /**
-   * Returns array of currently selected feature lists in GUI
-   *
-   * @return Array of selected feature lists
-   */
-  FeatureList[] getSelectedPeakLists();
-
-  /**
-   * Returns array of currently selected spectral libraries in GUI
-   *
-   * @return Array of selected spectral libraries
-   */
-  SpectralLibrary[] getSelectedSpectralLibraries();
-
-  @NotNull ExitCode exitMZmine();
-
-  /**
-   * Maybe add a tasksview controller in the future for headless mode?
-   *
-   * @return the tasksview controller if GUI mode
-   */
-  @Nullable
-  TasksViewController getTasksViewController();
+  @NotNull ExitCode exit();
 
   void openWebPage(@NotNull URL url);
 
   void openWebPage(String url);
-
-  /**
-   * Adds a tab to the main window. Does not have to be called in a
-   * {@link FxThread#runLater(Runnable)} environment.
-   *
-   * @param tab The tab {@link MZmineTab}
-   */
-  void addTab(MZmineTab tab);
-
-  /**
-   * @return A list of the currently opened {@link MZmineWindow}s. If there are no such windows the
-   * list is empty.
-   */
-  List<MZmineWindow> getWindows();
-
-  /**
-   * @return A list of all currently opened tabs in all windows.
-   */
-  @NotNull List<MZmineTab> getAllTabs();
-
-  /**
-   * @return A list of tabs in the main window.
-   */
-  @NotNull List<MZmineTab> getTabsInMainWindow();
 
 }

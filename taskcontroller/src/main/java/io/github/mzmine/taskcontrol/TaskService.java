@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,33 +23,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util;
+package io.github.mzmine.taskcontrol;
 
-/**
- * Exception related utilities
- */
-public class ExceptionUtils {
+import org.jetbrains.annotations.NotNull;
 
-  /**
-   * Converts given exception to String, including file name and line number
-   * 
-   */
-  public static String exceptionToString(Throwable exception) {
+public class TaskService {
 
-    StringBuffer str = new StringBuffer();
-    str.append(exception.toString());
+  private static TaskController INSTANCE;
 
-    if (exception.getStackTrace().length > 0) {
-      StackTraceElement location = exception.getStackTrace()[0];
-      str.append(" (");
-      str.append(location.getFileName());
-      str.append(":");
-      str.append(location.getLineNumber());
-      str.append(")");
+  @NotNull
+  public static TaskController init(int numThreads) {
+    if (INSTANCE == null) {
+      INSTANCE = new TaskControllerImpl(numThreads);
     }
+    return INSTANCE;
+  }
 
-    return str.toString();
-
+  @NotNull
+  public static TaskController getController() {
+    if (INSTANCE == null) {
+      int numThreads = Runtime.getRuntime().availableProcessors();
+      INSTANCE = new TaskControllerImpl(numThreads);
+    }
+    return INSTANCE;
   }
 
 }

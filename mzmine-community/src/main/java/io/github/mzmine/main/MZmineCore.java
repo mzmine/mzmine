@@ -31,8 +31,9 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.HeadLessDesktop;
+import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
@@ -49,11 +50,11 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskController;
-import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.misc.ExitCode;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -86,11 +87,8 @@ public final class MZmineCore {
 
   // the default headless desktop is returned if no other desktop is set (e.g., during start up)
   // it is also used in headless mode
-  private final Desktop defaultHeadlessDesktop = new HeadLessDesktop();
   private final Map<String, MZmineModule> initializedModules = new HashMap<>();
-  private TaskControllerImpl taskController;
   private MZmineConfiguration configuration;
-  private Desktop desktop;
   private ProjectManagerImpl projectManager;
   private boolean tdfPseudoProfile = false;
   private boolean tsfProfile = false;
@@ -152,13 +150,13 @@ public final class MZmineCore {
         logger.log(Level.WARNING, "Cannot read configuration " + prefFile.getAbsolutePath());
       }
 
+      MZminePreferences preferences = getInstance().configuration.getPreferences();
       // override temp directory
       final File tempDirectory = argsParser.getTempDirectory();
       if (tempDirectory != null) {
         // needs to be accessible
         if (FileAndPathUtil.createDirectory(tempDirectory)) {
-          getInstance().configuration.getPreferences()
-              .setParameter(MZminePreferences.tempDirectory, tempDirectory);
+          preferences.setParameter(MZminePreferences.tempDirectory, tempDirectory);
           updateTempDir = true;
         } else {
           logger.log(Level.WARNING,
@@ -175,18 +173,16 @@ public final class MZmineCore {
       KeepInMemory keepInMemory = argsParser.isKeepInMemory();
       if (keepInMemory != null) {
         // set to preferences
-        getInstance().configuration.getPreferences()
-            .setParameter(MZminePreferences.memoryOption, keepInMemory);
+        preferences.setParameter(MZminePreferences.memoryOption, keepInMemory);
       } else {
-        keepInMemory = getInstance().configuration.getPreferences()
-            .getParameter(MZminePreferences.memoryOption).getValue();
+        keepInMemory = preferences.getParameter(MZminePreferences.memoryOption).getValue();
       }
 
       String numCores = argsParser.getNumCores();
       setNumThreadsOverride(numCores);
 
       // after loading the config and numCores
-      getInstance().taskController = TaskControllerImpl.getInstance();
+      TaskService.init(getInstance().configuration.getNumOfThreads());
 
       // apply memory management option
       keepInMemory.enforceToMemoryMapping();
@@ -215,7 +211,8 @@ public final class MZmineCore {
           System.exit(1);
         }
       } else {
-        getInstance().desktop = getInstance().defaultHeadlessDesktop;
+        // set headless desktop globally
+        DesktopService.setDesktop(new HeadLessDesktop());
 
         // Tracker
         GoogleAnalyticsTracker.track("MZmine Loaded (Headless mode)", "/JAVA/Main/HEADLESS");
@@ -229,9 +226,8 @@ public final class MZmineCore {
           }
 
           // run batch file
-          batchTask = BatchModeModule.runBatch(
-              getInstance().projectManager.getCurrentProject(), batchFile, overrideDataFiles,
-              overrideSpectralLibraryFiles, Instant.now());
+          batchTask = BatchModeModule.runBatch(getInstance().projectManager.getCurrentProject(),
+              batchFile, overrideDataFiles, overrideSpectralLibraryFiles, Instant.now());
         }
 
         // option to keep MZmine running after the batch is finished
@@ -283,7 +279,7 @@ public final class MZmineCore {
    * Exit MZmine (usually used in headless mode)
    */
   public static void exit(final @Nullable Task batchTask) {
-    if(isHeadLessMode() && FxThread.isFxInitialized()) {
+    if (isHeadLessMode() && FxThread.isFxInitialized()) {
       // fx might be initialized for graphics export in headless mode - shut it down
       // in GUI mode it is shut down automatically
       Platform.exit();
@@ -297,7 +293,7 @@ public final class MZmineCore {
 
   @NotNull
   public static TaskController getTaskController() {
-    return instance.taskController;
+    return TaskService.getController();
   }
 
   /**
@@ -306,13 +302,11 @@ public final class MZmineCore {
    * @return the current desktop or the default headless desktop if still during app startup
    */
   @NotNull
-  public static Desktop getDesktop() {
-    return instance.desktop == null ? instance.defaultHeadlessDesktop : instance.desktop;
-  }
-
-  public static void setDesktop(Desktop desktop) {
-    assert desktop != null;
-    getInstance().desktop = desktop;
+  public static MZmineDesktop getDesktop() {
+    if(DesktopService.getDesktop() instanceof MZmineDesktop mZmineDesktop) {
+      return mZmineDesktop;
+    }
+    throw new IllegalStateException("Desktop was not initialized. Requires MZmineDesktop");
   }
 
   @NotNull
@@ -512,7 +506,7 @@ public final class MZmineCore {
     final Instant date = Instant.now();
     logger.finest(() -> "Module " + module.getName() + " called at " + date.toString());
     module.runModule(currentProject, parameters, newTasks, date);
-    getInstance().taskController.addTasks(newTasks.toArray(new Task[0]));
+    TaskService.getController().addTasks(newTasks.toArray(new Task[0]));
 
     return newTasks;
     // Log module run in audit log

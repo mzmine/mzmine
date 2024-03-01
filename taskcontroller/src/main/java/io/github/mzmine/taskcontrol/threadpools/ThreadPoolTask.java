@@ -25,11 +25,11 @@
 
 package io.github.mzmine.taskcontrol.threadpools;
 
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import java.time.Instant;
@@ -75,7 +75,7 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
         .orElse(TaskPriority.NORMAL);
     totalTasks = tasks.size();
 
-    addTaskStatusListener((_a, _b, _c) -> applyNewStatusToFutures());
+    addTaskStatusListener((_, _, _) -> applyNewStatusToFutures());
   }
 
   @Override
@@ -96,7 +96,7 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
 
   @NotNull
   private static ThreadPoolExecutor getTaskControllerThreadPool() {
-    return MZmineCore.getTaskController().getExecutor();
+    return TaskService.getController().getExecutor();
   }
 
   private void applyNewStatusToFutures() {
@@ -120,7 +120,7 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
       // do not auto close as we are usually using the TaskController thread pool
       threadPool = createThreadPool();
 
-      int numThreads = MZmineCore.getConfiguration().getNumOfThreads();
+      int numThreads = TaskService.getController().getNumberOfThreads();
 
       if (threadPool instanceof ThreadPoolExecutor threadPoolExecutor) {
         // threads are usually defined by the threadPool used for normal tasks
@@ -143,7 +143,7 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
           Future<?> future = executor.submit(runnable);
           task.setFuture(future);
 
-          MZmineCore.getTaskController().addSubmittedTasksToView(task);
+          TaskService.getController().addSubmittedTasksToView(task);
 
           // only shutdown if this was not a provided executor
           if (this instanceof ProvidedThreadPoolTask provided && provided.autoShutdownExecutor()) {

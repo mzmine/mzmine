@@ -36,7 +36,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.misc.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.logging.Level;

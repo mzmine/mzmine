@@ -36,8 +36,8 @@ import java.time.Instant;
  */
 public class FinishedTask extends AbstractTask {
 
-  private String description;
-  private double finishedPercentage;
+  private final String description;
+  private final double finishedPercentage;
 
   public FinishedTask(Task task) {
     super(null, Instant.now()); // date is irrelevant

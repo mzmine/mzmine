@@ -29,9 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.misc.ExitCode;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.net.URL;
 import java.util.Collections;
@@ -48,14 +46,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 
-public class HeadLessDesktop implements Desktop {
+public class HeadLessDesktop implements MZmineDesktop {
 
-  private static final String MODULE_NAME = "Desktop";
   private static final Logger logger = Logger.getLogger(HeadLessDesktop.class.getName());
 
   @Override
   public Stage getMainWindow() {
     return null;
+  }
+
+  @Override
+  public boolean isGUI() {
+    return false;
   }
 
   @Override
@@ -106,17 +108,7 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return SimpleParameterSet.class;
-  }
-
-  @Override
-  public @NotNull String getName() {
-    return MODULE_NAME;
-  }
-
-  @Override
-  public @NotNull ExitCode exitMZmine() {
+  public @NotNull ExitCode exit() {
     System.exit(0);
     return ExitCode.OK;
   }

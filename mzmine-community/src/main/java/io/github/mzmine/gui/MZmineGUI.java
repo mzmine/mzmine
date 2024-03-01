@@ -41,7 +41,6 @@ import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.main.TmpFileCleanup;
@@ -54,11 +53,12 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
+import io.github.mzmine.util.misc.ExitCode;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
 import java.io.File;
@@ -119,7 +119,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 /**
  * MZmine JavaFX Application class
  */
-public class MZmineGUI extends Application implements Desktop {
+public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDesktop {
 
   public static final int MAX_TABS = 30;
   private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
@@ -175,7 +175,7 @@ public class MZmineGUI extends Application implements Desktop {
         // Set a new project clears the old
         MZmineCore.getProjectManager().clearProject();
 
-        MZmineCore.getDesktop().setStatusBarText("Project space cleaned");
+        DesktopService.getDesktop().setStatusBarText("Project space cleaned");
 
         // Ask the garbage collector to free the previously used memory
         System.gc();
@@ -448,7 +448,8 @@ public class MZmineGUI extends Application implements Desktop {
   public void start(Stage stage) {
 
     MZmineGUI.mainStage = stage;
-    MZmineCore.setDesktop(this);
+
+    DesktopService.setDesktop(this);
 
     logger.finest("Initializing MZmine main window");
 
@@ -549,12 +550,6 @@ public class MZmineGUI extends Application implements Desktop {
   @Override
   public @NotNull String getName() {
     return "MZmine desktop";
-  }
-
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    // TODO Auto-generated method stub
-    return null;
   }
 
   @Override
@@ -757,7 +752,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public @NotNull ExitCode exitMZmine() {
+  public @NotNull ExitCode exit() {
 
     requestQuit();
     return ExitCode.UNKNOWN;

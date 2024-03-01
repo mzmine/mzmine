@@ -23,13 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.taskcontrol.impl;
+package io.github.mzmine.taskcontrol;
 
-import io.github.mzmine.modules.batchmode.BatchTask;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskController;
-import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.impl.WrappedTask;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -45,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Task controller implementation
  */
-public class TaskControllerImpl implements TaskController {
+public final class TaskControllerImpl implements TaskController {
 
   private static final Logger logger = Logger.getLogger(TaskControllerImpl.class.getName());
   /**
@@ -53,12 +50,11 @@ public class TaskControllerImpl implements TaskController {
    */
   private static final int TASKCONTROLLER_THREAD_SLEEP = 350;
 
-  private static TaskControllerImpl INSTANCE;
   // the executor that runs tasks, may be recreated with different size of pools
   /**
    * This is the main executor of this controller. Fixed size of numThreads threads.
    */
-  protected final @NotNull ThreadPoolExecutor executor;
+  private final @NotNull ThreadPoolExecutor executor;
 
   /**
    * This executor has 0 - numThreads threads and caches them for a specified time if inactive.
@@ -77,7 +73,7 @@ public class TaskControllerImpl implements TaskController {
   // can be set from outside and resizes the ThreadPool
   private int numThreads;
 
-  private TaskControllerImpl(final int numThreads) {
+  TaskControllerImpl(final int numThreads) {
     logger.finest("Starting task controller thread");
 
     // create the actual executor that runs the tasks
@@ -99,21 +95,6 @@ public class TaskControllerImpl implements TaskController {
         TASKCONTROLLER_THREAD_SLEEP, TimeUnit.MILLISECONDS);
   }
 
-  public static TaskControllerImpl init(int numThreads) {
-    if (INSTANCE == null) {
-      INSTANCE = new TaskControllerImpl(numThreads);
-    }
-    return INSTANCE;
-  }
-
-  public static TaskControllerImpl getInstance() {
-    if (INSTANCE == null) {
-      int numThreads = Runtime.getRuntime().availableProcessors();
-      INSTANCE = new TaskControllerImpl(numThreads);
-    }
-    return INSTANCE;
-  }
-
   private void cleanUpFinishedTasks() {
     tasks.removeIf(WrappedTask::isWorkFinished);
   }
@@ -127,11 +108,11 @@ public class TaskControllerImpl implements TaskController {
   }
 
   @Override
-  public void cancelBatchTasks() {
+  public void cancelAllTasks(Class<? extends Task> taskClass) {
     var tasks = getTasksSnapshot();
     for (final WrappedTask task : tasks) {
-      if (task.getActualTask() instanceof BatchTask batch) {
-        batch.cancel();
+      if (taskClass.isInstance(task.getActualTask())) {
+        task.cancel();
       }
     }
   }
@@ -191,6 +172,10 @@ public class TaskControllerImpl implements TaskController {
     }
     // core pool size for high priority is 0
     highPriorityExecutor.setMaximumPoolSize(numThreads);
+  }
+
+  public int getNumberOfThreads() {
+    return numThreads;
   }
 
   @Override
@@ -270,7 +255,7 @@ public class TaskControllerImpl implements TaskController {
 
   @Override
   public void addSubmittedTasksToView(final WrappedTask... wrappedTasks) {
-    MZmineCore.runLater(() -> tasks.addAll(wrappedTasks));
+    FxThread.runLater(() -> tasks.addAll(wrappedTasks));
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,7 @@
 
 package io.github.mzmine.gui.mainwindow;
 
-import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.NewVersionCheck;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
@@ -89,7 +89,7 @@ public class MainMenuController {
         FileUtils.getUserDirectory() + File.separator + "mzmine_0_0.log");
 
     try {
-      Desktop gui = MZmineCore.getDesktop();
+      MZmineDesktop gui = MZmineCore.getDesktop();
       gui.openWebPage(logFilePath.toUri().toURL());
     } catch (MalformedURLException e) {
       e.printStackTrace();
@@ -106,7 +106,7 @@ public class MainMenuController {
     try {
       final URL linkURL = new URL((String) menuItem.getUserData());
       // Open link in browser
-      Desktop gui = MZmineCore.getDesktop();
+      MZmineDesktop gui = MZmineCore.getDesktop();
       gui.openWebPage(linkURL);
     } catch (MalformedURLException e) {
       e.printStackTrace();

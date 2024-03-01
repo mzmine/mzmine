@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula;
 
 import java.time.Instant;
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.Scan;
@@ -34,7 +33,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.misc.ExitCode;
 
 /**
  * Module for sum formula prediction in spectra.

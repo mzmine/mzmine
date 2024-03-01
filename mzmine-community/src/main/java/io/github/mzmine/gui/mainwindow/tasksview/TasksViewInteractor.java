@@ -26,11 +26,11 @@
 package io.github.mzmine.gui.mainwindow.tasksview;
 
 import io.github.mzmine.gui.framework.fx.mvci.FxInteractor;
-import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchTask;
-import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
+import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import java.util.HashSet;
 import javafx.collections.ListChangeListener.Change;
 import javafx.event.ActionEvent;
@@ -97,11 +97,11 @@ public class TasksViewInteractor extends FxInteractor<TasksViewModel> {
   }
 
   void cancelAllTasks(ActionEvent actionEvent) {
-    TaskControllerImpl.getInstance().cancelAllTasks();
+    TaskService.getController().cancelAllTasks();
   }
 
   void cancelBatchTasks(ActionEvent actionEvent) {
-    TaskControllerImpl.getInstance().cancelBatchTasks();
+    TaskService.getController().cancelAllTasks(BatchTask.class);
   }
 
   void showTasksView(ActionEvent actionEvent) {

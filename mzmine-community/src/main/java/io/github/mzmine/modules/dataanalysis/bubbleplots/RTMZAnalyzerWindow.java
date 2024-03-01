@@ -30,7 +30,7 @@ import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPa
 import javafx.application.Platform;
 import org.jfree.data.xy.AbstractXYZDataset;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.misc.ExitCode;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 import io.github.mzmine.util.javafx.FxIconUtil;

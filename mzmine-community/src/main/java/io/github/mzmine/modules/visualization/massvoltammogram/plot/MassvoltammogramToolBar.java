@@ -30,7 +30,7 @@ import io.github.mzmine.modules.visualization.massvoltammogram.io.Massvoltammogr
 import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramExportParameters;
 import io.github.mzmine.modules.visualization.massvoltammogram.io.MassvoltammogramExportTask;
 import io.github.mzmine.modules.visualization.massvoltammogram.utils.Massvoltammogram;
-import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.misc.ExitCode;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;

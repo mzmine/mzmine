@@ -33,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Represents the most basic task that runs a {@link Runnable} that can be manged by the MZmine task
  * controller but does not require the functionality of the more sophisticated {@link AbstractTask}
- * or {@link AbstractSimpleTask} classes.
  */
 public class SimpleRunnableTask extends AbstractTask {
 

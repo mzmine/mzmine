@@ -32,8 +32,7 @@ import java.util.logging.Logger;
 
 /**
  * Represents a basic task that can be manged by the MZmine task controller but does not require the
- * functionality of the more sophisticated {@link AbstractTask} or {@link AbstractSimpleTask}
- * classes.
+ * functionality of the more sophisticated {@link AbstractTask} AbstractSimpleTask classes.
  */
 public class SimpleCalculationTask<T extends TaskSubProcessor> extends AbstractTask {
 

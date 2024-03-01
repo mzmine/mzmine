@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,5 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui;
+package io.github.mzmine.util.exceptions;
 
+/**
+ * Exception related utilities
+ */
+public class ExceptionUtils {
+
+  /**
+   * Converts given exception to String, including file name and line number
+   * 
+   */
+  public static String exceptionToString(Throwable exception) {
+
+    StringBuffer str = new StringBuffer();
+    str.append(exception.toString());
+
+    if (exception.getStackTrace().length > 0) {
+      StackTraceElement location = exception.getStackTrace()[0];
+      str.append(" (");
+      str.append(location.getFileName());
+      str.append(":");
+      str.append(location.getLineNumber());
+      str.append(")");
+    }
+
+    return str.toString();
+
+  }
+
+}
