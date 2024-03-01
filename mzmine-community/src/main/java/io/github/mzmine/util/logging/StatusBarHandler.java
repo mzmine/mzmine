@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util.logging;
 
+import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.main.MZmineCore;
 import java.text.DateFormat;
@@ -53,11 +55,11 @@ public class StatusBarHandler extends Handler {
       return;
 
     // get Desktop instance
-    MZmineDesktop desktop = MZmineCore.getDesktop();
-    if (desktop == null) {
+    Desktop desktop = DesktopService.getDesktop();
+    if (!(desktop instanceof MZmineDesktop mZmineDesktop)) {
       return;
     }
-    if (desktop.getMainWindow() == null) {
+    if (mZmineDesktop.getMainWindow() == null) {
       return;
     }
 
@@ -75,7 +77,7 @@ public class StatusBarHandler extends Handler {
     }
 
     // set status bar text
-    desktop.setStatusBarText(formattedMessage, messageColor);
+    mZmineDesktop.setStatusBarText(formattedMessage, messageColor);
 
   }
 
