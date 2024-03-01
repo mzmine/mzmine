@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,15 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.taskcontrol;
+package io.github.mzmine.util;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * Listens for changes in task status
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
+ * Keeps a reference to all memory map storages
  */
-@FunctionalInterface
-public interface TaskStatusListener {
-  public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus);
+public class MemoryMapStorages {
+
+  private static final List<MemoryMapStorage> storageList = Collections.synchronizedList(
+      new ArrayList<>());
+
+  public static void registerStorage(MemoryMapStorage storage) {
+    storageList.add(storage);
+  }
+
+  public static List<MemoryMapStorage> getStorageList() {
+    return storageList;
+  }
+
 }

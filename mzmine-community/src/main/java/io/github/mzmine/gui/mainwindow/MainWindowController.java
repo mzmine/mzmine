@@ -36,6 +36,7 @@ import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -345,7 +346,7 @@ public class MainWindowController {
     });
 
     featureListsList.getSelectedValues().addListener((ListChangeListener<FeatureList>) change -> {
-      MZmineCore.runLater(() -> {
+      FxThread.runLater(() -> {
         change.next();
         for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
           if (tab instanceof MZmineTab && tab.isSelected()
@@ -474,7 +475,7 @@ public class MainWindowController {
       // Add listener body to the event queue to run it after all selected items are added to
       // the observable list, so the collections' elements equality test in the if statement will
       // compare final result of the multiple selection
-      MZmineCore.runLater(() -> {
+      FxThread.runLater(() -> {
         change.next();
 
         for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
@@ -802,7 +803,7 @@ public class MainWindowController {
     List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
     for (FeatureList fl : selectedFeatureLists) {
       // PeakListTableModule.showNewPeakListVisualizerWindow(fl);
-      MZmineCore.runLater(() -> {
+      FxThread.runLater(() -> {
         FeatureTableFXUtil.addFeatureTableTab(fl);
       });
     }

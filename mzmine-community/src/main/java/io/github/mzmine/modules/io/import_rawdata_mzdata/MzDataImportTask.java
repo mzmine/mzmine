@@ -46,7 +46,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.Instant;
 import java.util.Base64;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.logging.Logger;
 import javax.xml.parsers.SAXParser;

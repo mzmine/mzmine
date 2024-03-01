@@ -45,6 +45,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.Frame
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.FrameSummedSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildMultipleMobilogramRanges;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.threads.BuildSelectedRanges;
@@ -343,14 +344,14 @@ public class FrameVisualizerPane extends BorderPane {
   }
 
   public void addMobilogramRangesToChart(List<? extends ColoredXYDataset> previewMobilograms) {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       mobilogramChart.addDatasets(previewMobilograms);
       updateValueMarkers();
     });
   }
 
   public void setSelectedMobilogram(ColoredXYDataset mobilogram) {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       if (selectedMobilogramDatasetIndex != -1) {
         mobilogramChart.removeDataSet(selectedMobilogramDatasetIndex, false);
       }

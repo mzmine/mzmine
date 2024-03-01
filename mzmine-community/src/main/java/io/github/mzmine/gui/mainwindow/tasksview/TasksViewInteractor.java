@@ -26,6 +26,7 @@
 package io.github.mzmine.gui.mainwindow.tasksview;
 
 import io.github.mzmine.gui.framework.fx.mvci.FxInteractor;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
@@ -51,7 +52,7 @@ public class TasksViewInteractor extends FxInteractor<TasksViewModel> {
   }
 
   void onSubmittedTasksChanged(final Change<? extends WrappedTask> change) {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       while (change.next()) {
         if (change.wasRemoved()) {
           HashSet<? extends WrappedTask> removed = new HashSet<>(change.getRemoved());

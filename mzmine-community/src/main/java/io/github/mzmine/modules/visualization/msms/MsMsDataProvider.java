@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboFieldParameter;
@@ -198,7 +199,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
       // Check the scan for the mass list or the scan is centroided
       if (scan.getMassList() == null && !scan.getSpectrumType().isCentroided()) {
         status.setValue(TaskStatus.CANCELED);
-        MZmineCore.runLater(() -> {
+        FxThread.runLater(() -> {
           Alert alert = new Alert(AlertType.ERROR);
           alert.setTitle("Mass detection issue");
           alert.setHeaderText("Masses are not detected properly for the " + dataFile.getName()
@@ -346,7 +347,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     // Show message, if there is nothing to plot
     if (dataPoints.isEmpty()) {
       status.setValue(TaskStatus.CANCELED);
-      MZmineCore.runLater(() -> {
+      FxThread.runLater(() -> {
         Alert alert = new Alert(AlertType.WARNING);
         alert.setTitle("Suspicious module parameters");
         alert.setHeaderText("There are no data points in " + dataFile.getName()

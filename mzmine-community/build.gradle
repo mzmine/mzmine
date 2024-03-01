@@ -142,7 +142,9 @@ ext {
 }
 
 dependencies {
-//    implementation(project(":taskcontroller"))
+    implementation(project(":taskcontroller"))
+    implementation(project(":memory-management"))
+    implementation(project(":utils"))
     // MZmine version parsing
     implementation 'com.vdurmont:semver4j:3.1.0'
 //    implementation "org.graphstream:gs-core:2.0"

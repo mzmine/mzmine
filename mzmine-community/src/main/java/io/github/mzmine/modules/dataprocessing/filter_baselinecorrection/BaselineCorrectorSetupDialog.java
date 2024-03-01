@@ -461,7 +461,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     /*
      * (non-Javadoc)
      *
-     * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
+     * @see io.github.mzmine.taskcontrol.taskcontrol.Task#getTaskDescription()
      */
     @Override
     public String getTaskDescription() {
@@ -471,7 +471,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     /*
      * (non-Javadoc)
      *
-     * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
+     * @see io.github.mzmine.taskcontrol.taskcontrol.Task#getFinishedPercentage()
      */
     @Override
     public double getFinishedPercentage() {

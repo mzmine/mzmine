@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,20 +25,8 @@
 
 package io.github.mzmine.taskcontrol;
 
-public enum TaskStatus {
+public interface TaskControlListener {
 
-  /**
-   * WAITING - task is waiting for available thread
-   * 
-   * PROCESSING - task is running
-   * 
-   * FINISHED - task finished successfully
-   * 
-   * CANCELED - task was canceled by user
-   * 
-   * ERROR - task finished with error, error message can be obtained by getErrorMessage()
-   * 
-   */
-  WAITING, PROCESSING, FINISHED, CANCELED, ERROR
+  public void numberOfWaitingTasksChanged(int waitingTasks, int percentDone);
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,26 +23,79 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.javafx;
+package io.github.mzmine.util.concurrent.threading;
 
-import io.github.mzmine.main.MZmineCore;
 import java.util.concurrent.CountDownLatch;
-import org.jetbrains.annotations.NotNull;
-import com.google.common.base.Preconditions;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
-public class FxThreadUtil {
+public class FxThread {
+
+  private static boolean isFxInitialized = false;
+  private static boolean isHeadLessMode = true;
+
+  public static boolean isFxInitialized() {
+    return isFxInitialized;
+  }
+
+  public static void setIsFxInitialized(boolean state) {
+    isFxInitialized = state;
+  }
+
+  /**
+   * Runs in headless mode
+   * @return true if headless CLI mode false if GUI
+   */
+  public static boolean isHeadLessMode() {
+    return isHeadLessMode;
+  }
+
+  /**
+   * @return currently just negates {@link #isHeadLessMode()}
+   */
+  public static boolean isGUI() {
+    return !isHeadLessMode();
+  }
+
+  public static void setIsHeadLessMode(boolean state) {
+    isHeadLessMode = state;
+  }
+
+  /**
+   * @param r runnable to either run directly or on the JavaFX thread
+   */
+  public static void runLater(Runnable r) {
+    if (isHeadLessMode() || Platform.isFxApplicationThread()) {
+      r.run();
+    } else {
+      Platform.runLater(r);
+    }
+  }
+
+  /**
+   * @param r runnable to either run directly or on the JavaFX thread
+   */
+  public static void runLaterEnsureFxInitialized(Runnable r) {
+    if (Platform.isFxApplicationThread()) {
+      r.run();
+    } else {
+      if (!isFxInitialized) {
+        initJavaFxInHeadlessMode();
+      }
+      Platform.runLater(r);
+    }
+  }
 
   /**
    * Simulates Swing's invokeAndWait(). Based on
    * https://news.kynosarges.org/2014/05/01/simulating-platform-runandwait/
    */
   public static void runOnFxThreadAndWait(@NotNull Runnable action) {
-
-    Preconditions.checkNotNull(action);
-
+    if (!isFxInitialized) {
+      initJavaFxInHeadlessMode();
+    }
     // is headless mode or already runs synchronously on JavaFX thread
-    if (MZmineCore.isHeadLessMode() || Platform.isFxApplicationThread()) {
+    if (isHeadLessMode() || Platform.isFxApplicationThread()) {
       action.run();
       return;
     }
@@ -65,4 +118,15 @@ public class FxThreadUtil {
 
   }
 
+  /**
+   * Might be needed for graphics export in headless batch mode
+   */
+  public static void initJavaFxInHeadlessMode() {
+    if (isFxInitialized) {
+      return;
+    }
+    Platform.startup(() -> {
+    });
+    isFxInitialized = true;
+  }
 }

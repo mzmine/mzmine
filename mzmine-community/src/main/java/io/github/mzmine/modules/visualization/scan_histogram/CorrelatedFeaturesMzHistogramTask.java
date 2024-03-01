@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.correlation.R2RFullCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.AdvancedCorrelateGroupingParameters;
 import io.github.mzmine.modules.visualization.scan_histogram.chart.MzDeltaCorrelationHistogramTab;
@@ -221,7 +222,7 @@ public class CorrelatedFeaturesMzHistogramTask extends AbstractTask {
     }
 
     // create histogram dialog
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       tab = new MzDeltaCorrelationHistogramTab(flist, deltaMZList, deltaMZToNeutralMassList,
           "m/z delta correlation histogram", "delta m/z", parameters);
       MZmineCore.getDesktop().addTab(tab);

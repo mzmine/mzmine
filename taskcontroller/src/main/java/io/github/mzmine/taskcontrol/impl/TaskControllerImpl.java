@@ -25,8 +25,6 @@
 
 package io.github.mzmine.taskcontrol.impl;
 
-import io.github.mzmine.main.GoogleAnalyticsTracker;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
@@ -254,7 +252,7 @@ public class TaskControllerImpl implements TaskController {
       wrappedTasks[i] = task;
 
       // track task use
-      GoogleAnalyticsTracker.trackTaskRun(task.getActualTask());
+//      GoogleAnalyticsTracker.trackTaskRun(task.getActualTask());
 
       // Create a new thread if the task is high-priority or if we
       // have less then maximum # of threads running

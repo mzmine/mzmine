@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrParameters;
@@ -93,7 +94,7 @@ public class PseudoSpectrumVisualizerPane extends SplitPane {
     BorderPane pnWrapChrom = new BorderPane();
     task.addTaskStatusListener((task1, newStatus, oldStatus) -> {
       if (newStatus.equals(TaskStatus.FINISHED)) {
-        MZmineCore.runLater(() -> {
+        FxThread.runLater(() -> {
           pnWrapChrom.setCenter(ticPlot);
           pnWrapSpectrum.setCenter(spectraPlot);
           getItems().addAll(pnWrapSpectrum, pnWrapChrom);

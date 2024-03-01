@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.framework.fx.mvci;
 
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
@@ -71,7 +72,7 @@ public abstract class FxController<ViewModelClass> {
    * Run task on GUI thread
    */
   public void onGuiThread(Runnable task) {
-    MZmineCore.runLater(task);
+    FxThread.runLater(task);
   }
 
 
@@ -115,7 +116,7 @@ public abstract class FxController<ViewModelClass> {
         final Task oldTask = removeOldTask(uniqueTaskName);
         if (oldTask.isFinished() && Objects.equals(oldTask, runningTask)) {
           // only update gui if still latest task
-          MZmineCore.runLater(fxUpdateTask::updateGuiModel);
+          FxThread.runLater(fxUpdateTask::updateGuiModel);
         }
       });
     }

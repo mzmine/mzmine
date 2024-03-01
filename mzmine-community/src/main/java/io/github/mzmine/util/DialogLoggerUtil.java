@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -109,7 +110,7 @@ public class DialogLoggerUtil {
     showMessageDialogForTime(title, message, 3500);
   }
   public static void showMessageDialogForTime(String title, String message, long timeMillis) {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       Alert alert = showMessageDialog(title, message, false);
       if (alert == null) {
         return;

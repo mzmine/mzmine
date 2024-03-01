@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,13 +26,12 @@
 package io.github.mzmine.taskcontrol;
 
 /**
+ * Listens for changes in task status
  * 
- * This enum defines task priority. High priority tasks are always executed immediately. Normal
- * priority tasks may wait until a thread is available.
- * 
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
+ *
  */
-public enum TaskPriority {
-  // TODO add LOW
-  HIGH, NORMAL
-
+@FunctionalInterface
+public interface TaskStatusListener {
+  public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus);
 }

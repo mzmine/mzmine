@@ -37,7 +37,7 @@ import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
 import io.github.mzmine.datamodel.impl.SimpleImagingFrame;
 import io.github.mzmine.datamodel.impl.SimpleImagingScan;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.MaldiSpotInfo;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
@@ -160,7 +160,7 @@ public class MaldiPseudoFileGeneratorTask extends AbstractTask {
       processed++;
     }
 
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       newFiles.forEach(project::addFile);
     });
 

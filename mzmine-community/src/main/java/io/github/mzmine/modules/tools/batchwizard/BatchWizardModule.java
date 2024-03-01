@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.batchwizard;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -54,7 +55,7 @@ public class BatchWizardModule implements MZmineRunnableModule {
   }
 
   public void showTab() {
-    MZmineCore.runLater(() -> MZmineCore.getDesktop().addTab(new BatchWizardTab()));
+    FxThread.runLater(() -> MZmineCore.getDesktop().addTab(new BatchWizardTab()));
   }
 
   @Override

@@ -27,6 +27,7 @@ package io.github.mzmine.gui.chartbasics.simplechart;
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.RegionsParameter;
 import io.github.mzmine.util.XMLUtils;
@@ -189,7 +190,7 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
   }
 
   private void loadRegionsFromFile() {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       final FileChooser chooser = new FileChooser();
       chooser.getExtensionFilters()
           .add(new ExtensionFilter("MZmine regions file", REGION_FILE_EXTENSION));
@@ -228,7 +229,7 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
     final RegionsParameter parameter = new RegionsParameter("Regions", "User defined regions");
     finishedRegionSelectionListeners.forEach(
         l -> parameter.getValue().add(l.buildingPointsProperty().getValue()));
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       final FileChooser chooser = new FileChooser();
       chooser.getExtensionFilters()
           .add(new ExtensionFilter("MZmine regions file", REGION_FILE_EXTENSION));

@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.ExitCode;
@@ -161,7 +162,7 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab implements
     // set font size of chart
     Button btnSetup = new Button("Setup");
     btnSetup.setOnAction(e -> {
-      MZmineCore.runLater(() -> {
+      FxThread.runLater(() -> {
         if (MZmineCore.getConfiguration()
                 .getModuleParameters(SpectraIdentificationResultsModule.class).showSetupDialog(true)
             == ExitCode.OK) {
@@ -338,7 +339,7 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab implements
   }
 
   private void handleLayoutChangeIndex() {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       // add all panel in order
       synchronized (totalMatches) {
         // select first 15 matches

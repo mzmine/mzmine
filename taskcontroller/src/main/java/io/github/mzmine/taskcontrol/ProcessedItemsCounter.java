@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,16 @@
 
 package io.github.mzmine.taskcontrol;
 
-public interface TaskControlListener {
+/**
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public interface ProcessedItemsCounter {
 
-  public void numberOfWaitingTasksChanged(int waitingTasks, int percentDone);
-
+  /**
+   * Number of processed items. For an export module, this will be the actually exported number of
+   * items not the unfiltered total.
+   *
+   * @return
+   */
+  int getProcessedItems();
 }

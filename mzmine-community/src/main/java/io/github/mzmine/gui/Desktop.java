@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
@@ -203,7 +204,7 @@ public interface Desktop extends MZmineModule {
 
   /**
    * Adds a tab to the main window. Does not have to be called in a
-   * {@link io.github.mzmine.main.MZmineCore#runLater(Runnable)} environment.
+   * {@link FxThread#runLater(Runnable)} environment.
    *
    * @param tab The tab {@link MZmineTab}
    */

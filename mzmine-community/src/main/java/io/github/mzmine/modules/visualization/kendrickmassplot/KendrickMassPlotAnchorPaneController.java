@@ -29,7 +29,7 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
@@ -229,7 +229,7 @@ public class KendrickMassPlotAnchorPaneController {
             yAxisLabel, zAxisLabel, kendrickMassPlotXYZDataset);
         KendrickMassPlotBubbleLegend kendrickMassPlotBubbleLegend = new KendrickMassPlotBubbleLegend(
             kendrickMassPlotXYZDataset);
-        MZmineCore.runLater(() -> {
+        FxThread.runLater(() -> {
           plotPane.setCenter(kendrickMassPlotChart);
           bubbleLegendPane.setCenter(kendrickMassPlotBubbleLegend);
           updateToolBar();
@@ -345,7 +345,7 @@ public class KendrickMassPlotAnchorPaneController {
         xAxisCharge, yAxisDivisor, yAxisCharge);
     newDataset.addTaskStatusListener((task, newStatus, oldStatus) -> {
       if (newStatus == TaskStatus.FINISHED) {
-        MZmineCore.runLater(() -> {
+        FxThread.runLater(() -> {
           plot.setDataset(newDataset);
           updateToolBar();
           setTooltips();

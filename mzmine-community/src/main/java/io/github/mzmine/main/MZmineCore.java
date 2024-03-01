@@ -52,8 +52,8 @@ import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.javafx.FxThreadUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,7 +62,6 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -84,19 +83,15 @@ public final class MZmineCore {
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
   private static final MZmineCore instance = new MZmineCore();
-  private static boolean isFxInitialized = false;
 
   // the default headless desktop is returned if no other desktop is set (e.g., during start up)
   // it is also used in headless mode
   private final Desktop defaultHeadlessDesktop = new HeadLessDesktop();
-  private final List<MemoryMapStorage> storageList = Collections.synchronizedList(
-      new ArrayList<>());
   private final Map<String, MZmineModule> initializedModules = new HashMap<>();
   private TaskControllerImpl taskController;
   private MZmineConfiguration configuration;
   private Desktop desktop;
   private ProjectManagerImpl projectManager;
-  private boolean headLessMode = true;
   private boolean tdfPseudoProfile = false;
   private boolean tsfProfile = false;
 
@@ -207,12 +202,13 @@ public final class MZmineCore {
       GoogleAnalyticsTracker.track(versionString, versionString);
       GoogleAnalyticsTracker.track("MZmine3_start", "MZmine3_start");
 
-      getInstance().headLessMode = (batchFile != null || keepRunningInHeadless);
+      boolean headLessMode = (batchFile != null || keepRunningInHeadless);
+      FxThread.setIsHeadLessMode(headLessMode);
       // If we have no arguments, run in GUI mode, otherwise run in batch mode
-      if (!getInstance().headLessMode) {
+      if (!FxThread.isHeadLessMode()) {
         try {
           logger.info("Starting MZmine GUI");
-          isFxInitialized = true;
+          FxThread.setIsFxInitialized(true);
           Application.launch(MZmineGUI.class, args);
         } catch (Throwable e) {
           logger.log(Level.SEVERE, "Could not initialize GUI", e);
@@ -287,7 +283,7 @@ public final class MZmineCore {
    * Exit MZmine (usually used in headless mode)
    */
   public static void exit(final @Nullable Task batchTask) {
-    if(isHeadLessMode() && isFxInitialized) {
+    if(isHeadLessMode() && FxThread.isFxInitialized()) {
       // fx might be initialized for graphics export in headless mode - shut it down
       // in GUI mode it is shut down automatically
       Platform.exit();
@@ -556,7 +552,7 @@ public final class MZmineCore {
    * @return headless mode or JavaFX GUI
    */
   public static boolean isHeadLessMode() {
-    return getInstance().headLessMode;
+    return FxThread.isHeadLessMode();
   }
 
   /**
@@ -564,50 +560,6 @@ public final class MZmineCore {
    */
   public static boolean isGUI() {
     return !isHeadLessMode();
-  }
-
-  /**
-   * @param r runnable to either run directly or on the JavaFX thread
-   */
-  public static void runLater(Runnable r) {
-    if (isHeadLessMode() || Platform.isFxApplicationThread()) {
-      r.run();
-    } else {
-      Platform.runLater(r);
-    }
-  }
-
-  /**
-   * @param r runnable to either run directly or on the JavaFX thread
-   */
-  public static void runLaterEnsureFxInitialized(Runnable r) {
-    if (Platform.isFxApplicationThread()) {
-      r.run();
-    } else {
-      if (!isFxInitialized) {
-        initJavaFxInHeadlessMode();
-      }
-      Platform.runLater(r);
-    }
-  }
-
-  /**
-   * Simulates Swing's invokeAndWait(). Based on
-   * https://news.kynosarges.org/2014/05/01/simulating-platform-runandwait/
-   */
-  public static void runOnFxThreadAndWait(Runnable r) {
-    if (!isFxInitialized) {
-      initJavaFxInHeadlessMode();
-    }
-    FxThreadUtil.runOnFxThreadAndWait(r);
-  }
-
-  public static void registerStorage(MemoryMapStorage storage) {
-    getInstance().storageList.add(storage);
-  }
-
-  public static List<MemoryMapStorage> getStorageList() {
-    return getInstance().storageList;
   }
 
   public static @NotNull MetadataTable getProjectMetadata() {
@@ -619,18 +571,6 @@ public final class MZmineCore {
    */
   public static @NotNull MZmineProject getProject() {
     return getProjectManager().getCurrentProject();
-  }
-
-  /**
-   * Might be needed for graphics export in headless batch mode
-   */
-  public static void initJavaFxInHeadlessMode() {
-    if (isFxInitialized) {
-      return;
-    }
-    Platform.startup(() -> {
-    });
-    isFxInitialized = true;
   }
 
   private void init() {

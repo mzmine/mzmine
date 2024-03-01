@@ -25,12 +25,9 @@
 
 package io.github.mzmine.taskcontrol;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -71,10 +68,7 @@ public abstract class AbstractTask implements Task {
   /**
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
    *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
-   *                       stored in ram. For now, one storage should be created per module call in
-   *                       {@link
-   *                       io.github.mzmine.modules.MZmineRunnableModule#runModule(MZmineProject,
-   *                       ParameterSet, Collection, Instant)}.
+   *                       stored in ram. For now, one storage should be created per module call
    * @param moduleCallDate the call date of module to order execution order
    */
   protected AbstractTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
@@ -84,10 +78,7 @@ public abstract class AbstractTask implements Task {
   /**
    * @param storage        The {@link MemoryMapStorage} used to store results of this task (e.g.
    *                       RawDataFiles, MassLists, FeatureLists). May be null if results shall be
-   *                       stored in ram. For now, one storage should be created per module call in
-   *                       {@link
-   *                       io.github.mzmine.modules.MZmineRunnableModule#runModule(MZmineProject,
-   *                       ParameterSet, Collection, Instant)}.
+   *                       stored in ram. For now, one storage should be created per module call
    * @param moduleCallDate the call date of module to order execution order
    */
   protected AbstractTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,

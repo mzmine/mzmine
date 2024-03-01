@@ -25,7 +25,6 @@
 
 package io.github.mzmine.util;
 
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
@@ -101,7 +100,7 @@ public class MemoryMapStorage {
 
   private MemoryMapStorage() {
     // register this storage to MZmineCore, so we can delete all temp files later.
-    MZmineCore.registerStorage(this);
+    MemoryMapStorages.registerStorage(this);
   }
 
   /**

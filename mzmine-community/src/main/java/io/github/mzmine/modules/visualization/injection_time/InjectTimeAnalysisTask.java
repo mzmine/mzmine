@@ -48,6 +48,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemScanProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
@@ -187,7 +188,7 @@ public class InjectTimeAnalysisTask extends AbstractTask {
       }
     }));
 
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       MZmineCore.getDesktop().addTab(tab);
     });
     setStatus(TaskStatus.FINISHED);

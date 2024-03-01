@@ -41,6 +41,7 @@ import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.main.TmpFileCleanup;
@@ -132,7 +133,7 @@ public class MZmineGUI extends Application implements Desktop {
   private Label statusLabel;
 
   public static void requestQuit() {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION);
       Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
       stage.getScene().getStylesheets()
@@ -155,7 +156,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   public static void requestCloseProject() {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION);
       Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
       stage.getScene().getStylesheets()
@@ -201,7 +202,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   public static void activateProject(@NotNull MZmineProject project) {
 
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
 
       MZmineCore.getProjectManager().setCurrentProject(project);
       if (mainWindowController != null) {
@@ -237,7 +238,7 @@ public class MZmineGUI extends Application implements Desktop {
 
           @Override
           public void librariesChanged(ProjectChangeEvent<SpectralLibrary> event) {
-            MZmineCore.runLater(() -> fxLibs.setAll(project.getCurrentSpectralLibraries()));
+            FxThread.runLater(() -> fxLibs.setAll(project.getCurrentSpectralLibraries()));
           }
         });
       }
@@ -266,7 +267,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   public static void showAboutWindow() {
     // Show the about window
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       final URL aboutPage = MZmineGUI.class.getClassLoader()
           .getResource("aboutpage/AboutMZmine.html");
       HelpWindow aboutWindow = new HelpWindow(aboutPage.toString());
@@ -502,7 +503,7 @@ public class MZmineGUI extends Application implements Desktop {
       File userDir = FileUtils.getUserDirectory();
       if (tmpPath == null || !tmpPath.exists() || tmpPath.getAbsolutePath().toLowerCase()
           .contains("users") || tmpPath.equals(userDir)) {
-        MZmineCore.runLater(() -> displayNotification("""
+        FxThread.runLater(() -> displayNotification("""
                 Set temp folder to a fast local drive (prefer a public folder over a user folder).
                 MZmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
                 """, "Change", MZmineCore::openTempPreferences,
@@ -580,23 +581,23 @@ public class MZmineGUI extends Application implements Desktop {
   @Override
   public void addTab(MZmineTab tab) {
     if (mainWindowController.getTabs().size() < MAX_TABS) {
-      MZmineCore.runLater(() -> mainWindowController.addTab(tab));
+      FxThread.runLater(() -> mainWindowController.addTab(tab));
       return;
     } else if (mainWindowController.getTabs().size() < MAX_TABS && !getWindows().isEmpty()) {
       for (MZmineWindow window : getWindows()) {
         if (window.getNumberOfTabs() < MAX_TABS && !window.isExclusive()) {
-          MZmineCore.runLater(() -> window.addTab(tab));
+          FxThread.runLater(() -> window.addTab(tab));
           return;
         }
       }
     }
-    MZmineCore.runLater(() -> new MZmineWindow().addTab(tab));
+    FxThread.runLater(() -> new MZmineWindow().addTab(tab));
   }
 
   @Override
   public void setStatusBarText(@Nullable String message, @Nullable Color textColor,
       @Nullable String url) {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       if (mainWindowController == null) {
         return;
       }
@@ -636,7 +637,7 @@ public class MZmineGUI extends Application implements Desktop {
   public void displayMessage(String title, String msg, @Nullable String url) {
     logger.finest(() -> String.format("%s - %s - %s", title, msg, url));
 
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
 
       Dialog<ButtonType> dialog = new Dialog<>();
       Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
@@ -704,7 +705,7 @@ public class MZmineGUI extends Application implements Desktop {
       if (Platform.isFxApplicationThread()) {
         alertTask.run();
       } else {
-        MZmineCore.runLater(alertTask);
+        FxThread.runLater(alertTask);
       }
       return alertTask.get();
     } catch (Exception e) {
@@ -858,7 +859,7 @@ public class MZmineGUI extends Application implements Desktop {
     if (Platform.isFxApplicationThread()) {
       task.run();
     } else {
-      MZmineCore.runLater(task);
+      FxThread.runLater(task);
     }
 
     try {

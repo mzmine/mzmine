@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraiden
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.RowsSpectralMatchTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -76,7 +77,7 @@ class SingleSpectrumLibrarySearchTask extends RowsSpectralMatchTask {
     setStatus(TaskStatus.PROCESSING);
 
     // add result frame
-    MZmineCore.runOnFxThreadAndWait(() -> {
+    FxThread.runOnFxThreadAndWait(() -> {
       resultWindow = new SpectraIdentificationResultsWindowFX();
       MZmineCore.getDesktop().addTab(resultWindow);
     });
@@ -84,7 +85,7 @@ class SingleSpectrumLibrarySearchTask extends RowsSpectralMatchTask {
     // do the actual matching
     super.run();
 
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       resultWindow.setText("Spectral matches for scan#" + scan.getScanNumber());
       resultWindow.setMatchingFinished();
     });
@@ -129,14 +130,14 @@ class SingleSpectrumLibrarySearchTask extends RowsSpectralMatchTask {
             shortName + " " + "Score: " + MZmineCore.getConfiguration().getScoreFormat()
                 .format(match.getSimilarity().getScore()), dataset);
 
-        MZmineCore.runLater(() -> spectraPlot.addDataSet(detectedCompoundsDataset,
+        FxThread.runLater(() -> spectraPlot.addDataSet(detectedCompoundsDataset,
             new Color((int) (Math.random() * 0x1000000)), true, true));
 
       } catch (MissingMassListException e) {
         logger.log(Level.WARNING, "No mass list for the selected spectrum", e);
       }
     }
-    MZmineCore.runLater(() -> resultWindow.addMatches(matches));
+    FxThread.runLater(() -> resultWindow.addMatches(matches));
     setStatus(TaskStatus.FINISHED);
   }
 }

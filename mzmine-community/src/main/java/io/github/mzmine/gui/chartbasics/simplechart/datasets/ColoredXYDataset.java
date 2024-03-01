@@ -38,6 +38,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.SeriesKeyProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ToolTipTextProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider;
+import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
@@ -344,7 +345,7 @@ public class ColoredXYDataset extends AbstractTaskXYDataset implements IntervalX
     setStatus(TaskStatus.FINISHED);
     if (getRunOption()
         != RunOption.THIS_THREAD) {  // no need to notify then, dataset will be up to date
-      MZmineCore.runLater(this::fireDatasetChanged);
+      FxThread.runLater(this::fireDatasetChanged);
     }
   }
 
