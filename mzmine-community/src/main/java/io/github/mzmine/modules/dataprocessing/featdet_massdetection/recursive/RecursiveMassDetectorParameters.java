@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.recursive;
 
-import java.awt.Window;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorSetupDialog;
 import io.github.mzmine.parameters.UserParameter;

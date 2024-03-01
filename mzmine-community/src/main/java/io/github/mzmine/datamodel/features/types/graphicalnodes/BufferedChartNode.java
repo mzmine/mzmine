@@ -25,7 +25,7 @@
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import java.awt.image.BufferedImage;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
@@ -84,7 +84,7 @@ public class BufferedChartNode extends BorderPane {
     imageView = new ImageView(SwingFXUtils.toFXImage(img, null));
     showBufferedImage();
     // add listener to border pane so that clicks are always recognized
-    setOnMouseClicked(e -> MZmineCore.runLater(() -> {
+    setOnMouseClicked(e -> FxThread.runLater(() -> {
       if (makeInteractiveOnClick) {
         showInteractiveChart();
       }
@@ -99,14 +99,14 @@ public class BufferedChartNode extends BorderPane {
    * show buffered image to save resources
    */
   public void showBufferedImage() {
-    MZmineCore.runLater(() -> setCenter(imageView));
+    FxThread.runLater(() -> setCenter(imageView));
   }
 
   /**
    * Show interactive chart, e.g., on click
    */
   public void showInteractiveChart() {
-    MZmineCore.runLater(() -> setCenter(chart));
+    FxThread.runLater(() -> setCenter(chart));
   }
 
   public ChartViewer getChart() {

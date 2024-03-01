@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.export_image_csv;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -49,7 +50,7 @@ public class ImageToCsvExportModule implements MZmineModule {
     ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(ImageToCsvExportModule.class);
 
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       ExitCode code = param.showSetupDialog(true);
       if (code == ExitCode.OK) {
         MZmineCore.getTaskController().addTask(new ImageToCsvExportTask(param, features, moduleCallDate));

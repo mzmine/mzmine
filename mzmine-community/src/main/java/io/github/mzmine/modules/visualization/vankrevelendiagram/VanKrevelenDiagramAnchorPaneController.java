@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.logging.Logger;
@@ -67,12 +67,12 @@ public class VanKrevelenDiagramAnchorPaneController {
               "O/C", "H/C", zAxisLabel, vanKrevelenDiagramXYZDataset);
           VanKrevelenDiagramBubbleLegend vanKrevelenDiagramBubbleLegend = new VanKrevelenDiagramBubbleLegend(
               vanKrevelenDiagramXYZDataset);
-          MZmineCore.runLater(() -> {
+          FxThread.runLater(() -> {
             plotPane.setCenter(vanKrevelenDiagramChart);
             bubbleLegendPane.setCenter(vanKrevelenDiagramBubbleLegend);
           });
         } else {
-          MZmineCore.runLater(() -> {
+          FxThread.runLater(() -> {
             plotPane.setCenter(new Label(
                 "Nothing to plot. Check if the selected feature list has annotations. A Van Krevelen Diagram requires molecular formulas."));
           });

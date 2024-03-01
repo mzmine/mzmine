@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.spectra.msn_tree;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -55,7 +56,7 @@ public class MSnTreeVisualizerModule implements MZmineRunnableModule {
       return;
     }
 
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       MSnTreeTab tab = new MSnTreeTab();
       MZmineCore.getDesktop().addTab(tab);
       if (raw != null && raw.length > 0) {

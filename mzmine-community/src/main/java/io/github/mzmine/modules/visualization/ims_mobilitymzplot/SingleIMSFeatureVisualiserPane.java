@@ -42,6 +42,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.Summed
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.SingleSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
@@ -175,7 +176,7 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     mobilogramChart.setShowCrosshair(false);
     mobilogramChart.setLegendItemsVisible(false);
     mobilogramChart.addDatasetChangeListener(l -> {
-      MZmineCore.runLater(() -> {
+      FxThread.runLater(() -> {
         NumberAxis a = (NumberAxis) heatmapChart.getXYPlot().getRangeAxis();
         a.setAutoRangeIncludesZero(false);
         a.setAutoRangeStickyZero(false);

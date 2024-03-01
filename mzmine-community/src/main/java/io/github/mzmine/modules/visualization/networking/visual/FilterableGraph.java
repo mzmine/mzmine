@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.networking.visual;
 
 import static java.util.Objects.requireNonNullElse;
 
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
@@ -208,7 +209,7 @@ public class FilterableGraph extends MultiGraph {
 
   public void showNetwork(final MultiGraph source) {
     // make sure its javafx
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       this.clear();
       GraphStreamUtils.copyGraphContent(source, this);
       graphChangeListener.forEach(listener -> listener.accept(this));

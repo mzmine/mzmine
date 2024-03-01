@@ -27,7 +27,6 @@ package io.github.mzmine.modules.io.export_rawdata_mzml;
 
 import java.io.File;
 import java.time.Instant;
-import java.util.Date;
 import java.util.logging.Logger;
 
 import io.github.msdk.MSDKMethod;

@@ -46,7 +46,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 class SQLExportTask extends AbstractTask {

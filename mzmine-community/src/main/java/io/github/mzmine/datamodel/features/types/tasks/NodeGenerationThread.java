@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -113,7 +113,7 @@ public class NodeGenerationThread extends AbstractTask {
       progress = numFinishedNodes / (double) (numFinishedNodes + nodeRequestQueue.size());
 
       if ((nodeRequestQueue.isEmpty() && !finishedNodes.isEmpty()) || numFinishedNodes > 10) {
-        MZmineCore.runLater(() -> {
+        FxThread.runLater(() -> {
           FinishedNodePair pair = null;
           while ((pair = finishedNodes.poll()) != null) {
             if (pair.child() == null) {

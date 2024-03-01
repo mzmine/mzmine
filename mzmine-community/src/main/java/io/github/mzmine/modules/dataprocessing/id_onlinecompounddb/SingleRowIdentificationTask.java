@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
@@ -46,7 +47,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.exceptions.ExceptionUtils;
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.logging.Level;
@@ -167,7 +168,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
       if (numItems == 0) {
         //
-        MZmineCore.runLater(() -> resultWindowFX.setTitle(
+        FxThread.runLater(() -> resultWindowFX.setTitle(
             "Searching for " + massFormatter.format(searchedMass) + " amu: no results found"));
       }
 

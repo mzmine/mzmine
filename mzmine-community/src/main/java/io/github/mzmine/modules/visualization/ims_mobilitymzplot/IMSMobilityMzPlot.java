@@ -49,6 +49,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTim
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYZPieRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -279,7 +280,7 @@ public class IMSMobilityMzPlot extends BorderPane {
     MZmineCore.getTaskController().addTask(calc);
     calc.addTaskStatusListener(((task, newStatus, oldStatus) -> {
       if (newStatus == TaskStatus.FINISHED) {
-        MZmineCore.runLater(() ->{
+        FxThread.runLater(() ->{
           heatmap.addDatasetsAndRenderers(calc.getDatasetsRenderers());
           if(calc.getDatasetsRenderers().size() > 1) {
             heatmap.setLegendPaintScale(calc.getPaintScale());

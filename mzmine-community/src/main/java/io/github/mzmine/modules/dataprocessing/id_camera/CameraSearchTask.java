@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,7 +41,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -219,7 +219,7 @@ public class CameraSearchTask extends AbstractTask {
       }
 
       // Repaint the window to reflect the change in the feature list
-      Desktop desktop = MZmineCore.getDesktop();
+      MZmineDesktop desktop = MZmineCore.getDesktop();
       // if (!(desktop instanceof HeadLessDesktop))
       // desktop.getMainWindow().repaint();
 

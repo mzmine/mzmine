@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
@@ -60,7 +61,7 @@ public class SelectedRowsSpectralLibrarySearchTask extends RowsSpectralMatchTask
       ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(parameters, rows, moduleCallDate); // no new data stored -> null
     this.table = table;
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       resultWindow = new SpectraIdentificationResultsWindowFX();
       resultWindow.addMatches(syncList);
       MZmineCore.getDesktop().addTab(resultWindow);
@@ -84,7 +85,7 @@ public class SelectedRowsSpectralLibrarySearchTask extends RowsSpectralMatchTask
     // run the actual subtask
     super.run();
     if (resultWindow != null) {
-      MZmineCore.runLater(() -> resultWindow.setMatchingFinished());
+      FxThread.runLater(() -> resultWindow.setMatchingFinished());
     }
     // Add task description to peakList
     if (!isCanceled()) {
@@ -97,7 +98,7 @@ public class SelectedRowsSpectralLibrarySearchTask extends RowsSpectralMatchTask
     super.addIdentities(row, matches);
     // one selected row -> show in dialog
       if (resultWindow != null) {
-        MZmineCore.runLater(() -> resultWindow.addMatches(matches));
+        FxThread.runLater(() -> resultWindow.addMatches(matches));
       }
       else {
         syncList.addAll(matches);

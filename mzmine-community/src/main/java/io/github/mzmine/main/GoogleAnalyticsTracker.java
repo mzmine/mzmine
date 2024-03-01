@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,8 +24,8 @@
  */
 package io.github.mzmine.main;
 
-import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.HeadLessDesktop;
+import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.taskcontrol.Task;
 import java.awt.Dimension;
@@ -49,7 +49,6 @@ import java.util.logging.Logger;
 
 public class GoogleAnalyticsTracker {
 
-  public static final GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker();
   private static final Logger logger = Logger.getLogger(GoogleAnalyticsTracker.class.getName());
   // Parameters
   private static final String trackingUrl = "http://www.google-analytics.com/__utm.gif";
@@ -63,7 +62,7 @@ public class GoogleAnalyticsTracker {
 
   private GoogleAnalyticsTracker() {
     // Parameters
-    Desktop desktop = MZmineCore.getDesktop();
+    MZmineDesktop desktop = MZmineCore.getDesktop();
     // Only if not in "headless" mode
     this.sendGUIinfo = !(desktop instanceof HeadLessDesktop);
     if (this.sendGUIinfo) {
@@ -116,10 +115,10 @@ public class GoogleAnalyticsTracker {
   }
 
   public static void track(final String title, final String url) {
-    Thread gatThread = new Thread(() -> GAT.send(title, url));
-    gatThread.setName("GAT MZmine");
-    gatThread.setPriority(Thread.MIN_PRIORITY);
-    gatThread.start();
+//    Thread gatThread = new Thread(() -> GAT.send(title, url));
+//    gatThread.setName("GAT MZmine");
+//    gatThread.setPriority(Thread.MIN_PRIORITY);
+//    gatThread.start();
   }
 
   public static void trackTaskRun(Task task) {

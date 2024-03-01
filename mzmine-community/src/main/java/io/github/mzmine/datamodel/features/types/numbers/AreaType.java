@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -67,7 +67,7 @@ public class AreaType extends HeightType {
       final ModularFeature selectedFeature = row.getFeature(file.get(0));
 
       if(selectedFeature != null && selectedFeature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
-        return () -> MZmineCore.runLater(() -> XICManualPickerModule.runManualDetection(selectedFeature.getRawDataFile(),
+        return () -> FxThread.runLater(() -> XICManualPickerModule.runManualDetection(selectedFeature.getRawDataFile(),
             row, row.getFeatureList()));
       }
     }

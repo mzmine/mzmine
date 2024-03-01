@@ -31,7 +31,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class QualityParametersTask extends AbstractTask {
