@@ -23,39 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel;
+package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.numbers.AreaType;
-import io.github.mzmine.datamodel.features.types.numbers.HeightType;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.datamodel.AbundanceMeasure;
+import java.util.Arrays;
+import java.util.List;
 
-/**
- * Used to define the abundance of features
- */
-public enum AbundanceMeasure {
-  Height(HeightType.class), Area(AreaType.class);
+public class AbundanceMeasureParameter extends ComboParameter<AbundanceMeasure> {
 
-  final Class<? extends DataType<Float>> type;
+  public static final String DEFAULT_DESC = STR."Select which abundance type should be used for the calculations. \{Arrays.toString(
+      AbundanceMeasure.values())}";
 
-  AbundanceMeasure(Class<? extends DataType<Float>> type) {
-    this.type = type;
+  public AbundanceMeasureParameter(String name, String description, AbundanceMeasure[] choices) {
+    this(name, description, choices, AbundanceMeasure.Height);
   }
 
-  public Class<? extends DataType<Float>> type() {
-    return type;
+  public AbundanceMeasureParameter(String name, String description, AbundanceMeasure[] choices,
+      AbundanceMeasure defaultValue) {
+    super(name, description, choices, defaultValue);
   }
 
-  /**
-   * @param featureOrRow The feature or row
-   * @return The abundance or null if the feature/row is null or no abundance is set.
-   */
-  public Float get(@Nullable ModularDataModel featureOrRow) {
-    if (featureOrRow == null) {
-      return null;
-    }
-    return featureOrRow.get(type);
+  public AbundanceMeasureParameter(String name, String description,
+      List<AbundanceMeasure> choices) {
+    super(name, description, choices);
   }
 
+  public AbundanceMeasureParameter(String name, String description, List<AbundanceMeasure> choices,
+      AbundanceMeasure defaultValue) {
+    super(name, description, choices, defaultValue);
+  }
 }

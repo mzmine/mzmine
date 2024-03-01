@@ -63,7 +63,14 @@ public class ScoresProvider extends SimpleXYProvider {
     final RealVector pcOne = pcaResult.principalComponents().getColumnVector(pcX);
     final RealVector pcTwo = pcaResult.principalComponents().getColumnVector(pcY);
 
-    final Array2DRowRealMatrix pcMatrix = new Array2DRowRealMatrix(2, pcOne.getDimension());
+    RealMatrix pcMatrix = pcaResult.principalComponents()
+        .getSubMatrix(0, pcaResult.principalComponents().getRowDimension() - 1, 0, 1);
+    pcMatrix = new Array2DRowRealMatrix(pcMatrix.getData());
+
+    final Array2DRowRealMatrix pcMatrix2 = new Array2DRowRealMatrix(pcOne.getDimension(), 2);
+    pcMatrix2.setColumnVector(0, pcOne);
+    pcMatrix2.setColumnVector(1, pcTwo);
+
     final RealMatrix scores = pcaResult.data().multiply(pcMatrix);
 
     double[] domainData = new double[scores.getColumnDimension()];

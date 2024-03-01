@@ -25,6 +25,11 @@
 
 package io.github.mzmine.gui.framework.fx.mvci;
 
+import javafx.beans.property.Property;
+import javafx.collections.ObservableList;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.util.Builder;
 
@@ -37,5 +42,14 @@ public abstract class FxViewBuilder<ViewModelClass> implements Builder<Region> {
 
   protected FxViewBuilder(ViewModelClass model) {
     this.model = model;
+  }
+
+  public static <T> HBox createLabelledComboBox(String label, ObservableList<T> values,
+      Property<T> modelProperty) {
+    final Label rangeLabel = new Label(label);
+    final ComboBox<T> rangePcSelector = new ComboBox<>(values);
+    rangePcSelector.valueProperty().bindBidirectional(modelProperty);
+    final HBox range = new HBox(5, rangeLabel, rangePcSelector);
+    return range;
   }
 }

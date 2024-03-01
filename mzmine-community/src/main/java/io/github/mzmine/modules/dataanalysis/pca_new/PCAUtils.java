@@ -83,7 +83,7 @@ public class PCAUtils {
         } else {
           abundance = 0.0d;
         }
-        data.setEntry(fileIndex, rowIndex, abundance);
+        data.setEntry(rowIndex, fileIndex, abundance);
       }
     }
 

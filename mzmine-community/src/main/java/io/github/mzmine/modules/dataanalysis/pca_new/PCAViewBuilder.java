@@ -25,9 +25,11 @@
 
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
-import javafx.scene.control.ComboBox;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
+import javafx.collections.FXCollections;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -49,19 +51,58 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
   public Region build() {
 
     final BorderPane pane = new BorderPane();
+    final HBox domain = createLabelledComboBox("Domain PC", model.getAvailablePCs(),
+        model.domainPcProperty());
+    final HBox range = createLabelledComboBox("Range PC", model.getAvailablePCs(),
+        model.rangePcProperty());
+    final HBox coloring = createMetadataBox();
+    final HBox abundance = createLabelledComboBox("Abundance",
+        FXCollections.observableArrayList(AbundanceMeasure.values()), model.abundanceProperty());
 
-    final Label domainLabel = new Label("Domain PC:");
-    final ComboBox<Integer> domainPcSelector = new ComboBox<>(model.getAvailablePCs());
-    final HBox domain = new HBox(5, domainLabel, domainPcSelector);
+    pane.setBottom(new FlowPane(space, space, domain, range, coloring, abundance));
 
-    final Label rangeLabel = new Label("Range PC:");
-    final ComboBox<Integer> rangePcSelector = new ComboBox<>(model.getAvailablePCs());
-    final HBox range = new HBox(5, rangeLabel, rangePcSelector);
+    scoresPlot.setMinSize(500, 500);
+    loadingsPlot.setMinSize(500, 500);
 
-    pane.setBottom(new FlowPane(space, space, domain, range));
+    pane.setCenter(new HBox(new BorderPane(scoresPlot), new BorderPane(loadingsPlot)));
 
-    pane.setCenter(new HBox(scoresPlot, loadingsPlot));
-
+    initDatasetListeners();
     return pane;
+  }
+
+  private HBox createMetadataBox() {
+    final Label coloringLabel = new Label("Coloring:");
+    final MetadataGroupingComponent coloringSelection = new MetadataGroupingComponent();
+    coloringSelection.valueProperty().bindBidirectional(model.metadataColumnProperty());
+    final HBox coloring = new HBox(space, coloringLabel, coloringSelection);
+    return coloring;
+  }
+
+  private void initDatasetListeners() {
+    model.loadingsDatasetsProperty().addListener(((_, _, newValue) -> {
+      loadingsPlot.applyWithNotifyChanges(false, () -> {
+        loadingsPlot.removeAllDatasets();
+        if (newValue == null || newValue.isEmpty()) {
+          return;
+        }
+        newValue.forEach(d -> loadingsPlot.addDataset(d.dataset(), d.renderer()));
+
+        loadingsPlot.setDomainAxisLabel(STR."PC\{model.getDomainPc()}");
+        loadingsPlot.setRangeAxisLabel(STR."PC\{model.getRangePc()}");
+      });
+    }));
+
+    model.scoresDatasetsProperty().addListener(((_, _, newValue) -> {
+      scoresPlot.applyWithNotifyChanges(false, () -> {
+        scoresPlot.removeAllDatasets();
+        if (newValue == null || newValue.isEmpty()) {
+          return;
+        }
+        newValue.forEach(d -> scoresPlot.addDataset(d.dataset(), d.renderer()));
+        scoresPlot.setDomainAxisLabel(STR."PC\{model.getDomainPc()}");
+        scoresPlot.setRangeAxisLabel(STR."PC\{model.getRangePc()}");
+      });
+    }));
+
   }
 }

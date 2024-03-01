@@ -25,43 +25,147 @@
 
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
-import javafx.beans.property.IntegerProperty;
+import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import java.util.List;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class PCAModel {
 
-  private final ObservableList<Integer> availablePCs = FXCollections.observableArrayList();
+  private final ObservableList<Integer> availablePCs = FXCollections.observableArrayList(1, 2, 3,
+      4);
+  private final Property<Integer> domainPc = new SimpleIntegerProperty(1).asObject();
+  private final Property<Integer> rangePc = new SimpleIntegerProperty(2).asObject();
+  private final ObjectProperty<List<FeatureList>> flists = new SimpleObjectProperty<>();
+  private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
+  private final ObjectProperty<AbundanceMeasure> abundance = new SimpleObjectProperty<>(
+      AbundanceMeasure.Height);
+  private final StringProperty metadataColumn = new SimpleStringProperty();
+  private final ObjectProperty<List<DatasetAndRenderer>> scoresDatasets = new SimpleObjectProperty<>(
+      List.of());
+  private final ObjectProperty<List<DatasetAndRenderer>> loadingsDatasets = new SimpleObjectProperty<>(
+      List.of());
 
-  private final IntegerProperty domainPc = new SimpleIntegerProperty(1);
-  private final IntegerProperty rangePc = new SimpleIntegerProperty(2);
+  private final ObjectProperty<PCARowsResult> pcaResult = new SimpleObjectProperty<>();
 
   public ObservableList<Integer> getAvailablePCs() {
     return availablePCs;
   }
 
-  public int getDomainPc() {
-    return domainPc.get();
+  public Integer getDomainPc() {
+    return domainPc.getValue();
   }
 
-  public IntegerProperty domainPcProperty() {
+  public void setDomainPc(Integer domainPc) {
+    this.domainPc.setValue(domainPc);
+  }
+
+  public Property<Integer> domainPcProperty() {
     return domainPc;
   }
 
-  public void setDomainPc(int domainPc) {
-    this.domainPc.set(domainPc);
+  public Integer getRangePc() {
+    return rangePc.getValue();
   }
 
-  public int getRangePc() {
-    return rangePc.get();
+  public void setRangePc(Integer rangePc) {
+    this.rangePc.setValue(rangePc);
   }
 
-  public IntegerProperty rangePcProperty() {
+  public Property<Integer> rangePcProperty() {
     return rangePc;
   }
 
-  public void setRangePc(int rangePc) {
-    this.rangePc.set(rangePc);
+  public String getMetadataColumn() {
+    return metadataColumn.get();
+  }
+
+  public void setMetadataColumn(String metadataColumn) {
+    this.metadataColumn.set(metadataColumn);
+  }
+
+  public StringProperty metadataColumnProperty() {
+    return metadataColumn;
+  }
+
+  public List<FeatureList> getFlists() {
+    return flists.get();
+  }
+
+  public void setFlists(List<FeatureList> flists) {
+    this.flists.set(flists);
+  }
+
+  public ObjectProperty<List<FeatureList>> flistsProperty() {
+    return flists;
+  }
+
+  public List<FeatureListRow> getSelectedRows() {
+    return selectedRows.get();
+  }
+
+  public void setSelectedRows(List<FeatureListRow> selectedRows) {
+    this.selectedRows.set(selectedRows);
+  }
+
+  public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
+    return selectedRows;
+  }
+
+  public AbundanceMeasure getAbundance() {
+    return abundance.get();
+  }
+
+  public void setAbundance(AbundanceMeasure abundance) {
+    this.abundance.set(abundance);
+  }
+
+  public ObjectProperty<AbundanceMeasure> abundanceProperty() {
+    return abundance;
+  }
+
+  public List<DatasetAndRenderer> getScoresDatasets() {
+    return scoresDatasets.get();
+  }
+
+  public void setScoresDatasets(List<DatasetAndRenderer> scoresDatasets) {
+    this.scoresDatasets.set(scoresDatasets);
+  }
+
+  public ObjectProperty<List<DatasetAndRenderer>> scoresDatasetsProperty() {
+    return scoresDatasets;
+  }
+
+  public List<DatasetAndRenderer> getLoadingsDatasets() {
+    return loadingsDatasets.get();
+  }
+
+  public void setLoadingsDatasets(List<DatasetAndRenderer> loadingsDatasets) {
+    this.loadingsDatasets.set(loadingsDatasets);
+  }
+
+  public ObjectProperty<List<DatasetAndRenderer>> loadingsDatasetsProperty() {
+    return loadingsDatasets;
+  }
+
+  public PCARowsResult getPcaResult() {
+    return pcaResult.get();
+  }
+
+  public void setPcaResult(PCARowsResult pcaResult) {
+    this.pcaResult.set(pcaResult);
+  }
+
+  public ObjectProperty<PCARowsResult> pcaResultProperty() {
+    return pcaResult;
   }
 }

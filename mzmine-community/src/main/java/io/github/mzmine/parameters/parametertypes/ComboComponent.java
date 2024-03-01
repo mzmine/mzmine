@@ -23,39 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel;
+package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.numbers.AreaType;
-import io.github.mzmine.datamodel.features.types.numbers.HeightType;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.parameters.ValuePropertyComponent;
+import javafx.collections.ObservableList;
+import javafx.scene.control.ComboBox;
 
-/**
- * Used to define the abundance of features
- */
-public enum AbundanceMeasure {
-  Height(HeightType.class), Area(AreaType.class);
+public class ComboComponent<ValueType> extends ComboBox<ValueType> implements
+    ValuePropertyComponent<ValueType> {
 
-  final Class<? extends DataType<Float>> type;
-
-  AbundanceMeasure(Class<? extends DataType<Float>> type) {
-    this.type = type;
+  public ComboComponent() {
   }
 
-  public Class<? extends DataType<Float>> type() {
-    return type;
+  public ComboComponent(ObservableList<ValueType> observableList) {
+    super(observableList);
   }
-
-  /**
-   * @param featureOrRow The feature or row
-   * @return The abundance or null if the feature/row is null or no abundance is set.
-   */
-  public Float get(@Nullable ModularDataModel featureOrRow) {
-    if (featureOrRow == null) {
-      return null;
-    }
-    return featureOrRow.get(type);
-  }
-
 }
