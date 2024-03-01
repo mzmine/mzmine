@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -311,7 +312,7 @@ public class MSnTreeTab extends SimpleTab {
       colorMap.clear();
       trees.forEach(tree -> addToColorMap(tree, colors));
 
-      MZmineCore.runLater(() -> {
+      FxThread.runLater(() -> {
         if (current == currentThread.get()) {
           // add to tree
           treeView.getRoot().getChildren()

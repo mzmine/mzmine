@@ -74,6 +74,7 @@ import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotati
 import io.github.mzmine.datamodel.features.types.numbers.scores.CosineScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.MsMsScoreType;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
@@ -470,7 +471,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       return;
     }
 
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       getRoot().getChildren().clear();
       rowItems.clear();
       // add rows
@@ -945,7 +946,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    */
   private void initFeatureListListener() {
     featureListProperty().addListener((observable, oldValue, newValue) -> {
-      MZmineCore.runLater(() -> {
+      FxThread.runLater(() -> {
         // Clear old rows and old columns
         getRoot().getChildren().clear();
         getColumns().clear();

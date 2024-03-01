@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.FeatureUtils;
@@ -64,7 +65,7 @@ public class CompoundDatabaseMatchTab extends SimpleTab implements FeatureRowInt
   }
 
   public static void addNewTab(final FeatureTableFX table) {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       final CompoundDatabaseMatchTab tab = new CompoundDatabaseMatchTab(table);
       tab.selectionChanged();
       MZmineCore.getDesktop().addTab(tab);

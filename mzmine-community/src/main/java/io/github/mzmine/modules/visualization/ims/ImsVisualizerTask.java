@@ -49,8 +49,8 @@ import io.github.mzmine.modules.visualization.ims.imsvisualizer.RetentionTimeInt
 import io.github.mzmine.modules.visualization.ims.imsvisualizer.RetentionTimeMobilityHeatMapPlot;
 import io.github.mzmine.modules.visualization.ims.imsvisualizer.RetentionTimeMobilityXYZDataset;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.taskcontrol.TaskStatus;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;

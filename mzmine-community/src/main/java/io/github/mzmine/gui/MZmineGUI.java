@@ -53,11 +53,12 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
 import java.io.File;
@@ -118,7 +119,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 /**
  * MZmine JavaFX Application class
  */
-public class MZmineGUI extends Application implements Desktop {
+public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDesktop {
 
   public static final int MAX_TABS = 30;
   private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
@@ -132,7 +133,7 @@ public class MZmineGUI extends Application implements Desktop {
   private Label statusLabel;
 
   public static void requestQuit() {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION);
       Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
       stage.getScene().getStylesheets()
@@ -155,7 +156,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   public static void requestCloseProject() {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION);
       Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
       stage.getScene().getStylesheets()
@@ -174,7 +175,7 @@ public class MZmineGUI extends Application implements Desktop {
         // Set a new project clears the old
         MZmineCore.getProjectManager().clearProject();
 
-        MZmineCore.getDesktop().setStatusBarText("Project space cleaned");
+        DesktopService.getDesktop().setStatusBarText("Project space cleaned");
 
         // Ask the garbage collector to free the previously used memory
         System.gc();
@@ -201,7 +202,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   public static void activateProject(@NotNull MZmineProject project) {
 
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
 
       MZmineCore.getProjectManager().setCurrentProject(project);
       if (mainWindowController != null) {
@@ -237,7 +238,7 @@ public class MZmineGUI extends Application implements Desktop {
 
           @Override
           public void librariesChanged(ProjectChangeEvent<SpectralLibrary> event) {
-            MZmineCore.runLater(() -> fxLibs.setAll(project.getCurrentSpectralLibraries()));
+            FxThread.runLater(() -> fxLibs.setAll(project.getCurrentSpectralLibraries()));
           }
         });
       }
@@ -266,7 +267,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   public static void showAboutWindow() {
     // Show the about window
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       final URL aboutPage = MZmineGUI.class.getClassLoader()
           .getResource("aboutpage/AboutMZmine.html");
       HelpWindow aboutWindow = new HelpWindow(aboutPage.toString());
@@ -447,7 +448,8 @@ public class MZmineGUI extends Application implements Desktop {
   public void start(Stage stage) {
 
     MZmineGUI.mainStage = stage;
-    MZmineCore.setDesktop(this);
+
+    DesktopService.setDesktop(this);
 
     logger.finest("Initializing MZmine main window");
 
@@ -502,7 +504,7 @@ public class MZmineGUI extends Application implements Desktop {
       File userDir = FileUtils.getUserDirectory();
       if (tmpPath == null || !tmpPath.exists() || tmpPath.getAbsolutePath().toLowerCase()
           .contains("users") || tmpPath.equals(userDir)) {
-        MZmineCore.runLater(() -> displayNotification("""
+        FxThread.runLater(() -> displayNotification("""
                 Set temp folder to a fast local drive (prefer a public folder over a user folder).
                 MZmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
                 """, "Change", MZmineCore::openTempPreferences,
@@ -551,12 +553,6 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public Stage getMainWindow() {
     return mainStage;
   }
@@ -580,23 +576,23 @@ public class MZmineGUI extends Application implements Desktop {
   @Override
   public void addTab(MZmineTab tab) {
     if (mainWindowController.getTabs().size() < MAX_TABS) {
-      MZmineCore.runLater(() -> mainWindowController.addTab(tab));
+      FxThread.runLater(() -> mainWindowController.addTab(tab));
       return;
     } else if (mainWindowController.getTabs().size() < MAX_TABS && !getWindows().isEmpty()) {
       for (MZmineWindow window : getWindows()) {
         if (window.getNumberOfTabs() < MAX_TABS && !window.isExclusive()) {
-          MZmineCore.runLater(() -> window.addTab(tab));
+          FxThread.runLater(() -> window.addTab(tab));
           return;
         }
       }
     }
-    MZmineCore.runLater(() -> new MZmineWindow().addTab(tab));
+    FxThread.runLater(() -> new MZmineWindow().addTab(tab));
   }
 
   @Override
   public void setStatusBarText(@Nullable String message, @Nullable Color textColor,
       @Nullable String url) {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       if (mainWindowController == null) {
         return;
       }
@@ -636,7 +632,7 @@ public class MZmineGUI extends Application implements Desktop {
   public void displayMessage(String title, String msg, @Nullable String url) {
     logger.finest(() -> String.format("%s - %s - %s", title, msg, url));
 
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
 
       Dialog<ButtonType> dialog = new Dialog<>();
       Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
@@ -704,7 +700,7 @@ public class MZmineGUI extends Application implements Desktop {
       if (Platform.isFxApplicationThread()) {
         alertTask.run();
       } else {
-        MZmineCore.runLater(alertTask);
+        FxThread.runLater(alertTask);
       }
       return alertTask.get();
     } catch (Exception e) {
@@ -756,7 +752,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public @NotNull ExitCode exitMZmine() {
+  public @NotNull ExitCode exit() {
 
     requestQuit();
     return ExitCode.UNKNOWN;
@@ -858,7 +854,7 @@ public class MZmineGUI extends Application implements Desktop {
     if (Platform.isFxApplicationThread()) {
       task.run();
     } else {
-      MZmineCore.runLater(task);
+      FxThread.runLater(task);
     }
 
     try {

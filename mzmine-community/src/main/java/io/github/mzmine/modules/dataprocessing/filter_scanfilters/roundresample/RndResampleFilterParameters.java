@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_scanfilters.roundresample;
 
-import java.awt.Window;
-
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilterSetupDialog;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
