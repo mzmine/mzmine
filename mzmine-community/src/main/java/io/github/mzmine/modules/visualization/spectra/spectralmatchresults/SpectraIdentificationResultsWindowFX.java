@@ -31,7 +31,7 @@ import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.TableViewUtils;
 import io.github.mzmine.util.javafx.WeakAdapter;

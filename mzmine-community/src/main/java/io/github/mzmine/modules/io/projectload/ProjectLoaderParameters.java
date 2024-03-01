@@ -29,7 +29,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.util.List;
 import javafx.stage.FileChooser;

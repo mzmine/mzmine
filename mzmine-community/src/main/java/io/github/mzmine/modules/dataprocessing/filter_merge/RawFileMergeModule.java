@@ -40,7 +40,7 @@ import io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeParamete
 import io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeParameters.POSITION;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 
 /**
  * Exports scans around a center time

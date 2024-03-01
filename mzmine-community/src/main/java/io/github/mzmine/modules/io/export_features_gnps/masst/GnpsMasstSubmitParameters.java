@@ -35,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PasswordParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 
 /**
  * Submit MASST search on GNPS

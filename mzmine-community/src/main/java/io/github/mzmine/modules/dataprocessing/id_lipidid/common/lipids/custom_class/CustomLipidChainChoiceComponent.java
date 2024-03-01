@@ -29,7 +29,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.lipidcha
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 import java.util.Arrays;
 import java.util.List;
 import javafx.collections.FXCollections;

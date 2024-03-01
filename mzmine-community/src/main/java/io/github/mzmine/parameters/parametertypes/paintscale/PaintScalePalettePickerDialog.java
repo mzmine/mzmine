@@ -27,7 +27,7 @@ package io.github.mzmine.parameters.parametertypes.paintscale;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPalettePreviewField;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.Objects;
 import javafx.geometry.Insets;

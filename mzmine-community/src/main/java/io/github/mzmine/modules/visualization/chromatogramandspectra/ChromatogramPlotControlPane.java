@@ -29,7 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeComponent;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.function.Consumer;

@@ -33,7 +33,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts.Me
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.ArrayList;
 import javafx.animation.PauseTransition;

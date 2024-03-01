@@ -33,7 +33,7 @@ import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewFl
 import io.github.mzmine.modules.visualization.network_overview.NetworkOverviewWindow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;

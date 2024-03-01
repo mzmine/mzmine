@@ -30,7 +30,7 @@ import java.util.List;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 

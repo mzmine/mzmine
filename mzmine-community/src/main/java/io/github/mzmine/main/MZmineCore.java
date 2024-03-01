@@ -54,7 +54,7 @@ import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.concurrent.threading.FxThread;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

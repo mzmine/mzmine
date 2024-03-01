@@ -29,7 +29,7 @@ import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.Baselin
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 
 /**
  * @description Rolling Ball baseline corrector parameters.

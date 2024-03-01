@@ -42,7 +42,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Stri
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 import java.net.URL;
 import java.util.Optional;
 import java.util.logging.Logger;

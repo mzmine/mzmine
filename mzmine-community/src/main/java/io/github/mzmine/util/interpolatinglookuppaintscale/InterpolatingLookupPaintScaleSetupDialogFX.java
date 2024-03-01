@@ -25,7 +25,7 @@
 
 package io.github.mzmine.util.interpolatinglookuppaintscale;
 
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;

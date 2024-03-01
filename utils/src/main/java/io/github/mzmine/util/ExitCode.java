@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.misc;
+package io.github.mzmine.util;
 
 /**
  * Simple enum for for exit codes

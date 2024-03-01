@@ -29,7 +29,7 @@ import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilterSetu
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 
 public class MeanFilterParameters extends SimpleParameterSet {
 

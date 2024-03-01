@@ -28,7 +28,7 @@ package io.github.mzmine.modules.io.import_rawdata_aird;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.util.List;
 import javafx.stage.FileChooser;

@@ -25,7 +25,7 @@
 
 package io.github.mzmine.gui;
 
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 import java.net.URL;
 import java.util.function.Consumer;
 import java.util.logging.Level;

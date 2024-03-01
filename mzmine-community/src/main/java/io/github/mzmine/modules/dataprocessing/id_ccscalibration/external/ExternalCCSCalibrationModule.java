@@ -33,7 +33,7 @@ import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalculator;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.time.Instant;
 import java.util.Collection;

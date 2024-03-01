@@ -29,7 +29,7 @@ import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilterSetu
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 
 public class SGFilterParameters extends SimpleParameterSet {
 

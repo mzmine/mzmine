@@ -35,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.DimensionUnitUtil;
 import io.github.mzmine.util.DimensionUnitUtil.DimUnit;
-import io.github.mzmine.util.misc.ExitCode;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.awt.Dimension;
 import java.io.File;
