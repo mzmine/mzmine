@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.MZmineDesktop;
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
@@ -253,7 +254,8 @@ public class TICVisualizerTab extends MZmineTab {
 
           // Find index value
           int index = -1;
-          for (int i = 0; i < plot.getDatasetCount(); i++) {
+          int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+          for (int i = 0; i < numDatasets; i++) {
             if (rendererAll.getLegendItem(i, 1) != null && rendererAll.getLegendItem(i, 1)
                 .getDescription().equals(itemEntity.getSeriesKey())) {
               index = i;

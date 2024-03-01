@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
@@ -109,6 +110,7 @@ import javafx.scene.layout.RowConstraints;
 import javafx.scene.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
 
@@ -347,8 +349,10 @@ public class MSnTreeTab extends SimpleTab {
     circle = new Ellipse2D.Double(-size / 2d, 0, size, size);
 
     for (var p : spectraPlots) {
-      for (int i = 0; i < p.getXYPlot().getDatasetCount(); i++) {
-        final var renderer = p.getXYPlot().getRenderer(i);
+      XYPlot xyPlot = p.getXYPlot();
+      int numDatasets = JFreeChartUtils.getDatasetCountNullable(xyPlot);
+      for (int i = 0; i < numDatasets; i++) {
+        final var renderer = xyPlot.getRenderer(i);
         if (renderer instanceof ArrowRenderer arrowRenderer) {
           final ShapeType type = arrowRenderer.getShapeType();
           renderer.setDefaultShape(getShape(type));
@@ -373,7 +377,8 @@ public class MSnTreeTab extends SimpleTab {
     if (currentRoot != null) {
       final boolean normalize = cbRelative.isSelected();
       for (var p : spectraPlots) {
-        for (int i = 0; i < p.getXYPlot().getDatasetCount(); i++) {
+        int numDatasets = JFreeChartUtils.getDatasetCountNullable(p.getXYPlot());
+        for (int i = 0; i < numDatasets; i++) {
           final XYDataset data = p.getXYPlot().getDataset(i);
           if (data instanceof RelativeOption op) {
             op.setRelative(normalize);

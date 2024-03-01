@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,11 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
+import io.github.mzmine.main.MZmineCore;
 import java.util.ArrayList;
-
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
-
-import io.github.mzmine.main.MZmineCore;
 
 /**
  * Item label generator for TIC visualizer
@@ -91,26 +90,28 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
       return null;
 
     // Calculate data size of 1 screen pixel
-    double xLength = (double) plot.getXYPlot().getDomainAxis().getRange().getLength();
+    var xyPlot = plot.getXYPlot();
+    double xLength = (double) xyPlot.getDomainAxis().getRange().getLength();
     double pixelX = xLength / plot.getWidth();
-    double yLength = (double) plot.getXYPlot().getRangeAxis().getRange().getLength();
+    double yLength = (double) xyPlot.getRangeAxis().getRange().getLength();
     double pixelY = yLength / plot.getHeight();
 
-    ArrayList<TICDataSet> allDataSets = new ArrayList<TICDataSet>();
+    ArrayList<TICDataSet> allDataSets = new ArrayList<>();
 
     // Get all data sets of current plot
-    for (int i = 0; i < plot.getXYPlot().getDatasetCount(); i++) {
-      XYDataset dataset = plot.getXYPlot().getDataset(i);
-      if (dataset instanceof TICDataSet)
-        allDataSets.add((TICDataSet) dataset);
+    int numDatasets = JFreeChartUtils.getDatasetCountNullable(xyPlot);
+    for (int i = 0; i < numDatasets; i++) {
+      XYDataset dataset = xyPlot.getDataset(i);
+      if (dataset instanceof TICDataSet ticData)
+        allDataSets.add(ticData);
     }
 
     // Check each data set for conflicting data points
     for (TICDataSet checkedDataSet : allDataSets) {
 
       // Search for local maxima
-      double searchMinX = originalX - (POINTS_RESERVE_X / 2) * pixelX;
-      double searchMaxX = originalX + (POINTS_RESERVE_X / 2) * pixelX;
+      double searchMinX = originalX - (POINTS_RESERVE_X / 2d) * pixelX;
+      double searchMaxX = originalX + (POINTS_RESERVE_X / 2d) * pixelX;
       double searchMinY = originalY;
       double searchMaxY = originalY + POINTS_RESERVE_Y * pixelY;
 

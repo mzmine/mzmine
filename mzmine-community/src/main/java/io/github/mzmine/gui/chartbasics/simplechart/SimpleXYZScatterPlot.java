@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
@@ -427,7 +428,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     // mabye there is a more efficient way of searching for the selected value index.
     int index = -1;
     int datasetIndex = -1;
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
+    int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+    for (int i = 0; i < numDatasets; i++) {
       XYDataset dataset = plot.getDataset(i);
       if (dataset instanceof ColoredXYZDataset) {
         index = ((ColoredXYZDataset) dataset).getValueIndex(domainValue, rangeValue);
@@ -610,8 +612,8 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   @Override
   public LinkedHashMap<Integer, XYDataset> getAllDatasets() {
     final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<>();
-
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
+    int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+    for (int i = 0; i < numDatasets; i++) {
       XYDataset dataset = plot.getDataset(i);
       if (dataset != null) {
         datasetMap.put(i, dataset);
