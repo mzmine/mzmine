@@ -28,7 +28,7 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraiden
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.util.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.RowsSpectralMatchTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;

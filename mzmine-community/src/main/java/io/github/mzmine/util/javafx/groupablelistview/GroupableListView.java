@@ -28,7 +28,7 @@ package io.github.mzmine.util.javafx.groupablelistview;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.sun.istack.Nullable;
-import io.github.mzmine.util.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;

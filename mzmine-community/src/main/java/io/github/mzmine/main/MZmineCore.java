@@ -36,6 +36,7 @@ import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -51,10 +52,9 @@ import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskService;
-import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.concurrent.threading.FxThread;
-import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -199,9 +199,8 @@ public final class MZmineCore {
       GoogleAnalyticsTracker.track("MZmine3_start", "MZmine3_start");
 
       boolean headLessMode = (batchFile != null || keepRunningInHeadless);
-      FxThread.setIsHeadLessMode(headLessMode);
       // If we have no arguments, run in GUI mode, otherwise run in batch mode
-      if (!FxThread.isHeadLessMode()) {
+      if (!headLessMode) {
         try {
           logger.info("Starting MZmine GUI");
           FxThread.setIsFxInitialized(true);
@@ -546,7 +545,7 @@ public final class MZmineCore {
    * @return headless mode or JavaFX GUI
    */
   public static boolean isHeadLessMode() {
-    return FxThread.isHeadLessMode();
+    return DesktopService.isHeadLess();
   }
 
   /**

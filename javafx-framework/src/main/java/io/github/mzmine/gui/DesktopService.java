@@ -43,4 +43,10 @@ public class DesktopService {
     return instance;
   }
 
+  public static boolean isHeadLess() {
+    return instance.isHeadLess();
+  }
+  public static boolean isGUI() {
+    return instance.isGUI();
+  }
 }

@@ -25,7 +25,7 @@
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import io.github.mzmine.util.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import java.awt.image.BufferedImage;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;

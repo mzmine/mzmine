@@ -30,7 +30,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
-import io.github.mzmine.util.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import java.util.HashSet;
 import javafx.collections.ListChangeListener.Change;
 import javafx.event.ActionEvent;

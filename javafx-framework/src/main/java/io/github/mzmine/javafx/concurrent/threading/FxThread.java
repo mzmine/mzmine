@@ -23,16 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.concurrent.threading;
+package io.github.mzmine.javafx.concurrent.threading;
 
+import io.github.mzmine.gui.DesktopService;
 import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 
 public class FxThread {
 
+  private static final Logger logger = Logger.getLogger(FxThread.class.getName());
   private static boolean isFxInitialized = false;
-  private static boolean isHeadLessMode = true;
 
   public static boolean isFxInitialized() {
     return isFxInitialized;
@@ -43,29 +46,10 @@ public class FxThread {
   }
 
   /**
-   * Runs in headless mode
-   * @return true if headless CLI mode false if GUI
-   */
-  public static boolean isHeadLessMode() {
-    return isHeadLessMode;
-  }
-
-  /**
-   * @return currently just negates {@link #isHeadLessMode()}
-   */
-  public static boolean isGUI() {
-    return !isHeadLessMode();
-  }
-
-  public static void setIsHeadLessMode(boolean state) {
-    isHeadLessMode = state;
-  }
-
-  /**
    * @param r runnable to either run directly or on the JavaFX thread
    */
   public static void runLater(Runnable r) {
-    if (isHeadLessMode() || Platform.isFxApplicationThread()) {
+    if (DesktopService.isHeadLess() || Platform.isFxApplicationThread()) {
       r.run();
     } else {
       Platform.runLater(r);
@@ -95,7 +79,7 @@ public class FxThread {
       initJavaFxInHeadlessMode();
     }
     // is headless mode or already runs synchronously on JavaFX thread
-    if (isHeadLessMode() || Platform.isFxApplicationThread()) {
+    if (DesktopService.isHeadLess() || Platform.isFxApplicationThread()) {
       action.run();
       return;
     }
@@ -113,7 +97,7 @@ public class FxThread {
     try {
       doneLatch.await();
     } catch (InterruptedException e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
 
   }

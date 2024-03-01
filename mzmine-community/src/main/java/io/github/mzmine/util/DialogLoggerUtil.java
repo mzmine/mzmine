@@ -25,7 +25,7 @@
 
 package io.github.mzmine.util;
 
-import io.github.mzmine.util.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import java.util.Optional;
 import java.util.logging.Logger;
