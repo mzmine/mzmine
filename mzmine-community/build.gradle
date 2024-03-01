@@ -363,7 +363,12 @@ task signApp(dependsOn: jpackage) {
     if (OperatingSystem.current().isMacOsX() && macSigning) {
 
         doLast {
+
             Path entitlementsPth = layout.projectDirectory.dir('gradle/macos.entitlements').asFile.toPath()
+            getLogger().info("imageDir " + imageDir)
+            getLogger().info("jarsDir " + jarsDir)
+            getLogger().info("jarsDir file " + jarsDir.toFile())
+            getLogger().info("entitlementsPth " + entitlementsPth)
 
             // Define codesign command
             Consumer<Path> codesign = (Path p) -> exec {
@@ -381,6 +386,7 @@ task signApp(dependsOn: jpackage) {
 
             // Unzip ThermoRawFileParser.zip
             String mzmineJarName = "mzmine3-${semver.version}"
+            getLogger().info("tmp mzmine jar unzip to " + "${jarsDir}/${mzmineJarName}/vendorlib/thermo")
             exec { commandLine(['sh', '-c', "cd ${jarsDir} && unzip -q ${mzmineJarName}.jar -d ${mzmineJarName}"]) }
             exec {
                 commandLine(['sh', '-c', "cd ${jarsDir}/${mzmineJarName}/vendorlib/thermo && unzip -q " +
