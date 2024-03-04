@@ -158,9 +158,10 @@ public class LipidAnnotationMatchPane extends AbstractFeatureListRowsPane {
     private Pane createTitlePane() {
       String styleWhiteScoreSmall = "white-score-label-small";
       // create Top panel
-      double msMsScore = matchedLipid.getMsMsScore();
+      double msMsScore = matchedLipid.getMsMsScore() * 100;
       Color gradientCol = FxColorUtil.awtColorToFX(
-          ColorScaleUtil.getColor(FxColorUtil.fxColorToAWT(MIN_MSMS_SCORE_COLOR), FxColorUtil.fxColorToAWT(MAX_MSMS_SCORE_COLOR), MIN_MSMS_SCORE_COLOR_VALUE,
+          ColorScaleUtil.getColor(FxColorUtil.fxColorToAWT(MIN_MSMS_SCORE_COLOR),
+              FxColorUtil.fxColorToAWT(MAX_MSMS_SCORE_COLOR), MIN_MSMS_SCORE_COLOR_VALUE,
               MAX_MSMS_SCORE_COLOR_VALUE, msMsScore));
 
       Label lblMatchedLipid = createLabel(matchedLipid.getLipidAnnotation().getAnnotation(),
