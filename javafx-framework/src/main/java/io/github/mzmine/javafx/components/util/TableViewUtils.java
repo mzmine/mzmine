@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.javafx;
+package io.github.mzmine.javafx.components.util;
 
 import com.google.common.collect.Range;
 import java.text.NumberFormat;

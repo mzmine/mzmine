@@ -23,37 +23,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx.components;
+package io.github.mzmine.javafx.components;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.scene.control.MenuItem;
+import static javafx.beans.binding.Bindings.createStringBinding;
 
-public class MenuItems {
+import javafx.beans.binding.Bindings;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.TableCell;
 
+/**
+ * Has a progress bar Pattern of implementation found on
+ * https://www.pragmaticcoding.ca/javafx/elements/tableview-data
+ */
+public class LabeledProgressBarCell<S> extends TableCell<S, Number> {
 
-  public static MenuItem create(String title, EventHandler<ActionEvent> eventHandler) {
-    var item = new MenuItem(title);
-    item.setOnAction(eventHandler);
-    return item;
+  public LabeledProgressBarCell() {
+    LabeledProgressBar progressBar = new LabeledProgressBar(itemProperty().map(Number::doubleValue),
+        createStringBinding(this::getFormattedProgress, itemProperty()));
+
+    // show or hide pane
+    graphicProperty().bind(
+        Bindings.createObjectBinding(() -> !isEmpty() ? progressBar : null, emptyProperty()));
+    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
   }
 
-  public static MenuItem create(String title, Runnable run) {
-    var item = new MenuItem(title);
-    item.setOnAction(e -> run.run());
-    return item;
+  private String getFormattedProgress() {
+    var item = getItem();
+    if (item == null) {
+      return "";
+    }
+    return "%.0f %%".formatted(item.doubleValue() * 100.0);
   }
 
-  public static MenuItem create(final String title,
-      final ObjectProperty<EventHandler<ActionEvent>> property) {
-    var item = new MenuItem(title);
-    item.setOnAction(e -> {
-      var run = property.get();
-      if (run != null) {
-        run.handle(e);
-      }
-    });
-    return item;
-  }
 }
