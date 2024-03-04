@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx.mvci;
+package io.github.mzmine.gui.framework.fx;
 
 import io.github.mzmine.datamodel.features.Feature;
 import java.util.List;

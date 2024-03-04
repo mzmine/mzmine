@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,8 +27,8 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 
 import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.project.ProjectService;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -138,7 +138,7 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
   @Override
   public void loadValueFromXML(Element xmlElement) {
 
-    FeatureList[] currentDataPeakLists = MZmineCore.getProjectManager().getCurrentProject()
+    FeatureList[] currentDataPeakLists = ProjectService.getProjectManager().getCurrentProject()
         .getCurrentFeatureLists().toArray(FeatureList[]::new);
 
     FeatureListsSelectionType selectionType;

@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  *
  */
-public interface TaskController {
+public sealed interface TaskController permits TaskControllerImpl {
 
   @NotNull
   static ThreadPoolExecutor createCachedHighPriorityThreadPool(int maxNumThreads) {

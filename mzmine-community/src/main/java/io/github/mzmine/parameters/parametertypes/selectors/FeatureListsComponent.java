@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,11 +26,11 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
@@ -76,7 +76,7 @@ public class FeatureListsComponent extends HBox {
       if (type == FeatureListsSelectionType.SPECIFIC_FEATURELISTS) {
         final MultiChoiceParameter<FeatureList> plsParameter = new MultiChoiceParameter<FeatureList>(
             "Select feature lists", "Select feature lists",
-            MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists()
+            ProjectService.getProjectManager().getCurrentProject().getCurrentFeatureLists()
                 .toArray(FeatureList[]::new), currentValue.getSpecificFeatureLists());
         final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[]{plsParameter});
         final ExitCode exitCode = paramSet.showSetupDialog(true);

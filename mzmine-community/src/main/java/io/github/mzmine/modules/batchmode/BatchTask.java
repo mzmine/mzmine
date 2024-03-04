@@ -44,6 +44,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskController;
@@ -166,7 +167,7 @@ public class BatchTask extends AbstractTask {
       // at the end of one dataset, clear the project and start over again
       if (useAdvanced && currentStep() == 0) {
         // clear the old project
-        MZmineCore.getProjectManager().clearProject();
+        ProjectService.getProjectManager().clearProject();
         currentDataset++;
 
         // print step times
@@ -502,7 +503,7 @@ public class BatchTask extends AbstractTask {
   private void setLastFilesIfAllDataImportStep(final ParameterSet batchStepParameters) {
     if (AllSpectralDataImportParameters.isParameterSetClass(batchStepParameters)) {
       var loadedRawDataFiles = AllSpectralDataImportParameters.getLoadedRawDataFiles(
-          MZmineCore.getProject(), batchStepParameters);
+          ProjectService.getProject(), batchStepParameters);
 
       // loaded should always be >= created as we are at most skipping files
       if (loadedRawDataFiles.size() >= createdDataFiles.size()) {

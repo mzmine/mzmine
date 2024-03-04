@@ -49,6 +49,7 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -123,7 +124,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     previewChartBadFeature.setRangeAxisNumberFormatOverride(intensityFormat);
 
     ObservableList<FeatureList> flists = FXCollections.observableArrayList(
-        MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
+        ProjectService.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
     fBox = new SortableFeatureComboBox();
     flistBox = new ComboBox<>(flists);

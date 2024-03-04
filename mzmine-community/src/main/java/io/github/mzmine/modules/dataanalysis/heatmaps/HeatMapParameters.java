@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,8 @@
 
 package io.github.mzmine.modules.dataanalysis.heatmaps;
 
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import java.util.ArrayList;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -38,8 +35,11 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.R.REngineType;
+import java.util.ArrayList;
 
 public class HeatMapParameters extends SimpleParameterSet {
 
@@ -117,7 +117,7 @@ public class HeatMapParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
     // Update the parameter choices
-    MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    MZmineProject project = ProjectService.getProjectManager().getCurrentProject();
     UserParameter<?, ?> newChoices[] = project.getParameters();
     getParameter(HeatMapParameters.selectionData).getChoices().clear();
     getParameter(HeatMapParameters.selectionData).getChoices().addAll(newChoices);

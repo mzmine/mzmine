@@ -42,6 +42,7 @@ import io.github.mzmine.datamodel.features.types.tasks.NodeGenerationThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.DataTypeUtils;
@@ -198,7 +199,7 @@ public class ModularFeatureList implements FeatureList {
       return this.nameProperty;
     }
 
-    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    final MZmineProject project = ProjectService.getProjectManager().getCurrentProject();
 
     if (project != null) {
       // project finds the name and calls the setNameNoChecks method
@@ -213,7 +214,7 @@ public class ModularFeatureList implements FeatureList {
   public String setNameNoChecks(@NotNull String name) {
     this.nameProperty = name;
 
-    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    final MZmineProject project = ProjectService.getProjectManager().getCurrentProject();
     if (project != null) {
       project.fireFeatureListsChangeEvent(List.of(this), ProjectChangeEvent.Type.RENAMED);
     }

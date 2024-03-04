@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,11 +25,11 @@
 
 package io.github.mzmine.modules.dataanalysis.heatmaps;
 
-import java.util.ArrayList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.project.ProjectService;
+import java.util.ArrayList;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
@@ -70,9 +70,9 @@ public class HeatmapSetupDialog extends ParameterSetupDialog {
       ArrayList<Object> values = new ArrayList<Object>();
 
       // Obtain all possible values
-      for (RawDataFile dataFile : MZmineCore.getProjectManager().getCurrentProject()
+      for (RawDataFile dataFile : ProjectService.getProjectManager().getCurrentProject()
           .getDataFiles()) {
-        Object paramValue = MZmineCore.getProjectManager().getCurrentProject()
+        Object paramValue = ProjectService.getProjectManager().getCurrentProject()
             .getParameterValue(currentParameterSelection, dataFile);
         if (paramValue == null)
           continue;

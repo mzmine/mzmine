@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,13 +26,13 @@
 package io.github.mzmine.modules.io.projectsave;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -78,7 +78,7 @@ public class ProjectSaveAsParameters extends SimpleParameterSet {
         <b>WARNING:</b> If this is an existing project, it is recommended to save it in the same way.""";
 
     // set parameters to current project if already saved to file
-    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    final MZmineProject project = ProjectService.getProjectManager().getCurrentProject();
     final File currentProjectFile = project.getProjectFile();
 
     if ((currentProjectFile != null) && (currentProjectFile.canWrite())) {

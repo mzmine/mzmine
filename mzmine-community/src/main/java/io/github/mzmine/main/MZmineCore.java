@@ -43,10 +43,9 @@ import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.ProjectManager;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
-import io.github.mzmine.project.impl.ProjectManagerImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
@@ -89,7 +88,6 @@ public final class MZmineCore {
   // it is also used in headless mode
   private final Map<String, MZmineModule> initializedModules = new HashMap<>();
   private MZmineConfiguration configuration;
-  private ProjectManagerImpl projectManager;
   private boolean tdfPseudoProfile = false;
   private boolean tsfProfile = false;
 
@@ -225,7 +223,7 @@ public final class MZmineCore {
           }
 
           // run batch file
-          batchTask = BatchModeModule.runBatch(getInstance().projectManager.getCurrentProject(),
+          batchTask = BatchModeModule.runBatch(ProjectService.getProject(),
               batchFile, overrideDataFiles, overrideSpectralLibraryFiles, Instant.now());
         }
 
@@ -306,12 +304,6 @@ public final class MZmineCore {
       return mZmineDesktop;
     }
     throw new IllegalStateException("Desktop was not initialized. Requires MZmineDesktop");
-  }
-
-  @NotNull
-  public static ProjectManager getProjectManager() {
-    assert getInstance().projectManager != null;
-    return getInstance().projectManager;
   }
 
   @NotNull
@@ -501,7 +493,7 @@ public final class MZmineCore {
 
     // Run the module
     final List<Task> newTasks = new ArrayList<>();
-    final MZmineProject currentProject = getInstance().projectManager.getCurrentProject();
+    final MZmineProject currentProject = ProjectService.getProject();
     final Instant date = Instant.now();
     logger.finest(() -> "Module " + module.getName() + " called at " + date.toString());
     module.runModule(currentProject, parameters, newTasks, date);
@@ -556,14 +548,7 @@ public final class MZmineCore {
   }
 
   public static @NotNull MetadataTable getProjectMetadata() {
-    return getProject().getProjectMetadata();
-  }
-
-  /**
-   * @return the current project
-   */
-  public static @NotNull MZmineProject getProject() {
-    return getProjectManager().getCurrentProject();
+    return ProjectService.getProject().getProjectMetadata();
   }
 
   private void init() {
@@ -577,9 +562,6 @@ public final class MZmineCore {
     logger.fine("Loading core classes..");
     // Create instance of configuration
     configuration = new MZmineConfigurationImpl();
-
-    // Create instances of core modules
-    projectManager = ProjectManagerImpl.getInstance();
 
     logger.fine("Initializing core classes..");
   }

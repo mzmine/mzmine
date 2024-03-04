@@ -26,9 +26,9 @@
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.framework.fx.mvci.FxController;
-import io.github.mzmine.gui.framework.fx.mvci.FxInteractor;
-import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.mvci.FxController;
+import io.github.mzmine.javafx.mvci.FxInteractor;
+import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.layout.Region;

@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids;
 
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.util.CollectionUtils;
+import io.github.mzmine.util.collections.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.jetbrains.annotations.Nullable;

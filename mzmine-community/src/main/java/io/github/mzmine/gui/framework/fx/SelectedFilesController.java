@@ -23,37 +23,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx.components;
+package io.github.mzmine.gui.framework.fx;
 
+import io.github.mzmine.datamodel.RawDataFile;
+import java.util.List;
 import javafx.beans.property.ObjectProperty;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.scene.control.MenuItem;
 
-public class MenuItems {
-
-
-  public static MenuItem create(String title, EventHandler<ActionEvent> eventHandler) {
-    var item = new MenuItem(title);
-    item.setOnAction(eventHandler);
-    return item;
-  }
-
-  public static MenuItem create(String title, Runnable run) {
-    var item = new MenuItem(title);
-    item.setOnAction(e -> run.run());
-    return item;
-  }
-
-  public static MenuItem create(final String title,
-      final ObjectProperty<EventHandler<ActionEvent>> property) {
-    var item = new MenuItem(title);
-    item.setOnAction(e -> {
-      var run = property.get();
-      if (run != null) {
-        run.handle(e);
-      }
-    });
-    return item;
-  }
+public interface SelectedFilesController {
+  ObjectProperty<List<RawDataFile>> selectedRawFilesProperty();
 }

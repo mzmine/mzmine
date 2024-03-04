@@ -23,36 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx.components;
-
-import static javafx.beans.binding.Bindings.createStringBinding;
-
-import javafx.beans.binding.Bindings;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.TableCell;
+package io.github.mzmine.javafx.mvci;
 
 /**
- * Has a progress bar Pattern of implementation found on
- * https://www.pragmaticcoding.ca/javafx/elements/tableview-data
+ * MVCI Interactor base class. This class interacts with business logic and updates the data model.
+ * The {@link FxController} orchestrates its tasks on specific threads.
  */
-public class LabeledProgressBarCell<S> extends TableCell<S, Number> {
+public abstract class FxInteractor<ViewModelClass> {
 
-  public LabeledProgressBarCell() {
-    LabeledProgressBar progressBar = new LabeledProgressBar(itemProperty().map(Number::doubleValue),
-        createStringBinding(this::getFormattedProgress, itemProperty()));
+  protected final ViewModelClass model;
 
-    // show or hide pane
-    graphicProperty().bind(
-        Bindings.createObjectBinding(() -> !isEmpty() ? progressBar : null, emptyProperty()));
-    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+  protected FxInteractor(ViewModelClass model) {
+    this.model = model;
   }
 
-  private String getFormattedProgress() {
-    var item = getItem();
-    if (item == null) {
-      return "";
-    }
-    return "%.0f %%".formatted(item.doubleValue() * 100.0);
-  }
-
+  /**
+   * Method designed to be run on the FXAT to load data received via the fetchData() method into the
+   * ViewModel.  This method is called from the load() method of the ScreenController via the
+   * setOnSucceeded() method of a Task.
+   */
+  public abstract void updateModel();
 }

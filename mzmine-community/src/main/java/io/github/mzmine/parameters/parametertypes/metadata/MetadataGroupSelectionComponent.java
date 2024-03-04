@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.project.ProjectService;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -64,7 +65,7 @@ public class MetadataGroupSelectionComponent extends VBox {
           }
 
           // get all possible values
-          final RawDataFile[] files = MZmineCore.getProject().getDataFiles();
+          final RawDataFile[] files = ProjectService.getProject().getDataFiles();
           final List<?> distinctValues = Arrays.stream(files)
               .map(file -> metadata.getValue(column, file)).distinct().toList();
 

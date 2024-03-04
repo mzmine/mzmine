@@ -25,13 +25,10 @@
 
 package io.github.mzmine.taskcontrol.impl;
 
-import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.util.exceptions.ExceptionUtils;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -128,7 +125,7 @@ public class WrappedTask implements Task {
    * @param priority The priority to set.
    */
   public void setPriority(TaskPriority priority) {
-    FxThread.runLater(() -> this.priority.setValue(priority));
+    this.priority.setValue(priority);
   }
 
   public Property<TaskPriority> priorityProperty() {
@@ -172,7 +169,7 @@ public class WrappedTask implements Task {
         // Log the error
         logger.severe("Error of task " + actualTask.getTaskDescription() + ": " + errorMsg);
 
-        DesktopService.getDesktop().displayErrorMessage(errorMsg);
+//        DesktopService.getDesktop().displayErrorMessage(errorMsg);
       } else {
         // Log the finish
         logger.info("Processing of task " + actualTask.getTaskDescription() + " done, status "
@@ -189,9 +186,9 @@ public class WrappedTask implements Task {
           "Unhandled exception " + e + " while processing task " + actualTask.getTaskDescription(),
           e);
 
-      DesktopService.getDesktop().displayErrorMessage(
-          "Unhandled exception in task " + actualTask.getTaskDescription() + ": "
-          + ExceptionUtils.exceptionToString(e));
+//      DesktopService.getDesktop().displayErrorMessage(
+//          "Unhandled exception in task " + actualTask.getTaskDescription() + ": "
+//          + ExceptionUtils.exceptionToString(e));
 
     }
 

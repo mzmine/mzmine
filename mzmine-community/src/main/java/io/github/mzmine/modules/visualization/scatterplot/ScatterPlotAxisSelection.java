@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,14 +25,14 @@
 
 package io.github.mzmine.modules.visualization.scatterplot;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.util.Vector;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.project.ProjectService;
+import java.util.Vector;
 
 /**
  * This class represents axis selected in the scatter plot visualizer. This can be either a
@@ -75,7 +75,7 @@ public class ScatterPlotAxisSelection {
     int numOfFiles = 0;
     for (RawDataFile dataFile : row.getRawDataFiles()) {
       Object fileValue =
-          MZmineCore.getProjectManager().getCurrentProject().getParameterValue(parameter, dataFile);
+          ProjectService.getProjectManager().getCurrentProject().getParameterValue(parameter, dataFile);
       if (fileValue == null)
         continue;
       if (fileValue.toString().equals(parameterValue.toString())) {
@@ -102,7 +102,7 @@ public class ScatterPlotAxisSelection {
       options.add(newOption);
     }
 
-    for (UserParameter<?, ?> parameter : MZmineCore.getProjectManager().getCurrentProject()
+    for (UserParameter<?, ?> parameter : ProjectService.getProjectManager().getCurrentProject()
         .getParameters()) {
       if (!(parameter instanceof ComboParameter))
         continue;

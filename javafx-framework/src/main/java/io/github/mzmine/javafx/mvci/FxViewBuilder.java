@@ -23,24 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx.mvci;
+package io.github.mzmine.javafx.mvci;
+
+import javafx.scene.layout.Region;
+import javafx.util.Builder;
 
 /**
- * MVCI Interactor base class. This class interacts with business logic and updates the data model.
- * The {@link FxController} orchestrates its tasks on specific threads.
+ * MVCI View base class. Creates the view on demand in the build method.
  */
-public abstract class FxInteractor<ViewModelClass> {
+public abstract class FxViewBuilder<ViewModelClass> implements Builder<Region> {
 
   protected final ViewModelClass model;
 
-  protected FxInteractor(ViewModelClass model) {
+  protected FxViewBuilder(ViewModelClass model) {
     this.model = model;
   }
-
-  /**
-   * Method designed to be run on the FXAT to load data received via the fetchData() method into the
-   * ViewModel.  This method is called from the load() method of the ScreenController via the
-   * setOnSucceeded() method of a Task.
-   */
-  public abstract void updateModel();
 }

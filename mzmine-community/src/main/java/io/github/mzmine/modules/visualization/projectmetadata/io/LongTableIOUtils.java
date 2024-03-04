@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,10 +26,10 @@
 package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.project.ProjectService;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -177,7 +177,7 @@ public class LongTableIOUtils implements TableIOUtils {
       // we will need the info about the rawDataFiles to decide whether to import a parameter or not
       // if the parameter structure is normal but there's no such file for it to be mapped to, then
       // we will just skip this parameter
-      RawDataFile[] files = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+      RawDataFile[] files = ProjectService.getProjectManager().getCurrentProject().getDataFiles();
 
       String line;
       while ((line = bufferedReader.readLine()) != null) {

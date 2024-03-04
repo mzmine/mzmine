@@ -156,6 +156,7 @@ dependencies {
     implementation(libs.commons.cli)
     implementation(libs.commons.io)
     implementation(libs.commons.lang3)
+    implementation(libs.fastutil)
     implementation "edu.ucar:netcdf4:4.5.5"
     implementation "org.ostermiller:utils:1.07.00"
     implementation 'org.jetbrains:annotations:22.0.0'
@@ -192,7 +193,7 @@ dependencies {
     implementation "org.du-lab.adap:adap:4.1.10"
     implementation "org.xerial:sqlite-jdbc:3.40.0.0"
     implementation "gnf:clustering:20210422"
-    implementation 'it.unimi.dsi:fastutil:8.5.6'
+
     implementation 'com.github.librepdf:openpdf:2.0.0'
     implementation "net.sf.epsgraphics:epsgraphics:1.2"
     implementation "com.miglayout:miglayout:3.7.4"
@@ -257,6 +258,17 @@ tasks.withType(Test) {
             "--enable-preview"
     ]
     useJUnitPlatform()
+
+    // Below can be added for extensive logs to debug failing tests
+//    beforeTest { descriptor ->
+//        logger.lifecycle("Running test: " + descriptor)
+//    }
+    // fail the 'test' task on the first test failure
+//    failFast = true
+    // listen to standard out and standard error of the test JVM(s)
+//    onOutput { descriptor, event ->
+//        logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
+//    }
 }
 
 tasks.withType(JavaExec) {

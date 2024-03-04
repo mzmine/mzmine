@@ -23,19 +23,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx.mvci;
+package io.github.mzmine.javafx.components;
 
-import javafx.scene.layout.Region;
-import javafx.util.Builder;
+import static javafx.beans.binding.Bindings.createStringBinding;
+
+import javafx.beans.binding.Bindings;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.TableCell;
 
 /**
- * MVCI View base class. Creates the view on demand in the build method.
+ * Has a progress bar Pattern of implementation found on
+ * https://www.pragmaticcoding.ca/javafx/elements/tableview-data
  */
-public abstract class FxViewBuilder<ViewModelClass> implements Builder<Region> {
+public class LabeledProgressBarCell<S> extends TableCell<S, Number> {
 
-  protected final ViewModelClass model;
+  public LabeledProgressBarCell() {
+    LabeledProgressBar progressBar = new LabeledProgressBar(itemProperty().map(Number::doubleValue),
+        createStringBinding(this::getFormattedProgress, itemProperty()));
 
-  protected FxViewBuilder(ViewModelClass model) {
-    this.model = model;
+    // show or hide pane
+    graphicProperty().bind(
+        Bindings.createObjectBinding(() -> !isEmpty() ? progressBar : null, emptyProperty()));
+    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
   }
+
+  private String getFormattedProgress() {
+    var item = getItem();
+    if (item == null) {
+      return "";
+    }
+    return "%.0f %%".formatted(item.doubleValue() * 100.0);
+  }
+
 }

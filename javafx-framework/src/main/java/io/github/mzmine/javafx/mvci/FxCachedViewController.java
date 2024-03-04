@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx.mvci;
+package io.github.mzmine.javafx.mvci;
 
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;

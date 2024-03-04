@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectors;
@@ -41,6 +40,7 @@ import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.project.ProjectService;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -58,7 +58,7 @@ import testutils.MZmineTestUtil;
 
 @TestInstance(Lifecycle.PER_CLASS)
 @TestMethodOrder(OrderAnnotation.class)
-public abstract class AbstractDataImportTest {
+public abstract class AbstractDataImportTest  {
 
   private static final Logger logger = Logger.getLogger(AbstractDataImportTest.class.getName());
   public static double lowestMz = 350d;
@@ -69,10 +69,9 @@ public abstract class AbstractDataImportTest {
   public abstract List<String> getFileNames();
 
   @BeforeAll
-  public void setUp() {
+  public void initialize() {
     MZmineTestUtil.startMzmineCore();
   }
-
   @AfterAll
   public void tearDown() {
     //clean the project after this integration test
@@ -129,7 +128,7 @@ public abstract class AbstractDataImportTest {
     DataImportTestUtils.testDataStatistics(getFileNames(), stats, true);
 
     //
-    for (final RawDataFile raw : MZmineCore.getProject().getDataFiles()) {
+    for (final RawDataFile raw : ProjectService.getProject().getDataFiles()) {
       String msg = " Error in " + raw.getName();
       for (final Scan scan : raw.getScans()) {
         // advanced sets mass list

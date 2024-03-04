@@ -5,4 +5,6 @@ plugins {
 
 dependencies {
     implementation(libs.commons.io)
+    implementation(libs.guava)
+    implementation(libs.fastutil)
 }
