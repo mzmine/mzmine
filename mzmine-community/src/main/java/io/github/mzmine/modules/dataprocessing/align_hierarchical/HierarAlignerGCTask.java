@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -314,7 +314,6 @@ public class HierarAlignerGCTask extends AbstractTask {
 
     /** Alignment mapping **/
     // Iterate source feature lists
-    Hashtable<ModularFeature, Double> rtPeaksBackup = new Hashtable<ModularFeature, Double>();
     Hashtable<ModularFeatureListRow, Object[]> infoRowsBackup = new Hashtable<ModularFeatureListRow, Object[]>();
 
     // Since clustering is now order independent, option removed!
@@ -604,7 +603,7 @@ public class HierarAlignerGCTask extends AbstractTask {
             Feature originalPeak = row.getFeature(file);
             if (originalPeak != null) {
 
-              targetRow.addFeature(file, originalPeak);
+              targetRow.addFeature(file, new ModularFeature((ModularFeatureList) alignedPeakList,originalPeak));
 
             } else {
               setStatus(TaskStatus.ERROR);
@@ -631,14 +630,6 @@ public class HierarAlignerGCTask extends AbstractTask {
     }
 
     // ----------------------------------------------------------------------
-
-    // Restore real RT - for the sake of consistency
-    // (the adjusted one was only useful during alignment process)
-    // WARN: Must be done before "Post processing" part to take advantage
-    // of the "targetRow.update()" used down there
-    for (ModularFeature peak : rtPeaksBackup.keySet()) {
-      peak.setRT(rtPeaksBackup.get(peak).floatValue());
-    }
 
     /** Post-processing... **/
     // Build reference RDFs index: We need an ordered reference here, to be
