@@ -259,6 +259,7 @@ tasks.withType(Test) {
     ]
     useJUnitPlatform()
 
+    // Below can be added for extensive logs to debug failing tests
 //    beforeTest { descriptor ->
 //        logger.lifecycle("Running test: " + descriptor)
 //    }

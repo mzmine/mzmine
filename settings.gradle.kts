@@ -1,7 +1,9 @@
 rootProject.name = "mzmine"
-include("mzmine-community")
-include("taskcontroller")
-include("memory-management")
-include("utils")
-include("javafx-framework")
-include("config")
+include(
+    "mzmine-community",
+    "taskcontroller",
+    "memory-management",
+    "utils",
+    "javafx-framework",
+    "config"
+)
