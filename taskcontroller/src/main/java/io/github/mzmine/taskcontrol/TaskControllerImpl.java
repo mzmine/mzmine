@@ -25,8 +25,8 @@
 
 package io.github.mzmine.taskcontrol;
 
-import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -42,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Task controller implementation
  */
-public final class TaskControllerImpl implements TaskController {
+final class TaskControllerImpl implements TaskController {
 
   private static final Logger logger = Logger.getLogger(TaskControllerImpl.class.getName());
   /**

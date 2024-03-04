@@ -31,19 +31,23 @@ public class TaskService {
 
   private static TaskController INSTANCE;
 
+  /**
+   * Initialize the task controller instance
+   * @param numThreads number of concurrent threads, usually num of cores
+   * @return TaskController instance
+   */
   @NotNull
   public static TaskController init(int numThreads) {
     if (INSTANCE == null) {
       INSTANCE = new TaskControllerImpl(numThreads);
     }
-    return INSTANCE;
+    throw new IllegalStateException("Cannot initialize TaskController twice");
   }
 
   @NotNull
   public static TaskController getController() {
     if (INSTANCE == null) {
-      int numThreads = Runtime.getRuntime().availableProcessors();
-      INSTANCE = new TaskControllerImpl(numThreads);
+      throw new IllegalStateException("Initialize TaskController first");
     }
     return INSTANCE;
   }

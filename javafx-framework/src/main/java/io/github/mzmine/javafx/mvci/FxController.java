@@ -26,9 +26,9 @@
 package io.github.mzmine.javafx.mvci;
 
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.utils.TaskUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import java.util.HashMap;
@@ -121,7 +121,7 @@ public abstract class FxController<ViewModelClass> {
       });
     }
     // schedule
-    MZmineCore.getTaskController().addTask(runningTask, priority);
+    TaskService.getController().addTask(runningTask, priority);
   }
 
 
