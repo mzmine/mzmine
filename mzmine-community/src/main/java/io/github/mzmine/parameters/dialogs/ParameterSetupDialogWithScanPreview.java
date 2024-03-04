@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.text.NumberFormat;
 import javafx.beans.property.ObjectProperty;
@@ -73,7 +74,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
   public ParameterSetupDialogWithScanPreview(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
 
-    RawDataFile[] dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    RawDataFile[] dataFiles = ProjectService.getProjectManager().getCurrentProject().getDataFiles();
 
     // if no data files, return the dialog without preview functions
     if (dataFiles.length == 0) {
@@ -129,7 +130,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     comboScan.getSelectionModel().select(0);
 
     comboDataFileName = new ComboBox<>(FXCollections.observableList(
-        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
+        ProjectService.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
     comboDataFileName.getSelectionModel().select(previewDataFile);
     comboDataFileName.setOnAction(e -> {
       var newDataFile = comboDataFileName.getSelectionModel().getSelectedItem();

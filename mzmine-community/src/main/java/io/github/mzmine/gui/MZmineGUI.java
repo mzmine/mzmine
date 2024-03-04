@@ -41,6 +41,7 @@ import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.main.TmpFileCleanup;
@@ -50,15 +51,15 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
-import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
 import java.io.File;
@@ -173,7 +174,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
         GUIUtils.closeAllWindows();
 
         // Set a new project clears the old
-        MZmineCore.getProjectManager().clearProject();
+        ProjectService.getProjectManager().clearProject();
 
         DesktopService.getDesktop().setStatusBarText("Project space cleaned");
 
@@ -204,7 +205,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
     FxThread.runLater(() -> {
 
-      MZmineCore.getProjectManager().setCurrentProject(project);
+      ProjectService.getProjectManager().setCurrentProject(project);
       if (mainWindowController != null) {
         GroupableListView<RawDataFile> rawDataList = mainWindowController.getRawDataList();
         rawDataList.setValues(project.getCurrentRawDataFiles());
@@ -364,7 +365,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
             AllSpectralDataImportModule.class);
         if (module != null) {
           List<Task> tasks = new ArrayList<>();
-          module.runModule(MZmineCore.getProjectManager().getCurrentProject(), param, tasks,
+          module.runModule(ProjectService.getProjectManager().getCurrentProject(), param, tasks,
               Instant.now());
           MZmineCore.getTaskController().addTasks(tasks.toArray(Task[]::new));
         }
@@ -527,7 +528,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
      */
 
     // Activate project - bind it to the desktop's project tree
-    MZmineGUI.activateProject(MZmineCore.getProject());
+    MZmineGUI.activateProject(ProjectService.getProject());
 
     // Check for updated version
     NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);

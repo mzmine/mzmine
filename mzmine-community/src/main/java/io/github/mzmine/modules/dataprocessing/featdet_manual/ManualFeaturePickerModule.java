@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,19 +25,18 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
-import org.jetbrains.annotations.NotNull;
-
-import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
+import org.jetbrains.annotations.NotNull;
 
 public class ManualFeaturePickerModule implements MZmineModule {
 
@@ -103,7 +102,7 @@ public class ManualFeaturePickerModule implements MZmineModule {
     if (exitCode != ExitCode.OK)
       return exitCode;
 
-    ManualPickerTask task = new ManualPickerTask(MZmineCore.getProjectManager().getCurrentProject(),
+    ManualPickerTask task = new ManualPickerTask(ProjectService.getProjectManager().getCurrentProject(),
         featureListRow, dataFiles, parameters, featureList);
 
     MZmineCore.getTaskController().addTask(task);

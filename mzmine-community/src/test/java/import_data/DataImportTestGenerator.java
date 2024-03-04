@@ -25,7 +25,7 @@
 
 package import_data;
 
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.project.ProjectService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -74,7 +74,7 @@ public class DataImportTestGenerator {
     var stats = MZmineTestUtil.streamDataFiles(files).map(DataFileStats::extract)
         .collect(Collectors.toCollection(ArrayList::new));
     // now import spectra with advanced settings
-    MZmineCore.getProjectManager().clearProject();
+    ProjectService.getProjectManager().clearProject();
 
     // advanced
     var advancedImport = test.createAdvancedImportSettings();
@@ -83,7 +83,7 @@ public class DataImportTestGenerator {
       var advancedStats = MZmineTestUtil.streamDataFiles(files).map(DataFileStats::extract)
           .toList();
       stats.addAll(advancedStats);
-      MZmineCore.getProjectManager().clearProject();
+      ProjectService.getProjectManager().clearProject();
     }
 
     return stats;

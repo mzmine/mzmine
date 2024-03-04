@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,12 +28,12 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
 import java.util.logging.Logger;
@@ -77,7 +77,7 @@ public class FeaturesComponent extends HBox {
     addButton.setOnAction(e -> {
       logger.finest("Add button clicked!");
 
-      final List<FeatureList> featureLists = MZmineCore.getProjectManager().getCurrentProject()
+      final List<FeatureList> featureLists = ProjectService.getProjectManager().getCurrentProject()
           .getCurrentFeatureLists();
 
       ComboParameter<FeatureList> featureListsParam = new ComboParameter<>("Feature list",

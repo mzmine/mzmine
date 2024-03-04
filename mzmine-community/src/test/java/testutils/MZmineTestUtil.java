@@ -58,6 +58,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModul
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
@@ -70,6 +71,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -169,7 +171,7 @@ public class MZmineTestUtil {
   }
 
   public static void cleanProject() {
-    MZmineCore.getProjectManager().setCurrentProject(new MZmineProjectImpl());
+    ProjectService.getProjectManager().setCurrentProject(new MZmineProjectImpl());
   }
 
 
@@ -208,7 +210,7 @@ public class MZmineTestUtil {
 
   @Nullable
   public static RawDataFile getRawFromProject(final String name) {
-    return MZmineCore.getProject().getCurrentRawDataFiles().stream()
+    return ProjectService.getProject().getCurrentRawDataFiles().stream()
         .filter(r -> r.getName().equals(name)).findFirst().orElse(null);
   }
 
@@ -219,6 +221,12 @@ public class MZmineTestUtil {
   }
 
   public static void startMzmineCore() {
-    MZmineCore.main(new String[]{"-r", "-m", "all"});
+    try {
+      MZmineCore.main(new String[]{"-r", "-m", "all"});
+    } catch (Exception ex) {
+      // might be already initialized
+      logger.log(Level.INFO,
+          "Expected error during initialization of mzmine core in tests. MZmine core was already initialized. Best is to reduce the dependence on mzmine core and other core classes");
+    }
   }
 }

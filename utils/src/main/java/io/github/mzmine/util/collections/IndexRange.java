@@ -25,7 +25,6 @@
 
 package io.github.mzmine.util.collections;
 
-import io.github.mzmine.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

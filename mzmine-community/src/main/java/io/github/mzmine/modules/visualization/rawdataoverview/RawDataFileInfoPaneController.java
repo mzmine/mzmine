@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,9 +30,9 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.javafx.components.factories.TableColumns;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import io.github.mzmine.util.javafx.TableViewUtils;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
 import javafx.beans.property.SimpleObjectProperty;
@@ -137,13 +137,13 @@ public class RawDataFileInfoPaneController {
         p -> p.getValue().getMassList() != null ? new SimpleObjectProperty<>(FxIconUtil.getCheckedIcon())
             : new SimpleObjectProperty<>(FxIconUtil.getUncheckedIcon()));
 
-    TableViewUtils.setFormattedCellFactory(basePeakColumn, mzFormat);
-    TableViewUtils.setFormattedCellFactory(basePeakIntensityColumn, itFormat);
-    TableViewUtils.setFormattedCellFactory(rtColumn, rtFormat);
-    TableViewUtils.setFormattedCellFactory(injectTimeColumn, rtFormat);
-    TableViewUtils.setFormattedRangeCellFactory(mzRangeColumn, mzFormat);
+    TableColumns.setFormattedCellFactory(basePeakColumn, mzFormat);
+    TableColumns.setFormattedCellFactory(basePeakIntensityColumn, itFormat);
+    TableColumns.setFormattedCellFactory(rtColumn, rtFormat);
+    TableColumns.setFormattedCellFactory(injectTimeColumn, rtFormat);
+    TableColumns.setFormattedRangeCellFactory(mzRangeColumn, mzFormat);
 
-    TableViewUtils.autoFitLastColumn(rawDataTableView);
+    TableColumns.autoFitLastColumn(rawDataTableView);
   }
 
   /**

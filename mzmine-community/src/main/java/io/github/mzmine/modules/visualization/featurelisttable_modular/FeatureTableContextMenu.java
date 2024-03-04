@@ -94,6 +94,7 @@ import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStack
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralIdentificationResultsTab;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -404,7 +405,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         "Plot using Intensity plot module",
         () -> !selectedRows.isEmpty() && selectedFeature != null);
     showIntensityPlotItem.setOnAction(e -> IntensityPlotModule.showIntensityPlot(
-        MZmineCore.getProjectManager().getCurrentProject(), selectedFeature.getFeatureList(),
+        ProjectService.getProjectManager().getCurrentProject(), selectedFeature.getFeatureList(),
         selectedRows.toArray(new ModularFeatureListRow[0])));
 
     final MenuItem showInIMSRawDataOverviewItem = new ConditionalMenuItem(

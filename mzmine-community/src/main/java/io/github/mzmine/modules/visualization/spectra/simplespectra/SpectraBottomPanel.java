@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,9 +28,9 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
+import io.github.mzmine.project.ProjectService;
 import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
@@ -71,7 +71,7 @@ class SpectraBottomPanel extends VBox {
     Label featureListLabel = new Label("Feature list: ");
 
     peakListSelector = new ComboBox<>(FXCollections.observableArrayList(
-        MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists()));
+        ProjectService.getProjectManager().getCurrentProject().getCurrentFeatureLists()));
     peakListSelector.setOnAction(
         e -> masterFrame.loadPeaks(peakListSelector.getSelectionModel().getSelectedItem()));
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,8 @@
 
 package io.github.mzmine.modules.dataanalysis.projectionplots;
 
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.project.ProjectService;
 import java.util.Collection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -70,7 +70,7 @@ public class ColoringTypeParameter implements UserParameter<ColoringType, ComboB
     ObservableList<ColoringType> choicesList = FXCollections.observableArrayList();
     choicesList.add(ColoringType.NOCOLORING);
     choicesList.add(ColoringType.COLORBYFILE);
-    for (UserParameter<?, ?> p : MZmineCore.getProjectManager().getCurrentProject()
+    for (UserParameter<?, ?> p : ProjectService.getProjectManager().getCurrentProject()
         .getParameters()) {
       choicesList.add(new ColoringType(p));
     }
@@ -118,7 +118,7 @@ public class ColoringTypeParameter implements UserParameter<ColoringType, ComboB
       return;
     String attrValue = xmlElement.getAttribute("type");
     if (attrValue.equals("parameter")) {
-      for (UserParameter<?, ?> p : MZmineCore.getProjectManager().getCurrentProject()
+      for (UserParameter<?, ?> p : ProjectService.getProjectManager().getCurrentProject()
           .getParameters()) {
         if (p.getName().equals(elementString)) {
           value = new ColoringType(p);

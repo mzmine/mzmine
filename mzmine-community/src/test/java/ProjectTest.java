@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -67,7 +68,7 @@ public class ProjectTest {
     // state for testing should be headless
     assertEquals(true, MZmineCore.isHeadLessMode());
 
-    MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    MZmineProject project = ProjectService.getProject();
     assertNotNull(project);
 
     ModularFeatureList flist = new ModularFeatureList("A", null, raw);
@@ -85,7 +86,7 @@ public class ProjectTest {
   @Test
   @Order(2)
   void testEmptyProjectAfterTest() {
-    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    final MZmineProject project = ProjectService.getProject();
     assertNotNull(project);
 
     assertEquals(0, project.getCurrentFeatureLists().size());
@@ -95,9 +96,9 @@ public class ProjectTest {
   @Test
   @Order(3)
   void setNewProjectTest() {
-    final MZmineProject old = MZmineCore.getProjectManager().getCurrentProject();
-    MZmineCore.getProjectManager().setCurrentProject(new MZmineProjectImpl());
-    assertNotEquals(old, MZmineCore.getProjectManager().getCurrentProject());
+    final MZmineProject old = ProjectService.getProject();
+    ProjectService.getProjectManager().setCurrentProject(new MZmineProjectImpl());
+    assertNotEquals(old, ProjectService.getProjectManager().getCurrentProject());
   }
 
 }

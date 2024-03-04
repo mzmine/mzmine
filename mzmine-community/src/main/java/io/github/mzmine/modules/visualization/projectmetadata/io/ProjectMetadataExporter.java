@@ -26,8 +26,8 @@
 package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.util.logging.Logger;
 import javafx.stage.FileChooser;
@@ -39,7 +39,7 @@ import javafx.stage.Stage;
 public class ProjectMetadataExporter {
 
   private static final Logger logger = Logger.getLogger(ProjectMetadataExporter.class.getName());
-  private final MZmineProject currentProject = MZmineCore.getProjectManager().getCurrentProject();
+  private final MZmineProject currentProject = ProjectService.getProjectManager().getCurrentProject();
   private final MetadataTable metadataTable = currentProject.getProjectMetadata();
   private final Stage currentStage;
 

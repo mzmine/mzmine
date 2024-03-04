@@ -31,6 +31,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParam
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
+import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -95,7 +96,7 @@ public class ImportSpeedTestMain {
       appendToFile(speedTestFile, sm);
     }
 
-    MZmineCore.getProjectManager().clearProject();
+    ProjectService.getProjectManager().clearProject();
   }
 
   private static void appendToFile(final String speedTestFile, final SpeedMeasurement sm)

@@ -23,12 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx.mvci;
+package io.github.mzmine.javafx.mvci;
 
-import io.github.mzmine.datamodel.features.Feature;
-import java.util.List;
-import javafx.beans.property.ObjectProperty;
+import javafx.scene.layout.Region;
+import javafx.util.Builder;
 
-public interface SelectedFeaturesController {
-  ObjectProperty<List<Feature>> selectedFeaturesProperty();
+/**
+ * MVCI View base class. Creates the view on demand in the build method.
+ */
+public abstract class FxViewBuilder<ViewModelClass> implements Builder<Region> {
+
+  protected final ViewModelClass model;
+
+  protected FxViewBuilder(ViewModelClass model) {
+    this.model = model;
+  }
+
 }

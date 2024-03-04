@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,6 +42,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Stri
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import java.net.URL;
 import java.util.Optional;
@@ -64,7 +65,7 @@ import javafx.stage.Stage;
 public class ProjectMetadataPaneController {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
-  private final MZmineProject currentProject = MZmineCore.getProjectManager().getCurrentProject();
+  private final MZmineProject currentProject = ProjectService.getProjectManager().getCurrentProject();
   private final MetadataTable metadataTable = currentProject.getProjectMetadata();
   private Stage currentStage;
   private RawDataFile[] fileList;

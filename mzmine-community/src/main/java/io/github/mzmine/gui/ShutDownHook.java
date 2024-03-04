@@ -28,6 +28,7 @@ package io.github.mzmine.gui;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.project.ProjectService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -61,7 +62,7 @@ class ShutDownHook extends Thread {
     }
 
     // Close all temporary files
-    RawDataFile[] dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    RawDataFile[] dataFiles = ProjectService.getProjectManager().getCurrentProject().getDataFiles();
     for (RawDataFile dataFile : dataFiles) {
       dataFile.close();
     }

@@ -23,12 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx.mvci;
+package io.github.mzmine.project;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.util.List;
-import javafx.beans.property.ObjectProperty;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.project.impl.ProjectManagerImpl;
+import org.jetbrains.annotations.NotNull;
 
-public interface SelectedRowsController {
-  ObjectProperty<List<FeatureListRow>> selectedRowsProperty();
+/**
+ * Contains the project manager and current project. There is always just one project loaded
+ */
+public final class ProjectService {
+
+  @NotNull
+  public static ProjectManager getProjectManager() {
+    return ProjectManagerImpl.getInstance();
+  }
+
+  /**
+   * @return the current project
+   */
+  public static @NotNull MZmineProject getProject() {
+    return getProjectManager().getCurrentProject();
+  }
 }
