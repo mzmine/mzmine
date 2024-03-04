@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts;
 
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassPeakMatch;
 import java.awt.BasicStroke;
@@ -61,8 +62,10 @@ public class ChartUtils {
   }
 
   public static void cleanPlot(XYPlot plot) {
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
+    int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+    for (int i = 0; i < numDatasets; i++) {
       plot.setDataset(i, null);
+      plot.setRenderer(i, null);
     }
     plot.clearRangeMarkers();
     plot.clearAnnotations();
@@ -92,7 +95,7 @@ public class ChartUtils {
     NumberFormat ppmFormat = MZmineCore.getConfiguration().getPPMFormat();
     String tooltipText = String.format(
         "Measured-matched m/z: %s-%s" + "\nMeasured-matched RT: %s-%s" + "\nMass error: %s %s"
-            + "\nMass peak intensity: %s" + "\nScan number: %s",
+        + "\nMass peak intensity: %s" + "\nScan number: %s",
         mzFormat.format(match.getMeasuredMzRatio()), mzFormat.format(match.getMatchedMzRatio()),
         rtFormat.format(match.getMeasuredRetentionTime()),
         match.getMatchedRetentionTime() == -1 ? "none"

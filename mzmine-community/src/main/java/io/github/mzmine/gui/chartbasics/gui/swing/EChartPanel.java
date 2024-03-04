@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,17 @@
 
 package io.github.mzmine.gui.chartbasics.gui.swing;
 
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
+import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
+import io.github.mzmine.gui.chartbasics.graphicsexport.ChartExportUtil;
+import io.github.mzmine.gui.chartbasics.gui.swing.menu.JMenuExportToClipboard;
+import io.github.mzmine.gui.chartbasics.gui.swing.menu.JMenuExportToExcel;
+import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
+import io.github.mzmine.gui.chartbasics.listener.AxesRangeChangedListener;
+import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
+import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.util.io.XSSFExcelWriterReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,17 +59,6 @@ import org.jfree.data.Range;
 import org.jfree.data.RangeType;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
-
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
-import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
-import io.github.mzmine.gui.chartbasics.graphicsexport.ChartExportUtil;
-import io.github.mzmine.gui.chartbasics.gui.swing.menu.JMenuExportToClipboard;
-import io.github.mzmine.gui.chartbasics.gui.swing.menu.JMenuExportToExcel;
-import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
-import io.github.mzmine.gui.chartbasics.listener.AxesRangeChangedListener;
-import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
-import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
-import io.github.mzmine.util.io.XSSFExcelWriterReader;
 
 /**
  * Enhanced ChartPanel with extra chart gestures (drag mouse over entities (e.g., axis, titles)
@@ -281,12 +281,12 @@ public class EChartPanel extends ChartPanel {
    * @return Data array[columns][rows]
    */
   public Object[][] getDataArrayForExport() {
-    if (getChart().getPlot() instanceof XYPlot && getChart().getXYPlot() != null
-        && getChart().getXYPlot().getDataset() != null) {
+    if (getChart().getPlot() instanceof XYPlot plot) {
       try {
         List<Object[]> modelList = new ArrayList<>();
 
-        for (int d = 0; d < getChart().getXYPlot().getDatasetCount(); d++) {
+        int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+        for (int d = 0; d < numDatasets; d++) {
           XYDataset data = getChart().getXYPlot().getDataset(d);
           if (data instanceof XYZDataset) {
             XYZDataset xyz = (XYZDataset) data;
