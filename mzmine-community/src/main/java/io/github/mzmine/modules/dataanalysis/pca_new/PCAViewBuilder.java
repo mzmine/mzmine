@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
+import io.github.mzmine.gui.framework.fx.components.FxComponentFactory;
 import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
 import javafx.collections.FXCollections;
@@ -51,12 +52,12 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
   public Region build() {
 
     final BorderPane pane = new BorderPane();
-    final HBox domain = createLabelledComboBox("Domain PC", model.getAvailablePCs(),
+    final HBox domain = FxComponentFactory.createLabelledComboBox("Domain PC", model.getAvailablePCs(),
         model.domainPcProperty());
-    final HBox range = createLabelledComboBox("Range PC", model.getAvailablePCs(),
+    final HBox range = FxComponentFactory.createLabelledComboBox("Range PC", model.getAvailablePCs(),
         model.rangePcProperty());
     final HBox coloring = createMetadataBox();
-    final HBox abundance = createLabelledComboBox("Abundance",
+    final HBox abundance = FxComponentFactory.createLabelledComboBox("Abundance",
         FXCollections.observableArrayList(AbundanceMeasure.values()), model.abundanceProperty());
 
     pane.setBottom(new FlowPane(space, space, domain, range, coloring, abundance));
