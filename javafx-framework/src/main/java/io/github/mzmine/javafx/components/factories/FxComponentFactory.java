@@ -23,7 +23,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx.components;import javafx.beans.property.Property;
+package io.github.mzmine.javafx.components.factories;
+
+import javafx.beans.property.Property;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -33,10 +35,10 @@ public class FxComponentFactory {
 
   public static <T> HBox createLabelledComboBox(String label, ObservableList<T> values,
       Property<T> modelProperty) {
-    final Label rangeLabel = new Label(label);
-    final ComboBox<T> rangePcSelector = new ComboBox<>(values);
-    rangePcSelector.valueProperty().bindBidirectional(modelProperty);
-    final HBox range = new HBox(5, rangeLabel, rangePcSelector);
-    return range;
+    final Label lab = new Label(label);
+    final ComboBox<T> comboBox = new ComboBox<>(values);
+    comboBox.valueProperty().bindBidirectional(modelProperty);
+    lab.setLabelFor(comboBox);
+    return new HBox(5, lab, comboBox);
   }
 }

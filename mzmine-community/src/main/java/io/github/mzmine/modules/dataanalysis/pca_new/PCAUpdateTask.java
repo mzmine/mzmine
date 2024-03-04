@@ -32,7 +32,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
-import io.github.mzmine.gui.framework.fx.mvci.FxUpdateTask;
+import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import java.awt.Color;
 import java.util.ArrayList;

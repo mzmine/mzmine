@@ -27,8 +27,8 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
-import io.github.mzmine.gui.framework.fx.components.FxComponentFactory;
-import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.components.factories.FxComponentFactory;
+import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
 import javafx.collections.FXCollections;
 import javafx.scene.control.Label;
