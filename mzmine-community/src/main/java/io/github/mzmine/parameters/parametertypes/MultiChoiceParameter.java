@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,7 @@
 package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.util.CollectionUtils;
+import io.github.mzmine.util.collections.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

@@ -23,12 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx.mvci;
+package io.github.mzmine.javafx.mvci;
 
-import io.github.mzmine.datamodel.features.Feature;
-import java.util.List;
-import javafx.beans.property.ObjectProperty;
+/**
+ * MVCI Interactor base class. This class interacts with business logic and updates the data model.
+ * The {@link FxController} orchestrates its tasks on specific threads.
+ */
+public abstract class FxInteractor<ViewModelClass> {
 
-public interface SelectedFeaturesController {
-  ObjectProperty<List<Feature>> selectedFeaturesProperty();
+  protected final ViewModelClass model;
+
+  protected FxInteractor(ViewModelClass model) {
+    this.model = model;
+  }
+
+  /**
+   * Method designed to be run on the FXAT to load data received via the fetchData() method into the
+   * ViewModel.  This method is called from the load() method of the ScreenController via the
+   * setOnSucceeded() method of a Task.
+   */
+  public abstract void updateModel();
 }

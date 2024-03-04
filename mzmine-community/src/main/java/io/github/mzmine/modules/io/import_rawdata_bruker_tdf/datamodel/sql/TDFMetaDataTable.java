@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,7 @@ package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.DateTimeUtils;
+import io.github.mzmine.util.date.DateTimeUtils;
 import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;

@@ -29,7 +29,7 @@ import static io.github.mzmine.util.javafx.TableViewUtils.createColumn;
 
 import io.github.mzmine.gui.framework.fx.components.LabeledProgressBarCell;
 import io.github.mzmine.gui.framework.fx.components.MenuItems;
-import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.javafx.TableViewUtils;
 import javafx.event.ActionEvent;

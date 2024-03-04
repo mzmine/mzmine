@@ -25,8 +25,8 @@
 
 package io.github.mzmine.gui.mainwindow.tasksview;
 
-import io.github.mzmine.gui.framework.fx.mvci.FxController;
-import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.mvci.FxController;
+import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import javafx.collections.ObservableList;
