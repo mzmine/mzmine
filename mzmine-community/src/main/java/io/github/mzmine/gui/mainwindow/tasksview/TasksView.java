@@ -25,11 +25,11 @@
 
 package io.github.mzmine.gui.mainwindow.tasksview;
 
-import static io.github.mzmine.javafx.components.util.TableViewUtils.createColumn;
+import static io.github.mzmine.javafx.components.factories.TableColumns.createColumn;
 
 import io.github.mzmine.javafx.components.LabeledProgressBarCell;
 import io.github.mzmine.javafx.components.factories.MenuItems;
-import io.github.mzmine.javafx.components.util.TableViewUtils;
+import io.github.mzmine.javafx.components.factories.TableColumns;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import javafx.event.ActionEvent;
@@ -70,7 +70,7 @@ public class TasksView extends FxViewBuilder<TasksViewModel> {
     // progress bar
     progressCol.setCellFactory(__ -> new LabeledProgressBarCell<>());
 
-    TableViewUtils.autoFitLastColumn(table);
+    TableColumns.autoFitLastColumn(table);
     return table;
   }
 

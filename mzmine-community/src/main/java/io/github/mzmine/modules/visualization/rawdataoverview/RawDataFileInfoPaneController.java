@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.javafx.components.util.TableViewUtils;
+import io.github.mzmine.javafx.components.factories.TableColumns;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import java.text.NumberFormat;
@@ -137,13 +137,13 @@ public class RawDataFileInfoPaneController {
         p -> p.getValue().getMassList() != null ? new SimpleObjectProperty<>(FxIconUtil.getCheckedIcon())
             : new SimpleObjectProperty<>(FxIconUtil.getUncheckedIcon()));
 
-    TableViewUtils.setFormattedCellFactory(basePeakColumn, mzFormat);
-    TableViewUtils.setFormattedCellFactory(basePeakIntensityColumn, itFormat);
-    TableViewUtils.setFormattedCellFactory(rtColumn, rtFormat);
-    TableViewUtils.setFormattedCellFactory(injectTimeColumn, rtFormat);
-    TableViewUtils.setFormattedRangeCellFactory(mzRangeColumn, mzFormat);
+    TableColumns.setFormattedCellFactory(basePeakColumn, mzFormat);
+    TableColumns.setFormattedCellFactory(basePeakIntensityColumn, itFormat);
+    TableColumns.setFormattedCellFactory(rtColumn, rtFormat);
+    TableColumns.setFormattedCellFactory(injectTimeColumn, rtFormat);
+    TableColumns.setFormattedRangeCellFactory(mzRangeColumn, mzFormat);
 
-    TableViewUtils.autoFitLastColumn(rawDataTableView);
+    TableColumns.autoFitLastColumn(rawDataTableView);
   }
 
   /**

@@ -28,7 +28,7 @@ package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.framework.fx.features.AbstractFeatureListRowsPane;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
-import io.github.mzmine.javafx.components.util.TableViewUtils;
+import io.github.mzmine.javafx.components.factories.TableColumns;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
@@ -212,7 +212,7 @@ public class SpectraIdentificationResultsPane extends AbstractFeatureListRowsPan
     });
 
     tableView.getColumns().add(column);
-    TableViewUtils.autoFitLastColumn(tableView);
+    TableColumns.autoFitLastColumn(tableView);
     return tableView;
   }
 

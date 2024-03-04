@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.javafx.components.util;
+package io.github.mzmine.javafx.components.factories;
 
 import com.google.common.collect.Range;
 import java.text.NumberFormat;
@@ -41,9 +41,9 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class TableViewUtils {
+public class TableColumns {
 
-  private static final Logger logger = Logger.getLogger(TableViewUtils.class.getName());
+  private static final Logger logger = Logger.getLogger(TableColumns.class.getName());
 
   public static void autoFitLastColumn(TableView<?> table) {
     autoFitLastColumn(table, table.widthProperty().subtract(10));

@@ -28,7 +28,7 @@ package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
-import io.github.mzmine.javafx.components.util.TableViewUtils;
+import io.github.mzmine.javafx.components.factories.TableColumns;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
@@ -230,7 +230,7 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab implements
     });
 
     tableView.getColumns().add(column);
-    TableViewUtils.autoFitLastColumn(tableView);
+    TableColumns.autoFitLastColumn(tableView);
     return tableView;
   }
 
