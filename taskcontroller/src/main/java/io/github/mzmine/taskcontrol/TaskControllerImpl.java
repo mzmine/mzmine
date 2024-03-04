@@ -25,7 +25,6 @@
 
 package io.github.mzmine.taskcontrol;
 
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
@@ -255,7 +254,7 @@ final class TaskControllerImpl implements TaskController {
 
   @Override
   public void addSubmittedTasksToView(final WrappedTask... wrappedTasks) {
-    FxThread.runLater(() -> tasks.addAll(wrappedTasks));
+    tasks.addAll(wrappedTasks);
   }
 
   @Override

@@ -6,6 +6,5 @@ plugins {
 dependencies {
     implementation(project(":memory-management"))
     implementation(project(":utils"))
-    implementation(project(":javafx-framework"))
     implementation(libs.guava)
 }

@@ -5,5 +5,6 @@ plugins {
 
 dependencies {
     implementation(project(":utils"))
+    implementation(project(":memory-management"))
     implementation(project(":taskcontroller"))
 }
