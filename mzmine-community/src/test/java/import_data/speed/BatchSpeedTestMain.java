@@ -32,6 +32,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -173,7 +174,7 @@ public class BatchSpeedTestMain {
           STR."Failed batch \{description} for \{batchFile} with \{files.size()} files. Will continue with next task.");
     }
 
-    MZmineCore.getProjectManager().clearProject();
+    ProjectService.getProjectManager().clearProject();
   }
 
   public static List<StepTimeMeasurement> runBatch(final List<String> fileNames, String batchFile) {
@@ -182,7 +183,7 @@ public class BatchSpeedTestMain {
 
     File batch = getFileOrResource(batchFile);
 
-    BatchTask task = BatchModeModule.runBatch(MZmineCore.getProject(), batch, files, new File[0],
+    BatchTask task = BatchModeModule.runBatch(ProjectService.getProject(), batch, files, new File[0],
         Instant.now());
 
     Assertions.assertEquals(TaskStatus.FINISHED, task.getStatus());

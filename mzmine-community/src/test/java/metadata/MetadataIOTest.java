@@ -25,11 +25,12 @@
 
 package metadata;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.io.WideTableIOUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.File;
 import java.util.HashSet;
@@ -50,9 +51,7 @@ class MetadataIOTest {
 
   @BeforeEach
   public void init() {
-    //    logger.info("Running MZmine");
-    //    MZmineCore.main(new String[]{"-r", "-m", "all"});
-    var project = MZmineCore.getProjectManager().getCurrentProject();
+    MZmineProject project = ProjectService.getProject();
     project.addFile(rawA);
     project.addFile(rawB);
     project.addFile(rawC);

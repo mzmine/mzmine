@@ -37,6 +37,7 @@ import import_data.MzMLImportTest;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.project.ProjectService;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -110,7 +111,7 @@ public class MzMLConverterOptionsImportMain {
       DataImportTestUtils.testDataStatistics(currentFiles, stats, true);
 
       //
-      for (final RawDataFile raw : MZmineCore.getProject().getDataFiles()) {
+      for (final RawDataFile raw : ProjectService.getProject().getDataFiles()) {
         String msg = " Error in " + raw.getName();
         for (final Scan scan : raw.getScans()) {
           // advanced sets mass list

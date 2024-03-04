@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,6 +37,7 @@ import io.github.mzmine.modules.visualization.ims_mobilitymzplot.CalculateDatase
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.PlotType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import java.text.NumberFormat;
@@ -100,7 +101,7 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
     fp.setHgap(5);
 
     var featureLists = FXCollections.observableArrayList(
-        MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
+        ProjectService.getProjectManager().getCurrentProject().getCurrentFeatureLists());
     comboBox = new ComboBox<>(featureLists);
     comboBox.valueProperty().addListener(((observable, oldValue, newValue) -> parametersChanged()));
 

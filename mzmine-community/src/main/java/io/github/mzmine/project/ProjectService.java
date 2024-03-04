@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,13 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import io.github.mzmine.main.MZmineCore;
-import org.junit.jupiter.api.BeforeAll;
+package io.github.mzmine.project;
 
-public class LoadMZmineCore {
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.project.impl.ProjectManagerImpl;
+import org.jetbrains.annotations.NotNull;
 
-  @BeforeAll
-  public static void loadMZmineCore() {
-    MZmineCore.main(new String[] {});
+/**
+ * Contains the project manager and current project. There is always just one project loaded
+ */
+public final class ProjectService {
+
+  @NotNull
+  public static ProjectManager getProjectManager() {
+    return ProjectManagerImpl.getInstance();
+  }
+
+  /**
+   * @return the current project
+   */
+  public static @NotNull MZmineProject getProject() {
+    return getProjectManager().getCurrentProject();
   }
 }

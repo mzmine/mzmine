@@ -29,6 +29,7 @@ import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.TextUtils;
 import java.util.ArrayList;
 import java.util.stream.Stream;
@@ -67,7 +68,7 @@ public class FeatureListsSelection implements Cloneable {
         return Stream.of(MZmineCore.getDesktop().getSelectedPeakLists())
             .map(ModularFeatureList.class::cast).toArray(ModularFeatureList[]::new);
       case ALL_FEATURELISTS:
-        return MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists()
+        return ProjectService.getProjectManager().getCurrentProject().getCurrentFeatureLists()
             .toArray(ModularFeatureList[]::new);
       case SPECIFIC_FEATURELISTS:
         if (specificFeatureLists == null) {
@@ -79,7 +80,7 @@ public class FeatureListsSelection implements Cloneable {
           return new ModularFeatureList[0];
         }
         ArrayList<ModularFeatureList> matchingFeatureLists = new ArrayList<>();
-        ModularFeatureList allFeatureLists[] = MZmineCore.getProjectManager().getCurrentProject()
+        ModularFeatureList allFeatureLists[] = ProjectService.getProjectManager().getCurrentProject()
             .getCurrentFeatureLists().toArray(ModularFeatureList[]::new);
 
         plCheck:

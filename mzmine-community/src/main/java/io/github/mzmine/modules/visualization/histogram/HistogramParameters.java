@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,13 +27,13 @@ package io.github.mzmine.modules.visualization.histogram;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 
 public class HistogramParameters extends SimpleParameterSet {
@@ -65,7 +65,7 @@ public class HistogramParameters extends SimpleParameterSet {
         getParameter(HistogramParameters.featureList).getValue().getMatchingFeatureLists();
     RawDataFile dataFiles[];
     if ((selectedFeatureLists == null) || (selectedFeatureLists.length != 1)) {
-      dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+      dataFiles = ProjectService.getProjectManager().getCurrentProject().getDataFiles();
     } else {
       dataFiles = selectedFeatureLists[0].getRawDataFiles().toArray(RawDataFile[]::new);
     }

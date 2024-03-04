@@ -38,6 +38,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRe
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.SortableFeatureComboBox;
@@ -83,7 +84,7 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
 
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
     ObservableList<FeatureList> flists = FXCollections.observableArrayList(
-        MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
+        ProjectService.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
     fBox = new SortableFeatureComboBox();
     flistBox = new ComboBox<>(flists);

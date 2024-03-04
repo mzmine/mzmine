@@ -63,6 +63,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
@@ -791,7 +792,7 @@ public class MainWindowController {
     }
 
     for (RawDataFile selectedItem : ImmutableList.copyOf(rawDataList.getSelectedValues())) {
-      MZmineCore.getProjectManager().getCurrentProject().removeFile(selectedItem);
+      ProjectService.getProjectManager().getCurrentProject().removeFile(selectedItem);
     }
 
     for (GroupEntity group : ImmutableList.copyOf(rawDataList.getSelectedGroups())) {
@@ -875,7 +876,7 @@ public class MainWindowController {
   public void handleRemoveFeatureList(Event event) {
     FeatureList[] selectedFeatureLists = MZmineCore.getDesktop().getSelectedPeakLists();
     for (FeatureList fl : selectedFeatureLists) {
-      MZmineCore.getProjectManager().getCurrentProject().removeFeatureList(fl);
+      ProjectService.getProjectManager().getCurrentProject().removeFeatureList(fl);
     }
   }
 
@@ -895,7 +896,7 @@ public class MainWindowController {
   public void handleSpectralLibraryRemove(ActionEvent event) {
     SpectralLibrary[] libs = MZmineCore.getDesktop().getSelectedSpectralLibraries();
     if (libs != null && libs.length > 0) {
-      MZmineCore.getProjectManager().getCurrentProject().removeSpectralLibrary(libs);
+      ProjectService.getProjectManager().getCurrentProject().removeSpectralLibrary(libs);
     }
   }
 

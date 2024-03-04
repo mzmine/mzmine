@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
 import java.util.Map;
@@ -163,7 +164,7 @@ public class MinimumFeaturesFilterParameters extends SimpleParameterSet {
       try {
         OptionalParameter<ComboParameter<Object>> gParam = getParameter(GROUPSPARAMETER);
         if (gParam != null) {
-          UserParameter<?, ?>[] newChoices = MZmineCore.getProjectManager().getCurrentProject()
+          UserParameter<?, ?>[] newChoices = ProjectService.getProjectManager().getCurrentProject()
               .getParameters();
           String[] choices;
           if (newChoices == null || newChoices.length == 0) {

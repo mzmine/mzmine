@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.project.ProjectService;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -46,7 +47,7 @@ public class RTRangeComponent extends DoubleRangeComponent {
     setAutoButton = new Button("Auto range");
     setAutoButton.setOnAction(e -> {
       RawDataFile currentFiles[] =
-          MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+          ProjectService.getProjectManager().getCurrentProject().getDataFiles();
 
       try {
         ParameterSetupDialog setupDialog = (ParameterSetupDialog) this.getScene().getWindow();
@@ -78,7 +79,7 @@ public class RTRangeComponent extends DoubleRangeComponent {
       }
       setValue(rtRange);
     });
-    RawDataFile currentFiles[] = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    RawDataFile currentFiles[] = ProjectService.getProjectManager().getCurrentProject().getDataFiles();
     setAutoButton.setDisable(currentFiles.length == 0);
 
     getChildren().addAll(new Label("min."), setAutoButton);

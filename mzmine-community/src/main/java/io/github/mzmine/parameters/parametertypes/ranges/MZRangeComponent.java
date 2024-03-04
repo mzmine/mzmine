@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -40,6 +40,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesComponen
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.project.impl.ProjectChangeListener;
 import javafx.geometry.Pos;
@@ -55,7 +56,7 @@ public class MZRangeComponent extends DoubleRangeComponent {
 
     setAutoButton = new Button("Auto range");
     setAutoButton.setMinWidth(100.0);
-    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    final MZmineProject project = ProjectService.getProjectManager().getCurrentProject();
     setAutoButton.setOnAction(e -> {
       RawDataFile[] currentFiles = project.getDataFiles();
       ScanSelection scanSelection = new ScanSelection();

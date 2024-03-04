@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import java.text.DecimalFormat;
@@ -94,7 +95,7 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
     }
 
     // at least one raw data file in project
-    RawDataFile[] raw = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    RawDataFile[] raw = ProjectService.getProjectManager().getCurrentProject().getDataFiles();
     if (raw == null || raw.length <= 0) {
       DialogLoggerUtil.showMessageDialogForTime("No RAW data files",
           "Cannot use Kovats extraction without raw data files in this project", 3500);

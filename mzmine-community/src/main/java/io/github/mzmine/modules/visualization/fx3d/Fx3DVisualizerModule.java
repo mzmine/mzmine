@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,6 +35,7 @@ import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -84,7 +85,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
         .setValue(Collections.singletonList(featureToShow));
 
     if (myParameters.showSetupDialog(true) == ExitCode.OK) {
-      myInstance.runModule(MZmineCore.getProjectManager().getCurrentProject(),
+      myInstance.runModule(ProjectService.getProjectManager().getCurrentProject(),
           myParameters.cloneParameterSet(), new ArrayList<Task>(), Instant.now());
     }
   }
@@ -113,7 +114,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
     logger.finest("Feature selection is:" + featureSelList.toString());
 
     Range<Float> rtRange = ScanUtils.findRtRange(scanSel.getMatchingScans(
-        MZmineCore.getProjectManager().getCurrentProject().getDataFiles()[0]));
+        ProjectService.getProjectManager().getCurrentProject().getDataFiles()[0]));
 
     ParameterSet myParameters = MZmineCore.getConfiguration()
         .getModuleParameters(Fx3DVisualizerModule.class);

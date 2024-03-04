@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,6 +52,7 @@ import io.github.mzmine.parameters.parametertypes.ranges.MZRangeComponent;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -249,7 +250,7 @@ public class KovatsIndexExtractionDialog extends EmptyParameterSetupDialogBase {
 
     // add combo for raw data file
 
-    var rawFiles = FXCollections.observableList(MZmineCore.getProject().getCurrentRawDataFiles());
+    var rawFiles = FXCollections.observableList(ProjectService.getProject().getCurrentRawDataFiles());
     comboDataFileName = new ComboBox<>(rawFiles);
     comboDataFileName2 = new ComboBox<>(rawFiles);
     cbSecondRaw = new CheckBox();
@@ -331,7 +332,7 @@ public class KovatsIndexExtractionDialog extends EmptyParameterSetupDialogBase {
     if (selectedFiles == null) {
       // find kovats or dro file
       // first use all kovats named files and then dro (max 2)
-      var allFiles = MZmineCore.getProject().getCurrentRawDataFiles();
+      var allFiles = ProjectService.getProject().getCurrentRawDataFiles();
       RawDataFile[] kovats = allFiles.stream()
           .filter(d -> d.getName().toLowerCase().contains("kovats")).toArray(RawDataFile[]::new);
       RawDataFile[] dro = allFiles.stream().filter(d -> d.getName().toLowerCase().contains("dro"))

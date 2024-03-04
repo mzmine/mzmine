@@ -42,13 +42,16 @@ public class TaskService {
       INSTANCE = new TaskControllerImpl(numThreads);
       return INSTANCE;
     }
-    throw new IllegalStateException("Cannot initialize TaskController twice");
+    return INSTANCE;
+//    throw new IllegalStateException("Cannot initialize TaskController twice");
   }
 
   @NotNull
   public static TaskController getController() {
     if (INSTANCE == null) {
-      throw new IllegalStateException("Initialize TaskController first");
+      INSTANCE = new TaskControllerImpl(8);
+      return INSTANCE;
+//      throw new IllegalStateException("Initialize TaskController first");
     }
     return INSTANCE;
   }

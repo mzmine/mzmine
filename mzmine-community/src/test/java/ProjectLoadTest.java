@@ -27,11 +27,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.time.Instant;
 import java.util.Comparator;
@@ -55,6 +55,7 @@ public class ProjectLoadTest {
 
   private MZmineProject currentProject;
 
+
   @AfterAll
   public void tearDown() {
     // we need to clean the project after this integration test
@@ -73,7 +74,7 @@ public class ProjectLoadTest {
         param);
     Assertions.assertInstanceOf(TaskResult.FINISHED.class, result, result.description());
 
-    var flist = MZmineCore.getProjectManager().getCurrentProject()
+    var flist = ProjectService.getProjectManager().getCurrentProject()
         .getFeatureList("Aligned feature list corr PEARSON r greq 0.85 dp greq 5");
 
     assertEquals(2, flist.getRawDataFiles().size());
