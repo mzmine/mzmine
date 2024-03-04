@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,9 +43,9 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.data.Range;
 
@@ -67,7 +67,7 @@ public class FeatureShapeMobilogramChart extends BufferedChartNode {
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getMobilityFormat());
     chart.setLegendItemsVisible(false);
 
-    Set<ColoredXYDataset> datasets = new LinkedHashSet<>();
+    List<ColoredXYDataset> datasets = new ArrayList<>();
     int size = row.getFilesFeatures().size();
     for (Feature f : row.getFeatures()) {
       IonTimeSeries<? extends Scan> series = ((ModularFeature) f).getFeatureData();
