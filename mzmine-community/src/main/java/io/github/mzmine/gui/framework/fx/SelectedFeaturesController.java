@@ -23,12 +23,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.javafx.mvci;
+package io.github.mzmine.gui.framework.fx;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.Feature;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 
-public interface SelectedRowsController {
-  ObjectProperty<List<FeatureListRow>> selectedRowsProperty();
+public interface SelectedFeaturesController {
+  ObjectProperty<List<Feature>> selectedFeaturesProperty();
 }
