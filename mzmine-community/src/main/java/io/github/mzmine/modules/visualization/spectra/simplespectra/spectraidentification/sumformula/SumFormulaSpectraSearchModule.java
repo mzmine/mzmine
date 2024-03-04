@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula;
 
 import java.time.Instant;
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.Scan;

@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.AbstractTaskXYZDataset;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -355,7 +356,7 @@ public class TICDataSet extends AbstractTaskXYZDataset {
         scans.get(scans.size() - 1).getRetentionTime()) == 0;
     if (useScanNumberAsRt && window != null) {
       final NumberAxis axis = (NumberAxis) window.getTICPlot().getXYPlot().getDomainAxis();
-      MZmineCore.runLater(() -> axis.setLabel("Scan number"));
+      FxThread.runLater(() -> axis.setLabel("Scan number"));
     }
 
     // Process each scan.

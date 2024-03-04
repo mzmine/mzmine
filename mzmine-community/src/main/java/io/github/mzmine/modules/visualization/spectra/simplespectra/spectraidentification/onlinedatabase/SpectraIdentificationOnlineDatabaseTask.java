@@ -44,7 +44,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.exceptions.ExceptionUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.time.Instant;

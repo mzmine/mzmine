@@ -35,13 +35,14 @@ import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.Comparators;
-import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.MirrorChartFactory;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -318,7 +319,7 @@ public class ResultWindowController {
   }
 
   public void addNewListItem(final ResultFormula formula) {
-    MZmineCore.runLater(() -> formulas.add(formula));
+    FxThread.runLater(() -> formulas.add(formula));
   }
 
   public void dispose() {

@@ -28,7 +28,7 @@ package io.github.mzmine.modules.visualization.chromatogramandspectra;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramCursorPosition;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
@@ -87,7 +87,7 @@ public class SpectraDataSetCalc extends AbstractTask {
       return;
     }
 
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       if (isCanceled()) {
         return;
       }

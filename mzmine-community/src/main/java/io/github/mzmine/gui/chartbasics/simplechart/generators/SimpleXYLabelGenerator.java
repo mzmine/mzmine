@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.generators;
 
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
@@ -95,13 +96,14 @@ public class SimpleXYLabelGenerator implements XYItemLabelGenerator {
     double yLength = (double) plot.getRangeAxis().getRange().getLength();
     double pixelY = yLength / chart.getHeight();
 
-    ArrayList<ColoredXYDataset> allDataSets = new ArrayList<ColoredXYDataset>();
+    ArrayList<ColoredXYDataset> allDataSets = new ArrayList<>();
 
     // Get all data sets of current plot
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
+    int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+    for (int i = 0; i < numDatasets; i++) {
       XYDataset dataset = plot.getDataset(i);
-      if (dataset instanceof ColoredXYDataset) {
-        allDataSets.add((ColoredXYDataset) dataset);
+      if (dataset instanceof ColoredXYDataset cdata) {
+        allDataSets.add(cdata);
       }
     }
 
@@ -109,8 +111,8 @@ public class SimpleXYLabelGenerator implements XYItemLabelGenerator {
     for (ColoredXYDataset checkedDataSet : allDataSets) {
 
       // Search for local maxima
-      double searchMinX = originalX - (POINTS_RESERVE_X / 2) * pixelX;
-      double searchMaxX = originalX + (POINTS_RESERVE_X / 2) * pixelX;
+      double searchMinX = originalX - (POINTS_RESERVE_X / 2f) * pixelX;
+      double searchMaxX = originalX + (POINTS_RESERVE_X / 2f) * pixelX;
       double searchMinY = originalY;
       double searchMaxY = originalY + POINTS_RESERVE_Y * pixelY;
 

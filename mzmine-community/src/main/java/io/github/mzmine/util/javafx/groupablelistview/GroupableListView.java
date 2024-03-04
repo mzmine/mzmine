@@ -28,7 +28,7 @@ package io.github.mzmine.util.javafx.groupablelistview;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.sun.istack.Nullable;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -107,7 +107,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
   }
 
   public void removeItems(List<? extends T> items) {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       for (T removedValue : items) {
         for (GroupableListViewEntity item : listItems) {
           if (item instanceof ValueEntity && ((ValueEntity<?>) item).getValue()
@@ -128,7 +128,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
   }
 
   public void addItems(final List<? extends T> items) {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       for (T addedValue : items) {
         ValueEntity<T> newItem = new ValueEntity<T>(addedValue);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,8 @@
 package io.github.mzmine.util.logging;
 
 import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.main.MZmineCore;
 import java.text.DateFormat;
 import java.util.Date;
@@ -53,11 +55,11 @@ public class StatusBarHandler extends Handler {
       return;
 
     // get Desktop instance
-    Desktop desktop = MZmineCore.getDesktop();
-    if (desktop == null) {
+    Desktop desktop = DesktopService.getDesktop();
+    if (!(desktop instanceof MZmineDesktop mZmineDesktop)) {
       return;
     }
-    if (desktop.getMainWindow() == null) {
+    if (mZmineDesktop.getMainWindow() == null) {
       return;
     }
 
@@ -75,7 +77,7 @@ public class StatusBarHandler extends Handler {
     }
 
     // set status bar text
-    desktop.setStatusBarText(formattedMessage, messageColor);
+    mZmineDesktop.setStatusBarText(formattedMessage, messageColor);
 
   }
 

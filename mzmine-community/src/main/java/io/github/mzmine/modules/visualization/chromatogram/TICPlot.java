@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.chromatogram;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.ChartLogics;
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartthemes.LabelColorMatch;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
@@ -90,8 +91,6 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   // properties
   private final ObjectProperty<TICPlotType> plotType;
   protected EStandardChartTheme theme;
-
-  private int nextDataSetNum;
 
   /**
    * Indicates whether we have a request to show spectra visualizer for selected data point. Since
@@ -243,8 +242,8 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     // present.
     labelsVisible = (labelsVisible + 1) % (havePeakLabels ? 3 : 2);
 
-    final int dataSetCount = plot.getDatasetCount();
-    for (int i = 0; i < dataSetCount; i++) {
+    int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+    for (int i = 0; i < numDatasets; i++) {
 
       final XYDataset dataSet = plot.getDataset(i);
       final XYItemRenderer renderer = plot.getRenderer(i);
@@ -265,8 +264,8 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     applyWithNotifyChanges(false, () -> {
 
       Boolean dataPointsVisible = null;
-      final int count = plot.getDatasetCount();
-      for (int i = 0; i < count; i++) {
+      int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+      for (int i = 0; i < numDatasets; i++) {
 
         if (plot.getRenderer(i) instanceof final XYLineAndShapeRenderer renderer) {
 
@@ -496,7 +495,8 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    */
   public synchronized void removeFeatureDataSetsOfFile(final RawDataFile file, boolean notify) {
     plot.setNotify(false);
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
+    int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+    for (int i = 0; i < numDatasets; i++) {
       XYDataset ds = plot.getDataset(i);
       if (ds instanceof FeatureDataSet pds) {
         if (pds.getFeature().getRawDataFile() == file) {
@@ -525,18 +525,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    *               added right after and the plot shall not be updated until then.
    */
   public synchronized void removeAllFeatureDataSets(boolean notify) {
-    plot.setNotify(false);
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
-      XYDataset ds = plot.getDataset(i);
-      if (ds instanceof FeatureDataSet) {
-        plot.setDataset(getXYPlot().indexOf(ds), null);
-        plot.setRenderer(getXYPlot().indexOf(ds), null);
-      }
-    }
-    plot.setNotify(true);
-    if (notify) {
-      chart.fireChartChanged();
-    }
+    removeAllDataSetsOf(FeatureDataSet.class, notify);
   }
 
   /**
@@ -546,18 +535,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    *               added right after and the plot shall not be updated until then.
    */
   public synchronized void removeAllDataSetsOf(Class<? extends XYDataset> clazz, boolean notify) {
-    plot.setNotify(false);
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
-      XYDataset ds = plot.getDataset(i);
-      if (clazz.isInstance(ds)) {
-        plot.setDataset(getXYPlot().indexOf(ds), null);
-        plot.setRenderer(getXYPlot().indexOf(ds), null);
-      }
-    }
-    plot.setNotify(true);
-    if (notify) {
-      chart.fireChartChanged();
-    }
+    JFreeChartUtils.removeAllDataSetsOf(chart, clazz, notify);
   }
 
   /**
@@ -575,15 +553,14 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    */
   public synchronized void removeAllDataSets(boolean notify) {
     plot.setNotify(false);
-    final int dataSetCount = plot.getDatasetCount();
-    for (int index = 0; index < dataSetCount; index++) {
+    int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+    for (int index = 0; index < numDatasets; index++) {
       plot.setDataset(index, null);
     }
     plot.setNotify(true);
     if (notify) {
       chart.fireChartChanged();
     }
-    nextDataSetNum = 0;
   }
 
   /**
@@ -635,6 +612,8 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
   private synchronized int addDataSetAndRenderer(final XYDataset dataSet,
       final XYItemRenderer renderer) {
+    int nextDatasetId = JFreeChartUtils.getNextDatasetIndex(plot);
+
     applyWithNotifyChanges(false, () -> {
       if (dataSet instanceof TICDataSet) {
         renderer.setDefaultItemLabelPaint(((TICDataSet) dataSet).getDataFile().getColorAWT());
@@ -643,13 +622,13 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
             ((FeatureDataSet) dataSet).getFeature().getRawDataFile().getColorAWT());
       }
 
-      plot.setRenderer(nextDataSetNum, renderer);
-      plot.setDataset(nextDataSetNum, dataSet);
-      nextDataSetNum++;
+      plot.setRenderer(nextDatasetId, renderer);
+      plot.setDataset(nextDatasetId, dataSet);
     });
 
-    return nextDataSetNum - 1;
+    return nextDatasetId;
   }
+
 
   @Override
   public void setLabelColorMatch(boolean matchColor) {
@@ -660,7 +639,8 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     matchLabelColors.addListener(
         ((observable, oldValue, newValue) -> applyWithNotifyChanges(false, () -> {
           if (newValue) {
-            for (int i = 0; i < getXYPlot().getDatasetCount(); i++) {
+            int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+            for (int i = 0; i <numDatasets; i++) {
               XYDataset dataset = getXYPlot().getDataset();
               if (dataset == null) {
                 continue;
@@ -675,7 +655,8 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
               }
             }
           } else {
-            for (int i = 0; i < getXYPlot().getDatasetCount(); i++) {
+            int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+            for (int i = 0; i < numDatasets; i++) {
               XYDataset dataset = getXYPlot().getDataset();
               if (dataset == null) {
                 continue;
@@ -719,7 +700,8 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   private ChromatogramCursorPosition getCurrentCursorPosition() {
     double selectedRT = getXYPlot().getDomainCrosshairValue();
     double selectedIT = getXYPlot().getRangeCrosshairValue();
-    for (int i = 0; i < nextDataSetNum; i++) {
+    int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+    for (int i = 0; i < numDatasets; i++) {
       XYDataset ds = getXYPlot().getDataset(i);
       if (!(ds instanceof TICDataSet dataSet)) {
         continue;

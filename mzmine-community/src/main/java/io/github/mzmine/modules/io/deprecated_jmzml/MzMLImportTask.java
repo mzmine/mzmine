@@ -38,7 +38,7 @@ import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.time.Instant;

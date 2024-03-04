@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,12 +29,12 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.ScanUtils.BinningType;
 import java.time.Instant;
@@ -132,7 +132,7 @@ class Fx3DSamplingTask extends AbstractTask {
           return;
 
         Scan scan = scans[scanIndex];
-        final Desktop desktop = MZmineCore.getDesktop();
+        final MZmineDesktop desktop = MZmineCore.getDesktop();
 
         // Check scan numbers.
         if (scans.length == 0) {

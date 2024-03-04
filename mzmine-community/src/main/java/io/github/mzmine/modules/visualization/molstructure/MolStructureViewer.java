@@ -28,7 +28,7 @@ package io.github.mzmine.modules.visualization.molstructure;
 
 import java.net.URL;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.InetUtils;
 import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.application.Platform;

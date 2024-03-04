@@ -26,6 +26,7 @@
 package io.github.mzmine.gui.chartbasics.gui.javafx;
 
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportModule;
@@ -37,6 +38,7 @@ import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxesRangeChangedListener;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.SaveImage;
 import io.github.mzmine.util.SaveImage.FileType;
@@ -402,77 +404,81 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
    * @return Data array[columns][rows]
    */
   public Object[][] getDataArrayForExport() {
-    if (getChart().getPlot() instanceof XYPlot && getChart().getXYPlot() != null
-      /*&& getChart().getXYPlot().getDataset() != null*/) { // getDataset() may be null if the
-      // first dataset was removed, but the plot may still hold other datasets
-      try {
-        List<Object[]> modelList = new ArrayList<>();
-
-        for (int d = 0; d < getChart().getXYPlot().getDatasetCount(); d++) {
-          XYDataset data = getChart().getXYPlot().getDataset(d);
-          if (data instanceof XYZDataset xyz) {
-            int series = data.getSeriesCount();
-            Object[][] model = new Object[series * 3][];
-            for (int s = 0; s < series; s++) {
-              int size = 2 + xyz.getItemCount(s);
-              Object[] x = new Object[size];
-              Object[] y = new Object[size];
-              Object[] z = new Object[size];
-              // create new Array model[row][col]
-              // Write header
-              Comparable title = data.getSeriesKey(series);
-              x[0] = title;
-              y[0] = "";
-              z[0] = "";
-              x[1] = getChart().getXYPlot().getDomainAxis().getLabel();
-              y[1] = getChart().getXYPlot().getRangeAxis().getLabel();
-              z[1] = "z-axis";
-              // write data
-              for (int i = 0; i < xyz.getItemCount(s); i++) {
-                x[i + 2] = xyz.getX(s, i);
-                y[i + 2] = xyz.getY(s, i);
-                z[i + 2] = xyz.getZ(s, i);
-              }
-              model[s * 3] = x;
-              model[s * 3 + 1] = y;
-              model[s * 3 + 2] = z;
-            }
-
-            Collections.addAll(modelList, model);
-          } else if (data != null) {
-            int series = data.getSeriesCount();
-            Object[][] model = new Object[series * 2][];
-            for (int s = 0; s < series; s++) {
-              int size = 2 + data.getItemCount(s);
-              Object[] x = new Object[size];
-              Object[] y = new Object[size];
-              // create new Array model[row][col]
-              // Write header
-              Comparable title = data.getSeriesKey(s);
-              x[0] = title;
-              y[0] = "";
-              x[1] = getChart().getXYPlot().getDomainAxis().getLabel();
-              y[1] = getChart().getXYPlot().getRangeAxis().getLabel();
-              // write data
-              for (int i = 0; i < data.getItemCount(s); i++) {
-                x[i + 2] = data.getX(s, i);
-                y[i + 2] = data.getY(s, i);
-              }
-              model[s * 2] = x;
-              model[s * 2 + 1] = y;
-            }
-
-            Collections.addAll(modelList, model);
-          }
-        }
-
-        return modelList.toArray(new Object[modelList.size()][]);
-      } catch (Exception ex) {
-        logger.log(Level.WARNING, "Cannot retrieve data for export", ex);
-        return null;
-      }
+    if (!(getChart().getPlot() instanceof XYPlot plot)) {
+      return null;
     }
-    return null;
+    // getDataset() may be null if the
+    // first dataset was removed, but the plot may still hold other datasets
+    try {
+      List<Object[]> modelList = new ArrayList<>();
+
+      int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+      for (int d = 0; d < numDatasets; d++) {
+        XYDataset data = plot.getDataset(d);
+        if (data == null) {
+          continue;
+        }
+        else if (data instanceof XYZDataset xyz) {
+          int series = data.getSeriesCount();
+          Object[][] model = new Object[series * 3][];
+          for (int s = 0; s < series; s++) {
+            int size = 2 + xyz.getItemCount(s);
+            Object[] x = new Object[size];
+            Object[] y = new Object[size];
+            Object[] z = new Object[size];
+            // create new Array model[row][col]
+            // Write header
+            Comparable title = data.getSeriesKey(series);
+            x[0] = title;
+            y[0] = "";
+            z[0] = "";
+            x[1] = plot.getDomainAxis().getLabel();
+            y[1] = plot.getRangeAxis().getLabel();
+            z[1] = "z-axis";
+            // write data
+            for (int i = 0; i < xyz.getItemCount(s); i++) {
+              x[i + 2] = xyz.getX(s, i);
+              y[i + 2] = xyz.getY(s, i);
+              z[i + 2] = xyz.getZ(s, i);
+            }
+            model[s * 3] = x;
+            model[s * 3 + 1] = y;
+            model[s * 3 + 2] = z;
+          }
+
+          Collections.addAll(modelList, model);
+        } else if (data != null) {
+          int series = data.getSeriesCount();
+          Object[][] model = new Object[series * 2][];
+          for (int s = 0; s < series; s++) {
+            int size = 2 + data.getItemCount(s);
+            Object[] x = new Object[size];
+            Object[] y = new Object[size];
+            // create new Array model[row][col]
+            // Write header
+            Comparable title = data.getSeriesKey(s);
+            x[0] = title;
+            y[0] = "";
+            x[1] = plot.getDomainAxis().getLabel();
+            y[1] = plot.getRangeAxis().getLabel();
+            // write data
+            for (int i = 0; i < data.getItemCount(s); i++) {
+              x[i + 2] = data.getX(s, i);
+              y[i + 2] = data.getY(s, i);
+            }
+            model[s * 2] = x;
+            model[s * 2 + 1] = y;
+          }
+
+          Collections.addAll(modelList, model);
+        }
+      }
+
+      return modelList.toArray(new Object[modelList.size()][]);
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Cannot retrieve data for export", ex);
+      return null;
+    }
   }
 
   public void addAxesRangeChangedListener(AxesRangeChangedListener l) {
@@ -613,7 +619,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       // reset to old state and run changes if true
       setNotifyChange(afterRunState);
       if (afterRunState) {
-        MZmineCore.runLater(() -> fireChangeEvent());
+        FxThread.runLater(() -> fireChangeEvent());
       }
     }
   }

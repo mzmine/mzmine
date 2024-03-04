@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
 import io.github.mzmine.modules.visualization.chromatogram.MzRangeEicDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
@@ -98,7 +98,7 @@ public class FeatureDataSetCalc extends AbstractTask {
     }
 
     // set datasets to plot
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       if (isCanceled()) {
         return;
       }

@@ -34,7 +34,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.StreamCopy;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;

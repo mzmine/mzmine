@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,7 +32,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.MZmineDesktop;
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
@@ -53,7 +54,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
@@ -110,7 +110,7 @@ public class TICVisualizerTab extends MZmineTab {
   private ScanSelection scanSelection;
   private Range<Double> mzRange;
 
-  private Desktop desktop;
+  private MZmineDesktop desktop;
 
   // Export file chooser.
   private static FileChooser exportChooser = null;
@@ -254,7 +254,8 @@ public class TICVisualizerTab extends MZmineTab {
 
           // Find index value
           int index = -1;
-          for (int i = 0; i < plot.getDatasetCount(); i++) {
+          int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+          for (int i = 0; i < numDatasets; i++) {
             if (rendererAll.getLegendItem(i, 1) != null && rendererAll.getLegendItem(i, 1)
                 .getDescription().equals(itemEntity.getSeriesKey())) {
               index = i;

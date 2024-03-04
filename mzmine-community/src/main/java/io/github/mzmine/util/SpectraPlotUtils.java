@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,10 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import java.util.List;
 import org.jfree.data.xy.XYDataset;
-
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 
 public class SpectraPlotUtils {
 
@@ -40,13 +40,16 @@ public class SpectraPlotUtils {
    */
   public static void clearDatasetLabelGenerators(SpectraPlot plot,
       List<Class<? extends XYDataset>> ignore) {
-    for (int i = 0; i < plot.getXYPlot().getDatasetCount(); i++) {
+    int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot.getXYPlot());
+    for (int i = 0; i < numDatasets; i++) {
       XYDataset dataset = plot.getXYPlot().getDataset(i);
       // check if object of dataset is an instance of ignore.class
       boolean remove = true;
       for (Class<? extends XYDataset> datasetClass : ignore) {
-        if ((datasetClass.isInstance(dataset)))
+        if ((datasetClass.isInstance(dataset))) {
           remove = false;
+          break;
+        }
       }
 
       if (remove)
@@ -62,7 +65,8 @@ public class SpectraPlotUtils {
    */
   public static void clearDatasetLabelGenerators(SpectraPlot plot,
       Class<? extends XYDataset> ignore) {
-    for (int i = 0; i < plot.getXYPlot().getDatasetCount(); i++) {
+    int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot.getXYPlot());
+    for (int i = 0; i < numDatasets; i++) {
       XYDataset dataset = plot.getXYPlot().getDataset(i);
       // check if object of dataset is an instance of ignore.class
       if (!(ignore.isInstance(dataset)))

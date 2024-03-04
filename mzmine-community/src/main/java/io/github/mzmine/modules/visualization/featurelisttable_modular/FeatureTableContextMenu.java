@@ -56,6 +56,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityList
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
@@ -275,7 +276,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem exportMS1Library = new ConditionalMenuItem("Export to MS1 library",
         () -> !selectedRows.isEmpty());
-    exportMS1Library.setOnAction(e -> MZmineCore.runLater(() -> {
+    exportMS1Library.setOnAction(e -> FxThread.runLater(() -> {
       MSMSLibrarySubmissionWindow window = new MSMSLibrarySubmissionWindow();
       window.setData(selectedRows.toArray(new ModularFeatureListRow[0]), SortingProperty.MZ,
           SortingDirection.Ascending, false);
@@ -284,7 +285,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem exportMSMSLibrary = new ConditionalMenuItem("Export to MS/MS library",
         () -> !selectedRows.isEmpty());
-    exportMSMSLibrary.setOnAction(e -> MZmineCore.runLater(() -> {
+    exportMSMSLibrary.setOnAction(e -> FxThread.runLater(() -> {
       MSMSLibrarySubmissionWindow window = new MSMSLibrarySubmissionWindow();
       window.setData(selectedRows.toArray(new ModularFeatureListRow[0]), SortingProperty.MZ,
           SortingDirection.Ascending, true);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.chartbasics.ChartLogics;
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartthemes.LabelColorMatch;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
@@ -116,9 +117,6 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   private Marker mzMarker;
   private boolean showCursor = false;
   private boolean isotopesVisible = true, peaksVisible = true, itemLabelsVisible = true, dataPointsVisible = false;
-  // We use our own counter, because plot.getDatasetCount() just keeps
-  // increasing even when we remove old data sets
-  private int numOfDataSets = 0;
   private boolean processingAllowed;
 
   public SpectraPlot() {
@@ -274,7 +272,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     assert plotMode != null;
 
     plotMode.addListener(((observable, oldValue, newValue) -> {
-      for (int i = 0; i < numOfDataSets; i++) {
+      int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+      for (int i = 0; i < numDatasets; i++) {
         XYDataset dataset = plot.getDataset(i);
         if (!(dataset instanceof ScanDataSet)) {
           continue;
@@ -313,7 +312,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
   void switchItemLabelsVisible() {
     itemLabelsVisible = !itemLabelsVisible;
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
+    int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+    for (int i = 0; i < numDatasets; i++) {
       XYItemRenderer renderer = plot.getRenderer(i);
       renderer.setDefaultItemLabelsVisible(itemLabelsVisible, false);
     }
@@ -326,7 +326,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     applyWithNotifyChanges(false, () -> {
 
       dataPointsVisible = !dataPointsVisible;
-      for (int i = 0; i < plot.getDatasetCount(); i++) {
+      int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+      for (int i = 0; i <numDatasets; i++) {
         XYItemRenderer renderer = plot.getRenderer(i);
         if (!(renderer instanceof ContinuousRenderer contRend)) {
           continue;
@@ -338,7 +339,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
   void switchPickedPeaksVisible() {
     peaksVisible = !peaksVisible;
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
+    int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+    for (int i = 0; i < numDatasets; i++) {
       XYDataset dataSet = plot.getDataset(i);
       if (!(dataSet instanceof PeakListDataSet)) {
         continue;
@@ -353,7 +355,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
   void switchIsotopePeaksVisible() {
     isotopesVisible = !isotopesVisible;
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
+    int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+    for (int i = 0; i <numDatasets; i++) {
       XYDataset dataSet = plot.getDataset(i);
       if (!(dataSet instanceof IsotopesDataSet)) {
         continue;
@@ -392,16 +395,12 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       }
       controller = null;
 
-      for (int i = 0; i < plot.getDatasetCount(); i++) {
+      int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+      for (int i = 0; i < numDatasets; i++) {
         plot.setDataset(i, null);
       }
-      numOfDataSets = 0;
       plot.clearDomainMarkers();
     });
-  }
-
-  public synchronized int getNumOfDataSets() {
-    return numOfDataSets;
   }
 
   public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency,
@@ -477,9 +476,9 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       }
       ((AbstractRenderer) newRenderer).setItemLabelAnchorOffset(1.3d);
 
-      plot.setDataset(numOfDataSets, dataSet);
-      plot.setRenderer(numOfDataSets, newRenderer);
-      numOfDataSets++;
+      int nextDatasetId = JFreeChartUtils.getNextDatasetIndex(plot);
+      plot.setDataset(nextDatasetId, dataSet);
+      plot.setRenderer(nextDatasetId, newRenderer);
 
       if (dataSet instanceof ScanDataSet) {
         checkAndRunController();
@@ -549,7 +548,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   public synchronized void removePeakListDataSets() {
     applyWithNotifyChanges(false, () -> {
 
-      for (int i = 0; i < plot.getDatasetCount(); i++) {
+      int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+      for (int i = 0; i < numDatasets; i++) {
         XYDataset dataSet = plot.getDataset(i);
         if (dataSet instanceof PeakListDataSet) {
           plot.setDataset(i, null);
@@ -559,7 +559,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   }
 
   public ScanDataSet getMainScanDataSet() {
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
+    int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+    for (int i = 0; i <numDatasets; i++) {
       XYDataset dataSet = plot.getDataset(i);
       if (dataSet instanceof ScanDataSet) {
         return (ScanDataSet) dataSet;
@@ -612,7 +613,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   public synchronized void removeDataPointProcessingResultDataSets() {
     applyWithNotifyChanges(false, () -> {
 
-      for (int i = 0; i < plot.getDatasetCount(); i++) {
+      int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+      for (int i = 0; i < numDatasets; i++) {
         XYDataset dataSet = plot.getDataset(i);
         if (dataSet instanceof DPPResultsDataSet) {
           plot.setDataset(i, null);
@@ -633,7 +635,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   private void addMatchLabelColorsListener() {
     matchLabelColors.addListener(((observable, oldValue, newValue) -> {
       if (newValue) {
-        for (int i = 0; i < getXYPlot().getDatasetCount(); i++) {
+        int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+        for (int i = 0; i < numDatasets; i++) {
           XYDataset dataset = getXYPlot().getDataset();
           if (!(dataset instanceof ScanDataSet)) {
             continue;
@@ -643,7 +646,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
               ((ScanDataSet) dataset).getScan().getDataFile().getColorAWT());
         }
       } else {
-        for (int i = 0; i < getXYPlot().getDatasetCount(); i++) {
+        int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+        for (int i = 0; i < numDatasets; i++) {
           XYDataset dataset = getXYPlot().getDataset();
           if (dataset == null) {
             continue;
@@ -680,8 +684,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   private SpectrumCursorPosition updateCursorPosition() {
     double selectedMZ = getXYPlot().getDomainCrosshairValue();
     double selectedIntensity = getXYPlot().getRangeCrosshairValue();
-
-    for (int i = 0; i < numOfDataSets; i++) {
+    int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+    for (int i = 0; i < numDatasets; i++) {
       XYDataset ds = getXYPlot().getDataset(i);
 
       if (!(ds instanceof ScanDataSet scanDataSet)) {
@@ -709,23 +713,5 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
   public Map<XYDataset, List<Pair<Double, Double>>> getDatasetToLabelsCoords() {
     return datasetToLabelsCoords;
-  }
-
-  public XYItemRenderer getLastRenderer() {
-    final XYPlot plot = getXYPlot();
-    if (plot == null) {
-      return null;
-    }
-    final int renderer = plot.getRendererCount();
-    return renderer <= 0 ? null : plot.getRenderer(renderer - 1);
-  }
-
-  public XYDataset getLastDataset() {
-    final XYPlot plot = getXYPlot();
-    if (plot == null) {
-      return null;
-    }
-    final int datasets = plot.getDatasetCount();
-    return datasets <= 0 ? null : plot.getDataset(datasets - 1);
   }
 }

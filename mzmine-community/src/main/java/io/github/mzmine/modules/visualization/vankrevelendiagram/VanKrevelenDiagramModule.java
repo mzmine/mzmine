@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -61,7 +62,7 @@ public class VanKrevelenDiagramModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       VanKrevelenDiagramTab newTab = new VanKrevelenDiagramTab(parameters);
       MZmineCore.getDesktop().addTab(newTab);
     });
