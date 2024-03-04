@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -155,8 +155,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     if (rtSmoothing) {
       makeAndAddSmoothingStep(q, true, minRtDataPoints, false);
     }
-    makeAndAddRtLocalMinResolver(q, null, minRtDataPoints, cropRtRange, rtFwhm,
-        10);
+    makeAndAddRtLocalMinResolver(q, null, minRtDataPoints, cropRtRange, rtFwhm, 10);
     if (recalibrateRetentionTime) {
       makeAndAddRetentionTimeCalibration(q, mzTolInterSample, interSampleRtTol,
           handleOriginalFeatureLists);
@@ -164,6 +163,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     makeMultiCurveResolutionStep(q);
     //makeHierarchicalClustering(q);
     makeAndAddAlignmentStep(q);
+    makeAndAddDuplicateRowFilterStep(q, handleOriginalFeatureLists, mzTolFeaturesIntraSample,
+        rtFwhm, imsInstrumentType);
     makeAndAddLibrarySearchMS1Step(q, false);
 
     if (isExportActive) {
