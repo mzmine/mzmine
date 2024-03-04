@@ -41,6 +41,9 @@ public class PCAUtils {
 
   private static final Logger logger = Logger.getLogger(PCAUtils.class.getName());
 
+  /**
+   * Performs mean centering on the data. Values may only be positive.
+   */
   public static RealMatrix performMeanCenter(RealMatrix data, boolean inPlace) {
 
     RealMatrix result = inPlace ? data
@@ -48,10 +51,11 @@ public class PCAUtils {
 
     for (int col = 0; col < data.getColumnDimension(); col++) {
       final RealVector columnVector = data.getColumnVector(col);
-      double sum = 0;
-      for (int row = 0; row < columnVector.getDimension(); row++) {
-        sum += columnVector.getEntry(row);
-      }
+//      double sum = 0;
+//      for (int row = 0; row < columnVector.getDimension(); row++) {
+//        sum += columnVector.getEntry(row);
+//      }
+      final double sum = columnVector.getL1Norm();
       final double mean = sum / columnVector.getDimension();
 
       var resultVector = result.getColumnVector(col);
@@ -59,6 +63,26 @@ public class PCAUtils {
       result.setColumnVector(col, resultVector);
     }
     return result;
+  }
+
+  /**
+   * Scales the values in every column to be between 0-1. To be used before centering the matrix.
+   */
+  public static RealMatrix scaleToUnitVariance(RealMatrix data, boolean inPlace) {
+    final RealMatrix result = inPlace ? data
+        : new Array2DRowRealMatrix(data.getRowDimension(), data.getColumnDimension());
+
+    for (int colIndex = 0; colIndex < data.getColumnDimension(); colIndex++) {
+      final RealVector columnVector = data.getColumnVector(colIndex);
+      final double columnMax = columnVector.getLInfNorm();
+      columnVector.mapDivide(columnMax);
+      result.setColumnVector(colIndex, columnVector);
+    }
+    return result;
+  }
+
+  public static RealMatrix scaleAndCenter(RealMatrix data, boolean inPlace) {
+    return performMeanCenter(scaleToUnitVariance(data, inPlace), inPlace);
   }
 
   public static RealMatrix createDatasetFromRows(List<FeatureListRow> rows,
@@ -70,7 +94,8 @@ public class PCAUtils {
     // file2  2   2   1   1
     // file3  3   4   4   5
 
-    final RealMatrix data = new Array2DRowRealMatrix(rows.size(), allFiles.size());
+    final RealMatrix data = new Array2DRowRealMatrix(allFiles.size(), rows.size());
+
     for (int fileIndex = 0; fileIndex < allFiles.size(); fileIndex++) {
       final RawDataFile file = allFiles.get(fileIndex);
       for (int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
@@ -83,7 +108,7 @@ public class PCAUtils {
         } else {
           abundance = 0.0d;
         }
-        data.setEntry(rowIndex, fileIndex, abundance);
+        data.setEntry(fileIndex, rowIndex, abundance);
       }
     }
 

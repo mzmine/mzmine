@@ -33,7 +33,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.gui.framework.fx.mvci.FxUpdateTask;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import java.awt.Color;
 import java.util.ArrayList;
@@ -58,8 +57,8 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
   protected PCAUpdateTask(@NotNull String taskName, PCAModel model) {
     super(taskName, model);
 
-    rangePc = Objects.requireNonNullElse(model.getRangePc(), 0) - 1;
     domainPc = Objects.requireNonNullElse(model.getDomainPc(), 0) - 1;
+    rangePc = Objects.requireNonNullElse(model.getRangePc(), 0) - 1;
     metadataColumn = model.getMetadataColumn();
     selectedRows = model.getSelectedRows();
     flists = model.getFlists();
@@ -72,9 +71,9 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
       return false;
     }
 
-    if (MZmineCore.getProjectMetadata().getColumnByName(metadataColumn) == null) {
-      return false;
-    }
+//    if (MZmineCore.getProjectMetadata().getColumnByName(metadataColumn) == null) {
+//      return false;
+//    }
 
     if (flists == null || flists.isEmpty() || flists.getFirst() == null) {
       return false;
@@ -114,7 +113,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
   protected void updateGuiModel() {
     model.setScoresDatasets(scoresDatasets);
     model.setLoadingsDatasets(loadingsDatasets);
-    model.getAvailablePCs().setAll(components);
+//    model.getAvailablePCs().setAll(components);
     model.setPcaResult(pcaRowsResult);
   }
 

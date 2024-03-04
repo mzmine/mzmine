@@ -34,6 +34,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.util.Arrays;
 import java.util.logging.Logger;
+import javax.swing.JDialog;
 import javax.swing.JPanel;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -58,7 +59,7 @@ public class PcaTest {
   private static String[] rows = datastr.split("\n");
 
   @Test
-  void pcaTest() {
+  void pcaTest() throws InterruptedException {
 //    double[][] data = new double[][]{{5.1, 3.5, 1.4, 0.2, 1}, {4.9, 3.0, 1.4, 0.2, 1},
 //        {4.7, 3.2, 1.3, 0.2, 1}, {4.6, 3.1, 1.5, 0.2, 1}, {5.0, 3.6, 1.4, 0.2, 1}};
     final double[][] data = Arrays.stream(rows).map(str -> str.split("\\s+"))
@@ -75,14 +76,17 @@ public class PcaTest {
     final RealMatrix principalComponentMatrix = pcaResult.principalComponents();
     final RealMatrix first2Components = pcaResult.getFirstNComponents(2);
 
-    final RealMatrix projected = matrix.multiply(first2Components);
+//    final RealMatrix projected = matrix.multiply(first2Components);
+    final RealMatrix projected = pcaResult.projectDataToScores(2);
 
     final ScoresPlot scoresPlot = new ScoresPlot(projected.getData());
     scoresPlot.setVisible(true);
+    JDialog frame = new JDialog();
+    frame.setContentPane(scoresPlot);
+    frame.setVisible(true);
 
     logger.info(() -> STR."Scores: \{principalComponentMatrix.toString()}");
     logger.info(() -> STR."Loadings: \{pcaResult.loadings().toString()}");
-
   }
 
   class ScoresPlot extends JPanel {

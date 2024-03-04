@@ -29,9 +29,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import javafx.beans.property.Property;
-import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.RealVector;
 
 public class ScoresProvider extends SimpleXYProvider {
 
@@ -60,22 +58,11 @@ public class ScoresProvider extends SimpleXYProvider {
   public void computeValues(Property<TaskStatus> status) {
     final PCAResult pcaResult = result.pcaResult();
 
-    final RealVector pcOne = pcaResult.principalComponents().getColumnVector(pcX);
-    final RealVector pcTwo = pcaResult.principalComponents().getColumnVector(pcY);
+    final RealMatrix scores = pcaResult.projectDataToScores(pcX, pcY);
 
-    RealMatrix pcMatrix = pcaResult.principalComponents()
-        .getSubMatrix(0, pcaResult.principalComponents().getRowDimension() - 1, 0, 1);
-    pcMatrix = new Array2DRowRealMatrix(pcMatrix.getData());
-
-    final Array2DRowRealMatrix pcMatrix2 = new Array2DRowRealMatrix(pcOne.getDimension(), 2);
-    pcMatrix2.setColumnVector(0, pcOne);
-    pcMatrix2.setColumnVector(1, pcTwo);
-
-    final RealMatrix scores = pcaResult.data().multiply(pcMatrix);
-
-    double[] domainData = new double[scores.getColumnDimension()];
-    double[] rangeData = new double[scores.getColumnDimension()];
-    for (int i = 0; i < scores.getColumnDimension(); i++) {
+    double[] domainData = new double[scores.getRowDimension()];
+    double[] rangeData = new double[scores.getRowDimension()];
+    for (int i = 0; i < scores.getRowDimension(); i++) {
       domainData[i] = scores.getEntry(i, 0);
       rangeData[i] = scores.getEntry(i, 1);
     }

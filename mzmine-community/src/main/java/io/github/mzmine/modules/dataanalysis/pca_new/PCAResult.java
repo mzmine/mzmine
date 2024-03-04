@@ -25,8 +25,11 @@
 
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
+import org.jetbrains.annotations.NotNull;
 
 public record PCAResult(RealMatrix data, RealMatrix dataMeanCentered,
                         SingularValueDecomposition svd, RealMatrix loadings,
@@ -34,10 +37,37 @@ public record PCAResult(RealMatrix data, RealMatrix dataMeanCentered,
 
   public RealMatrix getFirstNComponents(int numComponents) {
     return principalComponents.getSubMatrix(0, principalComponents.getRowDimension() - 1, 0,
-        numComponents);
+        numComponents - 1);
   }
 
   public RealMatrix projectDataToScores(int numComponents) {
-    return data.multiply(getFirstNComponents(numComponents));
+    final RealMatrix firstNComponents = getFirstNComponents(numComponents);
+    final RealMatrix subMatrixS = svd.getS()
+        .getSubMatrix(0, numComponents - 1, 0, numComponents - 1);
+    final RealMatrix projectedData = firstNComponents.multiply(subMatrixS);
+    return projectedData;
+  }
+
+  public RealMatrix projectDataToScores(int domainColIndex, int rangeColIndex) {
+    final RealMatrix pcMatrix = getPCMatrix(domainColIndex, rangeColIndex);
+    final RealMatrix projected = pcMatrix.multiply(svd.getS().getSubMatrix(0, 1, 0, 1));
+    return projected;
+  }
+
+  @NotNull
+  private RealMatrix getPCMatrix(int domainColIndex, int rangeColIndex) {
+    final RealMatrix pcs = svd.getU();
+    final RealVector domainVector = pcs.getColumnVector(domainColIndex);
+    final RealVector rangeVector = pcs.getColumnVector(rangeColIndex);
+    RealMatrix pcMatrix = new Array2DRowRealMatrix(pcs.getRowDimension(), 2);
+    pcMatrix.setColumnVector(0, domainVector);
+    pcMatrix.setColumnVector(1, rangeVector);
+
+    return pcMatrix;
+  }
+
+  public RealMatrix getLoadingsMatrix() {
+    final RealMatrix transpose = svd.getV().transpose();
+    return transpose;
   }
 }

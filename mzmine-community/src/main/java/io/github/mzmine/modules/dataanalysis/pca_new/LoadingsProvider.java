@@ -29,7 +29,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
 import javafx.beans.property.Property;
-import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 
 public class LoadingsProvider extends SimpleXYProvider {
@@ -60,18 +59,13 @@ public class LoadingsProvider extends SimpleXYProvider {
   public void computeValues(Property<TaskStatus> status) {
     final PCAResult pcaResult = result.pcaResult();
 
-    final RealMatrix loadings = pcaResult.loadings();
+    final RealMatrix loadingsMatrix = pcaResult.getLoadingsMatrix();
 
-    final Array2DRowRealMatrix loadingsMatrix = new Array2DRowRealMatrix(loadings.getRowDimension(),
-        2);
-    loadingsMatrix.setRowVector(0, loadings.getRowVector(loadingsX));
-    loadingsMatrix.setRowVector(1, loadings.getRowVector(loadingsY));
-
-    double[] domainData = new double[loadingsMatrix.getRowDimension()];
-    double[] rangeData = new double[loadingsMatrix.getRowDimension()];
-    for (int i = 0; i < loadingsMatrix.getRowDimension(); i++) {
-      domainData[i] = loadingsMatrix.getEntry(0, i);
-      rangeData[i] = loadingsMatrix.getEntry(1, i);
+    double[] domainData = new double[loadingsMatrix.getColumnDimension()];
+    double[] rangeData = new double[loadingsMatrix.getColumnDimension()];
+    for (int i = 0; i < loadingsMatrix.getColumnDimension(); i++) {
+      domainData[i] = loadingsMatrix.getEntry(loadingsX, i);
+      rangeData[i] = loadingsMatrix.getEntry(loadingsY, i);
     }
 
     setxValues(domainData);
