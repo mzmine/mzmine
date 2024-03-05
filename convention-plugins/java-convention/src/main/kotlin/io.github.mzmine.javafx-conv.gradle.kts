@@ -1,5 +1,5 @@
 plugins {
-    id("buildlogic.java-common-conventions")
+    id("io.github.mzmine.java-common-conv")
     id("org.openjfx.javafxplugin")
 }
 
