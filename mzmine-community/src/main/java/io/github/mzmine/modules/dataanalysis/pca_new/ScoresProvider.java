@@ -37,6 +37,7 @@ import java.awt.Color;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import javafx.beans.property.Property;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -80,8 +81,9 @@ public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvi
     final RealMatrix scores = pcaResult.projectDataToScores(pcX, pcY);
 
     final List<RawDataFile> files = result.files();
-    final Map<?, List<RawDataFile>> groupedFiles = MZmineCore.getProjectMetadata()
-        .groupFilesByColumn(groupingColumn);
+    final Map<?, List<RawDataFile>> groupedFiles =
+        groupingColumn != null ? MZmineCore.getProjectMetadata().groupFilesByColumn(groupingColumn)
+            : Map.of();
 
     AtomicInteger counter = new AtomicInteger(0);
     fileGroupMap = new HashMap<>();
@@ -100,7 +102,7 @@ public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvi
       domainData[i] = scores.getEntry(i, 0);
       rangeData[i] = scores.getEntry(i, 1);
       final RawDataFile file = files.get(i);
-      zData[i] = fileGroupMap.get(file);
+      zData[i] = Objects.requireNonNullElse(fileGroupMap.get(file), 0);
     }
 
     setxValues(domainData);
@@ -109,7 +111,7 @@ public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvi
     final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
     final Color defaultColor = colors.getPositiveColorAWT();
 
-    paintScale = new LookupPaintScale(0, groupedFiles.size(), defaultColor);
+    paintScale = new LookupPaintScale(0, Math.max(groupedFiles.size(), 1), defaultColor);
     colors.resetColorCounter();
     for (int i = 0; i < groupedFiles.size(); i++) {
       paintScale.add(i, colors.getAWT(i));

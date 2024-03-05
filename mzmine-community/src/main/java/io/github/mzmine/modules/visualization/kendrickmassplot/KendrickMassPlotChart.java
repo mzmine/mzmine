@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,6 +54,7 @@ public class KendrickMassPlotChart extends EChartViewer {
       String colorScaleLabel, KendrickMassPlotXYZDataset dataset) {
     super(ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset,
         PlotOrientation.VERTICAL, false, true, true));
+    setStickyZeroRangeAxis(false);
     this.colorScaleLabel = colorScaleLabel;
 
     EStandardChartTheme defaultChartTheme = MZmineCore.getConfiguration().getDefaultChartTheme();

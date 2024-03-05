@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,15 +25,10 @@
 
 package io.github.mzmine.util.dialogs;
 
-import java.util.logging.Logger;
-import javafx.stage.Window;
-import org.jetbrains.annotations.NotNull;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.plot.XYPlot;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
+import java.util.Locale;
+import java.util.logging.Logger;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -47,7 +42,13 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.Window;
 import javafx.util.converter.NumberStringConverter;
+import org.jetbrains.annotations.NotNull;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.XYPlot;
 
 public class AxesSetupDialog extends Stage {
 
@@ -55,26 +56,20 @@ public class AxesSetupDialog extends Stage {
 
   private final ValueAxis xAxis;
   private final ValueAxis yAxis;
-
-  private ExitCode exitCode = ExitCode.UNKNOWN;
-
   private final DialogPane mainPane;
   private final Scene mainScene;
-
   // Buttons
   private final Button btnOK, btnApply, btnCancel;
-
   private final GridPane pnlLabelsAndFields;
   private final TextField fieldXMin;
   private final TextField fieldXMax;
   private final TextField fieldXTick;
-
   private final TextField fieldYMin;
   private final TextField fieldYMax;
   private final TextField fieldYTick;
-
   private final CheckBox checkXAutoRange, checkXAutoTick;
   private final CheckBox checkYAutoRange, checkYAutoTick;
+  private ExitCode exitCode = ExitCode.UNKNOWN;
 
   /**
    * Constructor
@@ -100,8 +95,8 @@ public class AxesSetupDialog extends Stage {
     xAxis = plot.getDomainAxis();
     yAxis = plot.getRangeAxis();
 
-    NumberStringConverter xConverter = new NumberStringConverter();
-    NumberStringConverter yConverter = new NumberStringConverter();
+    NumberStringConverter xConverter = new NumberStringConverter(Locale.US);
+    NumberStringConverter yConverter = new NumberStringConverter(Locale.US);
 
     if (xAxis instanceof NumberAxis)
       xConverter = new NumberStringConverter(((NumberAxis) xAxis).getNumberFormatOverride());

@@ -100,7 +100,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
   protected ZoomHistory zoomHistory;
   protected List<AxesRangeChangedListener> axesRangeListener;
   protected boolean isMouseZoomable = true;
-  protected boolean stickyZeroForRangeAxis = false;
+  protected boolean stickyZeroForRangeAxis = true;
   protected boolean standardGestures = true;
   // only for XYData (not for categoryPlots)
   protected boolean addZoomHistory = true;
@@ -111,7 +111,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
    * stickyZeroForRangeAxis = false <br> Graphics and data export menu are added
    */
   public EChartViewer() {
-    this(null, true, true, true, true, false);
+    this(null, true, true, true, true, true);
   }
 
   /**
@@ -121,7 +121,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
    * @param chart
    */
   public EChartViewer(JFreeChart chart) {
-    this(chart, true, true, true, true, false);
+    this(chart, true, true, true, true, true);
   }
 
   /**
@@ -135,7 +135,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
    */
   public EChartViewer(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
       boolean standardGestures) {
-    this(chart, graphicsExportMenu, dataExportMenu, standardGestures, false);
+    this(chart, graphicsExportMenu, dataExportMenu, standardGestures, true);
   }
 
   /**
@@ -280,19 +280,11 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
     if (chartPanel.getChart().getPlot() instanceof XYPlot) {
       // set sticky zero
-      if (stickyZeroForRangeAxis) {
-        ValueAxis rangeAxis = chartPanel.getChart().getXYPlot().getRangeAxis();
-        if (rangeAxis instanceof NumberAxis axis) {
-          axis.setAutoRangeIncludesZero(true);
-          axis.setAutoRange(true);
-          axis.setAutoRangeStickyZero(true);
-          axis.setRangeType(RangeType.POSITIVE);
-        }
-      }
+      setStickyZeroRangeAxis(this.stickyZeroForRangeAxis);
 
       Plot p = getChart().getPlot();
       if (addZoomHistory && p instanceof XYPlot && !(p instanceof CombinedDomainXYPlot
-                                                     || p instanceof CombinedRangeXYPlot)) {
+          || p instanceof CombinedRangeXYPlot)) {
         // zoom history
         zoomHistory = new ZoomHistory(this, 20);
 
@@ -339,6 +331,16 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
         }
       }
       //      mouseAdapter.addDebugHandler();
+    }
+  }
+
+  public void setStickyZeroRangeAxis(boolean stickyZeroForRangeAxis) {
+    ValueAxis rangeAxis = this.getChart().getXYPlot().getRangeAxis();
+    if (rangeAxis instanceof NumberAxis axis) {
+      axis.setAutoRangeIncludesZero(stickyZeroForRangeAxis);
+      axis.setAutoRangeStickyZero(stickyZeroForRangeAxis);
+      axis.setRangeType(stickyZeroForRangeAxis ? RangeType.POSITIVE : RangeType.FULL);
+      axis.setAutoRange(true);
     }
   }
 
@@ -417,8 +419,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
         XYDataset data = plot.getDataset(d);
         if (data == null) {
           continue;
-        }
-        else if (data instanceof XYZDataset xyz) {
+        } else if (data instanceof XYZDataset xyz) {
           int series = data.getSeriesCount();
           Object[][] model = new Object[series * 3][];
           for (int s = 0; s < series; s++) {
