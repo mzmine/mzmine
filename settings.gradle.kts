@@ -5,9 +5,10 @@ pluginManagement {
     includeBuild("convention-plugins")
 }
 
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
-}
+// this should not be needed but can remove later once stable
+//plugins {
+//    id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
+//}
 
 // == Define locations for components ==
 dependencyResolutionManagement {
