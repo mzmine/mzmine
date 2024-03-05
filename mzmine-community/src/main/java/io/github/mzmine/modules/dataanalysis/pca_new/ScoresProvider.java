@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -51,6 +52,7 @@ public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvi
   private final MetadataColumn<?> groupingColumn;
   private int[] zData;
   private LookupPaintScale paintScale;
+  private Map<RawDataFile, Integer> fileGroupMap;
 
   /**
    * @param pcX index of the principal component used for domain axis, subtract 1 from the number
@@ -82,7 +84,7 @@ public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvi
         .groupFilesByColumn(groupingColumn);
 
     AtomicInteger counter = new AtomicInteger(0);
-    Map<RawDataFile, Integer> fileGroupMap = new HashMap<>();
+    fileGroupMap = new HashMap<>();
     groupedFiles.forEach((_, value) -> {
       value.forEach(file -> {
         fileGroupMap.put(file, counter.get());
@@ -132,5 +134,17 @@ public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvi
   @Override
   public @Nullable Double getBoxWidth() {
     return 5d;
+  }
+
+  @Override
+  public String getToolTipText(int itemIndex) {
+    final MetadataTable metadata = MZmineCore.getProjectMetadata();
+    final RawDataFile file = result.files().get(itemIndex);
+    final Object value = metadata.getValue(groupingColumn, file);
+
+    return STR."""
+        File: \{file.getName()}
+        Group: \{value}
+        """;
   }
 }
