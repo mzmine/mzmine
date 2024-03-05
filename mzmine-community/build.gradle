@@ -33,8 +33,8 @@ import java.nio.file.StandardCopyOption
 import java.util.function.Consumer
 
 plugins {
-    id("buildlogic.java-application-conventions")
-    id("buildlogic.javafx-conventions")
+    id("io.github.mzmine.java-app-conv")
+    id("io.github.mzmine.javafx-conv")
     alias(libs.plugins.beryx.runtime)
 
     // versioning now in version.properties file

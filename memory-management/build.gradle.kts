@@ -1,5 +1,5 @@
 plugins {
-    id("buildlogic.java-library-conventions")
+    id("io.github.mzmine.java-library-conv")
 }
 
 dependencies {
