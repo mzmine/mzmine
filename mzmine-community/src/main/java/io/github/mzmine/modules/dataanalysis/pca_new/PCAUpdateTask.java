@@ -29,10 +29,12 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import java.awt.Color;
 import java.util.ArrayList;
@@ -91,9 +93,10 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     pcaRowsResult = PCAUtils.performPCAOnRows(flists.get(0).getRows(), abundance);
     progressProvider.getAndIncrement();
 
+
     final ScoresProvider scores = new ScoresProvider(pcaRowsResult, "Scores", Color.RED, domainPc,
-        rangePc);
-    final ColoredXYDataset scoresDS = new ColoredXYDataset(scores, RunOption.THIS_THREAD);
+        rangePc, MZmineCore.getProjectMetadata().getColumnByName(metadataColumn));
+    final ColoredXYDataset scoresDS = new ColoredXYZDataset(scores, RunOption.THIS_THREAD);
     progressProvider.getAndIncrement();
 
     final LoadingsProvider loadings = new LoadingsProvider(pcaRowsResult, "Loadings", Color.RED,
@@ -104,7 +107,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     loadingsDatasets.add(new DatasetAndRenderer(loadingsDS, new ColoredXYShapeRenderer()));
     scoresDatasets.add(new DatasetAndRenderer(scoresDS, new ColoredXYShapeRenderer()));
 
-    for (int i = 1; i <= pcaRowsResult.pcaResult().principalComponents().getRowDimension(); i++) {
+    for (int i = 1; i <= pcaRowsResult.pcaResult().getPrincipalComponents().getRowDimension(); i++) {
       components.add(i);
     }
   }

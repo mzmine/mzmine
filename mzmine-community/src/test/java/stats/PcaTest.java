@@ -73,7 +73,7 @@ public class PcaTest {
 
     final PCAResult pcaResult = PCAUtils.calculatePCA(matrix);
 
-    final RealMatrix principalComponentMatrix = pcaResult.principalComponents();
+    final RealMatrix principalComponentMatrix = pcaResult.getPrincipalComponents();
     final RealMatrix first2Components = pcaResult.getFirstNComponents(2);
 
 //    final RealMatrix projected = matrix.multiply(first2Components);
@@ -86,7 +86,7 @@ public class PcaTest {
     frame.setVisible(true);
 
     logger.info(() -> STR."Scores: \{principalComponentMatrix.toString()}");
-    logger.info(() -> STR."Loadings: \{pcaResult.loadings().toString()}");
+    logger.info(() -> STR."Loadings: \{pcaResult.getLoadingsMatrix().toString()}");
   }
 
   class ScoresPlot extends JPanel {

@@ -32,12 +32,15 @@ import org.apache.commons.math3.linear.SingularValueDecomposition;
 import org.jetbrains.annotations.NotNull;
 
 public record PCAResult(RealMatrix data, RealMatrix dataMeanCentered,
-                        SingularValueDecomposition svd, RealMatrix loadings,
-                        RealMatrix principalComponents) {
+                        SingularValueDecomposition svd) {
 
   public RealMatrix getFirstNComponents(int numComponents) {
-    return principalComponents.getSubMatrix(0, principalComponents.getRowDimension() - 1, 0,
+    return svd.getU().getSubMatrix(0, svd.getU().getRowDimension() - 1, 0,
         numComponents - 1);
+  }
+
+  public RealMatrix getPrincipalComponents() {
+    return svd.getU();
   }
 
   public RealMatrix projectDataToScores(int numComponents) {

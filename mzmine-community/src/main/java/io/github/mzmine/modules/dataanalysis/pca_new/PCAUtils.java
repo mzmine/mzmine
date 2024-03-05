@@ -117,19 +117,13 @@ public class PCAUtils {
 
   public static PCAResult calculatePCA(RealMatrix data) {
 
-    logger.finest(() -> "Performing mean centering");
-    final RealMatrix centeredMatrix = performMeanCenter(data, false);
+    logger.finest(() -> "Performing scaling mean centering");
+    final RealMatrix centeredMatrix = scaleAndCenter(data, false);
 
     logger.finest(() -> "Performing singular value decomposition. This may take a while");
     SingularValueDecomposition svd = new SingularValueDecomposition(centeredMatrix);
 
-    // Get principal components (columns of the orthogonal matrix U)
-    RealMatrix principalComponentMatrix = svd.getU();
-
-    // Get loadings (right singular vectors, columns of the orthogonal matrix V)
-    RealMatrix loadings = svd.getV();
-
-    return new PCAResult(data, centeredMatrix, svd, loadings, principalComponentMatrix);
+    return new PCAResult(data, centeredMatrix, svd);
   }
 
   public static PCARowsResult performPCAOnRows(List<FeatureListRow> rows,
