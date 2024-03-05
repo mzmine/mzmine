@@ -1,5 +1,3 @@
-import gradle.kotlin.dsl.accessors._8c47cae829ea3d03260d5ff13fb2398e.versionCatalogs
-
 plugins {
     id("buildlogic.java-common-conventions")
     id("org.openjfx.javafxplugin")
