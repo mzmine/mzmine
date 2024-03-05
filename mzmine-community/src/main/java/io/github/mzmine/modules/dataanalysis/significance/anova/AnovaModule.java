@@ -44,8 +44,7 @@ import java.util.logging.Logger;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
-public class AnovaModule implements MZmineProcessingModule,
-    RowSignificanceTestModule<String> {
+public class AnovaModule implements MZmineProcessingModule, RowSignificanceTestModule<String> {
 
   private static final Logger logger = Logger.getLogger(AnovaModule.class.getName());
 
@@ -67,7 +66,7 @@ public class AnovaModule implements MZmineProcessingModule,
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    FeatureList[] featureLists = parameters.getParameter(AnovaParameters.featureLists).getValue()
+    FeatureList[] featureLists = parameters.getValue(AnovaParameters.featureLists)
         .getMatchingFeatureLists();
 
     for (FeatureList featureList : featureLists) {

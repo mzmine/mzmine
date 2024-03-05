@@ -31,11 +31,17 @@ import io.github.mzmine.javafx.components.factories.FxComponentFactory;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
 import javafx.collections.FXCollections;
+import javafx.geometry.HPos;
+import javafx.geometry.VPos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.RowConstraints;
 
 public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
 
@@ -50,22 +56,37 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
 
   @Override
   public Region build() {
+    scoresPlot.setStickyZeroRangeAxis(false);
+    loadingsPlot.setStickyZeroRangeAxis(false);
 
     final BorderPane pane = new BorderPane();
-    final HBox domain = FxComponentFactory.createLabelledComboBox("Domain PC", model.getAvailablePCs(),
-        model.domainPcProperty());
-    final HBox range = FxComponentFactory.createLabelledComboBox("Range PC", model.getAvailablePCs(),
-        model.rangePcProperty());
+    final HBox domain = FxComponentFactory.createLabelledComboBox("Domain PC",
+        model.getAvailablePCs(), model.domainPcProperty());
+    final HBox range = FxComponentFactory.createLabelledComboBox("Range PC",
+        model.getAvailablePCs(), model.rangePcProperty());
     final HBox coloring = createMetadataBox();
     final HBox abundance = FxComponentFactory.createLabelledComboBox("Abundance",
         FXCollections.observableArrayList(AbundanceMeasure.values()), model.abundanceProperty());
 
     pane.setBottom(new FlowPane(space, space, domain, range, coloring, abundance));
 
-    scoresPlot.setMinSize(500, 500);
-    loadingsPlot.setMinSize(500, 500);
+    scoresPlot.setMinSize(300, 300);
+    loadingsPlot.setMinSize(300, 300);
 
-    pane.setCenter(new HBox(new BorderPane(scoresPlot), new BorderPane(loadingsPlot)));
+    GridPane plotPane = new GridPane();
+    plotPane.add(scoresPlot, 0, 0);
+    plotPane.add(loadingsPlot, 1, 0);
+    plotPane.getColumnConstraints().addAll(
+        new ColumnConstraints(300, GridPane.USE_COMPUTED_SIZE, GridPane.USE_COMPUTED_SIZE,
+            Priority.ALWAYS, HPos.CENTER, true),
+        new ColumnConstraints(300, GridPane.USE_COMPUTED_SIZE, GridPane.USE_COMPUTED_SIZE,
+            Priority.ALWAYS, HPos.CENTER, true));
+    plotPane.getRowConstraints().add(
+        new RowConstraints(300, GridPane.USE_COMPUTED_SIZE, GridPane.USE_COMPUTED_SIZE,
+            Priority.ALWAYS, VPos.CENTER, true));
+
+//    final FlowPane plots = new FlowPane(new BorderPane(scoresPlot), new BorderPane(loadingsPlot));
+    pane.setCenter(plotPane);
 
     initDatasetListeners();
     return pane;

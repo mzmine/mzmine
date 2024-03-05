@@ -45,8 +45,8 @@ import org.jetbrains.annotations.NotNull;
 public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 
   private final TotalFinishedItemsProgress progressProvider = new TotalFinishedItemsProgress(3);
-  private final Integer rangePc;
-  private final Integer domainPc;
+  private final Integer rangePcIndex;
+  private final Integer domainPcIndex;
   private final String metadataColumn;
   private final List<FeatureListRow> selectedRows;
   private final AbundanceMeasure abundance;
@@ -59,8 +59,8 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
   protected PCAUpdateTask(@NotNull String taskName, PCAModel model) {
     super(taskName, model);
 
-    domainPc = Objects.requireNonNullElse(model.getDomainPc(), 0) - 1;
-    rangePc = Objects.requireNonNullElse(model.getRangePc(), 0) - 1;
+    domainPcIndex = Objects.requireNonNullElse(model.getDomainPc(), 0) - 1;
+    rangePcIndex = Objects.requireNonNullElse(model.getRangePc(), 0) - 1;
     metadataColumn = model.getMetadataColumn();
     selectedRows = model.getSelectedRows();
     flists = model.getFlists();
@@ -69,7 +69,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 
   @Override
   public boolean checkPreConditions() {
-    if (rangePc < 0 || domainPc < 0) {
+    if (rangePcIndex < 0 || domainPcIndex < 0) {
       return false;
     }
 
@@ -93,14 +93,14 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     pcaRowsResult = PCAUtils.performPCAOnRows(flists.get(0).getRows(), abundance);
     progressProvider.getAndIncrement();
 
-
-    final ScoresProvider scores = new ScoresProvider(pcaRowsResult, "Scores", Color.RED, domainPc,
-        rangePc, MZmineCore.getProjectMetadata().getColumnByName(metadataColumn));
+    final ScoresProvider scores = new ScoresProvider(pcaRowsResult, "Scores", Color.RED,
+        domainPcIndex, rangePcIndex,
+        MZmineCore.getProjectMetadata().getColumnByName(metadataColumn));
     final ColoredXYDataset scoresDS = new ColoredXYZDataset(scores, RunOption.THIS_THREAD);
     progressProvider.getAndIncrement();
 
     final LoadingsProvider loadings = new LoadingsProvider(pcaRowsResult, "Loadings", Color.RED,
-        domainPc, rangePc);
+        domainPcIndex, rangePcIndex);
     final ColoredXYDataset loadingsDS = new ColoredXYDataset(loadings, RunOption.THIS_THREAD);
     progressProvider.getAndIncrement();
 
@@ -116,8 +116,19 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
   protected void updateGuiModel() {
     model.setScoresDatasets(scoresDatasets);
     model.setLoadingsDatasets(loadingsDatasets);
-//    model.getAvailablePCs().setAll(components);
     model.setPcaResult(pcaRowsResult);
+    model.getAvailablePCs().setAll(components);
+
+    if (rangePcIndex < components.size()) {
+      model.setRangePc(rangePcIndex + 1);
+    } else {
+      model.setRangePc(components.getLast() + 1);
+    }
+    if (domainPcIndex < components.size()) {
+      model.setDomainPc(domainPcIndex + 1);
+    } else {
+      model.setDomainPc(components.getLast() + 1);
+    }
   }
 
   @Override

@@ -69,5 +69,7 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
         .addListener(_ -> onTaskThread(new PCAUpdateTask("update full dataset", model)));
     model.flistsProperty()
         .addListener(_ -> onTaskThread(new PCAUpdateTask("update full dataset", model)));
+    model.metadataColumnProperty()
+        .addListener(_ -> onTaskThread(new PCAUpdateTask("update full dataset", model)));
   }
 }
