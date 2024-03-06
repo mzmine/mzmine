@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.LegendItem;
 import org.jfree.chart.StandardChartTheme;
 import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.NumberAxis;
@@ -605,5 +606,9 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public void setDefaultDataStroke(BasicStroke defaultDataStroke) {
     this.defaultDataStroke = defaultDataStroke;
+  }
+
+  public void applyToLegendItem(LegendItem item) {
+    item.setLabelFont(getRegularFont());
   }
 }
