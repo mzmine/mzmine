@@ -27,7 +27,6 @@ package io.github.mzmine.modules.tools.batchwizard.builders;
 
 
 import com.google.common.collect.Range;
-import dulab.adap.workflow.AlignmentParameters;
 import dulab.adap.workflow.TwoStepDecompositionParameters;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.main.MZmineCore;
@@ -38,8 +37,8 @@ import io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAP3
 import io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule;
 import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAP3DecompositionV2Parameters;
 import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule;
-import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule;
-import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerParameters;
+import io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerModule;
+import io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
@@ -257,19 +256,27 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
 
   protected void makeAndAddAlignmentStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(ADAP3AlignerModule.class).cloneParameterSet();
-    param.setParameter(ADAP3AlignerParameters.PEAK_LISTS,
+        .getModuleParameters(GCAlignerModule.class).cloneParameterSet();
+    param.setParameter(GCAlignerParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(ADAP3AlignerParameters.NEW_PEAK_LIST_NAME, "Aligned feature list");
-    param.setParameter(ADAP3AlignerParameters.SAMPLE_COUNT_RATIO, sampleCountRatio);
-    param.setParameter(ADAP3AlignerParameters.RET_TIME_RANGE, interSampleRtTol);
-    param.setParameter(ADAP3AlignerParameters.MZ_RANGE, mzTolInterSample);
-    param.setParameter(ADAP3AlignerParameters.SCORE_TOLERANCE, 0.75);
-    param.setParameter(ADAP3AlignerParameters.SCORE_WEIGHT, 0.1);
-    param.setParameter(ADAP3AlignerParameters.EIC_SCORE, AlignmentParameters.RT_DIFFERENCE);
-
-    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ADAP3AlignerModule.class),
-        param));
+    param.setParameter(GCAlignerParameters.MZ_TOLERANCE, mzTolScans);
+    param.setParameter(GCAlignerParameters.RT_TOLERANCE, interSampleRtTol);
+    ModuleComboParameter<SpectralSimilarityFunction> simFunction = param.getParameter(
+        GCAlignerParameters.SIMILARITY_FUNCTION);
+    ParameterSet weightedCosineParam = MZmineCore.getConfiguration()
+        .getModuleParameters(WeightedCosineSpectralSimilarity.class).cloneParameterSet();
+    weightedCosineParam.setParameter(CompositeCosineSpectralSimilarityParameters.weight,
+        Weights.NIST_GC);
+    weightedCosineParam.setParameter(CompositeCosineSpectralSimilarityParameters.minCosine, 0.7);
+    weightedCosineParam.setParameter(CompositeCosineSpectralSimilarityParameters.handleUnmatched,
+        HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO);
+    SpectralSimilarityFunction weightedCosineModule = SpectralSimilarityFunction.compositeCosine;
+    var similarityStep = new MZmineProcessingStepImpl<>(weightedCosineModule, weightedCosineParam);
+    simFunction.setValue(similarityStep);
+    param.setParameter(GCAlignerParameters.SIMILARITY_FUNCTION, similarityStep);
+    param.setParameter(GCAlignerParameters.FEATURE_LIST_NAME, "Aligned feature list");
+    q.add(
+        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(GCAlignerModule.class), param));
   }
 
   private void makeAndAddLibrarySearchMS1Step(final BatchQueue q,
@@ -304,7 +311,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     weightedCosineParam.setParameter(CompositeCosineSpectralSimilarityParameters.handleUnmatched,
         HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO);
 
-    SpectralSimilarityFunction weightedCosineModule = SpectralSimilarityFunction.weightedCosine;
+    SpectralSimilarityFunction weightedCosineModule = SpectralSimilarityFunction.compositeCosine;
     var libMatchStep = new MZmineProcessingStepImpl<>(weightedCosineModule, weightedCosineParam);
 
     // finally set the libmatch module plus parameters as step

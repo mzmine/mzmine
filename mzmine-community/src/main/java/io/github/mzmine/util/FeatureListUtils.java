@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util;
 
+import static io.github.mzmine.util.FeatureListRowSorter.DEFAULT_RT;
 import static io.github.mzmine.util.FeatureListRowSorter.MZ_ASCENDING;
 import static io.github.mzmine.util.RangeUtils.rangeLength;
 
@@ -36,17 +37,16 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
 import io.github.mzmine.modules.dataprocessing.align_join.RowAlignmentScoreCalculator;
-import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.javafx.WeakAdapter;
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -163,6 +163,49 @@ public class FeatureListUtils {
             rowRT))) {
           candidates.add(row);
         }
+      } else {
+        break;
+      }
+    }
+    return candidates;
+  }
+
+  /**
+   * All features within all ranges. Use a sorted list to speed up search. Use range.all() instead
+   * of null for missign ranges
+   *
+   * @param rtRange search range in retention time, provide Range.all() if no RT
+   * @param rows    the list of rows to search in
+   * @return an unsorted list of candidates within all three ranges if provided
+   */
+  public static @NotNull List<FeatureListRow> getCandidatesWithinRtRange(
+      @NotNull Range<Float> rtRange, @NotNull List<? extends FeatureListRow> rows,
+      boolean sortedByDefaultRt) {
+
+    if (!sortedByDefaultRt) {
+      rows = rows.stream().sorted(DEFAULT_RT).toList();
+    }
+    // search starting point as the insertion index
+    int insertIndex = binarySearch(rows, RangeUtils.rangeCenter(rtRange));
+    if (insertIndex < 0) {
+      insertIndex = -insertIndex - 1;
+    }
+
+    List<FeatureListRow> candidates = new ArrayList<>();
+    // right
+    for (int i = insertIndex; i < rows.size(); i++) {
+      FeatureListRow row = rows.get(i);
+      if (rtRange.contains(row.getAverageRT())) {
+        candidates.add(row);
+      } else {
+        break;
+      }
+    }
+    // left
+    for (int i = insertIndex - 1; i >= 0; i--) {
+      FeatureListRow row = rows.get(i);
+      if (rtRange.contains(row.getAverageRT())) {
+        candidates.add(row);
       } else {
         break;
       }
@@ -362,6 +405,21 @@ public class FeatureListUtils {
    * mobility values based on tolerances -> ranges). General score is SUM((difference
    * row-center(range)) / rangeLength * factor) / sum(factors)
    *
+   * @param row      target row
+   * @param rtRange  allowed range
+   * @param rtWeight weight factor
+   * @return the alignment score between 0-1 with 1 being a perfect match
+   */
+  public static double getAlignmentScore(FeatureListRow row, @Nullable Range<Float> rtRange,
+      double similarity, double rtWeight, double similarityWeight) {
+    return getAlignmentScore(row.getAverageRT(), rtRange, similarity, rtWeight, similarityWeight);
+  }
+
+  /**
+   * Compare row average values to ranges (during alignment or annotation to other mz, rt, and
+   * mobility values based on tolerances -> ranges). General score is SUM((difference
+   * row-center(range)) / rangeLength * factor) / sum(factors)
+   *
    * @param testMz         tested value
    * @param testRt         tested value
    * @param testMobility   tested value
@@ -417,6 +475,48 @@ public class FeatureListUtils {
       float diff = Math.abs(testCCS - ccs);
       score += Math.max(0, 1 - (diff / (rangeLength(ccsRange) / 2)) * ccsWeight);
       scorers += (int) Math.round(ccsWeight);
+    }
+
+    if (scorers == 0) {
+      return 0f;
+    }
+
+    return score / scorers;
+  }
+
+  /**
+   * Compare row average values to ranges (during alignment or annotation to other mz, rt, and
+   * mobility values based on tolerances -> ranges). General score is SUM((difference
+   * row-center(range)) / rangeLength * factor) / sum(factors)
+   *
+   * @param testRt           tested value
+   * @param testSimilarity   tested value
+   * @param rtRange          allowed range
+   * @param rtWeight         weight factor
+   * @param similarityWeight weight factor
+   * @return the alignment score between 0-1 with 1 being a perfect match
+   */
+  public static double getAlignmentScore(Float testRt, @Nullable Range<Float> rtRange,
+      double testSimilarity, double rtWeight, double similarityWeight) {
+
+    // don't score range.all, will distort the scoring.
+    rtRange = rtRange == null || rtRange.equals(Range.all()) ? null : rtRange;
+
+    int scorers = 0;
+
+    double score = 0f;
+    // values are "matched" if the given value exists in this class and falls within the tolerance.
+
+    if (rtWeight > 0 && rtRange != null && testRt != null) {
+      final Float rt = RangeUtils.rangeCenter(rtRange);
+      float diff = Math.abs(testRt - rt);
+      score += Math.max(0, 1 - (diff / (rangeLength(rtRange) / 2)) * rtWeight);
+      scorers += (int) Math.round(rtWeight);
+    }
+
+    if (similarityWeight > 0) {
+      score += Math.abs(1.0 - testSimilarity);
+      scorers += (int) Math.round(similarityWeight);
     }
 
     if (scorers == 0) {

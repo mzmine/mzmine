@@ -32,6 +32,7 @@ import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.PrecursorPu
 import io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule;
 import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule;
 import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule;
+import io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_hierarchical.HierarAlignerGcModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_path.PathAlignerModule;
@@ -290,6 +291,7 @@ public class BatchModeModulesList {
        * {@link io.github.mzmine.modules.MZmineModuleCategory#ALIGNMENT}
        */
       JoinAlignerModule.class, //
+      GCAlignerModule.class, //
       ADAP3AlignerModule.class, //
       HierarAlignerGcModule.class, //
       PathAlignerModule.class, //
