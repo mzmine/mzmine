@@ -28,6 +28,7 @@ package stats;
 
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAResult;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAUtils;
+import io.github.mzmine.modules.dataanalysis.significance.StatisticUtils;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -68,7 +69,7 @@ public class PcaTest {
 
     RealMatrix matrix = new Array2DRowRealMatrix(data);
 
-    final RealMatrix centered = PCAUtils.performMeanCenter(matrix, false);
+    final RealMatrix centered = StatisticUtils.performMeanCenter(matrix, false);
     logger.info(centered.toString());
 
     final PCAResult pcaResult = PCAUtils.calculatePCA(matrix);
