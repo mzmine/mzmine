@@ -57,7 +57,6 @@ description = "MZmine"
 
 defaultTasks "test", "jpackage", "notarizeApp"
 
-
 // Check the OS
 project.ext.osSuffix = OperatingSystem.current().getName().replaceAll(" ", "_")
 if (OperatingSystem.current().isLinux()) project.ext.osSuffix = "Linux"
@@ -281,6 +280,10 @@ tasks.withType(JavaExec) {
 application {
     mainClass.set("io.github.mzmine.main.MZmineCore")
     applicationName = "MZmine"
+    applicationDefaultJvmArgs = [
+            "--add-exports=javafx.base/com.sun.javafx.event=org.controlsfx.controls",
+            "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
+    ]
 }
 
 /*
@@ -369,7 +372,8 @@ runtime {
                    "-XX:MaxRAMPercentage=80",
                    "-enableassertions",
                    "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration",
-                   "--enable-preview"]
+                   "--enable-preview",
+                   ]
     }
 }
 
