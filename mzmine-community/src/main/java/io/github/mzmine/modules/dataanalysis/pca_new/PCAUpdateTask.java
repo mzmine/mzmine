@@ -107,7 +107,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     loadingsDatasets.add(new DatasetAndRenderer(loadingsDS, new ColoredXYShapeRenderer()));
     scoresDatasets.add(new DatasetAndRenderer(scoresDS, new ColoredXYShapeRenderer()));
 
-    for (int i = 1; i <= pcaRowsResult.pcaResult().getPrincipalComponents().getRowDimension(); i++) {
+    for (int i = 1; i <= pcaRowsResult.pcaResult().principalComponentsMatrix().getRowDimension(); i++) {
       components.add(i);
     }
   }

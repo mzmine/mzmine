@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.ZCategoryProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
@@ -45,7 +46,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.PaintScale;
 
-public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvider {
+public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvider,
+    ZCategoryProvider {
 
   private final PCARowsResult result;
   private final int pcX;
@@ -54,6 +56,8 @@ public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvi
   private int[] zData;
   private LookupPaintScale paintScale;
   private Map<RawDataFile, Integer> fileGroupMap;
+  private int numberOfCategories;
+  private String[] groupNames;
 
   /**
    * @param pcX index of the principal component used for domain axis, subtract 1 from the number
@@ -85,12 +89,16 @@ public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvi
         groupingColumn != null ? MZmineCore.getProjectMetadata().groupFilesByColumn(groupingColumn)
             : Map.of();
 
+    numberOfCategories = Math.max(groupedFiles.size(), 1);
+    groupNames = new String[Math.max(groupedFiles.size(), 1)];
+
     AtomicInteger counter = new AtomicInteger(0);
     fileGroupMap = new HashMap<>();
-    groupedFiles.forEach((_, value) -> {
+    groupedFiles.forEach((groupKey, value) -> {
       value.forEach(file -> {
         fileGroupMap.put(file, counter.get());
       });
+      groupNames[counter.get()] = groupKey.toString();
       counter.getAndIncrement();
     });
 
@@ -111,7 +119,7 @@ public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvi
     final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
     final Color defaultColor = colors.getPositiveColorAWT();
 
-    paintScale = new LookupPaintScale(0, Math.max(groupedFiles.size(), 1), defaultColor);
+    paintScale = new LookupPaintScale(0, numberOfCategories, defaultColor);
     colors.resetColorCounter();
     for (int i = 0; i < groupedFiles.size(); i++) {
       paintScale.add(i, colors.getAWT(i));
@@ -148,5 +156,15 @@ public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvi
         File: \{file.getName()}
         Group: \{value}
         """;
+  }
+
+  @Override
+  public int getNumberOfCategories() {
+    return numberOfCategories;
+  }
+
+  @Override
+  public String getLegendLabel(int category) {
+    return groupNames[category] != null ? groupNames[category] : "unnamed group";
   }
 }

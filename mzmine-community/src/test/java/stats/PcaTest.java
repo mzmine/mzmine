@@ -73,8 +73,8 @@ public class PcaTest {
 
     final PCAResult pcaResult = PCAUtils.calculatePCA(matrix);
 
-    final RealMatrix principalComponentMatrix = pcaResult.getPrincipalComponents();
-    final RealMatrix first2Components = pcaResult.getFirstNComponents(2);
+    final RealMatrix principalComponentMatrix = pcaResult.principalComponentsMatrix();
+    final RealMatrix first2Components = pcaResult.firstNComponents(2);
 
 //    final RealMatrix projected = matrix.multiply(first2Components);
     final RealMatrix projected = pcaResult.projectDataToScores(2);

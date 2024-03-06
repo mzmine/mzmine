@@ -34,17 +34,17 @@ import org.jetbrains.annotations.NotNull;
 public record PCAResult(RealMatrix data, RealMatrix dataMeanCentered,
                         SingularValueDecomposition svd) {
 
-  public RealMatrix getFirstNComponents(int numComponents) {
+  public RealMatrix firstNComponents(int numComponents) {
     return svd.getU().getSubMatrix(0, svd.getU().getRowDimension() - 1, 0,
         numComponents - 1);
   }
 
-  public RealMatrix getPrincipalComponents() {
+  public RealMatrix principalComponentsMatrix() {
     return svd.getU();
   }
 
   public RealMatrix projectDataToScores(int numComponents) {
-    final RealMatrix firstNComponents = getFirstNComponents(numComponents);
+    final RealMatrix firstNComponents = firstNComponents(numComponents);
     final RealMatrix subMatrixS = svd.getS()
         .getSubMatrix(0, numComponents - 1, 0, numComponents - 1);
     final RealMatrix projectedData = firstNComponents.multiply(subMatrixS);
@@ -52,13 +52,13 @@ public record PCAResult(RealMatrix data, RealMatrix dataMeanCentered,
   }
 
   public RealMatrix projectDataToScores(int domainColIndex, int rangeColIndex) {
-    final RealMatrix pcMatrix = getPCMatrix(domainColIndex, rangeColIndex);
+    final RealMatrix pcMatrix = pcMatrix(domainColIndex, rangeColIndex);
     final RealMatrix projected = pcMatrix.multiply(svd.getS().getSubMatrix(0, 1, 0, 1));
     return projected;
   }
 
   @NotNull
-  private RealMatrix getPCMatrix(int domainColIndex, int rangeColIndex) {
+  private RealMatrix pcMatrix(int domainColIndex, int rangeColIndex) {
     final RealMatrix pcs = svd.getU();
     final RealVector domainVector = pcs.getColumnVector(domainColIndex);
     final RealVector rangeVector = pcs.getColumnVector(rangeColIndex);
