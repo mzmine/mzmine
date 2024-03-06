@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries.IntensityMode;
+import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries.MzMode;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.operations.AbstractTaskSubSupplier;
@@ -51,6 +52,8 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskSubSupplier<Bu
       ExtractMzRangesIonSeriesFunction.class.getName());
   private final List<Range<Double>> mzRangesSorted;
   private final ScanDataAccess dataAccess;
+  private MzMode mzMode = MzMode.DEFAULT;
+  private IntensityMode intensityMode = IntensityMode.DEFAULT;
   private int processedScans, totalScans;
   private String description;
 
@@ -78,6 +81,14 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskSubSupplier<Bu
 
     dataAccess = EfficientDataAccess.of(dataFile, scanDataType, scans);
     this.mzRangesSorted = mzRangesSorted;
+  }
+
+  public void setMzMode(final MzMode mzMode) {
+    this.mzMode = mzMode;
+  }
+
+  public void setIntensityMode(final IntensityMode intensityMode) {
+    this.intensityMode = intensityMode;
   }
 
   @Override
@@ -108,8 +119,7 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskSubSupplier<Bu
     // store data points for each range
     BuildingIonSeries[] chromatograms = new BuildingIonSeries[mzRangesSorted.size()];
     for (int i = 0; i < chromatograms.length; i++) {
-      chromatograms[i] = new BuildingIonSeries(dataAccess.getNumberOfScans(),
-          IntensityMode.HIGHEST);
+      chromatograms[i] = new BuildingIonSeries(dataAccess.getNumberOfScans(), mzMode, intensityMode);
     }
 
     // binary search the start
