@@ -39,7 +39,7 @@ ikonli-bootstrap = { module = "org.kordamp.ikonli:ikonli-bootstrapicons-pack", v
 graphstream-javafx = { module = "org.graphstream:gs-ui-javafx", version.ref = "graphstream" }
 graphstream-algo = { module = "org.graphstream:gs-algo", version.ref = "graphstream" }
 graphstream-core = "com.github.robinschmid:gs-core:45504f632f"
-jfree-core = "org.jfree:jfreechart:1.5.4"
+jfree-core = "org.jfree:jfreechart:1.5.3"
 jfree-fx = "org.jfree:org.jfree.chart.fx:2.0.1"
 jfree-fxgraphics = "org.jfree:org.jfree.fxgraphics2d:2.1.1"
 fxcharts = "eu.hansolo.fx:charts:21.0.7"
