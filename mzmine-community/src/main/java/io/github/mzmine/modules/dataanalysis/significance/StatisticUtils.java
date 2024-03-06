@@ -34,12 +34,19 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import org.apache.commons.math.util.MathUtils;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 
 public class StatisticUtils {
+
+  public static final Function<RealVector, Double> oneFifthOfMinimumImputer = realVector ->
+      realVector.getMinValue() * 1 / 5;
+
+  public static final Function<RealVector, Double> zeroImputer = realVector ->
+      realVector.getMinValue() * 1 / 5;
 
   public static double[] extractAbundance(FeatureListRow row, List<RawDataFile> group,
       AbundanceMeasure measure) {
@@ -55,8 +62,9 @@ public class StatisticUtils {
     }).toArray();
   }
 
-  public static double calculateLog2FoldChange(List<RawDataFile> groupAFiles, List<RawDataFile> groupBFiles,
-      AbundanceMeasure abundanceMeasure, RowSignificanceTestResult result) {
+  public static double calculateLog2FoldChange(List<RawDataFile> groupAFiles,
+      List<RawDataFile> groupBFiles, AbundanceMeasure abundanceMeasure,
+      RowSignificanceTestResult result) {
     final double[] ab1 = StatisticUtils.extractAbundance(result.row(), groupAFiles,
         abundanceMeasure);
     final double[] abB = StatisticUtils.extractAbundance(result.row(), groupBFiles,
@@ -109,6 +117,23 @@ public class StatisticUtils {
     return performMeanCenter(scaleToUnitVariance(data, inPlace), inPlace);
   }
 
+  public static RealMatrix imputeMissingValues(RealMatrix data, boolean inPlace,
+      Function<RealVector, Double> imputationFunction) {
+    RealMatrix result = inPlace ? data : data.copy();
+
+    for (int columnIndex = 0; columnIndex < result.getColumnDimension(); columnIndex++) {
+      final RealVector columnVector = result.getColumnVector(columnIndex);
+      final double imputedValue = imputationFunction.apply(columnVector);
+      for (int i = 0; i < columnVector.getDimension(); i++) {
+        final double entry = columnVector.getEntry(i);
+        if (Double.compare(entry, 0d) == 0 || Double.isNaN(entry)) {
+          columnVector.setEntry(i, imputedValue);
+        }
+      }
+    }
+    return result;
+  }
+
   public static RealMatrix createDatasetFromRows(List<FeatureListRow> rows,
       List<RawDataFile> allFiles, AbundanceMeasure measure) {
 
@@ -130,7 +155,7 @@ public class StatisticUtils {
         if (feature != null) {
           abundance = measure.get((ModularDataModel) feature);
         } else {
-          abundance = 0.0d;
+          abundance = Double.NaN;
         }
         data.setEntry(fileIndex, rowIndex, abundance);
       }
