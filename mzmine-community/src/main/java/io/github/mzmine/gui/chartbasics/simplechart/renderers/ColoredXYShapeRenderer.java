@@ -25,10 +25,14 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.renderers;
 
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.ZCategoryProvider;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.color.ColorUtils;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.Paint;
@@ -37,6 +41,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import org.jfree.chart.LegendItem;
+import org.jfree.chart.LegendItemCollection;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.plot.CrosshairState;
@@ -236,5 +241,29 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
         addEntity(entities, hotspot, dataset, series, item, 0.0, 0.0);
       }
     }
+  }
+
+  @Override
+  public LegendItemCollection getLegendItems() {
+    final int index = this.getPlot().getIndexOf(this);
+    if (!(getPlot().getDataset(index) instanceof ColoredXYZDataset zds
+        && zds.getValueProvider() instanceof ZCategoryProvider zcat)) {
+      return super.getLegendItems();
+    }
+
+    final EStandardChartTheme theme = MZmineCore.getConfiguration()
+        .getDefaultChartTheme();
+    LegendItemCollection result = new LegendItemCollection();
+    final int numCategories = zcat.getNumberOfCategories();
+    for (int i = 0; i < numCategories; i++) {
+      final String labelText = zcat.getLegendLabel(i);
+      final Paint paint = zds.getPaintScale().getPaint(i);
+      final LegendItem item = new LegendItem(labelText, null, null, null, dataPointsShape,
+          !drawOutlinesOnly ? paint : ColorUtils.TRANSPARENT_AWT, outlineStroke,
+          drawOutlinesOnly ? paint : ColorUtils.TRANSPARENT_AWT);
+      theme.applyToLegendItem(item);
+      result.add(item);
+    }
+    return result;
   }
 }
