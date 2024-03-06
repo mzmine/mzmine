@@ -1,8 +1,11 @@
-import org.gradle.internal.impldep.org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutorService.TestTask
-
 plugins {
     java
 }
+
+// default group that all modules will use
+// in build.gradle use group = "${group}.subunit" to add another subunit to this group
+group = "io.github.mzmine"
+
 // https://github.com/gradle/gradle/issues/15383
 val libs = versionCatalogs.named("libs")
 
