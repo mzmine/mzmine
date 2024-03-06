@@ -42,6 +42,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
+import org.jfree.chart.LegendItemCollection;
 
 public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
 
@@ -120,7 +121,12 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
         if (newValue == null || newValue.isEmpty()) {
           return;
         }
-        newValue.forEach(d -> scoresPlot.addDataset(d.dataset(), d.renderer()));
+        LegendItemCollection collection = new LegendItemCollection();
+        newValue.forEach(d -> {
+          scoresPlot.addDataset(d.dataset(), d.renderer());
+          collection.addAll(d.renderer().getLegendItems());
+        });
+        scoresPlot.getXYPlot().setFixedLegendItems(collection);
         scoresPlot.setDomainAxisLabel(STR."PC\{model.getDomainPc()}");
         scoresPlot.setRangeAxisLabel(STR."PC\{model.getRangePc()}");
       });

@@ -266,4 +266,6 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
     }
     return result;
   }
+
+
 }
