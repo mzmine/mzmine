@@ -26,6 +26,9 @@
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.framework.fx.SelectedFeatureListsController;
+import io.github.mzmine.gui.framework.fx.SelectedRowsController;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
@@ -35,7 +38,8 @@ import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class VolcanoPlotController extends FxController<VolcanoPlotModel> {
+public class VolcanoPlotController extends FxController<VolcanoPlotModel> implements
+    SelectedRowsController, SelectedFeatureListsController {
 
   private final VolcanoPlotViewBuilder viewBuilder;
   private final Region view;
@@ -65,7 +69,8 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> {
     onTaskThread(new VolcanoPlotUpdateTask(model));
   }
 
-  public ObjectProperty<List<FeatureList>> featureListsProperty() {
+  @Override
+  public ObjectProperty<List<FeatureList>> selectedFeatureListsProperty() {
     return model.flistsProperty();
   }
 
@@ -81,5 +86,10 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> {
   @Override
   protected @NotNull FxViewBuilder<VolcanoPlotModel> getViewBuilder() {
     return viewBuilder;
+  }
+
+  @Override
+  public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
+    return model.selectedRowsProperty();
   }
 }

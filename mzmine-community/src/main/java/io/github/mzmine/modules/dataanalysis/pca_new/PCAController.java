@@ -27,14 +27,17 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.framework.fx.SelectedFeatureListsController;
 import io.github.mzmine.gui.framework.fx.SelectedRowsController;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 
-public class PCAController extends FxController<PCAModel> implements SelectedRowsController {
+public class PCAController extends FxController<PCAModel> implements SelectedRowsController,
+    SelectedFeatureListsController {
 
   private final FxViewBuilder<PCAModel> builder;
 
@@ -71,5 +74,10 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
         .addListener(_ -> onTaskThread(new PCAUpdateTask("update full dataset", model)));
     model.metadataColumnProperty()
         .addListener(_ -> onTaskThread(new PCAUpdateTask("update full dataset", model)));
+  }
+
+  @Override
+  public Property<List<FeatureList>> selectedFeatureListsProperty() {
+    return model.flistsProperty();
   }
 }
