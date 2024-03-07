@@ -64,6 +64,11 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
     final SplitPane stats = buildStatsPane();
     main.getItems().addAll(stats, table);
 
+    initFeatureListListeners();
+    return main;
+  }
+
+  private void initFeatureListListeners() {
     model.flistsProperty().addListener((_, _, flists) -> table.setFeatureList(
         flists.isEmpty() ? null : (ModularFeatureList) flists.getFirst()));
     model.selectedRowsProperty().addListener((_, _, rows) -> {
@@ -76,7 +81,6 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
         table.scrollTo(table.getRoot().getChildren().indexOf(rowItem));
       }
     });
-    return main;
   }
 
   @NotNull

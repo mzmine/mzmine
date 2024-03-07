@@ -52,9 +52,9 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
   private final FeatureTableFX table;
   private final StatsDashboardViewBuilder builder;
 
-  protected StatsDashboardController(FeatureTableFX table) {
+  public StatsDashboardController(FeatureTableFX table) {
     super(new StatsDashboardModel());
-    this.table = table;
+    this.table = table == null ? new FeatureTableFX() : table;
     builder = new StatsDashboardViewBuilder(model, table, pcaController, volcanoController,
         boxplotController);
 
@@ -63,6 +63,11 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
     FxControllerBinding.bindExposedProperties(this, pcaController);
     // feature table bindings in view builder
   }
+
+  public StatsDashboardController() {
+    this(null);
+  }
+
 
   @Override
   protected @NotNull FxViewBuilder<StatsDashboardModel> getViewBuilder() {
