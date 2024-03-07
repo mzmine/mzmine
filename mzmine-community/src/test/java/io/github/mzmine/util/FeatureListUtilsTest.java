@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -115,4 +116,16 @@ class FeatureListUtilsTest {
     assertEquals(10f, rows.get(FeatureListUtils.binarySearch(rows, 10)).getAverageRT());
   }
 
+
+  @Test
+  void getAlignmentScore() {
+    double score = FeatureListUtils.getAlignmentScore(200.2, 5.1f, null, null,
+        Range.closed(200d, 201d), Range.closed(5f, 5.5f), null, null, 3, 1, 0, 0);
+    Assertions.assertTrue(score >= 0);
+    Assertions.assertTrue(score <= 0.5);
+
+    score = FeatureListUtils.getAlignmentScore(200.5, 5.25f, null, null,
+        Range.closed(200d, 201d), Range.closed(5f, 5.5f), null, null, 3, 1, 0, 0);
+    assertEquals(1, score);
+  }
 }
