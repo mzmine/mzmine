@@ -37,7 +37,8 @@ public class JFreeChartUtils {
    * @return num datasets including null
    */
   public static int getDatasetCountNullable(XYPlot plot) {
-    return plot.getDatasets().size();
+    return plot.getDatasetCount();
+//    return plot.getDatasets().size();
   }
 
   /**
