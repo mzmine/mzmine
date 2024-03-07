@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataTypeUtils;
+import io.github.mzmine.util.collections.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -41,7 +42,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
 public class CompoundAnnotationUtils {
@@ -94,24 +94,18 @@ public class CompoundAnnotationUtils {
    */
   @NotNull
   public static Map<DataType<?>, Integer> rankUniqueAnnotationTypes(Collection<DataType<?>> types) {
-    var orderedTypes = FeatureAnnotationPriority.getDataTypesInOrder();
+    var sortedUniqueTypes = types.stream().filter(Objects::nonNull).distinct()
+        .filter(CompoundAnnotationUtils::isAnnotationOrMissingType)
+        .sorted(FeatureAnnotationPriority.createDefaultSorter()).toList();
+    return CollectionUtils.indexMap(sortedUniqueTypes);
+  }
 
-    AtomicBoolean containsMissing = new AtomicBoolean(false);
-    Map<DataType<?>, Integer> rankMap = new HashMap<>();
-    types.stream().filter(Objects::nonNull).distinct().forEach(type -> {
-      if (type instanceof MissingValueType) {
-        containsMissing.set(true);
-        return;
-      }
-      int index = ArrayUtils.indexOf(type, orderedTypes);
-      if (index >= 0) {
-        rankMap.put(type, index);
-      }
-    });
-    if (containsMissing.get()) {
-      rankMap.put(DataTypes.get(MissingValueType.class), rankMap.size());
-    }
-    return rankMap;
+  /**
+   * @return true if type is either annotation type or {@link MissingValueType}
+   */
+  public static boolean isAnnotationOrMissingType(final DataType<?> type) {
+    return type instanceof MissingValueType || ArrayUtils.contains(type,
+        FeatureAnnotationPriority.getDataTypesInOrder());
   }
 
 

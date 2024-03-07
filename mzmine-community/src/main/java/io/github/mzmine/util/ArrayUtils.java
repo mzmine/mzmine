@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.util;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public class ArrayUtils {
 
@@ -48,10 +49,18 @@ public class ArrayUtils {
     }
   }
 
+  public static boolean contains(Object needle, Object[] haystack) {
+    for (final Object o : haystack) {
+      if (Objects.equals(o, needle)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public static <T> int indexOf(T needle, T[] haystack) {
     for (int i = 0; i < haystack.length; i++) {
-      if ((haystack[i] != null && haystack[i].equals(needle)) || (needle == null
-                                                                  && haystack[i] == null)) {
+      if (Objects.equals(haystack[i], needle)) {
         return i;
       }
     }
@@ -60,7 +69,7 @@ public class ArrayUtils {
 
   public static int indexOf(double needle, double[] haystack) {
     for (int i = 0; i < haystack.length; i++) {
-      if(Double.compare(haystack[i], needle) == 0) {
+      if (Double.compare(haystack[i], needle) == 0) {
         return i;
       }
     }
@@ -85,6 +94,7 @@ public class ArrayUtils {
     }
     return sum;
   }
+
   /**
    * @see #smallestDelta(double[], int)
    */
@@ -123,6 +133,7 @@ public class ArrayUtils {
 
   /**
    * Reverses the given array.
+   *
    * @param input The array.
    */
   public static void reverse(int[] input) {

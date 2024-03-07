@@ -43,10 +43,12 @@ import java.util.stream.Stream;
 public class CollectionUtils {
 
   /**
-   * Map of the object to its index to avoid indexOf. This method will take any collection as input and this makes only sense if the collection has an order.
+   * Map of the object to its index to avoid indexOf. This method will take any collection as input
+   * and this makes only sense if the collection has an order.
+   *
    * @param list any collection
+   * @param <T>  the object to be mapped
    * @return Map object to index in collection
-   * @param <T> the object to be mapped
    */
   public static <T> Map<T, Integer> indexMap(Collection<T> list) {
     Map<T, Integer> map = new HashMap<>();
@@ -54,6 +56,20 @@ public class CollectionUtils {
     for (final T value : list) {
       map.put(value, i);
       i++;
+    }
+    return map;
+  }
+
+  /**
+   * Map of the object to its index to avoid indexOf.
+   *
+   * @param <T> the object to be mapped
+   * @return Map object to index in collection
+   */
+  public static <T> Map<T, Integer> indexMap(T[] array) {
+    Map<T, Integer> map = new HashMap<>();
+    for (int i = 0; i < array.length; i++) {
+      map.put(array[i], i);
     }
     return map;
   }
