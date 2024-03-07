@@ -55,6 +55,6 @@ public class StatsDasboardModule extends AbstractRunnableModule {
     final StatsDashboardTab tab = new StatsDashboardTab();
     tab.onFeatureListSelectionChanged(List.of(flist));
     MZmineCore.getDesktop().addTab(tab);
-    return null;
+    return ExitCode.OK;
   }
 }

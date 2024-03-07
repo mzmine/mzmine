@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.framework.fx.FxControllerBinding;
 import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureController;
 import io.github.mzmine.gui.framework.fx.SelectedFeatureListsController;
+import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnController;
 import io.github.mzmine.gui.framework.fx.SelectedRowsController;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
@@ -38,13 +39,15 @@ import io.github.mzmine.modules.dataanalysis.pca_new.PCAController;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 
 public class StatsDashboardController extends FxController<StatsDashboardModel> implements
-    SelectedFeatureListsController, SelectedRowsController, SelectedAbundanceMeasureController {
+    SelectedFeatureListsController, SelectedRowsController, SelectedAbundanceMeasureController,
+    SelectedMetadataColumnController {
 
   private final PCAController pcaController = new PCAController();
   private final VolcanoPlotController volcanoController = new VolcanoPlotController(null);
@@ -61,11 +64,12 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
     FxControllerBinding.bindExposedProperties(this, volcanoController);
     FxControllerBinding.bindExposedProperties(this, boxplotController);
     FxControllerBinding.bindExposedProperties(this, pcaController);
+    pcaController.update();
     // feature table bindings in view builder
   }
 
   public StatsDashboardController() {
-    this(null);
+    this(new FeatureTableFX());
   }
 
 
@@ -88,5 +92,10 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
   @Override
   public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
     return model.selectedRowsProperty();
+  }
+
+  @Override
+  public ObjectProperty<MetadataColumn<?>> groupingColumnProperty() {
+    return model.metadataColumnProperty();
   }
 }

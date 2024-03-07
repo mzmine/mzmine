@@ -35,11 +35,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class StatsDashboardTab extends MZmineTab {
 
-  private final StatsDashboardController controller = new StatsDashboardController();
+  private final StatsDashboardController controller;
 
   public StatsDashboardTab() {
     super("Statistics dashboard", true, false);
-
+    controller = new StatsDashboardController();
     final Region region = controller.buildView();
     setContent(region);
   }

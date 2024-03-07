@@ -33,9 +33,9 @@ import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import javafx.geometry.Orientation;
-import javafx.scene.control.Accordion;
 import javafx.scene.control.SplitPane;
-import javafx.scene.control.TitledPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TreeItem;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
@@ -80,6 +80,7 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
       if (rowItem != null) {
         table.scrollTo(table.getRoot().getChildren().indexOf(rowItem));
       }
+      table.getSelectionModel().clearAndSelect(table.getRoot().getChildren().indexOf(rowItem));
     });
   }
 
@@ -87,9 +88,10 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
   private SplitPane buildStatsPane() {
     final SplitPane stats = new SplitPane();
     stats.setOrientation(Orientation.HORIZONTAL);
-    final var analysisAccordion = new Accordion(new TitledPane("PCA", pcaController.buildView()),
-        new TitledPane("Volcano Plot", volcanoPlotController.buildView()));
-    stats.getItems().add(analysisAccordion);
+    final var analysisTab = new TabPane();
+    analysisTab.getTabs().addAll(new Tab("PCA", pcaController.buildView()),
+        new Tab("Volcano Plot", volcanoPlotController.buildView()));
+    stats.getItems().add(analysisTab);
     stats.getItems().add(boxplotController.buildView());
 
     stats.setDividerPosition(0, 0.65);

@@ -28,64 +28,63 @@ package io.github.mzmine.modules.dataanalysis.statsdashboard;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 
 public class StatsDashboardModel {
   private final ObjectProperty<List<FeatureList>> flists = new SimpleObjectProperty<>();
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
   private final ObjectProperty<AbundanceMeasure> abundance = new SimpleObjectProperty<>(
       AbundanceMeasure.Height);
-  private final StringProperty metadataColumn = new SimpleStringProperty();
+  private final ObjectProperty<MetadataColumn<?>> metadataColumn = new SimpleObjectProperty<>();
 
   public List<FeatureList> getFlists() {
     return flists.get();
-  }
-
-  public ObjectProperty<List<FeatureList>> flistsProperty() {
-    return flists;
   }
 
   public void setFlists(List<FeatureList> flists) {
     this.flists.set(flists);
   }
 
-  public List<FeatureListRow> getSelectedRows() {
-    return selectedRows.get();
+  public ObjectProperty<List<FeatureList>> flistsProperty() {
+    return flists;
   }
 
-  public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
-    return selectedRows;
+  public List<FeatureListRow> getSelectedRows() {
+    return selectedRows.get();
   }
 
   public void setSelectedRows(List<FeatureListRow> selectedRows) {
     this.selectedRows.set(selectedRows);
   }
 
-  public AbundanceMeasure getAbundance() {
-    return abundance.get();
+  public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
+    return selectedRows;
   }
 
-  public ObjectProperty<AbundanceMeasure> abundanceProperty() {
-    return abundance;
+  public AbundanceMeasure getAbundance() {
+    return abundance.get();
   }
 
   public void setAbundance(AbundanceMeasure abundance) {
     this.abundance.set(abundance);
   }
 
-  public String getMetadataColumn() {
+  public ObjectProperty<AbundanceMeasure> abundanceProperty() {
+    return abundance;
+  }
+
+  public MetadataColumn<?> getMetadataColumn() {
     return metadataColumn.get();
   }
 
-  public StringProperty metadataColumnProperty() {
-    return metadataColumn;
+  public void setMetadataColumn(MetadataColumn<?> metadataColumn) {
+    this.metadataColumn.set(metadataColumn);
   }
 
-  public void setMetadataColumn(String metadataColumn) {
-    this.metadataColumn.set(metadataColumn);
+  public ObjectProperty<MetadataColumn<?>> metadataColumnProperty() {
+    return metadataColumn;
   }
 }

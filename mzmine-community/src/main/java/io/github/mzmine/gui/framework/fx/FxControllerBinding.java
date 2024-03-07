@@ -30,7 +30,7 @@ public sealed interface FxControllerBinding permits SelectedAbundanceMeasureCont
     SelectedFilesController, SelectedFeatureListsController {
 
   public static void bindExposedProperties(FxControllerBinding master, FxControllerBinding child) {
-    if(master == null ||child == null) {
+    if (master == null || child == null) {
       return;
     }
 
