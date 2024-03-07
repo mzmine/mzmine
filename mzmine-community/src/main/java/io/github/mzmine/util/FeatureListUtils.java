@@ -385,45 +385,45 @@ public class FeatureListUtils {
         mobilityRange == null || mobilityRange.equals(Range.all()) ? null : mobilityRange;
     ccsRange = ccsRange == null || ccsRange.equals(Range.all()) ? null : ccsRange;
 
-    int scorers = 0;
+    double totalWeight = 0;
 
-    double score = 0f;
+    double score = 0;
     // values are "matched" if the given value exists in this class and falls within the tolerance.
     if (mzWeight > 0 && mzRange != null && testMz != null) {
       final double exactMass = RangeUtils.rangeCenter(mzRange);
       double diff = Math.abs(testMz - exactMass);
       double maxAllowedDiff = rangeLength(mzRange) / 2;
       // no negative numbers
-      score += Math.max(0, (1 - diff / maxAllowedDiff) * mzWeight);
-      scorers += (int) Math.round(mzWeight);
+      score += Math.max(0, (1 - diff / maxAllowedDiff)) * mzWeight;
+      totalWeight += mzWeight;
     }
 
     if (rtWeight > 0 && rtRange != null && testRt != null) {
       final Float rt = RangeUtils.rangeCenter(rtRange);
       float diff = Math.abs(testRt - rt);
-      score += Math.max(0, 1 - (diff / (rangeLength(rtRange) / 2)) * rtWeight);
-      scorers += (int) Math.round(rtWeight);
+      score += Math.max(0, 1 - (diff / (rangeLength(rtRange) / 2))) * rtWeight;
+      totalWeight += rtWeight;
     }
 
     if (mobilityWeight > 0 && mobilityRange != null && testMobility != null) {
       final Float mobility = RangeUtils.rangeCenter(mobilityRange);
       float diff = Math.abs(testMobility - mobility);
-      score += Math.max(0, 1 - (diff / (rangeLength(mobilityRange) / 2)) * mobilityWeight);
-      scorers += (int) Math.round(mobilityWeight);
+      score += Math.max(0, 1 - (diff / (rangeLength(mobilityRange) / 2))) * mobilityWeight;
+      totalWeight += mobilityWeight;
     }
 
     if (ccsWeight > 0 && ccsRange != null && testCCS != null) {
       final Float ccs = RangeUtils.rangeCenter(ccsRange);
       float diff = Math.abs(testCCS - ccs);
-      score += Math.max(0, 1 - (diff / (rangeLength(ccsRange) / 2)) * ccsWeight);
-      scorers += (int) Math.round(ccsWeight);
+      score += Math.max(0, 1 - (diff / (rangeLength(ccsRange) / 2))) * ccsWeight;
+      totalWeight += ccsWeight;
     }
 
-    if (scorers == 0) {
+    if (totalWeight == 0) {
       return 0f;
     }
 
-    return score / scorers;
+    return score / totalWeight;
   }
 
   /**
