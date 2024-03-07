@@ -26,10 +26,14 @@
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.javafx.components.factories.FxComponentFactory;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
+import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
@@ -87,6 +91,7 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
     pane.setCenter(plotPane);
 
     initDatasetListeners();
+    initChartListeners();
     return pane;
   }
 
@@ -149,5 +154,20 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
         scoresPlot.setRangeAxisLabel(STR."PC\{model.getRangePc()}");
       });
     }));
+  }
+
+  private void initChartListeners() {
+    // todo listen the other way round
+    loadingsPlot.cursorPositionProperty().addListener((_, _, n) -> {
+      if (n == null || !(n.getDataset() instanceof ColoredXYZDataset zds)
+          || !(zds.getValueProvider() instanceof XYItemObjectProvider<?> dataProvider)) {
+        return;
+      }
+      final Object row = dataProvider.getItemObject(n.getValueIndex());
+      if(row instanceof FeatureListRow r) {
+        model.selectedRowsProperty().set(List.of(r));
+      }
+    });
+
   }
 }
