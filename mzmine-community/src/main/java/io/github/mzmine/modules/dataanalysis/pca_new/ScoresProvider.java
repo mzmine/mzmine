@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ZCategoryProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
@@ -47,7 +48,7 @@ import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.PaintScale;
 
 public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvider,
-    ZCategoryProvider {
+    ZCategoryProvider, XYItemObjectProvider<RawDataFile> {
 
   private final PCARowsResult result;
   private final int pcX;
@@ -166,5 +167,10 @@ public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvi
   @Override
   public String getLegendLabel(int category) {
     return groupNames[category] != null ? groupNames[category] : "unnamed group";
+  }
+
+  @Override
+  public RawDataFile getItemObject(int item) {
+    return result.files().get(item);
   }
 }

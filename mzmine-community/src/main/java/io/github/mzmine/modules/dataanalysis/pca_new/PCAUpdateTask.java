@@ -28,7 +28,6 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
@@ -73,9 +72,10 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
       return false;
     }
 
-//    if (MZmineCore.getProjectMetadata().getColumnByName(metadataColumn) == null) {
-//      return false;
-//    }
+    if (metadataColumn != null && MZmineCore.getProjectMetadata().getColumnByName(metadataColumn) == null
+        && !metadataColumn.isBlank()) {
+      return false;
+    }
 
     if (flists == null || flists.isEmpty() || flists.getFirst() == null) {
       return false;
@@ -96,18 +96,19 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     final ScoresProvider scores = new ScoresProvider(pcaRowsResult, "Scores", Color.RED,
         domainPcIndex, rangePcIndex,
         MZmineCore.getProjectMetadata().getColumnByName(metadataColumn));
-    final ColoredXYDataset scoresDS = new ColoredXYZDataset(scores, RunOption.THIS_THREAD);
+    final ColoredXYZDataset scoresDS = new ColoredXYZDataset(scores, RunOption.THIS_THREAD);
     progressProvider.getAndIncrement();
 
     final LoadingsProvider loadings = new LoadingsProvider(pcaRowsResult, "Loadings", Color.RED,
         domainPcIndex, rangePcIndex);
-    final ColoredXYDataset loadingsDS = new ColoredXYDataset(loadings, RunOption.THIS_THREAD);
+    final ColoredXYZDataset loadingsDS = new ColoredXYZDataset(loadings, RunOption.THIS_THREAD);
     progressProvider.getAndIncrement();
 
     loadingsDatasets.add(new DatasetAndRenderer(loadingsDS, new ColoredXYShapeRenderer()));
     scoresDatasets.add(new DatasetAndRenderer(scoresDS, new ColoredXYShapeRenderer()));
 
-    for (int i = 1; i <= pcaRowsResult.pcaResult().principalComponentsMatrix().getRowDimension(); i++) {
+    for (int i = 1; i <= pcaRowsResult.pcaResult().principalComponentsMatrix().getRowDimension();
+        i++) {
       components.add(i);
     }
   }

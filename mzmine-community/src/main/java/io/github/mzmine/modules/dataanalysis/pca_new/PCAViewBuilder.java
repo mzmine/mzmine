@@ -33,7 +33,9 @@ import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingCompo
 import javafx.collections.FXCollections;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
+import javafx.scene.control.Accordion;
 import javafx.scene.control.Label;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
@@ -42,6 +44,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.LegendItemCollection;
 
 public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
@@ -69,11 +72,26 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
     final HBox abundance = FxComponentFactory.createLabelledComboBox("Abundance",
         FXCollections.observableArrayList(AbundanceMeasure.values()), model.abundanceProperty());
 
-    pane.setBottom(new FlowPane(space, space, domain, range, coloring, abundance));
+    final TitledPane controls = new TitledPane("Controls",
+        new FlowPane(space, space, domain, range, coloring, abundance));
+    final Accordion accordion = new Accordion(controls);
+    accordion.setExpandedPane(controls);
+    pane.setBottom(accordion);
 
     scoresPlot.setMinSize(300, 300);
     loadingsPlot.setMinSize(300, 300);
 
+    final GridPane plotPane = createPlotPane();
+
+//    final FlowPane plots = new FlowPane(new BorderPane(scoresPlot), new BorderPane(loadingsPlot));
+    pane.setCenter(plotPane);
+
+    initDatasetListeners();
+    return pane;
+  }
+
+  @NotNull
+  private GridPane createPlotPane() {
     GridPane plotPane = new GridPane();
     plotPane.add(scoresPlot, 0, 0);
     plotPane.add(loadingsPlot, 1, 0);
@@ -85,20 +103,14 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
     plotPane.getRowConstraints().add(
         new RowConstraints(300, GridPane.USE_COMPUTED_SIZE, GridPane.USE_COMPUTED_SIZE,
             Priority.ALWAYS, VPos.CENTER, true));
-
-//    final FlowPane plots = new FlowPane(new BorderPane(scoresPlot), new BorderPane(loadingsPlot));
-    pane.setCenter(plotPane);
-
-    initDatasetListeners();
-    return pane;
+    return plotPane;
   }
 
   private HBox createMetadataBox() {
     final Label coloringLabel = new Label("Coloring:");
     final MetadataGroupingComponent coloringSelection = new MetadataGroupingComponent();
     coloringSelection.valueProperty().bindBidirectional(model.metadataColumnProperty());
-    final HBox coloring = new HBox(space, coloringLabel, coloringSelection);
-    return coloring;
+    return new HBox(space, coloringLabel, coloringSelection);
   }
 
   private void initDatasetListeners() {
@@ -110,6 +122,12 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
         }
         newValue.forEach(d -> loadingsPlot.addDataset(d.dataset(), d.renderer()));
 
+        LegendItemCollection collection = new LegendItemCollection();
+        newValue.forEach(d -> {
+          loadingsPlot.addDataset(d.dataset(), d.renderer());
+          collection.addAll(d.renderer().getLegendItems());
+        });
+        loadingsPlot.getXYPlot().setFixedLegendItems(collection);
         loadingsPlot.setDomainAxisLabel(STR."PC\{model.getDomainPc()}");
         loadingsPlot.setRangeAxisLabel(STR."PC\{model.getRangePc()}");
       });
@@ -131,6 +149,5 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
         scoresPlot.setRangeAxisLabel(STR."PC\{model.getRangePc()}");
       });
     }));
-
   }
 }

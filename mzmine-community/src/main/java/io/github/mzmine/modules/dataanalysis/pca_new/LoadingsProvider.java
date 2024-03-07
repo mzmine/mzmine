@@ -25,17 +25,39 @@
 
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
+import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.ZCategoryProvider;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataTypeUtils;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
+import java.util.List;
+import java.util.TreeMap;
 import javafx.beans.property.Property;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.jetbrains.annotations.Nullable;
+import org.jfree.chart.renderer.LookupPaintScale;
+import org.jfree.chart.renderer.PaintScale;
 
-public class LoadingsProvider extends SimpleXYProvider {
+public class LoadingsProvider extends SimpleXYProvider implements PlotXYZDataProvider,
+    ZCategoryProvider, XYItemObjectProvider<FeatureListRow> {
 
   private final PCARowsResult result;
   private final int loadingsY;
   private final int loadingsX;
+
+  private int[] zCategories;
+  private int numberOfCategories;
+  private LookupPaintScale paintScale;
+  private String[] legendNames;
 
   /**
    * @param loadingsX index of the principal component used for domain axis, subtract 1 from the
@@ -61,14 +83,76 @@ public class LoadingsProvider extends SimpleXYProvider {
 
     final RealMatrix loadingsMatrix = pcaResult.getLoadingsMatrix();
 
+    final TreeMap<DataType<?>, List<FeatureListRow>> groupedRows = (TreeMap<DataType<?>, List<FeatureListRow>>) DataTypeUtils.groupByBestDataType(
+        result.rows(), true, FeatureAnnotationPriority.getDataTypesInOrder());
+    final List<DataType<?>> typesInOrder = groupedRows.keySet().stream().toList();
+    numberOfCategories = groupedRows.size();
+
     double[] domainData = new double[loadingsMatrix.getColumnDimension()];
     double[] rangeData = new double[loadingsMatrix.getColumnDimension()];
+    zCategories = new int[loadingsMatrix.getColumnDimension()];
+    assert result.rows().size() == loadingsMatrix.getColumnDimension();
+
+    final MissingValueType missing = DataTypes.get(MissingValueType.class);
     for (int i = 0; i < loadingsMatrix.getColumnDimension(); i++) {
       domainData[i] = loadingsMatrix.getEntry(loadingsX, i);
       rangeData[i] = loadingsMatrix.getEntry(loadingsY, i);
+      final DataType<?> bestTypeWithValue = DataTypeUtils.getBestTypeWithValue(result.rows().get(i),
+          missing, FeatureAnnotationPriority.getDataTypesInOrder());
+      zCategories[i] = typesInOrder.indexOf(bestTypeWithValue);
     }
+
+    paintScale = new LookupPaintScale(0, numberOfCategories, Color.BLACK);
+    final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
+    for (int i = 0; i < numberOfCategories; i++) {
+      paintScale.add(i, colors.getAWT(i));
+    }
+
+    legendNames = typesInOrder.stream()
+        .map(type -> type instanceof MissingValueType _ ? "Not annotated" : type.getHeaderString())
+        .toArray(String[]::new);
 
     setxValues(domainData);
     setyValues(rangeData);
+  }
+
+  @Override
+  public @Nullable PaintScale getPaintScale() {
+    return paintScale;
+  }
+
+  @Override
+  public double getZValue(int index) {
+    return zCategories[index];
+  }
+
+  @Override
+  public @Nullable Double getBoxHeight() {
+    return 5d;
+  }
+
+  @Override
+  public @Nullable Double getBoxWidth() {
+    return 5d;
+  }
+
+  @Override
+  public int getNumberOfCategories() {
+    return numberOfCategories;
+  }
+
+  @Override
+  public String getLegendLabel(int category) {
+    return legendNames[category];
+  }
+
+  @Override
+  public FeatureListRow getItemObject(int item) {
+    return result.rows().get(item);
+  }
+
+  @Override
+  public String getToolTipText(int itemIndex) {
+    return getItemObject(itemIndex).toString();
   }
 }

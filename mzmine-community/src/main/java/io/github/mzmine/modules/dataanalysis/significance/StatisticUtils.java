@@ -45,8 +45,7 @@ public class StatisticUtils {
   public static final Function<RealVector, Double> oneFifthOfMinimumImputer = realVector ->
       realVector.getMinValue() * 1 / 5;
 
-  public static final Function<RealVector, Double> zeroImputer = realVector ->
-      realVector.getMinValue() * 1 / 5;
+  public static final Function<RealVector, Double> zeroImputer = _ -> 0d;
 
   public static double[] extractAbundance(FeatureListRow row, List<RawDataFile> group,
       AbundanceMeasure measure) {
@@ -130,6 +129,7 @@ public class StatisticUtils {
           columnVector.setEntry(i, imputedValue);
         }
       }
+      result.setColumnVector(columnIndex, columnVector);
     }
     return result;
   }
