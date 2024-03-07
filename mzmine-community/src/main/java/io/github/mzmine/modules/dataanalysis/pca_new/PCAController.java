@@ -25,8 +25,10 @@
 
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureController;
 import io.github.mzmine.gui.framework.fx.SelectedFeatureListsController;
 import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnController;
 import io.github.mzmine.gui.framework.fx.SelectedRowsController;
@@ -39,7 +41,8 @@ import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 
 public class PCAController extends FxController<PCAModel> implements SelectedRowsController,
-    SelectedFeatureListsController, SelectedMetadataColumnController {
+    SelectedFeatureListsController, SelectedMetadataColumnController,
+    SelectedAbundanceMeasureController {
 
   private final FxViewBuilder<PCAModel> builder;
 
@@ -84,5 +87,10 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
   @Override
   public ObjectProperty<MetadataColumn<?>> groupingColumnProperty() {
     return model.metadataColumnProperty();
+  }
+
+  @Override
+  public ObjectProperty<AbundanceMeasure> abundanceMeasureProperty() {
+    return model.abundanceProperty();
   }
 }
