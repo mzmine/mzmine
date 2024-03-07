@@ -63,7 +63,7 @@ public class MiniTaskView extends FxViewBuilder<TasksViewModel> {
   private LabeledProgressBar createTaskPane() {
     return new LabeledProgressBar( //
         model.allTasksProgressProperty(),
-        Bindings.createStringBinding(this::computeTasksText, model.getTasks()));
+        Bindings.createStringBinding(this::computeTasksText, model.allTasksProgressProperty()));
   }
 
   private LabeledProgressBar createBatchPane() {
