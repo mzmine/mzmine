@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataanalysis.rowsboxplot;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
@@ -48,8 +49,8 @@ public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
 
     final NumberFormats formats = MZmineCore.getConfiguration().getGuiFormats();
 
-    final JFreeChart barChart = ChartFactory.createBarChart("Rows box plot", "Metadata",
-        formats.unit("Intensity", "a.u."), null);
+    final JFreeChart barChart = ChartFactory.createBarChart("Rows box plot", "Metadata", "Height",
+        null);
     final EChartViewer viewer = new EChartViewer(barChart);
     final BoxAndWhiskerRenderer boxAndWhiskerRenderer = new BoxAndWhiskerRenderer();
 
@@ -58,11 +59,15 @@ public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
 
     model.datasetProperty().addListener((_, _, n) -> {
       final List<FeatureListRow> selectedRows = model.getSelectedRows();
-      if(selectedRows != null && ! selectedRows.isEmpty()) {
+      if (selectedRows != null && !selectedRows.isEmpty()) {
         final FeatureListRow row = selectedRows.getFirst();
         barChart.setTitle(row.toString());
       }
       barChart.getCategoryPlot().setDataset(0, n);
+    });
+
+    model.abundanceMeasureProperty().addListener((_, _, n) -> {
+      barChart.getCategoryPlot().getRangeAxis().setLabel(DataTypes.get(n.type()).getHeaderString());
     });
 
     return new BorderPane(viewer);
