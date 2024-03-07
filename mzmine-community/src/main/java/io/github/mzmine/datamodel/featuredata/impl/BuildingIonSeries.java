@@ -222,7 +222,7 @@ public class BuildingIonSeries implements IonSeries {
 
     public static IntensityMode DEFAULT = HIGHEST;
 
-    public IntensityMode from(TICPlotType type) {
+    public static IntensityMode from(TICPlotType type) {
       return switch (type) {
         case TIC -> SUM;
         case BASEPEAK -> HIGHEST;

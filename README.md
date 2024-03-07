@@ -39,7 +39,20 @@ code to MZmine.
 
 ### Java version
 
-MZmine development requires Java Development Kit (JDK) version 16 or newer (http://jdk.java.net).
+MZmine development requires Java Development Kit (JDK) version 21 or newer (http://jdk.java.net).
+
+### Moving old codebase to new modular build system
+
+If there are still changes pending apply those moves first and then create a PR. Create a backup branch.
+
+```bash
+git mv -k -v ./src ./mzmine-community/
+git mv -v ./log ./mzmine-community/    
+git mv -v ./logo ./mzmine-community/    
+git mv -v ./Ontologies ./mzmine-community/    
+```
+
+
 
 ### Building
 

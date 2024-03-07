@@ -35,7 +35,7 @@ import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries.IntensityMode;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries.MzMode;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.operations.AbstractTaskSubSupplier;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.util.List;
@@ -62,7 +62,7 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskSubSupplier<Bu
    */
   public ExtractMzRangesIonSeriesFunction(@NotNull RawDataFile dataFile,
       @NotNull ScanSelection scanSelection, @NotNull List<Range<Double>> mzRangesSorted,
-      @NotNull ScanDataType scanDataType, @Nullable AbstractTask parentTask) {
+      @NotNull ScanDataType scanDataType, @Nullable Task parentTask) {
     super(parentTask);
 
     dataAccess = EfficientDataAccess.of(dataFile, scanDataType, scanSelection);
@@ -76,7 +76,7 @@ public class ExtractMzRangesIonSeriesFunction extends AbstractTaskSubSupplier<Bu
    */
   public ExtractMzRangesIonSeriesFunction(@NotNull RawDataFile dataFile, List<? extends Scan> scans,
       @NotNull List<Range<Double>> mzRangesSorted, @NotNull ScanDataType scanDataType,
-      @Nullable AbstractTask parentTask) {
+      @Nullable Task parentTask) {
     super(parentTask);
 
     dataAccess = EfficientDataAccess.of(dataFile, scanDataType, scans);
