@@ -55,6 +55,7 @@ public class VanKrevelenDiagramChart extends EChartViewer {
   public VanKrevelenDiagramChart(String title, String xAxisLabel, String yAxisLabel, String colorScaleLabel, VanKrevelenDiagramXYZDataset dataset) {
     super(ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset, PlotOrientation.VERTICAL, false, true, true));
     this.colorScaleLabel = colorScaleLabel;
+    setStickyZeroRangeAxis(false);
 
     EStandardChartTheme defaultChartTheme = MZmineCore.getConfiguration().getDefaultChartTheme();
     defaultChartTheme.apply(this);

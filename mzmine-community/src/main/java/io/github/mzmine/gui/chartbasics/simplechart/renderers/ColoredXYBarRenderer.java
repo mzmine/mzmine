@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Rectangle2D;
+import java.util.logging.Logger;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
@@ -56,6 +57,7 @@ public class ColoredXYBarRenderer extends XYBarRenderer {
   public static final float TRANSPARENCY = 0.8f;
   public static final AlphaComposite alphaComp =
       AlphaComposite.getInstance(AlphaComposite.SRC_OVER, TRANSPARENCY);
+  private static final Logger logger = Logger.getLogger(ColoredXYBarRenderer.class.getName());
   private static final long serialVersionUID = 1L;
 
   private boolean isTransparent;
@@ -300,4 +302,6 @@ public class ColoredXYBarRenderer extends XYBarRenderer {
     }
     return super.lookupSeriesPaint(series);
   }
+
+
 }
