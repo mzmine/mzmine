@@ -25,10 +25,10 @@
 
 package io.github.mzmine.gui.framework.fx;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import java.util.List;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import javafx.beans.property.ObjectProperty;
 
-public non-sealed interface SelectedFilesController extends FxControllerBinding {
-  ObjectProperty<List<RawDataFile>> selectedRawFilesProperty();
+public non-sealed interface SelectedMetadataColumnController extends FxControllerBinding {
+
+  ObjectProperty<MetadataColumn<?>> groupingColumnProperty();
 }
