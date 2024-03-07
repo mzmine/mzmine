@@ -28,9 +28,12 @@ package io.github.mzmine.util.collections;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -38,6 +41,22 @@ import java.util.stream.Stream;
  * Collection API related utilities
  */
 public class CollectionUtils {
+
+  /**
+   * Map of the object to its index to avoid indexOf. This method will take any collection as input and this makes only sense if the collection has an order.
+   * @param list any collection
+   * @return Map object to index in collection
+   * @param <T> the object to be mapped
+   */
+  public static <T> Map<T, Integer> indexMap(Collection<T> list) {
+    Map<T, Integer> map = new HashMap<>();
+    int i = 0;
+    for (final T value : list) {
+      map.put(value, i);
+      i++;
+    }
+    return map;
+  }
 
   /**
    * drops duplicate values using a HashSet. does not retain order
