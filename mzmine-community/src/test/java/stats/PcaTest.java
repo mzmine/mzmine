@@ -29,14 +29,8 @@ package stats;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAResult;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAUtils;
 import io.github.mzmine.modules.dataanalysis.significance.StatisticUtils;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.util.Arrays;
 import java.util.logging.Logger;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.junit.jupiter.api.Test;
@@ -67,8 +61,7 @@ public class PcaTest {
         .map(strings -> Arrays.stream(strings).mapToDouble(Double::valueOf).toArray())
         .toArray(double[][]::new);
 
-    RealMatrix matrix = new Array2DRowRealMatrix(data);
-
+    final RealMatrix matrix = new Array2DRowRealMatrix(data);
     final RealMatrix centered = StatisticUtils.performMeanCenter(matrix, false);
     logger.info(centered.toString());
 
@@ -80,38 +73,9 @@ public class PcaTest {
 //    final RealMatrix projected = matrix.multiply(first2Components);
     final RealMatrix projected = pcaResult.projectDataToScores(2);
 
-    final ScoresPlot scoresPlot = new ScoresPlot(projected.getData());
-    scoresPlot.setVisible(true);
-    JDialog frame = new JDialog();
-    frame.setContentPane(scoresPlot);
-    frame.setVisible(true);
-
     logger.info(() -> STR."Scores: \{principalComponentMatrix.toString()}");
     logger.info(() -> STR."Loadings: \{pcaResult.getLoadingsMatrix().toString()}");
   }
 
-  class ScoresPlot extends JPanel {
-
-    private double[][] scores;
-
-    public ScoresPlot(double[][] scores) {
-      this.scores = scores;
-      setPreferredSize(new Dimension(400, 400));
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-      super.paintComponent(g);
-      Graphics2D g2d = (Graphics2D) g;
-
-      // Plot the scores as points
-      for (int i = 0; i < scores.length; i++) {
-        int x = (int) scores[i][0]; // x-coordinate of the point
-        int y = (int) scores[i][1]; // y-coordinate of the point
-        g2d.setColor(Color.BLUE);
-        g2d.fillOval(x - 3, y - 3, 6, 6); // Draw a small circle for each point
-      }
-    }
-  }
 
 }
