@@ -33,7 +33,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import java.awt.Color;
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
   private final TotalFinishedItemsProgress progressProvider = new TotalFinishedItemsProgress(3);
   private final Integer rangePcIndex;
   private final Integer domainPcIndex;
-  private final String metadataColumn;
+  private final MetadataColumn<?> metadataColumn;
   private final List<FeatureListRow> selectedRows;
   private final AbundanceMeasure abundance;
   private final List<FeatureList> flists;
@@ -72,10 +72,10 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
       return false;
     }
 
-    if (metadataColumn != null && MZmineCore.getProjectMetadata().getColumnByName(metadataColumn) == null
-        && !metadataColumn.isBlank()) {
-      return false;
-    }
+//    if (metadataColumn != null && MZmineCore.getProjectMetadata().getColumnByName(metadataColumn) == null
+//        && !metadataColumn.isBlank()) {
+//      return false;
+//    }
 
     if (flists == null || flists.isEmpty() || flists.getFirst() == null) {
       return false;
@@ -94,8 +94,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     progressProvider.getAndIncrement();
 
     final ScoresProvider scores = new ScoresProvider(pcaRowsResult, "Scores", Color.RED,
-        domainPcIndex, rangePcIndex,
-        MZmineCore.getProjectMetadata().getColumnByName(metadataColumn));
+        domainPcIndex, rangePcIndex, metadataColumn);
     final ColoredXYZDataset scoresDS = new ColoredXYZDataset(scores, RunOption.THIS_THREAD);
     progressProvider.getAndIncrement();
 

@@ -29,13 +29,12 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -49,7 +48,7 @@ public class PCAModel {
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
   private final ObjectProperty<AbundanceMeasure> abundance = new SimpleObjectProperty<>(
       AbundanceMeasure.Height);
-  private final StringProperty metadataColumn = new SimpleStringProperty();
+  private final ObjectProperty<MetadataColumn<?>> metadataColumn = new SimpleObjectProperty<>();
   private final ObjectProperty<List<DatasetAndRenderer>> scoresDatasets = new SimpleObjectProperty<>(
       List.of());
   private final ObjectProperty<List<DatasetAndRenderer>> loadingsDatasets = new SimpleObjectProperty<>(
@@ -85,15 +84,15 @@ public class PCAModel {
     return rangePc;
   }
 
-  public String getMetadataColumn() {
+  public MetadataColumn<?> getMetadataColumn() {
     return metadataColumn.get();
   }
 
-  public void setMetadataColumn(String metadataColumn) {
+  public void setMetadataColumn(MetadataColumn<?> metadataColumn) {
     this.metadataColumn.set(metadataColumn);
   }
 
-  public StringProperty metadataColumnProperty() {
+  public ObjectProperty<MetadataColumn<?>> metadataColumnProperty() {
     return metadataColumn;
   }
 

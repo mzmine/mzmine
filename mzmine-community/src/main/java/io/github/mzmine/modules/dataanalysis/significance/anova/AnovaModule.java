@@ -32,6 +32,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModule;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
@@ -43,8 +44,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class AnovaModule implements MZmineProcessingModule, RowSignificanceTestModule<String> {
+public class AnovaModule implements MZmineProcessingModule,
+    RowSignificanceTestModule<MetadataColumn<?>> {
 
   private static final Logger logger = Logger.getLogger(AnovaModule.class.getName());
 
@@ -88,7 +91,13 @@ public class AnovaModule implements MZmineProcessingModule, RowSignificanceTestM
   }
 
   @Override
-  public RowSignificanceTest getInstance(ValuePropertyComponent<String> component) {
+  public <C extends Region & ValuePropertyComponent<MetadataColumn<?>>> @NotNull C createConfigurationComponent() {
+    return (C) new MetadataGroupingComponent();
+  }
+
+  @Override
+  public @Nullable RowSignificanceTest getInstance(
+      @NotNull ValuePropertyComponent<MetadataColumn<?>> component) {
     try {
       return new AnovaTest(component.valueProperty().getValue());
     } catch (MetadataColumnDoesNotExistException e) {
@@ -96,10 +105,4 @@ public class AnovaModule implements MZmineProcessingModule, RowSignificanceTestM
       return null;
     }
   }
-
-  @Override
-  public @NotNull <C extends Region & ValuePropertyComponent<String>> C createConfigurationComponent() {
-    return (C) new MetadataGroupingComponent();
-  }
-
 }

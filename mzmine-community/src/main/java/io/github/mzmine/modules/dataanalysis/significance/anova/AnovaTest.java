@@ -43,21 +43,15 @@ import org.apache.commons.math3.stat.inference.TestUtils;
 public class AnovaTest implements RowSignificanceTest {
 
   private static final Logger logger = Logger.getLogger(AnovaTest.class.getName());
-  private final String groupingColumnName;
   private final AtomicDouble finishedPercentage = new AtomicDouble(0d);
   private final List<List<RawDataFile>> groupedFiles;
+  private final MetadataColumn<?> groupingColumn;
   private List<AnovaResult> result = List.of();
 
-  public AnovaTest(String groupingColumnName) throws MetadataColumnDoesNotExistException {
-    this.groupingColumnName = groupingColumnName;
+  public AnovaTest(MetadataColumn<?> groupingColumn) throws MetadataColumnDoesNotExistException {
+    this.groupingColumn = groupingColumn;
 
     final MetadataTable metadata = MZmineCore.getProjectMetadata();
-    final MetadataColumn<?> groupingColumn = metadata.getColumnByName(groupingColumnName);
-
-    if (groupingColumn == null) {
-      throw new MetadataColumnDoesNotExistException(groupingColumnName);
-    }
-
     final Map<?, List<RawDataFile>> fileGrouping = metadata.groupFilesByColumn(groupingColumn);
     groupedFiles = fileGrouping.values().stream().toList();
   }
@@ -78,7 +72,7 @@ public class AnovaTest implements RowSignificanceTest {
     if (checkConditions(intensityGroups)) {
       final double pValue = TestUtils.oneWayAnovaPValue(intensityGroups);
       final double fValue = TestUtils.oneWayAnovaFValue(intensityGroups);
-      return new AnovaResult(row, groupingColumnName, pValue, fValue);
+      return new AnovaResult(row, groupingColumn.getTitle(), pValue, fValue);
     }
 
     return null;

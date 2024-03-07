@@ -28,16 +28,18 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.framework.fx.SelectedFeatureListsController;
+import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnController;
 import io.github.mzmine.gui.framework.fx.SelectedRowsController;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 
 public class PCAController extends FxController<PCAModel> implements SelectedRowsController,
-    SelectedFeatureListsController {
+    SelectedFeatureListsController, SelectedMetadataColumnController {
 
   private final FxViewBuilder<PCAModel> builder;
 
@@ -77,5 +79,10 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
   @Override
   public Property<List<FeatureList>> selectedFeatureListsProperty() {
     return model.flistsProperty();
+  }
+
+  @Override
+  public ObjectProperty<MetadataColumn<?>> groupingColumnProperty() {
+    return model.metadataColumnProperty();
   }
 }
