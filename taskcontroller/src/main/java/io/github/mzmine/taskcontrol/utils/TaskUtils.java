@@ -28,10 +28,18 @@ package io.github.mzmine.taskcontrol.utils;
 import io.github.mzmine.taskcontrol.SimpleCalculationTask;
 import io.github.mzmine.taskcontrol.SimpleRunnableTask;
 import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.TaskStatusListener;
+import io.github.mzmine.taskcontrol.impl.WrappedTask;
+import io.github.mzmine.taskcontrol.listeners.MasterTaskCancelListener;
 import io.github.mzmine.taskcontrol.operations.TaskSubProcessor;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public class TaskUtils {
+
+  private static final Logger logger = Logger.getLogger(TaskUtils.class.getName());
 
   /**
    * Wraps a runnable into a task.
@@ -46,6 +54,59 @@ public class TaskUtils {
       case TaskSubProcessor task -> new SimpleCalculationTask<>(task);
       case Runnable _ -> new SimpleRunnableTask(runnable);
     };
+  }
+
+  /**
+   * Wait for all sub tasks to finish. Also cancel the sub tasks if the master task cancels or
+   * errors out
+   *
+   * @param masterTask   task that controls the cancel and error status of the sub tasks
+   * @param wrappedTasks waiting to finish
+   * @return if master is cancelled or errors out - the masterTask.getStatus. Otherwise FINISHED if
+   * no error.
+   */
+  @NotNull
+  public static TaskStatus waitForTasksToFinish(@NotNull final Task masterTask,
+      final WrappedTask[] wrappedTasks) {
+    // make sure to cancel all sub tasks if needed
+    TaskStatusListener masterListener = new MasterTaskCancelListener(wrappedTasks);
+    masterTask.addTaskStatusListener(masterListener);
+
+    for (final WrappedTask task : wrappedTasks) {
+      task.addTaskStatusListener(
+          (_, newStatus, _) -> handleSubTaskStatusChanged(masterTask, newStatus));
+    }
+
+    for (final WrappedTask task : wrappedTasks) {
+      // wait for all to finish
+      try {
+        task.getFuture().get();
+      } catch (InterruptedException | ExecutionException e) {
+        masterTask.error("Subtask had an error or was interrupted", e);
+        return TaskStatus.ERROR;
+      }
+    }
+
+    masterTask.removeTaskStatusListener(masterListener);
+    if (masterTask.isFinished()) {
+      return masterTask.getStatus();
+    }
+    return TaskStatus.FINISHED;
+  }
+
+  private static void handleSubTaskStatusChanged(final Task masterTask,
+      final TaskStatus newStatus) {
+    switch (newStatus) {
+      case CANCELED -> masterTask.cancel();
+      case ERROR -> {
+        masterTask.error(STR."""
+            Subtask had an error. Cancelling all sub tasks now.
+                        \{masterTask.toString()}""");
+      }
+      case FINISHED, PROCESSING, WAITING -> {
+        // nothing to do here
+      }
+    }
   }
 
 }
