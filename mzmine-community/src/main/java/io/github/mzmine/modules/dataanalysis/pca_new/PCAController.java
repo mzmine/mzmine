@@ -62,18 +62,16 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
   }
 
   private void initListeners() {
-    model.flistsProperty()
-        .addListener(_ -> onTaskThread(new PCAUpdateTask("update full dataset", model)));
-    model.domainPcProperty()
-        .addListener(_ -> onTaskThread(new PCAUpdateTask("update full dataset", model)));
-    model.rangePcProperty()
-        .addListener(_ -> onTaskThread(new PCAUpdateTask("update full dataset", model)));
-    model.abundanceProperty()
-        .addListener(_ -> onTaskThread(new PCAUpdateTask("update full dataset", model)));
-    model.flistsProperty()
-        .addListener(_ -> onTaskThread(new PCAUpdateTask("update full dataset", model)));
-    model.metadataColumnProperty()
-        .addListener(_ -> onTaskThread(new PCAUpdateTask("update full dataset", model)));
+    model.flistsProperty().addListener(_ -> update());
+    model.domainPcProperty().addListener(_ -> update());
+    model.rangePcProperty().addListener(_ -> update());
+    model.abundanceProperty().addListener(_ -> update());
+    model.flistsProperty().addListener(_ -> update());
+    model.metadataColumnProperty().addListener(_ -> update());
+  }
+
+  public void update() {
+    onTaskThread(new PCAUpdateTask("update full dataset", model));
   }
 
   @Override

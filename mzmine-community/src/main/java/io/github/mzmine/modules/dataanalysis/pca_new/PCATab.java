@@ -40,6 +40,7 @@ public class PCATab extends MZmineTab {
   public PCATab() {
     super("PCA");
     controller = new PCAController();
+    controller.update();
     final Region region = controller.buildView();
     setContent(region);
   }
