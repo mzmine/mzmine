@@ -29,6 +29,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramCursorPosition;
 import io.github.mzmine.modules.visualization.chromatogram.FeatureDataSet;
@@ -587,7 +588,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     Range<Double> bpcChromToleranceRange = getChromMzTolerance().getToleranceRange(mz);
 
     FeatureDataSetCalc thread = new FeatureDataSetCalc(filesAndDataSets.keySet(),
-        bpcChromToleranceRange, getScanSelection(), getChromPlot());
+        bpcChromToleranceRange, getScanSelection(), getChromPlot(), ScanDataType.RAW);
 
     // put the current range into the mz range component. This is the reason it does not have a
     // listener that automatically updates the tic plot

@@ -25,7 +25,7 @@
 
 package io.github.mzmine.taskcontrol.operations;
 
-import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.Task;
 
 /**
  * Task operations are sub tasks that can react to a parent task being canceled. It also updates the
@@ -38,7 +38,7 @@ public abstract class AbstractTaskSubSupplier<T> extends AbstractParentTaskDepen
     this(null);
   }
 
-  public AbstractTaskSubSupplier(final AbstractTask parentTask) {
+  public AbstractTaskSubSupplier(final Task parentTask) {
     super(parentTask);
   }
 
