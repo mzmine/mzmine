@@ -62,7 +62,7 @@ public class RowsBoxplotController extends FxController<RowsBoxplotModel> implem
   }
 
   @Override
-  protected @NotNull FxViewBuilder getViewBuilder() {
+  protected @NotNull FxViewBuilder<RowsBoxplotModel> getViewBuilder() {
     return builder;
   }
 

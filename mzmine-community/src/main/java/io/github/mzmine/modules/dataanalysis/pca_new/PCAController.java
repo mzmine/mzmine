@@ -41,7 +41,7 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
 
   private final FxViewBuilder<PCAModel> builder;
 
-  protected PCAController() {
+  public PCAController() {
     super(new PCAModel());
     builder = new PCAViewBuilder(model);
     initListeners();
