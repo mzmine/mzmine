@@ -58,4 +58,11 @@ public enum AbundanceMeasure {
     return featureOrRow.get(type);
   }
 
+  public Float getOrNaN(@Nullable ModularDataModel featureOrRow) {
+    if (featureOrRow == null) {
+      return Float.NaN;
+    }
+    return featureOrRow.get(type);
+  }
+
 }

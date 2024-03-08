@@ -27,18 +27,21 @@ package io.github.mzmine.javafx.components.factories;
 
 import javafx.beans.property.Property;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 
 public class FxComponentFactory {
 
-  public static <T> HBox createLabelledComboBox(String label, ObservableList<T> values,
+  public static <T> HBox createLabeledComboBox(String label, ObservableList<T> values,
       Property<T> modelProperty) {
     final Label lab = new Label(label);
     final ComboBox<T> comboBox = new ComboBox<>(values);
     comboBox.valueProperty().bindBidirectional(modelProperty);
     lab.setLabelFor(comboBox);
-    return new HBox(5, lab, comboBox);
+    final HBox hBox = new HBox(5, lab, comboBox);
+    hBox.setAlignment(Pos.CENTER_LEFT);
+    return hBox;
   }
 }

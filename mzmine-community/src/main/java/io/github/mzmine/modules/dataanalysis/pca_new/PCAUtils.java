@@ -38,6 +38,13 @@ public class PCAUtils {
 
   private static final Logger logger = Logger.getLogger(PCAUtils.class.getName());
 
+  /**
+   * Calculates the PCA of a matrix by singular value decomposition (svd).
+   * https://stats.stackexchange.com/questions/134282/relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca
+   *
+   * @param data the data
+   * @return A pca result.
+   */
   public static PCAResult calculatePCA(RealMatrix data) {
 
     logger.finest(() -> "Performing scaling mean centering");
@@ -49,6 +56,13 @@ public class PCAUtils {
     return new PCAResult(data, centeredMatrix, svd);
   }
 
+  /**
+   * Performs a PCA on a list of feature list rows. Imputes missing values as 0s.
+   *
+   * @param rows    The rows.
+   * @param measure The abundance to use.
+   * @return A pca result that can be mapped to the used rows.
+   */
   public static PCARowsResult performPCAOnRows(List<FeatureListRow> rows,
       AbundanceMeasure measure) {
     final List<RawDataFile> files = rows.stream().flatMap(row -> row.getRawDataFiles().stream())

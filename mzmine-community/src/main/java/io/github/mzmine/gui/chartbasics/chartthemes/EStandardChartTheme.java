@@ -76,6 +76,8 @@ public class EStandardChartTheme extends StandardChartTheme {
   private static final boolean DEFAULT_CROSS_HAIR_VISIBLE = true;
   private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
       BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
+
+  public static final BasicStroke DEFAULT_STROKE = new BasicStroke(2f);
   // master font
   protected Font masterFont;
   protected Color masterFontColor;

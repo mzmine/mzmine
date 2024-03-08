@@ -31,10 +31,13 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMat
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.util.collections.CollectionUtils;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,8 +46,8 @@ import org.jetbrains.annotations.NotNull;
  * {@link FeatureAnnotationIterator}
  */
 public enum FeatureAnnotationPriority {
-  MANUAL(ManualAnnotationType.class), LIPID(LipidMatchListType.class), SPECTRAL_LIBRARY(
-      SpectralLibraryMatchesType.class), EXACT_COMPOUND(CompoundDatabaseMatchesType.class), FORMULA(
+  MANUAL(ManualAnnotationType.class), SPECTRAL_LIBRARY(
+      SpectralLibraryMatchesType.class), LIPID(LipidMatchListType.class), EXACT_COMPOUND(CompoundDatabaseMatchesType.class), FORMULA(
       FormulaListType.class);
   private static final DataType<?>[] dataTypes = Arrays.stream(FeatureAnnotationPriority.values())
       .map(FeatureAnnotationPriority::getAnnotationType).map(DataTypes::get)
@@ -54,6 +57,17 @@ public enum FeatureAnnotationPriority {
 
   FeatureAnnotationPriority(Class<? extends DataType<?>> clazz) {
     this.type = DataTypes.get(clazz);
+  }
+
+
+  /**
+   * Sort a collection of AnnotationTypes and put {@link MissingValueType} at the end
+   */
+  public static Comparator<DataType<?>> createDefaultSorter() {
+    var orderedTypes = CollectionUtils.indexMap(FeatureAnnotationPriority.getDataTypesInOrder());
+    orderedTypes.put(DataTypes.get(MissingValueType.class), orderedTypes.size());
+    return Comparator.comparing(orderedTypes::get,
+        Comparator.nullsLast(Comparator.naturalOrder()));
   }
 
   /**

@@ -153,7 +153,7 @@ public class StatisticUtils {
 
         final double abundance;
         if (feature != null) {
-          abundance = measure.get((ModularDataModel) feature);
+          abundance = measure.getOrNaN((ModularDataModel) feature);
         } else {
           abundance = Double.NaN;
         }

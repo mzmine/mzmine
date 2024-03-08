@@ -64,7 +64,7 @@ public class DataTypeUtilsTest {
         spectralLipidAnnotated);
     final List<DataType> orderOne = DataTypes.getAll(LipidMatchListType.class,
         SpectralLibraryMatchesType.class);
-    final Map<DataType, List<FeatureListRow>> oderOneResult = DataTypeUtils.groupByBestDataType(
+    final Map<DataType<?>, List<FeatureListRow>> oderOneResult = DataTypeUtils.groupByBestDataType(
         rows, true, orderOne.toArray(DataType[]::new));
     Assertions.assertEquals(2, oderOneResult.get(new LipidMatchListType()).size());
     Assertions.assertEquals(1, oderOneResult.get(new SpectralLibraryMatchesType()).size());
@@ -72,7 +72,7 @@ public class DataTypeUtilsTest {
 
     final List<DataType> orderTwo = DataTypes.getAll(SpectralLibraryMatchesType.class,
         LipidMatchListType.class);
-    final Map<DataType, List<FeatureListRow>> oderTwoResult = DataTypeUtils.groupByBestDataType(
+    final Map<DataType<?>, List<FeatureListRow>> oderTwoResult = DataTypeUtils.groupByBestDataType(
         rows, false, orderTwo.toArray(DataType[]::new));
     Assertions.assertEquals(1, oderTwoResult.get(new LipidMatchListType()).size());
     Assertions.assertEquals(2, oderTwoResult.get(new SpectralLibraryMatchesType()).size());

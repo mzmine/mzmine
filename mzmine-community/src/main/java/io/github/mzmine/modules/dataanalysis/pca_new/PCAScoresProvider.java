@@ -47,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.PaintScale;
 
-public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvider,
+public class PCAScoresProvider extends SimpleXYProvider implements PlotXYZDataProvider,
     ZCategoryProvider, XYItemObjectProvider<RawDataFile> {
 
   private final PCARowsResult result;
@@ -66,7 +66,7 @@ public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvi
    * @param pcY index of the principal component used for range axis, subtract 1 from the number
    *            since the pc matrix starts at 0.
    */
-  public ScoresProvider(PCARowsResult result, String seriesKey, Color awt, int pcX, int pcY,
+  public PCAScoresProvider(PCARowsResult result, String seriesKey, Color awt, int pcX, int pcY,
       MetadataColumn<?> groupingColumn) {
     super(seriesKey, awt);
     this.result = result;
@@ -75,7 +75,7 @@ public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvi
     this.groupingColumn = groupingColumn;
   }
 
-  public ScoresProvider(PCARowsResult result, String seriesKey, Color awt) {
+  public PCAScoresProvider(PCARowsResult result, String seriesKey, Color awt) {
     this(result, seriesKey, awt, 0, 1, null);
   }
 
@@ -86,9 +86,8 @@ public class ScoresProvider extends SimpleXYProvider implements PlotXYZDataProvi
     final RealMatrix scores = pcaResult.projectDataToScores(pcX, pcY);
 
     final List<RawDataFile> files = result.files();
-    final Map<?, List<RawDataFile>> groupedFiles =
-        groupingColumn != null ? MZmineCore.getProjectMetadata().groupFilesByColumn(groupingColumn)
-            : Map.of();
+    final Map<?, List<RawDataFile>> groupedFiles = MZmineCore.getProjectMetadata()
+        .groupFilesByColumn(groupingColumn);
 
     numberOfCategories = Math.max(groupedFiles.size(), 1);
     groupNames = new String[Math.max(groupedFiles.size(), 1)];
