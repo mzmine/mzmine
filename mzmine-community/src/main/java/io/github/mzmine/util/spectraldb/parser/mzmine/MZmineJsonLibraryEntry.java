@@ -194,7 +194,7 @@ public class MZmineJsonLibraryEntry {
       case SIRIUS_MERGED_STATS -> null;
       case OTHER_MATCHED_COMPOUNDS_N -> null;
       case OTHER_MATCHED_COMPOUNDS_NAMES -> null;
-      case FEATURE_ID -> null;
+      case FEATURE_ID, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT -> null;
       case SCAN_NUMBER -> scanNumber;
       case UNSPECIFIED -> null;
     };
