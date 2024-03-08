@@ -32,12 +32,13 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
+import io.github.mzmine.taskcontrol.utils.TaskUtils;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -90,8 +91,7 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
    */
   public static ThreadPoolTask createDefaultTaskManagerPool(final String description,
       final List<? extends Task> tasks) {
-    return new ProvidedThreadPoolTask(description, getTaskControllerThreadPool(),
-        false, tasks);
+    return new ProvidedThreadPoolTask(description, getTaskControllerThreadPool(), false, tasks);
   }
 
   @NotNull
@@ -117,10 +117,12 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
 
     ExecutorService threadPool = null;
     try {
+      TaskController taskController = TaskService.getController();
       // do not auto close as we are usually using the TaskController thread pool
       threadPool = createThreadPool();
 
-      int numThreads = TaskService.getController().getNumberOfThreads();
+      int numThreads = taskController.getNumberOfThreads();
+      ThreadPoolExecutor highPriorityExecutor = taskController.getHighPriorityExecutor();
 
       if (threadPool instanceof ThreadPoolExecutor threadPoolExecutor) {
         // threads are usually defined by the threadPool used for normal tasks
@@ -128,46 +130,25 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
       }
 
       // this executor is only used for high priority tasks, core thread pool size is zero
-      try (ExecutorService highPrioExecutor = TaskController.createCachedHighPriorityThreadPool(
-          numThreads)) {
+      // execute
+      for (WrappedTask task : tasks) {
+        Runnable runnable = trackProgressTask(task);
 
-        // execute
-        for (WrappedTask task : tasks) {
-          task.addTaskStatusListener(
-              (thistask, newStatus, oldStatus) -> handleSubTaskStatusChanged(thistask, newStatus));
+        var executor =
+            task.getTaskPriority() == TaskPriority.HIGH ? highPriorityExecutor : threadPool;
+        Future<?> future = executor.submit(runnable);
+        task.setFuture(future);
 
-          Runnable runnable = trackProgressTask(task);
+        taskController.addSubmittedTasksToView(task);
 
-          var executor =
-              task.getTaskPriority() == TaskPriority.HIGH ? highPrioExecutor : threadPool;
-          Future<?> future = executor.submit(runnable);
-          task.setFuture(future);
-
-          TaskService.getController().addSubmittedTasksToView(task);
-
-          // only shutdown if this was not a provided executor
-          if (this instanceof ProvidedThreadPoolTask provided && provided.autoShutdownExecutor()) {
-            threadPool.shutdown();
-          }
-        }
-
-        // wait for finish
-        for (WrappedTask task : tasks) {
-          if (isCanceled()) {
-            break;
-          }
-          Future<?> future = task.getFuture();
-          assert future != null;
-          // wait for execution end
-          var result = future.get();
+        // only shutdown if this was not a provided executor
+        if (this instanceof ProvidedThreadPoolTask provided && provided.autoShutdownExecutor()) {
+          threadPool.shutdown();
         }
       }
-    } catch (InterruptedException e) {
-      cancel();
-      logger.log(Level.SEVERE, STR."Task \{description} did not finish and timedout.");
-    } catch (ExecutionException e) {
-      setStatus(TaskStatus.ERROR);
-      throw new RuntimeException(e);
+      TaskUtils.waitForTasksToFinish(this, tasks.toArray(WrappedTask[]::new));
+    } catch (RejectedExecutionException e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
     } catch (CancellationException e) {
       cancel();
     } finally {
@@ -180,23 +161,6 @@ public sealed abstract class ThreadPoolTask extends AbstractTask permits FixedTh
 
     if (!isCanceled()) {
       setStatus(TaskStatus.FINISHED);
-    }
-  }
-
-
-  private void handleSubTaskStatusChanged(final Task thistask, final TaskStatus newStatus) {
-    switch (newStatus) {
-      case CANCELED -> cancel();
-      case ERROR -> {
-        logger.info(STR."""
-            Subtask had an error. Cancelling all sub tasks now.
-            \{thistask.toString()}""");
-        cancel();
-        setStatus(TaskStatus.ERROR);
-      }
-      case FINISHED, PROCESSING, WAITING -> {
-        // nothing to do here
-      }
     }
   }
 
