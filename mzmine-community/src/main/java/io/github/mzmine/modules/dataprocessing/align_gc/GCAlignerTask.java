@@ -52,6 +52,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
@@ -69,7 +70,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class GCAlignerTask extends AbstractFeatureListTask {
 
-  public static final int SIMILARITY_WEIGHT = 2;
   private static final Logger LOGGER = Logger.getLogger(GCAlignerTask.class.getName());
   private final AtomicInteger alignedRows = new AtomicInteger(0);
   private final MZmineProject project;
@@ -79,6 +79,7 @@ public class GCAlignerTask extends AbstractFeatureListTask {
   private final RTTolerance rtTolerance;
   private final MZmineProcessingStep<SpectralSimilarityFunction> similarityFunction;
   private final String featureListName;
+  private final double rtWeight;
   private ModularFeatureList alignedFeatureList;
   private int totalRows;
   private int iteration = 1;
@@ -94,6 +95,7 @@ public class GCAlignerTask extends AbstractFeatureListTask {
             .getMatchingFeatureLists()).map(featureList -> (FeatureList) featureList).toList();
     this.mzTolerance = parameters.getValue(GCAlignerParameters.MZ_TOLERANCE);
     this.rtTolerance = parameters.getValue(GCAlignerParameters.RT_TOLERANCE);
+    rtWeight = parameters.getValue(GCAlignerParameters.RT_WEIGHT);
     this.similarityFunction = parameters.getValue(GCAlignerParameters.SIMILARITY_FUNCTION);
     this.featureListName = parameters.getValue(GCAlignerParameters.FEATURE_LIST_NAME);
   }
@@ -135,7 +137,7 @@ public class GCAlignerTask extends AbstractFeatureListTask {
 
       // remove next feature list's rows
       // select the next base feature list with max number of rows
-      final List<FeatureListRow> nextUnalignedFeatureList = allRows.remove(0);
+      final List<FeatureListRow> nextUnalignedFeatureList = allRows.removeFirst();
       if (nextUnalignedFeatureList.isEmpty()) {
         LOGGER.finer(() -> String.format(
             "End of GC aligner reached. %d feature lists had no unaligned rows left",
@@ -213,8 +215,8 @@ public class GCAlignerTask extends AbstractFeatureListTask {
         // retention time is already checked for candidates
         SpectralSimilarity similarity = checkSpectralSimilarity(rowToAdd, candidateInAligned);
         if (similarity != null) {
-          final RowVsRowScore score = new RowVsRowScore(rowToAdd, candidateInAligned, rtRange, 1,
-              similarity.getScore(), SIMILARITY_WEIGHT);
+          final RowVsRowScore score = new RowVsRowScore(rowToAdd, candidateInAligned, rtRange, rtWeight,
+              similarity.getScore(), 1);
           scoresList.add(score);
         }
       }
@@ -230,23 +232,9 @@ public class GCAlignerTask extends AbstractFeatureListTask {
   }
 
   private SpectralSimilarity checkSpectralSimilarity(FeatureListRow row, FeatureListRow candidate) {
-
-    DataPoint[] rowDPs = null;
-    DataPoint[] candidateDPs = null;
+    DataPoint[] rowDPs = extractMostIntenseFragmentScan(row);
+    DataPoint[] candidateDPs = extractMostIntenseFragmentScan(candidate);
     SpectralSimilarity sim;
-
-    // get data points of mass list of the best
-    // fragmentation scans
-    Scan mostIntenseFragmentScanRow = row.getMostIntenseFragmentScan();
-    Scan mostIntenseFragmentScanCandidate = candidate.getMostIntenseFragmentScan();
-    if (mostIntenseFragmentScanRow != null && mostIntenseFragmentScanRow.getMSLevel() == 1
-        && mostIntenseFragmentScanCandidate != null
-        && mostIntenseFragmentScanCandidate.getMSLevel() == 1) {
-      rowDPs = mostIntenseFragmentScanRow.getMassList().getDataPoints();
-      candidateDPs = mostIntenseFragmentScanCandidate.getMassList().getDataPoints();
-    } else {
-      return null;
-    }
 
     // compare mass list data points of selected scans
     if (rowDPs != null && candidateDPs != null) {
@@ -256,6 +244,18 @@ public class GCAlignerTask extends AbstractFeatureListTask {
       return sim;
     }
     return null;
+  }
+
+  @Nullable
+  private DataPoint[] extractMostIntenseFragmentScan(final FeatureListRow row) {
+    Scan scan = row.getMostIntenseFragmentScan();
+    if (scan == null || scan.getMSLevel()!=1) {
+      return null;
+    }
+    if (scan.getMassList() == null) {
+      throw new MissingMassListException(scan);
+    }
+    return scan.getMassList().getDataPoints();
   }
 
   @NotNull

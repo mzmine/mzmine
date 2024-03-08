@@ -25,7 +25,9 @@
 
 package io.github.mzmine.modules.dataprocessing.align_gc;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
@@ -43,6 +45,12 @@ public class GCAlignerParameters extends SimpleParameterSet {
 
   public static final RTToleranceParameter RT_TOLERANCE = new RTToleranceParameter();
 
+  public static final DoubleParameter RT_WEIGHT = new DoubleParameter("Weight for RT", """
+      Score for perfectly matching RT values. The RT delta is divided by the RT tolerance and scaled 0-1.
+      The weight then multiplies this score so that higher RT delta give a penalty.
+      The RT wight shifts the focus on RT or spectral similarity (minimum similarity-1).""",
+      MZmineCore.getConfiguration().getGuiFormats().scoreFormat(), 0.5d);
+
   public static final ModuleComboParameter<SpectralSimilarityFunction> SIMILARITY_FUNCTION = new ModuleComboParameter<>(
       "Similarity", "Algorithm to calculate spectral similarity between to samples",
       SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.compositeCosine);
@@ -51,6 +59,6 @@ public class GCAlignerParameters extends SimpleParameterSet {
       "Feature list name", "Aligned feature list");
 
   public GCAlignerParameters() {
-    super(FEATURE_LISTS, MZ_TOLERANCE, RT_TOLERANCE, SIMILARITY_FUNCTION, FEATURE_LIST_NAME);
+    super(FEATURE_LISTS, MZ_TOLERANCE, RT_TOLERANCE, RT_WEIGHT, SIMILARITY_FUNCTION, FEATURE_LIST_NAME);
   }
 }
