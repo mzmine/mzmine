@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
@@ -68,6 +69,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class GCAlignerTask extends AbstractFeatureListTask {
 
+  public static final int SIMILARITY_WEIGHT = 2;
   private static final Logger LOGGER = Logger.getLogger(GCAlignerTask.class.getName());
   private final AtomicInteger alignedRows = new AtomicInteger(0);
   private final MZmineProject project;
@@ -98,13 +100,6 @@ public class GCAlignerTask extends AbstractFeatureListTask {
 
   @Override
   protected void process() {
-    // check for pseudo spectra, else return
-
-    // Compare RT
-
-    //Compare similarity
-
-    //find highest feature -> redo feature finding if necessary
 
     // Remember how many rows we need to process. Each row will be processed
     // twice, first for score calculation, second for actual alignment.
@@ -175,12 +170,6 @@ public class GCAlignerTask extends AbstractFeatureListTask {
     alignedFeatureList.parallelStream().filter(row -> row.getNumberOfFeatures() > 1)
         .forEach(FeatureListRow::applyRowBindings);
 
-    // score alignment by the number of features that fall within the mz, RT, mobility range
-    // do not apply all the advanced filters to keep it simple
-    //  RowAlignmentScoreCalculator calculator = new RowAlignmentScoreCalculator(featureLists,
-    //      mzTolerance, rtTolerance, mobTol, mzWeight, rtWeight, mobilityWeight);
-    //  FeatureListUtils.addAlignmentScores(alignedFeatureList, calculator, false);
-
     // applied methods
     alignedFeatureList.getAppliedMethods().addAll(featureLists.get(0).getAppliedMethods());
     // Add task description to peakList
@@ -225,7 +214,7 @@ public class GCAlignerTask extends AbstractFeatureListTask {
         SpectralSimilarity similarity = checkSpectralSimilarity(rowToAdd, candidateInAligned);
         if (similarity != null) {
           final RowVsRowScore score = new RowVsRowScore(rowToAdd, candidateInAligned, rtRange, 1,
-              similarity.getScore(), 2);
+              similarity.getScore(), SIMILARITY_WEIGHT);
           scoresList.add(score);
         }
       }
@@ -290,7 +279,7 @@ public class GCAlignerTask extends AbstractFeatureListTask {
               alignedRow.addFeature(dataFile, new ModularFeature(alignedFeatureList, feature),
                   false);
             } else {
-              IonTimeSeries ionTimeSeries = IonTimeSeriesUtils.extractIonTimeSeries(dataFile,
+              IonTimeSeries<Scan> ionTimeSeries = IonTimeSeriesUtils.extractIonTimeSeries(dataFile,
                   feature.getScanNumbers(), mzTolRange, feature.getRawDataPointsRTRange(),
                   dataFile.getMemoryMapStorage());
               alignedRow.addFeature(dataFile,
@@ -298,6 +287,7 @@ public class GCAlignerTask extends AbstractFeatureListTask {
                       FeatureStatus.DETECTED), false);
             }
             alignedRowsMap.put(row, true);
+
             this.alignedRows.getAndIncrement();
           }
         }
