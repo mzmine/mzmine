@@ -28,10 +28,10 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureController;
-import io.github.mzmine.gui.framework.fx.SelectedFeatureListsController;
-import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnController;
-import io.github.mzmine.gui.framework.fx.SelectedRowsController;
+import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureBinding;
+import io.github.mzmine.gui.framework.fx.SelectedFeatureListsBinding;
+import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnBinding;
+import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
@@ -40,9 +40,9 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 
-public class PCAController extends FxController<PCAModel> implements SelectedRowsController,
-    SelectedFeatureListsController, SelectedMetadataColumnController,
-    SelectedAbundanceMeasureController {
+public class PCAController extends FxController<PCAModel> implements SelectedRowsBinding,
+    SelectedFeatureListsBinding, SelectedMetadataColumnBinding,
+    SelectedAbundanceMeasureBinding {
 
   private final FxViewBuilder<PCAModel> builder;
 

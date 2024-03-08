@@ -37,7 +37,7 @@ public class RowsBoxplotModel {
 
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
   private final ObjectProperty<@Nullable MetadataColumn<?>> groupingColumn = new SimpleObjectProperty<>();
-  private final ObjectProperty<@Nullable RowBarDataset> dataset = new SimpleObjectProperty<>();
+  private final ObjectProperty<@Nullable RowBoxPlotDataset> dataset = new SimpleObjectProperty<>();
   private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>(
       AbundanceMeasure.Height);
 
@@ -65,15 +65,15 @@ public class RowsBoxplotModel {
     return groupingColumn;
   }
 
-  public @Nullable RowBarDataset getDataset() {
+  public @Nullable RowBoxPlotDataset getDataset() {
     return dataset.get();
   }
 
-  public void setDataset(@Nullable RowBarDataset dataset) {
+  public void setDataset(@Nullable RowBoxPlotDataset dataset) {
     this.dataset.set(dataset);
   }
 
-  public ObjectProperty<@Nullable RowBarDataset> datasetProperty() {
+  public ObjectProperty<@Nullable RowBoxPlotDataset> datasetProperty() {
     return dataset;
   }
 

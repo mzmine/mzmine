@@ -25,10 +25,10 @@
 
 package io.github.mzmine.gui.framework.fx;
 
-import io.github.mzmine.datamodel.features.Feature;
-import java.util.List;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import javafx.beans.property.ObjectProperty;
 
-public non-sealed interface SelectedFeaturesController extends FxControllerBinding {
-  ObjectProperty<List<Feature>> selectedFeaturesProperty();
+public non-sealed interface SelectedMetadataColumnBinding extends FxControllerBinding {
+
+  ObjectProperty<MetadataColumn<?>> groupingColumnProperty();
 }

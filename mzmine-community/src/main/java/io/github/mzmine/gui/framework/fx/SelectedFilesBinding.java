@@ -25,11 +25,10 @@
 
 package io.github.mzmine.gui.framework.fx;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.RawDataFile;
 import java.util.List;
-import javafx.beans.property.Property;
+import javafx.beans.property.ObjectProperty;
 
-public non-sealed interface SelectedFeatureListsController extends FxControllerBinding {
-
-  public Property<List<FeatureList>> selectedFeatureListsProperty();
+public non-sealed interface SelectedFilesBinding extends FxControllerBinding {
+  ObjectProperty<List<RawDataFile>> selectedRawFilesProperty();
 }

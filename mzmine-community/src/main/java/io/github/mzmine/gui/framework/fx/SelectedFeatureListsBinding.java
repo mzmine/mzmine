@@ -25,10 +25,11 @@
 
 package io.github.mzmine.gui.framework.fx;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
-import javafx.beans.property.ObjectProperty;
+import io.github.mzmine.datamodel.features.FeatureList;
+import java.util.List;
+import javafx.beans.property.Property;
 
-public non-sealed interface SelectedAbundanceMeasureController extends FxControllerBinding {
+public non-sealed interface SelectedFeatureListsBinding extends FxControllerBinding {
 
-  ObjectProperty<AbundanceMeasure> abundanceMeasureProperty();
+  public Property<List<FeatureList>> selectedFeatureListsProperty();
 }

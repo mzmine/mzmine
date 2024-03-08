@@ -38,9 +38,9 @@ import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 
-public class RowBarDataset extends DefaultBoxAndWhiskerCategoryDataset {
+public class RowBoxPlotDataset extends DefaultBoxAndWhiskerCategoryDataset {
 
-  public RowBarDataset(FeatureListRow row, @Nullable MetadataColumn<?> groupingColumn,
+  public RowBoxPlotDataset(FeatureListRow row, @Nullable MetadataColumn<?> groupingColumn,
       AbundanceMeasure abundance) {
 
     if (groupingColumn == null) { // no grouping, so just a single group

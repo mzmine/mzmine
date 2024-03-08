@@ -27,8 +27,8 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.framework.fx.SelectedFeatureListsController;
-import io.github.mzmine.gui.framework.fx.SelectedRowsController;
+import io.github.mzmine.gui.framework.fx.SelectedFeatureListsBinding;
+import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxInteractor;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class VolcanoPlotController extends FxController<VolcanoPlotModel> implements
-    SelectedRowsController, SelectedFeatureListsController {
+    SelectedRowsBinding, SelectedFeatureListsBinding {
 
   private final VolcanoPlotViewBuilder viewBuilder;
   private final Region view;
