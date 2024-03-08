@@ -184,24 +184,6 @@ public enum DBEntryField {
     return null;
   }
 
-  public Class getObjectClass() {
-    return clazz;
-  }
-
-  @Override
-  public String toString() {
-    return switch (this) {
-      case RT, SMILES, CAS -> super.toString().replace('_', ' ');
-      case ENTRY_ID -> "Entry ID";
-      case INCHI -> "InChI";
-      case INCHIKEY -> "InChI key";
-      case MOLWEIGHT -> "Mol. weight";
-      case MONA_ID -> "MoNA ID";
-      case PRECURSOR_MZ -> "Precursor m/z";
-      default -> StringUtils.capitalize(super.toString().replace('_', ' ').toLowerCase());
-    };
-  }
-
   /**
    * @return enum field for a DataType or {@link #UNSPECIFIED} if no clear mapping exists
    */
@@ -229,6 +211,24 @@ public enum DBEntryField {
     };
   }
 
+  public Class getObjectClass() {
+    return clazz;
+  }
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case RT, SMILES, CAS -> super.toString().replace('_', ' ');
+      case ENTRY_ID -> "Entry ID";
+      case INCHI -> "InChI";
+      case INCHIKEY -> "InChI key";
+      case MOLWEIGHT -> "Mol. weight";
+      case MONA_ID -> "MoNA ID";
+      case PRECURSOR_MZ -> "Precursor m/z";
+      default -> StringUtils.capitalize(super.toString().replace('_', ' ').toLowerCase());
+    };
+  }
+
   /**
    * @return The mzmine json format key or an empty String
    */
@@ -239,8 +239,7 @@ public enum DBEntryField {
           CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, //
           QUALITY, QUALITY_CHIMERIC, FILENAME, //
           SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, //
-          IMS_TYPE ->
-          StringType.class;
+          IMS_TYPE -> StringType.class;
       case SCAN_NUMBER -> BestScanNumberType.class;
       case MS_LEVEL, NUM_PEAKS, FEATURE_ID -> IntegerType.class;
       case EXACT_MASS, PRECURSOR_MZ, MOLWEIGHT -> MZType.class;
@@ -372,7 +371,7 @@ public enum DBEntryField {
       case SMILES -> "SMILES";
       case INCHI -> "INCHI";
       case ACQUISITION, GNPS_ID, MONA_ID, CHEMSPIDER, RESOLUTION, SYNONYMS, MOLWEIGHT, PUBCHEM, PUBMED, PRINCIPAL_INVESTIGATOR, CHARGE, CAS, SOFTWARE, DATA_COLLECTOR ->
-          toString();
+          this.name().toLowerCase();
       case PEPTIDE_SEQ -> "peptide_sequence";
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
       case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
@@ -430,9 +429,9 @@ public enum DBEntryField {
       case MS_LEVEL -> "MSLEVEL";
       case CCS -> "CCS";
       case SPLASH -> "SPLASH";
-      case ACQUISITION, NUM_PEAKS, GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RESOLUTION, SYNONYMS, //
-          MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT ->
-          toString();
+      case NUM_PEAKS -> toString(); // Num peaks
+      case ACQUISITION, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT, GNPS_ID, MONA_ID, CHEMSPIDER, //
+          PUBCHEM, RESOLUTION, SYNONYMS, MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY -> name();
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
       case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
       case MSN_FRAGMENTATION_METHODS -> "MSn_fragmentation_methods";
@@ -494,9 +493,10 @@ public enum DBEntryField {
       case CCS -> "CCS";
       case SPLASH -> "SPLASH";
       case MERGED_SPEC_TYPE -> "SPECTYPE";
-      case NUM_PEAKS, GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RESOLUTION, SYNONYMS, //
+      case NUM_PEAKS -> toString(); // Num peaks
+      case GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RESOLUTION, SYNONYMS, //
           MOLWEIGHT, SOFTWARE, COLLISION_ENERGY, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT ->
-          toString();
+          this.name();
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
       case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
       case MSN_FRAGMENTATION_METHODS -> "MSn_fragmentation_methods";
@@ -614,8 +614,7 @@ public enum DBEntryField {
           MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, //
           DATASET_ID, USI, SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC, //
           OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, QUALITY_PRECURSOR_PURITY, PEPTIDE_SEQ, //
-          IMS_TYPE, ONLINE_REACTIVITY ->
-          value.toString();
+          IMS_TYPE, ONLINE_REACTIVITY -> value.toString();
       case RT -> switch (value) {
         // float is default for RT but handle Double in case wrong value was present
         case Float f -> "%.2f".formatted(f * 60.f);
