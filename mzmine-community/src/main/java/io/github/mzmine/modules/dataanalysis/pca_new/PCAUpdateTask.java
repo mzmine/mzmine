@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
@@ -47,7 +46,6 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
   private final Integer rangePcIndex;
   private final Integer domainPcIndex;
   private final String metadataColumn;
-  private final List<FeatureListRow> selectedRows;
   private final AbundanceMeasure abundance;
   private final List<FeatureList> flists;
   private final List<DatasetAndRenderer> scoresDatasets = new ArrayList<>();
@@ -61,7 +59,6 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     domainPcIndex = Objects.requireNonNullElse(model.getDomainPc(), 0) - 1;
     rangePcIndex = Objects.requireNonNullElse(model.getRangePc(), 0) - 1;
     metadataColumn = model.getMetadataColumn();
-    selectedRows = model.getSelectedRows();
     flists = model.getFlists();
     abundance = model.getAbundance();
   }

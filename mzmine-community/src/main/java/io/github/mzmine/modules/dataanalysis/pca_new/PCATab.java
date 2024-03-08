@@ -40,7 +40,6 @@ public class PCATab extends MZmineTab {
   public PCATab() {
     super("PCA");
     controller = new PCAController();
-    controller.update();
     final Region region = controller.buildView();
     setContent(region);
   }
@@ -67,11 +66,11 @@ public class PCATab extends MZmineTab {
 
   @Override
   public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-    controller.featureListsProperty().set((List<FeatureList>) featureLists.stream().toList());
+    controller.featureListsProperty().set(List.copyOf(featureLists));
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-    controller.featureListsProperty().set((List<FeatureList>) featureLists.stream().toList());
+    controller.featureListsProperty().set(List.copyOf(featureLists));
   }
 }
