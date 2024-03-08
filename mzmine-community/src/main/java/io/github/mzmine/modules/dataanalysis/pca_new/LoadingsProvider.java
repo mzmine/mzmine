@@ -25,7 +25,9 @@
 
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
-import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
+import static io.github.mzmine.util.annotations.CompoundAnnotationUtils.getAnnotationTypesByPriority;
+import static io.github.mzmine.util.annotations.CompoundAnnotationUtils.rankUniqueAnnotationTypes;
+
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -36,11 +38,9 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvid
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ZCategoryProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.Map;
 import javafx.beans.property.Property;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.jetbrains.annotations.Nullable;
@@ -83,10 +83,12 @@ public class LoadingsProvider extends SimpleXYProvider implements PlotXYZDataPro
 
     final RealMatrix loadingsMatrix = pcaResult.getLoadingsMatrix();
 
-    final TreeMap<DataType<?>, List<FeatureListRow>> groupedRows = (TreeMap<DataType<?>, List<FeatureListRow>>) DataTypeUtils.groupByBestDataType(
-        result.rows(), true, FeatureAnnotationPriority.getDataTypesInOrder());
-    final List<DataType<?>> typesInOrder = groupedRows.keySet().stream().toList();
-    numberOfCategories = groupedRows.size();
+    final Map<FeatureListRow, DataType<?>> bestRowAnnotationType = getAnnotationTypesByPriority(
+        result.rows(), true);
+
+    // only create order of actually existing annotaiton types
+    Map<DataType<?>, Integer> typesInOrder = rankUniqueAnnotationTypes(bestRowAnnotationType.values());
+    numberOfCategories = typesInOrder.size();
 
     double[] domainData = new double[loadingsMatrix.getColumnDimension()];
     double[] rangeData = new double[loadingsMatrix.getColumnDimension()];
@@ -97,9 +99,10 @@ public class LoadingsProvider extends SimpleXYProvider implements PlotXYZDataPro
     for (int i = 0; i < loadingsMatrix.getColumnDimension(); i++) {
       domainData[i] = loadingsMatrix.getEntry(loadingsX, i);
       rangeData[i] = loadingsMatrix.getEntry(loadingsY, i);
-      final DataType<?> bestTypeWithValue = DataTypeUtils.getBestTypeWithValue(result.rows().get(i),
-          missing, FeatureAnnotationPriority.getDataTypesInOrder());
-      zCategories[i] = typesInOrder.indexOf(bestTypeWithValue);
+      // find annotation type or missing type
+      FeatureListRow row = result.rows().get(i);
+      final DataType<?> bestTypeWithValue = bestRowAnnotationType.get(row);
+      zCategories[i] = typesInOrder.get(bestTypeWithValue);
     }
 
     paintScale = new LookupPaintScale(0, numberOfCategories, Color.BLACK);
@@ -108,7 +111,7 @@ public class LoadingsProvider extends SimpleXYProvider implements PlotXYZDataPro
       paintScale.add(i, colors.getAWT(i));
     }
 
-    legendNames = typesInOrder.stream()
+    legendNames = typesInOrder.keySet().stream()
         .map(type -> type instanceof MissingValueType _ ? "Not annotated" : type.getHeaderString())
         .toArray(String[]::new);
 
