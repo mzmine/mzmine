@@ -237,10 +237,13 @@ public class GCAlignerTask extends AbstractFeatureListTask {
 
     // get data points of mass list of the best
     // fragmentation scans
-    if (row.getMostIntenseFragmentScan() != null
-        && candidate.getMostIntenseFragmentScan() != null) {
-      rowDPs = row.getMostIntenseFragmentScan().getMassList().getDataPoints();
-      candidateDPs = candidate.getMostIntenseFragmentScan().getMassList().getDataPoints();
+    Scan mostIntenseFragmentScanRow = row.getMostIntenseFragmentScan();
+    Scan mostIntenseFragmentScanCandidate = candidate.getMostIntenseFragmentScan();
+    if (mostIntenseFragmentScanRow != null && mostIntenseFragmentScanRow.getMSLevel() == 1
+        && mostIntenseFragmentScanCandidate != null
+        && mostIntenseFragmentScanCandidate.getMSLevel() == 1) {
+      rowDPs = mostIntenseFragmentScanRow.getMassList().getDataPoints();
+      candidateDPs = mostIntenseFragmentScanCandidate.getMassList().getDataPoints();
     } else {
       return null;
     }

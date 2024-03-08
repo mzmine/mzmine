@@ -44,7 +44,7 @@ public class GCAlignerParameters extends SimpleParameterSet {
   public static final RTToleranceParameter RT_TOLERANCE = new RTToleranceParameter();
 
   public static final ModuleComboParameter<SpectralSimilarityFunction> SIMILARITY_FUNCTION = new ModuleComboParameter<>(
-      "Similarity", "Algorithm to calculate similarity and filter matches",
+      "Similarity", "Algorithm to calculate spectral similarity between to samples",
       SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.compositeCosine);
 
   public static final StringParameter FEATURE_LIST_NAME = new StringParameter("Feature list name",
