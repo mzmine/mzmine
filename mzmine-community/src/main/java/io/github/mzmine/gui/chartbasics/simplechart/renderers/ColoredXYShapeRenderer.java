@@ -62,9 +62,8 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
 
   private static final int defaultSize = 7;
   private final Shape dataPointsShape;
-
   private final boolean drawOutlinesOnly;
-  private BasicStroke outlineStroke = new BasicStroke(2.0f);
+  private final BasicStroke outlineStroke = EStandardChartTheme.DEFAULT_STROKE;
 
   public ColoredXYShapeRenderer(boolean drawOutlinesOnly, Shape shape) {
     super();

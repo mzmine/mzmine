@@ -25,9 +25,6 @@
 
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
-import static io.github.mzmine.util.annotations.CompoundAnnotationUtils.getAnnotationTypesByPriority;
-import static io.github.mzmine.util.annotations.CompoundAnnotationUtils.rankUniqueAnnotationTypes;
-
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -38,6 +35,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvid
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ZCategoryProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.util.Map;
@@ -47,12 +45,12 @@ import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.PaintScale;
 
-public class LoadingsProvider extends SimpleXYProvider implements PlotXYZDataProvider,
+public class PCALoadingsProvider extends SimpleXYProvider implements PlotXYZDataProvider,
     ZCategoryProvider, XYItemObjectProvider<FeatureListRow> {
 
   private final PCARowsResult result;
-  private final int loadingsY;
-  private final int loadingsX;
+  private final int loadingsIndexY;
+  private final int loadingsIndexX;
 
   private int[] zCategories;
   private int numberOfCategories;
@@ -60,20 +58,20 @@ public class LoadingsProvider extends SimpleXYProvider implements PlotXYZDataPro
   private String[] legendNames;
 
   /**
-   * @param loadingsX index of the principal component used for domain axis, subtract 1 from the
-   *                  number since the pc matrix starts at 0.
-   * @param loadingsY index of the principal component used for range axis, subtract 1 from the
-   *                  number since the pc matrix starts at 0.
+   * @param loadingsIndexX index of the principal component used for domain axis, subtract 1 from
+   *                       the number since the pc matrix starts at 0.
+   * @param loadingsIndexY index of the principal component used for range axis, subtract 1 from the
+   *                       number since the pc matrix starts at 0.
    */
-  public LoadingsProvider(PCARowsResult result, String seriesKey, Color awt, int loadingsX,
-      int loadingsY) {
+  public PCALoadingsProvider(PCARowsResult result, String seriesKey, Color awt, int loadingsIndexX,
+      int loadingsIndexY) {
     super(seriesKey, awt);
     this.result = result;
-    this.loadingsX = loadingsX;
-    this.loadingsY = loadingsY;
+    this.loadingsIndexX = loadingsIndexX;
+    this.loadingsIndexY = loadingsIndexY;
   }
 
-  public LoadingsProvider(PCARowsResult result, String seriesKey, Color awt) {
+  public PCALoadingsProvider(PCARowsResult result, String seriesKey, Color awt) {
     this(result, seriesKey, awt, 0, 1);
   }
 
@@ -83,11 +81,12 @@ public class LoadingsProvider extends SimpleXYProvider implements PlotXYZDataPro
 
     final RealMatrix loadingsMatrix = pcaResult.getLoadingsMatrix();
 
-    final Map<FeatureListRow, DataType<?>> bestRowAnnotationType = getAnnotationTypesByPriority(
+    final Map<FeatureListRow, DataType<?>> bestRowAnnotationType = CompoundAnnotationUtils.mapBestAnnotationTypesByPriority(
         result.rows(), true);
 
     // only create order of actually existing annotaiton types
-    Map<DataType<?>, Integer> typesInOrder = rankUniqueAnnotationTypes(bestRowAnnotationType.values());
+    Map<DataType<?>, Integer> typesInOrder = CompoundAnnotationUtils.rankUniqueAnnotationTypes(
+        bestRowAnnotationType.values());
     numberOfCategories = typesInOrder.size();
 
     double[] domainData = new double[loadingsMatrix.getColumnDimension()];
@@ -97,8 +96,8 @@ public class LoadingsProvider extends SimpleXYProvider implements PlotXYZDataPro
 
     final MissingValueType missing = DataTypes.get(MissingValueType.class);
     for (int i = 0; i < loadingsMatrix.getColumnDimension(); i++) {
-      domainData[i] = loadingsMatrix.getEntry(loadingsX, i);
-      rangeData[i] = loadingsMatrix.getEntry(loadingsY, i);
+      domainData[i] = loadingsMatrix.getEntry(loadingsIndexX, i);
+      rangeData[i] = loadingsMatrix.getEntry(loadingsIndexY, i);
       // find annotation type or missing type
       FeatureListRow row = result.rows().get(i);
       final DataType<?> bestTypeWithValue = bestRowAnnotationType.get(row);

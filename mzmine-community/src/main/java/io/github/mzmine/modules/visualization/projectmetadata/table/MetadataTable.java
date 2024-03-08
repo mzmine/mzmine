@@ -242,8 +242,21 @@ public class MetadataTable {
     return getColumns().stream().map(MetadataColumn::getTitle).toArray(String[]::new);
   }
 
-  public <T> Map<T, List<RawDataFile>> groupFilesByColumn(@NotNull MetadataColumn<T> column)
+  /**
+   * Groups the files by the value in the metadata column.
+   *
+   * @param <T>
+   * @return If the column is null, an empty map is returned. If the column is not in the table, an
+   * error is thrown.
+   * @throws MetadataColumnDoesNotExistException If the column does not exist. Does not throw if the
+   *                                             column is null.
+   */
+  @NotNull
+  public <T> Map<T, List<RawDataFile>> groupFilesByColumn(@Nullable MetadataColumn<T> column)
       throws MetadataColumnDoesNotExistException {
+    if (column == null) {
+      return Map.of();
+    }
     final Map<RawDataFile, Object> fileValueMap = data.get(column);
     if (fileValueMap == null) {
       throw new MetadataColumnDoesNotExistException(column.getTitle());

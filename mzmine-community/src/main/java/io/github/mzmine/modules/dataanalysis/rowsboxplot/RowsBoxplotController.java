@@ -53,12 +53,14 @@ public class RowsBoxplotController extends FxController<RowsBoxplotModel> implem
   }
 
   private void updateDataset(List<FeatureListRow> n) {
-    if (n == null || n.isEmpty()) {
-      model.setDataset(null);
-      return;
-    }
-    model.setDataset(
-        new RowBarDataset(n.getFirst(), model.getGroupingColumn(), model.getAbundanceMeasure()));
+    onGuiThread(() -> {
+      if (n == null || n.isEmpty()) {
+        model.setDataset(null);
+        return;
+      }
+      model.setDataset(
+          new RowBarDataset(n.getFirst(), model.getGroupingColumn(), model.getAbundanceMeasure()));
+    });
   }
 
   @Override

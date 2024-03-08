@@ -70,7 +70,7 @@ public class CompoundAnnotationUtils {
    * @return a map of best annotation types per row
    */
   @NotNull
-  public static Map<FeatureListRow, DataType<?>> getAnnotationTypesByPriority(
+  public static Map<FeatureListRow, DataType<?>> mapBestAnnotationTypesByPriority(
       List<FeatureListRow> rows, boolean mapMissingValues) {
     var orderedTypes = FeatureAnnotationPriority.getDataTypesInOrder();
     var notAnnotatedType = mapMissingValues ? DataTypes.get(MissingValueType.class) : null;

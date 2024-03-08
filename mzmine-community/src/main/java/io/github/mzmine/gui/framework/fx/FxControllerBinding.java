@@ -29,8 +29,14 @@ public sealed interface FxControllerBinding permits SelectedAbundanceMeasureCont
     SelectedMetadataColumnController, SelectedRowsController, SelectedFeaturesController,
     SelectedFilesController, SelectedFeatureListsController {
 
+  public static void bindExposedProperties(Object master, Object child) {
+    if (master instanceof FxControllerBinding && child instanceof FxControllerBinding) {
+      bindExposedProperties(master, child);
+    }
+  }
+
   public static void bindExposedProperties(FxControllerBinding master, FxControllerBinding child) {
-    if(master == null ||child == null) {
+    if (master == null || child == null) {
       return;
     }
 

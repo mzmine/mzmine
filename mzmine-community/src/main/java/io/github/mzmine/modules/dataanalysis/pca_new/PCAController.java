@@ -57,10 +57,6 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
     return model.selectedRowsProperty();
   }
 
-  public ObjectProperty<List<FeatureList>> featureListsProperty() {
-    return model.flistsProperty();
-  }
-
   private void initListeners() {
     model.flistsProperty().addListener(_ -> update());
     model.domainPcProperty().addListener(_ -> update());

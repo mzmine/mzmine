@@ -55,8 +55,8 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
 
   private static final int space = 5;
 
-  private final SimpleXYChart<?> scoresPlot = new SimpleXYChart<>("Scores plot", "PC1", "PC2");
-  private final SimpleXYChart<?> loadingsPlot = new SimpleXYChart<>("Loadings plot", "PC1", "PC2");
+  private final SimpleXYChart<?> scoresPlot = new SimpleXYChart<>("Scores", "PC1", "PC2");
+  private final SimpleXYChart<?> loadingsPlot = new SimpleXYChart<>("Loadings", "PC1", "PC2");
 
   public PCAViewBuilder(PCAModel model) {
     super(model);
@@ -68,12 +68,12 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
     loadingsPlot.setStickyZeroRangeAxis(false);
 
     final BorderPane pane = new BorderPane();
-    final HBox domain = FxComponentFactory.createLabelledComboBox("Domain PC",
+    final HBox domain = FxComponentFactory.createLabeledComboBox("Domain PC",
         model.getAvailablePCs(), model.domainPcProperty());
-    final HBox range = FxComponentFactory.createLabelledComboBox("Range PC",
+    final HBox range = FxComponentFactory.createLabeledComboBox("Range PC",
         model.getAvailablePCs(), model.rangePcProperty());
     final HBox coloring = createMetadataBox();
-    final HBox abundance = FxComponentFactory.createLabelledComboBox("Abundance",
+    final HBox abundance = FxComponentFactory.createLabeledComboBox("Abundance",
         FXCollections.observableArrayList(AbundanceMeasure.values()), model.abundanceProperty());
 
     final TitledPane controls = new TitledPane("Controls",
@@ -125,8 +125,6 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
         if (newValue == null || newValue.isEmpty()) {
           return;
         }
-        newValue.forEach(d -> loadingsPlot.addDataset(d.dataset(), d.renderer()));
-
         LegendItemCollection collection = new LegendItemCollection();
         newValue.forEach(d -> {
           loadingsPlot.addDataset(d.dataset(), d.renderer());

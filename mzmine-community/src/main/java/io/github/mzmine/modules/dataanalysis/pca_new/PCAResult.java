@@ -31,18 +31,36 @@ import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A pca based on singular value decomposition. The data matrix X is decomposed into X = U*S*V.
+ * Columns of U contrain the principal components, S are the singular values, which can be projected
+ * into the PC space using U and a submatrix of S, which creates the scores plot. Loadings are the
+ * transpose of V.
+ *
+ * https://stats.stackexchange.com/questions/134282/relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca
+ */
 public record PCAResult(RealMatrix data, RealMatrix dataMeanCentered,
                         SingularValueDecomposition svd) {
 
+  /**
+   * @param numComponents
+   * @return Returns a sub-matrix the first n principal components of the decomposition.
+   */
   public RealMatrix firstNComponents(int numComponents) {
-    return svd.getU().getSubMatrix(0, svd.getU().getRowDimension() - 1, 0,
-        numComponents - 1);
+    return svd.getU().getSubMatrix(0, svd.getU().getRowDimension() - 1, 0, numComponents - 1);
   }
 
   public RealMatrix principalComponentsMatrix() {
+    // the u matrix of an svd contains the principal components.
     return svd.getU();
   }
 
+  /**
+   * Projects the data matrix onto the principal components. The result is n dimensional and is
+   * called "scores" matrix and is used for the scores plot.
+   *
+   * @param numComponents the number of components n.
+   */
   public RealMatrix projectDataToScores(int numComponents) {
     final RealMatrix firstNComponents = firstNComponents(numComponents);
     final RealMatrix subMatrixS = svd.getS()
@@ -51,15 +69,25 @@ public record PCAResult(RealMatrix data, RealMatrix dataMeanCentered,
     return projectedData;
   }
 
+  /**
+   * Projects the data matrix onto the selected principal components. The result is 2 dimensional
+   * and is called "scores" matrix and is used for the scores plot.
+   *
+   * @see #projectDataToScores(int)
+   */
   public RealMatrix projectDataToScores(int domainColIndex, int rangeColIndex) {
     final RealMatrix pcMatrix = pcMatrix(domainColIndex, rangeColIndex);
     final RealMatrix projected = pcMatrix.multiply(svd.getS().getSubMatrix(0, 1, 0, 1));
     return projected;
   }
 
+  /**
+   * Retrieves two specific PCs from the PC matrix.
+   */
   @NotNull
   private RealMatrix pcMatrix(int domainColIndex, int rangeColIndex) {
     final RealMatrix pcs = svd.getU();
+    // the vectors are the respective components.
     final RealVector domainVector = pcs.getColumnVector(domainColIndex);
     final RealVector rangeVector = pcs.getColumnVector(rangeColIndex);
     RealMatrix pcMatrix = new Array2DRowRealMatrix(pcs.getRowDimension(), 2);
@@ -69,8 +97,16 @@ public record PCAResult(RealMatrix data, RealMatrix dataMeanCentered,
     return pcMatrix;
   }
 
+  /**
+   * Retrieves the loadings (importance of each observed feature) from the pca. After svd the
+   * loadings are the transpose of the v matrix.
+   */
   public RealMatrix getLoadingsMatrix() {
     final RealMatrix transpose = svd.getV().transpose();
     return transpose;
+  }
+
+  public int componentCount() {
+    return principalComponentsMatrix().getRowDimension();
   }
 }
