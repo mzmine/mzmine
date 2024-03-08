@@ -40,12 +40,12 @@ import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.utils.TaskUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -155,16 +155,8 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     };
 
     // start
-    MZmineCore.getTaskController().addTasks(tasks.toArray(AbstractTask[]::new));
-
-    // wait till finish
-    while (!(isCanceled() || isFinished())) {
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        logger.log(Level.SEVERE, "Error in GNPS export/submit task", e);
-      }
-    }
+    var wrappedTasks = MZmineCore.getTaskController().addTasks(tasks.toArray(AbstractTask[]::new));
+    TaskUtils.waitForTasksToFinish(thistask, wrappedTasks);
   }
 
   private int getMaxThreads() {

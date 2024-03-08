@@ -31,7 +31,10 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchTask;
 import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javafx.collections.ListChangeListener.Change;
 import javafx.event.ActionEvent;
 
@@ -52,17 +55,24 @@ public class TasksViewInteractor extends FxInteractor<TasksViewModel> {
   }
 
   void onSubmittedTasksChanged(final Change<? extends WrappedTask> change) {
-    FxThread.runLater(() -> {
-      while (change.next()) {
-        if (change.wasRemoved()) {
-          HashSet<? extends WrappedTask> removed = new HashSet<>(change.getRemoved());
-          model.getTasks().removeIf(task -> removed.contains(task.getTask()));
-        }
-        if (change.wasAdded()) {
-          var newTasks = change.getAddedSubList().stream().map(WrappedTaskModel::new).toList();
-          model.addTasks(newTasks);
+    final List<WrappedTaskModel> toAdd = new ArrayList<>();
+    final Set<WrappedTask> toRemove = new HashSet<>();
+
+    while (change.next()) {
+      if (change.wasRemoved()) {
+        toRemove.addAll(change.getRemoved());
+      }
+      if (change.wasAdded()) {
+        for (var task : change.getAddedSubList()) {
+          toAdd.add(new WrappedTaskModel(task));
         }
       }
+    }
+
+
+    FxThread.runLater(() -> {
+      model.getTasks().removeIf(task -> toRemove.contains(task.getTask()));
+      model.addTasks(toAdd);
     });
   }
 

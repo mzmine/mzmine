@@ -26,7 +26,7 @@
 package io.github.mzmine.taskcontrol;
 
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -46,8 +46,11 @@ public sealed interface TaskController permits TaskControllerImpl {
       t.setPriority(8); // elevated priority
       return t;
     };
-    return new ThreadPoolExecutor(0, maxNumThreads, 120L, TimeUnit.SECONDS,
-        new SynchronousQueue<>(), threadFac);
+//    var executor = Executors.newWorkStealingPool(maxNumThreads);
+    var executor = new ThreadPoolExecutor(maxNumThreads, maxNumThreads, 120L,
+        TimeUnit.SECONDS, new LinkedBlockingQueue<>(), threadFac);
+    executor.allowCoreThreadTimeOut(true);
+    return executor;
   }
 
   /**
