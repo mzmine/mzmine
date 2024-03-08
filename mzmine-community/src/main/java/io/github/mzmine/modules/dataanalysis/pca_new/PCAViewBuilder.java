@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.javafx.components.factories.FxComponentFactory;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
@@ -121,37 +122,32 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
   private void initDatasetListeners() {
     model.loadingsDatasetsProperty().addListener(((_, _, newValue) -> {
       loadingsPlot.applyWithNotifyChanges(false, () -> {
-        loadingsPlot.removeAllDatasets();
-        if (newValue == null || newValue.isEmpty()) {
-          return;
-        }
-        LegendItemCollection collection = new LegendItemCollection();
-        newValue.forEach(d -> {
-          loadingsPlot.addDataset(d.dataset(), d.renderer());
-          collection.addAll(d.renderer().getLegendItems());
-        });
-        loadingsPlot.getXYPlot().setFixedLegendItems(collection);
-        loadingsPlot.setDomainAxisLabel(STR."PC\{model.getDomainPc()}");
-        loadingsPlot.setRangeAxisLabel(STR."PC\{model.getRangePc()}");
+        setDatasets(loadingsPlot, newValue);
       });
     }));
 
     model.scoresDatasetsProperty().addListener(((_, _, newValue) -> {
       scoresPlot.applyWithNotifyChanges(false, () -> {
-        scoresPlot.removeAllDatasets();
-        if (newValue == null || newValue.isEmpty()) {
-          return;
-        }
-        LegendItemCollection collection = new LegendItemCollection();
-        newValue.forEach(d -> {
-          scoresPlot.addDataset(d.dataset(), d.renderer());
-          collection.addAll(d.renderer().getLegendItems());
-        });
-        scoresPlot.getXYPlot().setFixedLegendItems(collection);
-        scoresPlot.setDomainAxisLabel(STR."PC\{model.getDomainPc()}");
-        scoresPlot.setRangeAxisLabel(STR."PC\{model.getRangePc()}");
+        setDatasets(scoresPlot, newValue);
       });
     }));
+  }
+
+  private void setDatasets(final SimpleXYChart<?> plot, final List<DatasetAndRenderer> newValue) {
+    plot.removeAllDatasets();
+    if (newValue == null || newValue.isEmpty()) {
+      return;
+    }
+    newValue.forEach(d -> plot.addDataset(d.dataset(), d.renderer()));
+
+    LegendItemCollection collection = new LegendItemCollection();
+    newValue.forEach(d -> {
+      plot.addDataset(d.dataset(), d.renderer());
+      collection.addAll(d.renderer().getLegendItems());
+    });
+    plot.getXYPlot().setFixedLegendItems(collection);
+    plot.setDomainAxisLabel(STR."PC\{model.getDomainPc()}");
+    plot.setRangeAxisLabel(STR."PC\{model.getRangePc()}");
   }
 
   private void initChartListeners() {
