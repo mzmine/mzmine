@@ -154,9 +154,9 @@ public interface FeatureListRow extends ModularDataModel {
   @Nullable Float getAverageCCS();
 
   /**
-   * Returns average height for features on this row
+   * Returns maximum height for features on this row
    */
-  Float getAverageHeight();
+  Float getMaxHeight();
 
   /**
    * Returns the charge for feature on this row. If more charges are found 0 is returned
@@ -164,9 +164,9 @@ public interface FeatureListRow extends ModularDataModel {
   Integer getRowCharge();
 
   /**
-   * Returns average area for features on this row
+   * Returns maximum area for features on this row
    */
-  Float getAverageArea();
+  Float getMaxArea();
 
   /**
    * Returns comment for this row

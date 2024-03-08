@@ -355,7 +355,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       entry.putIfNotNull(DBEntryField.CCS, row.getAverageCCS());
     }
     if (entry.getField(DBEntryField.FEATURE_MS1_HEIGHT).isEmpty()) {
-      entry.putIfNotNull(DBEntryField.FEATURE_MS1_HEIGHT, row.getAverageHeight());
+      entry.putIfNotNull(DBEntryField.FEATURE_MS1_HEIGHT, row.getMaxHeight());
     }
 
     return entry;

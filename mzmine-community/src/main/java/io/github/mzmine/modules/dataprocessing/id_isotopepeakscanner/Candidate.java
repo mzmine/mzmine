@@ -80,7 +80,7 @@ public class Candidate {
   public double calcIntensityAccuracy_Pattern(FeatureListRow parent, FeatureListRow candidate,
       DataPoint pParent, DataPoint pChild) {
     double idealIntensity = pChild.getIntensity() / pParent.getIntensity();
-    return ((idealIntensity * parent.getAverageHeight()) / candidate.getAverageHeight());
+    return ((idealIntensity * parent.getMaxHeight()) / candidate.getMaxHeight());
 
     // return ( (pChild.getIntensity() / pParent.getIntensity()) *
     // (parent.getAverageArea()) /
@@ -130,7 +130,7 @@ public class Candidate {
 
       row = candidate;
       mz = row.getAverageMZ();
-      row.getAverageHeight();
+      row.getMaxHeight();
 
       this.setCandID(candidate.getID());
       // this.setIsotope(isotopes[isotopenum]);
@@ -224,7 +224,7 @@ public class Candidate {
 
       row = pL.get(candindex);
       mz = row.getAverageMZ();
-      row.getAverageHeight();
+      row.getMaxHeight();
 
       this.setCandID(pL.get(candindex).getID());
       return true;

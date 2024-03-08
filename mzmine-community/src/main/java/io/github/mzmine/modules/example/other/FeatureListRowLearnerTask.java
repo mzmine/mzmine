@@ -122,7 +122,7 @@ class FeatureListRowLearnerTask extends AbstractTask {
       ModularFeatureListRow row = rows[i];
       // access details
       double mz = row.getAverageMZ();
-      double intensity = row.getAverageHeight();
+      double intensity = row.getMaxHeight();
       double rt = row.getAverageRT();
       Feature feature = row.getBestFeature();
       // do stuff

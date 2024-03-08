@@ -253,8 +253,8 @@ public class FeatureFindingTest {
         assertTrue(row.getAverageMZ() > 430.2075);
         assertTrue(row.getAverageRT() > 7.26);
         assertTrue(row.getAverageRT() < 7.27);
-        assertTrue(row.getAverageHeight() > 586139);
-        assertTrue(row.getAverageArea() > 160966);
+        assertTrue(row.getMaxHeight() > 586139);
+        assertTrue(row.getMaxArea() > 160966);
 
         IonTimeSeries<? extends Scan> data = row.getFeatures().get(0).getFeatureData();
         assertEquals(44, data.getNumberOfValues());
