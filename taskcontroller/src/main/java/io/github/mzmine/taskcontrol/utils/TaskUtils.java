@@ -57,18 +57,18 @@ public class TaskUtils {
   }
 
   /**
-   * Wait for all sub tasks to finish. Also cancel the sub tasks if the master task cancels or
-   * errors out
+   * Wait for all subtasks to finish. if a subtask or the master task cancels or errors out - cancel
+   * or error on all sub-tasks and the main task.
    *
-   * @param masterTask   task that controls the cancel and error status of the sub tasks
-   * @param wrappedTasks waiting to finish
+   * @param masterTask   task that controls the cancel and error status of the subtasks
+   * @param wrappedTasks waiting to finish, listens for cancel or error on each subtask
    * @return if master is cancelled or errors out - the masterTask.getStatus. Otherwise FINISHED if
    * no error.
    */
   @NotNull
   public static TaskStatus waitForTasksToFinish(@NotNull final Task masterTask,
       final WrappedTask[] wrappedTasks) {
-    // make sure to cancel all sub tasks if needed
+    // make sure to cancel all subtasks if needed
     TaskStatusListener masterListener = new MasterTaskCancelListener(wrappedTasks);
     masterTask.addTaskStatusListener(masterListener);
 
@@ -82,7 +82,9 @@ public class TaskUtils {
       try {
         task.getFuture().get();
       } catch (InterruptedException | ExecutionException e) {
-        masterTask.error("Subtask had an error or was interrupted", e);
+        if (task.getStatus() != TaskStatus.CANCELED && masterTask.getStatus() != TaskStatus.CANCELED) {
+          masterTask.error("Subtask had an error or was interrupted");
+        }
         return TaskStatus.ERROR;
       }
     }
