@@ -28,6 +28,7 @@ package io.github.mzmine.util.collections;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.IntConsumer;
 
 public sealed interface IndexRange permits EmptyIndexRange, SimpleIndexRange, SingleIndexRange {
 
@@ -49,6 +50,11 @@ public sealed interface IndexRange permits EmptyIndexRange, SimpleIndexRange, Si
     return maxInclusive() + 1;
   }
 
+  default void forEach(IntConsumer indexConsumer) {
+    for (int i = min(); i < maxExclusive(); i++) {
+      indexConsumer.accept(i);
+    }
+  }
 
   /**
    * Remove the index range from an array
