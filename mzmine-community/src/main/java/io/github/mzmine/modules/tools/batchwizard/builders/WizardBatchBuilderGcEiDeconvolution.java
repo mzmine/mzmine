@@ -275,6 +275,8 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     simFunction.setValue(similarityStep);
     param.setParameter(GCAlignerParameters.SIMILARITY_FUNCTION, similarityStep);
     param.setParameter(GCAlignerParameters.FEATURE_LIST_NAME, "Aligned feature list");
+    param.setParameter(GCAlignerParameters.handleOriginal, handleOriginalFeatureLists);
+    param.setParameter(GCAlignerParameters.RT_WEIGHT, 0.5d);
     q.add(
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(GCAlignerModule.class), param));
   }
