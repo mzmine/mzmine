@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.align_join.common;
+package io.github.mzmine.modules.dataprocessing.align_common;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;

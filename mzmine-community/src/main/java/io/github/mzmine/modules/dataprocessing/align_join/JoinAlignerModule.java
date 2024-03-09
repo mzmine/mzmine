@@ -26,50 +26,29 @@
 package io.github.mzmine.modules.dataprocessing.align_join;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.impl.SingleTaskFeatureListsModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
-import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class JoinAlignerModule implements MZmineProcessingModule {
+public class JoinAlignerModule extends SingleTaskFeatureListsModule {
 
-  private static final String MODULE_NAME = "Join aligner";
-  private static final String MODULE_DESCRIPTION =
-      "This method aligns detected peaks using a match score. This score is calculated based on"
-          + " the mass and retention time of each feature using preset tolerance.";
-
-  @Override
-  public @NotNull String getName() {
-    return MODULE_NAME;
+  public JoinAlignerModule() {
+    super("Join aligner", JoinAlignerParameters.class, MZmineModuleCategory.ALIGNMENT, """
+        This method aligns detected features using a match score. This score is calculated based on
+        the mass, retention time, ion mobility of each feature using preset tolerance and weights.""");
   }
 
   @Override
-  public @NotNull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @NotNull
-  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    Task newTask = new JoinAlignerTask(project, parameters, MemoryMapStorage.forFeatureList(), moduleCallDate);
-    tasks.add(newTask);
-    return ExitCode.OK;
-  }
-
-  @Override
-  public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.ALIGNMENT;
-  }
-
-  @Override
-  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return JoinAlignerParameters.class;
+  public @NotNull Task createTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage,
+      @NotNull FeatureList[] featureList) {
+    return new JoinAlignerTask(project, storage, moduleCallDate, parameters, this.getClass());
   }
 
 }

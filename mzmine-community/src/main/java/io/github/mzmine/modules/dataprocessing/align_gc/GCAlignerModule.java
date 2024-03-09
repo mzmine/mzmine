@@ -40,7 +40,7 @@ public class GCAlignerModule extends SingleTaskFeatureListsModule {
 
 
   public GCAlignerModule() {
-    super("GC Aligner", GCAlignerParameters.class, MZmineModuleCategory.ALIGNMENT,
+    super("GC aligner", GCAlignerParameters.class, MZmineModuleCategory.ALIGNMENT,
         "This module aligns GC-MS feature lists");
   }
 
