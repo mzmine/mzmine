@@ -131,9 +131,12 @@ public class FeatureListUtils {
       rows = rows.stream().sorted(MZ_ASCENDING).toList();
     }
 
-    List<FeatureListRow> candidates = new ArrayList<>();
     IndexRange indexRange = BinarySearch.indexRange(mzRange, rows, FeatureListRow::getAverageMZ);
+    if (indexRange.isEmpty()) {
+      return List.of();
+    }
 
+    List<FeatureListRow> candidates = new ArrayList<>();
     for (int i = indexRange.min(); i < indexRange.maxExclusive(); i++) {
       FeatureListRow row = rows.get(i);
       // test only mz to short circuit
