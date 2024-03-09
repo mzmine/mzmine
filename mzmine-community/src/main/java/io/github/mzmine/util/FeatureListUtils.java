@@ -44,6 +44,8 @@ import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
 import io.github.mzmine.modules.dataprocessing.align_join.RowAlignmentScoreCalculator;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.javafx.WeakAdapter;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -128,43 +130,20 @@ public class FeatureListUtils {
     if (!sortedByMzAscending) {
       rows = rows.stream().sorted(MZ_ASCENDING).toList();
     }
-    // search starting point as the insertion index
-    int insertIndex = binarySearch(rows, RangeUtils.rangeCenter(mzRange));
-    if (insertIndex < 0) {
-      insertIndex = -insertIndex - 1;
-    }
 
     List<FeatureListRow> candidates = new ArrayList<>();
-    // right
-    for (int i = insertIndex; i < rows.size(); i++) {
+    IndexRange indexRange = BinarySearch.indexRange(mzRange, rows, FeatureListRow::getAverageMZ);
+
+    for (int i = indexRange.min(); i < indexRange.maxExclusive(); i++) {
       FeatureListRow row = rows.get(i);
       // test only mz to short circuit
       if (mzRange.contains(row.getAverageMZ())) {
         var rowMobility = row.getAverageMobility();
         var rowRT = row.getAverageRT();
-        if ((rowMobility == null || mobilityRange.contains(rowMobility)) && (rowRT == null
-                                                                             || rtRange.contains(
-            rowRT))) {
+        if ((rowMobility == null || mobilityRange.contains(rowMobility)) //
+            && (rowRT == null || rtRange.contains(rowRT))) {
           candidates.add(row);
         }
-      } else {
-        break;
-      }
-    }
-    // left
-    for (int i = insertIndex - 1; i >= 0; i--) {
-      FeatureListRow row = rows.get(i);
-      // test only mz to short circuit
-      if (mzRange.contains(row.getAverageMZ())) {
-        var rowMobility = row.getAverageMobility();
-        var rowRT = row.getAverageRT();
-        if ((rowMobility == null || mobilityRange.contains(rowMobility)) && (rowRT == null
-                                                                             || rtRange.contains(
-            rowRT))) {
-          candidates.add(row);
-        }
-      } else {
-        break;
       }
     }
     return candidates;
@@ -179,38 +158,13 @@ public class FeatureListUtils {
    * @return an unsorted list of candidates within all three ranges if provided
    */
   public static @NotNull List<FeatureListRow> getCandidatesWithinRtRange(
-      @NotNull Range<Float> rtRange, @NotNull List<? extends FeatureListRow> rows,
+      @NotNull Range<Float> rtRange, @NotNull List<FeatureListRow> rows,
       boolean sortedByDefaultRt) {
 
     if (!sortedByDefaultRt) {
       rows = rows.stream().sorted(DEFAULT_RT).toList();
     }
-    // search starting point as the insertion index
-    int insertIndex = binarySearch(rows, RangeUtils.rangeCenter(rtRange));
-    if (insertIndex < 0) {
-      insertIndex = -insertIndex - 1;
-    }
-
-    List<FeatureListRow> candidates = new ArrayList<>();
-    // right
-    for (int i = insertIndex; i < rows.size(); i++) {
-      FeatureListRow row = rows.get(i);
-      if (rtRange.contains(row.getAverageRT())) {
-        candidates.add(row);
-      } else {
-        break;
-      }
-    }
-    // left
-    for (int i = insertIndex - 1; i >= 0; i--) {
-      FeatureListRow row = rows.get(i);
-      if (rtRange.contains(row.getAverageRT())) {
-        candidates.add(row);
-      } else {
-        break;
-      }
-    }
-    return candidates;
+    return BinarySearch.indexRange(rtRange, rows, FeatureListRow::getAverageRT).sublist(rows);
   }
 
 
