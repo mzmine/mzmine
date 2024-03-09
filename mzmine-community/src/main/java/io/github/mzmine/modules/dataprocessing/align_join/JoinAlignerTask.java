@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,11 +36,13 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.dataprocessing.align_join.common.AlignedRemainingRows;
+import io.github.mzmine.modules.dataprocessing.align_join.common.FeatureCloner;
+import io.github.mzmine.modules.dataprocessing.align_join.common.FeatureCloner.SimpleFeatureCloner;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -71,6 +73,8 @@ import org.jetbrains.annotations.Nullable;
 public class JoinAlignerTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(JoinAlignerTask.class.getName());
+
+  private final FeatureCloner featureCloner = new SimpleFeatureCloner();
   private final MZmineProject project;
   private final AtomicInteger alignedRows = new AtomicInteger(0);
   private final String featureListName;
@@ -170,7 +174,7 @@ public class JoinAlignerTask extends AbstractTask {
       return 0f;
     }
     return alignedFeatureList != null ? (alignedFeatureList.getNumberOfRows() + alignedRows.get())
-        / (double) totalRows : 0d;
+                                        / (double) totalRows : 0d;
   }
 
   @Override
@@ -192,17 +196,8 @@ public class JoinAlignerTask extends AbstractTask {
       totalRows += list.getNumberOfRows();
     }
 
-    // Collect all data files
-    final List<RawDataFile> allDataFiles = FeatureListUtils.getAllDataFiles(featureLists);
-    if (allDataFiles == null) {
-      return;
-    }
-
-    // Create a new aligned feature list based on the baseList and renumber IDs
-    alignedFeatureList = new ModularFeatureList(featureListName, getMemoryMapStorage(),
-        allDataFiles);
-    FeatureListUtils.transferRowTypes(alignedFeatureList, featureLists);
-    FeatureListUtils.transferSelectedScans(alignedFeatureList, featureLists);
+    alignedFeatureList = createEmptyAlignedList(featureLists, featureListName,
+        getMemoryMapStorage());
     final AtomicInteger newRowID = new AtomicInteger(1);
 
     // list all rows for each feature list
@@ -220,7 +215,7 @@ public class JoinAlignerTask extends AbstractTask {
 
       // remove next feature list's rows
       // select the next base feature list with max number of rows
-      final List<FeatureListRow> nextUnalignedFeatureList = allRows.remove(0);
+      final List<FeatureListRow> nextUnalignedFeatureList = allRows.removeFirst();
       if (nextUnalignedFeatureList.isEmpty()) {
         logger.finer(() -> String.format(
             "End of join aligner reached. %d feature lists had no unaligned rows left",
@@ -262,8 +257,6 @@ public class JoinAlignerTask extends AbstractTask {
         mzTolerance, rtTolerance, mobTol, mzWeight, rtWeight, mobilityWeight);
     FeatureListUtils.addAlignmentScores(alignedFeatureList, calculator, false);
 
-    // applied methods
-    alignedFeatureList.getAppliedMethods().addAll(featureLists.get(0).getAppliedMethods());
     // Add task description to peakList
     alignedFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Join aligner", JoinAlignerModule.class, parameters,
@@ -280,6 +273,32 @@ public class JoinAlignerTask extends AbstractTask {
 
     setStatus(TaskStatus.FINISHED);
 
+  }
+
+  /**
+   * Create new aligned list from all lists. Check for duplicate RawDataFile in all lists, if
+   * duplicated then fail with IllegalArgumentException
+   *
+   * @param featureLists    input lists
+   * @param featureListName the new feature list name
+   * @param storage         the storage to use
+   * @return the new aligned feature list or null if there were 0 RawDataFIles
+   */
+  @Nullable
+  public static ModularFeatureList createEmptyAlignedList(final List<FeatureList> featureLists,
+      final String featureListName, final @Nullable MemoryMapStorage storage) {
+    // Collect all data files
+    final List<RawDataFile> allDataFiles = FeatureListUtils.getAllDataFiles(featureLists);
+    if (allDataFiles.isEmpty()) {
+      return null;
+    }
+
+    // Create a new aligned feature list based on the baseList and renumber IDs
+    var alignedFeatureList = new ModularFeatureList(featureListName, storage, allDataFiles);
+    FeatureListUtils.transferRowTypes(alignedFeatureList, featureLists);
+    FeatureListUtils.transferSelectedScans(alignedFeatureList, featureLists);
+    FeatureListUtils.copyPeakListAppliedMethods(featureLists.getFirst(), alignedFeatureList);
+    return alignedFeatureList;
   }
 
   /**
@@ -331,23 +350,26 @@ public class JoinAlignerTask extends AbstractTask {
     // after an iteration, rows of all other featureLists have been given a mapping
     // now we have to find the best match
     // track all aligned rows - only align to highest scoring row
-    final var alignedRowsMap = addFeaturesBasedOnScores(scoresList);
+    final var alignedRowsMap = addFeaturesBasedOnScores(scoresList, alignedFeatureList,
+        featureCloner, alignedRows);
 
     // keep track of unaligned rows for the next interation.
-    removeAlignedRows(unalignedRows, alignedRowsMap);
+    AlignedRemainingRows result = removeAlignedRows(unalignedRows, alignedRowsMap);
+    result.logStatus(iteration, featureLists.size());
   }
 
   private boolean additionalChecks(final FeatureListRow row,
       final FeatureListRow candidateInAligned) {
     return (!sameChargeRequired || FeatureUtils.compareChargeState(row, candidateInAligned)) //
-        && (!sameIDRequired || FeatureUtils.compareIdentities(row, candidateInAligned))
-        && checkIsotopePattern(row, candidateInAligned) //
-        && checkSpectralSimilarity(row, candidateInAligned);
+           && (!sameIDRequired || FeatureUtils.compareIdentities(row, candidateInAligned))
+           && checkIsotopePattern(row, candidateInAligned) //
+           && checkSpectralSimilarity(row, candidateInAligned);
   }
 
   @NotNull
-  private Object2BooleanOpenHashMap<FeatureListRow> addFeaturesBasedOnScores(
-      ConcurrentLinkedDeque<RowVsRowScore> scoresList) {
+  public static Object2BooleanOpenHashMap<FeatureListRow> addFeaturesBasedOnScores(
+      ConcurrentLinkedDeque<RowVsRowScore> scoresList, final ModularFeatureList alignedFeatureList,
+      final FeatureCloner featureCloner, final AtomicInteger alignedRows) {
     // natural order is reversed so best highest score is first element
     final RowVsRowScore[] scores = scoresList.stream().sorted().toArray(RowVsRowScore[]::new);
 
@@ -364,9 +386,10 @@ public class JoinAlignerTask extends AbstractTask {
         for (Feature feature : row.getFeatures()) {
           final RawDataFile dataFile = feature.getRawDataFile();
           if (!alignedRow.hasFeature(dataFile)) {
-            alignedRow.addFeature(dataFile, new ModularFeature(alignedFeatureList, feature), false);
+            var newFeature = featureCloner.cloneFeature(feature, alignedFeatureList, alignedRow);
+            alignedRow.addFeature(dataFile, newFeature, false);
             alignedRowsMap.put(row, true);
-            this.alignedRows.getAndIncrement();
+            alignedRows.getAndIncrement();
           }
         }
       }
@@ -380,8 +403,9 @@ public class JoinAlignerTask extends AbstractTask {
    *
    * @param allRows        FeatureList<List<Rows>>
    * @param alignedRowsMap marks all aligned rows
+   * @return number of aligned and remaining rows
    */
-  private void removeAlignedRows(List<List<FeatureListRow>> allRows,
+  public static AlignedRemainingRows removeAlignedRows(List<List<FeatureListRow>> allRows,
       Object2BooleanOpenHashMap<FeatureListRow> alignedRowsMap) {
     AtomicInteger alignedCounter = new AtomicInteger(0);
     AtomicInteger remainingCounter = new AtomicInteger(0);
@@ -402,8 +426,7 @@ public class JoinAlignerTask extends AbstractTask {
         iterator.remove();
       }
     }
-    logger.finest(() -> String.format("Rows: %d aligned; %d remaining. Iteration %d/%d (max)",
-        alignedCounter.get(), remainingCounter.get(), iteration, featureLists.size()));
+    return new AlignedRemainingRows(alignedCounter.get(), remainingCounter.get());
   }
 
   private boolean checkSpectralSimilarity(FeatureListRow row, FeatureListRow candidate) {
