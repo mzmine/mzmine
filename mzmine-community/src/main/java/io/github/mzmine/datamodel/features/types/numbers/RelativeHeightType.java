@@ -30,8 +30,9 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Relative height may be added to the Feature or FeatureListRow to identify the significance of a
- * feature. This is important for spectral library export to filter out minor features with relative
- * intensity cutoff
+ * feature. Here, the highest intensity feature with a specific m/z is set to 100%, and for all
+ * other rows/features with same m/z the relative height is calculated. This is important for
+ * spectral library export to filter out minor features with relative intensity cutoff
  */
 public class RelativeHeightType extends PercentType {
 
