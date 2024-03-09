@@ -61,7 +61,7 @@ public class BaseFeatureListAligner {
   private final List<FeatureList> featureLists;
   private final String featureListName;
   private final MemoryMapStorage storage;
-  private final FeatureRowAligner rowAligner;
+  private final FeatureRowAlignScorer rowAligner;
   private final FeatureCloner featureCloner;
   private final FeatureListRowSorter baseRowSorter;
   private final TotalFinishedItemsProgress progress = new TotalFinishedItemsProgress();
@@ -69,7 +69,7 @@ public class BaseFeatureListAligner {
 
   public BaseFeatureListAligner(final Task parentTask, final List<FeatureList> featureLists,
       final String featureListName, final @Nullable MemoryMapStorage storage,
-      final FeatureRowAligner rowAligner, final FeatureCloner featureCloner,
+      final FeatureRowAlignScorer rowAligner, final FeatureCloner featureCloner,
       final FeatureListRowSorter baseRowSorter) {
 
     this.parentTask = parentTask;

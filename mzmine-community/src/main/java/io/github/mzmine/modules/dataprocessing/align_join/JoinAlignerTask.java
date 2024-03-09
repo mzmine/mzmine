@@ -100,7 +100,7 @@ public class JoinAlignerTask extends AbstractFeatureListTask {
 
     FeatureCloner featureCloner = new SimpleFeatureCloner();
     // create the row aligner that handles the scoring
-    var rowAligner = new JoinRowAligner(parameters);
+    var rowAligner = new JoinRowAlignScorer(parameters);
     listAligner = new BaseFeatureListAligner(this, featureLists, featureListName,
         getMemoryMapStorage(), rowAligner, featureCloner, MZ_ASCENDING);
 

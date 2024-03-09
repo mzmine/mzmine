@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.align_common.FeatureRowAligner;
+import io.github.mzmine.modules.dataprocessing.align_common.FeatureRowAlignScorer;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -52,7 +52,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
  * the row aligner used by {@link JoinAlignerTask}. Based on weighted mz, rt, mobility difference
  * and additional filters
  */
-public class JoinRowAligner implements FeatureRowAligner {
+public class JoinRowAlignScorer implements FeatureRowAlignScorer {
 
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
@@ -72,7 +72,7 @@ public class JoinRowAligner implements FeatureRowAligner {
   private MZmineProcessingStep<SpectralSimilarityFunction> simFunction;
   private int msLevel;
 
-  public JoinRowAligner(final ParameterSet parameters) {
+  public JoinRowAlignScorer(final ParameterSet parameters) {
     mzTolerance = parameters.getValue(JoinAlignerParameters.MZTolerance);
     rtTolerance = parameters.getValue(JoinAlignerParameters.RTTolerance);
 

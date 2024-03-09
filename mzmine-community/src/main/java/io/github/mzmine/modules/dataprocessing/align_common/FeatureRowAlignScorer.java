@@ -36,7 +36,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-public interface FeatureRowAligner {
+public interface FeatureRowAlignScorer {
 
   /**
    * Align rows on base rows

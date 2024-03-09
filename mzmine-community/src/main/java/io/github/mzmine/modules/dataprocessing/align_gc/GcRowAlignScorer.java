@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.align_common.FeatureRowAligner;
+import io.github.mzmine.modules.dataprocessing.align_common.FeatureRowAlignScorer;
 import io.github.mzmine.modules.dataprocessing.align_join.RowAlignmentScoreCalculator;
 import io.github.mzmine.modules.dataprocessing.align_join.RowVsRowScore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -49,14 +49,14 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Align features based on RT and spectral similarity in the {@link GCAlignerTask}
  */
-public class GcRowAligner implements FeatureRowAligner {
+public class GcRowAlignScorer implements FeatureRowAlignScorer {
 
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
   private final MZmineProcessingStep<SpectralSimilarityFunction> similarityFunction;
   private final double rtWeight;
 
-  public GcRowAligner(final ParameterSet parameters) {
+  public GcRowAlignScorer(final ParameterSet parameters) {
     this.mzTolerance = parameters.getValue(GCAlignerParameters.MZ_TOLERANCE);
     this.rtTolerance = parameters.getValue(GCAlignerParameters.RT_TOLERANCE);
     rtWeight = parameters.getValue(GCAlignerParameters.RT_WEIGHT);

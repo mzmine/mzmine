@@ -92,7 +92,7 @@ public class GCAlignerTask extends AbstractFeatureListTask {
     var mzTolerance = parameters.getValue(GCAlignerParameters.MZ_TOLERANCE);
     FeatureCloner featureCloner = new ExtractMzMismatchFeatureCloner(mzTolerance);
     // create the row aligner that handles the scoring
-    var rowAligner = new GcRowAligner(parameters);
+    var rowAligner = new GcRowAlignScorer(parameters);
     listAligner = new BaseFeatureListAligner(this, featureLists, featureListName,
         getMemoryMapStorage(), rowAligner, featureCloner, MZ_ASCENDING);
 
