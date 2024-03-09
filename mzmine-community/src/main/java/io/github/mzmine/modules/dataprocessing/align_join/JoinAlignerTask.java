@@ -89,7 +89,7 @@ public class JoinAlignerTask extends AbstractFeatureListTask {
   @Override
   protected void process() {
     List<String> errors = new ArrayList<>();
-    if (parameters.checkParameterValues(errors)) {
+    if (!parameters.checkParameterValues(errors)) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage(String.join("\n", errors));
       return;
