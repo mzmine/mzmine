@@ -107,7 +107,7 @@ repositories {
     // mavenLocal()
     maven { url = "https://repo.maven.apache.org/maven2" }
     // local libraries
-    maven { url = "file://" + projectDir + "/src/main/lib" }
+    maven { url = uri("file://" + layout.projectDirectory.dir("../local-repo")) }
     // For jmzml, etc.
     maven { url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/" }
     // For SIRIUS ID modules
