@@ -23,46 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel;
+package io.github.mzmine.javafx.properties;
 
-import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.numbers.AreaType;
-import io.github.mzmine.datamodel.features.types.numbers.HeightType;
-import org.jetbrains.annotations.Nullable;
+import java.time.Instant;
+import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleObjectProperty;
 
 /**
- * Used to define the abundance of features
+ * Binds multiple observables and updates the latest change as an Instant
  */
-public enum AbundanceMeasure {
-  Height(HeightType.class), Area(AreaType.class);
-
-  final Class<? extends DataType<Float>> type;
-
-  AbundanceMeasure(Class<? extends DataType<Float>> type) {
-    this.type = type;
-  }
-
-  public Class<? extends DataType<Float>> type() {
-    return type;
-  }
+public class LastUpdateProperty extends SimpleObjectProperty<Instant> {
 
   /**
-   * @param featureOrRow The feature or row
-   * @return The abundance or null if the feature/row is null or no abundance is set.
+   * @param triggers all triggers are bound, on any change the internal Instant is updated
    */
-  public Float get(@Nullable ModularDataModel featureOrRow) {
-    if (featureOrRow == null) {
-      return null;
-    }
-    return featureOrRow.get(type);
+  public LastUpdateProperty(final Observable... triggers) {
+    // all properties that cause a full update need to be bound here
+    var binding = Bindings.createObjectBinding(Instant::now, triggers);
+    this.bind(binding);
   }
-
-  public Float getOrNaN(@Nullable ModularDataModel featureOrRow) {
-    if (featureOrRow == null) {
-      return Float.NaN;
-    }
-    return featureOrRow.get(type);
-  }
-
 }

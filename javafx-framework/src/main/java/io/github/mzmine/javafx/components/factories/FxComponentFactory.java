@@ -23,46 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel;
+package io.github.mzmine.javafx.components.factories;
 
-import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.numbers.AreaType;
-import io.github.mzmine.datamodel.features.types.numbers.HeightType;
-import org.jetbrains.annotations.Nullable;
+import javafx.beans.property.Property;
+import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 
-/**
- * Used to define the abundance of features
- */
-public enum AbundanceMeasure {
-  Height(HeightType.class), Area(AreaType.class);
+public class FxComponentFactory {
 
-  final Class<? extends DataType<Float>> type;
-
-  AbundanceMeasure(Class<? extends DataType<Float>> type) {
-    this.type = type;
+  public static <T> HBox createLabeledComboBox(String label, ObservableList<T> values,
+      Property<T> modelProperty) {
+    final Label lab = new Label(label);
+    final ComboBox<T> comboBox = new ComboBox<>(values);
+    comboBox.valueProperty().bindBidirectional(modelProperty);
+    lab.setLabelFor(comboBox);
+    final HBox hBox = new HBox(5, lab, comboBox);
+    hBox.setAlignment(Pos.CENTER_LEFT);
+    return hBox;
   }
-
-  public Class<? extends DataType<Float>> type() {
-    return type;
-  }
-
-  /**
-   * @param featureOrRow The feature or row
-   * @return The abundance or null if the feature/row is null or no abundance is set.
-   */
-  public Float get(@Nullable ModularDataModel featureOrRow) {
-    if (featureOrRow == null) {
-      return null;
-    }
-    return featureOrRow.get(type);
-  }
-
-  public Float getOrNaN(@Nullable ModularDataModel featureOrRow) {
-    if (featureOrRow == null) {
-      return Float.NaN;
-    }
-    return featureOrRow.get(type);
-  }
-
 }

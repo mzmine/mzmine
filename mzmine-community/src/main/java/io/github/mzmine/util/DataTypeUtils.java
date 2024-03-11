@@ -149,25 +149,24 @@ public class DataTypeUtils {
    *                         {@link MissingValueType} if this parameter is true. Otherwise they are
    *                         dropped.
    * @param allowedTypes     All allowed data types in the specific ranking order.
-   * @param <T>              The data types
    * @param <M>              A {@link io.github.mzmine.datamodel.features.ModularFeatureListRow} or
    *                         {@link ModularFeature}
    * @return A map of the specified types and the matching rows. The map is a tree map sorted
    * according to the hierarchy of the specified types.
    */
-  public static <T extends DataType<?>, M extends ModularDataModel> Map<T, List<M>> groupByBestDataType(
-      List<M> rows, boolean mapMissingValues, T... allowedTypes) {
+  public static <M extends ModularDataModel> Map<DataType<?>, List<M>> groupByBestDataType(
+      List<M> rows, boolean mapMissingValues, DataType<?>... allowedTypes) {
 
-    final Map<T, List<M>> results = new TreeMap<T, List<M>>(
+    final Map<DataType<?>, List<M>> results = new TreeMap<>(
         Comparator.comparingInt(o -> ArrayUtils.indexOf(allowedTypes, o)));
-    final T notAnnotatedType = (T) DataTypes.get(MissingValueType.class);
+
+    final var notAnnotatedType = mapMissingValues ? DataTypes.get(MissingValueType.class) : null;
 
     for (M row : rows) {
-      final T bestAnnotationType = getBestTypeWithValue(row,
-          mapMissingValues ? notAnnotatedType : null, allowedTypes);
+      final var bestAnnotationType = getBestTypeWithValue(row, notAnnotatedType, allowedTypes);
       if (bestAnnotationType != null) {
         final List<M> rowsWithAnnotation = results.computeIfAbsent(bestAnnotationType,
-            a -> new ArrayList<>());
+            _ -> new ArrayList<>());
         rowsWithAnnotation.add(row);
       }
     }
@@ -232,7 +231,7 @@ public class DataTypeUtils {
       final Object value = row.get((DataType<?>) allowedType);
       // if the annotation is a list we have to check if the list is not empty
       if (value != null && (!(value instanceof Collection<?> collection)
-          || !collection.isEmpty())) {
+                            || !collection.isEmpty())) {
         return allowedType;
       }
     }

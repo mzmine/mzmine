@@ -23,46 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel;
+package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
-import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.numbers.AreaType;
-import io.github.mzmine.datamodel.features.types.numbers.HeightType;
-import org.jetbrains.annotations.Nullable;
+public interface ZCategoryProvider extends XYZValueProvider {
+  int getNumberOfCategories();
 
-/**
- * Used to define the abundance of features
- */
-public enum AbundanceMeasure {
-  Height(HeightType.class), Area(AreaType.class);
-
-  final Class<? extends DataType<Float>> type;
-
-  AbundanceMeasure(Class<? extends DataType<Float>> type) {
-    this.type = type;
-  }
-
-  public Class<? extends DataType<Float>> type() {
-    return type;
-  }
-
-  /**
-   * @param featureOrRow The feature or row
-   * @return The abundance or null if the feature/row is null or no abundance is set.
-   */
-  public Float get(@Nullable ModularDataModel featureOrRow) {
-    if (featureOrRow == null) {
-      return null;
-    }
-    return featureOrRow.get(type);
-  }
-
-  public Float getOrNaN(@Nullable ModularDataModel featureOrRow) {
-    if (featureOrRow == null) {
-      return Float.NaN;
-    }
-    return featureOrRow.get(type);
-  }
-
+  String getLegendLabel(int category);
 }

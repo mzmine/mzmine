@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,16 +25,89 @@
 
 package io.github.mzmine.util.annotations;
 
+import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.util.ArrayUtils;
+import io.github.mzmine.util.DataTypeUtils;
+import io.github.mzmine.util.collections.CollectionUtils;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 public class CompoundAnnotationUtils {
+
+  /**
+   * @param rows             The rows to group
+   * @param mapMissingValues if none of the provided types is present, rows will be mapped to
+   *                         {@link MissingValueType} if this parameter is true. Otherwise they are
+   *                         dropped.
+   * @return A map of the annotation types and the matching rows. The map is a tree map sorted
+   * according to the hierarchy of the specified types.
+   */
+  @NotNull
+  public static Map<DataType<?>, List<FeatureListRow>> groupRowsByAnnotationPriority(
+      List<FeatureListRow> rows, boolean mapMissingValues) {
+    return DataTypeUtils.groupByBestDataType(rows, mapMissingValues,
+        FeatureAnnotationPriority.getDataTypesInOrder());
+  }
+
+  /**
+   * Get the best annotation types or {@link MissingValueType} for each feature list row.
+   *
+   * @param rows             the rows to be mapped.
+   * @param mapMissingValues true, add {@link MissingValueType}. Otherwise map will not contain null
+   *                         mapping for missing values. If true the map will be of rows.size
+   * @return a map of best annotation types per row
+   */
+  @NotNull
+  public static Map<FeatureListRow, DataType<?>> mapBestAnnotationTypesByPriority(
+      List<FeatureListRow> rows, boolean mapMissingValues) {
+    var orderedTypes = FeatureAnnotationPriority.getDataTypesInOrder();
+    var notAnnotatedType = mapMissingValues ? DataTypes.get(MissingValueType.class) : null;
+
+    Map<FeatureListRow, DataType<?>> map = new HashMap<>();
+
+    for (final FeatureListRow row : rows) {
+      DataType<?> best = DataTypeUtils.getBestTypeWithValue(row, notAnnotatedType, orderedTypes);
+      if (best != null) {
+        map.put(row, best);
+      }
+    }
+    return map;
+  }
+
+  /**
+   * @param types can contain duplicates or nulls - that are filtered out
+   * @return map of DataType to their rank in
+   * {@link FeatureAnnotationPriority#getDataTypesInOrder()}. If {@link MissingValueType} is found,
+   * it is added as the last rank priority to the map
+   */
+  @NotNull
+  public static Map<DataType<?>, Integer> rankUniqueAnnotationTypes(Collection<DataType<?>> types) {
+    var sortedUniqueTypes = types.stream().filter(Objects::nonNull).distinct()
+        .filter(CompoundAnnotationUtils::isAnnotationOrMissingType)
+        .sorted(FeatureAnnotationPriority.createDefaultSorter()).toList();
+    return CollectionUtils.indexMap(sortedUniqueTypes);
+  }
+
+  /**
+   * @return true if type is either annotation type or {@link MissingValueType}
+   */
+  public static boolean isAnnotationOrMissingType(final DataType<?> type) {
+    return type instanceof MissingValueType || ArrayUtils.contains(type,
+        FeatureAnnotationPriority.getDataTypesInOrder());
+  }
+
 
   /**
    * A list of matches where each entry has a different compound name.

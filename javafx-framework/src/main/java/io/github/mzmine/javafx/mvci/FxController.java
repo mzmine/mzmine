@@ -114,7 +114,7 @@ public abstract class FxController<ViewModelClass> {
       runningTask.setOnFinished(() -> {
         // remove the old task from map and compare with the running task if equal
         final Task oldTask = removeOldTask(uniqueTaskName);
-        if (oldTask.isFinished() && Objects.equals(oldTask, runningTask)) {
+        if (oldTask != null && oldTask.isFinished() && Objects.equals(oldTask, runningTask)) {
           // only update gui if still latest task
           FxThread.runLater(fxUpdateTask::updateGuiModel);
         }

@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.volcanoplot;
+package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -33,21 +33,16 @@ import java.util.List;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
-public class VolcanoPlotTab extends MZmineTab {
+public class PCATab extends MZmineTab {
 
-  private final VolcanoPlotController controller;
+  private final PCAController controller;
 
-  public VolcanoPlotTab() {
-    this(null);
+  public PCATab() {
+    super("PCA");
+    controller = new PCAController();
+    final Region region = controller.buildView();
+    setContent(region);
   }
-
-  public VolcanoPlotTab(FeatureList flist) {
-    super("Volcano plot", true, false);
-    controller = new VolcanoPlotController(flist);
-    final Region plot = controller.buildView();
-    setContent(plot);
-  }
-
 
   @Override
   public @NotNull Collection<? extends RawDataFile> getRawDataFiles() {
@@ -56,35 +51,26 @@ public class VolcanoPlotTab extends MZmineTab {
 
   @Override
   public @NotNull Collection<? extends FeatureList> getFeatureLists() {
-    return controller.selectedFeatureListsProperty().get();
+    return controller.selectedFeatureListsProperty().getValue();
   }
 
   @Override
   public @NotNull Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return List.of();
+    return controller.selectedFeatureListsProperty().getValue();
   }
 
   @Override
   public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-    // no raw files
+
   }
 
   @Override
   public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-    if (featureLists.isEmpty()) {
-      return;
-    }
-
-    controller.selectedFeatureListsProperty().set((List<FeatureList>) featureLists.stream()
-        .filter(flist -> flist.getNumberOfRawDataFiles() > 1).findFirst().stream().toList());
+    controller.selectedFeatureListsProperty().setValue((List<FeatureList>) featureLists.stream().toList());
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-    if (featureLists.isEmpty()) {
-      return;
-    }
-
-    controller.selectedFeatureListsProperty().set(List.of(featureLists.stream().findFirst().get()));
+    controller.selectedFeatureListsProperty().setValue((List<FeatureList>) featureLists.stream().toList());
   }
 }

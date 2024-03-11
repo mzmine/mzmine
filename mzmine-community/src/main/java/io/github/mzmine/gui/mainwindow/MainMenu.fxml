@@ -524,6 +524,9 @@
       <MenuItem text="Volcano plot"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotModule"/>
+      <MenuItem text="Principal component analysis (PCA)"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataanalysis.pca_new.PCAModule"/>
       <!--<Menu text="Bubble plots">
         <MenuItem text="Coefficient of variation (CV) plot"
           onAction="#runModule"

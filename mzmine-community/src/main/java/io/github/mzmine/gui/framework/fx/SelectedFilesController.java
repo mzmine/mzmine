@@ -29,6 +29,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 
-public interface SelectedFilesController {
+public non-sealed interface SelectedFilesController extends FxControllerBinding {
   ObjectProperty<List<RawDataFile>> selectedRawFilesProperty();
 }

@@ -25,9 +25,14 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.renderers;
 
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.ZCategoryProvider;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.color.ColorUtils;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.Paint;
@@ -36,26 +41,29 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import org.jfree.chart.LegendItem;
+import org.jfree.chart.LegendItemCollection;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.chart.renderer.xy.XYShapeRenderer;
 import org.jfree.chart.util.ShapeUtils;
 import org.jfree.data.xy.XYDataset;
 
 /**
- * Renderer that either draws outlines or filled shapes.
+ * Renderer that either draws outlines or filled shapes. If this renderer is used for an XYZ
+ * dataset, it will try to use the paint scale of the xyz dataset.
  */
 public class ColoredXYShapeRenderer extends XYShapeRenderer {
 
   private static final int defaultSize = 7;
   private final Shape dataPointsShape;
-
   private final boolean drawOutlinesOnly;
+  private final BasicStroke outlineStroke = EStandardChartTheme.DEFAULT_STROKE;
 
   public ColoredXYShapeRenderer(boolean drawOutlinesOnly, Shape shape) {
     super();
@@ -85,6 +93,12 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
 
   @Override
   protected Paint getPaint(XYDataset dataset, int series, int item) {
+    if (dataset instanceof ColoredXYZDataset zds) {
+      final PaintScale ps = zds.getPaintScale();
+      if (ps != null) {
+        return ps.getPaint(zds.getZValue(series, item));
+      }
+    }
     if (dataset instanceof ColoredXYDataset ds) {
       return ds.getAWTColor();
     }
@@ -133,11 +147,11 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
       item.setLine(shape);
       item.setLinePaint(paint);
       item.setShapeVisible(false);
-      item.setOutlineStroke(new BasicStroke(2.0f));
+      item.setOutlineStroke(outlineStroke);
     } else {
       Paint outlinePaint = lookupSeriesOutlinePaint(series);
       item.setOutlinePaint(outlinePaint);
-      item.setOutlineStroke(new BasicStroke(2.0f));
+      item.setOutlineStroke(outlineStroke);
     }
     return item;
   }
@@ -145,24 +159,23 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
   /**
    * Draws the block representing the specified item.
    *
-   * @param g2  the graphics device.
-   * @param state  the state.
-   * @param dataArea  the data area.
-   * @param info  the plot rendering info.
-   * @param plot  the plot.
-   * @param domainAxis  the x-axis.
-   * @param rangeAxis  the y-axis.
-   * @param dataset  the dataset.
-   * @param series  the series index.
-   * @param item  the item index.
-   * @param crosshairState  the crosshair state.
-   * @param pass  the pass index.
+   * @param g2             the graphics device.
+   * @param state          the state.
+   * @param dataArea       the data area.
+   * @param info           the plot rendering info.
+   * @param plot           the plot.
+   * @param domainAxis     the x-axis.
+   * @param rangeAxis      the y-axis.
+   * @param dataset        the dataset.
+   * @param series         the series index.
+   * @param item           the item index.
+   * @param crosshairState the crosshair state.
+   * @param pass           the pass index.
    */
   @Override
-  public void drawItem(Graphics2D g2, XYItemRendererState state,
-      Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
-      ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset,
-      int series, int item, CrosshairState crosshairState, int pass) {
+  public void drawItem(Graphics2D g2, XYItemRendererState state, Rectangle2D dataArea,
+      PlotRenderingInfo info, XYPlot plot, ValueAxis domainAxis, ValueAxis rangeAxis,
+      XYDataset dataset, int series, int item, CrosshairState crosshairState, int pass) {
 
     Shape hotspot;
     EntityCollection entities = null;
@@ -177,10 +190,8 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
       return;
     }
 
-    double transX = domainAxis.valueToJava2D(x, dataArea,
-        plot.getDomainAxisEdge());
-    double transY = rangeAxis.valueToJava2D(y, dataArea,
-        plot.getRangeAxisEdge());
+    double transX = domainAxis.valueToJava2D(x, dataArea, plot.getDomainAxisEdge());
+    double transY = rangeAxis.valueToJava2D(y, dataArea, plot.getRangeAxisEdge());
 
     PlotOrientation orientation = plot.getOrientation();
 
@@ -189,29 +200,23 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
       g2.setStroke(getGuideLineStroke());
       g2.setPaint(this.getGuideLinePaint());
       if (orientation == PlotOrientation.HORIZONTAL) {
-        g2.draw(new Line2D.Double(transY, dataArea.getMinY(), transY,
-            dataArea.getMaxY()));
-        g2.draw(new Line2D.Double(dataArea.getMinX(), transX,
-            dataArea.getMaxX(), transX));
+        g2.draw(new Line2D.Double(transY, dataArea.getMinY(), transY, dataArea.getMaxY()));
+        g2.draw(new Line2D.Double(dataArea.getMinX(), transX, dataArea.getMaxX(), transX));
       } else {
-        g2.draw(new Line2D.Double(transX, dataArea.getMinY(), transX,
-            dataArea.getMaxY()));
-        g2.draw(new Line2D.Double(dataArea.getMinX(), transY,
-            dataArea.getMaxX(), transY));
+        g2.draw(new Line2D.Double(transX, dataArea.getMinY(), transX, dataArea.getMaxY()));
+        g2.draw(new Line2D.Double(dataArea.getMinX(), transY, dataArea.getMaxX(), transY));
       }
     } else if (pass == 1) {
       Shape shape = getItemShape(series, item);
       if (orientation == PlotOrientation.HORIZONTAL) {
-        shape = ShapeUtils.createTranslatedShape(shape, transY,
-            transX);
+        shape = ShapeUtils.createTranslatedShape(shape, transY, transX);
       } else if (orientation == PlotOrientation.VERTICAL) {
-        shape = ShapeUtils.createTranslatedShape(shape, transX,
-            transY);
+        shape = ShapeUtils.createTranslatedShape(shape, transX, transY);
       }
       hotspot = shape;
       if (shape.intersects(dataArea)) {
         //if (getItemShapeFilled(series, item)) {
-        if(!drawOutlinesOnly) {
+        if (!drawOutlinesOnly) {
           g2.setPaint(getPaint(dataset, series, item));
           g2.fill(shape);
         }
@@ -228,8 +233,7 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
       }
 
       int datasetIndex = plot.indexOf(dataset);
-      updateCrosshairValues(crosshairState, x, y, datasetIndex,
-          transX, transY, orientation);
+      updateCrosshairValues(crosshairState, x, y, datasetIndex, transX, transY, orientation);
 
       // add an entity for the item...
       if (entities != null) {
@@ -237,4 +241,30 @@ public class ColoredXYShapeRenderer extends XYShapeRenderer {
       }
     }
   }
+
+  @Override
+  public LegendItemCollection getLegendItems() {
+    final int index = this.getPlot().getIndexOf(this);
+    if (!(getPlot().getDataset(index) instanceof ColoredXYZDataset zds
+        && zds.getValueProvider() instanceof ZCategoryProvider zcat)) {
+      return super.getLegendItems();
+    }
+
+    final EStandardChartTheme theme = MZmineCore.getConfiguration()
+        .getDefaultChartTheme();
+    LegendItemCollection result = new LegendItemCollection();
+    final int numCategories = zcat.getNumberOfCategories();
+    for (int i = 0; i < numCategories; i++) {
+      final String labelText = zcat.getLegendLabel(i);
+      final Paint paint = zds.getPaintScale().getPaint(i);
+      final LegendItem item = new LegendItem(labelText, null, null, null, dataPointsShape,
+          !drawOutlinesOnly ? paint : ColorUtils.TRANSPARENT_AWT, outlineStroke,
+          drawOutlinesOnly ? paint : ColorUtils.TRANSPARENT_AWT);
+      theme.applyToLegendItem(item);
+      result.add(item);
+    }
+    return result;
+  }
+
+
 }

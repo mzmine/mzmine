@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,19 +25,19 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.PropertyParameter;
 import java.util.Collection;
 import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.ComboBox;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
  * Combo Parameter implementation
  */
-public class ComboParameter<ValueType> implements UserParameter<ValueType, ComboBox<ValueType>> {
+public class ComboParameter<ValueType> implements
+    PropertyParameter<ValueType, ComboComponent<ValueType>> {
 
   private final String name;
   private final String description;
@@ -71,8 +71,8 @@ public class ComboParameter<ValueType> implements UserParameter<ValueType, Combo
   }
 
   @Override
-  public ComboBox<ValueType> createEditingComponent() {
-    ComboBox<ValueType> comboComponent = new ComboBox<ValueType>(choices);
+  public ComboComponent<ValueType> createEditingComponent() {
+    ComboComponent<ValueType> comboComponent = new ComboComponent<>(choices);
     comboComponent.getSelectionModel().selectFirst();
     return comboComponent;
   }
@@ -80,6 +80,11 @@ public class ComboParameter<ValueType> implements UserParameter<ValueType, Combo
   @Override
   public ValueType getValue() {
     return value;
+  }
+
+  @Override
+  public void setValue(ValueType value) {
+    this.value = value;
   }
 
   public ObservableList<ValueType> getChoices() {
@@ -92,11 +97,6 @@ public class ComboParameter<ValueType> implements UserParameter<ValueType, Combo
   }
 
   @Override
-  public void setValue(ValueType value) {
-    this.value = value;
-  }
-
-  @Override
   public ComboParameter<ValueType> cloneParameter() {
     ComboParameter<ValueType> copy = new ComboParameter<ValueType>(name, description, choices);
     copy.value = this.value;
@@ -104,12 +104,13 @@ public class ComboParameter<ValueType> implements UserParameter<ValueType, Combo
   }
 
   @Override
-  public void setValueFromComponent(ComboBox<ValueType> component) {
+  public void setValueFromComponent(ComboComponent<ValueType> component) {
     value = component.getSelectionModel().getSelectedItem();
   }
 
   @Override
-  public void setValueToComponent(ComboBox<ValueType> component, @Nullable ValueType newValue) {
+  public void setValueToComponent(ComboComponent<ValueType> component,
+      @Nullable ValueType newValue) {
     if (newValue == null) {
       component.getSelectionModel().clearSelection();
       return;

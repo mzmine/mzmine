@@ -29,6 +29,6 @@ import io.github.mzmine.datamodel.features.Feature;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 
-public interface SelectedFeaturesController {
+public non-sealed interface SelectedFeaturesController extends FxControllerBinding {
   ObjectProperty<List<Feature>> selectedFeaturesProperty();
 }

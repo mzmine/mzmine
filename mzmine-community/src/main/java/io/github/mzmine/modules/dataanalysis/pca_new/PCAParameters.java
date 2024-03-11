@@ -23,46 +23,35 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel;
+package io.github.mzmine.modules.dataanalysis.pca_new;
 
-import io.github.mzmine.datamodel.features.ModularDataModel;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.numbers.AreaType;
-import io.github.mzmine.datamodel.features.types.numbers.HeightType;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import java.util.Collection;
 
-/**
- * Used to define the abundance of features
- */
-public enum AbundanceMeasure {
-  Height(HeightType.class), Area(AreaType.class);
+public class PCAParameters extends SimpleParameterSet {
 
-  final Class<? extends DataType<Float>> type;
+  public static final FeatureListsParameter flist = new FeatureListsParameter();
 
-  AbundanceMeasure(Class<? extends DataType<Float>> type) {
-    this.type = type;
+  public PCAParameters() {
+    super(flist);
   }
 
-  public Class<? extends DataType<Float>> type() {
-    return type;
-  }
-
-  /**
-   * @param featureOrRow The feature or row
-   * @return The abundance or null if the feature/row is null or no abundance is set.
-   */
-  public Float get(@Nullable ModularDataModel featureOrRow) {
-    if (featureOrRow == null) {
-      return null;
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages,
+      boolean skipRawDataAndFeatureListParameters) {
+    boolean superCheck = super.checkParameterValues(errorMessages,
+        skipRawDataAndFeatureListParameters);
+    if (!superCheck) {
+      return superCheck;
     }
-    return featureOrRow.get(type);
-  }
 
-  public Float getOrNaN(@Nullable ModularDataModel featureOrRow) {
-    if (featureOrRow == null) {
-      return Float.NaN;
+    final ModularFeatureList[] matchingFeatureLists = getValue(flist).getMatchingFeatureLists();
+    if (matchingFeatureLists[0].getNumberOfRawDataFiles() < 2) {
+      errorMessages.add("Selected feature list is not an aligned feature list.");
+      return false;
     }
-    return featureOrRow.get(type);
+    return true;
   }
-
 }

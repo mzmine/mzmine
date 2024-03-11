@@ -38,4 +38,5 @@ public abstract class FxViewBuilder<ViewModelClass> implements Builder<Region> {
   protected FxViewBuilder(ViewModelClass model) {
     this.model = model;
   }
+
 }

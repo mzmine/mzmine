@@ -23,69 +23,59 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.volcanoplot;
+package io.github.mzmine.modules.dataanalysis.rowsboxplot;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.framework.fx.SelectedFeatureListsController;
+import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureController;
+import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnController;
 import io.github.mzmine.gui.framework.fx.SelectedRowsController;
 import io.github.mzmine.javafx.mvci.FxController;
-import io.github.mzmine.javafx.mvci.FxInteractor;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
-import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class VolcanoPlotController extends FxController<VolcanoPlotModel> implements
-    SelectedRowsController, SelectedFeatureListsController {
+public class RowsBoxplotController extends FxController<RowsBoxplotModel> implements
+    SelectedRowsController, SelectedMetadataColumnController, SelectedAbundanceMeasureController {
 
-  private final VolcanoPlotViewBuilder viewBuilder;
-  private final Region view;
+  private final RowsBoxplotViewBuilder builder;
 
-  public VolcanoPlotController(@Nullable FeatureList flist) {
-    super(new VolcanoPlotModel());
+  public RowsBoxplotController() {
+    super(new RowsBoxplotModel());
+    builder = new RowsBoxplotViewBuilder(model);
 
-    model.setFlists(flist != null ? List.of(flist) : null);
-    viewBuilder = new VolcanoPlotViewBuilder(model);
-    view = viewBuilder.build();
-
-    initializeListeners();
+    model.selectedRowsProperty().addListener((_, _, n) -> updateDataset(n));
+    model.abundanceMeasureProperty()
+        .addListener((_, _, n) -> updateDataset(model.getSelectedRows()));
+    model.groupingColumnProperty().addListener((_, _, n) -> updateDataset(model.getSelectedRows()));
   }
 
-  private void initializeListeners() {
-    model.testProperty().addListener((_, _, newValue) -> {
-      if (newValue != null) {
-        computeDataset();
+  private void updateDataset(List<FeatureListRow> n) {
+    onGuiThread(() -> {
+      if (n == null || n.isEmpty()) {
+        model.setDataset(null);
+        return;
       }
+      model.setDataset(
+          new RowBarDataset(n.getFirst(), model.getGroupingColumn(), model.getAbundanceMeasure()));
     });
-    model.flistsProperty().addListener(_ -> computeDataset());
-    model.abundanceMeasureProperty().addListener(_ -> computeDataset());
-    model.pValueProperty().addListener(_ -> computeDataset());
-  }
-
-  private void computeDataset() {
-    onTaskThread(new VolcanoPlotUpdateTask(model));
   }
 
   @Override
-  public ObjectProperty<List<FeatureList>> selectedFeatureListsProperty() {
-    return model.flistsProperty();
-  }
-
-  public Region getView() {
-    return view;
+  protected @NotNull FxViewBuilder<RowsBoxplotModel> getViewBuilder() {
+    return builder;
   }
 
   @Override
-  protected @Nullable FxInteractor<VolcanoPlotModel> getInteractor() {
-    return null;
+  public ObjectProperty<AbundanceMeasure> abundanceMeasureProperty() {
+    return model.abundanceMeasureProperty();
   }
 
   @Override
-  protected @NotNull FxViewBuilder<VolcanoPlotModel> getViewBuilder() {
-    return viewBuilder;
+  public ObjectProperty<MetadataColumn<?>> groupingColumnProperty() {
+    return model.groupingColumnProperty();
   }
 
   @Override
