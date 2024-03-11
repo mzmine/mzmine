@@ -42,11 +42,13 @@ import io.github.mzmine.datamodel.features.types.annotations.online_reaction.Onl
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.RelativeHeightType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
@@ -66,7 +68,11 @@ public enum DBEntryField {
 
   // spectrum specific
   MS_LEVEL, RT(Float.class), CCS(Float.class), ION_TYPE, PRECURSOR_MZ(Double.class), CHARGE(
-      Integer.class), MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS,
+      Integer.class), // height of feature
+  FEATURE_MS1_HEIGHT(Float.class), FEATURE_MS1_REL_HEIGHT(Float.class),
+
+  //
+  MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS,
 
   // MS2
   COLLISION_ENERGY, FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION,
@@ -178,24 +184,6 @@ public enum DBEntryField {
     return null;
   }
 
-  public Class getObjectClass() {
-    return clazz;
-  }
-
-  @Override
-  public String toString() {
-    return switch (this) {
-      case RT, SMILES, CAS -> super.toString().replace('_', ' ');
-      case ENTRY_ID -> "Entry ID";
-      case INCHI -> "InChI";
-      case INCHIKEY -> "InChI key";
-      case MOLWEIGHT -> "Mol. weight";
-      case MONA_ID -> "MoNA ID";
-      case PRECURSOR_MZ -> "Precursor m/z";
-      default -> StringUtils.capitalize(super.toString().replace('_', ' ').toLowerCase());
-    };
-  }
-
   /**
    * @return enum field for a DataType or {@link #UNSPECIFIED} if no clear mapping exists
    */
@@ -217,7 +205,27 @@ public enum DBEntryField {
       case CCSType ignored -> CCS;
       case UsiType ignored -> USI;
       case SplashType ignored -> SPLASH;
+      case HeightType _ -> FEATURE_MS1_HEIGHT;
+      case RelativeHeightType _ -> FEATURE_MS1_REL_HEIGHT;
       default -> UNSPECIFIED;
+    };
+  }
+
+  public Class getObjectClass() {
+    return clazz;
+  }
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case RT, SMILES, CAS -> super.toString().replace('_', ' ');
+      case ENTRY_ID -> "Entry ID";
+      case INCHI -> "InChI";
+      case INCHIKEY -> "InChI key";
+      case MOLWEIGHT -> "Mol. weight";
+      case MONA_ID -> "MoNA ID";
+      case PRECURSOR_MZ -> "Precursor m/z";
+      default -> StringUtils.capitalize(super.toString().replace('_', ' ').toLowerCase());
     };
   }
 
@@ -231,8 +239,7 @@ public enum DBEntryField {
           CHEMSPIDER, MONA_ID, GNPS_ID, ENTRY_ID, SYNONYMS, RESOLUTION, FRAGMENTATION_METHOD, //
           QUALITY, QUALITY_CHIMERIC, FILENAME, //
           SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, //
-          IMS_TYPE ->
-          StringType.class;
+          IMS_TYPE -> StringType.class;
       case SCAN_NUMBER -> BestScanNumberType.class;
       case MS_LEVEL, NUM_PEAKS, FEATURE_ID -> IntegerType.class;
       case EXACT_MASS, PRECURSOR_MZ, MOLWEIGHT -> MZType.class;
@@ -256,6 +263,8 @@ public enum DBEntryField {
       case ONLINE_REACTIVITY -> OnlineLcReactionMatchType.class;
       // TODO change to real data types instead of strings
       // are there other formats that define those properly?
+      case FEATURE_MS1_HEIGHT -> HeightType.class;
+      case FEATURE_MS1_REL_HEIGHT -> RelativeHeightType.class;
       case MERGED_SPEC_TYPE, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS ->
           StringType.class;
     };
@@ -267,6 +276,8 @@ public enum DBEntryField {
   public String getMZmineJsonID() {
     return switch (this) {
       case SCAN_NUMBER -> "scan_number";
+      case FEATURE_MS1_HEIGHT -> "feature_ms1_height";
+      case FEATURE_MS1_REL_HEIGHT -> "feature_ms1_relative_height";
       case MERGED_SPEC_TYPE -> "merge_type";
       case ACQUISITION -> "acquisition";
       case SOFTWARE -> "softwaresource";
@@ -360,7 +371,7 @@ public enum DBEntryField {
       case SMILES -> "SMILES";
       case INCHI -> "INCHI";
       case ACQUISITION, GNPS_ID, MONA_ID, CHEMSPIDER, RESOLUTION, SYNONYMS, MOLWEIGHT, PUBCHEM, PUBMED, PRINCIPAL_INVESTIGATOR, CHARGE, CAS, SOFTWARE, DATA_COLLECTOR ->
-          toString();
+          this.name().toLowerCase();
       case PEPTIDE_SEQ -> "peptide_sequence";
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
       case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
@@ -379,6 +390,8 @@ public enum DBEntryField {
       case FEATURE_ID -> "feature_id";
       case FILENAME -> "file_name";
       case ONLINE_REACTIVITY -> "online_reactivity";
+      case FEATURE_MS1_HEIGHT -> "feature_ms1_height";
+      case FEATURE_MS1_REL_HEIGHT -> "feature_ms1_relative_height";
       case SIRIUS_MERGED_SCANS -> "";
       case SIRIUS_MERGED_STATS -> "";
       case UNSPECIFIED -> "";
@@ -416,8 +429,9 @@ public enum DBEntryField {
       case MS_LEVEL -> "MSLEVEL";
       case CCS -> "CCS";
       case SPLASH -> "SPLASH";
-      case ACQUISITION, NUM_PEAKS, GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RESOLUTION, SYNONYMS, //
-          MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY -> toString();
+      case NUM_PEAKS -> toString(); // Num peaks
+      case ACQUISITION, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT, GNPS_ID, MONA_ID, CHEMSPIDER, //
+          PUBCHEM, RESOLUTION, SYNONYMS, MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY -> name();
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
       case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
       case MSN_FRAGMENTATION_METHODS -> "MSn_fragmentation_methods";
@@ -479,8 +493,10 @@ public enum DBEntryField {
       case CCS -> "CCS";
       case SPLASH -> "SPLASH";
       case MERGED_SPEC_TYPE -> "SPECTYPE";
-      case NUM_PEAKS, GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RESOLUTION, SYNONYMS, //
-          MOLWEIGHT, SOFTWARE, COLLISION_ENERGY -> toString();
+      case NUM_PEAKS -> toString(); // Num peaks
+      case GNPS_ID, MONA_ID, CHEMSPIDER, PUBCHEM, RESOLUTION, SYNONYMS, //
+          MOLWEIGHT, SOFTWARE, COLLISION_ENERGY, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT ->
+          this.name();
       case MSN_COLLISION_ENERGIES -> "MSn_collision_energies";
       case MSN_PRECURSOR_MZS -> "MSn_precursor_mzs";
       case MSN_FRAGMENTATION_METHODS -> "MSn_fragmentation_methods";
@@ -563,7 +579,7 @@ public enum DBEntryField {
       case FEATURE_ID -> "";
       case SIRIUS_MERGED_SCANS -> "";
       case UNSPECIFIED -> "";
-      case SIRIUS_MERGED_STATS, ONLINE_REACTIVITY -> "";
+      case SIRIUS_MERGED_STATS, ONLINE_REACTIVITY, FEATURE_MS1_HEIGHT, FEATURE_MS1_REL_HEIGHT -> "";
     };
   }
 
@@ -592,23 +608,30 @@ public enum DBEntryField {
       case UNSPECIFIED, QUALITY, QUALITY_EXPLAINED_INTENSITY, QUALITY_EXPLAINED_SIGNALS, GNPS_ID, //
           PUBCHEM, MONA_ID, CHEMSPIDER, FEATURE_ID, PUBMED, SYNONYMS, NAME, ENTRY_ID, NUM_PEAKS, //
           MS_LEVEL, INSTRUMENT, ION_SOURCE, RESOLUTION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, //
-          COMMENT, DESCRIPTION, MOLWEIGHT, EXACT_MASS, FORMULA, INCHI, INCHIKEY, SMILES, CAS, CCS, //
+          COMMENT, DESCRIPTION, MOLWEIGHT, FORMULA, INCHI, INCHIKEY, SMILES, CAS, CCS, //
           ION_TYPE, CHARGE, MERGED_SPEC_TYPE, SIRIUS_MERGED_SCANS, SIRIUS_MERGED_STATS, COLLISION_ENERGY, //
           FRAGMENTATION_METHOD, ISOLATION_WINDOW, ACQUISITION, MSN_COLLISION_ENERGIES, MSN_PRECURSOR_MZS, //
           MSN_FRAGMENTATION_METHODS, MSN_ISOLATION_WINDOWS, INSTRUMENT_TYPE, SOFTWARE, FILENAME, //
           DATASET_ID, USI, SCAN_NUMBER, SPLASH, QUALITY_CHIMERIC, //
           OTHER_MATCHED_COMPOUNDS_N, OTHER_MATCHED_COMPOUNDS_NAMES, QUALITY_PRECURSOR_PURITY, PEPTIDE_SEQ, //
-          IMS_TYPE, ONLINE_REACTIVITY ->
-          value.toString();
+          IMS_TYPE, ONLINE_REACTIVITY -> value.toString();
       case RT -> switch (value) {
         // float is default for RT but handle Double in case wrong value was present
         case Float f -> "%.2f".formatted(f * 60.f);
         case Double d -> "%.2f".formatted(d * 60.0);
         default -> throw new IllegalArgumentException("RT has to be a number");
       };
-      case PRECURSOR_MZ -> switch (value) {
+      case PRECURSOR_MZ, EXACT_MASS -> switch (value) {
         case Number d -> MZmineCore.getConfiguration().getExportFormats().mz(d);
         default -> throw new IllegalArgumentException("MZ has to be a number");
+      };
+      case FEATURE_MS1_HEIGHT -> switch (value) {
+        case Number d -> MZmineCore.getConfiguration().getExportFormats().intensity(d);
+        default -> throw new IllegalArgumentException("Height has to be a number");
+      };
+      case FEATURE_MS1_REL_HEIGHT -> switch (value) {
+        case Number d -> MZmineCore.getConfiguration().getExportFormats().percent(d);
+        default -> throw new IllegalArgumentException("Relative height has to be a number");
       };
       case POLARITY -> PolarityType.NEGATIVE.equals(value) ? "Negative" : "Positive";
     };
