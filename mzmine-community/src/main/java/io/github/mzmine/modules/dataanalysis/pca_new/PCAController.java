@@ -31,6 +31,7 @@ import io.github.mzmine.gui.framework.fx.SelectedFeatureListsController;
 import io.github.mzmine.gui.framework.fx.SelectedRowsController;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.properties.LastUpdateProperty;
 import java.util.List;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
@@ -41,13 +42,21 @@ import org.jetbrains.annotations.NotNull;
 public class PCAController extends FxController<PCAModel> implements SelectedRowsController,
     SelectedFeatureListsController {
 
-  private final PauseTransition updateAccumulator = new PauseTransition(Duration.millis(500));
+  private final PauseTransition updateAccumulator = new PauseTransition(Duration.millis(50));
   private final FxViewBuilder<PCAModel> builder;
+
+  // define last so that other properties can be bound
+  private final LastUpdateProperty lastFullUpdateTrigger;
 
   public PCAController() {
     super(new PCAModel());
     builder = new PCAViewBuilder(model);
-    initListeners();
+    //update on changes of these properties
+    lastFullUpdateTrigger = new LastUpdateProperty(model.flistsProperty(), model.domainPcProperty(),
+        model.rangePcProperty(), model.abundanceProperty(), model.metadataColumnProperty());
+
+    updateAccumulator.setOnFinished(_ -> updateNow());
+    lastFullUpdateTrigger.addListener((_, _, _) -> this.waitAndUpdate());
     updateNow(); // TODO could we call wait and update? or just let the flist be set and then update?
   }
 
@@ -59,11 +68,6 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
   @Override
   public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
     return model.selectedRowsProperty();
-  }
-
-  private void initListeners() {
-    updateAccumulator.setOnFinished(_ -> updateNow());
-    model.lastFullUpdateTriggerProperty().addListener((_, _, _) -> this.waitAndUpdate());
   }
 
   /**
