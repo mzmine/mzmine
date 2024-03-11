@@ -51,12 +51,12 @@ public class PCATab extends MZmineTab {
 
   @Override
   public @NotNull Collection<? extends FeatureList> getFeatureLists() {
-    return controller.featureListsProperty().get();
+    return controller.selectedFeatureListsProperty().getValue();
   }
 
   @Override
   public @NotNull Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return controller.featureListsProperty().get();
+    return controller.selectedFeatureListsProperty().getValue();
   }
 
   @Override
@@ -66,11 +66,11 @@ public class PCATab extends MZmineTab {
 
   @Override
   public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-    controller.featureListsProperty().set(List.copyOf(featureLists));
+    controller.selectedFeatureListsProperty().setValue((List<FeatureList>) featureLists.stream().toList());
   }
 
   @Override
   public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-    controller.featureListsProperty().set(List.copyOf(featureLists));
+    controller.selectedFeatureListsProperty().setValue((List<FeatureList>) featureLists.stream().toList());
   }
 }

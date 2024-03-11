@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.javafx.components.factories.FxComponentFactory;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
@@ -55,8 +56,8 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
 
   private static final int space = 5;
 
-  private final SimpleXYChart<?> scoresPlot = new SimpleXYChart<>("Scores plot", "PC1", "PC2");
-  private final SimpleXYChart<?> loadingsPlot = new SimpleXYChart<>("Loadings plot", "PC1", "PC2");
+  private final SimpleXYChart<?> scoresPlot = new SimpleXYChart<>("Scores", "PC1", "PC2");
+  private final SimpleXYChart<?> loadingsPlot = new SimpleXYChart<>("Loadings", "PC1", "PC2");
 
   public PCAViewBuilder(PCAModel model) {
     super(model);
@@ -68,12 +69,12 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
     loadingsPlot.setStickyZeroRangeAxis(false);
 
     final BorderPane pane = new BorderPane();
-    final HBox domain = FxComponentFactory.createLabelledComboBox("Domain PC",
+    final HBox domain = FxComponentFactory.createLabeledComboBox("Domain PC",
         model.getAvailablePCs(), model.domainPcProperty());
-    final HBox range = FxComponentFactory.createLabelledComboBox("Range PC",
+    final HBox range = FxComponentFactory.createLabeledComboBox("Range PC",
         model.getAvailablePCs(), model.rangePcProperty());
     final HBox coloring = createMetadataBox();
-    final HBox abundance = FxComponentFactory.createLabelledComboBox("Abundance",
+    final HBox abundance = FxComponentFactory.createLabeledComboBox("Abundance",
         FXCollections.observableArrayList(AbundanceMeasure.values()), model.abundanceProperty());
 
     final TitledPane controls = new TitledPane("Controls",
@@ -121,39 +122,32 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
   private void initDatasetListeners() {
     model.loadingsDatasetsProperty().addListener(((_, _, newValue) -> {
       loadingsPlot.applyWithNotifyChanges(false, () -> {
-        loadingsPlot.removeAllDatasets();
-        if (newValue == null || newValue.isEmpty()) {
-          return;
-        }
-        newValue.forEach(d -> loadingsPlot.addDataset(d.dataset(), d.renderer()));
-
-        LegendItemCollection collection = new LegendItemCollection();
-        newValue.forEach(d -> {
-          loadingsPlot.addDataset(d.dataset(), d.renderer());
-          collection.addAll(d.renderer().getLegendItems());
-        });
-        loadingsPlot.getXYPlot().setFixedLegendItems(collection);
-        loadingsPlot.setDomainAxisLabel(STR."PC\{model.getDomainPc()}");
-        loadingsPlot.setRangeAxisLabel(STR."PC\{model.getRangePc()}");
+        setDatasets(loadingsPlot, newValue);
       });
     }));
 
     model.scoresDatasetsProperty().addListener(((_, _, newValue) -> {
       scoresPlot.applyWithNotifyChanges(false, () -> {
-        scoresPlot.removeAllDatasets();
-        if (newValue == null || newValue.isEmpty()) {
-          return;
-        }
-        LegendItemCollection collection = new LegendItemCollection();
-        newValue.forEach(d -> {
-          scoresPlot.addDataset(d.dataset(), d.renderer());
-          collection.addAll(d.renderer().getLegendItems());
-        });
-        scoresPlot.getXYPlot().setFixedLegendItems(collection);
-        scoresPlot.setDomainAxisLabel(STR."PC\{model.getDomainPc()}");
-        scoresPlot.setRangeAxisLabel(STR."PC\{model.getRangePc()}");
+        setDatasets(scoresPlot, newValue);
       });
     }));
+  }
+
+  private void setDatasets(final SimpleXYChart<?> plot, final List<DatasetAndRenderer> newValue) {
+    plot.removeAllDatasets();
+    if (newValue == null || newValue.isEmpty()) {
+      return;
+    }
+    newValue.forEach(d -> plot.addDataset(d.dataset(), d.renderer()));
+
+    LegendItemCollection collection = new LegendItemCollection();
+    newValue.forEach(d -> {
+      plot.addDataset(d.dataset(), d.renderer());
+      collection.addAll(d.renderer().getLegendItems());
+    });
+    plot.getXYPlot().setFixedLegendItems(collection);
+    plot.setDomainAxisLabel(STR."PC\{model.getDomainPc()}");
+    plot.setRangeAxisLabel(STR."PC\{model.getRangePc()}");
   }
 
   private void initChartListeners() {

@@ -90,13 +90,13 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     pcaRowsResult = PCAUtils.performPCAOnRows(flists.get(0).getRows(), abundance);
     progressProvider.getAndIncrement();
 
-    final ScoresProvider scores = new ScoresProvider(pcaRowsResult, "Scores", Color.RED,
+    final PCAScoresProvider scores = new PCAScoresProvider(pcaRowsResult, "Scores", Color.RED,
         domainPcIndex, rangePcIndex,
         MZmineCore.getProjectMetadata().getColumnByName(metadataColumn));
     final ColoredXYZDataset scoresDS = new ColoredXYZDataset(scores, RunOption.THIS_THREAD);
     progressProvider.getAndIncrement();
 
-    final LoadingsProvider loadings = new LoadingsProvider(pcaRowsResult, "Loadings", Color.RED,
+    final PCALoadingsProvider loadings = new PCALoadingsProvider(pcaRowsResult, "Loadings", Color.RED,
         domainPcIndex, rangePcIndex);
     final ColoredXYZDataset loadingsDS = new ColoredXYZDataset(loadings, RunOption.THIS_THREAD);
     progressProvider.getAndIncrement();
@@ -120,12 +120,12 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     if (rangePcIndex < components.size()) {
       model.setRangePc(rangePcIndex + 1);
     } else {
-      model.setRangePc(components.getLast() + 1);
+      model.setRangePc(components.getLast());
     }
     if (domainPcIndex < components.size()) {
       model.setDomainPc(domainPcIndex + 1);
     } else {
-      model.setDomainPc(components.getLast() + 1);
+      model.setDomainPc(components.getLast());
     }
   }
 
