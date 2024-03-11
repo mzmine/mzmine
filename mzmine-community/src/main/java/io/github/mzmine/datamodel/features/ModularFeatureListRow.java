@@ -317,7 +317,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public Float getAverageHeight() {
+  public Float getMaxHeight() {
     return get(HeightType.class);
   }
 
@@ -328,7 +328,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public Float getAverageArea() {
+  public Float getMaxArea() {
     return get(AreaType.class);
   }
 

@@ -189,8 +189,8 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
         case RETENTION_TIME -> values[i] = row.getAverageRT();
         case MOBILITY ->
             values[i] = (row.getAverageMobility() != null) ? row.getAverageMobility() : 0.0;
-        case INTENSITY -> values[i] = row.getAverageHeight();
-        case AREA -> values[i] = row.getAverageArea();
+        case INTENSITY -> values[i] = row.getMaxHeight();
+        case AREA -> values[i] = row.getMaxArea();
         case TAILING_FACTOR -> values[i] =
             (row.getBestFeature().getTailingFactor() != null) ? row.getBestFeature()
                 .getTailingFactor() : 0.0;

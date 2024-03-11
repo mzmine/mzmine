@@ -185,7 +185,7 @@ public class CCSUtils {
 
       final List<FeatureListRow> candidates = FeatureListUtils.getCandidatesWithinRanges(mzRange,
           rtRange, mobRange, rowsByMz, true).stream().filter(
-          r -> r.getAverageHeight() > minHeight && Objects.equals(
+          r -> r.getMaxHeight() > minHeight && Objects.equals(
               r.getBestFeature().getRepresentativeScan().getPolarity(),
               PolarityType.fromInt(potentialCalibrant.libraryCharge()))).toList();
       final FeatureListRow calibrantRow = FeatureListUtils.getBestRow(candidates, mzRange, null,

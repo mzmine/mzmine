@@ -111,7 +111,7 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
     final String sb =
         "m/z:" + mzFormat.format(f.getMZRange().lowerEndpoint()) + " - " + mzFormat.format(
             f.getMZRange().upperEndpoint()) + "\n" + "Height: " + intensityFormat.format(
-            f.getAverageHeight()) + "\n" + "Retention time" + ": " + rtFormat.format(
+            f.getMaxHeight()) + "\n" + "Retention time" + ": " + rtFormat.format(
             f.getAverageRT()) + " min\n" + "Mobility: " + mobilityFormat.format(
             f.getAverageMobility());
     return sb;
