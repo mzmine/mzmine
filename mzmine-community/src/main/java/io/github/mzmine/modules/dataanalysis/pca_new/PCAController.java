@@ -35,21 +35,34 @@ import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.javafx.properties.LastUpdateProperty;
 import java.util.List;
+import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
+import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 
 public class PCAController extends FxController<PCAModel> implements SelectedRowsBinding,
     SelectedFeatureListsBinding, SelectedMetadataColumnBinding,
     SelectedAbundanceMeasureBinding {
 
+  private final PauseTransition updateAccumulator = new PauseTransition(Duration.millis(50));
   private final FxViewBuilder<PCAModel> builder;
+
+  // define last so that other properties can be bound
+  private final LastUpdateProperty lastFullUpdateTrigger;
 
   public PCAController() {
     super(new PCAModel());
     builder = new PCAViewBuilder(model);
-    initListeners();
+    //update on changes of these properties
+    lastFullUpdateTrigger = new LastUpdateProperty(model.flistsProperty(), model.domainPcProperty(),
+        model.rangePcProperty(), model.abundanceProperty(), model.metadataColumnProperty());
+
+    updateAccumulator.setOnFinished(_ -> updateNow());
+    lastFullUpdateTrigger.addListener((_, _, _) -> this.waitAndUpdate());
+    updateNow(); // TODO could we call wait and update? or just let the flist be set and then update?
   }
 
   @Override
@@ -62,16 +75,14 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
     return model.selectedRowsProperty();
   }
 
-  private void initListeners() {
-    model.flistsProperty().addListener(_ -> update());
-    model.domainPcProperty().addListener(_ -> update());
-    model.rangePcProperty().addListener(_ -> update());
-    model.abundanceProperty().addListener(_ -> update());
-    model.flistsProperty().addListener(_ -> update());
-    model.metadataColumnProperty().addListener(_ -> update());
+  /**
+   * Accumulates update calls by waiting for some time
+   */
+  public void waitAndUpdate() {
+    updateAccumulator.playFromStart(); // accumulate update calls and then update
   }
 
-  public void update() {
+  private void updateNow() {
     onTaskThread(new PCAUpdateTask("update full dataset", model));
   }
 
