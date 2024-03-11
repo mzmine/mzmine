@@ -29,6 +29,8 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import io.github.mzmine.javafx.properties.LastUpdateProperty;
+import java.time.Instant;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -56,6 +58,23 @@ public class PCAModel {
       List.of());
 
   private final ObjectProperty<PCARowsResult> pcaResult = new SimpleObjectProperty<>();
+
+  // define last so that other properties can be bound
+  private final LastUpdateProperty lastFullUpdateTrigger = new LastUpdateProperty(flists, domainPc,
+      rangePc, abundance, metadataColumn);
+
+
+  public Instant getLastFullUpdateTrigger() {
+    return lastFullUpdateTrigger.get();
+  }
+
+  public Property<Instant> lastFullUpdateTriggerProperty() {
+    return lastFullUpdateTrigger;
+  }
+
+  public void setLastFullUpdateTrigger(final Instant lastFullUpdateTrigger) {
+    this.lastFullUpdateTrigger.set(lastFullUpdateTrigger);
+  }
 
   public ObservableList<Integer> getAvailablePCs() {
     return availablePCs;

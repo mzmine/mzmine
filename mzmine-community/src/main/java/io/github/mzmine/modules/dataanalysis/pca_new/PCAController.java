@@ -32,19 +32,23 @@ import io.github.mzmine.gui.framework.fx.SelectedRowsController;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import java.util.List;
+import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
+import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 
 public class PCAController extends FxController<PCAModel> implements SelectedRowsController,
     SelectedFeatureListsController {
 
+  private final PauseTransition updateAccumulator = new PauseTransition(Duration.millis(500));
   private final FxViewBuilder<PCAModel> builder;
 
   public PCAController() {
     super(new PCAModel());
     builder = new PCAViewBuilder(model);
     initListeners();
+    updateNow(); // TODO could we call wait and update? or just let the flist be set and then update?
   }
 
   @Override
@@ -58,15 +62,18 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
   }
 
   private void initListeners() {
-    model.flistsProperty().addListener(_ -> update());
-    model.domainPcProperty().addListener(_ -> update());
-    model.rangePcProperty().addListener(_ -> update());
-    model.abundanceProperty().addListener(_ -> update());
-    model.flistsProperty().addListener(_ -> update());
-    model.metadataColumnProperty().addListener(_ -> update());
+    updateAccumulator.setOnFinished(_ -> updateNow());
+    model.lastFullUpdateTriggerProperty().addListener((_, _, _) -> this.waitAndUpdate());
   }
 
-  public void update() {
+  /**
+   * Accumulates update calls by waiting for some time
+   */
+  public void waitAndUpdate() {
+    updateAccumulator.playFromStart(); // accumulate update calls and then update
+  }
+
+  private void updateNow() {
     onTaskThread(new PCAUpdateTask("update full dataset", model));
   }
 
