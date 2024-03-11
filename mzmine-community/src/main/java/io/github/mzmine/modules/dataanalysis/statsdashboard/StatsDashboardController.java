@@ -64,7 +64,7 @@ public class StatsDashboardController extends FxController<StatsDashboardModel> 
     FxControllerBinding.bindExposedProperties(this, volcanoController);
     FxControllerBinding.bindExposedProperties(this, boxplotController);
     FxControllerBinding.bindExposedProperties(this, pcaController);
-    pcaController.update();
+    pcaController.waitAndUpdate();
     // feature table bindings in view builder
   }
 
