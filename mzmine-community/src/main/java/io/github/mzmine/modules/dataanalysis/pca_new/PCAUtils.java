@@ -68,7 +68,7 @@ public class PCAUtils {
     final List<RawDataFile> files = rows.stream().flatMap(row -> row.getRawDataFiles().stream())
         .distinct().toList();
     final RealMatrix data = StatisticUtils.createDatasetFromRows(rows, files, measure);
-    StatisticUtils.imputeMissingValues(data, true, StatisticUtils.zeroImputer);
+    StatisticUtils.imputeMissingValues(data, true, StatisticUtils.oneFifthOfMinimumImputer);
     final PCAResult pcaResult = calculatePCA(data);
     return new PCARowsResult(pcaResult, rows, files);
   }

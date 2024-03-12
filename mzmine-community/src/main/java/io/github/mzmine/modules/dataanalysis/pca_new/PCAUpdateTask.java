@@ -37,6 +37,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -117,7 +118,10 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     model.setScoresDatasets(scoresDatasets);
     model.setLoadingsDatasets(loadingsDatasets);
     model.setPcaResult(pcaRowsResult);
-    model.getAvailablePCs().setAll(components);
+
+    if(model.getAvailablePCs().size() != components.size()) {
+      model.getAvailablePCs().setAll(components);
+    }
 
     if (rangePcIndex < components.size()) {
       model.setRangePc(rangePcIndex + 1);

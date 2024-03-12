@@ -47,21 +47,26 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
     SelectedFeatureListsBinding, SelectedMetadataColumnBinding,
     SelectedAbundanceMeasureBinding {
 
-  private final PauseTransition updateAccumulator = new PauseTransition(Duration.millis(50));
+  private final PauseTransition updateAccumulator = new PauseTransition(Duration.millis(100));
   private final FxViewBuilder<PCAModel> builder;
 
   // define last so that other properties can be bound
-  private final LastUpdateProperty lastFullUpdateTrigger;
+//  private final LastUpdateProperty lastFullUpdateTrigger;
 
   public PCAController() {
     super(new PCAModel());
     builder = new PCAViewBuilder(model);
     //update on changes of these properties
-    lastFullUpdateTrigger = new LastUpdateProperty(model.flistsProperty(), model.domainPcProperty(),
-        model.rangePcProperty(), model.abundanceProperty(), model.metadataColumnProperty());
+    //lastFullUpdateTrigger = new LastUpdateProperty(model.flistsProperty(), model.domainPcProperty(),
+//        model.rangePcProperty(), model.abundanceProperty(), model.metadataColumnProperty());
 
     updateAccumulator.setOnFinished(_ -> updateNow());
-    lastFullUpdateTrigger.addListener((_, _, _) -> this.waitAndUpdate());
+//    lastFullUpdateTrigger.addListener((_, _, _) -> this.waitAndUpdate());
+    model.flistsProperty().addListener((_, _, n) -> this.waitAndUpdate());
+    model.domainPcProperty().addListener((_, _, n) -> this.waitAndUpdate());
+    model.rangePcProperty().addListener((_, _, n) -> this.waitAndUpdate());
+    model.abundanceProperty().addListener((_, _, n) -> this.waitAndUpdate());
+    model.metadataColumnProperty().addListener((_, _, n) -> this.waitAndUpdate());
     updateNow(); // TODO could we call wait and update? or just let the flist be set and then update?
   }
 
