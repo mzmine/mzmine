@@ -27,10 +27,15 @@ import org.junit.jupiter.api.Test;
 
 public class StatsUtilsTest {
 
-  double[][] data = new double[][]{
-      {0, 2, 1, 2},
-      {1, 2, 5, 0},
+  double[][] data = new double[][]{ //
+      {0, 2, 1, 2}, //
+      {1, 2, 5, 0},//
       {1, 1, 1, 0}};
+
+  double[][] missingData = new double[][]{ //
+      {0, 2, 1, 2}, //
+      {1, Double.NaN, 5, 2}, //
+      {1, 1, 1, Double.NaN}}; //
 
   @Test
   void testCentering() {
@@ -38,10 +43,10 @@ public class StatsUtilsTest {
     final Array2DRowRealMatrix matrix = new Array2DRowRealMatrix(data);
     final RealMatrix centered = StatisticUtils.performMeanCenter(matrix, false);
 
-    Assertions.assertEquals((double) -2 /3, centered.getEntry(0, 0));
-    Assertions.assertEquals(2 - (double) 5 /3 , centered.getEntry(1, 1));
-    Assertions.assertEquals(1- (double) 7 /3, centered.getEntry(0, 2));
-    Assertions.assertEquals(0- (double) 2 /3, centered.getEntry(2, 3));
+    Assertions.assertEquals((double) -2 / 3, centered.getEntry(0, 0));
+    Assertions.assertEquals(2 - (double) 5 / 3, centered.getEntry(1, 1));
+    Assertions.assertEquals(1 - (double) 7 / 3, centered.getEntry(0, 2));
+    Assertions.assertEquals(0 - (double) 2 / 3, centered.getEntry(2, 3));
   }
 
   @Test
@@ -52,7 +57,21 @@ public class StatsUtilsTest {
     Assertions.assertEquals(0, unitVar.getEntry(0, 0));
     Assertions.assertEquals(1, unitVar.getEntry(1, 1));
     Assertions.assertEquals(0.5, unitVar.getEntry(2, 1));
-    Assertions.assertEquals((double) 1 /5, unitVar.getEntry(0, 2));
+    Assertions.assertEquals((double) 1 / 5, unitVar.getEntry(0, 2));
     Assertions.assertEquals(0, unitVar.getEntry(2, 3));
+  }
+
+  @Test
+  void testImputation() {
+    final Array2DRowRealMatrix matrix = new Array2DRowRealMatrix(missingData);
+    final RealMatrix zero = StatisticUtils.imputeMissingValues(matrix, false,
+        StatisticUtils.zeroImputer);
+    Assertions.assertEquals(0, zero.getEntry(1, 1));
+    Assertions.assertEquals(0, zero.getEntry(2, 3));
+
+    final RealMatrix oneFifth = StatisticUtils.imputeMissingValues(matrix, false,
+        StatisticUtils.oneFifthOfMinimumImputer);
+    Assertions.assertEquals((double) 1 / 5, oneFifth.getEntry(1, 1));
+    Assertions.assertEquals((double) 2 / 5, oneFifth.getEntry(2, 3));
   }
 }

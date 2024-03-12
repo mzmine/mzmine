@@ -42,8 +42,10 @@ import org.apache.commons.math3.linear.RealVector;
 
 public class StatisticUtils {
 
-  public static final Function<RealVector, Double> oneFifthOfMinimumImputer = realVector ->
-      realVector.getMinValue() * 1 / 5;
+  public static final Function<RealVector, Double> oneFifthOfMinimumImputer = realVector -> {
+    final double minValue = realVector.getMinValue();
+    return minValue * 1 / 5;
+  };
 
   public static final Function<RealVector, Double> zeroImputer = _ -> 0d;
 
@@ -61,6 +63,9 @@ public class StatisticUtils {
     }).toArray();
   }
 
+  /**
+   * Calculates the log2 transformed fold change between two groups.
+   */
   public static double calculateLog2FoldChange(List<RawDataFile> groupAFiles,
       List<RawDataFile> groupBFiles, AbundanceMeasure abundanceMeasure,
       RowSignificanceTestResult result) {
@@ -125,7 +130,7 @@ public class StatisticUtils {
       final double imputedValue = imputationFunction.apply(columnVector);
       for (int i = 0; i < columnVector.getDimension(); i++) {
         final double entry = columnVector.getEntry(i);
-        if (Double.compare(entry, 0d) == 0 || Double.isNaN(entry)) {
+        if (Double.isNaN(entry)) {
           columnVector.setEntry(i, imputedValue);
         }
       }
