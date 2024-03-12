@@ -38,7 +38,9 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.Map.Entry;
 import javafx.beans.property.Property;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.jetbrains.annotations.Nullable;
@@ -110,7 +112,8 @@ public class PCALoadingsProvider extends SimpleXYProvider implements PlotXYZData
       paintScale.add(i, colors.getAWT(i));
     }
 
-    legendNames = typesInOrder.keySet().stream()
+    legendNames = typesInOrder.entrySet().stream()
+        .sorted(Comparator.comparingInt(Entry::getValue)).map(Entry::getKey)
         .map(type -> type instanceof MissingValueType _ ? "Not annotated" : type.getHeaderString())
         .toArray(String[]::new);
 
