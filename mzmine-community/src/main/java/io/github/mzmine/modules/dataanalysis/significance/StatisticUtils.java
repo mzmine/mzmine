@@ -106,8 +106,8 @@ public class StatisticUtils {
     for (int colIndex = 0; colIndex < data.getColumnDimension(); colIndex++) {
       final RealVector columnVector = data.getColumnVector(colIndex);
       final double columnMax = columnVector.getLInfNorm();
-      columnVector.mapDivide(columnMax);
-      result.setColumnVector(colIndex, columnVector);
+      var resultVector = columnVector.mapDivide(columnMax);
+      result.setColumnVector(colIndex, resultVector);
     }
     return result;
   }
