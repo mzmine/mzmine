@@ -60,10 +60,8 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> implem
   }
 
   private void computeDataset() {
-    if (model.getTest() == null) {
-      return;
-    }
-    onTaskThread(new VolcanoPlotUpdateTask(model));
+    // wait and update
+    onTaskThreadDelayed(new VolcanoPlotUpdateTask(model));
   }
 
   @Override

@@ -48,16 +48,12 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
     SelectedFeatureListsBinding, SelectedMetadataColumnBinding,
     SelectedAbundanceMeasureBinding {
 
-  private final PauseTransition updateAccumulator = new PauseTransition(Duration.millis(100));
   private final FxViewBuilder<PCAModel> builder;
 
-  // define last so that other properties can be bound
-//  private final LastUpdateProperty lastFullUpdateTrigger;
 
   public PCAController() {
     super(new PCAModel());
     builder = new PCAViewBuilder(model);
-    updateAccumulator.setOnFinished(_ -> updateNow());
     //update on changes of these properties
     PropertyUtils.onChange(this::waitAndUpdate, model.flistsProperty(), model.domainPcProperty(),
         model.rangePcProperty(), model.abundanceProperty(), model.metadataColumnProperty());
@@ -77,11 +73,7 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
    * Accumulates update calls by waiting for some time
    */
   public void waitAndUpdate() {
-    updateAccumulator.playFromStart(); // accumulate update calls and then update
-  }
-
-  private void updateNow() {
-    onTaskThread(new PCAUpdateTask("update full dataset", model));
+    onTaskThreadDelayed(new PCAUpdateTask("update full dataset", model));
   }
 
   @Override
