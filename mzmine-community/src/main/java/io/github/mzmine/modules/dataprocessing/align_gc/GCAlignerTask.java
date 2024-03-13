@@ -25,8 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.align_gc;
 
-import static io.github.mzmine.util.FeatureListRowSorter.MZ_ASCENDING;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -37,6 +35,7 @@ import io.github.mzmine.modules.dataprocessing.align_common.FeatureCloner.Extrac
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Arrays;
@@ -94,7 +93,7 @@ public class GCAlignerTask extends AbstractFeatureListTask {
     // create the row aligner that handles the scoring
     var rowAligner = new GcRowAlignScorer(parameters);
     listAligner = new BaseFeatureListAligner(this, featureLists, featureListName,
-        getMemoryMapStorage(), rowAligner, featureCloner, MZ_ASCENDING);
+        getMemoryMapStorage(), rowAligner, featureCloner, FeatureListRowSorter.DEFAULT_RT);
 
     alignedFeatureList = listAligner.alignFeatureLists();
     if (alignedFeatureList == null || isCanceled()) {

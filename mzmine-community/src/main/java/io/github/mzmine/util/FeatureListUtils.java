@@ -27,7 +27,8 @@ package io.github.mzmine.util;
 
 import static io.github.mzmine.util.FeatureListRowSorter.DEFAULT_RT;
 import static io.github.mzmine.util.FeatureListRowSorter.MZ_ASCENDING;
-import static io.github.mzmine.util.RangeUtils.rangeLength;
+import static io.github.mzmine.util.RangeUtils.calcCenterScore;
+import static io.github.mzmine.util.RangeUtils.isBounded;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
@@ -47,6 +48,7 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTa
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.javafx.WeakAdapter;
+import io.github.mzmine.util.math.ScoreAccumulator;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.util.ArrayList;
@@ -393,52 +395,54 @@ public class FeatureListUtils {
       @Nullable Range<Float> mobilityRange, @Nullable Range<Float> ccsRange, double mzWeight,
       double rtWeight, double mobilityWeight, double ccsWeight) {
 
-    // don't score range.all, will distort the scoring.
-    mzRange = mzRange == null || mzRange.equals(Range.all()) ? null : mzRange;
-    rtRange = rtRange == null || rtRange.equals(Range.all()) ? null : rtRange;
-    mobilityRange =
-        mobilityRange == null || mobilityRange.equals(Range.all()) ? null : mobilityRange;
-    ccsRange = ccsRange == null || ccsRange.equals(Range.all()) ? null : ccsRange;
+    ScoreAccumulator score = new ScoreAccumulator();
 
-    double totalWeight = 0;
-
-    double score = 0;
     // values are "matched" if the given value exists in this class and falls within the tolerance.
-    if (mzWeight > 0 && mzRange != null && testMz != null) {
-      final double exactMass = RangeUtils.rangeCenter(mzRange);
-      double diff = Math.abs(testMz - exactMass);
-      double maxAllowedDiff = rangeLength(mzRange) / 2;
+    // don't score range.all, will distort the scoring.
+    checkAndAddCenterScore(score, testMz, mzRange, mzWeight);
+    checkAndAddCenterScore(score, testRt, rtRange, rtWeight);
+    checkAndAddCenterScore(score, testMobility, mobilityRange, mobilityWeight);
+    checkAndAddCenterScore(score, testCCS, ccsRange, ccsWeight);
+
+    return score.getScore();
+  }
+
+
+  /**
+   * Test how close testedValue is to the center of the range (perfect score 1), scaled 0-1. Only
+   * adds the weighted score if value and range are not null, and if weigth is >0
+   *
+   * @param score       accumulates the score and weights
+   * @param testedValue value to be tested for center of range
+   * @param range       center and length of range are used. Unbounded or null ranges will discard
+   *                    this score
+   * @param weight      weight of the score
+   */
+  public static void checkAndAddCenterScore(@NotNull final ScoreAccumulator score,
+      @Nullable final Double testedValue, final @Nullable Range<Double> range,
+      final double weight) {
+    if (weight > 0 && isBounded(range) && testedValue != null) {
       // no negative numbers
-      score += Math.max(0, (1 - diff / maxAllowedDiff)) * mzWeight;
-      totalWeight += mzWeight;
+      score.add(calcCenterScore(testedValue, range), weight);
     }
+  }
 
-    if (rtWeight > 0 && rtRange != null && testRt != null) {
-      final Float rt = RangeUtils.rangeCenter(rtRange);
-      float diff = Math.abs(testRt - rt);
-      score += Math.max(0, 1 - (diff / (rangeLength(rtRange) / 2))) * rtWeight;
-      totalWeight += rtWeight;
+  /**
+   * Test how close testedValue is to the center of the range (perfect score 1), scaled 0-1. Only
+   * adds the weighted score if value and range are not null, and if weigth is >0
+   *
+   * @param score       accumulates the score and weights
+   * @param testedValue value to be tested for center of range
+   * @param range       center and length of range are used. Unbounded or null ranges will discard
+   *                    this score
+   * @param weight      weight of the score
+   */
+  public static void checkAndAddCenterScore(@NotNull final ScoreAccumulator score,
+      @Nullable final Float testedValue, final @Nullable Range<Float> range, final double weight) {
+    if (weight > 0 && isBounded(range) && testedValue != null) {
+      // no negative numbers
+      score.add(calcCenterScore(testedValue, range), weight);
     }
-
-    if (mobilityWeight > 0 && mobilityRange != null && testMobility != null) {
-      final Float mobility = RangeUtils.rangeCenter(mobilityRange);
-      float diff = Math.abs(testMobility - mobility);
-      score += Math.max(0, 1 - (diff / (rangeLength(mobilityRange) / 2))) * mobilityWeight;
-      totalWeight += mobilityWeight;
-    }
-
-    if (ccsWeight > 0 && ccsRange != null && testCCS != null) {
-      final Float ccs = RangeUtils.rangeCenter(ccsRange);
-      float diff = Math.abs(testCCS - ccs);
-      score += Math.max(0, 1 - (diff / (rangeLength(ccsRange) / 2))) * ccsWeight;
-      totalWeight += ccsWeight;
-    }
-
-    if (totalWeight == 0) {
-      return 0f;
-    }
-
-    return score / totalWeight;
   }
 
   /**
@@ -456,32 +460,16 @@ public class FeatureListUtils {
   public static double getAlignmentScore(Float testRt, @Nullable Range<Float> rtRange,
       double testSimilarity, double rtWeight, double similarityWeight) {
 
+    ScoreAccumulator score = new ScoreAccumulator();
     // don't score range.all, will distort the scoring.
-    rtRange = rtRange == null || rtRange.equals(Range.all()) ? null : rtRange;
-
-    int scorers = 0;
-
-    double score = 0f;
-    // values are "matched" if the given value exists in this class and falls within the tolerance.
-
-    if (rtWeight > 0 && rtRange != null && testRt != null) {
-      final Float rt = RangeUtils.rangeCenter(rtRange);
-      float diff = Math.abs(testRt - rt);
-      score += Math.max(0, 1 - (diff / (rangeLength(rtRange) / 2)) * rtWeight);
-      scorers += (int) Math.round(rtWeight);
-    }
-
+    checkAndAddCenterScore(score, testRt, rtRange, rtWeight);
     if (similarityWeight > 0) {
-      score += Math.abs(1.0 - testSimilarity);
-      scorers += (int) Math.round(similarityWeight);
+      score.add(testSimilarity, similarityWeight);
     }
 
-    if (scorers == 0) {
-      return 0f;
-    }
-
-    return score / scorers;
+    return score.getScore();
   }
+
 
   /**
    * Sort feature list by default based on raw data type Sort feature list by mz if imaging data
