@@ -415,6 +415,11 @@ public class SpectralMatchPanelFX extends GridPane {
       String errorMessage = "Could not load 2D structure\n" + "Exception: ";
       logger.log(Level.WARNING, errorMessage, e);
       return null;
+    } catch (NoClassDefFoundError e) {
+      // silently fail
+      String errorMessage = "Could not load 2D structure\n" + "Undefined Exception: ";
+      logger.log(Level.WARNING, errorMessage);
+      return null;
     }
   }
 
