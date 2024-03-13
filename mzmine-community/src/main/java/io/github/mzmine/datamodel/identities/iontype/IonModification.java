@@ -144,13 +144,11 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
       "(13C)", 1.003354838, 0);
 
   // default values
-  public static final IonModification[] DEFAULT_VALUES_POSITIVE = {H_NEG, M_PLUS, H, NA, K, NH4,
-      H2O, M_PLUS_H2O, H_H2O_1, H_H2O_2, H_H2O_3,
-      M2plus, H2plus, CA, FE, MG, NA_H, NH4_H, K_H, Hneg_NA2, Hneg_CA, Hneg_FE,
-      M_PLUS_ALREADY_CHARGED, Hneg_MG};
-  public static final IonModification[] DEFAULT_VALUES_NEGATIVE = {M_MINUS, H_NEG, NA_2H, H2O, NA,
-      CL,
-      BR, FA, ACETATE, M_MINUS_ALREADY_CHARGED};
+  public static final IonModification[] DEFAULT_VALUES_POSITIVE = {M_PLUS, M_PLUS_H2O, H, H_H2O_1,
+      H_H2O_2, H_H2O_3, NA, K, NH4, M2plus, H2plus, CA, FE, MG, NA_H, NH4_H, K_H, Hneg_NA2, Hneg_CA,
+      Hneg_FE, Hneg_MG, M_PLUS_ALREADY_CHARGED, H2O, H_NEG};
+  public static final IonModification[] DEFAULT_VALUES_NEGATIVE = {M_MINUS, H_NEG, NA_2H, CL, BR,
+      FA, ACETATE, M_MINUS_ALREADY_CHARGED, H2O, NA};
   // default modifications
   public static final IonModification[] DEFAULT_VALUES_MODIFICATIONS = {H2O, H2O_2, H2O_3, H2O_4,
       H2O_5, NH3, O, CO, CO2, C2H4, HFA, HAc, MEOH, ACN, ISOPROP};
