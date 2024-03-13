@@ -199,7 +199,7 @@ public class SimsefImagingSchedulerTask extends AbstractTask {
     List<FeatureListRow> rows = new ArrayList<>(flist.getRows());
     // sort low to high area. First find spots for low intensity features so we definitely fragment
     // those. should be easier to find spots for high area features
-    rows.sort(Comparator.comparingDouble(FeatureListRow::getAverageArea));
+    rows.sort(Comparator.comparingDouble(FeatureListRow::getMaxArea));
 
     final double minMobilityDistance = getQuadSwitchTime(flist);
     for (int i = 0; i < rows.size(); i++) {

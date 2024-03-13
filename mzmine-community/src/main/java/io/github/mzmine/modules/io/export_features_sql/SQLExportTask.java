@@ -258,10 +258,10 @@ class SQLExportTask extends AbstractTask {
               loopDataFiles = true;
               break;
             case HEIGHT:
-              statement.setDouble(i + 1, row.getAverageHeight());
+              statement.setDouble(i + 1, row.getMaxHeight());
               break;
             case AREA:
-              statement.setDouble(i + 1, row.getAverageArea());
+              statement.setDouble(i + 1, row.getMaxArea());
               break;
             case COMMENT:
               statement.setString(i + 1, row.getComment());

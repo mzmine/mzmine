@@ -426,7 +426,7 @@ public class NeutralLossFilterTask extends AbstractTask {
       FeatureListRow r = pL[i];
       // check for rt
 
-      if (r.getAverageHeight() < minHeight) {
+      if (r.getMaxHeight() < minHeight) {
         continue;
       }
 

@@ -49,9 +49,11 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.taskcontrol.threadpools.ThreadPoolTask;
+import io.github.mzmine.taskcontrol.utils.TaskUtils;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -63,7 +65,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -427,77 +428,11 @@ public class BatchTask extends AbstractTask {
    * the rest of the threads
    */
   private TaskStatus runTasksIndividually(List<Task> tasksToRun) {
-    final WrappedTask[] wrappedTasks = MZmineCore.getTaskController()
+    final WrappedTask[] wrappedTasks = TaskService.getController()
         .addTasks(tasksToRun.toArray(new Task[0]));
     tasksToRun.clear(); // do not keep the instance alive during long-running tasks
 
-    // TODO check if this performs better
-    for (final WrappedTask task : wrappedTasks) {
-      // wait for all to finish
-      try {
-        task.getFuture().get();
-      } catch (InterruptedException | ExecutionException e) {
-        return TaskStatus.ERROR;
-      }
-    }
-    if (true) {
-      return TaskStatus.FINISHED;
-    }
-
-    boolean allTasksFinished = false;
-    while (true) {
-
-      // If we canceled the batch, cancel all running tasks
-      if (isCanceled()) {
-        for (WrappedTask stepTask : wrappedTasks) {
-          stepTask.getActualTask().cancel();
-        }
-        return TaskStatus.CANCELED;
-      }
-
-      // First set to true, then check all tasks
-      allTasksFinished = true;
-
-      for (WrappedTask stepTask : wrappedTasks) {
-        Task actualTask = stepTask.getActualTask();
-        TaskStatus stepStatus = actualTask.getStatus();
-
-        // If any of them is not finished, keep checking
-        if (stepStatus != TaskStatus.FINISHED) {
-          allTasksFinished = false;
-        }
-
-        // If there was an error, we have to stop the whole batch
-        if (stepStatus == TaskStatus.ERROR) {
-          setStatus(TaskStatus.ERROR);
-          setErrorMessage(actualTask.getTaskDescription() + ": " + actualTask.getErrorMessage());
-          return TaskStatus.ERROR;
-        }
-
-        // If user canceled any of the tasks, we have to cancel the
-        // whole batch
-        if (stepStatus == TaskStatus.CANCELED) {
-          setStatus(TaskStatus.CANCELED);
-          for (WrappedTask t : wrappedTasks) {
-            t.getActualTask().cancel();
-          }
-          return TaskStatus.CANCELED;
-        }
-      }
-
-      // Wait 1s before checking the tasks again
-      if (allTasksFinished) {
-        break;
-      }
-      synchronized (this) {
-        try {
-          this.wait(1000);
-        } catch (InterruptedException e) {
-          // ignore
-        }
-      }
-    }
-    return TaskStatus.FINISHED;
+    return TaskUtils.waitForTasksToFinish(this, wrappedTasks);
   }
 
   private void setLastFilesIfAllDataImportStep(final ParameterSet batchStepParameters) {

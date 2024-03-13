@@ -223,7 +223,7 @@ class IsotopeGrouperTask extends AbstractTask {
 
       // Convert the peak pattern to array
       final DataPoint[] isotopes = bestFitRows.stream()
-          .map(r -> new SimpleDataPoint(r.getAverageMZ(), r.getAverageHeight()))
+          .map(r -> new SimpleDataPoint(r.getAverageMZ(), r.getMaxHeight()))
           .sorted(new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending))
           .toArray(DataPoint[]::new);
       SimpleIsotopePattern newPattern = new SimpleIsotopePattern(isotopes, bestFitCharge,

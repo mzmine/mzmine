@@ -216,7 +216,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
     double areaSum = 0.0;
     for (FeatureListRow d : peaks) {
       if (d != null) {
-        areaSum += d.getAverageArea();
+        areaSum += d.getMaxArea();
       }
     }
     return areaSum;
@@ -231,7 +231,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
     double concentrationSum = 0.0;
     for (FeatureListRow d : peaks) {
       if (d != null) {
-        concentrationSum += d.getAverageHeight();
+        concentrationSum += d.getMaxHeight();
       }
     }
     return concentrationSum;

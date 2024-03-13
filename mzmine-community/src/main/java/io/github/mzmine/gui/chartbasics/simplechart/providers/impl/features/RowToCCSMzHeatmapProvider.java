@@ -112,7 +112,7 @@ public class RowToCCSMzHeatmapProvider implements PieXYZDataProvider<IMSRawDataF
     final String sb =
         "m/z:" + mzFormat.format(f.getMZRange().lowerEndpoint()) + " - " + mzFormat.format(
             f.getMZRange().upperEndpoint()) + "\n" + "Height: " + intensityFormat.format(
-            f.getAverageHeight()) + "\n" + "Retention time" + ": " + rtFormat.format(
+            f.getMaxHeight()) + "\n" + "Retention time" + ": " + rtFormat.format(
             f.getAverageRT()) + " min\n" + "CCS: " + ccsFormat.format(f.getAverageCCS());
     return sb;
   }

@@ -294,23 +294,23 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
 
   private ModularFeature findBadFeature(List<ModularFeatureListRow> rows) {
     final List<ModularFeatureListRow> sortedByArea = rows.stream()
-        .sorted((r1, r2) -> Double.compare(r2.getAverageArea(), r1.getAverageArea())).toList();
+        .sorted((r1, r2) -> Double.compare(r2.getMaxArea(), r1.getMaxArea())).toList();
     final List<ModularFeatureListRow> top20 = new ArrayList<>(
         sortedByArea.subList(0, Math.min(sortedByArea.size() - 1, 20)));
 
     // we a looking for a feature with a low height to area ratio -> big area but low height could
     // be a noisy chromatogram
-    top20.sort(Comparator.comparingDouble(r -> r.getAverageHeight() / r.getAverageArea()));
+    top20.sort(Comparator.comparingDouble(r -> r.getMaxHeight() / r.getMaxArea()));
     return top20.get(0).getBestFeature();
   }
 
   private ModularFeature findGoodEIC(List<ModularFeatureListRow> rows) {
     final List<ModularFeatureListRow> sortedByArea = rows.stream()
-        .sorted((r1, r2) -> Double.compare(r2.getAverageArea(), r1.getAverageArea())).toList();
+        .sorted((r1, r2) -> Double.compare(r2.getMaxArea(), r1.getMaxArea())).toList();
     final List<ModularFeatureListRow> top30 = new ArrayList<>(
         sortedByArea.subList(0, Math.min(sortedByArea.size() - 1, 30)));
 
-    top30.sort(Comparator.comparingDouble(ModularFeatureListRow::getAverageHeight));
+    top30.sort(Comparator.comparingDouble(ModularFeatureListRow::getMaxHeight));
     return top30.get(top30.size() - 1).getBestFeature();
   }
 
