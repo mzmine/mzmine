@@ -36,6 +36,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
 
 public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
@@ -51,6 +52,8 @@ public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
 
     final JFreeChart barChart = ChartFactory.createBarChart("Rows box plot", "Metadata", "Height",
         null);
+    ((NumberAxis) barChart.getCategoryPlot().getRangeAxis()).setNumberFormatOverride(
+        formats.intensityFormat());
     final EChartViewer viewer = new EChartViewer(barChart);
     final BoxAndWhiskerRenderer boxAndWhiskerRenderer = new BoxAndWhiskerRenderer();
 
