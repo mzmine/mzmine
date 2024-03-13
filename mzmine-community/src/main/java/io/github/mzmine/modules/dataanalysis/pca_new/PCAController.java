@@ -34,6 +34,7 @@ import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnBinding;
 import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.javafx.properties.LastUpdateProperty;
 import java.util.List;
@@ -56,18 +57,10 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
   public PCAController() {
     super(new PCAModel());
     builder = new PCAViewBuilder(model);
-    //update on changes of these properties
-    //lastFullUpdateTrigger = new LastUpdateProperty(model.flistsProperty(), model.domainPcProperty(),
-//        model.rangePcProperty(), model.abundanceProperty(), model.metadataColumnProperty());
-
     updateAccumulator.setOnFinished(_ -> updateNow());
-//    lastFullUpdateTrigger.addListener((_, _, _) -> this.waitAndUpdate());
-    model.flistsProperty().addListener((_, _, n) -> this.waitAndUpdate());
-    model.domainPcProperty().addListener((_, _, n) -> this.waitAndUpdate());
-    model.rangePcProperty().addListener((_, _, n) -> this.waitAndUpdate());
-    model.abundanceProperty().addListener((_, _, n) -> this.waitAndUpdate());
-    model.metadataColumnProperty().addListener((_, _, n) -> this.waitAndUpdate());
-    updateNow(); // TODO could we call wait and update? or just let the flist be set and then update?
+    //update on changes of these properties
+    PropertyUtils.onChange(this::waitAndUpdate, model.flistsProperty(), model.domainPcProperty(),
+        model.rangePcProperty(), model.abundanceProperty(), model.metadataColumnProperty());
   }
 
   @Override
