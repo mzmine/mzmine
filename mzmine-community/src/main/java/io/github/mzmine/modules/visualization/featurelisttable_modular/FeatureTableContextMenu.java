@@ -334,13 +334,8 @@ public class FeatureTableContextMenu extends ContextMenu {
   private void initShowMenu() {
 
     final MenuItem showNetworkVisualizerItem = new ConditionalMenuItem(
-        "Feature overview (IIMN network)", () -> !selectedRows.isEmpty());
-    showNetworkVisualizerItem.setOnAction(e -> showNetworkVisualizer(NetworkOverviewFlavor.IIMN));
-
-    final MenuItem showNetworkVisualizerItemFull = new ConditionalMenuItem(
-        "Feature overview (full network)", () -> !selectedRows.isEmpty());
-    showNetworkVisualizerItemFull.setOnAction(
-        e -> showNetworkVisualizer(NetworkOverviewFlavor.FULL_NETWORKS));
+        "Feature overview & IIMN networks", () -> !selectedRows.isEmpty());
+    showNetworkVisualizerItem.setOnAction(_ -> showNetworkVisualizer(NetworkOverviewFlavor.IIMN));
 
     //final MenuItem showLipidAnnotationSummary = new ConditionalMenuItem("Lipid Annotation summary",
     //    () -> !selectedRows.isEmpty() && rowHasMatchedLipidSignals(selectedRows.get(0)));
@@ -538,7 +533,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,
-            new SeparatorMenuItem(), showNetworkVisualizerItemFull, showNetworkVisualizerItem,
+            new SeparatorMenuItem(), showNetworkVisualizerItem,
             show2DItem, show3DItem, showIntensityPlotItem, showInIMSRawDataOverviewItem,
             showInMobilityMzVisualizerItem, new SeparatorMenuItem(), showSpectrumItem,
             showFeatureFWHMMs1Item, showBestMobilityScanItem, extractSumSpectrumFromMobScans,
