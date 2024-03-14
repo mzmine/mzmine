@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,11 +26,10 @@
 package io.github.mzmine.modules.visualization.molstructure;
 
 
-import java.net.URL;
-import org.openscience.cdk.interfaces.IAtomContainer;
-import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.InetUtils;
+import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.javafx.WindowsMenu;
+import java.net.URL;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -41,19 +40,24 @@ import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import org.openscience.cdk.interfaces.IAtomContainer;
 
 public class MolStructureViewer extends Stage {
 
   private final Font labelNameFont = Font.font("Arial", FontWeight.BOLD, 18.0);
   private final BorderPane mainPanel = new BorderPane();
   private final Scene mainScene = new Scene(mainPanel);
-  private final SplitPane splitPane = new SplitPane();
+
   private final Label loading2Dlabel = new Label("Loading 2D structure...");
   private final Label loading3Dlabel = new Label("Loading 3D structure...");
+  private final Pane pane2D = new StackPane(loading2Dlabel);
+  private final Pane pane3D = new StackPane(loading3Dlabel);
 
   /**
    * Constructor of MolStructureViewer, loads 2d and 3d structures into JPanel specified by urls
@@ -66,7 +70,7 @@ public class MolStructureViewer extends Stage {
       final URL structure3DAddress) {
 
     setTitle("Structure of " + name);
-    setupViewer(name);
+    setupViewer(name, structure3DAddress!=null);
 
     if (structure2DAddress != null) {
       Thread loading2DThread = new Thread(() -> {
@@ -97,7 +101,7 @@ public class MolStructureViewer extends Stage {
    */
   public MolStructureViewer(String name, final IAtomContainer structure2D) {
     setTitle("Structure of " + name);
-    setupViewer(name);
+    setupViewer(name, false);
 
     if (structure2D != null) {
       Thread loading2DThread = new Thread(() -> {
@@ -116,38 +120,40 @@ public class MolStructureViewer extends Stage {
    *
    * @param name
    */
-  private void setupViewer(String name) {
+  private void setupViewer(String name, boolean add3d) {
     // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
     // Main panel - contains a title (compound name) in the top, 2D
     // structure on the left, 3D structure on the right
-
     Label labelName = new Label(name);
     labelName.setAlignment(Pos.CENTER);
     labelName.setTextFill(Color.BLUE);
     labelName.setPadding(new Insets(10.0));
     labelName.setFont(labelNameFont);
-    mainPanel.setTop(labelName);
+    if (name != null && !name.isBlank()) {
+      mainPanel.setTop(labelName);
+    }
 
     loading2Dlabel.setAlignment(Pos.CENTER);
-
     loading3Dlabel.setAlignment(Pos.CENTER);
 
-    splitPane.getItems().addAll(loading2Dlabel, loading3Dlabel);
-    // splitPane.setResizeWeight(0.5);
-
-    splitPane.setOrientation(Orientation.HORIZONTAL);
-    mainPanel.setCenter(splitPane);
-    splitPane.setDividerPosition(0, 0.5);
+    if (add3d) {
+      SplitPane splitPane = new SplitPane();
+      splitPane.getItems().addAll(pane2D, pane3D);
+      // splitPane.setResizeWeight(0.5);
+      splitPane.setOrientation(Orientation.HORIZONTAL);
+      mainPanel.setCenter(splitPane);
+      splitPane.setDividerPosition(0, 0.5);
+    } else {
+      mainPanel.setCenter(pane2D);
+    }
 
     setMinWidth(600.0);
     setMinHeight(400.0);
 
     // Add the Windows menu
     WindowsMenu.addWindowsMenu(mainScene);
-
     setScene(mainScene);
-
   }
 
   /**
@@ -162,7 +168,7 @@ public class MolStructureViewer extends Stage {
         loading2Dlabel.setText("2D structure not available");
         return;
       }
-      newComponent = new Structure2DComponent(structure2D);
+      newComponent = Structure2DComponent.create(structure2D);
     } catch (Exception e) {
       String errorMessage =
           "Could not load 2D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
@@ -170,8 +176,8 @@ public class MolStructureViewer extends Stage {
     }
     final Node newComponentFinal = newComponent;
     Platform.runLater(() -> {
-      splitPane.getItems().set(0, newComponentFinal);
-
+      pane2D.getChildren().clear();
+      pane2D.getChildren().add(newComponentFinal);
     });
   }
 
@@ -192,7 +198,8 @@ public class MolStructureViewer extends Stage {
     }
     final Node newComponentFinal = newComponent;
     Platform.runLater(() -> {
-      splitPane.getItems().set(0, newComponentFinal);
+      pane2D.getChildren().clear();
+      pane2D.getChildren().add(newComponentFinal);
     });
 
   }
@@ -222,7 +229,8 @@ public class MolStructureViewer extends Stage {
       final AnchorPane newComponentFinal = new AnchorPane();
       newComponentFinal.getChildren().add(new3DComponent);
       Platform.runLater(() -> {
-        splitPane.getItems().set(1, newComponentFinal);
+        pane3D.getChildren().clear();
+        pane3D.getChildren().add(newComponentFinal);
       });
 
       // loadStructure must be called after the component is added,
@@ -235,7 +243,8 @@ public class MolStructureViewer extends Stage {
       String errorMessage =
           "Could not load 3D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
       Label label = new Label(errorMessage);
-      Platform.runLater(() -> splitPane.getItems().set(1, label));
+      pane3D.getChildren().clear();
+      pane3D.getChildren().add(label);
     }
 
   }

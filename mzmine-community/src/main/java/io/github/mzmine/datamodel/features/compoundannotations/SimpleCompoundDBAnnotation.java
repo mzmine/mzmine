@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,12 +33,15 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure2dUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure3dUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -82,6 +85,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
    */
   protected final Map<DataType, Object> data = new TreeMap<>(
       Comparator.comparing(DBEntryField::fromDataType).thenComparing(DataType::compareTo));
+  private @Nullable MolecularStructure structure;
 
   public SimpleCompoundDBAnnotation() {
   }
@@ -144,9 +148,9 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
         reader.getAttributeValue(null, XML_TYPE_ATTR));
 
     if (!((reader.isStartElement() && startElementName.equals(XML_ELEMENT_OLD) // old case
-        && startElementAttrValue.equals(XML_TYPE_NAME_OLD))                   // old case
-        || (reader.isStartElement() && startElementName.equals(FeatureAnnotation.XML_ELEMENT)
-        && startElementAttrValue.equals(XML_ATTR)))) {
+           && startElementAttrValue.equals(XML_TYPE_NAME_OLD))                   // old case
+          || (reader.isStartElement() && startElementName.equals(FeatureAnnotation.XML_ELEMENT)
+              && startElementAttrValue.equals(XML_ATTR)))) {
       throw new IllegalStateException("Invalid xml element to load CompoundDBAnnotation from.");
     }
 
@@ -184,8 +188,29 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     return id;
   }
 
+
+  /**
+   * @return the structure parsed from smiles or inchi
+   */
+  @Override
+  public MolecularStructure getStructure() {
+    if (structure != null) {
+      return structure;
+    }
+    String smiles = getSmiles();
+    String inchi = getInChI();
+    structure = StructureParser.silent().parseStructure(smiles, inchi);
+    return structure;
+  }
+
+
   @Override
   public <T> T get(@NotNull DataType<T> key) {
+    // this type is not in the map to avoid export. It is calculated on demand
+    if (key instanceof MolecularStructureType) {
+      return (T) getStructure();
+    }
+
     Object value = data.get(key);
     if (value != null && !key.getValueClass().isInstance(value)) {
       throw new IllegalStateException(
@@ -252,7 +277,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
         final Object finalVal = value;
         logger.warning(
             () -> "Error while writing data type " + key.getClass().getSimpleName() + " with value "
-                + finalVal + " to xml.");
+                  + finalVal + " to xml.");
         e.printStackTrace();
       }
     }
@@ -268,14 +293,16 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     final Double exactMass = getPrecursorMZ();
     // values are "matched" if the given value exists in this class and falls within the tolerance.
     if (mzTolerance != null && exactMass != null && (row.getAverageMZ() == null
-        || !mzTolerance.checkWithinTolerance(row.getAverageMZ(), exactMass))) {
+                                                     || !mzTolerance.checkWithinTolerance(
+        row.getAverageMZ(), exactMass))) {
       return false;
     }
 
     // values <=0 are wildcards and always match because they are invalid. see documentation
     final Float rt = getRT();
     if (rtTolerance != null && rt != null && rt > 0 && (row.getAverageRT() == null
-        || !rtTolerance.checkWithinTolerance(row.getAverageRT(), rt))) {
+                                                        || !rtTolerance.checkWithinTolerance(
+        row.getAverageRT(), rt))) {
       return false;
     }
 
@@ -290,7 +317,8 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     // values <=0 are wildcards and always match because they are invalid. see documentation
     final Float ccs = getCCS();
     return percentCCSTolerance == null || ccs == null || ccs <= 0 || (row.getAverageCCS() != null
-        && !(Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance));
+                                                                      && !(
+        Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance));
   }
 
   @Override

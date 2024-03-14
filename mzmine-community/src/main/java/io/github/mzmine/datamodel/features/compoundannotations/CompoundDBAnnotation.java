@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,6 +54,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
@@ -195,6 +196,11 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
   default double calcMzForAdduct(final IonType adduct) throws CannotDetermineMassException {
     return calcMzForAdduct(this, adduct);
   }
+
+  /**
+   * @return the structure parsed from smiles or inchi
+   */
+  MolecularStructure getStructure();
 
   <T> T get(@NotNull DataType<T> key);
 

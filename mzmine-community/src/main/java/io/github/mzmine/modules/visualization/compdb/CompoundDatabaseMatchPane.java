@@ -96,6 +96,10 @@ public class CompoundDatabaseMatchPane extends BorderPane {
   }
 
   private static Canvas buildStructurePane(@Nullable final CompoundDBAnnotation annotation) {
+    if (annotation == null) {
+      return new Canvas();
+    }
+
     final String smiles = annotation.getSmiles();
     final String inchi = annotation.get(new InChIStructureType());
 
@@ -106,12 +110,7 @@ public class CompoundDatabaseMatchPane extends BorderPane {
       structure = parseInchi(inchi);
     }
 
-    try {
-      return structure != null ? new Structure2DComponent(structure) : new Canvas();
-    } catch (CDKException e) {
-      logger.log(Level.WARNING, "Cannot initialize Structure2DComponent.", e);
-      return null;
-    }
+    return structure != null ? new Structure2DComponent(structure) : new Canvas();
   }
 
   @Nullable
