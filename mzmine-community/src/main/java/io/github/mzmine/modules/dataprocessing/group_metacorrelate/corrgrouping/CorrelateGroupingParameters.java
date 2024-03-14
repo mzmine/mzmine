@@ -94,7 +94,9 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
 
   // Constructor
   public CorrelateGroupingParameters() {
-    super(PEAK_LISTS, RT_TOLERANCE,
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_ion_networking/metacorr/metacorr.html",
+        PEAK_LISTS, RT_TOLERANCE,
         // feature filter
         MIN_HEIGHT, NOISE_LEVEL, MIN_SAMPLES_FILTER,
         // feature shape correlation
@@ -104,7 +106,6 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
         // suffix or auto suffix
         SUFFIX, advanced);
   }
-
 
   @Override
   public Map<String, Parameter<?>> getNameParameterMap() {
