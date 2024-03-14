@@ -26,23 +26,21 @@
 package io.github.mzmine.modules.visualization.projectmetadata.io;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import java.util.List;
-import javafx.stage.FileChooser.ExtensionFilter;
+import io.github.mzmine.util.files.ExtensionFilters;
+import java.io.File;
+import java.util.Map;
 
 public class ProjectMetadataImportParameters extends SimpleParameterSet {
 
-  private static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("tsv files", "*.tsv"), //
-      new ExtensionFilter("csv files", "*.csv"), //
-      new ExtensionFilter("All files", "*.*") //
-  );
-
-  public static final FileNameParameter fileName = new FileNameParameter("File names", "",
-      extensions, FileSelectionType.OPEN);
+  public static final FileNameParameter fileName = new FileNameParameter("Metadata file", """
+      CSV or TSV file with metadata. See exact format by opening metadata table and
+      exporting metadata file (after importing a few data files).""",
+      ExtensionFilters.CSV_TSV_IMPORT, FileSelectionType.OPEN);
 
   public static final BooleanParameter skipErrorColumns = new BooleanParameter(
       "Skip column on error",
@@ -50,7 +48,21 @@ public class ProjectMetadataImportParameters extends SimpleParameterSet {
 
 
   public ProjectMetadataImportParameters() {
-    super(new Parameter[]{fileName, skipErrorColumns});
+    super(fileName, skipErrorColumns);
+  }
+
+  public static ParameterSet create(final File file, final boolean skipErrorCol) {
+    ParameterSet params = new ProjectMetadataImportParameters().cloneParameterSet();
+    params.setParameter(fileName, file);
+    params.setParameter(skipErrorColumns, skipErrorCol);
+    return params;
+  }
+
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var map = super.getNameParameterMap();
+    map.put("File names", fileName);
+    return map;
   }
 
 }
