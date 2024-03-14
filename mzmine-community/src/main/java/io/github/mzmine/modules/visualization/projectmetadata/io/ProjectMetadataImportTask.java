@@ -43,7 +43,7 @@ public class ProjectMetadataImportTask extends AbstractTask {
   private final Boolean skipColOnError;
   private int doneFiles = 0;
 
-  protected ProjectMetadataImportTask(@NotNull ParameterSet parameters,
+  public ProjectMetadataImportTask(@NotNull ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     File file = parameters.getValue(ProjectMetadataImportParameters.fileName);
