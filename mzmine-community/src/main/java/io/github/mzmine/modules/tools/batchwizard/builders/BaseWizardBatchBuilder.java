@@ -85,12 +85,12 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.Spectra
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClassesProvider;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.AdvancedLipidAnnotationParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationChainParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationMSMSParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClassesProvider;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
@@ -680,7 +680,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     IonModification[] adducts;
     IonModification[] adductChoices;
     if (polarity == Polarity.Positive) {
-      adducts = new IonModification[]{IonModification.H, IonModification.NA,
+      adducts = new IonModification[]{IonModification.H, IonModification.H_H2O_1,
+          IonModification.NA,
           IonModification.Hneg_NA2, IonModification.K, IonModification.NH4, IonModification.H2plus};
       adductChoices = IonModification.getDefaultValuesPos();
     } else {
@@ -688,8 +689,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
           IonModification.NA_2H, IonModification.CL};
       adductChoices = IonModification.getDefaultValuesNeg();
     }
-    IonModification[] modifications = new IonModification[]{IonModification.H2O,
-        IonModification.H2O_2};
+    IonModification[] modifications = new IonModification[]{};
     var ionLib = ionLibraryParam.getParameter(IonLibraryParameterSet.ADDUCTS);
     // set choices first then values
     ionLib.setChoices(adductChoices, IonModification.getDefaultModifications());
