@@ -49,7 +49,7 @@ public abstract class AbstractRunnableModule extends AbstractMZmineModule implem
    * @param description       the description of the task
    */
   public AbstractRunnableModule(@NotNull final String name,
-      @Nullable final Class<? extends ParameterSet> parameterSetClass,
+      @NotNull final Class<? extends ParameterSet> parameterSetClass,
       @NotNull final MZmineModuleCategory moduleCategory, @NotNull final String description) {
     super(name, parameterSetClass);
     this.description = description;

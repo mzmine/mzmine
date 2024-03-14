@@ -29,30 +29,19 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.impl.AbstractRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class VolcanoPlotModule implements MZmineRunnableModule {
+public class VolcanoPlotModule extends AbstractRunnableModule {
 
-  @Override
-  public @NotNull String getName() {
-    return "Volcano plot";
-  }
-
-  @Override
-  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return VolcanoPlotParameters.class;
-  }
-
-  @Override
-  public @NotNull String getDescription() {
-    return "Interactive Volcano Plot visualization";
+  public VolcanoPlotModule() {
+    super("Volcano plot", VolcanoPlotParameters.class, MZmineModuleCategory.DATAANALYSIS,
+        "Interactive Volcano Plot visualization");
   }
 
   @Override
@@ -68,8 +57,4 @@ public class VolcanoPlotModule implements MZmineRunnableModule {
     return ExitCode.OK;
   }
 
-  @Override
-  public @NotNull MZmineModuleCategory getModuleCategory() {
-    return null;
-  }
 }
