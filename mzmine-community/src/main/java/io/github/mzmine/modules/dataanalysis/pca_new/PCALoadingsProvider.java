@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
@@ -36,11 +35,10 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.ZCategoryProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
+import io.github.mzmine.util.collections.SortOrder;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
-import java.util.Comparator;
 import java.util.Map;
-import java.util.Map.Entry;
 import javafx.beans.property.Property;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.jetbrains.annotations.Nullable;
@@ -86,9 +84,10 @@ public class PCALoadingsProvider extends SimpleXYProvider implements PlotXYZData
     final Map<FeatureListRow, DataType<?>> bestRowAnnotationType = CompoundAnnotationUtils.mapBestAnnotationTypesByPriority(
         result.rows(), true);
 
-    // only create order of actually existing annotaiton types
+    // only create order of actually existing annotation types + missing type
+    // ASCENDING will put MissingType first so that it is always black
     Map<DataType<?>, Integer> typesInOrder = CompoundAnnotationUtils.rankUniqueAnnotationTypes(
-        bestRowAnnotationType.values());
+        bestRowAnnotationType.values(), SortOrder.ASCENDING);
     numberOfCategories = typesInOrder.size();
 
     double[] domainData = new double[loadingsMatrix.getColumnDimension()];
@@ -96,7 +95,6 @@ public class PCALoadingsProvider extends SimpleXYProvider implements PlotXYZData
     zCategories = new int[loadingsMatrix.getColumnDimension()];
     assert result.rows().size() == loadingsMatrix.getColumnDimension();
 
-    final MissingValueType missing = DataTypes.get(MissingValueType.class);
     for (int i = 0; i < loadingsMatrix.getColumnDimension(); i++) {
       domainData[i] = loadingsMatrix.getEntry(loadingsIndexX, i);
       rangeData[i] = loadingsMatrix.getEntry(loadingsIndexY, i);
@@ -112,8 +110,8 @@ public class PCALoadingsProvider extends SimpleXYProvider implements PlotXYZData
       paintScale.add(i, colors.getAWT(i));
     }
 
-    legendNames = typesInOrder.entrySet().stream()
-        .sorted(Comparator.comparingInt(Entry::getValue)).map(Entry::getKey)
+    // LinkedHashMap is sorted
+    legendNames = typesInOrder.keySet().stream()
         .map(type -> type instanceof MissingValueType _ ? "Not annotated" : type.getHeaderString())
         .toArray(String[]::new);
 
