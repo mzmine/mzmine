@@ -25,37 +25,29 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import io.github.mzmine.parameters.UserParameter;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 
-public class OptionalParameterComponent<EmbeddedComponent extends Node> extends FlowPane
-    implements ActionListener {
+public class OptionalParameterComponent<EmbeddedComponent extends Node> extends HBox {
 
-  private CheckBox checkBox;
+  private final CheckBox checkBox;
   private EmbeddedComponent embeddedComponent;
 
   public OptionalParameterComponent(UserParameter<?, EmbeddedComponent> embeddedParameter) {
 
     checkBox = new CheckBox();
-    checkBox.setOnAction(e -> {
-      boolean checkBoxSelected = checkBox.isSelected();
-      embeddedComponent.setDisable(!checkBoxSelected);
-    });
-
     embeddedComponent = embeddedParameter.createEditingComponent();
-    embeddedComponent.setDisable(true);
+    embeddedComponent.disableProperty().bind(checkBox.selectedProperty().not());
 
-    HBox hBox = new HBox(checkBox, embeddedComponent);
-    hBox.setSpacing(7d);
-    hBox.setAlignment(Pos.CENTER_LEFT);
-    super.getChildren().add(hBox);
+    setSpacing(5);
+    getChildren().addAll(checkBox, embeddedComponent);
+    setAlignment(Pos.CENTER_LEFT);
+    HBox.setHgrow(embeddedComponent, Priority.ALWAYS);
   }
 
   public EmbeddedComponent getEmbeddedComponent() {
@@ -68,16 +60,6 @@ public class OptionalParameterComponent<EmbeddedComponent extends Node> extends 
 
   public void setSelected(boolean selected) {
     checkBox.setSelected(selected);
-    embeddedComponent.setDisable(!selected);
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent event) {
-    Object src = event.getSource();
-
-    if (src == checkBox) {
-
-    }
   }
 
   public CheckBox getCheckBox() {
@@ -88,7 +70,4 @@ public class OptionalParameterComponent<EmbeddedComponent extends Node> extends 
     checkBox.setTooltip(new Tooltip(toolTip));
   }
 
-  /*
-   * public void addItemListener(ItemListener il) { checkBox.addItemListener(il); }
-   */
 }
