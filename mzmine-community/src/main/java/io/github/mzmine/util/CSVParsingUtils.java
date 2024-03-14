@@ -142,8 +142,12 @@ public class CSVParsingUtils {
     final List<ImportType> nullMappings = lines.stream().filter(val -> val.getColumnIndex() == -1)
         .toList();
     if (!nullMappings.isEmpty()) {
-      final String error = "Did not find specified column " + Arrays.toString(
-          nullMappings.stream().map(ImportType::getCsvColumnName).toArray()) + " in file.";
+      // no header found at all. may indicate wrong separator
+      boolean noHeaderFound = lines.size() == nullMappings.size();
+      final String error = STR."Did not find specified column \{Arrays.toString(
+          nullMappings.stream().map(ImportType::getCsvColumnName).toArray())} in file.\{
+          noHeaderFound
+              ? "\nNo column title was found. Did you specify the correct column separator?" : ""}";
       logger.warning(() -> error);
       errorMessage.set(error);
       return null;
@@ -315,7 +319,7 @@ public class CSVParsingUtils {
       throws IOException, CsvException {
     try (var reader = Files.newBufferedReader(file.toPath())) {
       List<String[]> rows = readData(reader, sep);
-      if(mapStartLine > 0) {
+      if (mapStartLine > 0) {
         rows.subList(0, mapStartLine).clear();
       }
 
