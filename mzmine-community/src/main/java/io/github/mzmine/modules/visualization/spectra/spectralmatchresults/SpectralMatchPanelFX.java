@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -261,7 +261,7 @@ public class SpectralMatchPanelFX extends GridPane {
     // try to draw the component
     if (molecule != null) {
       try {
-        newComponent = new Structure2DComponent(molecule, theme.getRegularFont());
+        newComponent = new Structure2DComponent(molecule);
       } catch (Exception e) {
         String errorMessage = "Could not load 2D structure\n" + "Exception: ";
         logger.log(Level.WARNING, errorMessage, e);
