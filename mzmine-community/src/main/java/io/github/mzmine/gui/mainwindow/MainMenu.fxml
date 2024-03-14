@@ -476,7 +476,7 @@
 
     <Menu text="Annotation">
       <Menu text="Search precursor mass">
-        <MenuItem text="Local compound database (CSV) search"
+        <MenuItem text="Local compound database search (CSV)"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule"/>
         <MenuItem
