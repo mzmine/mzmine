@@ -94,7 +94,7 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
     stats.getItems().add(analysisTab);
     stats.getItems().add(boxplotController.buildView());
 
-    stats.setDividerPosition(0, 0.65);
+    stats.setDividerPosition(0, 0.9d);
     return stats;
   }
 }
