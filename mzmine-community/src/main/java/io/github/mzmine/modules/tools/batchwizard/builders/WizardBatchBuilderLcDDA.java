@@ -93,9 +93,9 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
 
     if (isImsActive) {
       makeAndAddImsExpanderStep(q);
-      makeAndAddSmoothingStep(q, false, minRtDataPoints, imsSmoothing);
+      makeAndAddSmoothingStep(q, false, minImsDataPoints, imsSmoothing);
       makeAndAddMobilityResolvingStep(q, groupMs2Params);
-      makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, imsSmoothing);
+      makeAndAddSmoothingStep(q, rtSmoothing, minImsDataPoints, imsSmoothing);
     }
 
     makeAndAddDeisotopingStep(q, intraSampleRtTol);
