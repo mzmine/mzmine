@@ -20,6 +20,7 @@
 package stats;
 
 import io.github.mzmine.modules.dataanalysis.significance.StatisticUtils;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.RangeScaling;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.junit.jupiter.api.Assertions;
@@ -52,7 +53,7 @@ public class StatsUtilsTest {
   @Test
   void test() {
     final Array2DRowRealMatrix matrix = new Array2DRowRealMatrix(data);
-    final RealMatrix unitVar = StatisticUtils.scaleToUnitVariance(matrix, false);
+    final RealMatrix unitVar = StatisticUtils.scale(matrix, new RangeScaling(1), false);
 
     Assertions.assertEquals(0, unitVar.getEntry(0, 0));
     Assertions.assertEquals(1, unitVar.getEntry(1, 1));

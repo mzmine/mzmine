@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.modules.dataanalysis.utils.ScalingFunctions;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunction;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -103,22 +105,23 @@ public class StatisticUtils {
 
   /**
    * Scales the values in every column to be between 0-1. To be used before centering the matrix.
+   * TODO: scaling functions, this is range scaling. Also scale by SD of the column
    */
-  public static RealMatrix scaleToUnitVariance(RealMatrix data, boolean inPlace) {
+  public static RealMatrix scale(RealMatrix data, ScalingFunction scaling, boolean inPlace) {
     final RealMatrix result = inPlace ? data
         : new Array2DRowRealMatrix(data.getRowDimension(), data.getColumnDimension());
 
     for (int colIndex = 0; colIndex < data.getColumnDimension(); colIndex++) {
       final RealVector columnVector = data.getColumnVector(colIndex);
-      final double columnMax = columnVector.getLInfNorm();
-      var resultVector = columnVector.mapDivide(columnMax);
+      final RealVector resultVector = scaling.apply(columnVector);
       result.setColumnVector(colIndex, resultVector);
     }
     return result;
   }
 
-  public static RealMatrix scaleAndCenter(RealMatrix data, boolean inPlace) {
-    return performMeanCenter(scaleToUnitVariance(data, inPlace), inPlace);
+  public static RealMatrix scaleAndCenter(RealMatrix data, ScalingFunction scaling,
+      boolean inPlace) {
+    return performMeanCenter(scale(data, scaling, inPlace), inPlace);
   }
 
   public static RealMatrix imputeMissingValues(RealMatrix data, boolean inPlace,

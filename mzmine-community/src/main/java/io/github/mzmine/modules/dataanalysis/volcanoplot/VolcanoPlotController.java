@@ -44,6 +44,10 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> implem
   private final VolcanoPlotViewBuilder viewBuilder;
   private final Region view;
 
+  public VolcanoPlotController() {
+    this(null);
+  }
+
   public VolcanoPlotController(@Nullable FeatureList flist) {
     super(new VolcanoPlotModel());
 

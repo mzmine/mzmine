@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataanalysis.significance.StatisticUtils;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.AutoScalingFunction;
 import java.util.List;
 import java.util.logging.Logger;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -48,7 +49,8 @@ public class PCAUtils {
   public static PCAResult calculatePCA(RealMatrix data) {
 
     logger.finest(() -> "Performing scaling mean centering");
-    final RealMatrix centeredMatrix = StatisticUtils.scaleAndCenter(data, false);
+    final RealMatrix centeredMatrix = StatisticUtils.scaleAndCenter(data, new AutoScalingFunction(),
+        false);
 
     logger.finest(() -> "Performing singular value decomposition. This may take a while");
     SingularValueDecomposition svd = new SingularValueDecomposition(centeredMatrix);
