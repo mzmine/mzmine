@@ -37,7 +37,7 @@ public class StructureParser {
     InChIGeneratorFactory inchiFactory = null;
     try {
       inchiFactory = InChIGeneratorFactory.getInstance();
-    } catch (Throwable e) {
+    } catch (Exception e) {
       logger.warning(
           "Failed to load InChI generator factory in structure parser. SMILES will work");
     }
