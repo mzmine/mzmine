@@ -25,6 +25,10 @@ import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+
+/**
+ * Scales a vector to the standard deviation of its values.
+ */
 public class AutoScalingFunction implements ScalingFunction {
 
   private final StandardDeviation dev = new StandardDeviation(true);
@@ -45,7 +49,6 @@ public class AutoScalingFunction implements ScalingFunction {
 
   @Override
   public RealVector apply(RealVector input) {
-
     final double sd = dev.evaluate(input.toArray());
     return input.mapDivide(sd);
   }

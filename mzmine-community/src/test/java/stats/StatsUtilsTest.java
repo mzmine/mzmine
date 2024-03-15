@@ -19,7 +19,7 @@
 
 package stats;
 
-import io.github.mzmine.modules.dataanalysis.significance.StatisticUtils;
+import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.RangeScaling;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;

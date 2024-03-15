@@ -28,7 +28,7 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.modules.dataanalysis.significance.StatisticUtils;
+import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.AutoScalingFunction;
 import java.util.List;
 import java.util.logging.Logger;

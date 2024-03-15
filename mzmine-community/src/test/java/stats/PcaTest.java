@@ -28,7 +28,7 @@ package stats;
 
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAResult;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAUtils;
-import io.github.mzmine.modules.dataanalysis.significance.StatisticUtils;
+import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;

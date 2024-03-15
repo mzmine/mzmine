@@ -20,11 +20,15 @@
 package io.github.mzmine.modules.dataanalysis.utils.scaling;
 
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.dataanalysis.utils.ScalingFunctions;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.function.Function;
 import org.apache.commons.math3.linear.RealVector;
 
+/**
+ * This interface describes the scaling of the intensities or areas from a feature table prior to
+ * statistical analysis. A statistician recommended "AutoScaling" as a default, which scales
+ * intensities to the standard deviation of the row.
+ */
 public interface ScalingFunction extends Function<RealVector, RealVector>, MZmineModule {
 
   public ScalingFunction createInstance(ParameterSet parameters);
