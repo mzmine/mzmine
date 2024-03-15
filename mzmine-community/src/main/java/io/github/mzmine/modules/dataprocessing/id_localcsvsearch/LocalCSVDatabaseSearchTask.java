@@ -50,6 +50,8 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
+import io.github.mzmine.gui.DesktopService;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
@@ -229,7 +231,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           databaseValues.getFirst(), error);
       if (lineIds == null) {
         setErrorMessage(error.get());
-        MZmineCore.getDesktop().displayErrorMessage(error.get());
+        DesktopService.getDesktop().displayErrorMessage(error.get());
         setStatus(TaskStatus.ERROR);
         return;
       }
