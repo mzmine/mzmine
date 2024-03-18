@@ -32,11 +32,14 @@ import io.github.mzmine.modules.dataanalysis.pca_new.PCAController;
 import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import java.util.List;
 import javafx.geometry.Orientation;
+import javafx.scene.control.IndexedCell;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TreeItem;
+import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
@@ -71,16 +74,34 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
   private void initFeatureListListeners() {
     model.flistsProperty().addListener((_, _, flists) -> table.setFeatureList(
         flists.isEmpty() ? null : (ModularFeatureList) flists.getFirst()));
+
+    // select correct row in table
     model.selectedRowsProperty().addListener((_, _, rows) -> {
       if (rows.isEmpty()) {
         return;
       }
       final TreeItem<ModularFeatureListRow> rowItem = table.getRoot().getChildren().stream()
           .filter(item -> item.getValue().equals(rows.getFirst())).findFirst().orElse(null);
+      final int itemIndex = table.getRow(rowItem);
       if (rowItem != null) {
-        table.scrollTo(table.getRoot().getChildren().indexOf(rowItem));
+        VirtualFlow<?> flow = (VirtualFlow<?>) table.lookup(".virtual-flow");
+        if (flow != null) {
+          final IndexedCell firstCell = flow.getFirstVisibleCell();
+          final IndexedCell lastCell = flow.getLastVisibleCell();
+          if (!(itemIndex > firstCell.getIndex() && itemIndex < lastCell.getIndex())) {
+            table.scrollTo(table.getRoot().getChildren().indexOf(rowItem));
+          }
+        }
       }
       table.getSelectionModel().clearAndSelect(table.getRoot().getChildren().indexOf(rowItem));
+    });
+
+    // listen to changes in the selected row, this updates the controllers via a binding in their
+    // view builders.
+    table.getSelectionModel().selectedItemProperty().addListener((_, _, row) -> {
+      if (row.getValue() != null) {
+        model.selectedRowsProperty().set(List.of(row.getValue()));
+      }
     });
   }
 

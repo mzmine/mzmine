@@ -45,7 +45,6 @@ import org.jfree.chart.LegendItem;
 import org.jfree.chart.StandardChartTheme;
 import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.CategoryAxis;
-import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.CategoryPlot;
@@ -71,6 +70,8 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public static final Logger logger = Logger.getLogger(EStandardChartTheme.class.getName());
   public static final String XML_DESC = "ChartTheme";
+  public static final BasicStroke DEFAULT_ITEM_OUTLINE_STROKE = new BasicStroke(2f);
+  public static final BasicStroke DEFAULT_MARKER_STROKE = new BasicStroke(1f);
   @Serial
   private static final long serialVersionUID = 1L;
   private static final Color DEFAULT_GRID_COLOR = Color.BLACK;
@@ -78,8 +79,6 @@ public class EStandardChartTheme extends StandardChartTheme {
   private static final boolean DEFAULT_CROSS_HAIR_VISIBLE = true;
   private static final Stroke DEFAULT_CROSS_HAIR_STROKE = new BasicStroke(1.0F,
       BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
-
-  public static final BasicStroke DEFAULT_STROKE = new BasicStroke(2f);
   // master font
   protected Font masterFont;
   protected Color masterFontColor;
