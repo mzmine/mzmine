@@ -25,15 +25,14 @@
 
 package io.github.mzmine.modules.dataanalysis.statsdashboard;
 
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
 import java.util.Collection;
 import java.util.List;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
-public class StatsDashboardTab extends MZmineTab {
+public class StatsDashboardTab extends SimpleTab {
 
   private final StatsDashboardController controller;
 
@@ -42,11 +41,6 @@ public class StatsDashboardTab extends MZmineTab {
     controller = new StatsDashboardController();
     final Region region = controller.buildView();
     setContent(region);
-  }
-
-  @Override
-  public @NotNull Collection<? extends RawDataFile> getRawDataFiles() {
-    return List.of();
   }
 
   @Override
@@ -60,18 +54,8 @@ public class StatsDashboardTab extends MZmineTab {
   }
 
   @Override
-  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-
-  }
-
-  @Override
   public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-    controller.selectedFeatureListsProperty()
-        .setValue((List<FeatureList>) featureLists.stream().toList());
+    controller.selectedFeatureListsProperty().setValue(List.copyOf(featureLists));
   }
 
-  @Override
-  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
-  }
 }

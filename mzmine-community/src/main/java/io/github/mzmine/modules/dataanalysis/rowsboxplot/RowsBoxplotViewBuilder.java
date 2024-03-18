@@ -55,6 +55,7 @@ public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
     ((NumberAxis) barChart.getCategoryPlot().getRangeAxis()).setNumberFormatOverride(
         formats.intensityFormat());
     final EChartViewer viewer = new EChartViewer(barChart);
+    viewer.setMinWidth(150);
     final BoxAndWhiskerRenderer boxAndWhiskerRenderer = new BoxAndWhiskerRenderer();
 
     barChart.getCategoryPlot().setDataset(0, null);
