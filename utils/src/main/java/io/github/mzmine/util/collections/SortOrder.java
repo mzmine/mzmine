@@ -23,39 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.statsdashboard;
+package io.github.mzmine.util.collections;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.mainwindow.SimpleTab;
-import java.util.Collection;
-import java.util.List;
-import javafx.scene.layout.Region;
-import org.jetbrains.annotations.NotNull;
+import java.util.Comparator;
 
-public class StatsDashboardTab extends SimpleTab {
+public enum SortOrder {
+  ASCENDING, DESCENDING;
 
-  private final StatsDashboardController controller;
-
-  public StatsDashboardTab() {
-    super("Statistics dashboard", true, false);
-    controller = new StatsDashboardController();
-    final Region region = controller.buildView();
-    setContent(region);
+  public Comparator<? super Integer> intComparator() {
+    return this == ASCENDING ? Comparator.naturalOrder() : Comparator.reverseOrder();
   }
-
-  @Override
-  public @NotNull Collection<? extends FeatureList> getFeatureLists() {
-    return controller.selectedFeatureListsProperty().getValue();
-  }
-
-  @Override
-  public @NotNull Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return controller.selectedFeatureListsProperty().getValue();
-  }
-
-  @Override
-  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-    controller.selectedFeatureListsProperty().setValue(List.copyOf(featureLists));
-  }
-
 }
