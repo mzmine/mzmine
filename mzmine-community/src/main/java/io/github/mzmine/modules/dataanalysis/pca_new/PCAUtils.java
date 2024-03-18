@@ -54,6 +54,7 @@ public class PCAUtils {
 
     logger.finest(() -> "Performing singular value decomposition. This may take a while");
     SingularValueDecomposition svd = new SingularValueDecomposition(centeredMatrix);
+    // https://stats.stackexchange.com/questions/134282/relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca
 
     return new PCAResult(data, centeredMatrix, svd);
   }
