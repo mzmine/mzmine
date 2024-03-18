@@ -33,11 +33,14 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunction;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunction;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +57,9 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
   private final List<DatasetAndRenderer> scoresDatasets = new ArrayList<>();
   private final List<DatasetAndRenderer> loadingsDatasets = new ArrayList<>();
   private final List<Integer> components = new ArrayList<>();
+  private final ImputationFunction imputer;
+
+  private final ScalingFunction scaling;
   private PCARowsResult pcaRowsResult;
 
   protected PCAUpdateTask(@NotNull String taskName, PCAModel model) {
@@ -65,6 +71,20 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     selectedRows = model.getSelectedRows();
     flists = model.getFlists();
     abundance = model.getAbundance();
+
+    final ScalingFunctions scalingFunction = model.getScalingFunction();
+    if (scalingFunction == null) {
+      scaling = null;
+    } else {
+      scaling = scalingFunction.getScalingFunction();
+    }
+
+    final ImputationFunctions imputationFunction = model.getImputationFunction();
+    if (imputationFunction == null) {
+      imputer = null;
+    } else {
+      imputer = imputationFunction.getImputer();
+    }
   }
 
   @Override
@@ -77,6 +97,10 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 //        && !metadataColumn.isBlank()) {
 //      return false;
 //    }
+
+    if (scaling == null || imputer == null) {
+      return false;
+    }
 
     if (flists == null || flists.isEmpty() || flists.getFirst() == null) {
       return false;
@@ -91,7 +115,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 
   @Override
   protected void process() {
-    pcaRowsResult = PCAUtils.performPCAOnRows(flists.get(0).getRows(), abundance);
+    pcaRowsResult = PCAUtils.performPCAOnRows(flists.get(0).getRows(), abundance, scaling, imputer);
     progressProvider.getAndIncrement();
 
     final PCAScoresProvider scores = new PCAScoresProvider(pcaRowsResult, "Scores", Color.RED,
@@ -99,8 +123,8 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     final ColoredXYZDataset scoresDS = new ColoredXYZDataset(scores, RunOption.THIS_THREAD);
     progressProvider.getAndIncrement();
 
-    final PCALoadingsProvider loadings = new PCALoadingsProvider(pcaRowsResult, "Loadings", Color.RED,
-        domainPcIndex, rangePcIndex);
+    final PCALoadingsProvider loadings = new PCALoadingsProvider(pcaRowsResult, "Loadings",
+        Color.RED, domainPcIndex, rangePcIndex);
     final ColoredXYZDataset loadingsDS = new ColoredXYZDataset(loadings, RunOption.THIS_THREAD);
     progressProvider.getAndIncrement();
 
@@ -119,7 +143,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     model.setLoadingsDatasets(loadingsDatasets);
     model.setPcaResult(pcaRowsResult);
 
-    if(model.getAvailablePCs().size() != components.size()) {
+    if (model.getAvailablePCs().size() != components.size()) {
       model.getAvailablePCs().setAll(components);
     }
 

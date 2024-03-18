@@ -25,20 +25,23 @@
 
 package io.github.mzmine.modules.dataanalysis.utils.scaling;
 
-import org.apache.commons.math3.linear.RealVector;
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+public enum ScalingFunctions {
+  AutoScaling, ParetoScaling, RangeScaling;
 
-
-/**
- * Scales a vector to the standard deviation of its values.
- */
-public class AutoScalingFunction implements ScalingFunction {
-
-  private final StandardDeviation dev = new StandardDeviation(true);
+  public ScalingFunction getScalingFunction() {
+    return switch (this) {
+      case AutoScaling -> new AutoScalingFunction();
+      case ParetoScaling -> new ParetoScalingFunction();
+      case RangeScaling -> new RangeScalingFunction();
+    };
+  }
 
   @Override
-  public RealVector apply(RealVector input) {
-    final double sd = dev.evaluate(input.toArray());
-    return input.mapDivide(sd);
+  public String toString() {
+    return switch (this) {
+      case AutoScaling -> "Auto scaling (SD)";
+      case ParetoScaling -> "Pareto scaling (√SD)";
+      case RangeScaling -> "Range scaling [-1; 1]";
+    };
   }
 }

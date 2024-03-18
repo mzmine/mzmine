@@ -29,6 +29,8 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
@@ -55,6 +57,11 @@ public class PCAModel {
       List.of());
 
   private final ObjectProperty<PCARowsResult> pcaResult = new SimpleObjectProperty<>();
+  private final ObjectProperty<ScalingFunctions> scalingFunction = new SimpleObjectProperty<>(
+      ScalingFunctions.AutoScaling);
+
+  private final ObjectProperty<ImputationFunctions> imputationFunction = new SimpleObjectProperty<>(
+      ImputationFunctions.OneFifthOfMinimum);
 
   public ObservableList<Integer> getAvailablePCs() {
     return availablePCs;
@@ -166,5 +173,29 @@ public class PCAModel {
 
   public ObjectProperty<PCARowsResult> pcaResultProperty() {
     return pcaResult;
+  }
+
+  public ScalingFunctions getScalingFunction() {
+    return scalingFunction.get();
+  }
+
+  public void setScalingFunction(ScalingFunctions scalingFunction) {
+    this.scalingFunction.set(scalingFunction);
+  }
+
+  public ObjectProperty<ScalingFunctions> scalingFunctionProperty() {
+    return scalingFunction;
+  }
+
+  public ImputationFunctions getImputationFunction() {
+    return imputationFunction.get();
+  }
+
+  public void setImputationFunction(ImputationFunctions imputationFunction) {
+    this.imputationFunction.set(imputationFunction);
+  }
+
+  public ObjectProperty<ImputationFunctions> imputationFunctionProperty() {
+    return imputationFunction;
   }
 }

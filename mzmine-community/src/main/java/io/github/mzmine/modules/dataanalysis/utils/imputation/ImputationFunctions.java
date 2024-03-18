@@ -23,22 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.utils.scaling;
+package io.github.mzmine.modules.dataanalysis.utils.imputation;
 
-import org.apache.commons.math3.linear.RealVector;
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+public enum ImputationFunctions {
 
+  OneFifthOfMinimum, Zero;
 
-/**
- * Scales a vector to the standard deviation of its values.
- */
-public class AutoScalingFunction implements ScalingFunction {
-
-  private final StandardDeviation dev = new StandardDeviation(true);
+  public ImputationFunction getImputer() {
+    return switch (this) {
+      case Zero -> new ZeroImputer();
+      case OneFifthOfMinimum -> new OneFifthOfMinimumImputer();
+    };
+  }
 
   @Override
-  public RealVector apply(RealVector input) {
-    final double sd = dev.evaluate(input.toArray());
-    return input.mapDivide(sd);
+  public String toString() {
+    return switch (this) {
+      case Zero -> "Zero (0)";
+      case OneFifthOfMinimum -> "1/5 of minimum";
+    };
   }
 }

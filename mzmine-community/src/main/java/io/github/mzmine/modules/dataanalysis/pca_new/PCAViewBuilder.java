@@ -33,7 +33,11 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.javafx.components.factories.FxComponentFactory;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
+import java.awt.Color;
 import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.geometry.HPos;
@@ -67,18 +71,30 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
   public Region build() {
     scoresPlot.setStickyZeroRangeAxis(false);
     loadingsPlot.setStickyZeroRangeAxis(false);
+    final Color markerColor = MZmineCore.getConfiguration().getDefaultColorPalette()
+        .getNeutralColorAWT();
+    scoresPlot.addDomainMarker(0, markerColor, 0.5f);
+    scoresPlot.addRangeMarker(0, markerColor, 0.5f);
+    loadingsPlot.addDomainMarker(0, markerColor, 0.5f);
+    loadingsPlot.addRangeMarker(0, markerColor, 0.5f);
 
     final BorderPane pane = new BorderPane();
+    final HBox scaling = FxComponentFactory.createLabeledComboBox("Scaling",
+        FXCollections.observableArrayList(ScalingFunctions.values()),
+        model.scalingFunctionProperty());
+    final HBox imputation = FxComponentFactory.createLabeledComboBox("Missing value imputation",
+        FXCollections.observableArrayList(ImputationFunctions.values()),
+        model.imputationFunctionProperty());
     final HBox domain = FxComponentFactory.createLabeledComboBox("Domain PC",
         model.getAvailablePCs(), model.domainPcProperty());
-    final HBox range = FxComponentFactory.createLabeledComboBox("Range PC",
-        model.getAvailablePCs(), model.rangePcProperty());
+    final HBox range = FxComponentFactory.createLabeledComboBox("Range PC", model.getAvailablePCs(),
+        model.rangePcProperty());
     final HBox coloring = createMetadataBox();
     final HBox abundance = FxComponentFactory.createLabeledComboBox("Abundance",
         FXCollections.observableArrayList(AbundanceMeasure.values()), model.abundanceProperty());
 
     final TitledPane controls = new TitledPane("Controls",
-        new FlowPane(space, space, domain, range, coloring, abundance));
+        new FlowPane(space, space, scaling, imputation, domain, range, coloring, abundance));
     final Accordion accordion = new Accordion(controls);
     accordion.setExpandedPane(controls);
     pane.setBottom(accordion);
@@ -158,7 +174,7 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
         return;
       }
       final Object row = dataProvider.getItemObject(n.getValueIndex());
-      if(row instanceof FeatureListRow r) {
+      if (row instanceof FeatureListRow r) {
         model.selectedRowsProperty().set(List.of(r));
       }
     });

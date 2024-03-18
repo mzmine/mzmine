@@ -26,19 +26,22 @@
 package io.github.mzmine.modules.dataanalysis.utils.scaling;
 
 import org.apache.commons.math3.linear.RealVector;
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
+public class RangeScalingFunction implements ScalingFunction {
 
-/**
- * Scales a vector to the standard deviation of its values.
- */
-public class AutoScalingFunction implements ScalingFunction {
+  private final double maxValue;
 
-  private final StandardDeviation dev = new StandardDeviation(true);
+  public RangeScalingFunction() {
+    this(1);
+  }
+
+  public RangeScalingFunction(double maxValue) {
+    this.maxValue = maxValue;
+  }
 
   @Override
-  public RealVector apply(RealVector input) {
-    final double sd = dev.evaluate(input.toArray());
-    return input.mapDivide(sd);
+  public RealVector apply(RealVector realVector) {
+    final double columnMax = realVector.getLInfNorm();
+    return realVector.mapDivide(columnMax / maxValue);
   }
 }

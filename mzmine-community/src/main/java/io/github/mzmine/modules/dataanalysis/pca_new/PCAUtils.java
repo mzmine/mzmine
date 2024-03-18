@@ -29,7 +29,8 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
-import io.github.mzmine.modules.dataanalysis.utils.scaling.AutoScalingFunction;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunction;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunction;
 import java.util.List;
 import java.util.logging.Logger;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -43,20 +44,31 @@ public class PCAUtils {
    * Calculates the PCA of a matrix by singular value decomposition (svd).
    * https://stats.stackexchange.com/questions/134282/relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca
    *
-   * @param data the data
+   * @param data the data. The imputed data  see {@link ImputationFunction}. Will be centered around
+   *             0 and scaled according to the scaling function.
    * @return A pca result.
    */
-  public static PCAResult calculatePCA(RealMatrix data) {
+  public static PCAResult quickPCA(RealMatrix data, ScalingFunction scalingFunction) {
 
-    logger.finest(() -> "Performing scaling mean centering");
-    final RealMatrix centeredMatrix = StatisticUtils.scaleAndCenter(data, new AutoScalingFunction(),
-        false);
+    logger.finest(() -> "Performing scaling and centering");
+    final RealMatrix centeredMatrix = StatisticUtils.centerAndScale(data, scalingFunction, false);
 
     logger.finest(() -> "Performing singular value decomposition. This may take a while");
     SingularValueDecomposition svd = new SingularValueDecomposition(centeredMatrix);
     // https://stats.stackexchange.com/questions/134282/relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca
 
-    return new PCAResult(data, centeredMatrix, svd);
+    return new PCAResult(svd);
+  }
+
+  /**
+   * @param originalData the imputed data. see {@link ImputationFunction}
+   */
+  public static PCAResult performPCA(RealMatrix originalData, RealMatrix pretreatedData) {
+    logger.finest(() -> "Performing singular value decomposition. This may take a while");
+    SingularValueDecomposition svd = new SingularValueDecomposition(pretreatedData);
+    // https://stats.stackexchange.com/questions/134282/relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca
+
+    return new PCAResult(svd);
   }
 
   /**
@@ -66,13 +78,13 @@ public class PCAUtils {
    * @param measure The abundance to use.
    * @return A pca result that can be mapped to the used rows.
    */
-  public static PCARowsResult performPCAOnRows(List<FeatureListRow> rows,
-      AbundanceMeasure measure) {
+  public static PCARowsResult performPCAOnRows(List<FeatureListRow> rows, AbundanceMeasure measure,
+      ScalingFunction scalingFunction, ImputationFunction imputationFunction) {
     final List<RawDataFile> files = rows.stream().flatMap(row -> row.getRawDataFiles().stream())
         .distinct().toList();
     final RealMatrix data = StatisticUtils.createDatasetFromRows(rows, files, measure);
-    StatisticUtils.imputeMissingValues(data, true, StatisticUtils.oneFifthOfMinimumImputer);
-    final PCAResult pcaResult = calculatePCA(data);
+    StatisticUtils.imputeMissingValues(data, true, imputationFunction);
+    final PCAResult pcaResult = quickPCA(data, scalingFunction);
     return new PCARowsResult(pcaResult, rows, files);
   }
 }

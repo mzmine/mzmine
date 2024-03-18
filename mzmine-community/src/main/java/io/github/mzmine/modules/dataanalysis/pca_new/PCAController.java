@@ -36,27 +36,23 @@ import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
-import io.github.mzmine.javafx.properties.LastUpdateProperty;
 import java.util.List;
-import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
-import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 
 public class PCAController extends FxController<PCAModel> implements SelectedRowsBinding,
-    SelectedFeatureListsBinding, SelectedMetadataColumnBinding,
-    SelectedAbundanceMeasureBinding {
+    SelectedFeatureListsBinding, SelectedMetadataColumnBinding, SelectedAbundanceMeasureBinding {
 
   private final FxViewBuilder<PCAModel> builder;
-
 
   public PCAController() {
     super(new PCAModel());
     builder = new PCAViewBuilder(model);
     //update on changes of these properties
     PropertyUtils.onChange(this::waitAndUpdate, model.flistsProperty(), model.domainPcProperty(),
-        model.rangePcProperty(), model.abundanceProperty(), model.metadataColumnProperty());
+        model.rangePcProperty(), model.abundanceProperty(), model.metadataColumnProperty(),
+        model.scalingFunctionProperty(), model.imputationFunctionProperty());
   }
 
   @Override

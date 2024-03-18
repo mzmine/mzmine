@@ -29,6 +29,7 @@ package stats;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAResult;
 import io.github.mzmine.modules.dataanalysis.pca_new.PCAUtils;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.RangeScalingFunction;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
@@ -62,10 +63,10 @@ public class PcaTest {
         .toArray(double[][]::new);
 
     final RealMatrix matrix = new Array2DRowRealMatrix(data);
-    final RealMatrix centered = StatisticUtils.performMeanCenter(matrix, false);
+    final RealMatrix centered = StatisticUtils.center(matrix, false);
     logger.info(centered.toString());
 
-    final PCAResult pcaResult = PCAUtils.calculatePCA(matrix);
+    final PCAResult pcaResult = PCAUtils.quickPCA(matrix, new RangeScalingFunction());
 
     final RealMatrix principalComponentMatrix = pcaResult.principalComponentsMatrix();
     final RealMatrix first2Components = pcaResult.firstNComponents(2);

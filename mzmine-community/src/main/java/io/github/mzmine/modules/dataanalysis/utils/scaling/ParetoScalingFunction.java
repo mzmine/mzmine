@@ -28,17 +28,13 @@ package io.github.mzmine.modules.dataanalysis.utils.scaling;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
-
-/**
- * Scales a vector to the standard deviation of its values.
- */
-public class AutoScalingFunction implements ScalingFunction {
+public class ParetoScalingFunction implements ScalingFunction {
 
   private final StandardDeviation dev = new StandardDeviation(true);
 
   @Override
-  public RealVector apply(RealVector input) {
-    final double sd = dev.evaluate(input.toArray());
-    return input.mapDivide(sd);
+  public RealVector apply(RealVector realVector) {
+    final double sd = dev.evaluate(realVector.toArray());
+    return realVector.mapDivide(Math.sqrt(sd));
   }
 }

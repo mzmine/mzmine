@@ -23,22 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.utils.scaling;
+package io.github.mzmine.modules.dataanalysis.utils.imputation;
 
+import java.util.function.Function;
 import org.apache.commons.math3.linear.RealVector;
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
+public interface ImputationFunction extends Function<RealVector, Double> {
 
-/**
- * Scales a vector to the standard deviation of its values.
- */
-public class AutoScalingFunction implements ScalingFunction {
-
-  private final StandardDeviation dev = new StandardDeviation(true);
-
-  @Override
-  public RealVector apply(RealVector input) {
-    final double sd = dev.evaluate(input.toArray());
-    return input.mapDivide(sd);
-  }
 }

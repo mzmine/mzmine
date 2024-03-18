@@ -48,8 +48,7 @@ public sealed interface FxControllerBinding permits SelectedAbundanceMeasureBind
         && child instanceof SelectedFeatureListsBinding c) {
       m.selectedFeatureListsProperty().bindBidirectional(c.selectedFeatureListsProperty());
     }
-    if (master instanceof SelectedFeaturesBinding m
-        && child instanceof SelectedFeaturesBinding c) {
+    if (master instanceof SelectedFeaturesBinding m && child instanceof SelectedFeaturesBinding c) {
       m.selectedFeaturesProperty().bindBidirectional(c.selectedFeaturesProperty());
     }
     if (master instanceof SelectedFilesBinding m && child instanceof SelectedFilesBinding c) {
@@ -61,6 +60,27 @@ public sealed interface FxControllerBinding permits SelectedAbundanceMeasureBind
     }
     if (master instanceof SelectedRowsBinding m && child instanceof SelectedRowsBinding c) {
       m.selectedRowsProperty().bindBidirectional(c.selectedRowsProperty());
+    }
+  }
+
+  /**
+   * // note: nothing to do here. This switch shall just remind you of adding new cases to the
+   * {@link #bindExposedProperties} method.
+   */
+  private void reminderToKeepAllCasesCovered(FxControllerBinding b) {
+    switch (b) {
+      case SelectedRowsBinding _ -> {
+      }
+      case SelectedAbundanceMeasureBinding _ -> {
+      }
+      case SelectedFeatureListsBinding _ -> {
+      }
+      case SelectedFeaturesBinding _ -> {
+      }
+      case SelectedFilesBinding _ -> {
+      }
+      case SelectedMetadataColumnBinding _ -> {
+      }
     }
   }
 }

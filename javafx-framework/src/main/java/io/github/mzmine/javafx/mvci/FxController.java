@@ -48,7 +48,7 @@ public abstract class FxController<ViewModelClass> {
     this.model = model;
   }
 
-  public LatestTaskScheduler getScheduler() {
+  protected LatestTaskScheduler getScheduler() {
     return scheduler;
   }
 
