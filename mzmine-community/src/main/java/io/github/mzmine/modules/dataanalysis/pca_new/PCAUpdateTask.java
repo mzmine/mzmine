@@ -73,18 +73,10 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     abundance = model.getAbundance();
 
     final ScalingFunctions scalingFunction = model.getScalingFunction();
-    if (scalingFunction == null) {
-      scaling = null;
-    } else {
-      scaling = scalingFunction.getScalingFunction();
-    }
+    scaling = scalingFunction.getScalingFunction();
 
     final ImputationFunctions imputationFunction = model.getImputationFunction();
-    if (imputationFunction == null) {
-      imputer = null;
-    } else {
-      imputer = imputationFunction.getImputer();
-    }
+    imputer = imputationFunction.getImputer();
   }
 
   @Override
@@ -97,10 +89,6 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 //        && !metadataColumn.isBlank()) {
 //      return false;
 //    }
-
-    if (scaling == null || imputer == null) {
-      return false;
-    }
 
     if (flists == null || flists.isEmpty() || flists.getFirst() == null) {
       return false;

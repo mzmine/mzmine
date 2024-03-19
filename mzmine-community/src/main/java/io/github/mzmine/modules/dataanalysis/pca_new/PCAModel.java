@@ -39,6 +39,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 
 public class PCAModel {
 
@@ -57,10 +58,10 @@ public class PCAModel {
       List.of());
 
   private final ObjectProperty<PCARowsResult> pcaResult = new SimpleObjectProperty<>();
-  private final ObjectProperty<ScalingFunctions> scalingFunction = new SimpleObjectProperty<>(
+  private final ObjectProperty<@NotNull ScalingFunctions> scalingFunction = new SimpleObjectProperty<>(
       ScalingFunctions.AutoScaling);
 
-  private final ObjectProperty<ImputationFunctions> imputationFunction = new SimpleObjectProperty<>(
+  private final ObjectProperty<@NotNull ImputationFunctions> imputationFunction = new SimpleObjectProperty<>(
       ImputationFunctions.OneFifthOfMinimum);
 
   public ObservableList<Integer> getAvailablePCs() {
@@ -175,27 +176,27 @@ public class PCAModel {
     return pcaResult;
   }
 
-  public ScalingFunctions getScalingFunction() {
+  public @NotNull ScalingFunctions getScalingFunction() {
     return scalingFunction.get();
   }
 
-  public void setScalingFunction(ScalingFunctions scalingFunction) {
+  public void setScalingFunction(@NotNull ScalingFunctions scalingFunction) {
     this.scalingFunction.set(scalingFunction);
   }
 
-  public ObjectProperty<ScalingFunctions> scalingFunctionProperty() {
+  public ObjectProperty<@NotNull ScalingFunctions> scalingFunctionProperty() {
     return scalingFunction;
   }
 
-  public ImputationFunctions getImputationFunction() {
+  public @NotNull ImputationFunctions getImputationFunction() {
     return imputationFunction.get();
   }
 
-  public void setImputationFunction(ImputationFunctions imputationFunction) {
+  public void setImputationFunction(@NotNull ImputationFunctions imputationFunction) {
     this.imputationFunction.set(imputationFunction);
   }
 
-  public ObjectProperty<ImputationFunctions> imputationFunctionProperty() {
+  public ObjectProperty<@NotNull ImputationFunctions> imputationFunctionProperty() {
     return imputationFunction;
   }
 }

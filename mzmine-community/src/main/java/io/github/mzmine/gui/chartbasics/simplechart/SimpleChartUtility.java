@@ -146,6 +146,11 @@ public class SimpleChartUtility {
     }
   }
 
+  public static <T, C> void selectItemInChart(SimpleXYChart<?> chart, T item,
+      @Nullable Class<? super C> clazzFilter) {
+    selectItemInChart(chart, item, o -> o, clazzFilter);
+  }
+
   /**
    * @param chart        The chart to search
    * @param item         The item in the chart's dataset to search for. The dataset must be a
