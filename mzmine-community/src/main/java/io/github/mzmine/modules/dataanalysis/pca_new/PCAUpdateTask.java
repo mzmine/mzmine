@@ -26,8 +26,10 @@
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
@@ -39,10 +41,15 @@ import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunction;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
+import io.github.mzmine.util.collections.SortOrder;
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
@@ -103,7 +110,17 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 
   @Override
   protected void process() {
-    pcaRowsResult = PCAUtils.performPCAOnRows(flists.get(0).getRows(), abundance, scaling, imputer);
+    final ObservableList<FeatureListRow> rows = flists.get(0).getRows();
+    final Comparator<? super DataType<?>> annotationPrioSorter = FeatureAnnotationPriority.createSorter(
+        SortOrder.ASCENDING);
+    final Map<FeatureListRow, DataType<?>> rowsMappedToBestAnnotation = CompoundAnnotationUtils.mapBestAnnotationTypesByPriority(
+        rows, true);
+    final List<FeatureListRow> rowsSortedByAnnotationPrio = rows.stream().sorted(
+        ((r1, r2) -> annotationPrioSorter.compare(rowsMappedToBestAnnotation.get(r1),
+            rowsMappedToBestAnnotation.get(r2)))).toList();
+
+    pcaRowsResult = PCAUtils.performPCAOnRows(rowsSortedByAnnotationPrio, abundance, scaling,
+        imputer);
     progressProvider.getAndIncrement();
 
     final PCAScoresProvider scores = new PCAScoresProvider(pcaRowsResult, "Scores", Color.RED,
