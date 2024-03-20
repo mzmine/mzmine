@@ -520,7 +520,10 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule"/>
     </Menu>
 
-    <Menu text="Data analysis">
+    <Menu text="Statistics">
+      <MenuItem text="Statistics dashboard"
+              onAction="#runModule"
+              userData="io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule"/>
       <MenuItem text="Volcano plot"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotModule"/>

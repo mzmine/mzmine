@@ -36,11 +36,11 @@ import org.jetbrains.annotations.NotNull;
  * Columns of U contrain the principal components, S are the singular values, which can be projected
  * into the PC space using U and a submatrix of S, which creates the scores plot. Loadings are the
  * transpose of V.
- *
+ * <p>
  * https://stats.stackexchange.com/questions/134282/relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca
+ *
  */
-public record PCAResult(RealMatrix data, RealMatrix dataMeanCentered,
-                        SingularValueDecomposition svd) {
+public record PCAResult(SingularValueDecomposition svd) {
 
   /**
    * @param numComponents

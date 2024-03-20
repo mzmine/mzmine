@@ -27,13 +27,19 @@ package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.javafx.components.factories.FxComponentFactory;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
 import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingComponent;
+import java.awt.Color;
 import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.geometry.HPos;
@@ -51,6 +57,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.LegendItemCollection;
+import org.jfree.chart.plot.ValueMarker;
 
 public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
 
@@ -67,18 +74,34 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
   public Region build() {
     scoresPlot.setStickyZeroRangeAxis(false);
     loadingsPlot.setStickyZeroRangeAxis(false);
+    final Color markerColor = MZmineCore.getConfiguration().getDefaultColorPalette()
+        .getNeutralColorAWT();
+    scoresPlot.getXYPlot().addDomainMarker(
+        new ValueMarker(0, markerColor, EStandardChartTheme.DEFAULT_MARKER_STROKE));
+    scoresPlot.getXYPlot()
+        .addRangeMarker(new ValueMarker(0, markerColor, EStandardChartTheme.DEFAULT_MARKER_STROKE));
+    loadingsPlot.getXYPlot().addDomainMarker(
+        new ValueMarker(0, markerColor, EStandardChartTheme.DEFAULT_MARKER_STROKE));
+    loadingsPlot.getXYPlot()
+        .addRangeMarker(new ValueMarker(0, markerColor, EStandardChartTheme.DEFAULT_MARKER_STROKE));
 
     final BorderPane pane = new BorderPane();
+    final HBox scaling = FxComponentFactory.createLabeledComboBox("Scaling",
+        FXCollections.observableArrayList(ScalingFunctions.values()),
+        model.scalingFunctionProperty());
+    final HBox imputation = FxComponentFactory.createLabeledComboBox("Missing value imputation",
+        FXCollections.observableArrayList(ImputationFunctions.values()),
+        model.imputationFunctionProperty());
     final HBox domain = FxComponentFactory.createLabeledComboBox("Domain PC",
         model.getAvailablePCs(), model.domainPcProperty());
-    final HBox range = FxComponentFactory.createLabeledComboBox("Range PC",
-        model.getAvailablePCs(), model.rangePcProperty());
+    final HBox range = FxComponentFactory.createLabeledComboBox("Range PC", model.getAvailablePCs(),
+        model.rangePcProperty());
     final HBox coloring = createMetadataBox();
     final HBox abundance = FxComponentFactory.createLabeledComboBox("Abundance",
         FXCollections.observableArrayList(AbundanceMeasure.values()), model.abundanceProperty());
 
     final TitledPane controls = new TitledPane("Controls",
-        new FlowPane(space, space, domain, range, coloring, abundance));
+        new FlowPane(space, space, scaling, imputation, domain, range, coloring, abundance));
     final Accordion accordion = new Accordion(controls);
     accordion.setExpandedPane(controls);
     pane.setBottom(accordion);
@@ -158,10 +181,21 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
         return;
       }
       final Object row = dataProvider.getItemObject(n.getValueIndex());
-      if(row instanceof FeatureListRow r) {
+      if (row instanceof FeatureListRow r) {
         model.selectedRowsProperty().set(List.of(r));
       }
     });
 
+    model.selectedRowsProperty().addListener((_, old, rows) -> {
+      if (rows.isEmpty() || old.equals(rows)) {
+        return;
+      }
+
+      final FeatureListRow selectedRow = rows.getFirst();
+      if (selectedRow == null) {
+        return;
+      }
+      SimpleChartUtility.selectItemInChart(loadingsPlot, selectedRow, o -> o, FeatureListRow.class);
+    });
   }
 }

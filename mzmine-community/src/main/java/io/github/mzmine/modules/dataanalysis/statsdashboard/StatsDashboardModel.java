@@ -23,23 +23,34 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.rowsboxplot;
+package io.github.mzmine.modules.dataanalysis.statsdashboard;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import org.jetbrains.annotations.Nullable;
 
-public class RowsBoxplotModel {
-
+public class StatsDashboardModel {
+  private final ObjectProperty<List<FeatureList>> flists = new SimpleObjectProperty<>();
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
-  private final ObjectProperty<@Nullable MetadataColumn<?>> groupingColumn = new SimpleObjectProperty<>();
-  private final ObjectProperty<@Nullable RowBoxPlotDataset> dataset = new SimpleObjectProperty<>();
-  private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>(
+  private final ObjectProperty<AbundanceMeasure> abundance = new SimpleObjectProperty<>(
       AbundanceMeasure.Height);
+  private final ObjectProperty<MetadataColumn<?>> metadataColumn = new SimpleObjectProperty<>();
+
+  public List<FeatureList> getFlists() {
+    return flists.get();
+  }
+
+  public void setFlists(List<FeatureList> flists) {
+    this.flists.set(flists);
+  }
+
+  public ObjectProperty<List<FeatureList>> flistsProperty() {
+    return flists;
+  }
 
   public List<FeatureListRow> getSelectedRows() {
     return selectedRows.get();
@@ -53,39 +64,27 @@ public class RowsBoxplotModel {
     return selectedRows;
   }
 
-  public @Nullable MetadataColumn<?> getGroupingColumn() {
-    return groupingColumn.get();
+  public AbundanceMeasure getAbundance() {
+    return abundance.get();
   }
 
-  public void setGroupingColumn(@Nullable MetadataColumn<?> groupingColumn) {
-    this.groupingColumn.set(groupingColumn);
+  public void setAbundance(AbundanceMeasure abundance) {
+    this.abundance.set(abundance);
   }
 
-  public ObjectProperty<@Nullable MetadataColumn<?>> groupingColumnProperty() {
-    return groupingColumn;
+  public ObjectProperty<AbundanceMeasure> abundanceProperty() {
+    return abundance;
   }
 
-  public @Nullable RowBoxPlotDataset getDataset() {
-    return dataset.get();
+  public MetadataColumn<?> getMetadataColumn() {
+    return metadataColumn.get();
   }
 
-  public void setDataset(@Nullable RowBoxPlotDataset dataset) {
-    this.dataset.set(dataset);
+  public void setMetadataColumn(MetadataColumn<?> metadataColumn) {
+    this.metadataColumn.set(metadataColumn);
   }
 
-  public ObjectProperty<@Nullable RowBoxPlotDataset> datasetProperty() {
-    return dataset;
-  }
-
-  public AbundanceMeasure getAbundanceMeasure() {
-    return abundanceMeasure.get();
-  }
-
-  public void setAbundanceMeasure(AbundanceMeasure abundanceMeasure) {
-    this.abundanceMeasure.set(abundanceMeasure);
-  }
-
-  public ObjectProperty<AbundanceMeasure> abundanceMeasureProperty() {
-    return abundanceMeasure;
+  public ObjectProperty<MetadataColumn<?>> metadataColumnProperty() {
+    return metadataColumn;
   }
 }

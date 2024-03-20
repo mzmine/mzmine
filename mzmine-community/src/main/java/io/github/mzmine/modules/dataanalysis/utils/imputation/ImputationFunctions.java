@@ -23,23 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.pca_new;
+package io.github.mzmine.modules.dataanalysis.utils.imputation;
 
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import org.jetbrains.annotations.NotNull;
+public enum ImputationFunctions {
 
-public class PCAParameters extends SimpleParameterSet {
+  OneFifthOfMinimum, Zero;
 
-  public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1, true);
-
-  public PCAParameters() {
-    super(flist);
+  public ImputationFunction getImputer() {
+    return switch (this) {
+      case Zero -> new ZeroImputer();
+      case OneFifthOfMinimum -> new OneFifthOfMinimumImputer();
+    };
   }
 
   @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
+  public String toString() {
+    return switch (this) {
+      case Zero -> "Zero (0)";
+      case OneFifthOfMinimum -> "1/5 of minimum";
+    };
   }
 }

@@ -23,23 +23,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.pca_new;
+package io.github.mzmine.gui.framework.fx;
 
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import javafx.beans.property.ObjectProperty;
 
-public class PCAParameters extends SimpleParameterSet {
+public non-sealed interface SelectedMetadataColumnBinding extends FxControllerBinding {
 
-  public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1, true);
-
-  public PCAParameters() {
-    super(flist);
-  }
-
-  @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
-  }
+  ObjectProperty<MetadataColumn<?>> groupingColumnProperty();
 }

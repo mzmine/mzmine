@@ -23,23 +23,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.pca_new;
+package io.github.mzmine.modules.dataanalysis.utils.imputation;
 
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import org.jetbrains.annotations.NotNull;
+import java.util.function.Function;
+import org.apache.commons.math3.linear.RealVector;
 
-public class PCAParameters extends SimpleParameterSet {
+/**
+ * Imputes missing values based on the existing values of a single feature across all samples (one
+ * column).
+ */
+public interface ImputationFunction extends Function<RealVector, Double> {
 
-  public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1, true);
-
-  public PCAParameters() {
-    super(flist);
-  }
-
-  @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
-  }
 }

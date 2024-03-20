@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.volcanoplot;
+package io.github.mzmine.modules.dataanalysis.statsdashboard;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -35,13 +35,14 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public class VolcanoPlotModule extends AbstractRunnableModule {
+public class StatsDasboardModule extends AbstractRunnableModule {
 
-  public VolcanoPlotModule() {
-    super("Volcano plot", VolcanoPlotParameters.class, MZmineModuleCategory.DATAANALYSIS,
-        "Interactive Volcano Plot visualization");
+  public StatsDasboardModule() {
+    super("Statistics dashboard", StatsDashboardParameters.class, MZmineModuleCategory.DATAANALYSIS,
+        "Overview of statistics.");
   }
 
   @Override
@@ -49,12 +50,11 @@ public class VolcanoPlotModule extends AbstractRunnableModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    final ModularFeatureList flist = parameters.getValue(VolcanoPlotParameters.flist)
+    final ModularFeatureList flist = parameters.getValue(StatsDashboardParameters.flists)
         .getMatchingFeatureLists()[0];
-    final VolcanoPlotTab tab = new VolcanoPlotTab(flist);
+    final StatsDashboardTab tab = new StatsDashboardTab();
+    tab.onFeatureListSelectionChanged(List.of(flist));
     MZmineCore.getDesktop().addTab(tab);
-
     return ExitCode.OK;
   }
-
 }

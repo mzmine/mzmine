@@ -27,9 +27,9 @@ package io.github.mzmine.modules.dataanalysis.rowsboxplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureController;
-import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnController;
-import io.github.mzmine.gui.framework.fx.SelectedRowsController;
+import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureBinding;
+import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnBinding;
+import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
@@ -38,7 +38,7 @@ import javafx.beans.property.ObjectProperty;
 import org.jetbrains.annotations.NotNull;
 
 public class RowsBoxplotController extends FxController<RowsBoxplotModel> implements
-    SelectedRowsController, SelectedMetadataColumnController, SelectedAbundanceMeasureController {
+    SelectedRowsBinding, SelectedMetadataColumnBinding, SelectedAbundanceMeasureBinding {
 
   private final RowsBoxplotViewBuilder builder;
 
@@ -59,7 +59,7 @@ public class RowsBoxplotController extends FxController<RowsBoxplotModel> implem
         return;
       }
       model.setDataset(
-          new RowBarDataset(n.getFirst(), model.getGroupingColumn(), model.getAbundanceMeasure()));
+          new RowBoxPlotDataset(n.getFirst(), model.getGroupingColumn(), model.getAbundanceMeasure()));
     });
   }
 

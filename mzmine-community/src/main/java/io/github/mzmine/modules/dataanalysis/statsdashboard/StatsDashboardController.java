@@ -23,53 +23,65 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.pca_new;
+package io.github.mzmine.modules.dataanalysis.statsdashboard;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.framework.fx.FxControllerBinding;
 import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureBinding;
 import io.github.mzmine.gui.framework.fx.SelectedFeatureListsBinding;
 import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnBinding;
 import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.modules.dataanalysis.pca_new.PCAController;
+import io.github.mzmine.modules.dataanalysis.rowsboxplot.RowsBoxplotController;
+import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotController;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 
-public class PCAController extends FxController<PCAModel> implements SelectedRowsBinding,
-    SelectedFeatureListsBinding, SelectedMetadataColumnBinding, SelectedAbundanceMeasureBinding {
+public class StatsDashboardController extends FxController<StatsDashboardModel> implements
+    SelectedFeatureListsBinding, SelectedRowsBinding, SelectedAbundanceMeasureBinding,
+    SelectedMetadataColumnBinding {
 
-  private final FxViewBuilder<PCAModel> builder;
+  private final PCAController pcaController = new PCAController();
+  private final VolcanoPlotController volcanoController = new VolcanoPlotController(null);
+  private final RowsBoxplotController boxplotController = new RowsBoxplotController();
+  private final FeatureTableFX table;
+  private final StatsDashboardViewBuilder builder;
 
-  public PCAController() {
-    super(new PCAModel());
-    builder = new PCAViewBuilder(model);
-    //update on changes of these properties
-    PropertyUtils.onChange(this::waitAndUpdate, model.flistsProperty(), model.domainPcProperty(),
-        model.rangePcProperty(), model.abundanceProperty(), model.metadataColumnProperty(),
-        model.scalingFunctionProperty(), model.imputationFunctionProperty());
+  public StatsDashboardController(FeatureTableFX table) {
+    super(new StatsDashboardModel());
+    this.table = table == null ? new FeatureTableFX() : table;
+    builder = new StatsDashboardViewBuilder(model, table, pcaController, volcanoController,
+        boxplotController);
+
+    FxControllerBinding.bindExposedProperties(this, volcanoController);
+    FxControllerBinding.bindExposedProperties(this, boxplotController);
+    FxControllerBinding.bindExposedProperties(this, pcaController);
+    pcaController.waitAndUpdate();
+    // feature table bindings in view builder
   }
 
+  public StatsDashboardController() {
+    this(new FeatureTableFX());
+  }
+
+
   @Override
-  protected @NotNull FxViewBuilder<PCAModel> getViewBuilder() {
+  protected @NotNull FxViewBuilder<StatsDashboardModel> getViewBuilder() {
     return builder;
   }
 
-  @Override
-  public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
-    return model.selectedRowsProperty();
-  }
 
-  /**
-   * Accumulates update calls by waiting for some time
-   */
-  public void waitAndUpdate() {
-    onTaskThreadDelayed(new PCAUpdateTask("update full dataset", model));
+  @Override
+  public ObjectProperty<AbundanceMeasure> abundanceMeasureProperty() {
+    return model.abundanceProperty();
   }
 
   @Override
@@ -78,12 +90,12 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
   }
 
   @Override
-  public ObjectProperty<MetadataColumn<?>> groupingColumnProperty() {
-    return model.metadataColumnProperty();
+  public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
+    return model.selectedRowsProperty();
   }
 
   @Override
-  public ObjectProperty<AbundanceMeasure> abundanceMeasureProperty() {
-    return model.abundanceProperty();
+  public ObjectProperty<MetadataColumn<?>> groupingColumnProperty() {
+    return model.metadataColumnProperty();
   }
 }

@@ -23,23 +23,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.pca_new;
+package io.github.mzmine.modules.dataanalysis.statsdashboard;
 
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
+import java.util.Collection;
+import java.util.List;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
-public class PCAParameters extends SimpleParameterSet {
+public class StatsDashboardTab extends SimpleTab {
 
-  public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1, true);
+  private final StatsDashboardController controller;
 
-  public PCAParameters() {
-    super(flist);
+  public StatsDashboardTab() {
+    super("Statistics dashboard", true, false);
+    controller = new StatsDashboardController();
+    final Region region = controller.buildView();
+    setContent(region);
   }
 
   @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
+  public @NotNull Collection<? extends FeatureList> getFeatureLists() {
+    return controller.selectedFeatureListsProperty().getValue();
   }
+
+  @Override
+  public @NotNull Collection<? extends FeatureList> getAlignedFeatureLists() {
+    return controller.selectedFeatureListsProperty().getValue();
+  }
+
+  @Override
+  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
+    controller.selectedFeatureListsProperty().setValue(List.copyOf(featureLists));
+  }
+
 }

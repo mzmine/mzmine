@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.significance;
+package io.github.mzmine.modules.dataanalysis.utils;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunction;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -41,11 +43,6 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 
 public class StatisticUtils {
-
-  public static final Function<RealVector, Double> oneFifthOfMinimumImputer = realVector ->
-      realVector.getMinValue() * 1 / 5;
-
-  public static final Function<RealVector, Double> zeroImputer = _ -> 0d;
 
   public static double[] extractAbundance(FeatureListRow row, List<RawDataFile> group,
       AbundanceMeasure measure) {
@@ -61,6 +58,9 @@ public class StatisticUtils {
     }).toArray();
   }
 
+  /**
+   * Calculates the log2 transformed fold change between two groups.
+   */
   public static double calculateLog2FoldChange(List<RawDataFile> groupAFiles,
       List<RawDataFile> groupBFiles, AbundanceMeasure abundanceMeasure,
       RowSignificanceTestResult result) {
@@ -75,7 +75,7 @@ public class StatisticUtils {
   /**
    * Performs mean centering on the data. Values may only be positive.
    */
-  public static RealMatrix performMeanCenter(RealMatrix data, boolean inPlace) {
+  public static RealMatrix center(RealMatrix data, boolean inPlace) {
 
     RealMatrix result = inPlace ? data
         : new Array2DRowRealMatrix(data.getRowDimension(), data.getColumnDimension());
@@ -99,21 +99,21 @@ public class StatisticUtils {
   /**
    * Scales the values in every column to be between 0-1. To be used before centering the matrix.
    */
-  public static RealMatrix scaleToUnitVariance(RealMatrix data, boolean inPlace) {
+  public static RealMatrix scale(RealMatrix data, ScalingFunction scaling, boolean inPlace) {
     final RealMatrix result = inPlace ? data
         : new Array2DRowRealMatrix(data.getRowDimension(), data.getColumnDimension());
 
     for (int colIndex = 0; colIndex < data.getColumnDimension(); colIndex++) {
       final RealVector columnVector = data.getColumnVector(colIndex);
-      final double columnMax = columnVector.getLInfNorm();
-      columnVector.mapDivide(columnMax);
-      result.setColumnVector(colIndex, columnVector);
+      final RealVector resultVector = scaling.apply(columnVector);
+      result.setColumnVector(colIndex, resultVector);
     }
     return result;
   }
 
-  public static RealMatrix scaleAndCenter(RealMatrix data, boolean inPlace) {
-    return performMeanCenter(scaleToUnitVariance(data, inPlace), inPlace);
+  public static RealMatrix centerAndScale(RealMatrix data, ScalingFunction scaling,
+      boolean inPlace) {
+    return scale(center(data, inPlace), scaling, inPlace);
   }
 
   public static RealMatrix imputeMissingValues(RealMatrix data, boolean inPlace,
@@ -125,7 +125,7 @@ public class StatisticUtils {
       final double imputedValue = imputationFunction.apply(columnVector);
       for (int i = 0; i < columnVector.getDimension(); i++) {
         final double entry = columnVector.getEntry(i);
-        if (Double.compare(entry, 0d) == 0 || Double.isNaN(entry)) {
+        if (Double.isNaN(entry)) {
           columnVector.setEntry(i, imputedValue);
         }
       }

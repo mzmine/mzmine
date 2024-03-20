@@ -42,6 +42,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.util.collections.SortOrder;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
@@ -110,8 +111,17 @@ class CompoundAnnotationUtilsTest {
     List<DataType> types = DataTypes.getAll(FormulaType.class, MZType.class, SmilesStructureType.class,
         LipidMatchListType.class, SpectralLibraryMatchesType.class, MissingValueType.class,
         MissingValueType.class);
-    var map = CompoundAnnotationUtils.rankUniqueAnnotationTypes((Collection) types);
+    var map = CompoundAnnotationUtils.rankUniqueAnnotationTypes((Collection) types,
+        SortOrder.DESCENDING);
     assertEquals(3, map.size());
     assertEquals(0, map.get(DataTypes.get(SpectralLibraryMatchesType.class)));
+    assertEquals(1, map.get(DataTypes.get(LipidMatchListType.class)));
+    assertEquals(2, map.get(DataTypes.get(MissingValueType.class)));
+    map = CompoundAnnotationUtils.rankUniqueAnnotationTypes((Collection) types,
+        SortOrder.ASCENDING);
+    assertEquals(3, map.size());
+    assertEquals(0, map.get(DataTypes.get(MissingValueType.class)));
+    assertEquals(1, map.get(DataTypes.get(LipidMatchListType.class)));
+    assertEquals(2, map.get(DataTypes.get(SpectralLibraryMatchesType.class)));
   }
 }

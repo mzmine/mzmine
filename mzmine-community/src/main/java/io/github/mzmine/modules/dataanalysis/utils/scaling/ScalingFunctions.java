@@ -23,23 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.pca_new;
+package io.github.mzmine.modules.dataanalysis.utils.scaling;
 
-import io.github.mzmine.parameters.impl.IonMobilitySupport;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import org.jetbrains.annotations.NotNull;
+public enum ScalingFunctions {
+  AutoScaling, ParetoScaling, RangeScaling;
 
-public class PCAParameters extends SimpleParameterSet {
-
-  public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1, true);
-
-  public PCAParameters() {
-    super(flist);
+  public ScalingFunction getScalingFunction() {
+    return switch (this) {
+      case AutoScaling -> new AutoScalingFunction();
+      case ParetoScaling -> new ParetoScalingFunction();
+      case RangeScaling -> new RangeScalingFunction();
+    };
   }
 
   @Override
-  public @NotNull IonMobilitySupport getIonMobilitySupport() {
-    return IonMobilitySupport.SUPPORTED;
+  public String toString() {
+    return switch (this) {
+      case AutoScaling -> "Auto scaling (SD)";
+      case ParetoScaling -> "Pareto scaling (√SD)";
+      case RangeScaling -> "Range scaling [-1; 1]";
+    };
   }
 }
