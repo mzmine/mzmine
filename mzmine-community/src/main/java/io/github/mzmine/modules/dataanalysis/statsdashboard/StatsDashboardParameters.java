@@ -23,12 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx;
+package io.github.mzmine.modules.dataanalysis.statsdashboard;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
-import javafx.beans.property.ObjectProperty;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import org.jetbrains.annotations.NotNull;
 
-public non-sealed interface SelectedAbundanceMeasureController extends FxControllerBinding {
+public class StatsDashboardParameters extends SimpleParameterSet {
 
-  ObjectProperty<AbundanceMeasure> abundanceMeasureProperty();
+  public static final FeatureListsParameter flists = new FeatureListsParameter(1, 1, true);
+
+  public StatsDashboardParameters() {
+    super(flists);
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

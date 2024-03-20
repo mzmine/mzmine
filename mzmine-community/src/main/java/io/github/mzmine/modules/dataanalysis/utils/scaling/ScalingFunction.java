@@ -23,12 +23,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx;
+package io.github.mzmine.modules.dataanalysis.utils.scaling;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.util.List;
-import javafx.beans.property.ObjectProperty;
+import java.util.function.Function;
+import org.apache.commons.math3.linear.RealVector;
 
-public non-sealed interface SelectedRowsController extends FxControllerBinding {
-  ObjectProperty<List<FeatureListRow>> selectedRowsProperty();
+/**
+ * This interface describes the scaling of the intensities or areas from a feature table prior to
+ * statistical analysis. A statistician recommended "AutoScaling" as a default, which scales
+ * intensities to the standard deviation of the row.
+ */
+public interface ScalingFunction extends Function<RealVector, RealVector> {
+
 }

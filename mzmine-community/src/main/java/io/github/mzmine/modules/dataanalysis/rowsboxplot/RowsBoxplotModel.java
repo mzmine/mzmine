@@ -37,54 +37,55 @@ public class RowsBoxplotModel {
 
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
   private final ObjectProperty<@Nullable MetadataColumn<?>> groupingColumn = new SimpleObjectProperty<>();
-  private final ObjectProperty<@Nullable RowBarDataset> dataset = new SimpleObjectProperty<>();
-  private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>();
+  private final ObjectProperty<@Nullable RowBoxPlotDataset> dataset = new SimpleObjectProperty<>();
+  private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>(
+      AbundanceMeasure.Height);
 
   public List<FeatureListRow> getSelectedRows() {
     return selectedRows.get();
-  }
-
-  public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
-    return selectedRows;
   }
 
   public void setSelectedRows(List<FeatureListRow> selectedRows) {
     this.selectedRows.set(selectedRows);
   }
 
-  public @Nullable MetadataColumn<?> getGroupingColumn() {
-    return groupingColumn.get();
+  public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
+    return selectedRows;
   }
 
-  public ObjectProperty<@Nullable MetadataColumn<?>> groupingColumnProperty() {
-    return groupingColumn;
+  public @Nullable MetadataColumn<?> getGroupingColumn() {
+    return groupingColumn.get();
   }
 
   public void setGroupingColumn(@Nullable MetadataColumn<?> groupingColumn) {
     this.groupingColumn.set(groupingColumn);
   }
 
-  public @Nullable RowBarDataset getDataset() {
+  public ObjectProperty<@Nullable MetadataColumn<?>> groupingColumnProperty() {
+    return groupingColumn;
+  }
+
+  public @Nullable RowBoxPlotDataset getDataset() {
     return dataset.get();
   }
 
-  public ObjectProperty<@Nullable RowBarDataset> datasetProperty() {
-    return dataset;
+  public void setDataset(@Nullable RowBoxPlotDataset dataset) {
+    this.dataset.set(dataset);
   }
 
-  public void setDataset(@Nullable RowBarDataset dataset) {
-    this.dataset.set(dataset);
+  public ObjectProperty<@Nullable RowBoxPlotDataset> datasetProperty() {
+    return dataset;
   }
 
   public AbundanceMeasure getAbundanceMeasure() {
     return abundanceMeasure.get();
   }
 
-  public ObjectProperty<AbundanceMeasure> abundanceMeasureProperty() {
-    return abundanceMeasure;
-  }
-
   public void setAbundanceMeasure(AbundanceMeasure abundanceMeasure) {
     this.abundanceMeasure.set(abundanceMeasure);
+  }
+
+  public ObjectProperty<AbundanceMeasure> abundanceMeasureProperty() {
+    return abundanceMeasure;
   }
 }

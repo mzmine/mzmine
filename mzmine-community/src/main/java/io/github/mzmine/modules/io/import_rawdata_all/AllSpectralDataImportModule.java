@@ -61,6 +61,7 @@ import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImport
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
@@ -221,6 +222,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 
     // collect all tasks and run them on ThreadPoolTask
     List<Task> tasks = new ArrayList<>();
+    // collect data import tasks to then load metadata once all data was loaded
+    List<Task> dataImportTasks = new ArrayList<>();
 
     // precheck first, make sure all
     File[] selectedFiles = Arrays.stream(
@@ -336,6 +339,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         // add task to list
         if (newTask != null) {
           tasks.add(newTask);
+          dataImportTasks.add(newTask);
 
           if (i == fileName.length() - 1) {
             newTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
@@ -363,7 +367,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 //    var threadPoolTask = new ThreadPoolTask(description , nThreads, tasks);
 //    tasksToAdd.add(threadPoolTask);
 
-    tasksToAdd.addAll(tasks);
+    AllSpectralDataImportMainTask mainTask = new AllSpectralDataImportMainTask(tasks, parameters);
+    tasksToAdd.add(mainTask);
 
     return ExitCode.OK;
   }

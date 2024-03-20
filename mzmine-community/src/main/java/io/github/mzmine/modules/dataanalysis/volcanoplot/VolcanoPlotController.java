@@ -27,11 +27,11 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.framework.fx.SelectedFeatureListsController;
-import io.github.mzmine.gui.framework.fx.SelectedRowsController;
+import io.github.mzmine.gui.framework.fx.SelectedFeatureListsBinding;
+import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
-import io.github.mzmine.javafx.mvci.FxInteractor;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.layout.Region;
@@ -39,10 +39,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class VolcanoPlotController extends FxController<VolcanoPlotModel> implements
-    SelectedRowsController, SelectedFeatureListsController {
+    SelectedRowsBinding, SelectedFeatureListsBinding {
 
   private final VolcanoPlotViewBuilder viewBuilder;
   private final Region view;
+
+  public VolcanoPlotController() {
+    this(null);
+  }
 
   public VolcanoPlotController(@Nullable FeatureList flist) {
     super(new VolcanoPlotModel());
@@ -55,18 +59,13 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> implem
   }
 
   private void initializeListeners() {
-    model.testProperty().addListener((_, _, newValue) -> {
-      if (newValue != null) {
-        computeDataset();
-      }
-    });
-    model.flistsProperty().addListener(_ -> computeDataset());
-    model.abundanceMeasureProperty().addListener(_ -> computeDataset());
-    model.pValueProperty().addListener(_ -> computeDataset());
+    PropertyUtils.onChange(this::computeDataset, model.testProperty(), model.flistsProperty(),
+        model.abundanceMeasureProperty(), model.pValueProperty());
   }
 
   private void computeDataset() {
-    onTaskThread(new VolcanoPlotUpdateTask(model));
+    // wait and update
+    onTaskThreadDelayed(new VolcanoPlotUpdateTask(model));
   }
 
   @Override
@@ -76,11 +75,6 @@ public class VolcanoPlotController extends FxController<VolcanoPlotModel> implem
 
   public Region getView() {
     return view;
-  }
-
-  @Override
-  protected @Nullable FxInteractor<VolcanoPlotModel> getInteractor() {
-    return null;
   }
 
   @Override

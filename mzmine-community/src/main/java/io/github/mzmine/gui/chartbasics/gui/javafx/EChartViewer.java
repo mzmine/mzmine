@@ -640,6 +640,16 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
     return marker;
   }
 
+  public Marker addRangeMarker(double value, Color color, float alpha) {
+    final ValueMarker marker = new ValueMarker(value);
+    marker.setStroke(
+        new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{7}, 0f));
+    marker.setPaint(color);
+    marker.setAlpha(alpha);
+    getChart().getXYPlot().addRangeMarker(marker, Layer.BACKGROUND);
+    return marker;
+  }
+
   public Marker addDomainMarker(double lowerValue, double upperValue, Color color, float alpha) {
     final IntervalMarker marker = new IntervalMarker(lowerValue, upperValue);
     marker.setStroke(

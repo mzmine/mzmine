@@ -446,6 +446,9 @@
         userData="io.github.mzmine.modules.dataprocessing.align_append_rows.MergeAlignerModule"/>
       <MenuItem text="RANSAC aligner" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.align_ransac.RansacAlignerModule"/>
+      <MenuItem text="GC aligner"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerModule"/>
       <MenuItem text="Hierarchical aligner (GC)"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.align_hierarchical.HierarAlignerGcModule"/>
@@ -520,7 +523,10 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule"/>
     </Menu>
 
-    <Menu text="Data analysis">
+    <Menu text="Statistics">
+      <MenuItem text="Statistics dashboard"
+              onAction="#runModule"
+              userData="io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule"/>
       <MenuItem text="Volcano plot"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotModule"/>

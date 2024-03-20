@@ -29,8 +29,8 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +51,7 @@ public class CollectionUtils {
    * @return Map object to index in collection
    */
   public static <T> Map<T, Integer> indexMap(Collection<T> list) {
-    Map<T, Integer> map = new HashMap<>();
+    Map<T, Integer> map = new LinkedHashMap<>(list.size());
     int i = 0;
     for (final T value : list) {
       map.put(value, i);
@@ -67,7 +67,7 @@ public class CollectionUtils {
    * @return Map object to index in collection
    */
   public static <T> Map<T, Integer> indexMap(T[] array) {
-    Map<T, Integer> map = new HashMap<>();
+    Map<T, Integer> map = new LinkedHashMap<>(array.length);
     for (int i = 0; i < array.length; i++) {
       map.put(array[i], i);
     }

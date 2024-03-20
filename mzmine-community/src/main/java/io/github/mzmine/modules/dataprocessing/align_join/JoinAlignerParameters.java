@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,6 +41,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 import java.text.DecimalFormat;
+import java.util.Collection;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -100,6 +101,19 @@ public class JoinAlignerParameters extends SimpleParameterSet {
             mobilityTolerance, mobilityWeight, SameChargeRequired, SameIDRequired,
             compareIsotopePattern, compareSpectraSimilarity, handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/join_aligner/join_aligner.html");
+  }
+
+  @Override
+  public boolean checkParameterValues(final Collection<String> errorMessages,
+      final boolean skipRawDataAndFeatureListParameters) {
+    boolean state = super.checkParameterValues(errorMessages, skipRawDataAndFeatureListParameters);
+
+    var mzWeight = getValue(MZWeight);
+    var rtWeight = getValue(RTWeight);
+    if(mzWeight==0 && rtWeight==0) {
+      errorMessages.add("Cannot align with both rt and mz weight 0");
+    }
+    return state;
   }
 
   @NotNull

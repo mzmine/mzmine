@@ -26,18 +26,30 @@
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunction;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunction;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
+import io.github.mzmine.util.collections.SortOrder;
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
@@ -45,12 +57,16 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
   private final TotalFinishedItemsProgress progressProvider = new TotalFinishedItemsProgress(3);
   private final Integer rangePcIndex;
   private final Integer domainPcIndex;
-  private final String metadataColumn;
+  private final MetadataColumn<?> metadataColumn;
+  private final List<FeatureListRow> selectedRows;
   private final AbundanceMeasure abundance;
   private final List<FeatureList> flists;
   private final List<DatasetAndRenderer> scoresDatasets = new ArrayList<>();
   private final List<DatasetAndRenderer> loadingsDatasets = new ArrayList<>();
   private final List<Integer> components = new ArrayList<>();
+  private final ImputationFunction imputer;
+
+  private final ScalingFunction scaling;
   private PCARowsResult pcaRowsResult;
 
   protected PCAUpdateTask(@NotNull String taskName, PCAModel model) {
@@ -59,8 +75,15 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     domainPcIndex = Objects.requireNonNullElse(model.getDomainPc(), 0) - 1;
     rangePcIndex = Objects.requireNonNullElse(model.getRangePc(), 0) - 1;
     metadataColumn = model.getMetadataColumn();
+    selectedRows = model.getSelectedRows();
     flists = model.getFlists();
     abundance = model.getAbundance();
+
+    final ScalingFunctions scalingFunction = model.getScalingFunction();
+    scaling = scalingFunction.getScalingFunction();
+
+    final ImputationFunctions imputationFunction = model.getImputationFunction();
+    imputer = imputationFunction.getImputer();
   }
 
   @Override
@@ -69,10 +92,10 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
       return false;
     }
 
-    if (metadataColumn != null && MZmineCore.getProjectMetadata().getColumnByName(metadataColumn) == null
-        && !metadataColumn.isBlank()) {
-      return false;
-    }
+//    if (metadataColumn != null && MZmineCore.getProjectMetadata().getColumnByName(metadataColumn) == null
+//        && !metadataColumn.isBlank()) {
+//      return false;
+//    }
 
     if (flists == null || flists.isEmpty() || flists.getFirst() == null) {
       return false;
@@ -87,17 +110,26 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 
   @Override
   protected void process() {
-    pcaRowsResult = PCAUtils.performPCAOnRows(flists.get(0).getRows(), abundance);
+    final ObservableList<FeatureListRow> rows = flists.get(0).getRows();
+    final Comparator<? super DataType<?>> annotationPrioSorter = FeatureAnnotationPriority.createSorter(
+        SortOrder.ASCENDING);
+    final Map<FeatureListRow, DataType<?>> rowsMappedToBestAnnotation = CompoundAnnotationUtils.mapBestAnnotationTypesByPriority(
+        rows, true);
+    final List<FeatureListRow> rowsSortedByAnnotationPrio = rows.stream().sorted(
+        ((r1, r2) -> annotationPrioSorter.compare(rowsMappedToBestAnnotation.get(r1),
+            rowsMappedToBestAnnotation.get(r2)))).toList();
+
+    pcaRowsResult = PCAUtils.performPCAOnRows(rowsSortedByAnnotationPrio, abundance, scaling,
+        imputer);
     progressProvider.getAndIncrement();
 
     final PCAScoresProvider scores = new PCAScoresProvider(pcaRowsResult, "Scores", Color.RED,
-        domainPcIndex, rangePcIndex,
-        MZmineCore.getProjectMetadata().getColumnByName(metadataColumn));
+        domainPcIndex, rangePcIndex, metadataColumn);
     final ColoredXYZDataset scoresDS = new ColoredXYZDataset(scores, RunOption.THIS_THREAD);
     progressProvider.getAndIncrement();
 
-    final PCALoadingsProvider loadings = new PCALoadingsProvider(pcaRowsResult, "Loadings", Color.RED,
-        domainPcIndex, rangePcIndex);
+    final PCALoadingsProvider loadings = new PCALoadingsProvider(pcaRowsResult, "Loadings",
+        Color.RED, domainPcIndex, rangePcIndex);
     final ColoredXYZDataset loadingsDS = new ColoredXYZDataset(loadings, RunOption.THIS_THREAD);
     progressProvider.getAndIncrement();
 
@@ -115,7 +147,10 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
     model.setScoresDatasets(scoresDatasets);
     model.setLoadingsDatasets(loadingsDatasets);
     model.setPcaResult(pcaRowsResult);
-    model.getAvailablePCs().setAll(components);
+
+    if (model.getAvailablePCs().size() != components.size()) {
+      model.getAvailablePCs().setAll(components);
+    }
 
     if (rangePcIndex < components.size()) {
       model.setRangePc(rangePcIndex + 1);

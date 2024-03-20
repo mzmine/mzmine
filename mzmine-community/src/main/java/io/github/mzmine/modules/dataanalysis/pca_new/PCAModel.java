@@ -29,15 +29,17 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
+import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
+import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 
 public class PCAModel {
 
@@ -49,13 +51,18 @@ public class PCAModel {
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
   private final ObjectProperty<AbundanceMeasure> abundance = new SimpleObjectProperty<>(
       AbundanceMeasure.Height);
-  private final StringProperty metadataColumn = new SimpleStringProperty();
+  private final ObjectProperty<MetadataColumn<?>> metadataColumn = new SimpleObjectProperty<>();
   private final ObjectProperty<List<DatasetAndRenderer>> scoresDatasets = new SimpleObjectProperty<>(
       List.of());
   private final ObjectProperty<List<DatasetAndRenderer>> loadingsDatasets = new SimpleObjectProperty<>(
       List.of());
 
   private final ObjectProperty<PCARowsResult> pcaResult = new SimpleObjectProperty<>();
+  private final ObjectProperty<@NotNull ScalingFunctions> scalingFunction = new SimpleObjectProperty<>(
+      ScalingFunctions.AutoScaling);
+
+  private final ObjectProperty<@NotNull ImputationFunctions> imputationFunction = new SimpleObjectProperty<>(
+      ImputationFunctions.OneFifthOfMinimum);
 
   public ObservableList<Integer> getAvailablePCs() {
     return availablePCs;
@@ -85,15 +92,15 @@ public class PCAModel {
     return rangePc;
   }
 
-  public String getMetadataColumn() {
+  public MetadataColumn<?> getMetadataColumn() {
     return metadataColumn.get();
   }
 
-  public void setMetadataColumn(String metadataColumn) {
+  public void setMetadataColumn(MetadataColumn<?> metadataColumn) {
     this.metadataColumn.set(metadataColumn);
   }
 
-  public StringProperty metadataColumnProperty() {
+  public ObjectProperty<MetadataColumn<?>> metadataColumnProperty() {
     return metadataColumn;
   }
 
@@ -167,5 +174,29 @@ public class PCAModel {
 
   public ObjectProperty<PCARowsResult> pcaResultProperty() {
     return pcaResult;
+  }
+
+  public @NotNull ScalingFunctions getScalingFunction() {
+    return scalingFunction.get();
+  }
+
+  public void setScalingFunction(@NotNull ScalingFunctions scalingFunction) {
+    this.scalingFunction.set(scalingFunction);
+  }
+
+  public ObjectProperty<@NotNull ScalingFunctions> scalingFunctionProperty() {
+    return scalingFunction;
+  }
+
+  public @NotNull ImputationFunctions getImputationFunction() {
+    return imputationFunction.get();
+  }
+
+  public void setImputationFunction(@NotNull ImputationFunctions imputationFunction) {
+    this.imputationFunction.set(imputationFunction);
+  }
+
+  public ObjectProperty<@NotNull ImputationFunctions> imputationFunctionProperty() {
+    return imputationFunction;
   }
 }

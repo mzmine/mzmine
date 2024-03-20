@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.collections.CollectionUtils;
+import io.github.mzmine.util.collections.SortOrder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -87,16 +88,18 @@ public class CompoundAnnotationUtils {
   }
 
   /**
-   * @param types can contain duplicates or nulls - that are filtered out
+   * @param types     can contain duplicates or nulls - that are filtered out
+   * @param order order either ascending from missing to best match or reverse
    * @return map of DataType to their rank in
    * {@link FeatureAnnotationPriority#getDataTypesInOrder()}. If {@link MissingValueType} is found,
    * it is added as the last rank priority to the map
    */
   @NotNull
-  public static Map<DataType<?>, Integer> rankUniqueAnnotationTypes(Collection<DataType<?>> types) {
+  public static Map<DataType<?>, Integer> rankUniqueAnnotationTypes(Collection<DataType<?>> types,
+      @NotNull final SortOrder order) {
     var sortedUniqueTypes = types.stream().filter(Objects::nonNull).distinct()
         .filter(CompoundAnnotationUtils::isAnnotationOrMissingType)
-        .sorted(FeatureAnnotationPriority.createDefaultSorter()).toList();
+        .sorted(FeatureAnnotationPriority.createSorter(order)).toList();
     return CollectionUtils.indexMap(sortedUniqueTypes);
   }
 

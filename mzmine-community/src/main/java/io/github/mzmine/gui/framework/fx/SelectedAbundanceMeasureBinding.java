@@ -25,10 +25,10 @@
 
 package io.github.mzmine.gui.framework.fx;
 
-import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import javafx.beans.property.ObjectProperty;
 
-public non-sealed interface SelectedMetadataColumnController extends FxControllerBinding {
+public non-sealed interface SelectedAbundanceMeasureBinding extends FxControllerBinding {
 
-  ObjectProperty<MetadataColumn<?>> groupingColumnProperty();
+  ObjectProperty<AbundanceMeasure> abundanceMeasureProperty();
 }

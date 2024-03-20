@@ -25,9 +25,9 @@
 
 package io.github.mzmine.gui.framework.fx;
 
-public sealed interface FxControllerBinding permits SelectedAbundanceMeasureController,
-    SelectedMetadataColumnController, SelectedRowsController, SelectedFeaturesController,
-    SelectedFilesController, SelectedFeatureListsController {
+public sealed interface FxControllerBinding permits SelectedAbundanceMeasureBinding,
+    SelectedMetadataColumnBinding, SelectedRowsBinding, SelectedFeaturesBinding,
+    SelectedFilesBinding, SelectedFeatureListsBinding {
 
   public static void bindExposedProperties(Object master, Object child) {
     if (master instanceof FxControllerBinding && child instanceof FxControllerBinding) {
@@ -40,27 +40,47 @@ public sealed interface FxControllerBinding permits SelectedAbundanceMeasureCont
       return;
     }
 
-    if (master instanceof SelectedAbundanceMeasureController m
-        && child instanceof SelectedAbundanceMeasureController c) {
+    if (master instanceof SelectedAbundanceMeasureBinding m
+        && child instanceof SelectedAbundanceMeasureBinding c) {
       m.abundanceMeasureProperty().bindBidirectional(c.abundanceMeasureProperty());
     }
-    if (master instanceof SelectedFeatureListsController m
-        && child instanceof SelectedFeatureListsController c) {
+    if (master instanceof SelectedFeatureListsBinding m
+        && child instanceof SelectedFeatureListsBinding c) {
       m.selectedFeatureListsProperty().bindBidirectional(c.selectedFeatureListsProperty());
     }
-    if (master instanceof SelectedFeaturesController m
-        && child instanceof SelectedFeaturesController c) {
+    if (master instanceof SelectedFeaturesBinding m && child instanceof SelectedFeaturesBinding c) {
       m.selectedFeaturesProperty().bindBidirectional(c.selectedFeaturesProperty());
     }
-    if (master instanceof SelectedFilesController m && child instanceof SelectedFilesController c) {
+    if (master instanceof SelectedFilesBinding m && child instanceof SelectedFilesBinding c) {
       m.selectedRawFilesProperty().bindBidirectional(c.selectedRawFilesProperty());
     }
-    if (master instanceof SelectedMetadataColumnController m
-        && child instanceof SelectedMetadataColumnController c) {
+    if (master instanceof SelectedMetadataColumnBinding m
+        && child instanceof SelectedMetadataColumnBinding c) {
       m.groupingColumnProperty().bindBidirectional(c.groupingColumnProperty());
     }
-    if (master instanceof SelectedRowsController m && child instanceof SelectedRowsController c) {
+    if (master instanceof SelectedRowsBinding m && child instanceof SelectedRowsBinding c) {
       m.selectedRowsProperty().bindBidirectional(c.selectedRowsProperty());
+    }
+  }
+
+  /**
+   * // note: nothing to do here. This switch shall just remind you of adding new cases to the
+   * {@link #bindExposedProperties} method.
+   */
+  private void reminderToKeepAllCasesCovered(FxControllerBinding b) {
+    switch (b) {
+      case SelectedRowsBinding _ -> {
+      }
+      case SelectedAbundanceMeasureBinding _ -> {
+      }
+      case SelectedFeatureListsBinding _ -> {
+      }
+      case SelectedFeaturesBinding _ -> {
+      }
+      case SelectedFilesBinding _ -> {
+      }
+      case SelectedMetadataColumnBinding _ -> {
+      }
     }
   }
 }

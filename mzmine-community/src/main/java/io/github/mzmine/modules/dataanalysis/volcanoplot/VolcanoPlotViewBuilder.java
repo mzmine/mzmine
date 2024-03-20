@@ -27,12 +27,12 @@ package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.XYValueProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.MZmineCore;
@@ -41,10 +41,8 @@ import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestMod
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
 import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
-import java.awt.BasicStroke;
 import java.awt.Stroke;
 import java.text.DecimalFormat;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,7 +64,8 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.apache.commons.math.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jfree.chart.annotations.XYLineAnnotation;
+import org.jfree.chart.plot.ValueMarker;
+import org.jfree.chart.ui.Layer;
 import org.jfree.data.xy.XYDataset;
 
 public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
@@ -74,7 +73,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
   private static final Logger logger = Logger.getLogger(VolcanoPlotViewBuilder.class.getName());
 
   private final int space = 5;
-  private final Stroke annotationStroke = new BasicStroke(1.0f);
+  private final Stroke annotationStroke = EStandardChartTheme.DEFAULT_MARKER_STROKE;
   private SimpleXYChart<PlotXYDataProvider> chart;
 
   public VolcanoPlotViewBuilder(VolcanoPlotModel model) {
@@ -100,7 +99,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
     mainPane.setBottom(accordion);
 
     chart.setDefaultRenderer(new ColoredXYShapeRenderer());
-    model.datasetsProperty().addListener((obs, o, n) -> {
+    model.datasetsProperty().addListener((_, _, n) -> {
       chart.applyWithNotifyChanges(false, () -> {
         final var neutralColor = MZmineCore.getConfiguration().getDefaultColorPalette()
             .getNeutralColorAWT();
@@ -112,24 +111,23 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
         n.forEach(datasetAndRenderer -> chart.addDataset(datasetAndRenderer.dataset(),
             datasetAndRenderer.renderer()));
 
+        // all markers are set to index 0, so we dont need to remove them if a value updates.
         // p-Value line
-        final XYLineAnnotation pValueLine = new XYLineAnnotation(-1000d,
-            -Math.log10(model.getpValue()), 1000d, -Math.log10(model.getpValue()), annotationStroke,
-            neutralColor);
+        chart.getXYPlot().addRangeMarker(0,
+            new ValueMarker(-Math.log10(model.getpValue()), neutralColor, annotationStroke),
+            Layer.FOREGROUND);
         // annotation for fold change (a/b) = 0.5 (half)
-        final XYLineAnnotation leftFoldChange = new XYLineAnnotation(MathUtils.log(2, 0.5), 1000,
-            MathUtils.log(2, 0.5), -1000, annotationStroke, neutralColor);
+        chart.getXYPlot().addDomainMarker(0,
+            new ValueMarker(MathUtils.log(2, 0.5), neutralColor, annotationStroke),
+            Layer.FOREGROUND);
         // annotation for fold change (a/b) = 2 (double)
-        final XYLineAnnotation rightFoldChange = new XYLineAnnotation(1, 1000, 1, -1000,
-            annotationStroke, neutralColor);
-        chart.getXYPlot().addAnnotation(pValueLine);
-        chart.getXYPlot().addAnnotation(leftFoldChange);
-        chart.getXYPlot().addAnnotation(rightFoldChange);
+        chart.getXYPlot().addDomainMarker(0, new ValueMarker(1, neutralColor, annotationStroke),
+            Layer.FOREGROUND);
       });
     });
 
     addChartValueListener();
-
+    initializeExternalSelectedRowListener();
     return mainPane;
   }
 
@@ -181,13 +179,13 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
     controls.getChildren().add(testConfigPane);
 
     // the combo box allows selection of the test and creates a component to configure the test
-    testComboBox.valueProperty().addListener((obs, o, n) -> {
+    testComboBox.valueProperty().addListener((_, _, n) -> {
       testConfigPane.getChildren().clear();
       final Region component = n.getModule().createConfigurationComponent();
       testConfigPane.getChildren().add(component);
 
       ((ValuePropertyComponent<?>) component).valueProperty()
-          .addListener((ChangeListener<Object>) (observableValue, o1, t1) -> {
+          .addListener((ChangeListener<Object>) (_, _, _) -> {
             try {
               // try to update the test
               final RowSignificanceTest instance = n.getModule()
@@ -201,7 +199,7 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
     });
 
     // listen to external changes of the test and update the combo box accordingly
-    model.testProperty().addListener((observableValue, rowSignificanceTest, newTest) -> {
+    model.testProperty().addListener((_, _, newTest) -> {
       if (newTest == null) {
         return;
       }
@@ -237,47 +235,20 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
 
   // todo: enable as soon as we merge the pr with mvci row listener interfaces.
   private void initializeExternalSelectedRowListener() {
-    model.selectedRowsProperty().addListener((obs, o, rows) -> {
-      // todo: this listener should be executed on a seperate thread to not stop the gui from
-      //  working while looping through the values
-      //  is it best practice to do this searching from the controller?
-      //  then the controller needs to access this view's chart.
-      //  Otherwise this view needs to be able to start a task on the controller.
-      if (rows.isEmpty()) {
+    model.selectedRowsProperty().addListener((_, old, rows) -> {
+      if (rows.isEmpty() || old.equals(rows)) {
         return;
       }
-
       final FeatureListRow selectedRow = rows.get(0);
-      final LinkedHashMap<Integer, XYDataset> datasets = chart.getAllDatasets();
-      for (XYDataset dataset : datasets.values()) {
-        if (!(dataset instanceof ColoredXYDataset cds)) {
-          continue;
-        }
-        final XYValueProvider valueProvider = cds.getValueProvider();
-        if (!(valueProvider instanceof XYItemObjectProvider<?> provider)) {
-          return;
-        }
-        for (int i = 0; i < valueProvider.getValueCount(); i++) {
-          final Object itemObject = provider.getItemObject(i);
-          if (!(itemObject instanceof RowSignificanceTestResult result)) {
-            continue;
-          }
-          if (result.row().equals(selectedRow)) {
-            logger.finest(
-                STR."Selecting row id \{selectedRow.getID()} in dataset \{cds.getSeriesKey()}.");
-
-            int finalI = i;
-            // todo: only this should be done on the fx thread
-            chart.applyWithNotifyChanges(false, () -> {
-              chart.setCursorPosition(new PlotCursorPosition(valueProvider.getDomainValue(finalI),
-                  valueProvider.getRangeValue(finalI), finalI, dataset));
-              chart.getXYPlot().setDomainCrosshairValue(valueProvider.getDomainValue(finalI));
-              chart.getXYPlot().setRangeCrosshairValue(valueProvider.getRangeValue(finalI));
-            });
-            return;
-          }
-        }
+      if (selectedRow == null) {
+        return;
       }
+      SimpleChartUtility.selectItemInChart(chart, selectedRow, o1 -> {
+        if (!(o1 instanceof RowSignificanceTestResult result)) {
+          return null;
+        }
+        return result.row();
+      }, RowSignificanceTestResult.class);
     });
   }
 }

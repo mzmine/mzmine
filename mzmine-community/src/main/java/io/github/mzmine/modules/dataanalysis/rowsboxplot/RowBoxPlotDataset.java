@@ -38,9 +38,9 @@ import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 
-public class RowBarDataset extends DefaultBoxAndWhiskerCategoryDataset {
+public class RowBoxPlotDataset extends DefaultBoxAndWhiskerCategoryDataset {
 
-  public RowBarDataset(FeatureListRow row, @Nullable MetadataColumn<?> groupingColumn,
+  public RowBoxPlotDataset(FeatureListRow row, @Nullable MetadataColumn<?> groupingColumn,
       AbundanceMeasure abundance) {
 
     if (groupingColumn == null) { // no grouping, so just a single group
@@ -57,7 +57,7 @@ public class RowBarDataset extends DefaultBoxAndWhiskerCategoryDataset {
       final List<Float> values = v.stream()
           .map(file -> abundance.get((ModularFeature) row.getFeature(file)))
           .filter(Objects::nonNull).toList();
-      add(values, 0, groupName);
+      add(values, groupName, STR."\{row.toString()} \{row.getPreferredAnnotationName()}");
     });
   }
 }

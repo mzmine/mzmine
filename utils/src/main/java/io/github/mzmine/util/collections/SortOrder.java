@@ -23,12 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx;
+package io.github.mzmine.util.collections;
 
-import io.github.mzmine.datamodel.features.Feature;
-import java.util.List;
-import javafx.beans.property.ObjectProperty;
+import java.util.Comparator;
 
-public non-sealed interface SelectedFeaturesController extends FxControllerBinding {
-  ObjectProperty<List<Feature>> selectedFeaturesProperty();
+public enum SortOrder {
+  ASCENDING, DESCENDING;
+
+  public Comparator<? super Integer> intComparator() {
+    return this == ASCENDING ? Comparator.naturalOrder() : Comparator.reverseOrder();
+  }
 }

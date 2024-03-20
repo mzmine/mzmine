@@ -25,39 +25,34 @@
 
 package io.github.mzmine.modules.dataanalysis.pca_new;
 
+import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.gui.framework.fx.SelectedFeatureListsController;
-import io.github.mzmine.gui.framework.fx.SelectedRowsController;
+import io.github.mzmine.gui.framework.fx.SelectedAbundanceMeasureBinding;
+import io.github.mzmine.gui.framework.fx.SelectedFeatureListsBinding;
+import io.github.mzmine.gui.framework.fx.SelectedMetadataColumnBinding;
+import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import io.github.mzmine.javafx.properties.LastUpdateProperty;
+import io.github.mzmine.javafx.properties.PropertyUtils;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
-import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
-import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 
-public class PCAController extends FxController<PCAModel> implements SelectedRowsController,
-    SelectedFeatureListsController {
+public class PCAController extends FxController<PCAModel> implements SelectedRowsBinding,
+    SelectedFeatureListsBinding, SelectedMetadataColumnBinding, SelectedAbundanceMeasureBinding {
 
-  private final PauseTransition updateAccumulator = new PauseTransition(Duration.millis(50));
   private final FxViewBuilder<PCAModel> builder;
-
-  // define last so that other properties can be bound
-  private final LastUpdateProperty lastFullUpdateTrigger;
 
   public PCAController() {
     super(new PCAModel());
     builder = new PCAViewBuilder(model);
     //update on changes of these properties
-    lastFullUpdateTrigger = new LastUpdateProperty(model.flistsProperty(), model.domainPcProperty(),
-        model.rangePcProperty(), model.abundanceProperty(), model.metadataColumnProperty());
-
-    updateAccumulator.setOnFinished(_ -> updateNow());
-    lastFullUpdateTrigger.addListener((_, _, _) -> this.waitAndUpdate());
-    updateNow(); // TODO could we call wait and update? or just let the flist be set and then update?
+    PropertyUtils.onChange(this::waitAndUpdate, model.flistsProperty(), model.domainPcProperty(),
+        model.rangePcProperty(), model.abundanceProperty(), model.metadataColumnProperty(),
+        model.scalingFunctionProperty(), model.imputationFunctionProperty());
   }
 
   @Override
@@ -74,15 +69,21 @@ public class PCAController extends FxController<PCAModel> implements SelectedRow
    * Accumulates update calls by waiting for some time
    */
   public void waitAndUpdate() {
-    updateAccumulator.playFromStart(); // accumulate update calls and then update
-  }
-
-  private void updateNow() {
-    onTaskThread(new PCAUpdateTask("update full dataset", model));
+    onTaskThreadDelayed(new PCAUpdateTask("update full dataset", model));
   }
 
   @Override
   public Property<List<FeatureList>> selectedFeatureListsProperty() {
     return model.flistsProperty();
+  }
+
+  @Override
+  public ObjectProperty<MetadataColumn<?>> groupingColumnProperty() {
+    return model.metadataColumnProperty();
+  }
+
+  @Override
+  public ObjectProperty<AbundanceMeasure> abundanceMeasureProperty() {
+    return model.abundanceProperty();
   }
 }

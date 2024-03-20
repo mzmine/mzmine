@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataanalysis.rowsboxplot;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
@@ -35,6 +36,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
 
 public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
@@ -48,21 +50,29 @@ public class RowsBoxplotViewBuilder extends FxViewBuilder<RowsBoxplotModel> {
 
     final NumberFormats formats = MZmineCore.getConfiguration().getGuiFormats();
 
-    final JFreeChart barChart = ChartFactory.createBarChart("Rows box plot", "Metadata",
-        formats.unit("Intensity", "a.u."), null);
+    final JFreeChart barChart = ChartFactory.createBarChart("Rows box plot", "Metadata", "Height",
+        null);
+    ((NumberAxis) barChart.getCategoryPlot().getRangeAxis()).setNumberFormatOverride(
+        formats.intensityFormat());
     final EChartViewer viewer = new EChartViewer(barChart);
+    viewer.setMinWidth(250);
     final BoxAndWhiskerRenderer boxAndWhiskerRenderer = new BoxAndWhiskerRenderer();
+    boxAndWhiskerRenderer.setMeanVisible(false);
 
     barChart.getCategoryPlot().setDataset(0, null);
     barChart.getCategoryPlot().setRenderer(0, boxAndWhiskerRenderer);
 
     model.datasetProperty().addListener((_, _, n) -> {
       final List<FeatureListRow> selectedRows = model.getSelectedRows();
-      if(selectedRows != null && ! selectedRows.isEmpty()) {
+      if (selectedRows != null && !selectedRows.isEmpty()) {
         final FeatureListRow row = selectedRows.getFirst();
         barChart.setTitle(row.toString());
       }
       barChart.getCategoryPlot().setDataset(0, n);
+    });
+
+    model.abundanceMeasureProperty().addListener((_, _, n) -> {
+      barChart.getCategoryPlot().getRangeAxis().setLabel(DataTypes.get(n.type()).getHeaderString());
     });
 
     return new BorderPane(viewer);
