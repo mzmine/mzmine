@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,10 @@
 
 package io.github.mzmine.util;
 
+import static io.github.mzmine.util.FeatureListRowSorter.DEFAULT_RT;
 import static io.github.mzmine.util.FeatureListRowSorter.MZ_ASCENDING;
-import static io.github.mzmine.util.RangeUtils.rangeLength;
+import static io.github.mzmine.util.RangeUtils.calcCenterScore;
+import static io.github.mzmine.util.RangeUtils.isBounded;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
@@ -36,17 +38,19 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentMainType;
 import io.github.mzmine.datamodel.features.types.alignment.AlignmentScores;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.gui.framework.fx.features.ParentFeatureListPaneGroup;
 import io.github.mzmine.modules.dataprocessing.align_join.RowAlignmentScoreCalculator;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.IndexRange;
+import io.github.mzmine.util.javafx.WeakAdapter;
+import io.github.mzmine.util.math.ScoreAccumulator;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
-import io.github.mzmine.util.javafx.WeakAdapter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -128,46 +132,44 @@ public class FeatureListUtils {
     if (!sortedByMzAscending) {
       rows = rows.stream().sorted(MZ_ASCENDING).toList();
     }
-    // search starting point as the insertion index
-    int insertIndex = binarySearch(rows, RangeUtils.rangeCenter(mzRange));
-    if (insertIndex < 0) {
-      insertIndex = -insertIndex - 1;
+
+    IndexRange indexRange = BinarySearch.indexRange(mzRange, rows, FeatureListRow::getAverageMZ);
+    if (indexRange.isEmpty()) {
+      return List.of();
     }
 
     List<FeatureListRow> candidates = new ArrayList<>();
-    // right
-    for (int i = insertIndex; i < rows.size(); i++) {
+    for (int i = indexRange.min(); i < indexRange.maxExclusive(); i++) {
       FeatureListRow row = rows.get(i);
       // test only mz to short circuit
       if (mzRange.contains(row.getAverageMZ())) {
         var rowMobility = row.getAverageMobility();
         var rowRT = row.getAverageRT();
-        if ((rowMobility == null || mobilityRange.contains(rowMobility)) && (rowRT == null
-                                                                             || rtRange.contains(
-            rowRT))) {
+        if ((rowMobility == null || mobilityRange.contains(rowMobility)) //
+            && (rowRT == null || rtRange.contains(rowRT))) {
           candidates.add(row);
         }
-      } else {
-        break;
-      }
-    }
-    // left
-    for (int i = insertIndex - 1; i >= 0; i--) {
-      FeatureListRow row = rows.get(i);
-      // test only mz to short circuit
-      if (mzRange.contains(row.getAverageMZ())) {
-        var rowMobility = row.getAverageMobility();
-        var rowRT = row.getAverageRT();
-        if ((rowMobility == null || mobilityRange.contains(rowMobility)) && (rowRT == null
-                                                                             || rtRange.contains(
-            rowRT))) {
-          candidates.add(row);
-        }
-      } else {
-        break;
       }
     }
     return candidates;
+  }
+
+  /**
+   * All features within all ranges. Use a sorted list to speed up search. Use range.all() instead
+   * of null for missign ranges
+   *
+   * @param rtRange search range in retention time, provide Range.all() if no RT
+   * @param rows    the list of rows to search in
+   * @return an unsorted list of candidates within all three ranges if provided
+   */
+  public static @NotNull List<FeatureListRow> getCandidatesWithinRtRange(
+      @NotNull Range<Float> rtRange, @NotNull List<FeatureListRow> rows,
+      boolean sortedByDefaultRt) {
+
+    if (!sortedByDefaultRt) {
+      rows = rows.stream().sorted(DEFAULT_RT).toList();
+    }
+    return BinarySearch.indexRange(rtRange, rows, FeatureListRow::getAverageRT).sublist(rows);
   }
 
 
@@ -362,6 +364,21 @@ public class FeatureListUtils {
    * mobility values based on tolerances -> ranges). General score is SUM((difference
    * row-center(range)) / rangeLength * factor) / sum(factors)
    *
+   * @param row      target row
+   * @param rtRange  allowed range
+   * @param rtWeight weight factor
+   * @return the alignment score between 0-1 with 1 being a perfect match
+   */
+  public static double getAlignmentScore(FeatureListRow row, @Nullable Range<Float> rtRange,
+      double similarity, double rtWeight, double similarityWeight) {
+    return getAlignmentScore(row.getAverageRT(), rtRange, similarity, rtWeight, similarityWeight);
+  }
+
+  /**
+   * Compare row average values to ranges (during alignment or annotation to other mz, rt, and
+   * mobility values based on tolerances -> ranges). General score is SUM((difference
+   * row-center(range)) / rangeLength * factor) / sum(factors)
+   *
    * @param testMz         tested value
    * @param testRt         tested value
    * @param testMobility   tested value
@@ -378,53 +395,81 @@ public class FeatureListUtils {
       @Nullable Range<Float> mobilityRange, @Nullable Range<Float> ccsRange, double mzWeight,
       double rtWeight, double mobilityWeight, double ccsWeight) {
 
-    // don't score range.all, will distort the scoring.
-    mzRange = mzRange == null || mzRange.equals(Range.all()) ? null : mzRange;
-    rtRange = rtRange == null || rtRange.equals(Range.all()) ? null : rtRange;
-    mobilityRange =
-        mobilityRange == null || mobilityRange.equals(Range.all()) ? null : mobilityRange;
-    ccsRange = ccsRange == null || ccsRange.equals(Range.all()) ? null : ccsRange;
+    ScoreAccumulator score = new ScoreAccumulator();
 
-    double totalWeight = 0;
-
-    double score = 0;
     // values are "matched" if the given value exists in this class and falls within the tolerance.
-    if (mzWeight > 0 && mzRange != null && testMz != null) {
-      final double exactMass = RangeUtils.rangeCenter(mzRange);
-      double diff = Math.abs(testMz - exactMass);
-      double maxAllowedDiff = rangeLength(mzRange) / 2;
-      // no negative numbers
-      score += Math.max(0, (1 - diff / maxAllowedDiff)) * mzWeight;
-      totalWeight += mzWeight;
-    }
+    // don't score range.all, will distort the scoring.
+    checkAndAddCenterScore(score, testMz, mzRange, mzWeight);
+    checkAndAddCenterScore(score, testRt, rtRange, rtWeight);
+    checkAndAddCenterScore(score, testMobility, mobilityRange, mobilityWeight);
+    checkAndAddCenterScore(score, testCCS, ccsRange, ccsWeight);
 
-    if (rtWeight > 0 && rtRange != null && testRt != null) {
-      final Float rt = RangeUtils.rangeCenter(rtRange);
-      float diff = Math.abs(testRt - rt);
-      score += Math.max(0, 1 - (diff / (rangeLength(rtRange) / 2))) * rtWeight;
-      totalWeight += rtWeight;
-    }
-
-    if (mobilityWeight > 0 && mobilityRange != null && testMobility != null) {
-      final Float mobility = RangeUtils.rangeCenter(mobilityRange);
-      float diff = Math.abs(testMobility - mobility);
-      score += Math.max(0, 1 - (diff / (rangeLength(mobilityRange) / 2))) * mobilityWeight;
-      totalWeight += mobilityWeight;
-    }
-
-    if (ccsWeight > 0 && ccsRange != null && testCCS != null) {
-      final Float ccs = RangeUtils.rangeCenter(ccsRange);
-      float diff = Math.abs(testCCS - ccs);
-      score += Math.max(0, 1 - (diff / (rangeLength(ccsRange) / 2))) * ccsWeight;
-      totalWeight += ccsWeight;
-    }
-
-    if (totalWeight == 0) {
-      return 0f;
-    }
-
-    return score / totalWeight;
+    return score.getScore();
   }
+
+
+  /**
+   * Test how close testedValue is to the center of the range (perfect score 1), scaled 0-1. Only
+   * adds the weighted score if value and range are not null, and if weigth is >0
+   *
+   * @param score       accumulates the score and weights
+   * @param testedValue value to be tested for center of range
+   * @param range       center and length of range are used. Unbounded or null ranges will discard
+   *                    this score
+   * @param weight      weight of the score
+   */
+  public static void checkAndAddCenterScore(@NotNull final ScoreAccumulator score,
+      @Nullable final Double testedValue, final @Nullable Range<Double> range,
+      final double weight) {
+    if (weight > 0 && isBounded(range) && testedValue != null) {
+      // no negative numbers
+      score.add(calcCenterScore(testedValue, range), weight);
+    }
+  }
+
+  /**
+   * Test how close testedValue is to the center of the range (perfect score 1), scaled 0-1. Only
+   * adds the weighted score if value and range are not null, and if weigth is >0
+   *
+   * @param score       accumulates the score and weights
+   * @param testedValue value to be tested for center of range
+   * @param range       center and length of range are used. Unbounded or null ranges will discard
+   *                    this score
+   * @param weight      weight of the score
+   */
+  public static void checkAndAddCenterScore(@NotNull final ScoreAccumulator score,
+      @Nullable final Float testedValue, final @Nullable Range<Float> range, final double weight) {
+    if (weight > 0 && isBounded(range) && testedValue != null) {
+      // no negative numbers
+      score.add(calcCenterScore(testedValue, range), weight);
+    }
+  }
+
+  /**
+   * Compare row average values to ranges (during alignment or annotation to other mz, rt, and
+   * mobility values based on tolerances -> ranges). General score is SUM((difference
+   * row-center(range)) / rangeLength * factor) / sum(factors)
+   *
+   * @param testRt           tested value
+   * @param testSimilarity   tested value
+   * @param rtRange          allowed range
+   * @param rtWeight         weight factor
+   * @param similarityWeight weight factor
+   * @return the alignment score between 0-1 with 1 being a perfect match
+   */
+  public static double getAlignmentScore(Float testRt, @Nullable Range<Float> rtRange,
+      double testSimilarity, double rtWeight, double similarityWeight) {
+
+    ScoreAccumulator score = new ScoreAccumulator();
+    // don't score range.all, will distort the scoring.
+    checkAndAddCenterScore(score, testRt, rtRange, rtWeight);
+    if (similarityWeight > 0) {
+      score.add(testSimilarity, similarityWeight);
+    }
+
+    return score.getScore();
+  }
+
 
   /**
    * Sort feature list by default based on raw data type Sort feature list by mz if imaging data

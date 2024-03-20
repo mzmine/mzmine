@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.align_join;
+package io.github.mzmine.modules.dataprocessing.align_gc;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -36,19 +36,18 @@ import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class JoinAlignerModule extends SingleTaskFeatureListsModule {
+public class GCAlignerModule extends SingleTaskFeatureListsModule {
 
-  public JoinAlignerModule() {
-    super("Join aligner", JoinAlignerParameters.class, MZmineModuleCategory.ALIGNMENT, """
-        This method aligns detected features using a match score. This score is calculated based on
-        the mass, retention time, ion mobility of each feature using preset tolerance and weights.""");
+
+  public GCAlignerModule() {
+    super("GC aligner", GCAlignerParameters.class, MZmineModuleCategory.ALIGNMENT,
+        "This module aligns GC-MS feature lists");
   }
 
   @Override
   public @NotNull Task createTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage,
       @NotNull FeatureList[] featureList) {
-    return new JoinAlignerTask(project, storage, moduleCallDate, parameters, this.getClass());
+    return new GCAlignerTask(project, storage, moduleCallDate, parameters, this.getClass());
   }
-
 }
