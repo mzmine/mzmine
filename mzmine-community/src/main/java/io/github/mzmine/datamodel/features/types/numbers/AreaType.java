@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,7 +61,7 @@ public class AreaType extends HeightType {
   }
 
   @Override
-  public @Nullable Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
+  public @Nullable Runnable getDoubleClickAction(final @Nullable FeatureTableFX table, @NotNull ModularFeatureListRow row,
       @NotNull List<RawDataFile> file, @Nullable DataType<?> superType, @Nullable Object value) {
 
     if(file.size() == 1) {

@@ -27,6 +27,8 @@ package io.github.mzmine.util.spectraldb.entry;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
+import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
@@ -52,6 +54,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   @Nullable
   private SpectralLibrary library;
+  private @Nullable MolecularStructure structure;
 
   public SpectralDBEntry(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
       @NotNull double[] intensityValues, @Nullable Map<DBEntryField, Object> fields,
@@ -155,6 +158,10 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
 
   @Override
   public boolean putIfNotNull(DBEntryField field, Object value) {
+    if (field == DBEntryField.SMILES || field == DBEntryField.INCHI) {
+      structure = null; // clear and recalculate later
+    }
+
     if (field != null && value != null) {
       fields.put(field, value);
       return true;
@@ -219,7 +226,7 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
     }
     SpectralDBEntry that = (SpectralDBEntry) o;
     return Objects.equals(fields, that.fields)
-        && getNumberOfDataPoints() == that.getNumberOfDataPoints();
+           && getNumberOfDataPoints() == that.getNumberOfDataPoints();
   }
 
   @Override
@@ -249,6 +256,17 @@ public class SpectralDBEntry extends SimpleMassList implements SpectralLibraryEn
   @Nullable
   public String getLibraryName() {
     return library != null ? library.getName() : null;
+  }
+
+  @Override
+  public MolecularStructure getStructure() {
+    if (structure != null) {
+      return structure;
+    }
+    String smiles = getOrElse(DBEntryField.SMILES, "");
+    String inchi = getOrElse(DBEntryField.INCHI, "");
+    structure = StructureParser.silent().parseStructure(smiles, inchi);
+    return structure;
   }
 
 }

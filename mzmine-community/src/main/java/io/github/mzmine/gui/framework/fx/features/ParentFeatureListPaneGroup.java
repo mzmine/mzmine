@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -101,6 +101,9 @@ public class ParentFeatureListPaneGroup implements FeatureListRowsPane {
     featureTableFX.addListener((obs, oldTable, newTable) -> {
       // then change selected rows in table
       weak.removeAllForParent(oldTable);
+      if (newTable == null) {
+        return;
+      }
 
       // first change active feature list
       // feature list in table might change

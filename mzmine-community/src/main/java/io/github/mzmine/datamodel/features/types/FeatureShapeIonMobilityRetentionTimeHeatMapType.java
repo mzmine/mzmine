@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeIonMobilityRetentionTimeHeatMapChart;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import java.util.List;
 import java.util.logging.Logger;
@@ -93,7 +94,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedGraph
 
   @Nullable
   @Override
-  public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
+  public Runnable getDoubleClickAction(final @Nullable FeatureTableFX table, @NotNull ModularFeatureListRow row,
       @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
     return () -> FxThread.runLater(() -> MZmineCore.getDesktop()
         .addTab(new IMSFeatureVisualizerTab(row.getFeature(file.get(0)))));

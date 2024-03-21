@@ -831,7 +831,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
             id.getDataType().equals(dataType) ? null : id.getDataType();
 
         final ModularFeatureListRow row = getSelectionModel().getSelectedItem().getValue();
-        final Runnable runnable = (dataType.getDoubleClickAction(row, files, superDataType,
+        final Runnable runnable = (dataType.getDoubleClickAction(this, row, files, superDataType,
             cellValue));
         if (runnable != null) {
           MZmineCore.getTaskController().addTask(
