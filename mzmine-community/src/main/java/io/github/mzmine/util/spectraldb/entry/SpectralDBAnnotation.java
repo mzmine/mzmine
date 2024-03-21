@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.MathUtils;
@@ -288,6 +289,12 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
   }
 
   @Nullable
+  public MolecularStructure getStructure() {
+    return entry.getStructure();
+  }
+
+
+  @Nullable
   public Double getMzPpmError() {
     Double libMz = getPrecursorMZ();
     if (libMz == null || testedPrecursorMz == null) {
@@ -313,6 +320,7 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
     }
     return testedRt - libRt;
   }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -325,7 +333,7 @@ public class SpectralDBAnnotation implements FeatureAnnotation, Comparable<Spect
     return Objects.equals(getEntry(), that.getEntry()) && Objects.equals(getSimilarity(),
         that.getSimilarity()) && Objects.equals(ccsError, that.ccsError) && Objects.equals(
         getQueryScan().getScanNumber(), that.getQueryScan().getScanNumber())
-        && getQueryScan().getDataFile().equals(that.getQueryScan().getDataFile());
+           && getQueryScan().getDataFile().equals(that.getQueryScan().getDataFile());
   }
 
   @Override
