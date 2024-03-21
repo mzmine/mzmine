@@ -93,9 +93,9 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
 
     if (isImsActive) {
       makeAndAddImsExpanderStep(q);
-      makeAndAddSmoothingStep(q, false, minRtDataPoints, imsSmoothing);
+      makeAndAddSmoothingStep(q, false, minImsDataPoints, imsSmoothing);
       makeAndAddMobilityResolvingStep(q, groupMs2Params);
-      makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, imsSmoothing);
+      makeAndAddSmoothingStep(q, rtSmoothing, minImsDataPoints, imsSmoothing);
     }
 
     makeAndAddDeisotopingStep(q, intraSampleRtTol);
@@ -130,8 +130,9 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
 
   protected void makeAndAddMetaCorrStep(final BatchQueue q) {
     final boolean useCorrGrouping = minRtDataPoints > 3;
-    RTTolerance rtTol = new RTTolerance(rtFwhm.getTolerance() * (useCorrGrouping ? 1.1f : 0.7f),
-        rtFwhm.getUnit());
+    RTTolerance rtTol = new RTTolerance(
+        intraSampleRtTol.getTolerance() * (useCorrGrouping ? 1.4f : 0.8f),
+        intraSampleRtTol.getUnit());
     makeAndAddMetaCorrStep(q, minRtDataPoints, rtTol, stableIonizationAcrossSamples);
   }
 

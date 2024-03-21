@@ -1096,8 +1096,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(MinimumSearchFeatureResolverParameters.MIN_ABSOLUTE_HEIGHT,
         minFeatureHeight);
     param.setParameter(MinimumSearchFeatureResolverParameters.MIN_RATIO, 1.8d);
-    param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_DURATION, Range.closed(0d, 10d));
-    param.setParameter(MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS, 5);
+    param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_DURATION, Range.closed(0d, 20d));
+    param.setParameter(MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS,
+        minImsDataPoints);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(MinimumSearchFeatureResolverModule.class), param));
