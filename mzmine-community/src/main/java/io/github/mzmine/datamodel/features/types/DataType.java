@@ -46,6 +46,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -342,6 +343,7 @@ public abstract class DataType<T> implements Comparable<DataType> {
   }
 
   /**
+   * @param table
    * @param row       The row the double click was applied to.
    * @param file      The file the click was applied to. Either multiple (= row clicked, or a single
    *                  = feature column clicked)
@@ -351,7 +353,7 @@ public abstract class DataType<T> implements Comparable<DataType> {
    * modified.
    */
   @Nullable
-  public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
+  public Runnable getDoubleClickAction(final @Nullable FeatureTableFX table, @NotNull ModularFeatureListRow row,
       @NotNull List<RawDataFile> file, @Nullable DataType<?> superType,
       @Nullable final Object value) {
     return null;

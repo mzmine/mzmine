@@ -27,26 +27,38 @@ package io.github.mzmine.datamodel.features.types.annotations;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
+import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.molstructure.MolStructureViewer;
-import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import io.github.mzmine.modules.visualization.molstructure.StructureTableCell;
+import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralIdentificationResultsTab;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableColumn;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * A molecular structure parsed from smiles or inchi by CDK. This data type is not saved to text
+ * project files but rather recomputed on demand.
+ */
 public class MolecularStructureType extends DataType<MolecularStructure> implements
-    GraphicalColumType<MolecularStructure> {
+    GraphicalColumType<MolecularStructure>, NoTextColumn {
 
   private static final Logger logger = Logger.getLogger(MolecularStructureType.class.getName());
 
@@ -83,7 +95,7 @@ public class MolecularStructureType extends DataType<MolecularStructure> impleme
       return null;
     }
 // not really used as we are setting a different cell factory
-    return new Structure2DComponent(cellData.structure());
+    throw new IllegalStateException("Use special cell factory instead: StructureTableCell");
   }
 
   @Override
@@ -96,11 +108,20 @@ public class MolecularStructureType extends DataType<MolecularStructure> impleme
   }
 
   @Override
-  public @Nullable Runnable getDoubleClickAction(@NotNull final ModularFeatureListRow row,
-      @NotNull final List<RawDataFile> file, @Nullable final DataType<?> superType,
-      final @Nullable Object value) {
+  public @Nullable Runnable getDoubleClickAction(final @Nullable FeatureTableFX table,
+      @NotNull final ModularFeatureListRow row, @NotNull final List<RawDataFile> file,
+      @Nullable final DataType<?> superType, final @Nullable Object value) {
+    if (!(value instanceof MolecularStructure structure)) {
+      return null;
+    }
     return () -> FxThread.runLater(() -> {
-      if (value instanceof MolecularStructure structure) {
+      if (superType instanceof CompoundDatabaseMatchesType) {
+        CompoundDatabaseMatchTab tab = new CompoundDatabaseMatchTab(table);
+        tab.setFeatureRow(row);
+        MZmineCore.getDesktop().addTab(tab);
+      } else if (superType instanceof SpectralLibraryMatchesType) {
+        MZmineCore.getDesktop().addTab(new SpectralIdentificationResultsTab(table));
+      } else {
         new MolStructureViewer("", structure.structure()).show();
       }
     });
@@ -109,5 +130,13 @@ public class MolecularStructureType extends DataType<MolecularStructure> impleme
   @Override
   public boolean getDefaultVisibility() {
     return true;
+  }
+
+  @Override
+  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value,
+      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
+      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
+      throws XMLStreamException {
+    // do nothing as this type shall not be saved. It is derived from smiles or inchi
   }
 }

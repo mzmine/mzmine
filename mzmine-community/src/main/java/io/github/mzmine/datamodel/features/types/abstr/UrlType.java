@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.web.WebUtils;
 import java.util.List;
 import javafx.beans.property.Property;
@@ -59,7 +60,7 @@ public abstract class UrlType extends DataType<UrlShortName> {
   }
 
   @Override
-  public @Nullable Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
+  public @Nullable Runnable getDoubleClickAction(final @Nullable FeatureTableFX table, @NotNull ModularFeatureListRow row,
       @NotNull List<RawDataFile> file, @Nullable DataType<?> superType, @Nullable Object value) {
     return () -> {
       if (value instanceof UrlShortName url) {
