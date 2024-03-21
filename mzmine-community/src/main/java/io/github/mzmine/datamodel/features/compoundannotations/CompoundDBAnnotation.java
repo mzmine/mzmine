@@ -54,7 +54,6 @@ import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
@@ -197,10 +196,6 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     return calcMzForAdduct(this, adduct);
   }
 
-  /**
-   * @return the structure parsed from smiles or inchi
-   */
-  MolecularStructure getStructure();
 
   <T> T get(@NotNull DataType<T> key);
 

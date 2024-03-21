@@ -25,8 +25,7 @@
 
 package io.github.mzmine.datamodel.structures;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class StructureParserTest {
@@ -34,16 +33,22 @@ class StructureParserTest {
   @Test
   void parseStructureSmiles() {
     StructureParser parser = new StructureParser(false);
-    parser.parseStructure("CCCO", StructureInputType.SMILES);
+    var structure = parser.parseStructure("CCCO", StructureInputType.SMILES);
+    Assertions.assertNotNull(structure);
   }
+
   @Test
   void parseStructureInchi() {
     StructureParser parser = new StructureParser(false);
-    parser.parseStructure("InChI=1S/C2H4O2/c1-2(3)4/h1H3,(H,3,4)", StructureInputType.INCHI);
+    var structure = parser.parseStructure("InChI=1S/C2H4O2/c1-2(3)4/h1H3,(H,3,4)",
+        StructureInputType.INCHI);
+    Assertions.assertNotNull(structure);
   }
 
   @Test
   void testParseStructure() {
-    StructureParser.silent().parseStructure("CCCO", "InChI=1S/C2H4O2/c1-2(3)4/h1H3,(H,3,4)");
+    var structure = StructureParser.silent()
+        .parseStructure("CCCO", "InChI=1S/C2H4O2/c1-2(3)4/h1H3,(H,3,4)");
+    Assertions.assertNotNull(structure);
   }
 }
