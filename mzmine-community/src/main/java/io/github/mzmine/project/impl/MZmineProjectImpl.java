@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -312,7 +312,8 @@ public class MZmineProjectImpl implements MZmineProject {
     try {
       rawLock.readLock().lock();
       for (final RawDataFile raw : rawDataFiles) {
-        if (name.equalsIgnoreCase(raw.getName())) {
+        if (name.equalsIgnoreCase(raw.getName()) || name.equalsIgnoreCase(
+            FileAndPathUtil.eraseFormat(raw.getName()))) {
           return raw;
         }
       }
@@ -320,6 +321,7 @@ public class MZmineProjectImpl implements MZmineProject {
     } finally {
       rawLock.readLock().unlock();
     }
+
   }
 
 
