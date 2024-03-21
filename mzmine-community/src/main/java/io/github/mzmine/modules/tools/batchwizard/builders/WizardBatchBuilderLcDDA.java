@@ -131,7 +131,8 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
   protected void makeAndAddMetaCorrStep(final BatchQueue q) {
     final boolean useCorrGrouping = minRtDataPoints > 3;
     RTTolerance rtTol = new RTTolerance(
-        intraSampleRtTol.getTolerance() * (useCorrGrouping ? 1.4f : 08f), intraSampleRtTol.getUnit());
+        intraSampleRtTol.getTolerance() * (useCorrGrouping ? 1.4f : 0.8f),
+        intraSampleRtTol.getUnit());
     makeAndAddMetaCorrStep(q, minRtDataPoints, rtTol, stableIonizationAcrossSamples);
   }
 

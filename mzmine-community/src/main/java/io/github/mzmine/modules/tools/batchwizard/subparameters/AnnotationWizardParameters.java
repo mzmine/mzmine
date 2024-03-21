@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,7 +39,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParam
 public final class AnnotationWizardParameters extends WizardStepParameters {
 
   public static final OptionalModuleParameter<AnnotationLocalCSVDatabaseSearchParameters> localCsvSearch = new OptionalModuleParameter<>(
-      "Local compound database (CSV)", """
+      "Local compound database search", """
       Search a local CSV or TSV database as comma- or tab-separated data, respectively.
       Matches are done based on m/z, retention time, and ion mobility if applicable and selected.
       """, new AnnotationLocalCSVDatabaseSearchParameters());
