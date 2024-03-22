@@ -32,6 +32,12 @@ public final class TotalFinishedItemsProgress implements ProgressProvider {
   private final AtomicLong total = new AtomicLong(0);
   private final AtomicLong finished = new AtomicLong(0);
 
+  public TotalFinishedItemsProgress() {
+  }
+
+  public TotalFinishedItemsProgress(long totalItems) {
+    total.set(totalItems);
+  }
 
   @Override
   public double progress() {

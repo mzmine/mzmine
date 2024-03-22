@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -66,12 +66,6 @@ public class RangeUtils {
     return Range.closed(low, high);
   }
 
-  /**
-   * @param number        A double value
-   * @param decimalPlaces the number of decimal places to round the range to.
-   * @return A range starting at the given number with the given precision up to the next decimal.
-   * E.g.: 5.3 -> [5.3 -> 5.4), 5.324 -> [5.324 -> 5.325); 5 -> [5, 6)
-   */
   public static Range<Double> getRangeToCeilDecimal(String str) throws NumberFormatException {
     String filterStr = str.trim();
     final int decimalIndex = filterStr.indexOf(".");
@@ -146,6 +140,73 @@ public class RangeUtils {
     return ArithmeticUtils.divide(ArithmeticUtils.add(range.upperEndpoint(), range.lowerEndpoint()),
         (N) (Number) 2.0f);
   }
+
+  /**
+   * The score of how close testedValue is to range center
+   *
+   * @param testedValue defines the output type
+   * @param range       center of and length of range are used
+   * @param <N>         any number type
+   * @return score from 0 - 1, 1 perfectly centered and 0 fully on the edge. 1 -
+   * abs(center-testedValue)/(range.length/2).
+   */
+  public static <N extends Number & Comparable<N>> float calcCenterScore(final float testedValue,
+      final @NotNull Range<N> range) {
+    return Math.max(0, 1 - calcRelativeDeltaFromCenterAbs(testedValue, range));
+  }
+
+  /**
+   * The score of how close testedValue is to range center
+   *
+   * @param testedValue defines the output type
+   * @param range       center of and length of range are used
+   * @param <N>         any number type
+   * @return score from 0 - 1, 1 perfectly centered and 0 fully on the edge. 1 -
+   * abs(center-testedValue)/(range.length/2).
+   */
+  public static <N extends Number & Comparable<N>> double calcCenterScore(final double testedValue,
+      final @NotNull Range<N> range) {
+    return Math.max(0, 1 - calcRelativeDeltaFromCenterAbs(testedValue, range));
+  }
+
+  /**
+   * The relative difference of testedValue to center of range
+   *
+   * @param testedValue defines the output type
+   * @param range       center of and length of range are used
+   * @param <N>         any number type
+   * @return score from 0 - 1, 0 perfectly centered and 1 fully on the edge.
+   * abs(center-testedValue)/ (range.length/2). May be higher than 1 if range.contains(testedValue)
+   * == false.
+   */
+  public static <N extends Number & Comparable<N>> float calcRelativeDeltaFromCenterAbs(
+      final float testedValue, final @NotNull Range<N> range) {
+    float lower = range.lowerEndpoint().floatValue();
+    float upper = range.upperEndpoint().floatValue();
+    float halfLength = (upper - lower) / 2f;
+    float center = lower + halfLength;
+    return Math.abs(center - testedValue) / halfLength;
+  }
+
+  /**
+   * The relative difference of testedValue to center of range
+   *
+   * @param testedValue defines the output type
+   * @param range       center of and length of range are used
+   * @param <N>         any number type
+   * @return score from 0 - 1, 0 perfectly centered and 1 fully on the edge.
+   * abs(center-testedValue)/ (range.length/2). May be higher than 1 if range.contains(testedValue)
+   * == false.
+   */
+  public static <N extends Number & Comparable<N>> double calcRelativeDeltaFromCenterAbs(
+      final double testedValue, final @NotNull Range<N> range) {
+    double lower = range.lowerEndpoint().doubleValue();
+    double upper = range.upperEndpoint().doubleValue();
+    double halfLength = (upper - lower) / 2d;
+    double center = lower + halfLength;
+    return Math.abs(center - testedValue) / halfLength;
+  }
+
 
   /**
    * Constructs a range from the given array.
@@ -304,5 +365,20 @@ public class RangeUtils {
 
   public static Range<Float> rangeAround(float center, float length) {
     return Range.closed(center - length / 2, center + length / 2);
+  }
+
+  /**
+   * @return true if range is null or unbounded like Range.all() or range.hasLowerBound
+   */
+  public static boolean isNullOrUnbounded(final @Nullable Range<? extends Number> range) {
+    return range == null || !range.hasLowerBound() || !range.hasUpperBound();
+  }
+
+  /**
+   * @return true if range is bounded. So not null or unbounded like Range.all() or
+   * range.hasLowerBound
+   */
+  public static boolean isBounded(final @Nullable Range<? extends Number> range) {
+    return !isNullOrUnbounded(range);
   }
 }

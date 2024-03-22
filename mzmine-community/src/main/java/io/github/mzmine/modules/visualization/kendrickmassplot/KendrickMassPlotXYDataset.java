@@ -130,9 +130,9 @@ public class KendrickMassPlotXYDataset extends AbstractXYDataset {
       if (bubbleSizeLabel.equals("Retention time")) {
         bubbleSizeValues[i] = selectedRows[i].getAverageRT();
       } else if (bubbleSizeLabel.equals("Intensity")) {
-        bubbleSizeValues[i] = selectedRows[i].getAverageHeight();
+        bubbleSizeValues[i] = selectedRows[i].getMaxHeight();
       } else if (bubbleSizeLabel.equals("Area")) {
-        bubbleSizeValues[i] = selectedRows[i].getAverageArea();
+        bubbleSizeValues[i] = selectedRows[i].getMaxArea();
       } else if (bubbleSizeLabel.equals("Tailing factor")) {
         bubbleSizeValues[i] = selectedRows[i].getBestFeature().getTailingFactor();
       } else if (bubbleSizeLabel.equals("Asymmetry factor")) {

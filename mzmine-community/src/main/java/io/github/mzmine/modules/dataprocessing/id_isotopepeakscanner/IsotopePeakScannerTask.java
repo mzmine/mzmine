@@ -527,7 +527,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
         dp[0] = new SimpleDataPoint(parent.getAverageMZ(),
             candidates[bestPatternIndex].getAvgHeight(0));
       } else {
-        dp[0] = new SimpleDataPoint(parent.getAverageMZ(), parent.getAverageHeight());
+        dp[0] = new SimpleDataPoint(parent.getAverageMZ(), parent.getMaxHeight());
       }
 
       for (int k = 1; k < candidates[bestPatternIndex].size(); k++) // we
@@ -552,7 +552,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
           dp[k] = new SimpleDataPoint(child.getAverageMZ(),
               candidates[bestPatternIndex].getAvgHeight(k));
         } else {
-          dp[k] = new SimpleDataPoint(child.getAverageMZ(), child.getAverageHeight());
+          dp[k] = new SimpleDataPoint(child.getAverageMZ(), child.getMaxHeight());
         }
 
         String average = "";
@@ -575,10 +575,10 @@ public class IsotopePeakScannerTask extends AbstractTask {
              + round(((child.getAverageMZ() - parent.getAverageMZ()) - diff[bestPatternIndex][k])
                      / child.getAverageMZ() * 1E6, 2)
              + " I(c)/I(p): "
-             + round(child.getAverageHeight() / plh
+             + round(child.getMaxHeight() / plh
                 .getRowByID(candidates[bestPatternIndex]
                     .get(pattern[bestPatternIndex].getBasePeakIndex()).getCandID())
-                .getAverageHeight(), 2)
+                .getMaxHeight(), 2)
              + " Identity: " + pattern[bestPatternIndex].getIsotopeComposition(k) + " Rating: "
              + round(candidates[bestPatternIndex].get(k).getRating(), 3) + average));
 
@@ -801,7 +801,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
       FeatureListRow r = pL[i];
       // check for rt
 
-      if (r.getAverageHeight() < minHeight) {
+      if (r.getMaxHeight() < minHeight) {
         continue;
       }
 

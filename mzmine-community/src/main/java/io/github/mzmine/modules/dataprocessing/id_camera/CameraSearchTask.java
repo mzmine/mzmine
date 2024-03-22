@@ -646,7 +646,7 @@ public class CameraSearchTask extends AbstractTask {
         if (isoGroup.equals(isotopeGroup)) {
           groupRows.add(row);
           groupNames.add(identity.getName());
-          spectrum.put(row.getAverageMZ(), row.getAverageHeight().doubleValue());
+          spectrum.put(row.getAverageMZ(), row.getMaxHeight().doubleValue());
 
           if (isoGroup.length() < minLength) {
             minLength = isoGroup.length();
@@ -698,7 +698,7 @@ public class CameraSearchTask extends AbstractTask {
         String isotope = identity.getPropertyValue("Isotope");
         if (isotope == null || isotope.length() == 0) {
           DataPoint[] dataPoints = new DataPoint[1];
-          dataPoints[0] = new SimpleDataPoint(row.getAverageMZ(), row.getAverageHeight());
+          dataPoints[0] = new SimpleDataPoint(row.getAverageMZ(), row.getMaxHeight());
 
           IsotopePattern pattern = new SimpleIsotopePattern(dataPoints, -1,
               IsotopePatternStatus.PREDICTED, "Spectrum");
@@ -796,7 +796,7 @@ public class CameraSearchTask extends AbstractTask {
         String name = identity.getName();
 
         if (name.equals(groupName)) {
-          double intensity = row.getAverageHeight();
+          double intensity = row.getMaxHeight();
 
           groupRows.add(row);
           // groupNames.add(name);

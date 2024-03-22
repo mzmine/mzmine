@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,9 +41,11 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.LegendItem;
 import org.jfree.chart.StandardChartTheme;
 import org.jfree.chart.axis.Axis;
-import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
@@ -68,6 +70,8 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public static final Logger logger = Logger.getLogger(EStandardChartTheme.class.getName());
   public static final String XML_DESC = "ChartTheme";
+  public static final BasicStroke DEFAULT_ITEM_OUTLINE_STROKE = new BasicStroke(2f);
+  public static final BasicStroke DEFAULT_MARKER_STROKE = new BasicStroke(1f);
   @Serial
   private static final long serialVersionUID = 1L;
   private static final Color DEFAULT_GRID_COLOR = Color.BLACK;
@@ -271,68 +275,84 @@ public class EStandardChartTheme extends StandardChartTheme {
     Plot p = chart.getPlot();
 
     // Only apply to XYPlot
-    if (!(p instanceof XYPlot xyp)) {
-      return;
-    }
+    if (p instanceof XYPlot xyp) {
+      applyToAxesOfXYPlot(xyp);
 
-    Axis domainAxis = xyp.getDomainAxis();
-    Axis rangeAxis = xyp.getRangeAxis();
-
-    xyp.setRangeGridlinesVisible(isShowYGrid());
-    xyp.setRangeGridlinePaint(getClrYGrid());
-    xyp.setDomainGridlinesVisible(isShowXGrid());
-    xyp.setDomainGridlinePaint(getClrXGrid());
-    xyp.setAxisOffset(DEFAULT_AXIS_OFFSET);
-
-    // only apply labels to the main axes
-    if (domainAxis != null && isUseXLabel()) {
-      domainAxis.setLabel(getXlabel());
-    }
-    if (rangeAxis != null && isUseYLabel()) {
-      rangeAxis.setLabel(getYlabel());
-    }
-
-    // all axes
-    for (int i = 0; i < xyp.getDomainAxisCount(); i++) {
-      NumberAxis a = (NumberAxis) xyp.getDomainAxis(i);
-      if (a == null) {
-        continue;
-      }
-      a.setTickMarkPaint(axisLinePaint);
-      a.setAxisLinePaint(axisLinePaint);
-      // visible?
-      a.setVisible(showXAxis);
-    }
-    for (int i = 0; i < xyp.getRangeAxisCount(); i++) {
-      NumberAxis a = (NumberAxis) xyp.getRangeAxis(i);
-      if (a == null) {
-        continue;
-      }
-      a.setTickMarkPaint(axisLinePaint);
-      a.setAxisLinePaint(axisLinePaint);
-      // visible?
-      a.setVisible(showYAxis);
-    }
-
-    // mirror plots (CombinedDomainXYPlot) have subplots with their own range axes
-    if (p instanceof CombinedDomainXYPlot mirrorPlot) {
-      mirrorPlot.setGap(0);
-      mirrorPlot.setAxisOffset(MIRROR_PLOT_AXIS_OFFSET);
-      for (XYPlot subplot : (List<XYPlot>) mirrorPlot.getSubplots()) {
-        Axis ra = subplot.getRangeAxis();
-        subplot.setAxisOffset(MIRROR_PLOT_AXIS_OFFSET);
-        if (rangeAxis != null) {
-          ra.setVisible(isShowYAxis());
-          subplot.setRangeGridlinesVisible(isShowYGrid());
-          subplot.setRangeGridlinePaint(getClrYGrid());
-          subplot.setDomainGridlinesVisible(isShowXGrid());
-          subplot.setDomainGridlinePaint(getClrXGrid());
-          if (isUseYLabel()) {
-            ra.setLabel(getYlabel());
+      // mirror plots (CombinedDomainXYPlot) have subplots with their own range axes
+      if (p instanceof CombinedDomainXYPlot mirrorPlot) {
+        mirrorPlot.setGap(0);
+        mirrorPlot.setAxisOffset(MIRROR_PLOT_AXIS_OFFSET);
+        for (XYPlot subplot : (List<XYPlot>) mirrorPlot.getSubplots()) {
+          Axis ra = subplot.getRangeAxis();
+          subplot.setAxisOffset(MIRROR_PLOT_AXIS_OFFSET);
+          final ValueAxis rangeAxis = xyp.getRangeAxis();
+          if (rangeAxis != null) {
+            ra.setVisible(isShowYAxis());
+            subplot.setRangeGridlinesVisible(isShowYGrid());
+            subplot.setRangeGridlinePaint(getClrYGrid());
+            subplot.setDomainGridlinesVisible(isShowXGrid());
+            subplot.setDomainGridlinePaint(getClrXGrid());
+            if (isUseYLabel()) {
+              ra.setLabel(getYlabel());
+            }
           }
         }
       }
     }
+
+    if(p instanceof CategoryPlot cp) {
+      cp.setAxisOffset(DEFAULT_AXIS_OFFSET);
+      final ValueAxis rangeAxis = cp.getRangeAxis();
+      cp.setRangeGridlinesVisible(isShowYGrid());
+      cp.setRangeGridlinePaint(getClrYGrid());
+      if (rangeAxis != null && isUseYLabel()) {
+        rangeAxis.setLabel(getYlabel());
+      }
+      applyToAxisTicks(rangeAxis, true);
+      final CategoryAxis domainAxis = cp.getDomainAxis();
+      applyToAxisTicks(domainAxis, true);
+    }
+  }
+
+  private void applyToAxesOfXYPlot(XYPlot xyp) {
+    xyp.setAxisOffset(DEFAULT_AXIS_OFFSET);
+
+    Axis rangeAxis = xyp.getRangeAxis();
+    xyp.setRangeGridlinesVisible(isShowYGrid());
+    xyp.setRangeGridlinePaint(getClrYGrid());
+    if (rangeAxis != null && isUseYLabel()) {
+      rangeAxis.setLabel(getYlabel());
+    }
+    for (int i = 0; i < xyp.getRangeAxisCount(); i++) {
+      Axis a = xyp.getRangeAxis(i);
+      if (a == null) {
+        continue;
+      }
+      applyToAxisTicks(a, true);
+    }
+
+    Axis domainAxis = xyp.getDomainAxis();
+    xyp.setDomainGridlinesVisible(isShowXGrid());
+    xyp.setDomainGridlinePaint(getClrXGrid());
+    // only apply labels to the main axes
+    if (domainAxis != null && isUseXLabel()) {
+      domainAxis.setLabel(getXlabel());
+    }
+    // all axes
+    for (int i = 0; i < xyp.getDomainAxisCount(); i++) {
+      Axis a = xyp.getDomainAxis(i);
+      if (a == null) {
+        continue;
+      }
+      applyToAxisTicks(a, false);
+    }
+  }
+
+  private void applyToAxisTicks(Axis a, boolean isRangeAxis) {
+    a.setAxisLinePaint(axisLinePaint);
+    a.setTickMarkPaint(axisLinePaint);
+    // visible?
+    a.setVisible(isRangeAxis ? showYAxis : showXAxis);
   }
 
   public void applyToLegend(@NotNull JFreeChart chart) {
@@ -605,5 +625,9 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   public void setDefaultDataStroke(BasicStroke defaultDataStroke) {
     this.defaultDataStroke = defaultDataStroke;
+  }
+
+  public void applyToLegendItem(LegendItem item) {
+    item.setLabelFont(getRegularFont());
   }
 }

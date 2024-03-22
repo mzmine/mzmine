@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.ParsingUtils;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -106,7 +107,7 @@ public class DatabaseMatchInfoType extends DataType<DatabaseMatchInfo> {
   }
 
   @Override
-  public @Nullable Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
+  public @Nullable Runnable getDoubleClickAction(final @Nullable FeatureTableFX table, @NotNull ModularFeatureListRow row,
       @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
 
     if (!(value instanceof DatabaseMatchInfo databaseId) || databaseId.onlineDatabase() == null

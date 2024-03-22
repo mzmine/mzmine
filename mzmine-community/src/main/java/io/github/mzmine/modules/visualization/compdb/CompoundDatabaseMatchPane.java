@@ -30,11 +30,11 @@ import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotat
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
-import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import java.awt.Toolkit;
 import java.util.List;
@@ -82,10 +82,8 @@ public class CompoundDatabaseMatchPane extends BorderPane {
     this.row = row;
     entries = buildGridPane(annotation, row);
     final Canvas structure = buildStructurePane(annotation);
-    if (structure != null) {
-      structure.setHeight(structureHeight);
-      structure.setWidth(structureWidth);
-    }
+    structure.setHeight(structureHeight);
+    structure.setWidth(structureWidth);
 
     setCenter(structure);
     setRight(entries);
@@ -96,61 +94,14 @@ public class CompoundDatabaseMatchPane extends BorderPane {
   }
 
   private static Canvas buildStructurePane(@Nullable final CompoundDBAnnotation annotation) {
-    final String smiles = annotation.getSmiles();
-    final String inchi = annotation.get(new InChIStructureType());
-
-    IAtomContainer structure = null;
-    if (smiles != null) {
-      structure = parseSmiles(smiles);
-    } else if (inchi != null) {
-      structure = parseInchi(inchi);
+    if (annotation == null) {
+      return new Canvas();
     }
-
-    try {
-      return structure != null ? new Structure2DComponent(structure) : new Canvas();
-    } catch (CDKException e) {
-      logger.log(Level.WARNING, "Cannot initialize Structure2DComponent.", e);
-      return null;
+    MolecularStructure structure = annotation.getStructure();
+    if (structure == null) {
+      return new Canvas();
     }
-  }
-
-  @Nullable
-  private static IAtomContainer parseInchi(String inchi) {
-    InChIGeneratorFactory factory;
-    IAtomContainer molecule;
-    if (inchi != null) {
-      try {
-        factory = InChIGeneratorFactory.getInstance();
-        // Get InChIToStructure
-        InChIToStructure inchiToStructure = factory.getInChIToStructure(inchi,
-            DefaultChemObjectBuilder.getInstance());
-        molecule = inchiToStructure.getAtomContainer();
-        return molecule;
-      } catch (CDKException e) {
-        String errorMessage = "Could not load 2D structure\n" + "Exception: ";
-        logger.log(Level.WARNING, errorMessage, e);
-        return null;
-      }
-    } else {
-      return null;
-    }
-  }
-
-  private static IAtomContainer parseSmiles(String smiles) {
-    SmilesParser smilesParser = new SmilesParser(DefaultChemObjectBuilder.getInstance());
-    IAtomContainer molecule;
-    if (smilesParser != null) {
-      try {
-        molecule = smilesParser.parseSmiles(smiles);
-        return molecule;
-      } catch (InvalidSmilesException e1) {
-        String errorMessage = "Could not load 2D structure\n" + "Exception: ";
-        logger.log(Level.WARNING, errorMessage, e1);
-        return null;
-      }
-    } else {
-      return null;
-    }
+    return new Structure2DComponent(structure.structure());
   }
 
   private static GridPane buildGridPane(@Nullable final CompoundDBAnnotation annotation,
@@ -187,9 +138,9 @@ public class CompoundDatabaseMatchPane extends BorderPane {
       String strValue = value != null ? type.getFormattedStringCheckType(value) : VALUE_UNAVAILABLE;
       final Label valueLabel = new Label(strValue);
       if (row != null && row.getBestFeature() != null) {
-        valueLabel.setOnMouseClicked(
-            e -> type.getDoubleClickAction(row, List.of(row.getBestFeature().getRawDataFile()),
-                new CompoundDatabaseMatchesType(), value));
+        valueLabel.setOnMouseClicked(e -> type.getDoubleClickAction(null, row,
+            List.of(row.getBestFeature().getRawDataFile()), new CompoundDatabaseMatchesType(),
+            value));
       }
 
       pane.add(label, 0, rowCounter);

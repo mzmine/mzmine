@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,9 @@ package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import java.util.List;
 import org.w3c.dom.Element;
 
 /**
@@ -96,6 +98,17 @@ public class OriginalFeatureListHandlingParameter extends
       }
     }
 
+    /**
+     * Add aligned feature list and remove input lists if {@link #REMOVE} was selected
+     * @param alignedFeatureList list to add
+     * @param listsToRemove lists to remove
+     */
+    public void reflectNewFeatureListToProject(final MZmineProject project, final ModularFeatureList alignedFeatureList, final List<FeatureList> listsToRemove) {
+      if (this == REMOVE) {
+        project.removeFeatureLists(listsToRemove);
+      }
+      project.addFeatureList(alignedFeatureList);
+    }
   }
 
   public boolean isIncludeProcessInPlace() {

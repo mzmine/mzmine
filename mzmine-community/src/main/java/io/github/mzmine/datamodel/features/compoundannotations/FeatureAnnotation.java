@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import javax.xml.stream.XMLStreamException;
@@ -66,6 +67,14 @@ public interface FeatureAnnotation {
       ModularFeatureListRow row) throws XMLStreamException;
 
   @Nullable Double getPrecursorMZ();
+
+  /**
+   * This should be usually recalculated on demand from smiles or inchi. Also if smiles or inchi
+   * changes the getStructure structure should be recalculated or just set to null
+   *
+   * @return the structure parsed from smiles or inchi
+   */
+  @Nullable MolecularStructure getStructure();
 
   @Nullable String getSmiles();
 

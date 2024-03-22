@@ -42,6 +42,7 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CompoundDatabaseMatchTab extends SimpleTab implements FeatureRowInterfaceFx {
 
@@ -50,7 +51,7 @@ public class CompoundDatabaseMatchTab extends SimpleTab implements FeatureRowInt
   private final ScrollPane scrollPane;
   private int matches = 0;
 
-  public CompoundDatabaseMatchTab(FeatureTableFX table) {
+  public CompoundDatabaseMatchTab(@Nullable FeatureTableFX table) {
     super("Compound database matches", true, true);
     setOnCloseRequest(event -> weak.dipose());
 
@@ -60,11 +61,13 @@ public class CompoundDatabaseMatchTab extends SimpleTab implements FeatureRowInt
     scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
     setContent(scrollPane);
 
-    weak.addListChangeListener(table, table.getSelectionModel().getSelectedItems(),
-        c -> selectionChanged());
+    if (table != null) {
+      weak.addListChangeListener(table, table.getSelectionModel().getSelectedItems(),
+          c -> selectionChanged());
+    }
   }
 
-  public static void addNewTab(final FeatureTableFX table) {
+  public static void addNewTab(@Nullable final FeatureTableFX table) {
     FxThread.runLater(() -> {
       final CompoundDatabaseMatchTab tab = new CompoundDatabaseMatchTab(table);
       tab.selectionChanged();
@@ -73,7 +76,7 @@ public class CompoundDatabaseMatchTab extends SimpleTab implements FeatureRowInt
   }
 
   private void selectionChanged() {
-    if (weak.isDisposed()) {
+    if (weak.isDisposed() || table==null) {
       return;
     }
     final ModularFeatureListRow selectedRow = table.getSelectedRow();

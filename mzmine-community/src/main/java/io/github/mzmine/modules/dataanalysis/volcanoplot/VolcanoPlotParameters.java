@@ -25,33 +25,21 @@
 
 package io.github.mzmine.modules.dataanalysis.volcanoplot;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class VolcanoPlotParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1);
+  public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1, true);
 
   public VolcanoPlotParameters() {
     super(flist);
   }
 
   @Override
-  public boolean checkParameterValues(Collection<String> errorMessages,
-      boolean skipRawDataAndFeatureListParameters) {
-    boolean superCheck = super.checkParameterValues(errorMessages,
-        skipRawDataAndFeatureListParameters);
-    if (!superCheck) {
-      return superCheck;
-    }
-
-    final ModularFeatureList[] matchingFeatureLists = getValue(flist).getMatchingFeatureLists();
-    if (matchingFeatureLists[0].getNumberOfRawDataFiles() < 2) {
-      errorMessages.add("Selected feature list is not an aligned feature list.");
-      return false;
-    }
-    return true;
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

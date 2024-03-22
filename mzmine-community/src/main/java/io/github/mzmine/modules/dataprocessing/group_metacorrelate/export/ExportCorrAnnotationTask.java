@@ -287,7 +287,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
             IonIdentity iinB = entryB.getValue();
             if (iinA.getAdduct().equals(iinB.getAdduct())) {
               // find pair with the highest sum intensity (that match the row filter)
-              double sum = rowA.getAverageHeight() + rowB.getAverageHeight();
+              double sum = rowA.getMaxHeight() + rowB.getMaxHeight();
               if (sum >= sumIntensity) {
                 sumIntensity = sum;
                 rows[0] = rowA;

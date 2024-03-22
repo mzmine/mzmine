@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.stats.AnovaPValueType;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.MetadataColumnDoesNotExistException;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -76,7 +77,7 @@ public class AnovaTask extends AbstractTask {
 
     flist.addRowType(DataTypes.get(AnovaPValueType.class));
     try {
-      calc = new AnovaTest(groupingColumnName);
+      calc = new AnovaTest(MZmineCore.getProjectMetadata().getColumnByName(groupingColumnName));
     } catch (MetadataColumnDoesNotExistException e) {
       setErrorMessage(e.getMessage());
       logger.log(Level.WARNING, e.getMessage(), e);

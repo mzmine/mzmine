@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
+import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
@@ -256,12 +257,12 @@ public class SpectralMatchPanelFX extends GridPane {
     Node newComponent = null;
 
     // check for INCHI
-    IAtomContainer molecule = parseStructure(hit);
+    MolecularStructure molecule = hit.getStructure();
 
     // try to draw the component
     if (molecule != null) {
       try {
-        newComponent = new Structure2DComponent(molecule, theme.getRegularFont());
+        newComponent = new Structure2DComponent(molecule.structure());
       } catch (Exception e) {
         String errorMessage = "Could not load 2D structure\n" + "Exception: ";
         logger.log(Level.WARNING, errorMessage, e);
@@ -325,25 +326,6 @@ public class SpectralMatchPanelFX extends GridPane {
     return new BorderPane(library);
   }
 
-  private IAtomContainer parseStructure(final SpectralDBAnnotation hit) {
-    String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("n/a").toString();
-    String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("n/a").toString();
-    if (!inchiString.equalsIgnoreCase("n/a") && !inchiString.isBlank()) {
-      var molecule = parseInChi(hit);
-      if (molecule != null) {
-        return molecule;
-      }
-    }
-    // check for smiles
-    if (!smilesString.equalsIgnoreCase("n/a") && !smilesString.isBlank()) {
-      var molecule = parseSmiles(hit);
-      if (molecule != null) {
-        return molecule;
-      }
-    }
-    return null;
-  }
-
   private void coupleZoomYListener() {
     CombinedDomainXYPlot domainPlot = (CombinedDomainXYPlot) mirrorChart.getChart().getXYPlot();
     NumberAxis axis = (NumberAxis) domainPlot.getDomainAxis();
@@ -396,45 +378,6 @@ public class SpectralMatchPanelFX extends GridPane {
   public void setCoupleZoomY(boolean selected) {
     setCoupleZoomY = selected;
   }
-
-  private IAtomContainer parseInChi(SpectralDBAnnotation hit) {
-    String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("n/a").toString();
-    InChIGeneratorFactory factory;
-    IAtomContainer molecule;
-    if (inchiString.equalsIgnoreCase("n/a") || inchiString.isBlank()) {
-      return null;
-    }
-    try {
-      factory = InChIGeneratorFactory.getInstance();
-      // Get InChIToStructure
-      InChIToStructure inchiToStructure = factory.getInChIToStructure(inchiString,
-          DefaultChemObjectBuilder.getInstance());
-      molecule = inchiToStructure.getAtomContainer();
-      return molecule;
-    } catch (CDKException e) {
-      String errorMessage = "Could not load 2D structure\n" + "Exception: ";
-      logger.log(Level.WARNING, errorMessage, e);
-      return null;
-    }
-  }
-
-  private IAtomContainer parseSmiles(SpectralDBAnnotation hit) {
-    SmilesParser smilesParser = new SmilesParser(DefaultChemObjectBuilder.getInstance());
-    String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("n/a").toString();
-    IAtomContainer molecule;
-    if (smilesString.equalsIgnoreCase("n/a") || smilesString.isBlank()) {
-      return null;
-    }
-    try {
-      molecule = smilesParser.parseSmiles(smilesString);
-      return molecule;
-    } catch (InvalidSmilesException e1) {
-      String errorMessage = "Could not load 2D structure\n" + "Exception: ";
-      logger.log(Level.WARNING, errorMessage, e1);
-      return null;
-    }
-  }
-
 
   private BorderPane extractMetaData(String title, SpectralLibraryEntry entry,
       DBEntryField[] other) {

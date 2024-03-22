@@ -60,4 +60,8 @@ public class SmilesStructureType extends StringType implements EditableColumnTyp
     return converter;
   }
 
+  @Override
+  public int getPrefColumnWidth() {
+    return 100;
+  }
 }

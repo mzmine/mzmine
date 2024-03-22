@@ -23,40 +23,41 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataanalysis.significance;
+package io.github.mzmine.modules.dataanalysis.rowsboxplot;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import java.util.Arrays;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
+import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import org.apache.commons.math.util.MathUtils;
+import org.jetbrains.annotations.Nullable;
+import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 
-public class StatisticUtils {
+public class RowBoxPlotDataset extends DefaultBoxAndWhiskerCategoryDataset {
 
-  public static double[] extractAbundance(FeatureListRow row, List<RawDataFile> group,
-      AbundanceMeasure measure) {
-    return group.stream().map(file -> measure.get((ModularFeature) row.getFeature(file)))
-        .filter(Objects::nonNull).mapToDouble(Float::doubleValue).toArray();
-  }
+  public RowBoxPlotDataset(FeatureListRow row, @Nullable MetadataColumn<?> groupingColumn,
+      AbundanceMeasure abundance) {
 
-  public static double[] calculateLog2FoldChange(List<RowSignificanceTestResult> testResults,
-      List<RawDataFile> groupAFiles, List<RawDataFile> groupBFiles,
-      AbundanceMeasure abundanceMeasure) {
-    return testResults.stream().mapToDouble(result -> {
-      return calculateLog2FoldChange(groupAFiles, groupBFiles, abundanceMeasure, result);
-    }).toArray();
-  }
+    if (groupingColumn == null) { // no grouping, so just a single group
+      final List<Float> values = row.getFeatures().stream().map(abundance::get)
+          .filter(Objects::nonNull).toList();
+      add(values, 0, row.toString());
+      return;
+    }
 
-  public static double calculateLog2FoldChange(List<RawDataFile> groupAFiles, List<RawDataFile> groupBFiles,
-      AbundanceMeasure abundanceMeasure, RowSignificanceTestResult result) {
-    final double[] ab1 = StatisticUtils.extractAbundance(result.row(), groupAFiles,
-        abundanceMeasure);
-    final double[] abB = StatisticUtils.extractAbundance(result.row(), groupBFiles,
-        abundanceMeasure);
-    return MathUtils.log(2,
-        Arrays.stream(ab1).average().getAsDouble() / Arrays.stream(abB).average().getAsDouble());
+    final MetadataTable metadata = MZmineCore.getProjectMetadata();
+    final Map<?, List<RawDataFile>> groupedFiles = metadata.groupFilesByColumn(groupingColumn);
+    groupedFiles.forEach((k, v) -> {
+      final String groupName = k.toString();
+      final List<Float> values = v.stream()
+          .map(file -> abundance.get((ModularFeature) row.getFeature(file)))
+          .filter(Objects::nonNull).toList();
+      add(values, groupName, STR."\{row.toString()} \{row.getPreferredAnnotationName()}");
+    });
   }
 }

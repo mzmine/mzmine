@@ -23,12 +23,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.framework.fx;
+package io.github.mzmine.modules.dataanalysis.utils.imputation;
 
-import io.github.mzmine.datamodel.features.Feature;
-import java.util.List;
-import javafx.beans.property.ObjectProperty;
+import org.apache.commons.math3.linear.RealVector;
 
-public interface SelectedFeaturesController {
-  ObjectProperty<List<Feature>> selectedFeaturesProperty();
+public class OneFifthOfMinimumImputer implements ImputationFunction {
+
+  @Override
+  public Double apply(RealVector realVector) {
+    final double minValue = realVector.getMinValue();
+    return minValue * 1 / 5;
+  }
 }

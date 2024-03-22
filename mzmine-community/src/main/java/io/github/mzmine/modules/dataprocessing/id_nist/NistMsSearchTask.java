@@ -608,7 +608,7 @@ public class NistMsSearchTask extends AbstractTask {
           mz = (int) Math.round(mz);
         }
 
-        writer.write(mz + "\t" + peakRow.getAverageHeight());
+        writer.write(mz + "\t" + peakRow.getMaxHeight());
 
       } else {
 

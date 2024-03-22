@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,9 @@ package io.github.mzmine.util.collections;
 import com.google.common.collect.Range;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.IntToDoubleFunction;
+import java.util.function.ToDoubleFunction;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -45,7 +47,7 @@ public class BinarySearch {
    * @return an {@link IndexRange} that may be empty but contains all values within range - always
    * including both bounds
    */
-  public static @NotNull IndexRange indexRange(double[] data, Range<Double> range) {
+  public static @NotNull IndexRange indexRange(double[] data, Range<? extends Number> range) {
     return indexRange(range, 0, data.length, index -> data[index]);
   }
 
@@ -58,7 +60,7 @@ public class BinarySearch {
    * @return an {@link IndexRange} that may be empty but contains all values within range - always
    * including both bounds
    */
-  public static @NotNull IndexRange indexRange(DoubleList data, Range<Double> range) {
+  public static @NotNull IndexRange indexRange(DoubleList data, Range<? extends Number> range) {
     return indexRange(range, 0, data.size(), data::getDouble);
   }
 
@@ -102,7 +104,7 @@ public class BinarySearch {
    * @return an {@link IndexRange} that may be empty but contains all values within range - always
    * including both bounds
    */
-  public static @NotNull IndexRange indexRange(Range<Double> range, int totalValues,
+  public static @NotNull IndexRange indexRange(Range<? extends Number> range, int totalValues,
       IntToDoubleFunction valueAtIndexProvider) {
     return indexRange(range, 0, totalValues, valueAtIndexProvider);
   }
@@ -118,10 +120,62 @@ public class BinarySearch {
    * @return an {@link IndexRange} that may be empty but contains all values within range - always
    * including both bounds
    */
-  public static @NotNull IndexRange indexRange(final Range<Double> range, final int fromIndex,
+  public static @NotNull IndexRange indexRange(final Range<? extends Number> range, final int fromIndex,
       final int toIndexExclusive, final IntToDoubleFunction valueAtIndexProvider) {
-    return indexRange(range.lowerEndpoint(), range.upperEndpoint(), fromIndex, toIndexExclusive,
+    return indexRange(range.lowerEndpoint().doubleValue(), range.upperEndpoint().doubleValue(), fromIndex, toIndexExclusive,
         valueAtIndexProvider);
+  }
+
+  /**
+   * Searches for the value - or the closest available. Copied from
+   * {@link Arrays#binarySearch(double[], double)}
+   *
+   * @param range         search for index of lower and upper bound both always included!
+   * @param values        total number of values (collection size or array length)
+   * @param valueProvider a function to compute or return the value at an index
+   * @return an {@link IndexRange} that may be empty but contains all values within range - always
+   * including both bounds
+   */
+  public static @NotNull <T> IndexRange indexRange(final Range<? extends Number> range,
+      final List<T> values, final ToDoubleFunction<T> valueProvider) {
+    return indexRange(range.lowerEndpoint().doubleValue(), range.upperEndpoint().doubleValue(),
+        values, 0, values.size(), valueProvider);
+  }
+
+  /**
+   * Searches for the value - or the closest available. Copied from
+   * {@link Arrays#binarySearch(double[], double)}
+   *
+   * @param lowerValue    search for index of lower and upper bound both always included!
+   * @param upperValue    search for index of lower and upper bound both always included!
+   * @param values        total number of values (collection size or array length)
+   * @param valueProvider a function to compute or return the value at an index
+   * @return an {@link IndexRange} that may be empty but contains all values within range - always
+   * including both bounds
+   */
+  public static @NotNull <T> IndexRange indexRange(final double lowerValue, final double upperValue,
+      final List<T> values, final ToDoubleFunction<T> valueProvider) {
+    return indexRange(lowerValue, upperValue, values, 0, values.size(), valueProvider);
+  }
+
+  /**
+   * Searches for the value - or the closest available. Copied from
+   * {@link Arrays#binarySearch(double[], double)}
+   *
+   * @param lowerValue       search for index of lower and upper bound both always included!
+   * @param upperValue       search for index of lower and upper bound both always included!
+   * @param values           total number of values (collection size or array length)
+   * @param fromIndex        inclusive lower end
+   * @param toIndexExclusive exclusive upper end
+   * @param valueProvider    a function to compute or return the value at an index
+   * @return an {@link IndexRange} that may be empty but contains all values within range - always
+   * including both bounds
+   */
+  public static @NotNull <T> IndexRange indexRange(final double lowerValue, final double upperValue,
+      final List<T> values, final int fromIndex, final int toIndexExclusive,
+      final ToDoubleFunction<T> valueProvider) {
+    return indexRange(lowerValue, upperValue, fromIndex, toIndexExclusive,
+        index -> valueProvider.applyAsDouble(values.get(index)));
   }
 
   /**

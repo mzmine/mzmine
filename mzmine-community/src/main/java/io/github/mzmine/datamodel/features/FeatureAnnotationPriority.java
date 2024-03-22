@@ -31,11 +31,16 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMat
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.util.collections.SortOrder;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -43,8 +48,8 @@ import org.jetbrains.annotations.NotNull;
  * {@link FeatureAnnotationIterator}
  */
 public enum FeatureAnnotationPriority {
-  MANUAL(ManualAnnotationType.class), LIPID(LipidMatchListType.class), SPECTRAL_LIBRARY(
-      SpectralLibraryMatchesType.class), EXACT_COMPOUND(CompoundDatabaseMatchesType.class), FORMULA(
+  MANUAL(ManualAnnotationType.class), SPECTRAL_LIBRARY(SpectralLibraryMatchesType.class), LIPID(
+      LipidMatchListType.class), EXACT_COMPOUND(CompoundDatabaseMatchesType.class), FORMULA(
       FormulaListType.class);
   private static final DataType<?>[] dataTypes = Arrays.stream(FeatureAnnotationPriority.values())
       .map(FeatureAnnotationPriority::getAnnotationType).map(DataTypes::get)
@@ -54,6 +59,32 @@ public enum FeatureAnnotationPriority {
 
   FeatureAnnotationPriority(Class<? extends DataType<?>> clazz) {
     this.type = DataTypes.get(clazz);
+  }
+
+
+  /**
+   * Sort a collection of AnnotationTypes and put {@link MissingValueType} at the end (descending)
+   * or at the start (ascending). For charts and legend creation use ACSENDING to put the missing
+   * color first
+   */
+  public static Comparator<? super DataType<?>> createSorter(final SortOrder order) {
+    Map<DataType<?>, Integer> orderedTypes = new LinkedHashMap<>();
+    int c = 0;
+    MissingValueType missingValueType = DataTypes.get(MissingValueType.class);
+    if (order == SortOrder.ASCENDING) {
+      orderedTypes.put(missingValueType, c++);
+      for (final DataType<?> type : FeatureAnnotationPriority.getDataTypesInReversedOrder()) {
+        orderedTypes.put(type, c++);
+      }
+    } else {
+      for (final DataType<?> type : FeatureAnnotationPriority.getDataTypesInOrder()) {
+        orderedTypes.put(type, c++);
+      }
+      orderedTypes.put(missingValueType, c);
+    }
+
+    return Comparator.comparing(orderedTypes::get,
+        Comparator.nullsLast(Comparator.naturalOrder()));
   }
 
   /**
@@ -77,9 +108,24 @@ public enum FeatureAnnotationPriority {
     return prio != null ? prio.ordinal() : FeatureAnnotationPriority.values().length;
   }
 
+  /**
+   * @return Best first
+   */
   public static DataType<?>[] getDataTypesInOrder() {
     return dataTypes;
   }
+
+  /**
+   * @return Best last
+   */
+  public static DataType<?>[] getDataTypesInReversedOrder() {
+    DataType<?>[] reversed = new DataType[dataTypes.length];
+    for (int i = 0; i < reversed.length; i++) {
+      reversed[i] = dataTypes[dataTypes.length - 1 - i];
+    }
+    return reversed;
+  }
+
 
   @NotNull
   public List<?> getAll(FeatureListRow row) {

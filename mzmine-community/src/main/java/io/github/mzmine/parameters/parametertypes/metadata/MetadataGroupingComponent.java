@@ -30,13 +30,21 @@ import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataCol
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.parameters.ValuePropertyComponent;
 import java.util.List;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TextField;
+import javafx.util.StringConverter;
 import org.controlsfx.control.textfield.TextFields;
+import org.jetbrains.annotations.Nullable;
 
-public class MetadataGroupingComponent extends TextField implements ValuePropertyComponent<String> {
+public class MetadataGroupingComponent extends TextField implements
+    ValuePropertyComponent<MetadataColumn<?>> {
 
   private final List<AvailableTypes> availableTypes;
+
+  private final ObjectProperty<@Nullable MetadataColumn<?>> columnProperty = new SimpleObjectProperty<>();
 
   public MetadataGroupingComponent() {
     this(AvailableTypes.values());
@@ -53,10 +61,23 @@ public class MetadataGroupingComponent extends TextField implements ValuePropert
         .filter(col -> availableTypes.contains(col.getType())).map(MetadataColumn::getTitle)
         .toArray(String[]::new);
     TextFields.bindAutoCompletion(this, columns);
+
+    Bindings.bindBidirectional(textProperty(), valueProperty(),
+        new StringConverter<MetadataColumn<?>>() {
+          @Override
+          public String toString(MetadataColumn<?> object) {
+            return object != null ? object.getTitle() : "";
+          }
+
+          @Override
+          public MetadataColumn<?> fromString(String string) {
+            return MZmineCore.getProjectMetadata().getColumnByName(string);
+          }
+        });
   }
 
   @Override
-  public Property<String> valueProperty() {
-    return this.textProperty();
+  public Property<MetadataColumn<?>> valueProperty() {
+    return columnProperty;
   }
 }

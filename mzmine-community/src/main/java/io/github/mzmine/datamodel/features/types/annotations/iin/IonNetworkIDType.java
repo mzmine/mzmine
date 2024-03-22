@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import java.util.HashMap;
 import java.util.List;
@@ -64,7 +65,7 @@ public class IonNetworkIDType extends IntegerType {
 
   @Nullable
   @Override
-  public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
+  public Runnable getDoubleClickAction(final @Nullable FeatureTableFX table, @NotNull ModularFeatureListRow row,
       @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
 
     var ionIdentity = row.getBestIonIdentity();

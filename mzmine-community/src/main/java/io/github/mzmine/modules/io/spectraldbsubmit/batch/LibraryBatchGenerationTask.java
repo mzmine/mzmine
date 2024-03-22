@@ -105,7 +105,6 @@ public class LibraryBatchGenerationTask extends AbstractTask {
   private final boolean handleChimerics;
   private final FragmentScanSelection selection;
   private final MsMsQualityChecker msMsQualityChecker;
-  private final MZTolerance mzTolMerging;
   private final boolean enableMsnMerge;
   private final MsLevelFilter postMergingMsLevelFilter;
   public long totalRows = 0;
@@ -140,7 +139,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
         LibraryBatchGenerationParameters.postMergingMsLevelFilter);
 
     enableMsnMerge = parameters.getValue(LibraryBatchGenerationParameters.mergeMzTolerance);
-    mzTolMerging = parameters.getEmbeddedParameterValue(
+    MZTolerance mzTolMerging = parameters.getEmbeddedParameterValue(
         LibraryBatchGenerationParameters.mergeMzTolerance);
     //
     handleChimerics = parameters.getValue(LibraryBatchGenerationParameters.handleChimerics);
@@ -355,6 +354,10 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     if (entry.getField(DBEntryField.CCS).isEmpty()) {
       entry.putIfNotNull(DBEntryField.CCS, row.getAverageCCS());
     }
+    if (entry.getField(DBEntryField.FEATURE_MS1_HEIGHT).isEmpty()) {
+      entry.putIfNotNull(DBEntryField.FEATURE_MS1_HEIGHT, row.getMaxHeight());
+    }
+
     return entry;
   }
 

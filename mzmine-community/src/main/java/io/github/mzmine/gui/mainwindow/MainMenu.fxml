@@ -446,6 +446,9 @@
         userData="io.github.mzmine.modules.dataprocessing.align_append_rows.MergeAlignerModule"/>
       <MenuItem text="RANSAC aligner" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.align_ransac.RansacAlignerModule"/>
+      <MenuItem text="GC aligner"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerModule"/>
       <MenuItem text="Hierarchical aligner (GC)"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.align_hierarchical.HierarAlignerGcModule"/>
@@ -476,7 +479,7 @@
 
     <Menu text="Annotation">
       <Menu text="Search precursor mass">
-        <MenuItem text="Local compound database (CSV) search"
+        <MenuItem text="Local compound database search"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule"/>
         <MenuItem
@@ -520,10 +523,16 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule"/>
     </Menu>
 
-    <Menu text="Data analysis">
+    <Menu text="Statistics">
+      <MenuItem text="Statistics dashboard"
+              onAction="#runModule"
+              userData="io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule"/>
       <MenuItem text="Volcano plot"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotModule"/>
+      <MenuItem text="Principal component analysis (PCA)"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataanalysis.pca_new.PCAModule"/>
       <!--<Menu text="Bubble plots">
         <MenuItem text="Coefficient of variation (CV) plot"
           onAction="#runModule"

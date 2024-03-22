@@ -63,7 +63,8 @@ public class TasksViewInteractor extends FxInteractor<TasksViewModel> {
         toRemove.addAll(change.getRemoved());
       }
       if (change.wasAdded()) {
-        for (var task : change.getAddedSubList()) {
+        List<? extends WrappedTask> addedSubList = change.getAddedSubList();
+        for (var task : addedSubList) {
           toAdd.add(new WrappedTaskModel(task));
         }
       }
