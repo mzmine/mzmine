@@ -23,15 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.javafx;
+package io.github.mzmine.javafx.util;
 
-import io.github.mzmine.javafx.util.FxColorUtil;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.javafx.util.ImageUtils;
-import io.github.mzmine.util.color.ColorUtils;
+import io.github.mzmine.javafx.util.color.ColorsFX;
+import io.github.mzmine.javafx.util.color.Vision;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -54,7 +53,7 @@ public class FxIconUtil {
     try {
       iconResource.close();
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, "error while loading resource", e);
     }
     return icon;
   }
@@ -70,13 +69,27 @@ public class FxIconUtil {
     HashMap<Color, Color> colorsMapping = new HashMap<>();
     colorsMapping.put(new Color(1.0, 0.5333333611488342, 0.0235294122248888, 1.0), color);
     colorsMapping.put(new Color(0.9921568632125854, 0.6078431606292725, 0.1882352977991104, 1.0),
-        ColorUtils.tintColor(color, 0.25));
+        tintColor(color, 0.25));
     colorsMapping.put(new Color(1.0, 0.7372549176216125, 0.4470588266849518, 1.0),
-        ColorUtils.tintColor(color, 0.5));
+        tintColor(color, 0.5));
 
     // Recolor file icon according to the mapping
     return ImageUtils.recolor(loadImageFromResources("icons/fileicon.png"), colorsMapping);
   }
+
+  /**
+   * Returns tinted version of the given color.
+   *
+   * @param color  input color
+   * @param factor tint factor, must be from [0, 1], higher value is, brighter output color is
+   * @return new color
+   */
+  public static Color tintColor(Color color, double factor) {
+    return new Color(color.getRed() + (1d - color.getRed()) * factor,
+        color.getGreen() + (1d - color.getGreen()) * factor,
+        color.getBlue() + (1d - color.getBlue()) * factor, color.getOpacity());
+  }
+
 
   /**
    * Get FontIcon from Ikonli library
@@ -106,11 +119,11 @@ public class FxIconUtil {
 
 
   public static FontIcon getCheckedIcon() {
-    return getFontIcon("bi-check2-circle", 12, MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColor());
+    return getFontIcon("bi-check2-circle", 12, ColorsFX.getPositiveColor(Vision.DEUTERANOPIA));
   }
 
   public static FontIcon getUncheckedIcon() {
-    return getFontIcon("bi-x-circle", 12, MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor());
+    return getFontIcon("bi-x-circle", 12, ColorsFX.getNegativeColor(Vision.DEUTERANOPIA));
   }
 
 }

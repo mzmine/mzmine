@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.color;
+package io.github.mzmine.javafx.util.color;
 
 import java.awt.Color;
 
@@ -77,7 +77,7 @@ public class Colors {
   /**
    * Seven colors (+black)
    * 
-   * @param mode color blindness?
+   * @param vision color blindness?
    * @param includeBlack include black as the first color
    * @return
    */
@@ -89,7 +89,7 @@ public class Colors {
   /**
    * Return positive feedback color
    * 
-   * @param mode
+   * @param vision
    * @return
    */
   public static Color getPositiveColor(Vision vision) {
@@ -109,7 +109,7 @@ public class Colors {
   /**
    * Return positive feedback color
    * 
-   * @param mode
+   * @param vision
    * @return
    */
   public static Color getNegativeColor(Vision vision) {

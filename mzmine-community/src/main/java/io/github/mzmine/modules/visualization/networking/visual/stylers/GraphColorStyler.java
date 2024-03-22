@@ -30,7 +30,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.networking.visual.enums.GraphElementAttr;
 import io.github.mzmine.modules.visualization.networking.visual.enums.GraphObject;
 import io.github.mzmine.util.GraphStreamUtils;
-import io.github.mzmine.util.color.ColorsFX;
+import io.github.mzmine.javafx.util.color.ColorsFX;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.Map;
 import java.util.Optional;

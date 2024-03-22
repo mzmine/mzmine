@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,20 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.color;
+package io.github.mzmine.javafx.util;
 
-/**
- * Color blindness or "normal" vision
- * 
- */
-public enum Vision {
-  NORMAL_VISION, //
-  DEUTERANOPIA, // green blindness, 6% male population
-  PROTANOPIA, // red blindness, 1% male population
-  TRITANOPIA; // blue blindness, very rare
+import javafx.scene.text.Font;
 
-  @Override
-  public String toString() {
-    return super.toString().replaceAll("_", " ");
+public class FxFontUtil {
+
+  public static java.awt.Font fxFontToAWT(final Font font) {
+    java.awt.Font awtFont =
+        new java.awt.Font(font.getName(), java.awt.Font.PLAIN, (int) font.getSize());
+    return awtFont;
   }
+
+
 }

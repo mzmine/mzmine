@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.components.factories.TableColumns;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
 import javafx.beans.property.SimpleObjectProperty;

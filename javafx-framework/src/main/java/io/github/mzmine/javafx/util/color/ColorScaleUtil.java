@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,17 +23,37 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.javafx;
+package io.github.mzmine.javafx.util.color;
 
-import javafx.scene.text.Font;
+import java.awt.Color;
 
-public class FxFontUtil {
+public class ColorScaleUtil {
 
-  public static java.awt.Font fxFontToAWT(final Font font) {
-    java.awt.Font awtFont =
-        new java.awt.Font(font.getName(), java.awt.Font.PLAIN, (int) font.getSize());
-    return awtFont;
+  /**
+   * Get color of gradient between min and max color
+   * 
+   * @param min
+   * @param max
+   * @param minValue
+   * @param maxValue
+   * @param value
+   * @return
+   */
+  public static Color getColor(Color min, Color max, double minValue, double maxValue,
+      double value) {
+    // hue saturation brightness
+    float[] minHSB = Color.RGBtoHSB(min.getRed(), min.getGreen(), min.getBlue(), null);
+    float[] maxHSB = Color.RGBtoHSB(max.getRed(), max.getGreen(), max.getBlue(), null);
+
+    double diff = maxValue - minValue;
+    double p = (Math.max(value, minValue) - minValue) / diff;
+    if (p > 1)
+      p = 1;
+
+    // gradient
+    float h = (float) ((maxHSB[0] - minHSB[0]) * p + minHSB[0]);
+    float s = (float) ((maxHSB[1] - minHSB[1]) * p + minHSB[1]);
+    float b = (float) ((maxHSB[2] - minHSB[2]) * p + minHSB[2]);
+    return Color.getHSBColor(h, s, b);
   }
-
-
 }

@@ -25,7 +25,7 @@
 
 package io.github.mzmine.gui;
 
-import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import java.util.logging.Logger;
 import javafx.scene.image.Image;
 

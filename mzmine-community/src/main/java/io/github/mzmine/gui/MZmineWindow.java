@@ -27,7 +27,7 @@ package io.github.mzmine.gui;
 
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.util.javafx.WindowsMenu;
 import java.util.Arrays;
 import javafx.collections.ListChangeListener;

@@ -29,7 +29,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.util.color.ColorsFX;
+import io.github.mzmine.javafx.util.color.ColorsFX;
 import java.util.Map.Entry;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;

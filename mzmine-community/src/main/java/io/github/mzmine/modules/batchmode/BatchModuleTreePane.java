@@ -31,7 +31,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineModuleCategory.MainCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
-import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
