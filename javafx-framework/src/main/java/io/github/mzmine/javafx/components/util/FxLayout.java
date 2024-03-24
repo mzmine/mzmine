@@ -25,19 +25,27 @@
 
 package io.github.mzmine.javafx.components.util;
 
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.layout.FlowPane;
 
 public class FxLayout {
 
   public static final int DEFAULT_SPACE = 5;
+  public static final Insets DEFAULT_INSETS = new Insets(5);
 
   public static FlowPane newFlowPane() {
     return new FlowPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
   }
 
   public static FlowPane newFlowPane(Node... children) {
-    return new FlowPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE, children);
+    return newFlowPane(DEFAULT_INSETS, children);
+  }
+
+  public static FlowPane newFlowPane(Insets insets, Node... children) {
+    var flowPane = new FlowPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE, children);
+    flowPane.setOpaqueInsets(insets);
+    return flowPane;
   }
 
 }
