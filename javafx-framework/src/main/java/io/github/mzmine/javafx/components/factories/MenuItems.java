@@ -25,10 +25,13 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import java.util.function.Consumer;
 import javafx.beans.property.ObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
+import org.jetbrains.annotations.NotNull;
 
 public class MenuItems {
 
@@ -55,5 +58,25 @@ public class MenuItems {
       }
     });
     return item;
+  }
+
+  /**
+   * Menu item that performs action on selected ListView item. This item is NotNull
+   *
+   * @param listView the parent list view
+   * @param title    menu title
+   * @param consumer consumer of NotNull item
+   * @param <T>      the item class
+   * @return a menu item
+   */
+  public static <T> MenuItem onSelectedItem(final @NotNull ListView<T> listView, final String title,
+      final Consumer<@NotNull T> consumer) {
+    return create(title, () -> {
+      T selected = listView.getSelectionModel().getSelectedItem();
+      if (selected == null) {
+        return;
+      }
+      consumer.accept(selected);
+    });
   }
 }

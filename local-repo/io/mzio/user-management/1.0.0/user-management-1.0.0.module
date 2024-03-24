@@ -1,0 +1,83 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "io.mzio",
+    "module": "user-management",
+    "version": "1.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "user-management-1.0.0.jar",
+          "url": "user-management-1.0.0.jar",
+          "size": 22558,
+          "sha512": "cf3b9ee2ba5f30315236633ec4de793e6efa41f294b30acb64b1720183935252e1978bb63faab6db68d24d5932f87b947db32f6973b9760f33e72e59cfdaf470",
+          "sha256": "2e1293863446b8bcb6e6aae02146f6b72e6295d5612e0554900d2d63c0cc6419",
+          "sha1": "b5e50c264a2b0666f476932227602b2c4cc9ca96",
+          "md5": "ecb21262f354ab175e3b7d054286406f"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains",
+          "module": "annotations",
+          "version": {
+            "requires": "22.0.0"
+          }
+        },
+        {
+          "group": "com.javax0.license3j",
+          "module": "license3j",
+          "version": {
+            "requires": "3.2.0"
+          }
+        },
+        {
+          "group": "commons-io",
+          "module": "commons-io",
+          "version": {
+            "requires": "2.15.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "user-management-1.0.0.jar",
+          "url": "user-management-1.0.0.jar",
+          "size": 22558,
+          "sha512": "cf3b9ee2ba5f30315236633ec4de793e6efa41f294b30acb64b1720183935252e1978bb63faab6db68d24d5932f87b947db32f6973b9760f33e72e59cfdaf470",
+          "sha256": "2e1293863446b8bcb6e6aae02146f6b72e6295d5612e0554900d2d63c0cc6419",
+          "sha1": "b5e50c264a2b0666f476932227602b2c4cc9ca96",
+          "md5": "ecb21262f354ab175e3b7d054286406f"
+        }
+      ]
+    }
+  ]
+}

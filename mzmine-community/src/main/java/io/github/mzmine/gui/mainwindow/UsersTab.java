@@ -23,22 +23,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.javafx.util.color;
+package io.github.mzmine.gui.mainwindow;
 
-/**
- * Color blindness or "normal" vision
- * 
- */
-public enum Vision {
-  NORMAL_VISION, //
-  DEUTERANOPIA, // green blindness, 6% male population
-  PROTANOPIA, // red blindness, 1% male population
-  TRITANOPIA; // blue blindness, very rare
+import io.mzio.users.gui.fx.UsersController;
+import javafx.scene.control.Tab;
 
-  public static final Vision DEFAULT = DEUTERANOPIA;
+public class UsersTab extends SimpleTab {
 
-  @Override
-  public String toString() {
-    return super.toString().replaceAll("_", " ");
+  private final UsersController controller;
+
+  public UsersTab() {
+    super("Users");
+    controller = new UsersController();
+    setContent(controller.buildView());
   }
 }

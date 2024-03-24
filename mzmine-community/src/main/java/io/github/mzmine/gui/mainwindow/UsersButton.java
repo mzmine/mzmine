@@ -23,22 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.javafx.util.color;
+package io.github.mzmine.gui.mainwindow;
 
-/**
- * Color blindness or "normal" vision
- * 
- */
-public enum Vision {
-  NORMAL_VISION, //
-  DEUTERANOPIA, // green blindness, 6% male population
-  PROTANOPIA, // red blindness, 1% male population
-  TRITANOPIA; // blue blindness, very rare
+import io.github.mzmine.main.MZmineCore;
+import io.mzio.users.user.CurrentUserService;
+import javafx.scene.control.Button;
+import javafx.scene.layout.BorderPane;
 
-  public static final Vision DEFAULT = DEUTERANOPIA;
+public class UsersButton extends BorderPane {
 
-  @Override
-  public String toString() {
-    return super.toString().replaceAll("_", " ");
+  public UsersButton() {
+    super();
+    var button = new Button("NA");
+    button.setOnAction(_ -> MZmineCore.getDesktop().addTab(new UsersTab()));
+
+    CurrentUserService.addListener(user -> {
+      String text = user == null ? "NON" : user.getInitials();
+      button.setText(text);
+    });
+
+    setCenter(button);
   }
 }

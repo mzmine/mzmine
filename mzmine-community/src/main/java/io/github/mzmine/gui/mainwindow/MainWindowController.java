@@ -37,6 +37,7 @@ import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -66,7 +67,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelec
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupEntity;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewCell;
@@ -252,7 +252,6 @@ public class MainWindowController {
 
   @FXML
   public void initialize() {
-
     // do not switch panes by arrows
     mainTabPane.addEventFilter(KeyEvent.ANY, event -> {
       if (event.getCode().isArrowKey() && event.getTarget() == mainTabPane) {
@@ -437,8 +436,8 @@ public class MainWindowController {
           if (clickedFile instanceof ImagingRawDataFile) {
             if (MZmineCore.getDesktop().displayConfirmation(
                 "Warning!\n" + "You are trying to open an IMS MS imaging file.\n"
-                    + "The amount of information may crash MZmine.\n"
-                    + "Would you like to open the overview anyway?", ButtonType.YES, ButtonType.NO)
+                + "The amount of information may crash MZmine.\n"
+                + "Would you like to open the overview anyway?", ButtonType.YES, ButtonType.NO)
                 == ButtonType.NO) {
               return;
             }

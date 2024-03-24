@@ -141,12 +141,14 @@ ext {
 }
 
 dependencies {
+    // local dependencies - publish
+    implementation("io.mzio:user-management:1.0.0")
+    implementation("io.mzio:user-management-fx:1.0.0")
+    // same project
     implementation(project(":taskcontroller"))
     implementation(project(":memory-management"))
     implementation(project(":utils"))
     implementation(project(":javafx-framework"))
-    implementation("io.mzio:user-management")
-    implementation("io.mzio:user-management-fx")
     // MZmine version parsing
     implementation 'com.vdurmont:semver4j:3.1.0'
 //    implementation "org.graphstream:gs-core:2.0"
