@@ -2,7 +2,7 @@
   "formatVersion": "1.1",
   "component": {
     "group": "io.mzio",
-    "module": "user-management",
+    "module": "user-client",
     "version": "1.0.0",
     "attributes": {
       "org.gradle.status": "release"
@@ -19,19 +19,19 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 17,
+        "org.gradle.jvm.version": 21,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-api"
       },
       "files": [
         {
-          "name": "user-management-1.0.0.jar",
-          "url": "user-management-1.0.0.jar",
-          "size": 24796,
-          "sha512": "81ca8af1202d0480f375a078dc154fc4fb6f09ead34db49d3abea5b64871b5ab577c28150942a9c5903276d48dbc9c52f125cf2bc174454e0c15bdd5d3cfb540",
-          "sha256": "9c811caa00c0be815cb0d4a4c2d20be7ef0abf3a42fe102240d47a24f1bc5ee6",
-          "sha1": "8d4eba7a94fb955c7bc4d56f418fe2920130a0d2",
-          "md5": "b1d129f982b6ffbb77ebac592abeeaad"
+          "name": "user-client-1.0.0.jar",
+          "url": "user-client-1.0.0.jar",
+          "size": 15703,
+          "sha512": "65e8708814b6ca3702b08c8a32bd4b520005a20f71d923598227d2d256c6294c4f543fb2c2ee57113d724961c031074993213651d3b33b7f8a780f597c706e5a",
+          "sha256": "43e309b3189d83aaae2337e379a30b3f2f07b2c894da8955327da9ecabb10d8d",
+          "sha1": "6988e654dd078adb587721fcd0ac5a1c3a58e96b",
+          "md5": "57f13da9128b1cca8ceb564db0a08312"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 17,
+        "org.gradle.jvm.version": 21,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-runtime"
       },
@@ -50,6 +50,13 @@
           "module": "annotations",
           "version": {
             "requires": "22.0.0"
+          }
+        },
+        {
+          "group": "io.mzio",
+          "module": "user-management",
+          "version": {
+            "requires": "1.0.0"
           }
         },
         {
@@ -65,17 +72,24 @@
           "version": {
             "requires": "2.15.1"
           }
+        },
+        {
+          "group": "org.keycloak",
+          "module": "keycloak-installed-adapter",
+          "version": {
+            "requires": "24.0.1"
+          }
         }
       ],
       "files": [
         {
-          "name": "user-management-1.0.0.jar",
-          "url": "user-management-1.0.0.jar",
-          "size": 24796,
-          "sha512": "81ca8af1202d0480f375a078dc154fc4fb6f09ead34db49d3abea5b64871b5ab577c28150942a9c5903276d48dbc9c52f125cf2bc174454e0c15bdd5d3cfb540",
-          "sha256": "9c811caa00c0be815cb0d4a4c2d20be7ef0abf3a42fe102240d47a24f1bc5ee6",
-          "sha1": "8d4eba7a94fb955c7bc4d56f418fe2920130a0d2",
-          "md5": "b1d129f982b6ffbb77ebac592abeeaad"
+          "name": "user-client-1.0.0.jar",
+          "url": "user-client-1.0.0.jar",
+          "size": 15703,
+          "sha512": "65e8708814b6ca3702b08c8a32bd4b520005a20f71d923598227d2d256c6294c4f543fb2c2ee57113d724961c031074993213651d3b33b7f8a780f597c706e5a",
+          "sha256": "43e309b3189d83aaae2337e379a30b3f2f07b2c894da8955327da9ecabb10d8d",
+          "sha1": "6988e654dd078adb587721fcd0ac5a1c3a58e96b",
+          "md5": "57f13da9128b1cca8ceb564db0a08312"
         }
       ]
     }
