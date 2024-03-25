@@ -27,6 +27,7 @@ package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.gui.framework.fx.FilterableTreeItem;
 import io.github.mzmine.gui.framework.fx.TreeItemPredicate;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineModuleCategory.MainCategory;
@@ -71,9 +72,8 @@ public class BatchModuleTreePane extends BorderPane {
     BorderPane bottom = new BorderPane(searchField);
     FontIcon icon = FxIconUtil.getFontIcon("bi-x-circle", 20);
     icon.setOnMouseClicked(event -> xButtonPressed());
-    HBox box = new HBox(6, icon, new Label("Search"));
-    box.setAlignment(Pos.CENTER_LEFT);
-    box.setOpaqueInsets(new Insets(4, 5, 0, 5));
+    HBox box = FxLayout.newHBox(icon, new Label("Search"));
+//    box.setOpaqueInsets(new Insets(4, 5, 0, 5));
     bottom.setLeft(box);
 
     setCenter(treeView);

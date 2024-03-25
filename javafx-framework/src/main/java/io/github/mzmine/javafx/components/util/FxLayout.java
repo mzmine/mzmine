@@ -26,26 +26,70 @@
 package io.github.mzmine.javafx.components.util;
 
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 
 public class FxLayout {
 
   public static final int DEFAULT_SPACE = 5;
-  public static final Insets DEFAULT_INSETS = new Insets(5);
+  public static final Insets DEFAULT_PADDING_INSETS = new Insets(5);
 
   public static FlowPane newFlowPane() {
     return new FlowPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
   }
 
   public static FlowPane newFlowPane(Node... children) {
-    return newFlowPane(DEFAULT_INSETS, children);
+    return newFlowPane(DEFAULT_PADDING_INSETS, children);
   }
 
-  public static FlowPane newFlowPane(Insets insets, Node... children) {
-    var flowPane = new FlowPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE, children);
-    flowPane.setOpaqueInsets(insets);
-    return flowPane;
+  public static FlowPane newFlowPane(Insets padding, Node... children) {
+    var pane = new FlowPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE, children);
+    pane.setPadding(padding);
+    return pane;
   }
 
+  public static VBox newVBox(Node... children) {
+    return newVBox(DEFAULT_PADDING_INSETS, children);
+  }
+
+  public static VBox newVBox(Insets padding, Node... children) {
+    var pane = new VBox(DEFAULT_SPACE, children);
+    pane.setPadding(padding);
+    return pane;
+  }
+
+  public static HBox newHBox(Node... children) {
+    return newHBox(DEFAULT_PADDING_INSETS, children);
+  }
+
+  public static HBox newHBox(Insets padding, Node... children) {
+    var pane = new HBox(DEFAULT_SPACE, children);
+    pane.setAlignment(Pos.CENTER_LEFT);
+    pane.setPadding(padding);
+    return pane;
+  }
+  public static StackPane newStackPane(Node... children) {
+    return newStackPane(DEFAULT_PADDING_INSETS, children);
+  }
+
+  public static StackPane newStackPane(Insets padding, Node... children) {
+    var pane = new StackPane(children);
+    pane.setPadding(padding);
+    return pane;
+  }
+
+  public static BorderPane newBorderPane(Node center) {
+    return newBorderPane(DEFAULT_PADDING_INSETS, center);
+  }
+
+  public static BorderPane newBorderPane(Insets padding, Node center) {
+    var pane = new BorderPane(center);
+    pane.setPadding(padding);
+    return pane;
+  }
 }
