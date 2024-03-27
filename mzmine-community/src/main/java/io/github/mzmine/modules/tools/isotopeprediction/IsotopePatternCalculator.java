@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -56,7 +56,8 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  */
 public class IsotopePatternCalculator implements MZmineModule {
 
-  private static final double ELECTRON_MASS = 5.4857990943E-4;
+  public static final double ELECTRON_MASS = 5.4857990943E-4;
+  public static final double THIRTHEEN_C_DISTANCE = 1.003354831;
 
   private static final String MODULE_NAME = "Isotope pattern prediction.";
 
