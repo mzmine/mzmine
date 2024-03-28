@@ -156,6 +156,10 @@ dependencies {
     implementation(libs.commons.io)
     implementation(libs.commons.lang3)
     implementation(libs.fastutil)
+    implementation(libs.bundles.djl.pytorch)
+    implementation(libs.djl.api)
+    implementation(libs.djl.pytorch.engine)
+    testImplementation(libs.djl.pytorch.engine)
     implementation "edu.ucar:netcdf4:4.5.5"
     implementation "org.ostermiller:utils:1.07.00"
     implementation 'org.jetbrains:annotations:22.0.0'
