@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_fragtree;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.Scan;
@@ -44,6 +45,11 @@ import java.time.Instant;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.formula.MolecularFormulaGenerator;
+import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
 
 public class FragmentTreeCalcTask extends AbstractFeatureListTask {
 
@@ -51,6 +57,9 @@ public class FragmentTreeCalcTask extends AbstractFeatureListTask {
   private MZTolerance ms2MergeTol = new MZTolerance(0.005, 5);
   private FragmentScanSelection selection = new FragmentScanSelection(ms2MergeTol, true,
       IncludeInputSpectra.NONE, IntensityMergingType.MAXIMUM, MsLevelFilter.ALL_LEVELS, null);
+  private MZTolerance formulaTolerance = new MZTolerance(0.005, 5);
+
+  private final MolecularFormulaRange elementCounts = new MolecularFormulaRange();
 
   protected FragmentTreeCalcTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, ParameterSet parameters, FeatureList flist) {
@@ -84,8 +93,13 @@ public class FragmentTreeCalcTask extends AbstractFeatureListTask {
     }
 
     final List<IonType> assignedIonTypes = FeatureUtils.extractAllIonTypes(row);
+    final Range<Double> formulaMassRange = formulaTolerance.getToleranceRange(row.getAverageMZ());
 
+    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+    final MolecularFormulaGenerator generator = new MolecularFormulaGenerator(
+        builder, formulaMassRange.lowerEndpoint(), formulaMassRange.upperEndpoint(), elementCounts);
 
+    IMolecularFormula cdkFormula;
   }
 
   @Override
