@@ -27,11 +27,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 24389,
-          "sha512": "f0f8dd954846ee1c68a7bc12ad7794c9745ed6e2e698b3817be3732b61731e6c3343bd43c9b8855bd31a9022f6e4ff2394e0e86ea235e390904a9bbcfbb9e89d",
-          "sha256": "6381c2413401ca6acc0364dce1147f371cda8a5d3ac3106c3eb226e26fe0c73f",
-          "sha1": "6a98eea1d08d1cc3129a63f7e36829123e0caf2a",
-          "md5": "a7c67a0058984704675b67006c4246db"
+          "size": 24241,
+          "sha512": "70d1401304e0fc31a33b9f480ff73237fa25adc2c31ebf65a4795582fcceab870b35cde9601d95f4cbcffa383ad237f683491465502e391a1a85ad37952b9e2a",
+          "sha256": "53edd93a1390528cbaf572f6de93d2966d1a91e6756c3be5aef0a3d2e68e8fcb",
+          "sha1": "5f347a74da0459ad871653f25c8a519fe59fdf86",
+          "md5": "42889cdab00a8230e889fbf814d40332"
         }
       ]
     },
@@ -193,30 +193,34 @@
           }
         },
         {
-          "group": "com.javax0.license3j",
-          "module": "license3j",
-          "version": {
-            "requires": "3.2.0"
-          }
-        },
-        {
           "group": "io.github.mzmine",
           "module": "javafx-framework"
         },
         {
           "group": "io.github.mzmine",
+          "module": "taskcontroller"
+        },
+        {
+          "group": "io.github.mzmine",
           "module": "utils"
+        },
+        {
+          "group": "com.javax0.license3j",
+          "module": "license3j",
+          "version": {
+            "requires": "3.2.0"
+          }
         }
       ],
       "files": [
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 24389,
-          "sha512": "f0f8dd954846ee1c68a7bc12ad7794c9745ed6e2e698b3817be3732b61731e6c3343bd43c9b8855bd31a9022f6e4ff2394e0e86ea235e390904a9bbcfbb9e89d",
-          "sha256": "6381c2413401ca6acc0364dce1147f371cda8a5d3ac3106c3eb226e26fe0c73f",
-          "sha1": "6a98eea1d08d1cc3129a63f7e36829123e0caf2a",
-          "md5": "a7c67a0058984704675b67006c4246db"
+          "size": 24241,
+          "sha512": "70d1401304e0fc31a33b9f480ff73237fa25adc2c31ebf65a4795582fcceab870b35cde9601d95f4cbcffa383ad237f683491465502e391a1a85ad37952b9e2a",
+          "sha256": "53edd93a1390528cbaf572f6de93d2966d1a91e6756c3be5aef0a3d2e68e8fcb",
+          "sha1": "5f347a74da0459ad871653f25c8a519fe59fdf86",
+          "md5": "42889cdab00a8230e889fbf814d40332"
         }
       ]
     }
