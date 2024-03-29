@@ -280,7 +280,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     }
 
     List<String> errors = new ArrayList<>();
-    if (parameterSet.checkParameterValues(errors)) {
+    if (parameterSet.checkParameterValues(errors, true)) {
       onSelectedFeatureChanged(previewChart, fBox.getFeatureBox().getValue());
       onSelectedFeatureChanged(previewChartBadFeature, fBoxBadFeature.getFeatureBox().getValue());
     }
