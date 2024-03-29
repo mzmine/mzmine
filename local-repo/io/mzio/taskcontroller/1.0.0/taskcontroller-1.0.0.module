@@ -1,0 +1,217 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "io.mzio",
+    "module": "taskcontroller",
+    "version": "1.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "taskcontroller-1.0.0.jar",
+          "url": "taskcontroller-1.0.0.jar",
+          "size": 17082,
+          "sha512": "09fc9349ff55d9ea595c061dd554106f36c984f657e7d00af06a522cf7d9f463ed6e40cc965e8e3c0c38688d5f2f3eaca953cdcea0a0d5004c05c42637e007ac",
+          "sha256": "7868aa23d0492affad53be6bacc826ce3892ec04a95726100b92cb8c5342e2b1",
+          "sha1": "02b928a000b1e9fdfaca80729c4fa6be2eec979f",
+          "md5": "a79928f90379d60f5d8f0fe1a1707cca"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains",
+          "module": "annotations",
+          "version": {
+            "requires": "22.0.0"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-base",
+          "version": {
+            "requires": "21"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "javafx-base",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "win"
+            }
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-graphics",
+          "version": {
+            "requires": "21"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "javafx-graphics",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "win"
+            }
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-controls",
+          "version": {
+            "requires": "21"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "javafx-controls",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "win"
+            }
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-fxml",
+          "version": {
+            "requires": "21"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "javafx-fxml",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "win"
+            }
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-media",
+          "version": {
+            "requires": "21"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "javafx-media",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "win"
+            }
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-swing",
+          "version": {
+            "requires": "21"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "javafx-swing",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "win"
+            }
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-web",
+          "version": {
+            "requires": "21"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "javafx-web",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "win"
+            }
+          }
+        },
+        {
+          "group": "org.controlsfx",
+          "module": "controlsfx",
+          "version": {
+            "requires": "11.1.1"
+          }
+        },
+        {
+          "group": "org.kordamp.ikonli",
+          "module": "ikonli-javafx",
+          "version": {
+            "requires": "12.3.1"
+          }
+        },
+        {
+          "group": "org.kordamp.ikonli",
+          "module": "ikonli-bootstrapicons-pack",
+          "version": {
+            "requires": "12.3.1"
+          }
+        },
+        {
+          "group": "io.mzio",
+          "module": "memory-management",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
+          "group": "io.github.mzmine",
+          "module": "utils"
+        },
+        {
+          "group": "io.github.mzmine",
+          "module": "taskcontroller"
+        },
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "33.0.0-jre"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "taskcontroller-1.0.0.jar",
+          "url": "taskcontroller-1.0.0.jar",
+          "size": 17082,
+          "sha512": "09fc9349ff55d9ea595c061dd554106f36c984f657e7d00af06a522cf7d9f463ed6e40cc965e8e3c0c38688d5f2f3eaca953cdcea0a0d5004c05c42637e007ac",
+          "sha256": "7868aa23d0492affad53be6bacc826ce3892ec04a95726100b92cb8c5342e2b1",
+          "sha1": "02b928a000b1e9fdfaca80729c4fa6be2eec979f",
+          "md5": "a79928f90379d60f5d8f0fe1a1707cca"
+        }
+      ]
+    }
+  ]
+}
