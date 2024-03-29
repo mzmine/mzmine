@@ -23,31 +23,34 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.mainwindow;
+package io.github.mzmine.main;
 
-import io.github.mzmine.main.MZmineCore;
-import io.mzio.users.user.CurrentUserService;
-import io.mzio.users.user.MZmineUser;
-import javafx.scene.control.Button;
-import javafx.scene.layout.BorderPane;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.main.impl.MZmineConfigurationImpl;
+import io.github.mzmine.parameters.Parameter;
 
-public class UsersButton extends BorderPane {
+public final class ConfigService {
 
-  private final Button button;
+  private static final MZmineConfiguration config = new MZmineConfigurationImpl();
 
-  public UsersButton() {
-    super();
-    button = new Button("NA");
-    button.setOnAction(_ -> MZmineCore.getDesktop().addTab(new UsersTab()));
-
-    CurrentUserService.addListener(this::setUser);
-    setUser(CurrentUserService.getUser());
-
-    setCenter(button);
+  public static MZmineConfiguration getConfiguration() {
+    return config;
   }
 
-  private void setUser(final MZmineUser user) {
-    String text = user == null ? "NA" : user.getInitials();
-    button.setText(text);
+  public static MZminePreferences getPreferences() {
+    return config.getPreferences();
+  }
+
+  public static <V, T extends Parameter<V>> V getPreference(T parameter) {
+    return config.getPreferences().getValue(parameter);
+  }
+
+  public static NumberFormats getExportFormats() {
+    return config.getExportFormats();
+  }
+
+  public static NumberFormats getGuiFormats() {
+    return config.getGuiFormats();
   }
 }

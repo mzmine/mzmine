@@ -37,7 +37,6 @@ import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
@@ -53,7 +52,10 @@ import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.mzio.users.gui.fx.UsersController;
+import io.mzio.users.user.CurrentUserService;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -87,7 +89,6 @@ public final class MZmineCore {
   // the default headless desktop is returned if no other desktop is set (e.g., during start up)
   // it is also used in headless mode
   private final Map<String, MZmineModule> initializedModules = new HashMap<>();
-  private MZmineConfiguration configuration;
   private boolean tdfPseudoProfile = false;
   private boolean tsfProfile = false;
 
@@ -138,7 +139,7 @@ public final class MZmineCore {
       // Load configuration
       if (prefFile.exists() && prefFile.canRead()) {
         try {
-          getInstance().configuration.loadConfiguration(prefFile, true);
+          ConfigService.getConfiguration().loadConfiguration(prefFile, true);
           updateTempDir = true;
         } catch (Exception e) {
           logger.log(Level.WARNING,
@@ -148,7 +149,7 @@ public final class MZmineCore {
         logger.log(Level.WARNING, "Cannot read configuration " + prefFile.getAbsolutePath());
       }
 
-      MZminePreferences preferences = getInstance().configuration.getPreferences();
+      MZminePreferences preferences = ConfigService.getPreferences();
       // override temp directory
       final File tempDirectory = argsParser.getTempDirectory();
       if (tempDirectory != null) {
@@ -161,6 +162,18 @@ public final class MZmineCore {
               "Cannot create or access temp file directory that was set via program argument: "
               + tempDirectory.getAbsolutePath());
         }
+      }
+
+      // listen for user changes so that the latest user is saved
+      CurrentUserService.addListener(user -> {
+        var nickname = user == null ? null : user.getNickname();
+        ConfigService.getPreferences().setParameter(MZminePreferences.username, nickname);
+      });
+      String username = ConfigService.getPreference(MZminePreferences.username);
+      // this will set the current user to CurrentUserService
+      // loads all users already logged in from the user folder
+      if (StringUtils.hasValue(username)) {
+        new UsersController().setCurrentUserByName(username);
       }
 
       // set temp directory
@@ -180,7 +193,7 @@ public final class MZmineCore {
       setNumThreadsOverride(numCores);
 
       // after loading the config and numCores
-      TaskService.init(getInstance().configuration.getNumOfThreads());
+      TaskService.init(ConfigService.getConfiguration().getNumOfThreads());
 
       // apply memory management option
       keepInMemory.enforceToMemoryMapping();
@@ -223,8 +236,8 @@ public final class MZmineCore {
           }
 
           // run batch file
-          batchTask = BatchModeModule.runBatch(ProjectService.getProject(),
-              batchFile, overrideDataFiles, overrideSpectralLibraryFiles, Instant.now());
+          batchTask = BatchModeModule.runBatch(ProjectService.getProject(), batchFile,
+              overrideDataFiles, overrideSpectralLibraryFiles, Instant.now());
         }
 
         // option to keep MZmine running after the batch is finished
@@ -247,8 +260,7 @@ public final class MZmineCore {
   public static void setNumThreadsOverride(@Nullable final String numCores) {
     if (numCores != null) {
       // set to preferences
-      var parameter = getInstance().configuration.getPreferences()
-          .getParameter(MZminePreferences.numOfThreads);
+      var parameter = ConfigService.getPreferences().getParameter(MZminePreferences.numOfThreads);
       if (numCores.equalsIgnoreCase("auto") || numCores.equalsIgnoreCase("automatic")) {
         parameter.setAutomatic(true);
       } else {
@@ -300,7 +312,7 @@ public final class MZmineCore {
    */
   @NotNull
   public static MZmineDesktop getDesktop() {
-    if(DesktopService.getDesktop() instanceof MZmineDesktop mZmineDesktop) {
+    if (DesktopService.getDesktop() instanceof MZmineDesktop mZmineDesktop) {
       return mZmineDesktop;
     }
     throw new IllegalStateException("Desktop was not initialized. Requires MZmineDesktop");
@@ -308,8 +320,7 @@ public final class MZmineCore {
 
   @NotNull
   public static MZmineConfiguration getConfiguration() {
-    assert getInstance().configuration != null;
-    return getInstance().configuration;
+    return ConfigService.getConfiguration();
   }
 
   /**
@@ -394,7 +405,8 @@ public final class MZmineCore {
       return ExitCode.ERROR;
     }
 
-    ParameterSet moduleParameters = MZmineCore.getConfiguration().getModuleParameters(moduleClass);
+    ParameterSet moduleParameters = ConfigService.getConfiguration()
+        .getModuleParameters(moduleClass);
 
     logger.info("Setting parameters for module " + module.getName());
     moduleParameters.setModuleNameAttribute(module.getName());
@@ -558,10 +570,6 @@ public final class MZmineCore {
     Locale.setDefault(new Locale("en", "US"));
     // initialize by default with all in memory
     MemoryMapStorage.setStoreAllInRam(true);
-
-    logger.fine("Loading core classes..");
-    // Create instance of configuration
-    configuration = new MZmineConfigurationImpl();
 
     logger.fine("Initializing core classes..");
   }

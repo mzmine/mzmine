@@ -215,4 +215,8 @@ public class StringUtils {
   public static String orDefault(final String str, final String defaultValue) {
     return str == null || str.isBlank() ? defaultValue : str;
   }
+
+  public static boolean hasValue(String str) {
+    return str != null && !str.isBlank();
+  }
 }
