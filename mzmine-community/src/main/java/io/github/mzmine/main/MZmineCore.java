@@ -35,6 +35,7 @@ import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.MZmineModule;
@@ -54,6 +55,8 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.mzio.events.AuthRequiredEvent;
+import io.mzio.events.EventService;
 import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.user.CurrentUserService;
 import java.io.File;
@@ -175,6 +178,17 @@ public final class MZmineCore {
       if (StringUtils.hasValue(username)) {
         new UsersController().setCurrentUserByName(username);
       }
+
+      // add event listener
+      EventService.subscribe(mzEvent -> {
+        if (mzEvent instanceof AuthRequiredEvent) {
+          if (DesktopService.isGUI()) {
+            getDesktop().addTab(new UsersTab());
+          } else {
+            getDesktop().displayMessage("Requires user login. Open MZmine and login to a user");
+          }
+        }
+      });
 
       // set temp directory
       if (updateTempDir) {

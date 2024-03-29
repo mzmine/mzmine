@@ -27,11 +27,11 @@
         {
           "name": "taskcontroller-1.0.0.jar",
           "url": "taskcontroller-1.0.0.jar",
-          "size": 17082,
-          "sha512": "09fc9349ff55d9ea595c061dd554106f36c984f657e7d00af06a522cf7d9f463ed6e40cc965e8e3c0c38688d5f2f3eaca953cdcea0a0d5004c05c42637e007ac",
-          "sha256": "7868aa23d0492affad53be6bacc826ce3892ec04a95726100b92cb8c5342e2b1",
-          "sha1": "02b928a000b1e9fdfaca80729c4fa6be2eec979f",
-          "md5": "a79928f90379d60f5d8f0fe1a1707cca"
+          "size": 19772,
+          "sha512": "36eb68b4f56888f8ea92b359ea90b84fc02e633390aa5ec5ab42db8675cfba7d808498fc5d951861f97f6cc65fdeabb733db579f573fd15310c6f95f5645ec20",
+          "sha256": "6e0ae5973623575c1c3999f9c37af3056e9df167962450fc4689a2177db1315c",
+          "sha1": "8fc0d23a5c6703c93e8968417713d80721156869",
+          "md5": "f69aa3bdfd4fb57eb1b658bb3cba02d1"
         }
       ]
     },
@@ -186,6 +186,20 @@
           }
         },
         {
+          "group": "io.mzio",
+          "module": "user-management",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
+          "group": "io.mzio",
+          "module": "global-events",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
           "group": "io.github.mzmine",
           "module": "utils"
         },
@@ -205,11 +219,11 @@
         {
           "name": "taskcontroller-1.0.0.jar",
           "url": "taskcontroller-1.0.0.jar",
-          "size": 17082,
-          "sha512": "09fc9349ff55d9ea595c061dd554106f36c984f657e7d00af06a522cf7d9f463ed6e40cc965e8e3c0c38688d5f2f3eaca953cdcea0a0d5004c05c42637e007ac",
-          "sha256": "7868aa23d0492affad53be6bacc826ce3892ec04a95726100b92cb8c5342e2b1",
-          "sha1": "02b928a000b1e9fdfaca80729c4fa6be2eec979f",
-          "md5": "a79928f90379d60f5d8f0fe1a1707cca"
+          "size": 19772,
+          "sha512": "36eb68b4f56888f8ea92b359ea90b84fc02e633390aa5ec5ab42db8675cfba7d808498fc5d951861f97f6cc65fdeabb733db579f573fd15310c6f95f5645ec20",
+          "sha256": "6e0ae5973623575c1c3999f9c37af3056e9df167962450fc4689a2177db1315c",
+          "sha1": "8fc0d23a5c6703c93e8968417713d80721156869",
+          "md5": "f69aa3bdfd4fb57eb1b658bb3cba02d1"
         }
       ]
     }
