@@ -224,7 +224,7 @@ public class MZmineTestUtil {
 
   public static void startMzmineCore() {
     try {
-      for (final String s : List.of("TRINLINE", "TRSECINLINE", "TRACSEC", "TESTRUNNER_USER", "TESTRUNNER_ACTION", "TRDIRECT",
+      for (final String s : List.of("EXP_TEST", "EXP_SEC", "TESTRUNNER_VAR", "TEST_SEC","TRINLINE", "TRSECINLINE", "TRACSEC", "TESTRUNNER_USER", "TESTRUNNER_ACTION", "TRDIRECT",
           "TRINDIRECT")) {
         String testRunner = System.getenv(s);
         if (testRunner != null) {
