@@ -6,6 +6,9 @@ on:
     paths-ignore:
       - 'src/main/resources/mzmineversion.properties'
 
+env:
+  TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
+
 jobs:
   gradle_dev_build:
     name: test and build
@@ -28,8 +31,6 @@ jobs:
       - name: Execute Gradle build (unsigned)
         if: runner.os != 'macOS'
         run: ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
-        env:
-          TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
 
       # ZIP PORTABLE VERSIONS
       - name: Zip portable windows
@@ -110,8 +111,7 @@ jobs:
           MACOS_DEVELOPER_CERTIFICATE_PWD: ${{ secrets.MACOS_DEVELOPER_CERTIFICATE_PWD }}
           MACOS_APPLE_ID_PWD: ${{ secrets.MACOS_APPLE_ID_PWD }}
           MACOS_APP_IDENTITY_ID: ${{ secrets.MACOS_APP_IDENTITY_ID }}
-          MACOS_APP_IDENTITY_TEAM_ID: ${{ secrets.MACOS_APP_IDENTITY_TEAM_ID }}
-          TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
+          MACOS_APP_IDENTITY_TEAM_ID: ${{ secrets.MACOS_APP_IDENTITY_TEAM_ID }} 
 
       - name: Pack macOS .app to .dmg
         if: runner.os == 'macOS'
