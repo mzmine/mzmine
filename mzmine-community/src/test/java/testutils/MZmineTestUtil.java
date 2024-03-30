@@ -64,7 +64,9 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.FeatureListRowSorter;
+import io.mzio.users.client.UserLoginService;
 import io.mzio.users.user.CurrentUserService;
+import io.mzio.users.user.MZmineUser;
 import io.mzio.users.user.UserFileReader;
 import java.io.File;
 import java.util.ArrayList;
@@ -232,10 +234,16 @@ public class MZmineTestUtil {
       } catch (Exception ex) {
         logger.fine("Cannot find testrunner user, set environment variable with license code");
       }
+      if(!CurrentUserService.isValid()) {
+        // load testrunner user from users dir / e.g. on github actions
+        var file = UserFileReader.resolveInUsersPath("testrunner.mzuserstr");
+        var user = UserFileReader.readUserFile(file);
+        CurrentUserService.setUser(user);
+      }
     } catch (Exception ex) {
       // might be already initialized
       logger.log(Level.INFO,
           "Expected error during initialization of mzmine core in tests. MZmine core was already initialized. Best is to reduce the dependence on mzmine core and other core classes");
-    }
+    }  
   }
 }
