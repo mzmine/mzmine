@@ -67,6 +67,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.project.ProjectService;
+import io.mzio.users.user.CurrentUserService;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -121,6 +122,13 @@ public class FeatureFindingTest {
     MZmineTestUtil.startMzmineCore();
     logger.info("Getting project");
     project = ProjectService.getProjectManager().getCurrentProject();
+
+    // check access level
+    if (!CurrentUserService.isValid()) {
+      var msg = "No test user supplied add user to TESTRUNNER_USER environment var";
+      logger.warning(msg);
+      throw new UnsupportedOperationException(msg);
+    }
   }
 
   @AfterAll
