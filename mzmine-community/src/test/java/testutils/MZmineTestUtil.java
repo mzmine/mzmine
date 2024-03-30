@@ -64,6 +64,11 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.FeatureListRowSorter;
+import io.mzio.users.service.LicenseUtils;
+import io.mzio.users.user.CurrentUserService;
+import io.mzio.users.user.MZmineUser;
+import io.mzio.users.user.UserFileReader;
+import io.swagger.annotations.License;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -223,6 +228,13 @@ public class MZmineTestUtil {
   public static void startMzmineCore() {
     try {
       MZmineCore.main(new String[]{"-r", "-m", "all"});
+      try {
+        String testRunner = System.getenv("TESTRUNNER_USER");
+        var user = UserFileReader.parseUser(testRunner);
+        CurrentUserService.setUser(user);
+      } catch (Exception ex) {
+        logger.fine("Cannot find testrunner user, set environment variable with license code");
+      }
     } catch (Exception ex) {
       // might be already initialized
       logger.log(Level.INFO,
