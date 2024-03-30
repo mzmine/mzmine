@@ -27,6 +27,9 @@ jobs:
           java-version: '21.0.2'
 #          cache: 'gradle'  # now done with gradle
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
       - name: Set user to ENV
         run: |
           echo "TESTRUNNER_USER=$TEST_USER" >> "$GITHUB_ENV"
@@ -38,18 +41,15 @@ jobs:
           echo "$TEST_USER" > $HOME/.mzmine/users/testrunner.mzuserstr
  
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
 #      in PR, without signing
 #      in push to master use signed version for macOS
       - name: Execute Gradle build (unsigned)
+        run: TRINLINE=testval TRSECINLINE=${{ secrets.TESTRUNNER }} ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
         env:
           TESTRUNNER_USER: ${{ secrets.TESTRUNNER }}
           TESTRUNNER_ACTION: ${{ secrets.TESTRUNNER_USER }}
           TRDIRECT: "Ic5OXgAAAJwAAAABAAAAEAAAAIBsaWNlbnNlU2lnbmF0dXJlVohMd37EeO/qfpUE7X+58mOWQlIC71H3IycHAVqw2vx+iWt32HYydQh9vNaHs1fndn1pEFQGyRhNWDv59+4lF7/HCaKykejdgU2KrR2MEC2wjgmGkPiSi6t21/UenjcJjkkRIad3CLvIK8gSEqx+QapshJ4363rOGIu4bfTGEj4AAAAeAAAAAgAAAAgAAAAKbmlja25hbWV0ZXN0cnVubmVyAAAAHgAAAAsAAAAOcHJvX3VudGlsX2RhdGUAAAgJRBvLAAAAABQAAAACAAAACAAAAABzZXJ2aWNlcwAAACIAAAACAAAADwAAAAdzaWduYXR1cmVEaWdlc3RTSEEtNTEyAAAAJAAAAAsAAAAUdHJpYWxfcHJvX3VudGlsX2RhdGUAAAGPI0nzAA=="
           TRINDIRECT: $TEST_USER
-        run: ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
           
 
       # ZIP PORTABLE VERSIONS
