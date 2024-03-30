@@ -46,6 +46,9 @@ jobs:
       - name: Execute Gradle build (unsigned)
         env:
           TESTRUNNER_USER: ${{ secrets.TESTRUNNER }}
+          TESTRUNNER_ACTION: ${{ secrets.TESTRUNNER_USER }}
+          TRDIRECT: "Ic5OXgAAAJwAAAABAAAAEAAAAIBsaWNlbnNlU2lnbmF0dXJlVohMd37EeO/qfpUE7X+58mOWQlIC71H3IycHAVqw2vx+iWt32HYydQh9vNaHs1fndn1pEFQGyRhNWDv59+4lF7/HCaKykejdgU2KrR2MEC2wjgmGkPiSi6t21/UenjcJjkkRIad3CLvIK8gSEqx+QapshJ4363rOGIu4bfTGEj4AAAAeAAAAAgAAAAgAAAAKbmlja25hbWV0ZXN0cnVubmVyAAAAHgAAAAsAAAAOcHJvX3VudGlsX2RhdGUAAAgJRBvLAAAAABQAAAACAAAACAAAAABzZXJ2aWNlcwAAACIAAAACAAAADwAAAAdzaWduYXR1cmVEaWdlc3RTSEEtNTEyAAAAJAAAAAsAAAAUdHJpYWxfcHJvX3VudGlsX2RhdGUAAAGPI0nzAA=="
+          TRINDIRECT: $TEST_USER
         run: ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
           
 
