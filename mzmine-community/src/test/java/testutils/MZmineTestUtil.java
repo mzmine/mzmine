@@ -229,21 +229,27 @@ public class MZmineTestUtil {
       MZmineCore.main(new String[]{"-r", "-m", "all"});
       try {
         String testRunner = System.getenv("TESTRUNNER_USER");
+        if (testRunner != null) {
+          logger.info("Found testrunner env variable");
+        }
         var user = UserFileReader.parseUser(testRunner);
         CurrentUserService.setUser(user);
       } catch (Exception ex) {
-        logger.fine("Cannot find testrunner user, set environment variable with license code");
+        logger.warning("Cannot find testrunner user, set environment variable with license code");
       }
       if(!CurrentUserService.isValid()) {
         // load testrunner user from users dir / e.g. on github actions
         var file = UserFileReader.resolveInUsersPath("testrunner.mzuserstr");
         var user = UserFileReader.readUserFile(file);
+        if (user != null) {
+          logger.info("Found testrunner in user directory");
+        }
         CurrentUserService.setUser(user);
       }
     } catch (Exception ex) {
       // might be already initialized
       logger.log(Level.INFO,
           "Expected error during initialization of mzmine core in tests. MZmine core was already initialized. Best is to reduce the dependence on mzmine core and other core classes");
-    }  
+    }
   }
 }
