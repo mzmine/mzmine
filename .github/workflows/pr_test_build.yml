@@ -3,6 +3,7 @@ name: PR Test Build
 on:
   pull_request:
     branches: [ "master" ]
+
   
 jobs:
   gradle_build: 
@@ -24,8 +25,17 @@ jobs:
 
 #      in PR, without signing
 #      in push to master use signed version for macOS
-      - name: Execute Gradle build (unsigned)
-        run: TESTRUNNER_USER=${{secrets.TESTRUNNER_USER}} ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
+      - name: Execute Gradle build windows (unsigned)
+        if: runner.os == 'Windows'
+        run: |
+          setx TESTRUNNER_USER ${{secrets.TESTRUNNER_USER}}
+          ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
+          
+      - name: Execute Gradle build unix (unsigned)
+        if: runner.os != 'Windows'
+        run: |
+          export TESTRUNNER_USER ${{secrets.TESTRUNNER_USER}}
+          ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
 
       # ZIP PORTABLE VERSIONS
       - name: Zip portable windows
