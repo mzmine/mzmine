@@ -22,7 +22,9 @@ jobs:
 #          cache: 'gradle'  # now done with gradle
 
       - name: Create TESTRUNNER user file
-        run: echo "${{secrets.TESTRUNNER_USER}}" > $HOME/.mzmine/users/testrunner.mzuserstr 
+        run: |
+          mkdir -p $HOME/.mzmine/users/
+          echo "${{secrets.TESTRUNNER_USER}}" > $HOME/.mzmine/users/testrunner.mzuserstr 
  
 
       - name: Setup Gradle
