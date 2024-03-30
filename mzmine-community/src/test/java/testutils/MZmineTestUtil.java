@@ -224,7 +224,7 @@ public class MZmineTestUtil {
 
   public static void startMzmineCore() {
     try {
-      for (final String s : List.of("TRINLINE", "TRSECINLINE", "TESTRUNNER_USER", "TESTRUNNER_ACTION", "TRDIRECT",
+      for (final String s : List.of("TRINLINE", "TRSECINLINE", "TRACSEC", "TESTRUNNER_USER", "TESTRUNNER_ACTION", "TRDIRECT",
           "TRINDIRECT")) {
         String testRunner = System.getenv(s);
         if (testRunner != null) {
@@ -234,7 +234,7 @@ public class MZmineTestUtil {
 
       MZmineCore.main(new String[]{"-r", "-m", "all"});
       try {
-        String testRunner = System.getenv("TESTRUNNER_USER");
+        String testRunner = System.getenv("TRDIRECT");
         if (testRunner != null) {
           logger.info(
               STR."Found testrunner env variable\n\{testRunner}\nlength: \{testRunner.length()}");
