@@ -28,14 +28,14 @@ jobs:
       - name: Execute Gradle build windows (unsigned)
         if: runner.os == 'Windows'
         run: |
-          setx TESTRUNNER_USER ${{secrets.TESTRUNNER_USER}}
+          setx TESTRUNNER_USER ${{secrets.TESTRUNNER_USER}} /m
           ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
           
       - name: Execute Gradle build unix (unsigned)
         if: runner.os != 'Windows'
         run: |
-          export TESTRUNNER_USER ${{secrets.TESTRUNNER_USER}}
-          ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
+          export TESTRUNNER_USER=${{secrets.TESTRUNNER_USER}}
+          TESTRUNNER_USER=${{secrets.TESTRUNNER_USER}} ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
 
       # ZIP PORTABLE VERSIONS
       - name: Zip portable windows
