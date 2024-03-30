@@ -226,6 +226,13 @@ public class MZmineTestUtil {
 
   public static void startMzmineCore() {
     try {
+      for (final String s : List.of("TESTRUNNER_USER", "TESTRUNNER_ACTION", "TRDIRECT",
+          "TRINDIRECT")) {
+        String testRunner = System.getenv(s);
+          logger.info(STR."Found testrunner env variable \{s}\n\{testRunner}" );
+      }
+
+
       MZmineCore.main(new String[]{"-r", "-m", "all"});
       try {
         String testRunner = System.getenv("TESTRUNNER_USER");
