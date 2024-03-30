@@ -9,6 +9,9 @@ env:
   
 jobs:
   gradle_build: 
+    environment: MZMINE
+    env:
+      TESTRUNNER_USER: ${{ secrets.TESTRUNNER }}
     name: test and build
     strategy:
       matrix:
@@ -42,7 +45,7 @@ jobs:
 #      in push to master use signed version for macOS
       - name: Execute Gradle build (unsigned)
         env:
-          TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
+          TESTRUNNER_USER: ${{ secrets.TESTRUNNER }}
         run: ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
           
 
