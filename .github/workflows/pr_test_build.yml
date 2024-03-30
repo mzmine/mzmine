@@ -26,6 +26,8 @@ jobs:
 #      in push to master use signed version for macOS
       - name: Execute Gradle build (unsigned)
         run: ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
+        env:
+          TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
 
       # ZIP PORTABLE VERSIONS
       - name: Zip portable windows

@@ -28,6 +28,8 @@ jobs:
       - name: Execute Gradle build (unsigned)
         if: runner.os != 'macOS'
         run: ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
+        env:
+          TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
 
       # ZIP PORTABLE VERSIONS
       - name: Zip portable windows
@@ -109,6 +111,7 @@ jobs:
           MACOS_APPLE_ID_PWD: ${{ secrets.MACOS_APPLE_ID_PWD }}
           MACOS_APP_IDENTITY_ID: ${{ secrets.MACOS_APP_IDENTITY_ID }}
           MACOS_APP_IDENTITY_TEAM_ID: ${{ secrets.MACOS_APP_IDENTITY_TEAM_ID }}
+          TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
 
       - name: Pack macOS .app to .dmg
         if: runner.os == 'macOS'
