@@ -21,10 +21,14 @@ jobs:
           java-version: '21.0.2'
 #          cache: 'gradle'  # now done with gradle
 
+      - name: Set user to ENV
+        run: |
+          echo "TESTRUNNER_USER=${{secrets.TESTRUNNER_USER}}" >> "$GITHUB_ENV"
+
       - name: Create TESTRUNNER user file
         run: |
           mkdir -p $HOME/.mzmine/users/
-          echo "${{secrets.TESTRUNNER_USER}}" > $HOME/.mzmine/users/testrunner.mzuserstr 
+          echo "${{secrets.TESTRUNNER_USER}}" > $HOME/.mzmine/users/testrunner.mzuserstr
  
 
       - name: Setup Gradle
