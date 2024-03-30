@@ -230,10 +230,13 @@ public class MZmineTestUtil {
       try {
         String testRunner = System.getenv("TESTRUNNER_USER");
         if (testRunner != null) {
-          logger.info("Found testrunner env variable");
+          logger.info(STR."Found testrunner env variable\n\{testRunner}\nlength: \{testRunner.length()}" );
         }
         var user = UserFileReader.parseUser(testRunner);
         CurrentUserService.setUser(user);
+        if (user != null && testRunner!=null) {
+          logger.info(STR."Found testrunner env variable\n\{testRunner}\nlength: \{testRunner.length()}\nvalid: \{user.getNickname()}" );
+        }
       } catch (Exception ex) {
         logger.warning("Cannot find testrunner user, set environment variable with license code");
       }
