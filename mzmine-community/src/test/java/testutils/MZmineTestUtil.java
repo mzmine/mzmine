@@ -64,9 +64,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.FeatureListRowSorter;
-import io.mzio.users.client.UserLoginService;
 import io.mzio.users.user.CurrentUserService;
-import io.mzio.users.user.MZmineUser;
 import io.mzio.users.user.UserFileReader;
 import java.io.File;
 import java.util.ArrayList;
@@ -226,28 +224,31 @@ public class MZmineTestUtil {
 
   public static void startMzmineCore() {
     try {
-      for (final String s : List.of("TESTRUNNER_USER", "TESTRUNNER_ACTION", "TRDIRECT",
+      for (final String s : List.of("TRINLINE", "TRSECINLINE", "TESTRUNNER_USER", "TESTRUNNER_ACTION", "TRDIRECT",
           "TRINDIRECT")) {
         String testRunner = System.getenv(s);
-          logger.info(STR."Found testrunner env variable \{s}\n\{testRunner}" );
+        if (testRunner != null) {
+          logger.info(STR."Found testrunner env variable \{s} length \{testRunner.length()}\n\{testRunner}");
+        }
       }
-
 
       MZmineCore.main(new String[]{"-r", "-m", "all"});
       try {
         String testRunner = System.getenv("TESTRUNNER_USER");
         if (testRunner != null) {
-          logger.info(STR."Found testrunner env variable\n\{testRunner}\nlength: \{testRunner.length()}" );
+          logger.info(
+              STR."Found testrunner env variable\n\{testRunner}\nlength: \{testRunner.length()}");
         }
-        var user = UserFileReader.parseUser(testRunner);
+        var user = UserFileReader.parseUser(testRunner.trim());
         CurrentUserService.setUser(user);
-        if (user != null && testRunner!=null) {
-          logger.info(STR."Found testrunner env variable\n\{testRunner}\nlength: \{testRunner.length()}\nvalid: \{user.getNickname()}" );
+        if (user != null && testRunner != null) {
+          logger.info(
+              STR."Found testrunner env variable\n\{testRunner}\nlength: \{testRunner.length()}\nvalid: \{user.getNickname()}");
         }
       } catch (Exception ex) {
         logger.warning("Cannot find testrunner user, set environment variable with license code");
       }
-      if(!CurrentUserService.isValid()) {
+      if (!CurrentUserService.isValid()) {
         // load testrunner user from users dir / e.g. on github actions
         var file = UserFileReader.resolveInUsersPath("testrunner.mzuserstr");
         var user = UserFileReader.readUserFile(file);
