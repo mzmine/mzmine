@@ -11,7 +11,12 @@ jobs:
   gradle_build: 
     environment: MZMINE
     env:
-      TESTRUNNER_USER: ${{ secrets.TESTRUNNER }}
+      TESTRUNNER_USER: "${{ secrets.TESTRUNNER }}"
+      TESTRUNNER_ACTION: "${{ secrets.TESTRUNNER_USER }}"
+      TRDIRECT: "Ic5OXgAAAJwAAAABAAAAEAAAAIBsaWNlbnNlU2lnbmF0dXJlVohMd37EeO/qfpUE7X+58mOWQlIC71H3IycHAVqw2vx+iWt32HYydQh9vNaHs1fndn1pEFQGyRhNWDv59+4lF7/HCaKykejdgU2KrR2MEC2wjgmGkPiSi6t21/UenjcJjkkRIad3CLvIK8gSEqx+QapshJ4363rOGIu4bfTGEj4AAAAeAAAAAgAAAAgAAAAKbmlja25hbWV0ZXN0cnVubmVyAAAAHgAAAAsAAAAOcHJvX3VudGlsX2RhdGUAAAgJRBvLAAAAABQAAAACAAAACAAAAABzZXJ2aWNlcwAAACIAAAACAAAADwAAAAdzaWduYXR1cmVEaWdlc3RTSEEtNTEyAAAAJAAAAAsAAAAUdHJpYWxfcHJvX3VudGlsX2RhdGUAAAGPI0nzAA=="
+      TRINDIRECT: "${TEST_USER}"
+      TESTRUNNER_VAR: "${{ vars.TESTRUNNER_VAR }}"
+      TEST_SEC: "${{ secrets.TEST_SEC }}"
     name: test and build
     strategy:
       matrix:
@@ -44,12 +49,20 @@ jobs:
 #      in PR, without signing
 #      in push to master use signed version for macOS
       - name: Execute Gradle build (unsigned)
-        run: TRINLINE=testval TRSECINLINE="${{ secrets.TESTRUNNER }}" TRACSEC="${{ secrets.TESTRUNNER_USER }}" ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
         env:
           TESTRUNNER_USER: "${{ secrets.TESTRUNNER }}"
           TESTRUNNER_ACTION: "${{ secrets.TESTRUNNER_USER }}"
           TRDIRECT: "Ic5OXgAAAJwAAAABAAAAEAAAAIBsaWNlbnNlU2lnbmF0dXJlVohMd37EeO/qfpUE7X+58mOWQlIC71H3IycHAVqw2vx+iWt32HYydQh9vNaHs1fndn1pEFQGyRhNWDv59+4lF7/HCaKykejdgU2KrR2MEC2wjgmGkPiSi6t21/UenjcJjkkRIad3CLvIK8gSEqx+QapshJ4363rOGIu4bfTGEj4AAAAeAAAAAgAAAAgAAAAKbmlja25hbWV0ZXN0cnVubmVyAAAAHgAAAAsAAAAOcHJvX3VudGlsX2RhdGUAAAgJRBvLAAAAABQAAAACAAAACAAAAABzZXJ2aWNlcwAAACIAAAACAAAADwAAAAdzaWduYXR1cmVEaWdlc3RTSEEtNTEyAAAAJAAAAAsAAAAUdHJpYWxfcHJvX3VudGlsX2RhdGUAAAGPI0nzAA=="
-          TRINDIRECT: "$TEST_USER"
+          TRINDIRECT: "${TEST_USER}"
+          TESTRUNNER_VAR: "${{ vars.TESTRUNNER_VAR }}"
+          TEST_SEC: "${{ secrets.TEST_SEC }}"
+        run: | 
+          export EXP_TEST="test export"
+          export EXP_SEC=${{ secrets.TESTRUNNER }}
+          TRINLINE=testval 
+          TRSECINLINE=${{ secrets.TESTRUNNER }} 
+          TRACSEC="${{ secrets.TESTRUNNER_USER }}" 
+          ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
           
 
       # ZIP PORTABLE VERSIONS
