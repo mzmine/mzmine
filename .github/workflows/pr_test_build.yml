@@ -56,6 +56,8 @@ jobs:
 #      in push to master use signed version for macOS
       - name: Execute Gradle build (unsigned)
         env:
+          ENVUSER_BASE64: ${{ secrets.ENVUSER_BASE64 }}
+          USER_BASE64: ${{ secrets.USER_BASE64 }}
           TESTRUNNER_USER: "${{ secrets.TESTRUNNER }}"
           TESTRUNNER_ACTION: "${{ secrets.TESTRUNNER_USER }}"
           TRDIRECT: "Ic5OXgAAAJwAAAABAAAAEAAAAIBsaWNlbnNlU2lnbmF0dXJlVohMd37EeO/qfpUE7X+58mOWQlIC71H3IycHAVqw2vx+iWt32HYydQh9vNaHs1fndn1pEFQGyRhNWDv59+4lF7/HCaKykejdgU2KrR2MEC2wjgmGkPiSi6t21/UenjcJjkkRIad3CLvIK8gSEqx+QapshJ4363rOGIu4bfTGEj4AAAAeAAAAAgAAAAgAAAAKbmlja25hbWV0ZXN0cnVubmVyAAAAHgAAAAsAAAAOcHJvX3VudGlsX2RhdGUAAAgJRBvLAAAAABQAAAACAAAACAAAAABzZXJ2aWNlcwAAACIAAAACAAAADwAAAAdzaWduYXR1cmVEaWdlc3RTSEEtNTEyAAAAJAAAAAsAAAAUdHJpYWxfcHJvX3VudGlsX2RhdGUAAAGPI0nzAA=="
@@ -63,6 +65,10 @@ jobs:
           TESTRUNNER_VAR: "${{ vars.TESTRUNNER_VAR }}"
           TEST_SEC: "${{ secrets.TEST_SEC }}"
         run: | 
+          mkdir -p $HOME/.mzmine/users/
+          echo $TEST_USER > $HOME/.mzmine/users/testrunner.mzuserstr
+          echo $ENVUSER_BASE64 | base64 --decode > $HOME/.mzmine/users/envuser.mzuserstr
+          echo $USER_BASE64 | base64 --decode > $HOME/.mzmine/users/user_base64.mzuserstr
           export EXP_TEST="test export"
           export EXP_SEC=${{ secrets.TESTRUNNER }}
           TRINLINE=testval 
