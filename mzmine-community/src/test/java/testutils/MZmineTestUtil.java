@@ -252,12 +252,15 @@ public class MZmineTestUtil {
       for (final String uf : userFiles) {
         var file = UserFileReader.resolveInUsersPath(STR."\{uf}.mzuserstr");
         try {
+          if (!file.exists()) {
+            logger.info("Cannot find file "+file.getAbsolutePath());
+          }
           var user = UserFileReader.readUserFile(file);
           if (user.isValid()) {
             logger.info("Valid testrunner user for "+uf);
           }
         } catch (Exception e) {
-          logger.info("Cannot find file "+file.getAbsolutePath());
+          logger.info("Error parsing userfile "+file.getAbsolutePath());
         }
       }
       if (!CurrentUserService.isValid()) {
