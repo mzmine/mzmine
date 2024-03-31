@@ -224,31 +224,14 @@ public class MZmineTestUtil {
 
   public static void startMzmineCore() {
     try {
-      for (final String s : List.of("EXP_TEST", "EXP_SEC", "TESTRUNNER_VAR", "TEST_SEC","TRINLINE", "TRSECINLINE", "TRACSEC", "TESTRUNNER_USER", "TESTRUNNER_ACTION", "TRDIRECT",
-          "TRINDIRECT")) {
+      for (final String s : List.of("TESTRUNNER_USER_GIT_ENV", "TESTRUNNER_USER", "USER_BASE64")) {
         String testRunner = System.getenv(s);
         if (testRunner != null) {
-          logger.info(STR."Found testrunner env variable \{s} length \{testRunner.length()}\n\{testRunner}");
+          logger.info(
+              STR."Found testrunner env variable \{s} length \{testRunner.length()}\n\{testRunner}");
         }
       }
-
-      MZmineCore.main(new String[]{"-r", "-m", "all"});
-      try {
-        String testRunner = System.getenv("TRDIRECT");
-        if (testRunner != null) {
-          logger.info(
-              STR."Found testrunner env variable\n\{testRunner}\nlength: \{testRunner.length()}");
-        }
-        var user = UserFileReader.parseUser(testRunner.trim());
-        CurrentUserService.setUser(user);
-        if (user != null && testRunner != null) {
-          logger.info(
-              STR."Found testrunner env variable\n\{testRunner}\nlength: \{testRunner.length()}\nvalid: \{user.getNickname()}");
-        }
-      } catch (Exception ex) {
-        logger.warning("Cannot find testrunner user, set environment variable with license code");
-      }
-      var userFiles = List.of("testrunner", "envuser", "user_base64");
+      var userFiles = List.of("testrunner", "user_base64");
       for (final String uf : userFiles) {
         var file = UserFileReader.resolveInUsersPath(STR."\{uf}.mzuserstr");
         try {
@@ -263,13 +246,19 @@ public class MZmineTestUtil {
           logger.info("Error parsing userfile "+file.getAbsolutePath());
         }
       }
+
+      MZmineCore.main(new String[]{"-r", "-m", "all"});
+      try {
+        String testRunner = System.getenv("TESTRUNNER_USER");
+        var user = UserFileReader.parseUser(testRunner);
+        CurrentUserService.setUser(user);
+      } catch (Exception ex) {
+        logger.fine("Cannot find testrunner user, set environment variable with license code");
+      }
       if (!CurrentUserService.isValid()) {
         // load testrunner user from users dir / e.g. on github actions
         var file = UserFileReader.resolveInUsersPath("testrunner.mzuserstr");
         var user = UserFileReader.readUserFile(file);
-        if (user != null) {
-          logger.info("Found testrunner in user directory");
-        }
         CurrentUserService.setUser(user);
       }
     } catch (Exception ex) {
