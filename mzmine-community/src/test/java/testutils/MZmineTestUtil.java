@@ -250,6 +250,7 @@ public class MZmineTestUtil {
 
       MZmineCore.main(new String[]{"-r", "-m", "all"});
       try {
+        logger.fine("Trying to find TESTRUNNER_USER env");
         String testRunner = System.getenv("TESTRUNNER_USER");
         var user = UserFileReader.parseUser(testRunner);
         if (user != null) {
