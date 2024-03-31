@@ -1,44 +1,18 @@
 name: PR Test Build
 
 on:
-  pull_request:
+  pull_request_target:
     branches: [ "master" ]
 
-env:
-  TEST_USER: "Ic5OXgAAAJwAAAABAAAAEAAAAIBsaWNlbnNlU2lnbmF0dXJlVohMd37EeO/qfpUE7X+58mOWQlIC71H3IycHAVqw2vx+iWt32HYydQh9vNaHs1fndn1pEFQGyRhNWDv59+4lF7/HCaKykejdgU2KrR2MEC2wjgmGkPiSi6t21/UenjcJjkkRIad3CLvIK8gSEqx+QapshJ4363rOGIu4bfTGEj4AAAAeAAAAAgAAAAgAAAAKbmlja25hbWV0ZXN0cnVubmVyAAAAHgAAAAsAAAAOcHJvX3VudGlsX2RhdGUAAAgJRBvLAAAAABQAAAACAAAACAAAAABzZXJ2aWNlcwAAACIAAAACAAAADwAAAAdzaWduYXR1cmVEaWdlc3RTSEEtNTEyAAAAJAAAAAsAAAAUdHJpYWxfcHJvX3VudGlsX2RhdGUAAAGPI0nzAA=="
-  
 jobs:
-  gradle_build: 
-    environment: MZMINE
-    env:
-      TESTRUNNER_USER: ${{ secrets.TESTRUNNER }}
-      TESTRUNNER_ACTION: ${{ secrets.TESTRUNNER_USER }}
-      TRDIRECT: "Ic5OXgAAAJwAAAABAAAAEAAAAIBsaWNlbnNlU2lnbmF0dXJlVohMd37EeO/qfpUE7X+58mOWQlIC71H3IycHAVqw2vx+iWt32HYydQh9vNaHs1fndn1pEFQGyRhNWDv59+4lF7/HCaKykejdgU2KrR2MEC2wjgmGkPiSi6t21/UenjcJjkkRIad3CLvIK8gSEqx+QapshJ4363rOGIu4bfTGEj4AAAAeAAAAAgAAAAgAAAAKbmlja25hbWV0ZXN0cnVubmVyAAAAHgAAAAsAAAAOcHJvX3VudGlsX2RhdGUAAAgJRBvLAAAAABQAAAACAAAACAAAAABzZXJ2aWNlcwAAACIAAAACAAAADwAAAAdzaWduYXR1cmVEaWdlc3RTSEEtNTEyAAAAJAAAAAsAAAAUdHJpYWxfcHJvX3VudGlsX2RhdGUAAAGPI0nzAA=="
-      TESTRUNNER_VAR: ${{ vars.TESTRUNNER_VAR }}
-      TEST_SEC: ${{ secrets.TEST_SEC }}
-      ENVUSER_BASE64: ${{ secrets.ENVUSER_BASE64 }}
-      USER_BASE64: ${{ secrets.USER_BASE64 }} 
-      TRINDIRECT: $TEST_USER
+  gradle_build:
     name: test and build
     strategy:
       matrix:
-        os: [ ubuntu-latest ]
-        # os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
-    steps:    
+    steps:
       - uses: actions/checkout@v4
-
-      - name: Create TESTRUNNER user file
-        env:
-          ENVUSER_BASE64: ${{ secrets.ENVUSER_BASE64 }}
-          USER_BASE64: ${{ secrets.USER_BASE64 }}
-        run: |
-          mkdir -p $HOME/.mzmine/users/
-          echo $HOME/.mzmine/users/
-          echo "$TEST_USER" > $HOME/.mzmine/users/testrunner.mzuserstr
-          echo $ENVUSER_BASE64 | base64 --decode > $HOME/.mzmine/users/envuser.mzuserstr
-          echo $USER_BASE64 | base64 --decode > $HOME/.mzmine/users/user_base64.mzuserstr
-
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -48,28 +22,25 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Set user to ENV
+# requires two secrets just in case: the user license string and
+# USER_BASE64 a Base64 encoded version of this
+      - name: Create testrunner user file
+        env:
+          TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
+          USER_BASE64: ${{ secrets.USER_BASE64 }}
         run: |
-          echo "TESTRUNNER_USER_GIT_ENV=$TEST_USER" >> "$GITHUB_ENV"
+          mkdir -p $HOME/.mzmine/users/
+          echo $HOME/.mzmine/users/
+          echo $USER_BASE64 | base64 --decode > $HOME/.mzmine/users/testrunner.mzuserstr
+# another option to set env var globally
+#          echo "TESTRUNNER_USER_GIT_ENV=$TESTRUNNER_USER" >> "$GITHUB_ENV"
 
 #      in PR, without signing
 #      in push to master use signed version for macOS
-      - name: Execute Gradle build (unsigned) 
-        run: |
-          echo ${{ secrets.TESTRUNNER_USER }} | sed 's/./& /g'
-          echo $TESTRUNNER_USER | sed 's/./& /g'
-          echo $USER_BASE64 | sed 's/./& /g'
-          mkdir -p $HOME/.mzmine/users/
-          echo $TEST_USER > $HOME/.mzmine/users/testrunner.mzuserstr
-          echo $ENVUSER_BASE64 | base64 --decode > $HOME/.mzmine/users/envuser.mzuserstr
-          echo $USER_BASE64 | base64 --decode > $HOME/.mzmine/users/user_base64.mzuserstr
-          export EXP_TEST="test export"
-          export EXP_SEC=${{ secrets.TESTRUNNER }}
-          TRINLINE=testval 
-          TRSECINLINE=${{ secrets.TESTRUNNER }} 
-          TRACSEC="${{ secrets.TESTRUNNER_USER }}" 
-          ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
-          
+      - name: Execute Gradle build (unsigned)
+        env:
+          TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
+        run: ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
 
       # ZIP PORTABLE VERSIONS
       - name: Zip portable windows
