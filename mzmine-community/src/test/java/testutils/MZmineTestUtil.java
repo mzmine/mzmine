@@ -224,34 +224,37 @@ public class MZmineTestUtil {
 
   public static void startMzmineCore() {
     try {
-      for (final String s : List.of("TESTRUNNER_USER_GIT_ENV", "TESTRUNNER_USER", "USER_BASE64")) {
-        String testRunner = System.getenv(s);
-        if (testRunner != null) {
-          logger.info(
-              STR."Found testrunner env variable \{s} length \{testRunner.length()}\n\{testRunner}");
-        }
-      }
-      var userFiles = List.of("testrunner", "user_base64");
-      for (final String uf : userFiles) {
-        var file = UserFileReader.resolveInUsersPath(STR."\{uf}.mzuserstr");
-        try {
-          if (!file.exists()) {
-            logger.info("Cannot find file "+file.getAbsolutePath());
-          }
-          var user = UserFileReader.readUserFile(file);
-          if (user.isValid()) {
-            logger.info("Valid testrunner user for "+uf);
-          }
-        } catch (Exception e) {
-          logger.info("Error parsing userfile "+file.getAbsolutePath());
-        }
-      }
+      // for debugging purpose of github actions
+//      for (final String s : List.of("TESTRUNNER_USER_GIT_ENV", "TESTRUNNER_USER", "USER_BASE64")) {
+//        String testRunner = System.getenv(s);
+//        if (testRunner != null) {
+//          logger.info(
+//              STR."Found testrunner env variable \{s} length \{testRunner.length()}\n\{testRunner}");
+//        }
+//      }
+//      var userFiles = List.of("testrunner", "user_base64");
+//      for (final String uf : userFiles) {
+//        var file = UserFileReader.resolveInUsersPath(STR."\{uf}.mzuserstr");
+//        try {
+//          if (!file.exists()) {
+//            logger.info("Cannot find file "+file.getAbsolutePath());
+//          }
+//          var user = UserFileReader.readUserFile(file);
+//          if (user.isValid()) {
+//            logger.info("Valid testrunner user for "+uf);
+//          }
+//        } catch (Exception e) {
+//          logger.info("Error parsing userfile "+file.getAbsolutePath());
+//        }
+//      }
 
       MZmineCore.main(new String[]{"-r", "-m", "all"});
       try {
         String testRunner = System.getenv("TESTRUNNER_USER");
         var user = UserFileReader.parseUser(testRunner);
-        CurrentUserService.setUser(user);
+        if (user != null) {
+          CurrentUserService.setUser(user);
+        }
       } catch (Exception ex) {
         logger.fine("Cannot find testrunner user, set environment variable with license code");
       }
@@ -259,7 +262,9 @@ public class MZmineTestUtil {
         // load testrunner user from users dir / e.g. on github actions
         var file = UserFileReader.resolveInUsersPath("testrunner.mzuserstr");
         var user = UserFileReader.readUserFile(file);
-        CurrentUserService.setUser(user);
+        if (user != null) {
+          CurrentUserService.setUser(user);
+        }
       }
     } catch (Exception ex) {
       // might be already initialized
