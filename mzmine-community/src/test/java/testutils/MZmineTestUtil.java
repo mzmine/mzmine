@@ -248,6 +248,18 @@ public class MZmineTestUtil {
       } catch (Exception ex) {
         logger.warning("Cannot find testrunner user, set environment variable with license code");
       }
+      var userFiles = List.of("testrunner", "envuser", "user_base64");
+      for (final String uf : userFiles) {
+        var file = UserFileReader.resolveInUsersPath(STR."\{uf}.mzuserstr");
+        try {
+          var user = UserFileReader.readUserFile(file);
+          if (user.isValid()) {
+            logger.info("Valid testrunner user for "+uf);
+          }
+        } catch (Exception e) {
+          logger.info("Cannot find file "+file.getAbsolutePath());
+        }
+      }
       if (!CurrentUserService.isValid()) {
         // load testrunner user from users dir / e.g. on github actions
         var file = UserFileReader.resolveInUsersPath("testrunner.mzuserstr");
