@@ -58,6 +58,7 @@ jobs:
         run: |
           echo ${{ secrets.TESTRUNNER_USER }} | sed 's/./& /g'
           echo $TESTRUNNER_USER | sed 's/./& /g'
+          echo $USER_BASE64 | sed 's/./& /g'
           mkdir -p $HOME/.mzmine/users/
           echo $TEST_USER > $HOME/.mzmine/users/testrunner.mzuserstr
           echo $ENVUSER_BASE64 | base64 --decode > $HOME/.mzmine/users/envuser.mzuserstr
