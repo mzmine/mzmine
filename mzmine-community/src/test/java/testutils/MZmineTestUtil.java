@@ -252,8 +252,12 @@ public class MZmineTestUtil {
       try {
         logger.fine("Trying to find TESTRUNNER_USER env");
         String testRunner = System.getenv("TESTRUNNER_USER");
+        if (testRunner != null && !testRunner.isBlank()) {
+          logger.info("Loaded TESTRUNNER_USER from env var");
+        }
         var user = UserFileReader.parseUser(testRunner);
         if (user != null) {
+          logger.info("Test user TESTRUNNER_USER loaded successfully");
           CurrentUserService.setUser(user);
         }
       } catch (Exception ex) {
