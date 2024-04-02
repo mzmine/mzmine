@@ -44,7 +44,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
-import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -26,12 +26,9 @@
 package io.github.mzmine.datamodel;
 
 import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.color.Colors;
-import io.github.mzmine.util.color.ColorsFX;
-import io.github.mzmine.util.color.Vision;
+import io.github.mzmine.javafx.util.color.Vision;
 
 public enum FeatureStatus {
 

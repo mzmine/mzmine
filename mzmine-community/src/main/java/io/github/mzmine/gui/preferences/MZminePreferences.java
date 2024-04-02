@@ -38,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.FontSpecs;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.OptOutParameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
@@ -59,6 +60,10 @@ import javafx.scene.paint.Color;
 import org.w3c.dom.Element;
 
 public class MZminePreferences extends SimpleParameterSet {
+
+  public static final HiddenParameter<String> username = new HiddenParameter<>(
+      new StringParameter("username", "last active username", "", false, true));
+
 
   public static final NumberFormatParameter mzFormat = new NumberFormatParameter("m/z value format",
       "Format of m/z values", false, new DecimalFormat("0.0000"));
@@ -201,7 +206,7 @@ public class MZminePreferences extends SimpleParameterSet {
         imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
         windowSetttings, sendErrorEMail,
         // silent parameters without controls
-        showTempFolderAlert);
+        showTempFolderAlert, username);
   }
 
   @Override

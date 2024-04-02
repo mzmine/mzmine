@@ -141,9 +141,11 @@ ext {
 }
 
 dependencies {
-    implementation(project(":taskcontroller"))
-    implementation(project(":memory-management"))
+    // local dependencies - publish
+    implementation(libs.bundles.mzio)
+    // same project
     implementation(project(":utils"))
+    implementation(project(":taskcontroller"))
     implementation(project(":javafx-framework"))
     // MZmine version parsing
     implementation 'com.vdurmont:semver4j:3.1.0'

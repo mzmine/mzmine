@@ -57,7 +57,7 @@ import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.TxtWriter;
-import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;

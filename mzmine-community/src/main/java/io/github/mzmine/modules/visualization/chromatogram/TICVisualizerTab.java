@@ -43,7 +43,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.SimpleSorter;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
-import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Font;
 import java.awt.event.ActionEvent;

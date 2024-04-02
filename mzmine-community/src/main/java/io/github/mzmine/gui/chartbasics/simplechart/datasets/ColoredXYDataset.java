@@ -43,7 +43,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;

@@ -56,7 +56,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.ScanUtils;
