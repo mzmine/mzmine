@@ -213,10 +213,17 @@ public class StringUtils {
    * @return if input is null or blank - return defaultValue otherwise retain input str
    */
   public static String orDefault(final String str, final String defaultValue) {
-    return str == null || str.isBlank() ? defaultValue : str;
+    return isBlank(str) ? defaultValue : str;
   }
 
   public static boolean hasValue(String str) {
-    return str != null && !str.isBlank();
+    return !isBlank(str);
+  }
+
+  /**
+   * @return true if input is null or blank
+   */
+  public static boolean isBlank(String str) {
+    return str == null || str.isBlank();
   }
 }

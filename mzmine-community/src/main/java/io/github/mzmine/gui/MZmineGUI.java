@@ -28,6 +28,7 @@ package io.github.mzmine.gui;
 
 import static io.github.mzmine.gui.WindowLocation.TAB;
 import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
+import static io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils.copyToUserDirectory;
 
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -42,14 +43,18 @@ import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
+import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
@@ -57,8 +62,6 @@ import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.javafx.util.FxColorUtil;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
@@ -300,6 +303,8 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
    */
 
   public static void activateSetOnDragDropped(DragEvent event) {
+    List<String> messages = new ArrayList<>();
+
     Dragboard dragboard = event.getDragboard();
     boolean hasFileDropped = false;
     if (dragboard.hasFiles()) {
@@ -311,6 +316,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
       final List<File> rawDataFiles = new ArrayList<>();
       final List<File> libraryFiles = new ArrayList<>();
+      File lastBatchFile = null;
 
       for (File selectedFile : dragboard.getFiles()) {
         final String extension = FilenameUtils.getExtension(selectedFile.getName()).toLowerCase();
@@ -337,7 +343,23 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
         if (isLibraryFile) {
           libraryFiles.add(selectedFile);
         }
+
+        if (WizardSequenceIOUtils.isWizardFile(extension)) {
+          boolean result = copyToUserDirectory(selectedFile);
+          String resultStr = result ? "succeeded" : "failed";
+          messages.add(STR."Adding wizard file \{selectedFile.getName()} \{resultStr}");
+        }
+
+//        if(selectedFile.getName().strip().toLowerCase().endsWith("mzbatch")) {
+//          lastBatchFile = selectedFile;
+//        }
       }
+
+//      if (lastBatchFile != null) {
+        // TODO not sure yet how to open the dialog and open the load batch dialog
+//        MZmineCore.setupAndRunModule(BatchModeModule.class);
+//      }
+
 
       if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
         if (!rawDataFiles.isEmpty()) {
