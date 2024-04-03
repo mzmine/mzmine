@@ -411,5 +411,7 @@ public class MZminePreferences extends SimpleParameterSet {
     return darkModeProperty.getValue();
   }
 
-
+  public BooleanProperty darkModeProperty() {
+    return darkModeProperty;
+  }
 }

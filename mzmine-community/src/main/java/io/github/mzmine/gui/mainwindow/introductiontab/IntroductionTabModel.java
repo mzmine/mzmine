@@ -25,14 +25,28 @@
 
 package io.github.mzmine.gui.mainwindow.introductiontab;
 
+import io.github.mzmine.main.MZmineCore;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 
 public class IntroductionTabModel {
 
   private final BooleanProperty newVersionAvailable = new SimpleBooleanProperty(false);
+  private final BooleanProperty isDarkMode = new SimpleBooleanProperty(
+      MZmineCore.getConfiguration().isDarkMode());
 
-  private final BooleanProperty isDarkMode = new SimpleBooleanProperty(false);
+
+  public boolean isIsDarkMode() {
+    return isDarkMode.get();
+  }
+
+  public BooleanProperty isDarkModeProperty() {
+    return isDarkMode;
+  }
+
+  public void setIsDarkMode(boolean isDarkMode) {
+    this.isDarkMode.set(isDarkMode);
+  }
 
   public boolean isNewVersionAvailable() {
     return newVersionAvailable.get();

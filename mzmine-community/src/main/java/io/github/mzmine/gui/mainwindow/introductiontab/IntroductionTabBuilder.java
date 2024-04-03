@@ -49,6 +49,14 @@ import javafx.scene.layout.VBox;
 public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> {
 
   private static final Logger logger = Logger.getLogger(IntroductionTabBuilder.class.getName());
+  private final HBox wizardImageLightMode = FxIconUtil.resizeImage(
+      "icons/introductiontab/logos_mzio_mzwizard.png", 300, 220);
+  private final HBox wizardImageDarkMode = FxIconUtil.resizeImage(
+      "icons/introductiontab/logos_mzio_mzwizard_light.png", 300, 220);
+  private HBox mzmineImageLightMode = FxIconUtil.resizeImage(
+      "icons/introductiontab/logos_mzio_mzmine.png", 350, 200);
+  private HBox mzmineImageDarkMode = FxIconUtil.resizeImage(
+      "icons/introductiontab/logos_mzio_mzmine_light.png", 350, 200);
 
   protected IntroductionTabBuilder(IntroductionTabModel model) {
     super(model);
@@ -59,12 +67,18 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
 
     final VBox main = new VBox(40);
     main.setAlignment(Pos.CENTER);
+    model.isDarkModeProperty()
+        .bind(MZmineCore.getConfiguration().getPreferences().darkModeProperty());
 
-    final HBox mzmineImage = FxIconUtil.resizeImage("icons/introductiontab/logos_mzio_mzmine.png",
-        350, 200);
+    final HBox mzmineImageWrapper = new HBox(
+        model.isIsDarkMode() ? mzmineImageDarkMode : mzmineImageLightMode);
+    model.isDarkModeProperty().addListener((_, _, isDarkMode) -> {
+      mzmineImageWrapper.getChildren().clear();
+      mzmineImageWrapper.getChildren().add(isDarkMode ? mzmineImageDarkMode : mzmineImageLightMode);
+    });
 
     HBox title = new HBox(FxLayout.DEFAULT_SPACE,
-        /*FxLabels.styled("Welcome to ", "huge-title-label"),*/ mzmineImage /*,
+        /*FxLabels.styled("Welcome to ", "huge-title-label"),*/ mzmineImageWrapper /*,
         FxLabels.styled("!", "huge-title-label")*/);
     title.setAlignment(Pos.TOP_CENTER);
 //    mzmineImage.setAlignment(Pos.TOP_CENTER);
@@ -81,11 +95,14 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
   private Region createWizardDocsRow() {
     final GridPane pane = new GridPane(20, 5);
 
-    // todo bind to drakmode property, change icons to dark mode icons automatically
-    final HBox wizardImage = FxIconUtil.resizeImage("icons/introductiontab/logos_mzio_mzwizard.png",
-        300, 220);
+    final HBox wizardImageWrapper = new HBox(
+        model.isIsDarkMode() ? wizardImageDarkMode : wizardImageLightMode);
+    model.isDarkModeProperty().addListener((_, _, isDarkMode) -> {
+      wizardImageWrapper.getChildren().clear();
+      wizardImageWrapper.getChildren().add(isDarkMode ? wizardImageDarkMode : wizardImageLightMode);
+    });
     final Label lblWizard = FxLabels.styled("Easy workflow setup", "bold-title-label");
-    Button btnWizard = new Button(null, wizardImage);
+    Button btnWizard = new Button(null, wizardImageWrapper);
     btnWizard.setOnAction(_ -> MZmineCore.getDesktop().addTab(new BatchWizardTab()));
 
     final Label lblDocs = FxLabels.styled("Open online documentation", "bold-title-label");
@@ -126,7 +143,8 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
 
     final Label youtube = FxLabels.boldTitle("Video tutorials");
     final Button btnYoutube = new Button(null, FxIconUtil.getFontIcon("bi-youtube", 45));
-    btnYoutube.setOnAction(_ -> MZmineCore.getDesktop().openWebPage("https://www.youtube.com/channel/UCXsBoraCbK80xtf4jCpJHYQ"));
+    btnYoutube.setOnAction(_ -> MZmineCore.getDesktop()
+        .openWebPage("https://www.youtube.com/channel/UCXsBoraCbK80xtf4jCpJHYQ"));
 
     final var lblWebsite = FxLabels.boldTitle("mzmine website");
     final Button btnWebsite = new Button(null, FxIconUtil.getFontIcon("bi-globe2", 45));
