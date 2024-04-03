@@ -12,6 +12,7 @@ import ai.djl.translate.TranslateException;
 import io.github.mzmine.datamodel.Scan;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
@@ -21,7 +22,7 @@ public class MS2DeepscoreModel {
      */
     private final ZooModel<NDList, NDList> model;
 
-    public MS2DeepscoreModel(String modelFilePath) throws ModelNotFoundException, MalformedModelException, IOException {
+    public MS2DeepscoreModel(URI modelFilePath) throws ModelNotFoundException, MalformedModelException, IOException {
 //        todo load settings as well.
         Criteria<NDList, NDList> criteria = Criteria.builder()
                 .setTypes(NDList.class, NDList.class)
