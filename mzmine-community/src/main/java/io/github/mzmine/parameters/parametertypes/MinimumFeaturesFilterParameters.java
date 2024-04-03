@@ -29,26 +29,21 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteAndRelativeInt;
+import io.github.mzmine.parameters.parametertypes.metadata.MetadataGroupingParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
-import io.github.mzmine.project.ProjectService;
-import io.github.mzmine.util.ExitCode;
 import java.util.List;
 import java.util.Map;
-import javafx.application.Platform;
 
 public class MinimumFeaturesFilterParameters extends SimpleParameterSet {
 
 
   private final boolean isSub;
   // sample sets
-  public static final OptionalParameter<ComboParameter<Object>> GROUPSPARAMETER = new OptionalParameter<ComboParameter<Object>>(
-      new ComboParameter<Object>("Sample set",
-          "Paremeter defining the sample set of each sample. (Set them in Project/Set sample parameters)",
-          new Object[0]));
+  public static final OptionalParameter<MetadataGroupingParameter> GROUPSPARAMETER = new OptionalParameter<>(
+      new MetadataGroupingParameter("Sample set",
+          "Paremeter defining the sample set of each sample. (Set them in Project/Set sample parameters)"));
 
   /**
    * Filter by minimum height
@@ -150,45 +145,6 @@ public class MinimumFeaturesFilterParameters extends SimpleParameterSet {
     boolean excludeEstimated = this.getParameter(EXCLUDE_ESTIMATED).getValue();
     return new MinimumFeatureFilter(minFInSamples, minFInGroups, minFeatureHeight, minIPercOverlap,
         excludeEstimated);
-  }
-
-
-  @Override
-  public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    // Update the parameter choices
-    if (isSub) {
-      return super.showSetupDialog(valueCheckRequired);
-    } else {
-      assert Platform.isFxApplicationThread();
-
-      try {
-        OptionalParameter<ComboParameter<Object>> gParam = getParameter(GROUPSPARAMETER);
-        if (gParam != null) {
-          UserParameter<?, ?>[] newChoices = ProjectService.getProjectManager().getCurrentProject()
-              .getParameters();
-          String[] choices;
-          if (newChoices == null || newChoices.length == 0) {
-            choices = new String[1];
-            choices[0] = "No groups";
-          } else {
-            choices = new String[newChoices.length + 1];
-            choices[0] = "No groups";
-            for (int i = 0; i < newChoices.length; i++) {
-              choices[i + 1] = newChoices[i].getName();
-            }
-          }
-          gParam.getEmbeddedParameter().setChoices(choices);
-          if (choices.length > 1) {
-            gParam.getEmbeddedParameter().setValue(choices[1]);
-          }
-        }
-      } catch (Exception e) {
-      }
-
-      ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
-      dialog.showAndWait();
-      return dialog.getExitCode();
-    }
   }
 
 

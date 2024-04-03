@@ -42,6 +42,8 @@ import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.main.TmpFileCleanup;
@@ -57,8 +59,6 @@ import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.javafx.util.FxColorUtil;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
@@ -687,7 +687,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       alert.getDialogPane().getScene().getStylesheets()
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       Text text = new Text(msg);
-      text.setWrappingWidth(400);
+      text.setWrappingWidth(370);
       final FlowPane pane = new FlowPane(text);
       pane.setPadding(new Insets(5));
       alert.getDialogPane().setContent(pane);
@@ -836,7 +836,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       alert.getDialogPane().getButtonTypes().addAll(ButtonType.YES, ButtonType.NO);
 
       Text text = new Text(message);
-      text.setWrappingWidth(400);
+      text.setWrappingWidth(370);
       final FlowPane pane = new FlowPane(text);
       pane.setPadding(new Insets(5));
       alert.getDialogPane().setContent(pane);

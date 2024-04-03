@@ -23,67 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-.text-field {
-  -fx-prompt-text-fill: derive(-fx-text-fill, -50%);
-}
+package io.github.mzmine.gui.mainwindow.introductiontab;
 
-.region-match-chart-bg, .tool-bar, .status-bar, .button-bar {
-  -fx-background-color: -jr-menu-background;
-}
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 
-BorderPane, GridPane, .tab-pane {
-  -fx-background-color: -jr-base
-}
+public class IntroductionTabModel {
 
-.text, .text:hover {
-  -fx-fill: -fx-dark-text-color
-}
+  private final BooleanProperty newVersionAvailable = new SimpleBooleanProperty(false);
 
-.title-label {
-  -fx-font-size: 14.0pt;
-}
+  private final BooleanProperty isDarkMode = new SimpleBooleanProperty(false);
 
-.bold-title-label {
-  -fx-font-size: 14.0pt;
-  -fx-font-weight: bold;
-}
+  public boolean isNewVersionAvailable() {
+    return newVersionAvailable.get();
+  }
 
-.huge-title-label {
-  -fx-font-size: 26.0pt;
-  -fx-font-weight: bold;
-}
+  public BooleanProperty newVersionAvailableProperty() {
+    return newVersionAvailable;
+  }
 
-.text-label {
-  -fx-wrap-text: true;
-}
-
-.white-larger-label {
-  -fx-font-size: 13.0pt;
-  -fx-text-fill: white;
-  -fx-wrap-text: true;
-  -fx-font-weight: bold;
-}
-
-.white-score-label {
-  -fx-font-size: 20.0pt;
-  -fx-font-weight: bold;
-  -fx-text-fill: white;
-}
-
-.white-score-label-small {
-  -fx-font-size: 7pt;
-  -fx-font-weight: bold;
-  -fx-text-fill: white;
-}
-.copyable-label, .copyable-label:focused {
-     -fx-background-color: transparent ;
-     -fx-background-insets: 0px ;
- }
-
-.bold-label {
-  -fx-font-weight: bold;
-}
-
-.italic-label {
-  -fx-font-style: italic;
+  public void setNewVersionAvailable(boolean newVersionAvailable) {
+    this.newVersionAvailable.set(newVersionAvailable);
+  }
 }

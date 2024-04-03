@@ -23,67 +23,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-.text-field {
-  -fx-prompt-text-fill: derive(-fx-text-fill, -50%);
-}
+package io.github.mzmine.gui.mainwindow.introductiontab;
 
-.region-match-chart-bg, .tool-bar, .status-bar, .button-bar {
-  -fx-background-color: -jr-menu-background;
-}
+import io.github.mzmine.javafx.mvci.FxController;
+import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
-BorderPane, GridPane, .tab-pane {
-  -fx-background-color: -jr-base
-}
+public class IntroductionTabController extends FxController<IntroductionTabModel> {
 
-.text, .text:hover {
-  -fx-fill: -fx-dark-text-color
-}
+  private static final Logger logger = Logger.getLogger(IntroductionTabController.class.getName());
 
-.title-label {
-  -fx-font-size: 14.0pt;
-}
+  private final IntroductionTabBuilder introductionTabBuilder;
 
-.bold-title-label {
-  -fx-font-size: 14.0pt;
-  -fx-font-weight: bold;
-}
+  protected IntroductionTabController() {
+    super(new IntroductionTabModel());
+    introductionTabBuilder = new IntroductionTabBuilder(model);
+    runVersionCheck();
+  }
 
-.huge-title-label {
-  -fx-font-size: 26.0pt;
-  -fx-font-weight: bold;
-}
+  @Override
+  protected @NotNull FxViewBuilder<IntroductionTabModel> getViewBuilder() {
+    return introductionTabBuilder;
+  }
 
-.text-label {
-  -fx-wrap-text: true;
-}
-
-.white-larger-label {
-  -fx-font-size: 13.0pt;
-  -fx-text-fill: white;
-  -fx-wrap-text: true;
-  -fx-font-weight: bold;
-}
-
-.white-score-label {
-  -fx-font-size: 20.0pt;
-  -fx-font-weight: bold;
-  -fx-text-fill: white;
-}
-
-.white-score-label-small {
-  -fx-font-size: 7pt;
-  -fx-font-weight: bold;
-  -fx-text-fill: white;
-}
-.copyable-label, .copyable-label:focused {
-     -fx-background-color: transparent ;
-     -fx-background-insets: 0px ;
- }
-
-.bold-label {
-  -fx-font-weight: bold;
-}
-
-.italic-label {
-  -fx-font-style: italic;
+  private void runVersionCheck() {
+    onTaskThread(new FxVersionCheckTask(model));
+  }
 }

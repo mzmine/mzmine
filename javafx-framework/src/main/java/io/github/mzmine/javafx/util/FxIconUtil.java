@@ -33,6 +33,8 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -56,6 +58,25 @@ public class FxIconUtil {
       logger.log(Level.WARNING, "error while loading resource", e);
     }
     return icon;
+  }
+
+  public static HBox resizeImage(String path, double maxWidth, double maxHeight) {
+    final Image image = loadImageFromResources(path);
+    ImageView view = new ImageView(image);
+    view.setImage(image);
+    view.setPreserveRatio(true);
+    view.setSmooth(true);
+    view.setCache(true);
+    view.setFitHeight(maxHeight);
+    view.setFitWidth(maxWidth);
+
+    HBox box = new HBox(view);
+    box.setMaxWidth(maxWidth);
+    box.setMaxHeight(maxHeight);
+//    box.setFillHeight(true);
+//    view.fitHeightProperty().bind(box.heightProperty());
+//    view.fitWidthProperty().bind(box.widthProperty());
+    return box;
   }
 
   /**
