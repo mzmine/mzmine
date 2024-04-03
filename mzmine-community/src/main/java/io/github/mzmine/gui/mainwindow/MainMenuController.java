@@ -39,9 +39,10 @@ import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
+import io.mzio.users.client.UserAuthStore;
+import io.mzio.users.gui.fx.UsersViewState;
 import io.mzio.users.user.CurrentUserService;
 import io.mzio.users.user.MZmineUser;
-import io.mzio.users.user.UserAuthStore;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -258,7 +259,7 @@ public class MainMenuController {
   }
 
   public void showUserSignUp(final ActionEvent e) {
-    MZmineCore.getDesktop().addTab(new UsersTab());
+    MZmineCore.getDesktop().addTab(new UsersTab(UsersViewState.LOGIN));
   }
 
   public void removeLocalUser(final ActionEvent e) {

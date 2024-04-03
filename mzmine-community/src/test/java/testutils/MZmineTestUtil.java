@@ -64,6 +64,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.FeatureListRowSorter;
+import io.mzio.users.client.UserAuthStore;
 import io.mzio.users.user.CurrentUserService;
 import io.mzio.users.user.UserFileReader;
 import java.io.File;
@@ -265,7 +266,7 @@ public class MZmineTestUtil {
       }
       if (!CurrentUserService.isValid()) {
         // load testrunner user from users dir / e.g. on github actions
-        var file = UserFileReader.resolveInUsersPath("testrunner.mzuserstr");
+        var file = UserAuthStore.resolveInUsersPath("testrunner.mzuserstr");
         var user = UserFileReader.readUserFile(file);
         if (user != null) {
           CurrentUserService.setUser(user);
