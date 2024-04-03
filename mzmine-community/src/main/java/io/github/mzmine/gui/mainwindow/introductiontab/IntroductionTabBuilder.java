@@ -126,6 +126,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
 
     final Label youtube = FxLabels.boldTitle("Video tutorials");
     final Button btnYoutube = new Button(null, FxIconUtil.getFontIcon("bi-youtube", 45));
+    btnYoutube.setOnAction(_ -> MZmineCore.getDesktop().openWebPage("https://www.youtube.com/channel/UCXsBoraCbK80xtf4jCpJHYQ"));
 
     final var lblWebsite = FxLabels.boldTitle("mzmine website");
     final Button btnWebsite = new Button(null, FxIconUtil.getFontIcon("bi-globe2", 45));
