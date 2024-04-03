@@ -19,9 +19,9 @@ public class MS2DeepscoreModel {
     /**
      * Predicts the MS2Deepscore similarity
      */
-    private ZooModel<NDList, NDList> model;
+    private final ZooModel<NDList, NDList> model;
 
-    public void loadModel(String modelFilePath) throws ModelNotFoundException, MalformedModelException, IOException {
+    public MS2DeepscoreModel(String modelFilePath) throws ModelNotFoundException, MalformedModelException, IOException {
 //        todo load settings as well.
         Criteria<NDList, NDList> criteria = Criteria.builder()
                 .setTypes(NDList.class, NDList.class)
@@ -29,7 +29,7 @@ public class MS2DeepscoreModel {
                 .optOption("mapLocation", "true") // this model requires mapLocation for GPU
                 .optProgress(new ProgressBar()).build();
 
-        model = criteria.loadModel();
+        this.model = criteria.loadModel();
     }
 
     public NDList predict(NDArray spectrumNDArray1,
