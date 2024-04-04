@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.mainwindow.introductiontab;
 
+import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
@@ -38,6 +39,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -64,7 +66,6 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
 
   @Override
   public Region build() {
-
     final VBox main = new VBox(40);
     main.setAlignment(Pos.CENTER);
     model.isDarkModeProperty()
@@ -81,15 +82,26 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
         /*FxLabels.styled("Welcome to ", "huge-title-label"),*/ mzmineImageWrapper /*,
         FxLabels.styled("!", "huge-title-label")*/);
     title.setAlignment(Pos.TOP_CENTER);
-//    mzmineImage.setAlignment(Pos.TOP_CENTER);
 
     main.getChildren().add(title);
     main.getChildren().add(createWizardDocsRow());
     main.getChildren().add(createManagementRow());
     main.getChildren().add(createHowToCite());
-    main.getChildren().add(createNewVersionPane());
 
-    return main;
+    final Pane versionPane = createNewVersionPane();
+    model.newVersionAvailableProperty().addListener((_, _, newVersion) -> {
+      if (newVersion) {
+        main.getChildren().add(versionPane);
+      } else {
+        main.getChildren().remove(versionPane);
+      }
+    });
+
+    final ScrollPane scroll = new ScrollPane(main);
+    scroll.setFitToWidth(true);
+    scroll.setFitToHeight(true);
+    scroll.setCenterShape(true);
+    return scroll;
   }
 
   private Region createWizardDocsRow() {
@@ -102,22 +114,20 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
       wizardImageWrapper.getChildren().add(isDarkMode ? wizardImageDarkMode : wizardImageLightMode);
     });
     final Label lblWizard = FxLabels.styled("Easy workflow setup", "bold-title-label");
-    Button btnWizard = new Button(null, wizardImageWrapper);
-    btnWizard.setOnAction(_ -> MZmineCore.getDesktop().addTab(new BatchWizardTab()));
+    Button btnWizard = FxButtons.createButton(wizardImageWrapper,
+        () -> MZmineCore.getDesktop().addTab(new BatchWizardTab()));
 
     final Label lblDocs = FxLabels.styled("Open online documentation", "bold-title-label");
-    Button btnDocs = new Button(null, FxIconUtil.getFontIcon("bi-book-half", 75));
-    btnDocs.setOnAction(_ -> MZmineCore.getDesktop()
-        .openWebPage("https://mzmine.github.io/mzmine_documentation/getting_started.html"));
+    Button btnDocs = FxButtons.createButton(FxIconUtil.getFontIcon("bi-book-half", 75),
+        () -> MZmineCore.getDesktop()
+            .openWebPage("https://mzmine.github.io/mzmine_documentation/getting_started.html"));
 
     final Label lblPrefs = FxLabels.styled("Configure mzmine", "bold-title-label");
-    Button btnPreferences = new Button(null, FxIconUtil.getFontIcon("bi-gear", 75));
+    Button btnPreferences = FxButtons.createButton(FxIconUtil.getFontIcon("bi-gear", 75),
+        () -> MZmineCore.getConfiguration().getPreferences().showSetupDialog(true));
 
-    btnPreferences.setOnAction(
-        _ -> MZmineCore.getConfiguration().getPreferences().showSetupDialog(true));
-
-    pane.getColumnConstraints().addAll(createColumnConstraints(.3), createColumnConstraints(.3),
-        createColumnConstraints(.3));
+    pane.getColumnConstraints()
+        .addAll(createColumnConstraints(), createColumnConstraints(), createColumnConstraints());
 
     pane.add(lblWizard, 0, 0);
     pane.add(btnWizard, 0, 1);
@@ -132,7 +142,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     return pane;
   }
 
-  private ColumnConstraints createColumnConstraints(double percentWidth) {
+  private ColumnConstraints createColumnConstraints() {
     final ColumnConstraints c = new ColumnConstraints();
     c.setFillWidth(true);
     return c;
@@ -142,25 +152,23 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     GridPane pane = new GridPane(20, 5);
 
     final Label youtube = FxLabels.boldTitle("Video tutorials");
-    final Button btnYoutube = new Button(null, FxIconUtil.getFontIcon("bi-youtube", 45));
-    btnYoutube.setOnAction(_ -> MZmineCore.getDesktop()
-        .openWebPage("https://www.youtube.com/channel/UCXsBoraCbK80xtf4jCpJHYQ"));
+    final Button btnYoutube = FxButtons.createButton(FxIconUtil.getFontIcon("bi-youtube", 45),
+        () -> MZmineCore.getDesktop()
+            .openWebPage("https://www.youtube.com/channel/UCXsBoraCbK80xtf4jCpJHYQ"));
 
     final var lblWebsite = FxLabels.boldTitle("mzmine website");
-    final Button btnWebsite = new Button(null, FxIconUtil.getFontIcon("bi-globe2", 45));
-    btnWebsite.setOnAction(_ -> MZmineCore.getDesktop().openWebPage("https://mzio.io/#mzmine"));
+    final Button btnWebsite = FxButtons.createButton(FxIconUtil.getFontIcon("bi-globe2", 45),
+        () -> MZmineCore.getDesktop().openWebPage("https://mzio.io/#mzmine"));
 
     final var lblUserManagement = FxLabels.boldTitle("Account management");
-    final Button btnUserManagement = new Button(null,
-        FxIconUtil.getFontIcon("bi-person-badge", 45));
-    btnUserManagement.setOnAction(
-        _ -> MZmineCore.getDesktop().openWebPage("https://auth.mzio.io/"));
+    final Button btnUserManagement = FxButtons.createButton(
+        FxIconUtil.getFontIcon("bi-person-badge", 45),
+        () -> MZmineCore.getDesktop().addTab(new UsersTab()));
 
     final Label lblDevelopment = FxLabels.boldTitle("Join the development");
-    final Button btnDevelopment = new Button(null,
-        FxIconUtil.getFontIcon("hwf-document-file-java", 45));
-    btnDevelopment.setOnAction(_ -> MZmineCore.getDesktop()
-        .openWebPage("https://mzmine.github.io/mzmine_documentation/contribute_intellij.html"));
+    final Button btnDevelopment = FxButtons.createButton(
+        FxIconUtil.getFontIcon("hwf-document-file-java", 45), () -> MZmineCore.getDesktop()
+            .openWebPage("https://mzmine.github.io/mzmine_documentation/contribute_intellij.html"));
 
     pane.add(youtube, 0, 0);
     pane.add(btnYoutube, 0, 1);
@@ -203,7 +211,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
         () -> MZmineCore.getDesktop()
             .openWebPage("https://github.com/mzmine/mzmine3/releases/tag/v3.9.0"));
     box.getChildren().addAll(label, downloadButton);
-    box.visibleProperty().bindBidirectional(model.newVersionAvailableProperty());
+//    box.visibleProperty().bindBidirectional(model.newVersionAvailableProperty());
     box.setAlignment(Pos.CENTER);
     return box;
   }
