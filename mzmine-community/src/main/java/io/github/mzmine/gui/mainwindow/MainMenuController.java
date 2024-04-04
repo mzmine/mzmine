@@ -82,8 +82,8 @@ public class MainMenuController {
     CurrentUserService.addListener(user -> currentUser.set(user));
     itemRemoveUser.disableProperty().bind(currentUser.map(Objects::isNull));
     itemRemoveUser.textProperty().bind(
-        currentUser.map(user -> "Remove local user " + user.getNickname())
-            .orElse("Remove local user"));
+        currentUser.map(user -> STR."Remove user \{user.getNickname()} from local system")
+            .orElse("Remove user"));
   }
 
   public void closeProject(Event event) {

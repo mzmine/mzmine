@@ -699,13 +699,13 @@
   </Menu>
 
   <Menu text="Users">
-    <MenuItem text="Users tab" onAction="#showUsersTab">
+    <MenuItem text="Manage users" onAction="#showUsersTab">
       <accelerator>
         <KeyCodeCombination alt="UP" code="U" control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
       </accelerator>
     </MenuItem>
     <MenuItem text="Sing in / Sign up" onAction="#showUserSignUp"/>
-    <MenuItem text="Remove local user" fx:id="itemRemoveUser" onAction="#removeLocalUser"/>
+    <MenuItem text="Remove user" fx:id="itemRemoveUser" onAction="#removeLocalUser"/>
   </Menu>
 
 </MenuBar>
