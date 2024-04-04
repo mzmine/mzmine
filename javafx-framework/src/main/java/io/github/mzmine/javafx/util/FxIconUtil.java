@@ -32,7 +32,11 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.Node;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -95,11 +99,33 @@ public class FxIconUtil {
    * Get FontIcon from Ikonli library
    * <a href="https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html">Icon list</a>
    *
+   * @param iconCode icon code supplier
+   * @return Icon in color and size
+   */
+  public static FontIcon getFontIcon(IconCodeSupplier iconCode, int size) {
+    return getFontIcon(iconCode.getIconCode(), size);
+  }
+
+  /**
+   * Get FontIcon from Ikonli library
+   * <a href="https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html">Icon list</a>
+   *
    * @param iconCode icon code
    * @return Icon in color and size
    */
   public static FontIcon getFontIcon(String iconCode, int size) {
     return new FontIcon(iconCode + ":" + size);
+  }
+
+  /**
+   * Get FontIcon from Ikonli library
+   * <a href="https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html">Icon list</a>
+   *
+   * @param iconCode icon code supplier, often an enum
+   * @return Icon in color and size
+   */
+  public static FontIcon getFontIcon(IconCodeSupplier iconCode, int size, Color color) {
+    return getFontIcon(iconCode.getIconCode(), size, color);
   }
 
   /**
@@ -119,11 +145,20 @@ public class FxIconUtil {
 
 
   public static FontIcon getCheckedIcon() {
-    return getFontIcon("bi-check2-circle", 12, ColorsFX.getPositiveColor(Vision.DEUTERANOPIA));
+    return getFontIcon(FxIcons.CHECK_CIRCLE, 12, ColorsFX.getPositiveColor(Vision.DEUTERANOPIA));
   }
 
   public static FontIcon getUncheckedIcon() {
-    return getFontIcon("bi-x-circle", 12, ColorsFX.getNegativeColor(Vision.DEUTERANOPIA));
+    return getFontIcon(FxIcons.X_CIRCLE, 12, ColorsFX.getNegativeColor(Vision.DEUTERANOPIA));
   }
 
+  public static Node newIconButton(final IconCodeSupplier fxIcons, Runnable onAction) {
+    var button = new StackPane(getFontIcon(fxIcons, 24, Color.WHITE));
+    button.setOnMouseClicked(e -> {
+      if (e.getButton() == MouseButton.PRIMARY) {
+        onAction.run();
+      }
+    });
+    return button;
+  }
 }

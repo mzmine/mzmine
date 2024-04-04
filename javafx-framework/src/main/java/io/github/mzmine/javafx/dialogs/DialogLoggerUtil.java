@@ -23,10 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util;
+package io.github.mzmine.javafx.dialogs;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.main.MZmineCore;
 import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.animation.KeyFrame;
@@ -54,7 +54,7 @@ public class DialogLoggerUtil {
 
   public static void showErrorDialog(String title, String message) {
     logger.info(title + ": " + message);
-    if (MZmineCore.isHeadLessMode()) {
+    if (DesktopService.isHeadLess()) {
       return;
     }
     Alert alert = new Alert(AlertType.ERROR, null);
@@ -76,7 +76,7 @@ public class DialogLoggerUtil {
   @Nullable
   public static Alert showMessageDialog(String title, String message, boolean modal) {
     logger.info(title + ": " + message);
-    if (MZmineCore.isHeadLessMode()) {
+    if (DesktopService.isHeadLess()) {
       return null;
     }
     Alert alert = new Alert(AlertType.INFORMATION, null);
@@ -109,6 +109,7 @@ public class DialogLoggerUtil {
   public static void showMessageDialogForTime(String title, String message) {
     showMessageDialogForTime(title, message, 3500);
   }
+
   public static void showMessageDialogForTime(String title, String message, long timeMillis) {
     FxThread.runLater(() -> {
       Alert alert = showMessageDialog(title, message, false);
