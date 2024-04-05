@@ -38,12 +38,12 @@ import javafx.scene.layout.VBox;
 public class FxLayout {
 
   public static final int DEFAULT_SPACE = 5;
-  public static final int DEFAULT_ICON_SPACE = 10;
+  public static final int DEFAULT_ICON_SPACE = 0;
   public static final Insets DEFAULT_PADDING_INSETS = new Insets(5);
 
   public static FlowPane newIconPane(Orientation orientation, Node... children) {
     var alignment = orientation == Orientation.HORIZONTAL ? Pos.CENTER_LEFT : Pos.TOP_CENTER;
-    var pane = newFlowPane(alignment, children);
+    var pane = newFlowPane(alignment, Insets.EMPTY, children);
     pane.setOrientation(orientation);
     pane.setHgap(DEFAULT_ICON_SPACE);
     pane.setVgap(DEFAULT_ICON_SPACE);

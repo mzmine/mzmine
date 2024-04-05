@@ -27,12 +27,11 @@ package io.github.mzmine.javafx.util;
 
 public enum FxIcons implements IconCodeSupplier {
   // status
-  CHECK_CIRCLE, X_CIRCLE, EXCLAMATION_TRIANGLE,
-  // control flow
+  CHECK_CIRCLE, X_CIRCLE, EXCLAMATION_TRIANGLE, // control flow
   ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN,
 
   //
-  USER, BUG, WEBSITE, GEAR_PREFERENCES, RELOAD, ARROW_LEFT_LONG, CHEVRON_LEFT;
+  USER, BUG, WEBSITE, GEAR_PREFERENCES, RELOAD;
 
 
   @Override
@@ -45,12 +44,10 @@ public enum FxIcons implements IconCodeSupplier {
       case BUG -> "bi-bug";
       case GEAR_PREFERENCES -> "bi-gear";
       case WEBSITE -> "bi-globe2";
-      case ARROW_LEFT -> "bi-arrow-left-short";
-      case ARROW_RIGHT -> "bi-arrow-right-short";
-      case ARROW_UP -> "bi-arrow-up-short";
-      case ARROW_DOWN -> "bi-arrow-down-short";
-      case ARROW_LEFT_LONG -> "bi-arrow-left";
-      case CHEVRON_LEFT -> "bi-chevron-left";
+      case ARROW_LEFT -> "bi-arrow-left";
+      case ARROW_RIGHT -> "bi-arrow-right";
+      case ARROW_UP -> "bi-arrow-up";
+      case ARROW_DOWN -> "bi-arrow-down";
       case RELOAD -> "bi-arrow-repeat";
     };
   }

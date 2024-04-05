@@ -25,6 +25,7 @@
 
 package io.github.mzmine.javafx.util;
 
+import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder;
 import io.github.mzmine.javafx.util.color.ColorsFX;
 import io.github.mzmine.javafx.util.color.Vision;
 import java.io.IOException;
@@ -32,18 +33,17 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.scene.Node;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.image.Image;
-import javafx.scene.input.MouseButton;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 public class FxIconUtil {
 
   private static final Logger logger = Logger.getLogger(FxIconUtil.class.getName());
+  public static final int DEFAULT_ICON_SIZE = 18;
 
   @NotNull
   public static Image loadImageFromResources(final @NotNull String resourcePath) {
@@ -152,13 +152,23 @@ public class FxIconUtil {
     return getFontIcon(FxIcons.X_CIRCLE, 12, ColorsFX.getNegativeColor(Vision.DEUTERANOPIA));
   }
 
-  public static Node newIconButton(final IconCodeSupplier fxIcons, Runnable onAction) {
-    var button = new StackPane(getFontIcon(fxIcons, 24, Color.WHITE));
-    button.setOnMouseClicked(e -> {
-      if (e.getButton() == MouseButton.PRIMARY) {
-        onAction.run();
-      }
-    });
-    return button;
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, Runnable onAction) {
+    return newIconButton(fxIcons, DEFAULT_ICON_SIZE, onAction);
+  }
+
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
+      @Nullable Runnable onAction) {
+    return newIconButton(fxIcons, size, null, onAction);
+  }
+
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, @Nullable String tooltip,
+      @Nullable Runnable onAction) {
+    return newIconButton(fxIcons, DEFAULT_ICON_SIZE, tooltip, onAction);
+  }
+
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
+      @Nullable String tooltip, @Nullable Runnable onAction) {
+    return FxIconButtonBuilder.ofIconButton(fxIcons).size(size).tooltip(tooltip).onAction(onAction)
+        .build();
   }
 }
