@@ -23,40 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.main;
+package io.github.mzmine.util.javafx;
 
-import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.gui.preferences.NumberFormats;
-import io.github.mzmine.main.impl.MZmineConfigurationImpl;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.main.ConfigService;
+import org.kordamp.ikonli.javafx.FontIcon;
 
-public final class ConfigService {
+public class MZmineIconUtils {
 
-  private static final MZmineConfiguration config = new MZmineConfigurationImpl();
-
-  public static MZmineConfiguration getConfiguration() {
-    return config;
+  public static FontIcon getCheckedIcon() {
+    return FxIconUtil.getFontIcon(FxIcons.CHECK_CIRCLE, 12,
+        ConfigService.getDefaultColorPalette().getPositiveColor());
   }
 
-  public static MZminePreferences getPreferences() {
-    return config.getPreferences();
-  }
-
-  public static <V, T extends Parameter<V>> V getPreference(T parameter) {
-    return config.getPreferences().getValue(parameter);
-  }
-
-  public static NumberFormats getExportFormats() {
-    return config.getExportFormats();
-  }
-
-  public static NumberFormats getGuiFormats() {
-    return config.getGuiFormats();
-  }
-
-
-  public static SimpleColorPalette getDefaultColorPalette() {
-    return config.getDefaultColorPalette();
+  public static FontIcon getUncheckedIcon() {
+    return FxIconUtil.getFontIcon(FxIcons.X_CIRCLE, 12,
+        ConfigService.getDefaultColorPalette().getNegativeColor());
   }
 }

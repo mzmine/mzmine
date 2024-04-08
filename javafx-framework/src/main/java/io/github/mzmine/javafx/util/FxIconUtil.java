@@ -26,8 +26,6 @@
 package io.github.mzmine.javafx.util;
 
 import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder;
-import io.github.mzmine.javafx.util.color.ColorsFX;
-import io.github.mzmine.javafx.util.color.Vision;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -143,14 +141,6 @@ public class FxIconUtil {
     return icon;
   }
 
-
-  public static FontIcon getCheckedIcon() {
-    return getFontIcon(FxIcons.CHECK_CIRCLE, 12, ColorsFX.getPositiveColor(Vision.DEUTERANOPIA));
-  }
-
-  public static FontIcon getUncheckedIcon() {
-    return getFontIcon(FxIcons.X_CIRCLE, 12, ColorsFX.getNegativeColor(Vision.DEUTERANOPIA));
-  }
 
   public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, Runnable onAction) {
     return newIconButton(fxIcons, DEFAULT_ICON_SIZE, onAction);
