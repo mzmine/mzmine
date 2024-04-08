@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,15 +33,15 @@ import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 import io.github.mzmine.gui.framework.CustomTextPane;
 import io.github.mzmine.gui.framework.ScrollablePanel;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.color.ColorScaleUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponentAWT;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.javafx.util.color.ColorScaleUtil;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
@@ -322,14 +322,6 @@ public class SpectralMatchPanel extends JPanel {
           btnExport.getIcon().getIconHeight() + 6));
       btnExport.addActionListener(e -> exportToGraphics("emf"));
       pnExport.add(btnExport, "cell 0 2, growx, center");
-    }
-
-    if (param.getParameter(SpectraIdentificationResultsParameters.eps).getValue()) {
-      btnExport = new JButton(/* IconUtil.scaled(iconEps, ICON_WIDTH) */);
-      btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
-          btnExport.getIcon().getIconHeight() + 6));
-      btnExport.addActionListener(e -> exportToGraphics("eps"));
-      pnExport.add(btnExport, "cell 0 3, growx, center");
     }
 
     if (param.getParameter(SpectraIdentificationResultsParameters.svg).getValue()) {
