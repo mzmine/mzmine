@@ -4,6 +4,7 @@ javafx = { strictly = "21.0.1" }
 javafx-plugin = "0.0.13"
 log4j-core = { strictly = "[2.23.0, 2.23.0[", prefer = "2.23.0" }
 
+licenseplugin = "2.6"
 beryx-runtime = "1.12.7"
 semver = "1.0.4"
 msdk = "0.0.27"
@@ -126,3 +127,4 @@ batik = ["batik-anim", "batik-svggen", "batik-swing"]
 semver = { id = "net.thauvin.erik.gradle.semver", version.ref = "semver" }
 beryx-runtime = { id = "org.beryx.runtime", version.ref = "beryx-runtime" }
 javafx = { id = "org.openjfx.javafxplugin", version.ref = "javafx-plugin" }
+licensereport = { id = "com.github.jk1.dependency-license-report", version.ref = "licenseplugin" }

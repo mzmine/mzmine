@@ -24,6 +24,7 @@
  */
 
 
+import com.github.jk1.license.filter.LicenseBundleNormalizer
 import org.gradle.internal.os.OperatingSystem
 
 import java.nio.file.FileSystems
@@ -40,6 +41,7 @@ plugins {
     // versioning now in version.properties file
     // https://github.com/ethauvin/semver-gradle
     alias(libs.plugins.semver)
+    alias(libs.plugins.licensereport)
 }
 
 // save version to main resources
@@ -554,3 +556,38 @@ task copyTestResources(type: Copy) {
     into layout.buildDirectory.dir("classes/test")
 }
 processTestResources.dependsOn copyTestResources
+
+licenseReport {
+    // By default this plugin will collect the union of all licenses from
+    // the immediate pom and the parent poms. If your legal team thinks this
+    // is too liberal, you can restrict collected licenses to only include the
+    // those found in the immediate pom file
+    // Defaults to: true
+    unionParentPomLicenses = true
+
+    // Set output directory for the report data.
+    // Defaults to ${project.buildDir}/reports/dependency-license.
+    outputDir = "$projectDir/build/licenses"
+
+    // Adjust the configurations to fetch dependencies. Default is 'runtimeClasspath'
+    // For Android projects use 'releaseRuntimeClasspath' or 'yourFlavorNameReleaseRuntimeClasspath'
+    // Use 'ALL' to dynamically resolve all configurations:
+    // configurations = ALL
+    configurations = ['runtimeClasspath']
+
+    // Don't include artifacts of project's own group into the report
+    excludeOwnGroup = true
+
+    excludes = ['com.fasterxml.jackson:jackson-bom', 'com.alanmrace:jimzmlparser', 'colt:colt',
+                'com.github.yannrichet:JMathArray', 'com.github.yannrichet:JMathIO',
+                'com.github.yannrichet:JMathPlot', 'mzmine:.*', 'net.jcip:jcip-annotations']
+
+    // Don't exclude bom dependencies.
+    // If set to true, then all boms will be excluded from the report
+    excludeBoms = false
+
+    filters = [new LicenseBundleNormalizer(bundlePath: "$projectDir/config/license-normalizer-bundle.json")]
+//    filters = [new LicenseBundleNormalizer()]
+
+    allowedLicensesFile = new File("$projectDir/config/allowed-licenses.json")
+}
