@@ -34,7 +34,6 @@ import java.util.logging.Logger;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,7 +61,7 @@ public class FxIconUtil {
     return icon;
   }
 
-  public static HBox resizeImage(String path, double maxWidth, double maxHeight) {
+  public static ImageView resizeImage(String path, double maxWidth, double maxHeight) {
     final Image image = loadImageFromResources(path);
     ImageView view = new ImageView(image);
     view.setImage(image);
@@ -72,13 +71,7 @@ public class FxIconUtil {
     view.setFitHeight(maxHeight);
     view.setFitWidth(maxWidth);
 
-    HBox box = new HBox(view);
-    box.setMaxWidth(maxWidth);
-    box.setMaxHeight(maxHeight);
-//    box.setFillHeight(true);
-//    view.fitHeightProperty().bind(box.heightProperty());
-//    view.fitWidthProperty().bind(box.widthProperty());
-    return box;
+    return view;
   }
 
   /**

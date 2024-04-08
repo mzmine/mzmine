@@ -31,12 +31,15 @@ import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
+import io.github.mzmine.util.javafx.LightAndDarkModeIcon;
 import java.util.logging.Logger;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -51,14 +54,8 @@ import javafx.scene.layout.VBox;
 public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> {
 
   private static final Logger logger = Logger.getLogger(IntroductionTabBuilder.class.getName());
-  private final HBox wizardImageLightMode = FxIconUtil.resizeImage(
-      "icons/introductiontab/logos_mzio_mzwizard.png", 300, 220);
-  private final HBox wizardImageDarkMode = FxIconUtil.resizeImage(
-      "icons/introductiontab/logos_mzio_mzwizard_light.png", 300, 220);
-  private HBox mzmineImageLightMode = FxIconUtil.resizeImage(
-      "icons/introductiontab/logos_mzio_mzmine.png", 350, 200);
-  private HBox mzmineImageDarkMode = FxIconUtil.resizeImage(
-      "icons/introductiontab/logos_mzio_mzmine_light.png", 350, 200);
+  private LightAndDarkModeIcon mzmineIcon;
+  private LightAndDarkModeIcon wizardIcon;
 
   protected IntroductionTabBuilder(IntroductionTabModel model) {
     super(model);
@@ -68,18 +65,13 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
   public Region build() {
     final VBox main = new VBox(40);
     main.setAlignment(Pos.CENTER);
-    model.isDarkModeProperty()
-        .bind(MZmineCore.getConfiguration().getPreferences().darkModeProperty());
+    model.isDarkModeProperty().bind(ConfigService.isDarkModeProperty());
 
-    final HBox mzmineImageWrapper = new HBox(
-        model.isIsDarkMode() ? mzmineImageDarkMode : mzmineImageLightMode);
-    model.isDarkModeProperty().addListener((_, _, isDarkMode) -> {
-      mzmineImageWrapper.getChildren().clear();
-      mzmineImageWrapper.getChildren().add(isDarkMode ? mzmineImageDarkMode : mzmineImageLightMode);
-    });
+    mzmineIcon = new LightAndDarkModeIcon("icons/introductiontab/logos_mzio_mzmine.png",
+        "icons/introductiontab/logos_mzio_mzmine_light.png", 350, 200);
 
     HBox title = new HBox(FxLayout.DEFAULT_SPACE,
-        /*FxLabels.styled("Welcome to ", "huge-title-label"),*/ mzmineImageWrapper /*,
+        /*FxLabels.styled("Welcome to ", "huge-title-label"),*/ mzmineIcon /*,
         FxLabels.styled("!", "huge-title-label")*/);
     title.setAlignment(Pos.TOP_CENTER);
 
@@ -89,8 +81,10 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     main.getChildren().add(createHowToCite());
 
     final Pane versionPane = createNewVersionPane();
-    model.newVersionAvailableProperty().addListener((_, _, newVersion) -> {
-      if (newVersion) {
+    model.newVersionAvailableProperty().subscribe((newVersion) -> {
+      if (newVersion == null) {
+        return;
+      } else if (newVersion) {
         main.getChildren().add(versionPane);
       } else {
         main.getChildren().remove(versionPane);
@@ -107,15 +101,13 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
   private Region createWizardRow() {
     final GridPane pane = new GridPane(20, 5);
 
-    final HBox wizardImageWrapper = new HBox(
-        model.isIsDarkMode() ? wizardImageDarkMode : wizardImageLightMode);
-    model.isDarkModeProperty().addListener((_, _, isDarkMode) -> {
-      wizardImageWrapper.getChildren().clear();
-      wizardImageWrapper.getChildren().add(isDarkMode ? wizardImageDarkMode : wizardImageLightMode);
-    });
+    final HBox wizardImageWrapper = new LightAndDarkModeIcon(
+        "icons/introductiontab/logos_mzio_mzwizard.png",
+        "icons/introductiontab/logos_mzio_mzwizard_light.png", 300, 150);
     final Label lblWizard = FxLabels.newBoldTitle("Easy workflow setup");
-    Button btnWizard = FxButtons.createButton(wizardImageWrapper,
-        () -> MZmineCore.getDesktop().addTab(new BatchWizardTab()));
+    final Button btnWizard = FxButtons.graphicButton(wizardImageWrapper,
+        "Open the mzwizard to easily configure a workflow.",
+        _ -> MZmineCore.getDesktop().addTab(new BatchWizardTab()));
 
 //    pane.getColumnConstraints()
 //        .addAll(createColumnConstraints(), createColumnConstraints(), createColumnConstraints());
@@ -137,27 +129,25 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
 
   private Pane createManagementRow() {
 
-    final Button btnYoutube = FxButtons.createButton(FxIconUtil.getFontIcon("bi-youtube", 45),
-        "Video tutorials", () -> MZmineCore.getDesktop()
+    final ButtonBase btnYoutube = FxIconUtil.newIconButton(FxIcons.YOUTUBE, 45, "Video tutorials",
+        () -> MZmineCore.getDesktop()
             .openWebPage("https://www.youtube.com/channel/UCXsBoraCbK80xtf4jCpJHYQ"));
 
-    final Button btnWebsite = FxButtons.createButton(FxIconUtil.getFontIcon("bi-globe2", 45),
-        "mzmine website", () -> MZmineCore.getDesktop().openWebPage("https://mzio.io/#mzmine"));
+    final ButtonBase btnWebsite = FxIconUtil.newIconButton(FxIcons.WEBSITE, 45, "mzmine website",
+        () -> MZmineCore.getDesktop().openWebPage("https://mzio.io/#mzmine"));
 
-    final Button btnUserManagement = FxButtons.createButton(
-        FxIconUtil.getFontIcon("bi-person-badge", 45), "Account management",
-        () -> MZmineCore.getDesktop().addTab(new UsersTab()));
+    final ButtonBase btnUserManagement = FxIconUtil.newIconButton(FxIcons.USER, 45,
+        "Account management", () -> MZmineCore.getDesktop().addTab(new UsersTab()));
 
-    final Button btnDevelopment = FxButtons.createButton(
-        FxIconUtil.getFontIcon("hwf-document-file-java", 45), "Join the development",
-        () -> MZmineCore.getDesktop()
+    final ButtonBase btnDevelopment = FxIconUtil.newIconButton(FxIcons.DEVELOPMENT, 45,
+        "Join the development", () -> MZmineCore.getDesktop()
             .openWebPage("https://mzmine.github.io/mzmine_documentation/contribute_intellij.html"));
 
-    final Button btnDocs = FxButtons.createButton(FxIconUtil.getFontIcon("bi-book-half", 45),
+    final ButtonBase btnDocs = FxIconUtil.newIconButton(FxIcons.BOOK, 45,
         "Open online documentation", () -> MZmineCore.getDesktop()
             .openWebPage("https://mzmine.github.io/mzmine_documentation/getting_started.html"));
 
-    final Button btnPreferences = FxButtons.createButton(FxIconUtil.getFontIcon("bi-gear", 45),
+    final ButtonBase btnPreferences = FxIconUtil.newIconButton(FxIcons.GEAR_PREFERENCES, 45,
         "Configure mzmine",
         () -> MZmineCore.getConfiguration().getPreferences().showSetupDialog(true));
 
@@ -171,12 +161,13 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
   private Pane createHowToCite() {
     VBox pane = new VBox(FxLayout.DEFAULT_SPACE);
     pane.setAlignment(Pos.CENTER);
-    pane.getChildren().add(FxLabels.styled("How to cite", "newBoldLabel-title-label"));
+    pane.getChildren().add(FxLabels.newBoldTitle("How to cite"));
 
     final FlowPane box = new FlowPane(new Label("Schmid, R., Heuckeroth, S., Korf, A. "),
         FxLabels.newItalicLabel("et. al. "), //
         new Label("Integrative analysis of multimodal mass spectrometry data in MZmine 3. "), //
-        FxLabels.newItalicLabel("Nat Biotechnol "), FxLabels.newBoldLabel("41"), new Label(", 447-449 (2023)."));
+        FxLabels.newItalicLabel("Nat Biotechnol "), FxLabels.newBoldLabel("41"),
+        new Label(", 447-449 (2023)."));
     box.setAlignment(Pos.CENTER);
     pane.getChildren().add(box);
 
@@ -198,5 +189,14 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
 //    box.visibleProperty().bindBidirectional(model.newVersionAvailableProperty());
     box.setAlignment(Pos.CENTER);
     return box;
+  }
+
+  void unsubsribe() {
+    if (mzmineIcon != null) {
+      mzmineIcon.unsubscribe();
+    }
+    if (wizardIcon != null) {
+      wizardIcon.unsubscribe();
+    }
   }
 }

@@ -30,6 +30,7 @@ import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import javafx.beans.property.BooleanProperty;
 
 public final class ConfigService {
 
@@ -58,5 +59,9 @@ public final class ConfigService {
 
   public static SimpleColorPalette getDefaultColorPalette() {
     return config.getDefaultColorPalette();
+  }
+
+  public static BooleanProperty isDarkModeProperty() {
+    return config.getPreferences().darkModeProperty();
   }
 }
