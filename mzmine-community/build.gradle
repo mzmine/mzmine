@@ -164,7 +164,6 @@ dependencies {
     implementation(libs.commons.lang3)
     implementation(libs.fastutil)
     implementation "edu.ucar:netcdf4:4.5.5"
-    implementation "org.ostermiller:utils:1.07.00"
     implementation 'org.jetbrains:annotations:22.0.0'
     implementation 'nz.ac.waikato.cms.weka:weka-dev:3.9.6'
     implementation 'net.sourceforge.jmol:jmol:14.31.10'
@@ -568,7 +567,7 @@ licenseReport {
 
     // Set output directory for the report data.
     // Defaults to ${project.buildDir}/reports/dependency-license.
-    outputDir = "$projectDir/build/licenses"
+    outputDir = "$projectDir/licensereport"
 
     // Adjust the configurations to fetch dependencies. Default is 'runtimeClasspath'
     // For Android projects use 'releaseRuntimeClasspath' or 'yourFlavorNameReleaseRuntimeClasspath'
@@ -582,7 +581,7 @@ licenseReport {
     excludes = ['com.fasterxml.jackson:jackson-bom', 'com.alanmrace:jimzmlparser', 'colt:colt',
                 'com.github.yannrichet:JMathArray', 'com.github.yannrichet:JMathIO',
                 'com.github.yannrichet:JMathPlot', 'mzmine:.*', 'net.jcip:jcip-annotations',
-                'io.mzio:*']
+                'io.mzio(.*)']
 
     // Don't exclude bom dependencies.
     // If set to true, then all boms will be excluded from the report
