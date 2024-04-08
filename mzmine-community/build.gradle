@@ -184,8 +184,6 @@ dependencies {
     implementation "org.nuiton.thirdparty:REngine:1.8-5"
     implementation "org.nuiton.thirdparty:Rserve:1.8-5"
     implementation 'com.github.jbytecode:RCaller:4.0.2'
-    implementation "mzmine:jmprojection:1.0"
-    implementation "mzmine:gslibml:0.0.1"
     implementation 'org.apache.xmlgraphics:fop:2.6'
     implementation "org.freehep:freehep-graphicsio-emf:2.4"
     implementation("eu.hansolo.fx:charts:21.0.7")

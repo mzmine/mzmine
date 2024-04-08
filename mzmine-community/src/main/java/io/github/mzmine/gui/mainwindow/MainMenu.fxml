@@ -533,27 +533,6 @@
       <MenuItem text="Principal component analysis (PCA)"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataanalysis.pca_new.PCAModule"/>
-      <!--<Menu text="Bubble plots">
-        <MenuItem text="Coefficient of variation (CV) plot"
-          onAction="#runModule"
-          userData="io.github.mzmine.modules.dataanalysis.bubbleplots.cvplot.CVPlotModule"/>
-        <MenuItem text="Logratio plot" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataanalysis.bubbleplots.logratioplot.LogratioPlotModule"/>
-      </Menu>
-      <Menu text="Dimensionality reduction">
-        <MenuItem text="Principal component analysis (PCA)"
-          onAction="#runModule"
-          userData="io.github.mzmine.modules.dataanalysis.projectionplots.PCAPlotModule"/>
-        <MenuItem text="Curvilinear distance analysis (CDA)"
-          onAction="#runModule"
-          userData="io.github.mzmine.modules.dataanalysis.projectionplots.CDAPlotModule"/>
-        <MenuItem text="Sammon's projection" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataanalysis.projectionplots.SammonsPlotModule"/>
-      </Menu>
-      <MenuItem text="Clustering" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataanalysis.clustering.ClusteringModule"/>
-      <MenuItem text="Heat map plot" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataanalysis.heatmaps.HeatMapModule"/>
       <MenuItem text="One-way ANOVA" onAction="#runModule"
         userData="io.github.mzmine.modules.dataanalysis.significance.anova.AnovaModule"/>-->
     </Menu>
