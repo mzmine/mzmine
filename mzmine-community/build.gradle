@@ -25,6 +25,9 @@
 
 
 import com.github.jk1.license.filter.LicenseBundleNormalizer
+import com.github.jk1.license.render.CsvReportRenderer
+import com.github.jk1.license.render.InventoryHtmlReportRenderer
+import com.github.jk1.license.render.JsonReportRenderer
 import org.gradle.internal.os.OperatingSystem
 
 import java.nio.file.FileSystems
@@ -117,7 +120,7 @@ repositories {
     maven { url = "https://jitpack.io" }
     maven { url = "https://www.xypron.de/repository/" }
     // For cpdetector
-    maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
+//    maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
     // For jimzml
     // maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
 }
@@ -179,7 +182,6 @@ dependencies {
     implementation(libs.bundles.okhttp)
     implementation "uk.ac.ebi.jmzml:jmzml:1.7.11"
     implementation "org.postgresql:postgresql:9.3-1102-jdbc41"
-    implementation "mysql:mysql-connector-java:5.1.34"
     implementation "org.rsc.chemspider:chemspider-api:1.0.0"
     implementation "org.nuiton.thirdparty:REngine:1.8-5"
     implementation "org.nuiton.thirdparty:Rserve:1.8-5"
@@ -198,7 +200,6 @@ dependencies {
     implementation "gnf:clustering:20210422"
 
     implementation 'com.github.librepdf:openpdf:2.0.0'
-    implementation "net.sf.epsgraphics:epsgraphics:1.2"
     implementation "com.miglayout:miglayout:3.7.4"
 
     implementation "javax.xml.bind:jaxb-api:2.3.1"
@@ -563,7 +564,7 @@ licenseReport {
     // is too liberal, you can restrict collected licenses to only include the
     // those found in the immediate pom file
     // Defaults to: true
-    unionParentPomLicenses = true
+    unionParentPomLicenses = false
 
     // Set output directory for the report data.
     // Defaults to ${project.buildDir}/reports/dependency-license.
@@ -580,14 +581,16 @@ licenseReport {
 
     excludes = ['com.fasterxml.jackson:jackson-bom', 'com.alanmrace:jimzmlparser', 'colt:colt',
                 'com.github.yannrichet:JMathArray', 'com.github.yannrichet:JMathIO',
-                'com.github.yannrichet:JMathPlot', 'mzmine:.*', 'net.jcip:jcip-annotations']
+                'com.github.yannrichet:JMathPlot', 'mzmine:.*', 'net.jcip:jcip-annotations',
+                'io.mzio:*']
 
     // Don't exclude bom dependencies.
     // If set to true, then all boms will be excluded from the report
     excludeBoms = false
 
     filters = [new LicenseBundleNormalizer(bundlePath: "$projectDir/config/license-normalizer-bundle.json")]
-//    filters = [new LicenseBundleNormalizer()]
+    renderers = [new JsonReportRenderer("licenses.json"), new CsvReportRenderer("licenses.csv"),
+                 new InventoryHtmlReportRenderer('licenses.html', 'Licenses')]
 
     allowedLicensesFile = new File("$projectDir/config/allowed-licenses.json")
 }
