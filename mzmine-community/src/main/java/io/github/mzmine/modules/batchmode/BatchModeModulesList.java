@@ -121,7 +121,6 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
-import io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule;
@@ -208,7 +207,6 @@ public class BatchModeModulesList {
        */
       AllSpectralDataImportModule.class, //
       TDFImportModule.class, //
-      MzMLImportModule.class, //
       ImzMLImportModule.class, //
       MzDataImportModule.class, //
       MSDKmzMLImportModule.class, //

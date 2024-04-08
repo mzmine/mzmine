@@ -178,7 +178,6 @@ dependencies {
     implementation(libs.bundles.msdk)
     implementation(libs.bundles.batik)
     implementation(libs.bundles.okhttp)
-    implementation "uk.ac.ebi.jmzml:jmzml:1.7.11"
     implementation "org.postgresql:postgresql:9.3-1102-jdbc41"
     implementation "org.rsc.chemspider:chemspider-api:1.0.0"
     implementation "org.nuiton.thirdparty:REngine:1.8-5"
