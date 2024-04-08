@@ -165,7 +165,6 @@ dependencies {
     implementation(libs.fastutil)
     implementation "edu.ucar:netcdf4:4.5.5"
     implementation 'org.jetbrains:annotations:22.0.0'
-    implementation 'nz.ac.waikato.cms.weka:weka-dev:3.9.6'
     implementation 'net.sourceforge.jmol:jmol:14.31.10'
 
     implementation(libs.bundles.jfreechart)
