@@ -37,7 +37,7 @@ jobs:
       - name: Execute dependency license check
         #        env:
         #          TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
-        run: ./gradlew -p mzmine-community:checkLicense --stacktrace --info --warning-mode all
+        run: ./gradlew mzmine-community:checkLicense --stacktrace --info --warning-mode all
 
       # UPLOAD ALL FILES
       - name: Upload license report
