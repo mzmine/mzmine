@@ -23,31 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.mainwindow;
+package io.github.mzmine.javafx.util;
 
-import io.github.mzmine.main.MZmineCore;
-import io.mzio.users.user.CurrentUserService;
-import io.mzio.users.user.MZmineUser;
-import javafx.scene.control.Button;
-import javafx.scene.layout.BorderPane;
+public interface IconCodeSupplier {
 
-public class UsersButton extends BorderPane {
+  String getIconCode();
 
-  private final Button button;
-
-  public UsersButton() {
-    super();
-    button = new Button("NA");
-    button.setOnAction(_ -> MZmineCore.getDesktop().addTab(new UsersTab()));
-
-    CurrentUserService.addListener(this::setUser);
-    setUser(CurrentUserService.getUser());
-
-    setCenter(button);
-  }
-
-  private void setUser(final MZmineUser user) {
-    String text = user == null ? "NA" : user.getInitials();
-    button.setText(text);
-  }
 }

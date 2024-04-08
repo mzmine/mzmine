@@ -39,13 +39,20 @@ import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
+import io.mzio.users.client.UserAuthStore;
+import io.mzio.users.gui.fx.UsersViewState;
+import io.mzio.users.user.CurrentUserService;
+import io.mzio.users.user.MZmineUser;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.logging.Logger;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -60,6 +67,9 @@ public class MainMenuController {
 
   private static final Logger logger = Logger.getLogger(MainMenuController.class.getName());
 
+  public ObjectProperty<MZmineUser> currentUser = new SimpleObjectProperty<>();
+  public MenuItem itemRemoveUser;
+
   @FXML
   private Menu recentProjectsMenu;
 
@@ -68,6 +78,12 @@ public class MainMenuController {
     fillRecentProjects();
     // disable project
     recentProjectsMenu.setDisable(true);
+
+    CurrentUserService.addListener(user -> currentUser.set(user));
+    itemRemoveUser.disableProperty().bind(currentUser.map(Objects::isNull));
+    itemRemoveUser.textProperty().bind(
+        currentUser.map(user -> STR."Remove user \{user.getNickname()} from local system")
+            .orElse("Remove user"));
   }
 
   public void closeProject(Event event) {
@@ -236,6 +252,18 @@ public class MainMenuController {
 
   public void openQuickSearch(final ActionEvent e) {
     ModuleQuickSelectDialog.openQuickSearch();
+  }
+
+  public void showUsersTab(final ActionEvent e) {
+    MZmineCore.getDesktop().addTab(new UsersTab());
+  }
+
+  public void showUserSignUp(final ActionEvent e) {
+    MZmineCore.getDesktop().addTab(new UsersTab(UsersViewState.LOGIN));
+  }
+
+  public void removeLocalUser(final ActionEvent e) {
+    UserAuthStore.removeUserFile(CurrentUserService.getUser());
   }
 }
 

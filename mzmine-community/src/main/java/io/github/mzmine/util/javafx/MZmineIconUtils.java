@@ -23,27 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.mainwindow;
+package io.github.mzmine.util.javafx;
 
-import io.mzio.users.gui.fx.UsersController;
-import io.mzio.users.gui.fx.UsersViewState;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.main.ConfigService;
+import org.kordamp.ikonli.javafx.FontIcon;
 
-/**
- * Options for the user to login, register and control local users
- */
-public class UsersTab extends SimpleTab {
+public class MZmineIconUtils {
 
-  private final UsersController controller;
-
-  public UsersTab() {
-    this(UsersViewState.LOCAL_USERS);
+  public static FontIcon getCheckedIcon() {
+    return FxIconUtil.getFontIcon(FxIcons.CHECK_CIRCLE, 12,
+        ConfigService.getDefaultColorPalette().getPositiveColor());
   }
 
-  public UsersTab(UsersViewState state) {
-    super("Users");
-    controller = new UsersController(state);
-    setContent(controller.buildView());
-
-    setOnClosed(_ -> controller.close());
+  public static FontIcon getUncheckedIcon() {
+    return FxIconUtil.getFontIcon(FxIcons.X_CIRCLE, 12,
+        ConfigService.getDefaultColorPalette().getNegativeColor());
   }
 }

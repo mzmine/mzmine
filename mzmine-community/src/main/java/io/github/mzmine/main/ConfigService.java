@@ -29,6 +29,7 @@ import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.util.color.SimpleColorPalette;
 
 public final class ConfigService {
 
@@ -52,5 +53,10 @@ public final class ConfigService {
 
   public static NumberFormats getGuiFormats() {
     return config.getGuiFormats();
+  }
+
+
+  public static SimpleColorPalette getDefaultColorPalette() {
+    return config.getDefaultColorPalette();
   }
 }

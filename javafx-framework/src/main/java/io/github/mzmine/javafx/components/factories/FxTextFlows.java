@@ -23,27 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.mainwindow;
+package io.github.mzmine.javafx.components.factories;
 
-import io.mzio.users.gui.fx.UsersController;
-import io.mzio.users.gui.fx.UsersViewState;
+import javafx.scene.Node;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
+import javafx.scene.text.TextFlow;
 
-/**
- * Options for the user to login, register and control local users
- */
-public class UsersTab extends SimpleTab {
+public class FxTextFlows {
 
-  private final UsersController controller;
-
-  public UsersTab() {
-    this(UsersViewState.LOCAL_USERS);
+  /**
+   * text flow
+   *
+   * @param nodes typically {@link Text} or {@link Hyperlink}
+   */
+  public static TextFlow newTextFlow(Node... nodes) {
+    return newTextFlow(TextAlignment.LEFT, nodes);
   }
 
-  public UsersTab(UsersViewState state) {
-    super("Users");
-    controller = new UsersController(state);
-    setContent(controller.buildView());
-
-    setOnClosed(_ -> controller.close());
+  /**
+   * text flow
+   *
+   * @param nodes typically {@link Text} or {@link Hyperlink}
+   */
+  public static TextFlow newTextFlow(final TextAlignment textAlignment, Node... nodes) {
+    var textFlow = new TextFlow(nodes);
+    textFlow.setTextAlignment(textAlignment);
+    return textFlow;
   }
 }
