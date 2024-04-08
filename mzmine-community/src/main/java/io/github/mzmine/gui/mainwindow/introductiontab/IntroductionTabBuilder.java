@@ -113,7 +113,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
       wizardImageWrapper.getChildren().clear();
       wizardImageWrapper.getChildren().add(isDarkMode ? wizardImageDarkMode : wizardImageLightMode);
     });
-    final Label lblWizard = FxLabels.styled("Easy workflow setup", "bold-title-label");
+    final Label lblWizard = FxLabels.newBoldTitle("Easy workflow setup");
     Button btnWizard = FxButtons.createButton(wizardImageWrapper,
         () -> MZmineCore.getDesktop().addTab(new BatchWizardTab()));
 
@@ -171,12 +171,12 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
   private Pane createHowToCite() {
     VBox pane = new VBox(FxLayout.DEFAULT_SPACE);
     pane.setAlignment(Pos.CENTER);
-    pane.getChildren().add(FxLabels.styled("How to cite", "bold-title-label"));
+    pane.getChildren().add(FxLabels.styled("How to cite", "newBoldLabel-title-label"));
 
     final FlowPane box = new FlowPane(new Label("Schmid, R., Heuckeroth, S., Korf, A. "),
-        FxLabels.italic("et. al. "), //
+        FxLabels.newItalicLabel("et. al. "), //
         new Label("Integrative analysis of multimodal mass spectrometry data in MZmine 3. "), //
-        FxLabels.italic("Nat Biotechnol "), FxLabels.bold("41"), new Label(", 447-449 (2023)."));
+        FxLabels.newItalicLabel("Nat Biotechnol "), FxLabels.newBoldLabel("41"), new Label(", 447-449 (2023)."));
     box.setAlignment(Pos.CENTER);
     pane.getChildren().add(box);
 
@@ -189,7 +189,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
 
   private Pane createNewVersionPane() {
     final VBox box = new VBox(20);
-    final Label label = FxLabels.boldTitle("New version available!");
+    final Label label = FxLabels.newBoldTitle("New version available!");
     final Button downloadButton = FxButtons.createButton(FxIconUtil.getFontIcon("bi-download", 60,
             ConfigService.getConfiguration().getDefaultColorPalette().getPositiveColor()),
         () -> MZmineCore.getDesktop()
