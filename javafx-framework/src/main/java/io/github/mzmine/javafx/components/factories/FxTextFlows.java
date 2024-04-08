@@ -34,7 +34,7 @@ import javafx.scene.text.TextFlow;
 public class FxTextFlows {
 
   /**
-   * Centered text flow
+   * text flow
    *
    * @param nodes typically {@link Text} or {@link Hyperlink}
    */
