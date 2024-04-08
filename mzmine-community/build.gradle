@@ -201,9 +201,9 @@ dependencies {
     implementation 'com.github.librepdf:openpdf:2.0.0'
     implementation "com.miglayout:miglayout:3.7.4"
 
-    implementation "javax.xml.bind:jaxb-api:2.3.1"
-    implementation "com.sun.xml.bind:jaxb-core:2.3.0.1"
-    implementation "com.sun.xml.bind:jaxb-impl:2.3.2"
+//    implementation "javax.xml.bind:jaxb-api:2.3.1"
+//    implementation "com.sun.xml.bind:jaxb-core:2.3.0.1"
+//    implementation "com.sun.xml.bind:jaxb-impl:2.3.2"
     implementation "javax.activation:javax.activation-api:1.2.0"
     implementation "javax.mail:javax.mail-api:1.6.2"
     implementation "io.swagger:swagger-annotations:$swaggerVersion"
@@ -579,9 +579,9 @@ licenseReport {
     excludeOwnGroup = true
 
     excludes = ['com.fasterxml.jackson:jackson-bom', 'com.alanmrace:jimzmlparser', 'colt:colt',
-                'com.github.yannrichet:JMathArray', 'com.github.yannrichet:JMathIO',
-                'com.github.yannrichet:JMathPlot', 'mzmine:.*', 'net.jcip:jcip-annotations',
-                'io.mzio(.*)']
+                'com.github.yannrichet:JMathArray', 'com.github.yannrichet:JMathPlot',
+                'com.github.yannrichet:JMathIO', 'net.jcip:jcip-annotations',
+                'io.mzio(.*)', 'org.du-lab.adap(.*)']
 
     // Don't exclude bom dependencies.
     // If set to true, then all boms will be excluded from the report
