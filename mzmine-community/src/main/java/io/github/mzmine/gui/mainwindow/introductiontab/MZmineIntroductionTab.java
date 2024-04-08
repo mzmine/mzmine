@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,29 +26,17 @@
 package io.github.mzmine.gui.mainwindow.introductiontab;
 
 import io.github.mzmine.gui.mainwindow.SimpleTab;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.javafx.HtmlLinkOpenExternalBrowserListener;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
+import javafx.scene.layout.Region;
 
 public class MZmineIntroductionTab extends SimpleTab {
 
-  public static final String TITLE = "Welcome to MZmine 3";
+  public static final String TITLE = "Welcome to mzmine";
 
   public MZmineIntroductionTab() {
     super(TITLE);
 
-    final WebView browser = new WebView();
-    final WebEngine engine = browser.getEngine();
-
-    if (MZmineCore.getConfiguration().isDarkMode()) {
-      engine.load(getClass().getResource("MZmineIntroduction_darkmode.html").toString());
-    } else {
-      engine.load(getClass().getResource("MZmineIntroduction.html").toString());
-    }
-    engine.getLoadWorker().stateProperty()
-        .addListener(new HtmlLinkOpenExternalBrowserListener(browser));
-
-    super.setContent(browser);
+    IntroductionTabController controller = new IntroductionTabController();
+    final Region content = controller.buildView();
+    setContent(content);
   }
 }

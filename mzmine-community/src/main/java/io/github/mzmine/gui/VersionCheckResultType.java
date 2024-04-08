@@ -23,67 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-.text-field {
-  -fx-prompt-text-fill: derive(-fx-text-fill, -50%);
-}
+package io.github.mzmine.gui;
 
-.region-match-chart-bg, .tool-bar, .status-bar, .button-bar {
-  -fx-background-color: -jr-menu-background;
-}
-
-BorderPane, GridPane, .tab-pane {
-  -fx-background-color: -jr-base
-}
-
-.text, .text:hover {
-  -fx-fill: -fx-dark-text-color
-}
-
-.title-label {
-  -fx-font-size: 14.0pt;
-}
-
-.bold-title-label {
-  -fx-font-size: 14.0pt;
-  -fx-font-weight: bold;
-}
-
-.huge-title-label {
-  -fx-font-size: 26.0pt;
-  -fx-font-weight: bold;
-}
-
-.text-label {
-  -fx-wrap-text: true;
-}
-
-.white-larger-label {
-  -fx-font-size: 13.0pt;
-  -fx-text-fill: white;
-  -fx-wrap-text: true;
-  -fx-font-weight: bold;
-}
-
-.white-score-label {
-  -fx-font-size: 20.0pt;
-  -fx-font-weight: bold;
-  -fx-text-fill: white;
-}
-
-.white-score-label-small {
-  -fx-font-size: 7pt;
-  -fx-font-weight: bold;
-  -fx-text-fill: white;
-}
-.copyable-label, .copyable-label:focused {
-     -fx-background-color: transparent ;
-     -fx-background-insets: 0px ;
- }
-
-.bold-label {
-  -fx-font-weight: bold;
-}
-
-.italic-label {
-  -fx-font-style: italic;
+public enum VersionCheckResultType {
+  NEW_AVAILALABLE, CURRENT, THIS_IS_NEWER, NO_INTERNET, CANNOT_PARSE;
 }

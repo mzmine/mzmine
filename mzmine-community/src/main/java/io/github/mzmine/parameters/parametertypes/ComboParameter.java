@@ -54,7 +54,7 @@ public class ComboParameter<ValueType> implements
   }
 
   public ComboParameter(String name, String description, List<ValueType> choices) {
-    this(name, description, choices, null);
+    this(name, description, choices, choices.getFirst());
   }
 
   public ComboParameter(String name, String description, List<ValueType> choices,
@@ -63,6 +63,9 @@ public class ComboParameter<ValueType> implements
     this.description = description;
     this.choices = FXCollections.observableList(choices);
     this.value = defaultValue;
+    if (defaultValue == null && !choices.isEmpty()) {
+      this.value = choices.get(0);
+    }
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,17 +29,17 @@ import java.util.List;
 import javafx.collections.ObservableList;
 
 public enum Themes {
-  MZMINE_LIGHT("MZmine light", List.of("themes/MZmine_default.css", "themes/MZmine_light.css"),
-      false), //
-  MZMINE_DARK("MZmine dark", List.of("themes/MZmine_default.css", "themes/MZmine_dark.css"),
-      true), //
+//  MZMINE_LIGHT("MZmine light", List.of("themes/MZmine_default.css", "themes/MZmine_light.css"),
+//      false), //
+//  MZMINE_DARK("MZmine dark", List.of("themes/MZmine_default.css", "themes/MZmine_dark.css"),
+//      true), //
   /*MZMINE_AKK("MZmine AKK", List.of("themes/MZmine_AKK.css"), true), *///
-  JABREF_LIGHT("JabRef light (https://github.com/JabRef/jabref)",
+  JABREF_LIGHT("Light (JabRef)",
       List.of("themes/jabref_light.css", "themes/jabref_additions_light.css"), false), //
-  JABREF_DARK("JabRef dark (https://github.com/JabRef/jabref)",
+  JABREF_DARK("Dark (JabRef)",
       List.of("themes/jabref_light.css", "themes/jabref_dark.css",
           "themes/jabref_additions_dark.css"), true), //
-  JABREF_DARK_CUSTOM("JabRef dark custom (https://github.com/JabRef/jabref)",
+  JABREF_DARK_CUSTOM("Dark 2 (JabRef)",
       List.of("themes/jabref_light.css", "themes/jabref_dark_2.css",
           "themes/jabref_additions_dark.css"), true) //
   ;
