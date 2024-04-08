@@ -698,5 +698,15 @@
 
   </Menu>
 
+  <Menu text="Users">
+    <MenuItem text="Manage users" onAction="#showUsersTab">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="U" control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+      </accelerator>
+    </MenuItem>
+    <MenuItem text="Sing in / Sign up" onAction="#showUserSignUp"/>
+    <MenuItem text="Remove user" fx:id="itemRemoveUser" onAction="#removeLocalUser"/>
+  </Menu>
+
 </MenuBar>
 

@@ -23,27 +23,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.mainwindow;
+package io.github.mzmine.javafx.components.util;
 
-import io.mzio.users.gui.fx.UsersController;
-import io.mzio.users.gui.fx.UsersViewState;
+import javafx.scene.Node;
+import javafx.scene.control.Tab;
 
-/**
- * Options for the user to login, register and control local users
- */
-public class UsersTab extends SimpleTab {
+public class FxTabs {
 
-  private final UsersController controller;
-
-  public UsersTab() {
-    this(UsersViewState.LOCAL_USERS);
-  }
-
-  public UsersTab(UsersViewState state) {
-    super("Users");
-    controller = new UsersController(state);
-    setContent(controller.buildView());
-
-    setOnClosed(_ -> controller.close());
+  public static Tab newTab(final String title, final Node content) {
+    var tab = new Tab(title, content);
+    tab.setClosable(false);
+    return tab;
   }
 }

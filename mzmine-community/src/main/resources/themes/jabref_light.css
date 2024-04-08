@@ -432,12 +432,20 @@ TextFlow > .tooltip-text-monospaced {
     -fx-border-color: -jr-accent;
 }
 
+
 .icon-buttonNoSpaceBottom,
 .icon-buttonNoSpaceTop,
 .icon-button {
     -fx-border-width: 0px;
     -fx-background-color: -jr-icon-background;
     -fx-padding: 0.5em;
+}
+
+.icon-button .ikonli-font-icon {
+    -fx-icon-color: -fx-text-background-color;
+}
+.icon-button:hover .ikonli-font-icon {
+    -fx-icon-color: -jr-selected;
 }
 
 .toggle-button:hover,
