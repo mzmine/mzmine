@@ -84,7 +84,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     title.setAlignment(Pos.TOP_CENTER);
 
     main.getChildren().add(title);
-    main.getChildren().add(createWizardDocsRow());
+    main.getChildren().add(createWizardRow());
     main.getChildren().add(createManagementRow());
     main.getChildren().add(createHowToCite());
 
@@ -104,7 +104,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     return scroll;
   }
 
-  private Region createWizardDocsRow() {
+  private Region createWizardRow() {
     final GridPane pane = new GridPane(20, 5);
 
     final HBox wizardImageWrapper = new HBox(
@@ -117,24 +117,11 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     Button btnWizard = FxButtons.createButton(wizardImageWrapper,
         () -> MZmineCore.getDesktop().addTab(new BatchWizardTab()));
 
-    final Label lblDocs = FxLabels.styled("Open online documentation", "bold-title-label");
-    Button btnDocs = FxButtons.createButton(FxIconUtil.getFontIcon("bi-book-half", 75),
-        () -> MZmineCore.getDesktop()
-            .openWebPage("https://mzmine.github.io/mzmine_documentation/getting_started.html"));
-
-    final Label lblPrefs = FxLabels.styled("Configure mzmine", "bold-title-label");
-    Button btnPreferences = FxButtons.createButton(FxIconUtil.getFontIcon("bi-gear", 75),
-        () -> MZmineCore.getConfiguration().getPreferences().showSetupDialog(true));
-
     pane.getColumnConstraints()
         .addAll(createColumnConstraints(), createColumnConstraints(), createColumnConstraints());
 
     pane.add(lblWizard, 0, 0);
     pane.add(btnWizard, 0, 1);
-    pane.add(lblDocs, 1, 0);
-    pane.add(btnDocs, 1, 1);
-    pane.add(lblPrefs, 2, 0);
-    pane.add(btnPreferences, 2, 1);
 
     FxLayout.centerAllNodesHorizontally(pane);
     pane.setAlignment(Pos.CENTER);
@@ -149,37 +136,43 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
   }
 
   private Pane createManagementRow() {
-    GridPane pane = new GridPane(20, 5);
+//    GridPane pane = new GridPane(20, 5);
 
-    final Label youtube = FxLabels.boldTitle("Video tutorials");
     final Button btnYoutube = FxButtons.createButton(FxIconUtil.getFontIcon("bi-youtube", 45),
-        () -> MZmineCore.getDesktop()
+        "Video tutorials", () -> MZmineCore.getDesktop()
             .openWebPage("https://www.youtube.com/channel/UCXsBoraCbK80xtf4jCpJHYQ"));
 
-    final var lblWebsite = FxLabels.boldTitle("mzmine website");
     final Button btnWebsite = FxButtons.createButton(FxIconUtil.getFontIcon("bi-globe2", 45),
-        () -> MZmineCore.getDesktop().openWebPage("https://mzio.io/#mzmine"));
+        "mzmine website", () -> MZmineCore.getDesktop().openWebPage("https://mzio.io/#mzmine"));
 
-    final var lblUserManagement = FxLabels.boldTitle("Account management");
     final Button btnUserManagement = FxButtons.createButton(
-        FxIconUtil.getFontIcon("bi-person-badge", 45),
+        FxIconUtil.getFontIcon("bi-person-badge", 45), "Account management",
         () -> MZmineCore.getDesktop().addTab(new UsersTab()));
 
-    final Label lblDevelopment = FxLabels.boldTitle("Join the development");
     final Button btnDevelopment = FxButtons.createButton(
-        FxIconUtil.getFontIcon("hwf-document-file-java", 45), () -> MZmineCore.getDesktop()
+        FxIconUtil.getFontIcon("hwf-document-file-java", 45), "Join the development",
+        () -> MZmineCore.getDesktop()
             .openWebPage("https://mzmine.github.io/mzmine_documentation/contribute_intellij.html"));
 
-    pane.add(youtube, 0, 0);
-    pane.add(btnYoutube, 0, 1);
-    pane.add(lblWebsite, 1, 0);
-    pane.add(btnWebsite, 1, 1);
-    pane.add(lblUserManagement, 2, 0);
-    pane.add(btnUserManagement, 2, 1);
-    pane.add(lblDevelopment, 3, 0);
-    pane.add(btnDevelopment, 3, 1);
+    final Button btnDocs = FxButtons.createButton(FxIconUtil.getFontIcon("bi-book-half", 45),
+        "Open online documentation", () -> MZmineCore.getDesktop()
+            .openWebPage("https://mzmine.github.io/mzmine_documentation/getting_started.html"));
 
-    FxLayout.centerAllNodesHorizontally(pane);
+    final Button btnPreferences = FxButtons.createButton(FxIconUtil.getFontIcon("bi-gear", 45),
+        "Configure mzmine",
+        () -> MZmineCore.getConfiguration().getPreferences().showSetupDialog(true));
+
+//    pane.add(btnPreferences, 2, 0);
+//    pane.add(btnDocs, 1, 0);
+//    pane.add(btnYoutube, 0, 0);
+//    pane.add(btnWebsite, 1, 0);
+//    pane.add(btnUserManagement, 2, 0);
+//    pane.add(btnDevelopment, 3, 0);
+//    FxLayout.centerAllNodesHorizontally(pane);
+
+    FlowPane pane = new FlowPane(20, 20, btnPreferences, btnDocs, btnYoutube, btnWebsite,
+        btnUserManagement, btnDevelopment);
+
     pane.setAlignment(Pos.CENTER);
     return pane;
   }
