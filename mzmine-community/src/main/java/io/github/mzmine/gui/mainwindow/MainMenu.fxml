@@ -126,8 +126,6 @@
         userData="io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportModule"/>
       <MenuItem onAction="#runModule" text="mzData"
         userData="io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportModule"/>
-      <MenuItem onAction="#runModule" text="aird"
-        userData="io.github.mzmine.modules.io.import_rawdata_aird.AirdImportModule"/>
       <SeparatorMenuItem/>
 
       <MenuItem onAction="#runModule" text="Thermo RAW"
