@@ -554,7 +554,7 @@ licenseReport {
     // is too liberal, you can restrict collected licenses to only include the
     // those found in the immediate pom file
     // Defaults to: true
-    unionParentPomLicenses = false
+    unionParentPomLicenses = true
 
     // Set output directory for the report data.
     // Defaults to ${project.buildDir}/reports/dependency-license.
@@ -569,10 +569,12 @@ licenseReport {
     // Don't include artifacts of project's own group into the report
     excludeOwnGroup = true
 
-    excludes = ['com.fasterxml.jackson:jackson-bom', 'com.alanmrace:jimzmlparser', 'colt:colt',
-                'com.github.yannrichet:JMathArray', 'com.github.yannrichet:JMathPlot',
-                'com.github.yannrichet:JMathIO', 'net.jcip:jcip-annotations',
-                'io.mzio(.*)', 'org.du-lab.adap(.*)']
+    excludes = ['com.fasterxml.jackson:jackson-bom', // apache 2.0 https://github.com/FasterXML/jackson-bom?tab=Apache-2.0-1-ov-file#readme
+                'com.alanmrace:jimzmlparser', // no license provided
+                'colt:colt', // https://dst.lbl.gov/ACSSoftware/colt/license.html (CERN license, permissive)
+                'com.github.yannrichet:JMathArray', 'com.github.yannrichet:JMathPlot', 'com.github.yannrichet:JMathIO', // BSD 2-Clause
+                'net.jcip:jcip-annotations', // Creative Commons Attribution License
+                'io.mzio(.*)']
 
     // Don't exclude bom dependencies.
     // If set to true, then all boms will be excluded from the report
@@ -583,4 +585,7 @@ licenseReport {
                  new InventoryHtmlReportRenderer('licenses.html', 'Licenses')]
 
     allowedLicensesFile = new File("$projectDir/config/allowed-licenses.json")
+
+    // if a project contains a dependency we are not allowed to use, we can use
+    // "gradlew mzmine-community:dependencies" to generate a dependency graph
 }
