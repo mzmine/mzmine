@@ -30,6 +30,7 @@ import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.NewVersionCheck;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.gui.WindowLocation;
+import io.github.mzmine.gui.mainwindow.dependenciestab.DependenciesTab;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -264,6 +265,10 @@ public class MainMenuController {
 
   public void removeLocalUser(final ActionEvent e) {
     UserAuthStore.removeUserFile(CurrentUserService.getUser());
+  }
+
+  public void showDependencyTab(ActionEvent actionEvent) {
+    MZmineCore.getDesktop().addTab(new DependenciesTab());
   }
 }
 

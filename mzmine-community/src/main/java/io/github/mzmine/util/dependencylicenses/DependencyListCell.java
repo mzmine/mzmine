@@ -25,19 +25,51 @@
 
 package io.github.mzmine.util.dependencylicenses;
 
+import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.main.MZmineCore;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 
 public class DependencyListCell extends ListCell<Dependency> {
 
   public DependencyListCell() {
-
+    setGraphic(buildLayout());
   }
 
   private Region buildLayout() {
-    Label dependencyName =
+    Label dependencyName = FxLabels.newLabel("dependency");
+    Hyperlink link = FxLabels.newHyperlink(() -> {
+      final Dependency dep = itemProperty().get();
+      if (dep == null) {
+        return;
+      }
+      if (dep.moduleLicenses() == null || dep.moduleLicenses().isEmpty()) {
+        return;
+      }
+      final String url = dep.moduleLicenses().getFirst().moduleLicenseUrl();
+      if (url != null && !url.isBlank()) {
+        MZmineCore.getDesktop().openWebPage(url);
+      }
+    }, "license");
 
+    itemProperty().subscribe(d -> {
+      if (d != null) {
+        dependencyName.setText(STR."\{d.moduleName()} v\{d.moduleVersion()}");
+        if (!d.moduleLicenses().isEmpty()) {
+          link.setText(d.moduleLicenses().getFirst().moduleLicense());
+          link.setDisable(false);
+        } else {
+          link.setDisable(true);
+        }
+      } else {
+        dependencyName.setText("");
+        link.setDisable(true);
+      }
+    });
 
+    return new FlowPane(5, 5, dependencyName, link);
   }
 }

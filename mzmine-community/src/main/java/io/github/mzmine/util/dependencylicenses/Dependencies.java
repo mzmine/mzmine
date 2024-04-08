@@ -28,6 +28,8 @@ package io.github.mzmine.util.dependencylicenses;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +40,7 @@ public record Dependencies(List<Dependency> dependencies) {
 
   public static List<Dependency> of(String resourcePath) {
     final ObjectMapper mapper = new ObjectMapper();
-    try (InputStream dps = Dependencies.class.getClassLoader()
-        .getResourceAsStream("dependency/dependency-licenses.json")) {
+    try (InputStream dps = Dependencies.class.getClassLoader().getResourceAsStream(resourcePath)) {
       final Dependencies dependency = mapper.readValue(dps, Dependencies.class);
       return dependency.dependencies();
     } catch (IOException e) {
@@ -48,17 +49,37 @@ public record Dependencies(List<Dependency> dependencies) {
   }
 
   public static Map<ModuleLicense, List<Dependency>> groupByLicense(List<Dependency> dependencies) {
-    final Map<ModuleLicense, List<Dependency>> mapped = dependencies.stream()
-        .filter(dependency -> !dependency.moduleLicenses().isEmpty())
-        .sorted(Comparator.comparing(d -> d.moduleLicenses().getFirst().moduleLicense()))
+    final Map<ModuleLicense, List<Dependency>> mapped = dependencies.stream().filter(
+            dependency -> dependency.moduleLicenses() != null && !dependency.moduleLicenses().isEmpty())
+        .sorted(Comparator.comparing(o -> o.moduleLicenses().getFirst()))
         .collect(Collectors.groupingBy(dependency -> dependency.moduleLicenses().getFirst()));
     mapped.forEach((license, dps) -> dps.sort(Comparator.comparing(Dependency::moduleName)));
     return mapped;
   }
 
   public static ListView<Dependency> asListView(List<Dependency> dps) {
+    final Map<ModuleLicense, List<Dependency>> grouped = groupByLicense(dps);
+    final List<Dependency> sortedList = grouped.values().stream().flatMap(Collection::stream)
+        .toList();
     final ListView<Dependency> view = new ListView<>();
-
+    view.setCellFactory(_ -> new DependencyListCell());
+    view.getItems().addAll(sortedList);
     return view;
   }
+
+  public static ListView<Dependency> listViewOfAllDependencies() {
+    final List<Dependency> dependencies = new ArrayList<>(
+        of("dependency/dependency-licenses.json"));
+    dependencies.addAll(other);
+    return asListView(dependencies);
+  }
+
+  private static final List<Dependency> other = List.of(
+      new Dependency("TDF Software Development Kit, Bruker Daltonics GmbH & Co.KG",
+          "2.8.7.1-win32-vc141", List.of(),
+          List.of(new ModuleLicense("EULA TDF-SDK (Bruker Daltonics GmbH & Co.KG)", null))),
+      new Dependency("ThermoRawFileParser", "1.4.3",
+          List.of("https://github.com/compomics/ThermoRawFileParser"), List.of(
+          new ModuleLicense("Apache License, Version 2.0",
+              "https://github.com/compomics/ThermoRawFileParser?tab=Apache-2.0-1-ov-file#readme"))));
 }

@@ -25,9 +25,17 @@
 
 package io.github.mzmine.util.dependencylicenses;
 
+import java.util.Comparator;
 import java.util.List;
 
 public record Dependency(String moduleName, String moduleVersion, List<String> moduleUrls,
                          List<ModuleLicense> moduleLicenses) {
 
+  public Dependency(String moduleName, String moduleVersion, List<String> moduleUrls,
+      List<ModuleLicense> moduleLicenses) {
+    this.moduleName = moduleName;
+    this.moduleVersion = moduleVersion;
+    this.moduleUrls = moduleUrls;
+    this.moduleLicenses = moduleLicenses != null ? moduleLicenses.stream().sorted(Comparator.reverseOrder()).toList() : null;
+  }
 }

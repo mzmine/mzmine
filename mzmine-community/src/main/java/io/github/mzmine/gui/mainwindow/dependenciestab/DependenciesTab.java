@@ -23,23 +23,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.util.dependencylicenses;
+package io.github.mzmine.gui.mainwindow.dependenciestab;
 
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.util.dependencylicenses.Dependencies;
 
-public record ModuleLicense(String moduleLicense, String moduleLicenseUrl) implements Comparable<ModuleLicense> {
+public class DependenciesTab extends SimpleTab {
 
-  @Override
-  public int compareTo(@NotNull ModuleLicense o) {
-    if(o.moduleLicense == null) {
-      if(this.moduleLicense == null) {
-        return 0;
-      }
-      return 1;
-    }
-    if(this.moduleLicense == null) {
-      return -1;
-    }
-    return this.moduleLicense.compareTo(o.moduleLicense);
+  public DependenciesTab() {
+    super("Dependencies");
+
+    setContent(Dependencies.listViewOfAllDependencies());
   }
 }

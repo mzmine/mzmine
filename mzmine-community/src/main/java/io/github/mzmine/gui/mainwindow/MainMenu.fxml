@@ -532,7 +532,7 @@
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataanalysis.pca_new.PCAModule"/>
       <MenuItem text="One-way ANOVA" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataanalysis.significance.anova.AnovaModule"/>-->
+        userData="io.github.mzmine.modules.dataanalysis.significance.anova.AnovaModule"/>
     </Menu>
   </Menu>
 
@@ -666,6 +666,7 @@
     <MenuItem text="Support" onAction="#openLink"
       userData="http://mzmine.github.io/support.html"/>
     <MenuItem text="Open introduction tab" onAction="#handleAddIntroductionTab"/>
+    <MenuItem text="Dependencies" onAction="#showDependencyTab"/>
     <SeparatorMenuItem/>
     <MenuItem text="Check for updates" onAction="#versionCheck"/>
     <SeparatorMenuItem/>
