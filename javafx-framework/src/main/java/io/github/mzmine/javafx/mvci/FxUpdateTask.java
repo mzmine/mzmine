@@ -80,4 +80,14 @@ public abstract class FxUpdateTask<ViewModelClass> extends AbstractTask {
   public boolean checkPreConditions() {
     return true;
   }
+
+  /**
+   * Default is true.
+   *
+   * @return if task should be cancelled when parent closes. Parent may be a tab and this is most
+   * likely controlled in {@link LatestTaskScheduler}
+   */
+  public boolean isCancelTaskOnParentClosed() {
+    return true;
+  }
 }

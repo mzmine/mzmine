@@ -87,3 +87,10 @@ BorderPane, GridPane, .tab-pane {
 .italic-label {
   -fx-font-style: italic;
 }
+
+.icon-button .ikonli-font-icon {
+    -fx-icon-color: -fx-text-background-color;
+}
+.icon-button:hover .ikonli-font-icon {
+    -fx-icon-color: -jr-selected;
+}

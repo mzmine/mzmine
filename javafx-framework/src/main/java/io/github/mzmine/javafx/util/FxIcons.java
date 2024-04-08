@@ -23,27 +23,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.mainwindow;
+package io.github.mzmine.javafx.util;
 
-import io.mzio.users.gui.fx.UsersController;
-import io.mzio.users.gui.fx.UsersViewState;
+public enum FxIcons implements IconCodeSupplier {
+  // status
+  CHECK_CIRCLE, X_CIRCLE, EXCLAMATION_TRIANGLE, // control flow
+  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN,
 
-/**
- * Options for the user to login, register and control local users
- */
-public class UsersTab extends SimpleTab {
+  //
+  USER, BUG, WEBSITE, GEAR_PREFERENCES, RELOAD;
 
-  private final UsersController controller;
 
-  public UsersTab() {
-    this(UsersViewState.LOCAL_USERS);
-  }
-
-  public UsersTab(UsersViewState state) {
-    super("Users");
-    controller = new UsersController(state);
-    setContent(controller.buildView());
-
-    setOnClosed(_ -> controller.close());
+  @Override
+  public String getIconCode() {
+    return switch (this) {
+      case CHECK_CIRCLE -> "bi-check2-circle";
+      case X_CIRCLE -> "bi-x-circle";
+      case EXCLAMATION_TRIANGLE -> "bi-exclamation-triangle";
+      case USER -> "bi-person-circle";
+      case BUG -> "bi-bug";
+      case GEAR_PREFERENCES -> "bi-gear";
+      case WEBSITE -> "bi-globe2";
+      case ARROW_LEFT -> "bi-arrow-left";
+      case ARROW_RIGHT -> "bi-arrow-right";
+      case ARROW_UP -> "bi-arrow-up";
+      case ARROW_DOWN -> "bi-arrow-down";
+      case RELOAD -> "bi-arrow-repeat";
+    };
   }
 }

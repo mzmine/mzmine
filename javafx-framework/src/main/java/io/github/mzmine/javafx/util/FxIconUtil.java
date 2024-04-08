@@ -25,23 +25,25 @@
 
 package io.github.mzmine.javafx.util;
 
-import io.github.mzmine.javafx.util.color.ColorsFX;
-import io.github.mzmine.javafx.util.color.Vision;
+import io.github.mzmine.javafx.components.factories.FxIconButtonBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 public class FxIconUtil {
 
   private static final Logger logger = Logger.getLogger(FxIconUtil.class.getName());
+  public static final int DEFAULT_ICON_SIZE = 18;
 
   @NotNull
   public static Image loadImageFromResources(final @NotNull String resourcePath) {
@@ -116,11 +118,33 @@ public class FxIconUtil {
    * Get FontIcon from Ikonli library
    * <a href="https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html">Icon list</a>
    *
+   * @param iconCode icon code supplier
+   * @return Icon in color and size
+   */
+  public static FontIcon getFontIcon(IconCodeSupplier iconCode, int size) {
+    return getFontIcon(iconCode.getIconCode(), size);
+  }
+
+  /**
+   * Get FontIcon from Ikonli library
+   * <a href="https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html">Icon list</a>
+   *
    * @param iconCode icon code
    * @return Icon in color and size
    */
   public static FontIcon getFontIcon(String iconCode, int size) {
     return new FontIcon(iconCode + ":" + size);
+  }
+
+  /**
+   * Get FontIcon from Ikonli library
+   * <a href="https://kordamp.org/ikonli/cheat-sheet-bootstrapicons.html">Icon list</a>
+   *
+   * @param iconCode icon code supplier, often an enum
+   * @return Icon in color and size
+   */
+  public static FontIcon getFontIcon(IconCodeSupplier iconCode, int size, Color color) {
+    return getFontIcon(iconCode.getIconCode(), size, color);
   }
 
   /**
@@ -139,12 +163,23 @@ public class FxIconUtil {
   }
 
 
-  public static FontIcon getCheckedIcon() {
-    return getFontIcon("bi-check2-circle", 12, ColorsFX.getPositiveColor(Vision.DEUTERANOPIA));
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, Runnable onAction) {
+    return newIconButton(fxIcons, DEFAULT_ICON_SIZE, onAction);
   }
 
-  public static FontIcon getUncheckedIcon() {
-    return getFontIcon("bi-x-circle", 12, ColorsFX.getNegativeColor(Vision.DEUTERANOPIA));
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
+      @Nullable Runnable onAction) {
+    return newIconButton(fxIcons, size, null, onAction);
   }
 
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, @Nullable String tooltip,
+      @Nullable Runnable onAction) {
+    return newIconButton(fxIcons, DEFAULT_ICON_SIZE, tooltip, onAction);
+  }
+
+  public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
+      @Nullable String tooltip, @Nullable Runnable onAction) {
+    return FxIconButtonBuilder.ofIconButton(fxIcons).size(size).tooltip(tooltip).onAction(onAction)
+        .build();
+  }
 }
