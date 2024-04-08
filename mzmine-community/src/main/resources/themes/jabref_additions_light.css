@@ -74,3 +74,11 @@ BorderPane, GridPane, .tab-pane {
      -fx-background-color: transparent ;
      -fx-background-insets: 0px ;
  }
+
+
+.icon-button .ikonli-font-icon {
+    -fx-icon-color: -fx-text-background-color;
+}
+.icon-button:hover .ikonli-font-icon {
+    -fx-icon-color: -jr-selected;
+}

@@ -49,7 +49,7 @@
 <?import javafx.stage.Screen?>
 <?import org.controlsfx.control.NotificationPane?>
 <?import org.controlsfx.control.StatusBar?>
-<?import javafx.scene.control.Button?><?import io.github.mzmine.gui.mainwindow.UsersButton?><Scene xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
+<Scene xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
   fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController"
   fx:id="mainScene">
   <BorderPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="400"
@@ -214,14 +214,7 @@
       <Screen fx:factory="getPrimary" fx:id="screen"/>
     </fx:define>
     <top>
-    <BorderPane>
-      <center>
-        <fx:include source="MainMenu.fxml"/>
-      </center>
-      <right>
-        <UsersButton/>
-      </right>
-    </BorderPane>
+      <fx:include source="MainMenu.fxml"/>
     </top>
   </BorderPane>
   <stylesheets>
