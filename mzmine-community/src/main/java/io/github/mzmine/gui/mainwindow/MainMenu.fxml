@@ -449,9 +449,9 @@
       <MenuItem text="GC aligner"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerModule"/>
-      <MenuItem text="Hierarchical aligner (GC)"
+      <!--<MenuItem text="Hierarchical aligner (GC)" // not mit compatible
         onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.align_hierarchical.HierarAlignerGcModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.align_hierarchical.HierarAlignerGcModule"/>-->
       <MenuItem text="ADAP aligner (GC)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule"/>
       <MenuItem text="LC-Image-Aligner" onAction="#runModule"

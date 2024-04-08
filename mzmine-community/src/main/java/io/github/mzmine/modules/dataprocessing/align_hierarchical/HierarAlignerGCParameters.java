@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -72,7 +72,7 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
   public static final DoubleParameter minScore = new DoubleParameter("Minimum score",
       "Minimum score for blast to be considered as successful "
           + "(WARN: 'Pearson correlation' similarity method can imply scores < 0.0 and/or > 1.0)",
-      NumberFormat.getNumberInstance(), HierarAlignerGCTask.MIN_SCORE_ABSOLUTE);
+      NumberFormat.getNumberInstance()/*, HierarAlignerGCTask.MIN_SCORE_ABSOLUTE*/);
 
   // *** GLG HACK: Added...
   public static final BooleanParameter useKnownCompoundsAsRef = new BooleanParameter(
