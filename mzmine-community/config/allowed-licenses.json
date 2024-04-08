@@ -1,0 +1,61 @@
+{
+  "allowedLicenses": [
+    {
+      "moduleLicense": "Apache Software License, Version 1.1"
+    },
+    {
+      "moduleLicense": "Apache License, Version 2.0"
+    },
+    {
+      "moduleLicense": "MIT License"
+    },
+    {
+      "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3"
+    },
+    {
+      "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1"
+    },
+    {
+      "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception"
+    },
+    {
+      "moduleLicense": "CDDL+GPL License"
+    },
+    {
+      "moduleLicense": "The 3-Clause BSD License"
+    },
+    {
+      "moduleLicense": "The 2-Clause BSD License"
+    },
+    {
+      "moduleLicense": "BSD Zero Clause License"
+    },
+    {
+      "moduleLicense": "Prior BSD License"
+    },
+    {
+      "moduleLicense": "Bouncy Castle Licence"
+    },
+    {
+      "moduleLicense": "CUP Parser Generator Copyright Notice, License, and Disclaimer"
+    },
+    {
+      "moduleLicense": "Eclipse Distribution License - v 1.0"
+    },
+    {
+      "moduleLicense": "Eclipse Public License - v 1.0"
+    },
+    {
+      "moduleLicense": "Eclipse Public License - v 2.0"
+    },
+    {
+      "moduleLicense": "PUBLIC DOMAIN"
+    },
+    {
+      "moduleLicense": "Mulan PSL v2"
+    },
+    {
+      "moduleLicense": "The JSON License"
+    }
+  ]
+}
