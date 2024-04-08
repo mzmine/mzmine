@@ -24,6 +24,10 @@
  */
 
 
+import com.github.jk1.license.filter.LicenseBundleNormalizer
+import com.github.jk1.license.render.CsvReportRenderer
+import com.github.jk1.license.render.InventoryHtmlReportRenderer
+import com.github.jk1.license.render.JsonReportRenderer
 import org.gradle.internal.os.OperatingSystem
 
 import java.nio.file.FileSystems
@@ -40,6 +44,7 @@ plugins {
     // versioning now in version.properties file
     // https://github.com/ethauvin/semver-gradle
     alias(libs.plugins.semver)
+    alias(libs.plugins.licensereport)
 }
 
 // save version to main resources
@@ -554,3 +559,45 @@ task copyTestResources(type: Copy) {
     into layout.buildDirectory.dir("classes/test")
 }
 processTestResources.dependsOn copyTestResources
+
+licenseReport {
+    // By default this plugin will collect the union of all licenses from
+    // the immediate pom and the parent poms. If your legal team thinks this
+    // is too liberal, you can restrict collected licenses to only include the
+    // those found in the immediate pom file
+    // Defaults to: true
+    unionParentPomLicenses = true
+
+    // Set output directory for the report data.
+    // Defaults to ${project.buildDir}/reports/dependency-license.
+    outputDir = "$projectDir/licensereport"
+
+    // Adjust the configurations to fetch dependencies. Default is 'runtimeClasspath'
+    // For Android projects use 'releaseRuntimeClasspath' or 'yourFlavorNameReleaseRuntimeClasspath'
+    // Use 'ALL' to dynamically resolve all configurations:
+    // configurations = ALL
+    configurations = ['runtimeClasspath']
+
+    // Don't include artifacts of project's own group into the report
+    excludeOwnGroup = true
+
+    excludes = ['com.fasterxml.jackson:jackson-bom', // apache 2.0 https://github.com/FasterXML/jackson-bom?tab=Apache-2.0-1-ov-file#readme
+                'com.alanmrace:jimzmlparser', // no license provided
+                'colt:colt', // https://dst.lbl.gov/ACSSoftware/colt/license.html (CERN license, permissive)
+                'com.github.yannrichet:JMathArray', 'com.github.yannrichet:JMathPlot', 'com.github.yannrichet:JMathIO', // BSD 2-Clause
+                'net.jcip:jcip-annotations', // Creative Commons Attribution License
+                'io.mzio(.*)']
+
+    // Don't exclude bom dependencies.
+    // If set to true, then all boms will be excluded from the report
+    excludeBoms = false
+
+    filters = [new LicenseBundleNormalizer(bundlePath: "$projectDir/config/license-normalizer-bundle.json")]
+    renderers = [new JsonReportRenderer("licenses.json"), new CsvReportRenderer("licenses.csv"),
+                 new InventoryHtmlReportRenderer('licenses.html', 'Licenses')]
+
+    allowedLicensesFile = new File("$projectDir/config/allowed-licenses.json")
+
+    // if a project contains a dependency we are not allowed to use, we can use
+    // "gradlew mzmine-community:dependencies" to generate a dependency graph
+}
