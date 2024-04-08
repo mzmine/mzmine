@@ -117,8 +117,8 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     Button btnWizard = FxButtons.createButton(wizardImageWrapper,
         () -> MZmineCore.getDesktop().addTab(new BatchWizardTab()));
 
-    pane.getColumnConstraints()
-        .addAll(createColumnConstraints(), createColumnConstraints(), createColumnConstraints());
+//    pane.getColumnConstraints()
+//        .addAll(createColumnConstraints(), createColumnConstraints(), createColumnConstraints());
 
     pane.add(lblWizard, 0, 0);
     pane.add(btnWizard, 0, 1);
@@ -136,7 +136,6 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
   }
 
   private Pane createManagementRow() {
-//    GridPane pane = new GridPane(20, 5);
 
     final Button btnYoutube = FxButtons.createButton(FxIconUtil.getFontIcon("bi-youtube", 45),
         "Video tutorials", () -> MZmineCore.getDesktop()
@@ -161,14 +160,6 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     final Button btnPreferences = FxButtons.createButton(FxIconUtil.getFontIcon("bi-gear", 45),
         "Configure mzmine",
         () -> MZmineCore.getConfiguration().getPreferences().showSetupDialog(true));
-
-//    pane.add(btnPreferences, 2, 0);
-//    pane.add(btnDocs, 1, 0);
-//    pane.add(btnYoutube, 0, 0);
-//    pane.add(btnWebsite, 1, 0);
-//    pane.add(btnUserManagement, 2, 0);
-//    pane.add(btnDevelopment, 3, 0);
-//    FxLayout.centerAllNodesHorizontally(pane);
 
     FlowPane pane = new FlowPane(20, 20, btnPreferences, btnDocs, btnYoutube, btnWebsite,
         btnUserManagement, btnDevelopment);
