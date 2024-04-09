@@ -32,16 +32,12 @@ import io.github.mzmine.modules.dataanalysis.pca_new.PCAModule;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.PrecursorPurityCheckerModule;
 import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
 import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotModule;
-import io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule;
-import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule;
-import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_path.PathAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_ransac.RansacAlignerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adap3d.ADAP3DModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselineFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
@@ -268,8 +264,8 @@ public class BatchModeModulesList {
       ImageBuilderModule.class, //
       MsnFeatureDetectionModule.class, //
       TargetedFeatureDetectionModule.class, //
-      ADAPHierarchicalClusteringModule.class, //
-      ADAPMultivariateCurveResolutionModule.class, //
+//      ADAPHierarchicalClusteringModule.class, //
+//      ADAPMultivariateCurveResolutionModule.class, //
       ADAP3DModule.class, //
       ImsExpanderModule.class, //
       MaldiSpotFeatureDetectionModule.class, //
@@ -279,7 +275,7 @@ public class BatchModeModulesList {
        * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_RESOLVING}
        */
       SmoothingModule.class, //
-      AdapResolverModule.class, //
+//      AdapResolverModule.class, //
       BaselineFeatureResolverModule.class, //
       CentWaveResolverModule.class, //
       MinimumSearchFeatureResolverModule.class, //
@@ -292,7 +288,7 @@ public class BatchModeModulesList {
        */
       JoinAlignerModule.class, //
       GCAlignerModule.class, //
-      ADAP3AlignerModule.class, //
+//      ADAP3AlignerModule.class, //
 //      HierarAlignerGcModule.class, // not MIT compatible license
       PathAlignerModule.class, //
       RansacAlignerModule.class, //

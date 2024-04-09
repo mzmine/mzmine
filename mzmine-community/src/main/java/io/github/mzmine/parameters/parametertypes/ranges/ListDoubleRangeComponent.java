@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,19 +25,20 @@
 
 package io.github.mzmine.parameters.parametertypes.ranges;
 
-import java.util.List;
 import com.google.common.collect.Range;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 
 /**
- *
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 
 public class ListDoubleRangeComponent extends GridPane {
+
   private TextField inputField;
   private Label textField;
 
@@ -46,11 +47,11 @@ public class ListDoubleRangeComponent extends GridPane {
     inputField.setPrefColumnCount(16);
     /*
      * inputField.getDocument().addDocumentListener(new DocumentListener() {
-     * 
+     *
      * @Override public void changedUpdate(DocumentEvent e) { update(); }
-     * 
+     *
      * @Override public void removeUpdate(DocumentEvent e) { update(); }
-     * 
+     *
      * @Override public void insertUpdate(DocumentEvent e) { update(); } });
      */
 
@@ -63,14 +64,14 @@ public class ListDoubleRangeComponent extends GridPane {
 
   public List<Range<Double>> getValue() {
     try {
-      return dulab.adap.common.algorithms.String.toRanges(inputField.getText());
+      return toRanges(inputField.getText());
     } catch (Exception e) {
       return null;
     }
   }
 
   public void setValue(List<Range<Double>> ranges) {
-    String text = dulab.adap.common.algorithms.String.fromRanges(ranges);
+    String text = fromRanges(ranges);
 
     // textField.setForeground(Color.black);
     textField.setText(text);
@@ -83,17 +84,66 @@ public class ListDoubleRangeComponent extends GridPane {
   }
 
 
-
   private void update() {
     try {
-      List<Range<Double>> ranges =
-          dulab.adap.common.algorithms.String.toRanges(inputField.getText());
+      List<Range<Double>> ranges = toRanges(inputField.getText());
 
       // textField.setForeground(Color.black);
-      textField.setText(dulab.adap.common.algorithms.String.fromRanges(ranges));
+      textField.setText(fromRanges(ranges));
     } catch (IllegalArgumentException e) {
       // textField.setForeground(Color.red);
       textField.setText(e.getMessage());
     }
+  }
+
+  static List<Range<Double>> toRanges(java.lang.String text) {
+    final String filtered = text.replaceAll("[1234567890.,\\- ]", "");
+    if (!filtered.equals(text)) {
+      throw new IllegalArgumentException(
+          "String contains illegal characters. only 1234567890.,- are allowed.");
+    }
+    List<Range<Double>> result = new ArrayList<>();
+    if (filtered.isEmpty()) {
+      return result;
+    }
+    try {
+      String[] split = filtered.split(",");
+      for (String rangeStr : split) {
+        String[] doubleStrings = rangeStr.split("-");
+        switch (doubleStrings.length) {
+          case 1 -> {
+            double value = Double.parseDouble(doubleStrings[0]);
+            result.add(Range.singleton(value));
+          }
+          case 2 -> {
+            result.add(Range.closed(Double.parseDouble(doubleStrings[0]),
+                Double.parseDouble(doubleStrings[1])));
+          }
+        }
+      }
+
+      return result;
+    } catch (Exception e) {
+      throw new IllegalArgumentException(STR."Error while parsing range string.\{e.getMessage()}");
+    }
+  }
+
+  static String fromRanges(List<Range<Double>> ranges) {
+    StringBuilder result = new StringBuilder();
+
+    for (Range<Double> range : ranges) {
+      if (Double.compare(range.lowerEndpoint(), range.upperEndpoint()) == 0) {
+        result.append(STR."\{Double.toString(range.lowerEndpoint())},");
+      } else {
+        result.append(STR."\{Double.toString(range.lowerEndpoint())}-\{Double.toString(
+            range.upperEndpoint())},");
+      }
+    }
+
+    final String str = result.toString();
+    if (str.isBlank()) {
+      return str;
+    }
+    return result.substring(0, str.length() - 1);
   }
 }
