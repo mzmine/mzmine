@@ -28,6 +28,7 @@ package io.github.mzmine.gui.mainwindow.introductiontab;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import java.util.logging.Logger;
+import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 
 public class IntroductionTabController extends FxController<IntroductionTabModel> {
@@ -48,7 +49,7 @@ public class IntroductionTabController extends FxController<IntroductionTabModel
   }
 
   private void runVersionCheck() {
-    onTaskThread(new FxVersionCheckTask(model));
+    onTaskThreadDelayed(new FxVersionCheckTask(model), new Duration(5000));
   }
 
 }
