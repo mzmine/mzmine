@@ -274,8 +274,6 @@ public class MainWindowController {
     initRawDataList();
     initFeatureListsList();
 
-    addTab(new MZmineIntroductionTab());
-
     initTasksViewToTab();
     selectTab(MZmineIntroductionTab.TITLE);
 

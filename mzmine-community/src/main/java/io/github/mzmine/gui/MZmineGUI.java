@@ -42,6 +42,7 @@ import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.mainwindow.UsersTab;
+import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
@@ -81,6 +82,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
@@ -114,6 +116,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.util.Duration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.NotificationPane;
@@ -565,7 +568,16 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     // save configuration on exit if we only run a batch
     Runtime.getRuntime().addShutdownHook(new ShutDownHook());
     Runtime.getRuntime().addShutdownHook(new Thread(new TmpFileCleanup()));
+
+    var pause = new PauseTransition(Duration.millis(500));
+    pause.setOnFinished(_ -> postStartup());
+    pause.playFromStart();
   }
+
+  private void postStartup() {
+    addTab(new MZmineIntroductionTab());
+  }
+
 
   @Override
   public @NotNull String getName() {
