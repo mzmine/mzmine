@@ -591,10 +591,16 @@ licenseReport {
     // "gradlew mzmine-community:dependencies" to generate a dependency graph
 }
 tasks.register('copyLicenseInformation', Copy) {
-    from getLayout().getBuildDirectory().get().dir("licensereport")
-    into getLayout().getBuildDirectory().get().dir("resources/main/dependency")
-    include("project-licenses-for-check-license-task.json")
-    rename("project-licenses-for-check-license-task.json", "dependency-licenses.json")
+    from (getLayout().getBuildDirectory().get().dir("licensereport")) {
+        into getLayout().getBuildDirectory().get().dir("resources/main/dependency")
+        include("project-licenses-for-check-license-task.json")
+        rename("project-licenses-for-check-license-task.json", "dependency-licenses.json")
+    }
+    from (getLayout().getBuildDirectory().get().dir("licensereport")) {
+        into getLayout().getProjectDirectory().dir("main/resources/dependency")
+        include("project-licenses-for-check-license-task.json")
+        rename("project-licenses-for-check-license-task.json", "dependency-licenses.json")
+    }
 }
 
 tasks.build.dependsOn(checkLicense, copyLicenseInformation)

@@ -28,10 +28,11 @@ package io.github.mzmine.util.dependencylicenses;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.main.MZmineCore;
 import javafx.scene.control.Hyperlink;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 
 public class DependencyListCell extends ListCell<Dependency> {
 
@@ -40,7 +41,19 @@ public class DependencyListCell extends ListCell<Dependency> {
   }
 
   private Region buildLayout() {
-    Label dependencyName = FxLabels.newLabel("dependency");
+    Hyperlink dependencyName = FxLabels.newHyperlink(() -> {
+      final Dependency dep = itemProperty().get();
+      if (dep == null) {
+        return;
+      }
+      if (dep.moduleUrls() == null || dep.moduleUrls().isEmpty()) {
+        return;
+      }
+      final String url = dep.moduleUrls().getFirst();
+      if (url != null && !url.isBlank()) {
+        MZmineCore.getDesktop().openWebPage(url);
+      }
+    }, "dependency");
     Hyperlink link = FxLabels.newHyperlink(() -> {
       final Dependency dep = itemProperty().get();
       if (dep == null) {
@@ -57,7 +70,8 @@ public class DependencyListCell extends ListCell<Dependency> {
 
     itemProperty().subscribe(d -> {
       if (d != null) {
-        dependencyName.setText(STR."\{d.moduleName()} v\{d.moduleVersion()}");
+        dependencyName.setText(STR."\{d.moduleName()
+            .substring(Math.max(d.moduleName().lastIndexOf(":") + 1, 0))} v\{d.moduleVersion()}");
         if (!d.moduleLicenses().isEmpty()) {
           link.setText(d.moduleLicenses().getFirst().moduleLicense());
           link.setDisable(false);
@@ -70,6 +84,6 @@ public class DependencyListCell extends ListCell<Dependency> {
       }
     });
 
-    return new FlowPane(5, 5, dependencyName, link);
+    return new FlowPane(5, 5, dependencyName, new Rectangle(20, 1, Color.TRANSPARENT), link);
   }
 }
