@@ -218,11 +218,6 @@ public final class MZmineCore {
       File[] overrideSpectralLibraryFiles = argsParser.getOverrideSpectralLibrariesFiles();
       boolean keepRunningInHeadless = argsParser.isKeepRunningAfterBatch();
 
-      // track version use
-      String versionString = "MZmine version " + version;
-      GoogleAnalyticsTracker.track(versionString, versionString);
-      GoogleAnalyticsTracker.track("MZmine3_start", "MZmine3_start");
-
       boolean headLessMode = (batchFile != null || keepRunningInHeadless);
       // If we have no arguments, run in GUI mode, otherwise run in batch mode
       if (!headLessMode) {
@@ -237,9 +232,6 @@ public final class MZmineCore {
       } else {
         // set headless desktop globally
         DesktopService.setDesktop(new HeadLessDesktop());
-
-        // Tracker
-        GoogleAnalyticsTracker.track("MZmine Loaded (Headless mode)", "/JAVA/Main/HEADLESS");
 
         Task batchTask = null;
         if (batchFile != null) {
@@ -513,9 +505,6 @@ public final class MZmineCore {
       @NotNull ParameterSet parameters) {
 
     MZmineRunnableModule module = getModuleInstance(moduleClass);
-
-    // Usage Tracker
-    GoogleAnalyticsTracker.trackModule(module);
 
     // Run the module
     final List<Task> newTasks = new ArrayList<>();
