@@ -23,20 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.mainwindow.introductiontab;
+package io.github.mzmine.gui;
 
-import io.github.mzmine.gui.mainwindow.SimpleTab;
-import javafx.scene.layout.Region;
-
-public class MZmineIntroductionTab extends SimpleTab {
-
-  public static final String TITLE = "Welcome to mzmine";
-
-  public MZmineIntroductionTab() {
-    super(TITLE);
-
-    IntroductionTabController controller = new IntroductionTabController();
-    final Region content = controller.buildView();
-    setContent(content);
-  }
+public enum VersionCheckResultType {
+  NEW_AVAILALABLE, CURRENT, THIS_IS_NEWER, NO_INTERNET, CANNOT_PARSE;
 }

@@ -33,6 +33,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,6 +59,19 @@ public class FxIconUtil {
       logger.log(Level.WARNING, "error while loading resource", e);
     }
     return icon;
+  }
+
+  public static ImageView resizeImage(String path, double maxWidth, double maxHeight) {
+    final Image image = loadImageFromResources(path);
+    ImageView view = new ImageView(image);
+    view.setImage(image);
+    view.setPreserveRatio(true);
+    view.setSmooth(true);
+    view.setCache(true);
+    view.setFitHeight(maxHeight);
+    view.setFitWidth(maxWidth);
+
+    return view;
   }
 
   /**

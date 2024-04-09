@@ -25,6 +25,7 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Hyperlink;
@@ -36,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 public class FxLabels {
 
   public enum Styles {
-    REGULAR, BOLD_TITLE;
+    REGULAR, BOLD_TITLE, BOLD, ITALIC;
 
     public void addStyleClass(Label label) {
       var style = getStyleClass();
@@ -50,15 +51,35 @@ public class FxLabels {
       return switch (this) {
         case REGULAR -> null;
         case BOLD_TITLE -> "bold-title-label";
+        case BOLD -> "bold-label";
+        case ITALIC -> "italic-label";
       };
     }
   }
 
+  public static Label styled(String name, String styleClass) {
+    final Label label = new Label(name);
+    label.getStyleClass().add(styleClass);
+    return label;
+  }
+
+  public static Label newBoldLabel(String name) {
+    return styled(name, Styles.BOLD.getStyleClass());
+  }
+
+  public static Label newItalicLabel(String name) {
+    return styled(name, Styles.ITALIC.getStyleClass());
+  }
+
+  public static Label underlined(String name) {
+    final Label label = new Label(name);
+    label.setUnderline(true);
+    return label;
+  }
 
   public static Label newLabel(Styles style, String text) {
     return newLabel(style, null, text);
   }
-
 
   public static Label newLabel(Styles style, @Nullable Color color) {
     return newLabel(style, color, "");
@@ -118,6 +139,12 @@ public class FxLabels {
   public static Hyperlink newHyperlink(Runnable onClick, String text) {
     var hyperlink = new Hyperlink(text);
     hyperlink.setOnAction(_ -> onClick.run());
+    return hyperlink;
+  }
+
+  public static Hyperlink newWebHyperlink(String link) {
+    var hyperlink = new Hyperlink(link);
+    hyperlink.setOnAction(_ -> DesktopService.getDesktop().openWebPage(hyperlink.getText()));
     return hyperlink;
   }
 }

@@ -36,10 +36,12 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
+import io.github.mzmine.gui.mainwindow.AboutTab;
 import io.github.mzmine.gui.mainwindow.GlobalKeyHandler;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
@@ -65,6 +67,7 @@ import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
+import io.mzio.users.gui.fx.UsersViewState;
 import java.io.File;
 import java.net.URL;
 import java.time.Instant;
@@ -270,13 +273,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
   }
 
   public static void showAboutWindow() {
-    // Show the about window
-    FxThread.runLater(() -> {
-      final URL aboutPage = MZmineGUI.class.getClassLoader()
-          .getResource("aboutpage/AboutMZmine.html");
-      HelpWindow aboutWindow = new HelpWindow(aboutPage.toString());
-      aboutWindow.show();
-    });
+    MZmineCore.getDesktop().addTab(new AboutTab());
   }
 
   /**
@@ -709,7 +706,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       alert.getDialogPane().getScene().getStylesheets()
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       Text text = new Text(msg);
-      text.setWrappingWidth(400);
+      text.setWrappingWidth(370);
       final FlowPane pane = new FlowPane(text);
       pane.setPadding(new Insets(5));
       alert.getDialogPane().setContent(pane);
@@ -858,7 +855,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       alert.getDialogPane().getButtonTypes().addAll(ButtonType.YES, ButtonType.NO);
 
       Text text = new Text(message);
-      text.setWrappingWidth(400);
+      text.setWrappingWidth(370);
       final FlowPane pane = new FlowPane(text);
       pane.setPadding(new Insets(5));
       alert.getDialogPane().setContent(pane);
