@@ -558,7 +558,8 @@ licenseReport {
 
     // Set output directory for the report data.
     // Defaults to ${project.buildDir}/reports/dependency-license.
-    outputDir = "$projectDir/licensereport"
+    outputDir = getLayout().getBuildDirectory().get().dir("licensereport")
+//    outputDir = getLayout().getProjectDirectory().dir("licensereport")
 
     // Adjust the configurations to fetch dependencies. Default is 'runtimeClasspath'
     // For Android projects use 'releaseRuntimeClasspath' or 'yourFlavorNameReleaseRuntimeClasspath'
@@ -589,3 +590,11 @@ licenseReport {
     // if a project contains a dependency we are not allowed to use, we can use
     // "gradlew mzmine-community:dependencies" to generate a dependency graph
 }
+tasks.register('copyLicenseInformation', Copy) {
+    from getLayout().getBuildDirectory().get().dir("licensereport")
+    into getLayout().getBuildDirectory().get().dir("resources/main/dependency")
+    include("project-licenses-for-check-license-task.json")
+    rename("project-licenses-for-check-license-task.json", "dependency-licenses.json")
+}
+
+tasks.build.dependsOn(checkLicense, copyLicenseInformation)

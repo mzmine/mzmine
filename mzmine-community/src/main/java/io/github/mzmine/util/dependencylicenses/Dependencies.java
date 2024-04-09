@@ -81,5 +81,7 @@ public record Dependencies(List<Dependency> dependencies) {
       new Dependency("ThermoRawFileParser", "1.4.3",
           List.of("https://github.com/compomics/ThermoRawFileParser"), List.of(
           new ModuleLicense("Apache License, Version 2.0",
-              "https://github.com/compomics/ThermoRawFileParser?tab=Apache-2.0-1-ov-file#readme"))));
+              "https://github.com/compomics/ThermoRawFileParser?tab=Apache-2.0-1-ov-file#readme"))),
+      new Dependency("MassLynxRaw library", "2014", List.of(),
+          List.of(new ModuleLicense("Copyright © 2014 Waters, Inc.", null))));
 }
