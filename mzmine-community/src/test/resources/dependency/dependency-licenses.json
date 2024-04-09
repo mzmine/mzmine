@@ -157,231 +157,6 @@
             ]
         },
         {
-            "moduleName": "com.github.fommil.netlib:all",
-            "moduleVersion": "1.1.2",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.fommil.netlib:core",
-            "moduleVersion": "1.1.2",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.fommil.netlib:native_ref-java",
-            "moduleVersion": "1.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.fommil.netlib:native_system-java",
-            "moduleVersion": "1.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.fommil.netlib:netlib-native_ref-linux-armhf",
-            "moduleVersion": "1.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.fommil.netlib:netlib-native_ref-linux-i686",
-            "moduleVersion": "1.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.fommil.netlib:netlib-native_ref-linux-x86_64",
-            "moduleVersion": "1.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.fommil.netlib:netlib-native_ref-osx-x86_64",
-            "moduleVersion": "1.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.fommil.netlib:netlib-native_ref-win-i686",
-            "moduleVersion": "1.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.fommil.netlib:netlib-native_ref-win-x86_64",
-            "moduleVersion": "1.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.fommil.netlib:netlib-native_system-linux-armhf",
-            "moduleVersion": "1.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.fommil.netlib:netlib-native_system-linux-i686",
-            "moduleVersion": "1.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.fommil.netlib:netlib-native_system-linux-x86_64",
-            "moduleVersion": "1.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.fommil.netlib:netlib-native_system-osx-x86_64",
-            "moduleVersion": "1.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.fommil.netlib:netlib-native_system-win-i686",
-            "moduleVersion": "1.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.fommil.netlib:netlib-native_system-win-x86_64",
-            "moduleVersion": "1.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.fommil:jniloader",
-            "moduleVersion": "1.1",
-            "moduleUrls": [
-                "https://github.com/fommil/jniloader"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-3.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.haifengl:smile-core",
-            "moduleVersion": "1.3.0",
-            "moduleUrls": [
-                "https://github.com/haifengl/smile"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.haifengl:smile-data",
-            "moduleVersion": "1.3.0",
-            "moduleUrls": [
-                "https://github.com/haifengl/smile"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.haifengl:smile-graph",
-            "moduleVersion": "1.3.0",
-            "moduleUrls": [
-                "https://github.com/haifengl/smile"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.github.haifengl:smile-math",
-            "moduleVersion": "1.3.0",
-            "moduleUrls": [
-                "https://github.com/haifengl/smile"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
             "moduleName": "com.github.jbytecode:RCaller",
             "moduleVersion": "4.0.2",
             "moduleUrls": [
@@ -570,19 +345,6 @@
             ]
         },
         {
-            "moduleName": "com.googlecode.matrix-toolkits-java:mtj",
-            "moduleVersion": "1.0.4",
-            "moduleUrls": [
-                "https://github.com/fommil/matrix-toolkits-java/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-3.0"
-                }
-            ]
-        },
-        {
             "moduleName": "com.ibm.async:asyncutil",
             "moduleVersion": "0.1.0",
             "moduleUrls": [
@@ -605,27 +367,6 @@
                 {
                     "moduleLicense": "Apache License, Version 2.0",
                     "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.joptimizer:joptimizer",
-            "moduleVersion": "3.5.1",
-            "moduleUrls": [
-                "${project.site.url}"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": null,
-                    "moduleLicenseUrl": "http://creativecommons.org/licenses/by-nd/4.0"
-                },
-                {
-                    "moduleLicense": "Creative Commons Attribution-NoDerivatives 4.0 International Public License",
-                    "moduleLicenseUrl": "http://creativecommons.org/licenses/by-nd/4.0/legalcode"
-                },
-                {
-                    "moduleLicense": "PUBLIC DOMAIN",
-                    "moduleLicenseUrl": null
                 }
             ]
         },
@@ -790,16 +531,6 @@
             ]
         },
         {
-            "moduleName": "commons-graph:commons-graph",
-            "moduleVersion": "0.8.1",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache Software License, Version 1.1",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-1.1"
-                }
-            ]
-        },
-        {
             "moduleName": "commons-io:commons-io",
             "moduleVersion": "2.15.1",
             "moduleUrls": [
@@ -822,16 +553,6 @@
                 {
                     "moduleLicense": "Apache License, Version 2.0",
                     "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "concurrent:concurrent",
-            "moduleVersion": "1.3.4",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "PUBLIC DOMAIN",
-                    "moduleLicenseUrl": ">http://gee.cs.oswego.edu/dl/classes/EDU/oswego/cs/dl/util/concurrent/intro.html"
                 }
             ]
         },
@@ -1547,36 +1268,6 @@
             ]
         },
         {
-            "moduleName": "net.sourceforge.csparsej:csparsej",
-            "moduleVersion": "1.1.1",
-            "moduleUrls": [
-                "http://sourceforge.net/projects/csparsej/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
-                },
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-3.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "net.sourceforge.f2j:arpack_combined_all",
-            "moduleVersion": "0.1",
-            "moduleUrls": [
-                "http://f2j.sourceforge.net"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 2-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-2-Clause"
-                }
-            ]
-        },
-        {
             "moduleName": "net.sourceforge.jmol:jmol",
             "moduleVersion": "14.31.10",
             "moduleUrls": [
@@ -1616,19 +1307,6 @@
                 {
                     "moduleLicense": "PUBLIC DOMAIN",
                     "moduleLicenseUrl": null
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.commons:commons-csv",
-            "moduleVersion": "1.3",
-            "moduleUrls": [
-                "http://commons.apache.org/proper/commons-csv/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
                 }
             ]
         },
@@ -2300,39 +1978,6 @@
             ]
         },
         {
-            "moduleName": "org.du-lab.adap:adap",
-            "moduleVersion": "4.1.10",
-            "moduleUrls": [
-                "http://www.du-lab.org/"
-            ]
-        },
-        {
-            "moduleName": "org.du-lab.javanmf:javanmf",
-            "moduleVersion": "0.2.3",
-            "moduleUrls": [
-                "https://github.com/du-lab/nonnegative_matrix_factorization"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.du-lab.jsparsehc:jsparsehc",
-            "moduleVersion": "0.3.2",
-            "moduleUrls": [
-                "https://github.com/du-lab/sparseHC_Java"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 3",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/gpl-3.0"
-                }
-            ]
-        },
-        {
             "moduleName": "org.eclipse.angus:angus-activation",
             "moduleVersion": "1.0.0",
             "moduleUrls": [
@@ -2380,110 +2025,6 @@
                 {
                     "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception",
                     "moduleLicenseUrl": "https://openjdk.java.net/legal/gplv2+ce.html"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.ejml:ejml-all",
-            "moduleVersion": "0.38",
-            "moduleUrls": [
-                "http://ejml.org/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.ejml:ejml-cdense",
-            "moduleVersion": "0.38",
-            "moduleUrls": [
-                "http://ejml.org/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.ejml:ejml-core",
-            "moduleVersion": "0.38",
-            "moduleUrls": [
-                "http://ejml.org/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.ejml:ejml-ddense",
-            "moduleVersion": "0.38",
-            "moduleUrls": [
-                "http://ejml.org/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.ejml:ejml-dsparse",
-            "moduleVersion": "0.38",
-            "moduleUrls": [
-                "http://ejml.org/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.ejml:ejml-fdense",
-            "moduleVersion": "0.38",
-            "moduleUrls": [
-                "http://ejml.org/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.ejml:ejml-simple",
-            "moduleVersion": "0.38",
-            "moduleUrls": [
-                "http://ejml.org/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.ejml:ejml-zdense",
-            "moduleVersion": "0.38",
-            "moduleUrls": [
-                "http://ejml.org/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
                 }
             ]
         },
@@ -2662,19 +2203,6 @@
                 {
                     "moduleLicense": "MIT License",
                     "moduleLicenseUrl": "https://opensource.org/licenses/MIT"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.jblas:jblas",
-            "moduleVersion": "1.2.4",
-            "moduleUrls": [
-                "http://jblas.org/"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "The 3-Clause BSD License",
-                    "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
                 }
             ]
         },
@@ -2900,37 +2428,6 @@
             ]
         },
         {
-            "moduleName": "org.jgrapht:jgrapht",
-            "moduleVersion": "0.9.0",
-            "moduleUrls": [
-                "http://www.jgrapht.org"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Eclipse Public License - v 1.0",
-                    "moduleLicenseUrl": "http://www.eclipse.org/legal/epl-v10.html"
-                },
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.jgrapht:jgrapht-core",
-            "moduleVersion": "0.9.0",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Eclipse Public License - v 1.0",
-                    "moduleLicenseUrl": "http://www.eclipse.org/legal/epl-v10.html"
-                },
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
-                }
-            ]
-        },
-        {
             "moduleName": "org.json:json",
             "moduleVersion": "20211205",
             "moduleUrls": [
@@ -3082,6 +2579,19 @@
         },
         {
             "moduleName": "org.kordamp.ikonli:ikonli-core",
+            "moduleVersion": "12.3.1",
+            "moduleUrls": [
+                "https://github.com/kordamp/ikonli"
+            ],
+            "moduleLicenses": [
+                {
+                    "moduleLicense": "Apache License, Version 2.0",
+                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+                }
+            ]
+        },
+        {
+            "moduleName": "org.kordamp.ikonli:ikonli-hawcons-pack",
             "moduleVersion": "12.3.1",
             "moduleUrls": [
                 "https://github.com/kordamp/ikonli"
