@@ -133,7 +133,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
 
     final ButtonBase btnYoutube = FxIconUtil.newIconButton(FxIcons.YOUTUBE, 45, "Video tutorials",
         () -> MZmineCore.getDesktop()
-            .openWebPage("https://www.youtube.com/channel/UCXsBoraCbK80xtf4jCpJHYQ"));
+            .openWebPage("https://www.youtube.com/@mzioGmbH/playlists"));
 
     final ButtonBase btnWebsite = FxIconUtil.newIconButton(FxIcons.WEBSITE, 45, "mzmine website",
         () -> MZmineCore.getDesktop().openWebPage("https://mzio.io/#mzmine"));
