@@ -56,6 +56,9 @@
     },
     {
       "moduleLicense": "The JSON License"
+    },
+    {
+      "moduleLicense": "Common Public License Version 1.0"
     }
   ]
 }
