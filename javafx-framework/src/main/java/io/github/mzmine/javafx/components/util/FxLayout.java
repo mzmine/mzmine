@@ -27,7 +27,6 @@ package io.github.mzmine.javafx.components.util;
 
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
@@ -42,17 +41,7 @@ import org.controlsfx.tools.Borders;
 public class FxLayout {
 
   public static final int DEFAULT_SPACE = 5;
-  public static final int DEFAULT_ICON_SPACE = 0;
   public static final Insets DEFAULT_PADDING_INSETS = new Insets(5);
-
-  public static FlowPane newIconPane(Orientation orientation, Node... children) {
-    var alignment = orientation == Orientation.HORIZONTAL ? Pos.CENTER_LEFT : Pos.TOP_CENTER;
-    var pane = newFlowPane(alignment, Insets.EMPTY, children);
-    pane.setOrientation(orientation);
-    pane.setHgap(DEFAULT_ICON_SPACE);
-    pane.setVgap(DEFAULT_ICON_SPACE);
-    return pane;
-  }
 
   public static FlowPane newFlowPane() {
     return new FlowPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
@@ -62,18 +51,9 @@ public class FxLayout {
     return newFlowPane(DEFAULT_PADDING_INSETS, children);
   }
 
-  public static FlowPane newFlowPane(Pos alignment, Node... children) {
-    return newFlowPane(alignment, DEFAULT_PADDING_INSETS, children);
-  }
-
   public static FlowPane newFlowPane(Insets padding, Node... children) {
-    return newFlowPane(Pos.CENTER_LEFT, padding, children);
-  }
-
-  public static FlowPane newFlowPane(Pos alignment, Insets padding, Node... children) {
     var pane = new FlowPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE, children);
     pane.setPadding(padding);
-    pane.setAlignment(alignment);
     return pane;
   }
 
@@ -81,18 +61,9 @@ public class FxLayout {
     return newVBox(DEFAULT_PADDING_INSETS, children);
   }
 
-  public static VBox newVBox(Pos alignment, Node... children) {
-    return newVBox(alignment, DEFAULT_PADDING_INSETS, children);
-  }
-
   public static VBox newVBox(Insets padding, Node... children) {
-    return newVBox(Pos.CENTER_LEFT, padding, children);
-  }
-
-  public static VBox newVBox(Pos alignment, Insets padding, Node... children) {
     var pane = new VBox(DEFAULT_SPACE, children);
     pane.setPadding(padding);
-    pane.setAlignment(alignment);
     return pane;
   }
 
@@ -100,21 +71,12 @@ public class FxLayout {
     return newHBox(DEFAULT_PADDING_INSETS, children);
   }
 
-  public static HBox newHBox(Pos alignment, Node... children) {
-    return newHBox(alignment, DEFAULT_PADDING_INSETS, children);
-  }
-
   public static HBox newHBox(Insets padding, Node... children) {
-    return newHBox(Pos.CENTER_LEFT, padding, children);
-  }
-
-  public static HBox newHBox(Pos alignment, Insets padding, Node... children) {
     var pane = new HBox(DEFAULT_SPACE, children);
-    pane.setAlignment(alignment);
+    pane.setAlignment(Pos.CENTER_LEFT);
     pane.setPadding(padding);
     return pane;
   }
-
   public static StackPane newStackPane(Node... children) {
     return newStackPane(DEFAULT_PADDING_INSETS, children);
   }

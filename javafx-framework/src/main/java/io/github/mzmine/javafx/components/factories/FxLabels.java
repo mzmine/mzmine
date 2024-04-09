@@ -25,6 +25,7 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Hyperlink;
@@ -138,6 +139,12 @@ public class FxLabels {
   public static Hyperlink newHyperlink(Runnable onClick, String text) {
     var hyperlink = new Hyperlink(text);
     hyperlink.setOnAction(_ -> onClick.run());
+    return hyperlink;
+  }
+
+  public static Hyperlink newWebHyperlink(String link) {
+    var hyperlink = new Hyperlink(link);
+    hyperlink.setOnAction(_ -> DesktopService.getDesktop().openWebPage(hyperlink.getText()));
     return hyperlink;
   }
 }
