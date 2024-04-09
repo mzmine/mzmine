@@ -23,40 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.mainwindow.introductiontab;
+package io.github.mzmine.util.javafx;
 
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
+import org.kordamp.ikonli.javafx.FontIcon;
 
-public class IntroductionTabModel {
+public class MZmineIconUtils {
 
-  private final BooleanProperty newVersionAvailable = new SimpleBooleanProperty(false);
-  private final BooleanProperty isDarkMode = new SimpleBooleanProperty(
-      ConfigService.isDarkModeProperty().get());
-
-
-  public boolean isIsDarkMode() {
-    return isDarkMode.get();
+  public static FontIcon getCheckedIcon() {
+    return FxIconUtil.getFontIcon(FxIcons.CHECK_CIRCLE, 12,
+        ConfigService.getDefaultColorPalette().getPositiveColor());
   }
 
-  public BooleanProperty isDarkModeProperty() {
-    return isDarkMode;
-  }
-
-  public void setIsDarkMode(boolean isDarkMode) {
-    this.isDarkMode.set(isDarkMode);
-  }
-
-  public boolean isNewVersionAvailable() {
-    return newVersionAvailable.get();
-  }
-
-  public BooleanProperty newVersionAvailableProperty() {
-    return newVersionAvailable;
-  }
-
-  public void setNewVersionAvailable(boolean newVersionAvailable) {
-    this.newVersionAvailable.set(newVersionAvailable);
+  public static FontIcon getUncheckedIcon() {
+    return FxIconUtil.getFontIcon(FxIcons.X_CIRCLE, 12,
+        ConfigService.getDefaultColorPalette().getNegativeColor());
   }
 }

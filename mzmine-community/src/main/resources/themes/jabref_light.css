@@ -443,13 +443,6 @@ TextFlow > .tooltip-text-monospaced {
     -fx-padding: 0.5em;
 }
 
-.icon-button .ikonli-font-icon {
-    -fx-icon-color: -fx-text-background-color;
-}
-.icon-button:hover .ikonli-font-icon {
-    -fx-icon-color: -jr-selected;
-}
-
 .toggle-button:hover,
 .toggle-button:selected:hover,
 .icon-buttonNoSpaceBottom:hover,

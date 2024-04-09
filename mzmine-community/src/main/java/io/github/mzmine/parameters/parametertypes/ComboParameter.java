@@ -54,7 +54,7 @@ public class ComboParameter<ValueType> implements
   }
 
   public ComboParameter(String name, String description, List<ValueType> choices) {
-    this(name, description, choices, choices.getFirst());
+    this(name, description, choices, null);
   }
 
   public ComboParameter(String name, String description, List<ValueType> choices,
