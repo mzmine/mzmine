@@ -575,7 +575,8 @@ licenseReport {
                 'colt:colt', // https://dst.lbl.gov/ACSSoftware/colt/license.html (CERN license, permissive)
                 'com.github.yannrichet:JMathArray', 'com.github.yannrichet:JMathPlot', 'com.github.yannrichet:JMathIO', // BSD 2-Clause
                 'net.jcip:jcip-annotations', // Creative Commons Attribution License
-                'io.mzio(.*)']
+                'io.mzio(.*)',
+                'org.du-lab.adap:adap']
 
     // Don't exclude bom dependencies.
     // If set to true, then all boms will be excluded from the report
@@ -591,12 +592,12 @@ licenseReport {
     // "gradlew mzmine-community:dependencies" to generate a dependency graph
 }
 tasks.register('copyLicenseInformation', Copy) {
-    from (getLayout().getBuildDirectory().get().dir("licensereport")) {
+    from(getLayout().getBuildDirectory().get().dir("licensereport")) {
         into getLayout().getBuildDirectory().get().dir("resources/main/dependency")
         include("project-licenses-for-check-license-task.json")
         rename("project-licenses-for-check-license-task.json", "dependency-licenses.json")
     }
-    from (getLayout().getBuildDirectory().get().dir("licensereport")) {
+    from(getLayout().getBuildDirectory().get().dir("licensereport")) {
         into getLayout().getProjectDirectory().dir("main/resources/dependency")
         include("project-licenses-for-check-license-task.json")
         rename("project-licenses-for-check-license-task.json", "dependency-licenses.json")

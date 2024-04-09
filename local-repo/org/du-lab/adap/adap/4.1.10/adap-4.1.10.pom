@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2004-2022 The MZmine Development Team
+  ~ Copyright (c) 2004-2024 The MZmine Development Team
   ~
   ~ Permission is hereby granted, free of charge, to any person
   ~ obtaining a copy of this software and associated documentation
@@ -141,16 +141,16 @@
       <artifactId>jblas</artifactId>
       <version>1.2.4</version>
     </dependency>
-    <dependency>
-      <groupId>org.du-lab.javanmf</groupId>
-      <artifactId>javanmf</artifactId>
-      <version>0.2.3</version>
-    </dependency>
-    <dependency>
-      <groupId>org.du-lab.jsparsehc</groupId>
-      <artifactId>jsparsehc</artifactId>
-      <version>0.3.2</version>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.du-lab.javanmf</groupId>-->
+<!--      <artifactId>javanmf</artifactId>-->
+<!--      <version>0.2.3</version>-->
+<!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.du-lab.jsparsehc</groupId>-->
+<!--      <artifactId>jsparsehc</artifactId>-->
+<!--      <version>0.3.2</version>-->
+<!--    </dependency>-->
     <!-- https://mvnrepository.com/artifact/com.opencsv/opencsv -->
     <dependency>
       <groupId>com.opencsv</groupId>
