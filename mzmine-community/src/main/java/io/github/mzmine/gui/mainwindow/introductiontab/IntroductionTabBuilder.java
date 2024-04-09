@@ -50,6 +50,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 
 public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> {
 
@@ -182,7 +183,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     final VBox box = new VBox(20);
     final Label label = FxLabels.newBoldTitle("New version available!");
     final Button downloadButton = FxButtons.createButton(FxIconUtil.getFontIcon("bi-download", 60,
-            ConfigService.getConfiguration().getDefaultColorPalette().getPositiveColor()),
+            Color.web("3391C1")),
         () -> MZmineCore.getDesktop()
             .openWebPage("https://github.com/mzmine/mzmine3/releases/tag/v3.9.0"));
     box.getChildren().addAll(label, downloadButton);
