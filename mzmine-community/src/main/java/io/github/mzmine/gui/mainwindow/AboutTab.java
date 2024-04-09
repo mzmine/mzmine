@@ -25,19 +25,19 @@
 
 package io.github.mzmine.gui.mainwindow;
 
-import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.javafx.LightAndDarkModeIcon;
 import io.mzio.links.MzioMZmineLinks;
-import java.awt.Desktop;
-import java.net.URI;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 
 public class AboutTab extends SimpleTab {
 
@@ -48,60 +48,62 @@ public class AboutTab extends SimpleTab {
 
   private Node createContent() {
     VBox contentBox = new VBox(10);
-    contentBox.setAlignment(Pos.TOP_CENTER);
-    contentBox.setPadding(new Insets(10));
+    contentBox.setAlignment(Pos.CENTER);
+    contentBox.setPadding(new Insets(20));
 
-    Node mzmineImage = FxIconUtil.resizeImage("icons/introductiontab/logos_mzio_mzmine.png", 350,
-        200);
+    LightAndDarkModeIcon mzmineImage = new LightAndDarkModeIcon("icons/introductiontab/logos_mzio_mzmine.png",
+        "icons/introductiontab/logos_mzio_mzmine_light.png", 350, 200);
+    mzmineImage.setAlignment(Pos.CENTER);
     contentBox.getChildren().add(mzmineImage);
+    contentBox.getChildren().add(new Rectangle(5, 20, Color.TRANSPARENT));
 
     // Software Name
-    contentBox.getChildren().add(createDescriptionLabel("Software Name"));
+    contentBox.getChildren().add(FxLabels.newBoldLabel("Software Name"));
     Label softwareName = new Label("mzmine");
     contentBox.getChildren().add(softwareName);
 
     // Version Information
-    contentBox.getChildren().add(createDescriptionLabel("Version Information"));
+    contentBox.getChildren().add(FxLabels.newBoldLabel("Version Information"));
     Label versionInfo = new Label(MZmineCore.getMZmineVersion().toString());
     contentBox.getChildren().add(versionInfo);
 
     // Copyright Notice
-    contentBox.getChildren().add(createDescriptionLabel("Copyright Notice"));
+    contentBox.getChildren().add(FxLabels.newBoldLabel("Copyright Notice"));
     Label copyrightNotice = new Label("©2024 by mzio GmbH and development team");
     contentBox.getChildren().add(copyrightNotice);
 
     // License Information
-    contentBox.getChildren().add(createDescriptionLabel("License Information"));
+    contentBox.getChildren().add(FxLabels.newBoldLabel("License Information"));
     Label licenseInfo = new Label(
         "Parts of this software are distributed under the terms of the MIT license.");
     contentBox.getChildren().add(licenseInfo);
 
     // Contact Information
-    contentBox.getChildren().add(createDescriptionLabel("Contact Information"));
-    Label contactInfo = createHyperlinkLabel(MzioMZmineLinks.CONTACT.getUrl());
+    contentBox.getChildren().add(FxLabels.newBoldLabel("Contact Information"));
+    Hyperlink contactInfo = FxLabels.newWebHyperlink(MzioMZmineLinks.CONTACT.getUrl());
     contentBox.getChildren().add(contactInfo);
 
     // Terms and conditions
     //TODO add to mzio links
-    contentBox.getChildren().add(createDescriptionLabel("Terms and Conditions"));
-    Label legalInfo = createHyperlinkLabel(
+    contentBox.getChildren().add(FxLabels.newBoldLabel("Terms and Conditions"));
+    Hyperlink legalInfo = FxLabels.newWebHyperlink(
         "https://mzio.io/general-terms-and-conditions/"); // Assuming you're updating this
     contentBox.getChildren().add(legalInfo);
 
     // Privacy Policy
-    contentBox.getChildren().add(createDescriptionLabel("Privacy Policy"));
-    Label privacyPolicy = createHyperlinkLabel(MzioMZmineLinks.PRIVACY_POLICY.getUrl());
+    contentBox.getChildren().add(FxLabels.newBoldLabel("Privacy Policy"));
+    Hyperlink privacyPolicy = FxLabels.newWebHyperlink(MzioMZmineLinks.PRIVACY_POLICY.getUrl());
     contentBox.getChildren().add(privacyPolicy);
 
     // Company Information
-    contentBox.getChildren().add(createDescriptionLabel("Company Information"));
+    contentBox.getChildren().add(FxLabels.newBoldLabel("Company Information"));
     Label companyInfo = new Label("mzio GmbH\nAltenwall 26\n28195 Bremen, Germany\n");
     companyInfo.setAlignment(Pos.CENTER);
     companyInfo.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
     contentBox.getChildren().add(companyInfo);
 
     // Third-party Libraries
-    contentBox.getChildren().add(createDescriptionLabel("Third-party Libraries"));
+    contentBox.getChildren().add(FxLabels.newBoldLabel("Third-party Libraries"));
     Label thirdPartyAttributions = new Label(
         "MSFileReader file reading tool. Copyright © 2009 - 2014 by Thermo Fisher Scientific, Inc. All rights reserved.\n"
             + "MassLynxRaw library. Copyright © 2014 by Waters, Inc.\n"
@@ -112,30 +114,9 @@ public class AboutTab extends SimpleTab {
 
     ScrollPane scrollPane = new ScrollPane(contentBox);
     scrollPane.setFitToWidth(true);
-    scrollPane.setPadding(new Insets(20)); // Add padding to the ScrollPane
+    scrollPane.setFitToHeight(true);
+    scrollPane.setCenterShape(true);
 
     return scrollPane;
   }
-
-  private Label createDescriptionLabel(String description) {
-    Label label = new Label(description);
-    label.setFont(Font.font(null, FontWeight.BOLD, 14));
-    return label;
-  }
-
-  private Label createHyperlinkLabel(String url) {
-    Label hyperlink = new Label(url);
-    hyperlink.setStyle("-fx-text-fill: blue; -fx-underline: true;");
-    hyperlink.setCursor(javafx.scene.Cursor.HAND);
-    hyperlink.setOnMouseClicked(e -> {
-      try {
-        Desktop.getDesktop().browse(new URI(url));
-      } catch (Exception ex) {
-        ex.printStackTrace();
-      }
-    });
-    return hyperlink;
-  }
-
-
 }
