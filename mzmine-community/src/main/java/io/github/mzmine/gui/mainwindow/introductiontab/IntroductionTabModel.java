@@ -23,45 +23,40 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.main;
+package io.github.mzmine.gui.mainwindow.introductiontab;
 
-import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.gui.preferences.NumberFormats;
-import io.github.mzmine.main.impl.MZmineConfigurationImpl;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.main.ConfigService;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 
-public final class ConfigService {
+public class IntroductionTabModel {
 
-  private static final MZmineConfiguration config = new MZmineConfigurationImpl();
+  private final BooleanProperty newVersionAvailable = new SimpleBooleanProperty(false);
+  private final BooleanProperty isDarkMode = new SimpleBooleanProperty(
+      ConfigService.isDarkModeProperty().get());
 
-  public static MZmineConfiguration getConfiguration() {
-    return config;
+
+  public boolean isIsDarkMode() {
+    return isDarkMode.get();
   }
 
-  public static MZminePreferences getPreferences() {
-    return config.getPreferences();
+  public BooleanProperty isDarkModeProperty() {
+    return isDarkMode;
   }
 
-  public static <V, T extends Parameter<V>> V getPreference(T parameter) {
-    return config.getPreferences().getValue(parameter);
+  public void setIsDarkMode(boolean isDarkMode) {
+    this.isDarkMode.set(isDarkMode);
   }
 
-  public static NumberFormats getExportFormats() {
-    return config.getExportFormats();
+  public boolean isNewVersionAvailable() {
+    return newVersionAvailable.get();
   }
 
-  public static NumberFormats getGuiFormats() {
-    return config.getGuiFormats();
+  public BooleanProperty newVersionAvailableProperty() {
+    return newVersionAvailable;
   }
 
-
-  public static SimpleColorPalette getDefaultColorPalette() {
-    return config.getDefaultColorPalette();
-  }
-
-  public static BooleanProperty isDarkModeProperty() {
-    return config.getPreferences().darkModeProperty();
+  public void setNewVersionAvailable(boolean newVersionAvailable) {
+    this.newVersionAvailable.set(newVersionAvailable);
   }
 }

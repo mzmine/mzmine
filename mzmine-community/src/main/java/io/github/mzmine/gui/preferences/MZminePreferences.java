@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,6 +54,8 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Map;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
@@ -129,7 +131,7 @@ public class MZminePreferences extends SimpleParameterSet {
       new ChartThemeParameters());
 
   public static final ComboParameter<Themes> theme = new ComboParameter<>("Theme",
-      "Select JavaFX style to theme the MZmine window.", Themes.values(), Themes.MZMINE_LIGHT);
+      "Select JavaFX style to theme the MZmine window.", Themes.values(), Themes.JABREF_LIGHT);
 
   public static final BooleanParameter presentationMode = new BooleanParameter("Presentation mode",
       "If checked, fonts in the MZmine gui will be enlarged. The chart fonts are still controlled by the chart theme.",
@@ -188,7 +190,7 @@ public class MZminePreferences extends SimpleParameterSet {
       new DecimalFormat("0.####"), new DecimalFormat("0.####"), new DecimalFormat("0.##"),
       new DecimalFormat("0.###E0"), new DecimalFormat("0.##"), new DecimalFormat("0.####"),
       new DecimalFormat("0.###"), UnitFormat.DIVIDE);
-  private final boolean isDarkMode = false;
+  private final BooleanProperty darkModeProperty = new SimpleBooleanProperty(false);
   private NumberFormats guiFormat = exportFormat; // default value
 
   public MZminePreferences() {
@@ -252,6 +254,7 @@ public class MZminePreferences extends SimpleParameterSet {
     final Themes theme = getValue(MZminePreferences.theme);
     updateChartColorsToTheme(previousTheme, theme);
     theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+    darkModeProperty.set(theme.isDark());
 
     Boolean presentation = MZmineCore.getConfiguration().getPreferences()
         .getParameter(MZminePreferences.presentationMode).getValue();
@@ -369,6 +372,7 @@ public class MZminePreferences extends SimpleParameterSet {
     super.loadValuesFromXML(xmlElement);
     updateSystemProxySettings();
     updateGuiFormat();
+    darkModeProperty.set(getValue(MZminePreferences.theme).isDark());
   }
 
   private void updateSystemProxySettings() {
@@ -405,6 +409,10 @@ public class MZminePreferences extends SimpleParameterSet {
   }
 
   public boolean isDarkMode() {
-    return getValue(MZminePreferences.theme).isDark();
+    return darkModeProperty.getValue();
+  }
+
+  public BooleanProperty darkModeProperty() {
+    return darkModeProperty;
   }
 }

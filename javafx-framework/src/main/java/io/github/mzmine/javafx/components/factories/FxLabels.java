@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 public class FxLabels {
 
   public enum Styles {
-    REGULAR, BOLD_TITLE;
+    REGULAR, BOLD_TITLE, BOLD, ITALIC;
 
     public void addStyleClass(Label label) {
       var style = getStyleClass();
@@ -50,15 +50,35 @@ public class FxLabels {
       return switch (this) {
         case REGULAR -> null;
         case BOLD_TITLE -> "bold-title-label";
+        case BOLD -> "bold-label";
+        case ITALIC -> "italic-label";
       };
     }
   }
 
+  public static Label styled(String name, String styleClass) {
+    final Label label = new Label(name);
+    label.getStyleClass().add(styleClass);
+    return label;
+  }
+
+  public static Label newBoldLabel(String name) {
+    return styled(name, Styles.BOLD.getStyleClass());
+  }
+
+  public static Label newItalicLabel(String name) {
+    return styled(name, Styles.ITALIC.getStyleClass());
+  }
+
+  public static Label underlined(String name) {
+    final Label label = new Label(name);
+    label.setUnderline(true);
+    return label;
+  }
 
   public static Label newLabel(Styles style, String text) {
     return newLabel(style, null, text);
   }
-
 
   public static Label newLabel(Styles style, @Nullable Color color) {
     return newLabel(style, color, "");

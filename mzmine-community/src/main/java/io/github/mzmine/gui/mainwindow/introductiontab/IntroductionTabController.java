@@ -25,18 +25,30 @@
 
 package io.github.mzmine.gui.mainwindow.introductiontab;
 
-import io.github.mzmine.gui.mainwindow.SimpleTab;
-import javafx.scene.layout.Region;
+import io.github.mzmine.javafx.mvci.FxController;
+import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
-public class MZmineIntroductionTab extends SimpleTab {
+public class IntroductionTabController extends FxController<IntroductionTabModel> {
 
-  public static final String TITLE = "Welcome to mzmine";
+  private static final Logger logger = Logger.getLogger(IntroductionTabController.class.getName());
 
-  public MZmineIntroductionTab() {
-    super(TITLE);
+  private final IntroductionTabBuilder introductionTabBuilder;
 
-    IntroductionTabController controller = new IntroductionTabController();
-    final Region content = controller.buildView();
-    setContent(content);
+  protected IntroductionTabController() {
+    super(new IntroductionTabModel());
+    introductionTabBuilder = new IntroductionTabBuilder(model);
+    runVersionCheck();
   }
+
+  @Override
+  protected @NotNull FxViewBuilder<IntroductionTabModel> getViewBuilder() {
+    return introductionTabBuilder;
+  }
+
+  private void runVersionCheck() {
+    onTaskThread(new FxVersionCheckTask(model));
+  }
+
 }

@@ -709,7 +709,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       alert.getDialogPane().getScene().getStylesheets()
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       Text text = new Text(msg);
-      text.setWrappingWidth(400);
+      text.setWrappingWidth(370);
       final FlowPane pane = new FlowPane(text);
       pane.setPadding(new Insets(5));
       alert.getDialogPane().setContent(pane);
@@ -858,7 +858,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       alert.getDialogPane().getButtonTypes().addAll(ButtonType.YES, ButtonType.NO);
 
       Text text = new Text(message);
-      text.setWrappingWidth(400);
+      text.setWrappingWidth(370);
       final FlowPane pane = new FlowPane(text);
       pane.setPadding(new Insets(5));
       alert.getDialogPane().setContent(pane);

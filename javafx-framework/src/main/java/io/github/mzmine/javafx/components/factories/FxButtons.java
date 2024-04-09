@@ -30,6 +30,7 @@ import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FxButtons {
@@ -62,6 +63,17 @@ public class FxButtons {
     if (tooltip != null) {
       Tooltip.install(b, new Tooltip(tooltip));
     }
+    return b;
+  }
+
+  public static Button graphicButton(@NotNull Node icon, @Nullable String tooltip,
+      EventHandler<ActionEvent> onAction) {
+    Button b = new Button(null, icon);
+    b.setOnAction(onAction);
+    if (tooltip != null) {
+      Tooltip.install(b, new Tooltip(tooltip));
+    }
+    b.getStyleClass().add("icon-button");
     return b;
   }
 }

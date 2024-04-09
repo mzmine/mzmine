@@ -25,15 +25,19 @@
 
 package io.github.mzmine.javafx.components.util;
 
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import org.controlsfx.tools.Borders;
 
 public class FxLayout {
 
@@ -131,4 +135,16 @@ public class FxLayout {
     return pane;
   }
 
+  public static void centerAllNodesHorizontally(GridPane pane) {
+    pane.getChildren().forEach(node -> GridPane.setHalignment(node, HPos.CENTER));
+  }
+
+  public static void centerAllNodesVertically(GridPane pane) {
+    pane.getChildren().forEach(node -> GridPane.setValignment(node, VPos.CENTER));
+  }
+
+  public static Node wrapInBorder(Node node) {
+    return Borders.wrap(node).lineBorder().radius(FxLayout.DEFAULT_SPACE)
+        .innerPadding(FxLayout.DEFAULT_SPACE).outerPadding(FxLayout.DEFAULT_SPACE).buildAll();
+  }
 }

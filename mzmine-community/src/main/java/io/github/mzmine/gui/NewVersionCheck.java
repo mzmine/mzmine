@@ -27,16 +27,19 @@ package io.github.mzmine.gui;
 
 import com.vdurmont.semver4j.Semver;
 import com.vdurmont.semver4j.Semver.SemverType;
+import io.github.mzmine.gui.mainwindow.VersionCheckResult;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.InetUtils;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.paint.Color;
 
 public class NewVersionCheck implements Runnable {
 
-  private static final String newestVersionAddress = "http://mzmine.github.io/version.txt";
+  public static final String newestVersionAddress = "http://mzmine.github.io/version.txt";
 
   public enum CheckType {
     DESKTOP, MENU
@@ -44,6 +47,7 @@ public class NewVersionCheck implements Runnable {
 
   private static final Logger logger = Logger.getLogger(NewVersionCheck.class.getName());
   private final CheckType checkType;
+  private final ObjectProperty<VersionCheckResult> result = new SimpleObjectProperty<>(null);
 
   public NewVersionCheck(CheckType type) {
     checkType = type;
@@ -68,18 +72,15 @@ public class NewVersionCheck implements Runnable {
       newestVersionData = InetUtils.retrieveData(newestVersionURL).trim();
       newestVersion = new Semver(newestVersionData, SemverType.LOOSE);
     } catch (Exception e) {
-      logger.log(Level.WARNING,
-          "Error retrieving or parsing latest version number from MZmine website: "
-              + newestVersionData, e);
+      result.set(new VersionCheckResult(VersionCheckResultType.NO_INTERNET, newestVersion));
+      logger.log(Level.WARNING, result.get().print(), e);
     }
 
     if (newestVersion == null) {
+      result.set(new VersionCheckResult(VersionCheckResultType.CANNOT_PARSE, newestVersion));
       if (checkType.equals(CheckType.MENU)) {
-        final String msg =
-            "An error occured parsing or retrieving the latest version number. Please make sure that"
-                + " you are connected to the internet or try again later.";
-        logger.info(msg);
-        desktop.displayMessage(msg);
+        logger.info(result.get().print());
+        desktop.displayMessage(result.get().print());
       }
       return;
     }
@@ -87,33 +88,39 @@ public class NewVersionCheck implements Runnable {
     // Version might be: major.minor.patch-suffix+build hash
     // disregard build hash (that we currently do not use)
     if (currentVersion.isEquivalentTo(newestVersion)) {
+      result.set(new VersionCheckResult(VersionCheckResultType.CURRENT, newestVersion));
       if (checkType.equals(CheckType.MENU)) {
-        final String msg = "No updated version of MZmine is available.";
-        logger.info(msg);
-        desktop.displayMessage(msg);
+        logger.info(result.get().print());
+        desktop.displayMessage(result.get().print());
       }
       return;
     }
 
     if (currentVersion.isLowerThan(newestVersion)) {
+      result.set(new VersionCheckResult(VersionCheckResultType.NEW_AVAILALABLE, newestVersion));
       String url = "https://mzmine.org";
-      final String msg = "An updated version is available: MZmine " + newestVersion
-          + "\nPlease download the newest version from: ";
-      logger.info(msg);
+      logger.info(result.get().print());
       if (checkType.equals(CheckType.MENU)) {
-        desktop.displayMessage("New version", msg, url);
+        desktop.displayMessage("New version", result.get().print(), url);
       } else if (checkType.equals(CheckType.DESKTOP)) {
         String downloadUrl = "https://github.com/mzmine/mzmine3/releases/latest";
         Color color = MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor();
-        desktop.setStatusBarText(msg.replace("\n", ". ") + url, color, downloadUrl);
+        desktop.setStatusBarText(result.get().print().replace("\n", ". ") + url, color,
+            downloadUrl);
       }
     }
 
     if (currentVersion.isGreaterThan(newestVersion)) {
-      final String msg = "It seems you are running MZmine version " + currentVersion
-          + ", which is newer than the latest official release " + newestVersion;
-      logger.info(msg);
+      result.set(new VersionCheckResult(VersionCheckResultType.THIS_IS_NEWER, newestVersion));
+      logger.info(result.get().print());
     }
+  }
 
+  public VersionCheckResult getResult() {
+    return result.get();
+  }
+
+  public ObjectProperty<VersionCheckResult> resultProperty() {
+    return result;
   }
 }
