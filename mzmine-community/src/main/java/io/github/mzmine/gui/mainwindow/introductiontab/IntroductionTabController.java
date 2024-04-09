@@ -51,7 +51,4 @@ public class IntroductionTabController extends FxController<IntroductionTabModel
     onTaskThread(new FxVersionCheckTask(model));
   }
 
-  public void onClosed() {
-    introductionTabBuilder.unsubsribe();
-  }
 }

@@ -372,6 +372,7 @@ public class MZminePreferences extends SimpleParameterSet {
     super.loadValuesFromXML(xmlElement);
     updateSystemProxySettings();
     updateGuiFormat();
+    darkModeProperty.set(getValue(MZminePreferences.theme).isDark());
   }
 
   private void updateSystemProxySettings() {

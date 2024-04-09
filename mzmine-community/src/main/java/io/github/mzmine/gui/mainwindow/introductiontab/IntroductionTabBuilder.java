@@ -69,7 +69,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     model.isDarkModeProperty().bind(ConfigService.isDarkModeProperty());
 
     mzmineIcon = new LightAndDarkModeIcon("icons/introductiontab/logos_mzio_mzmine.png",
-        "icons/introductiontab/logos_mzio_mzmine_light.png", 350, 200);
+        "icons/introductiontab/logos_mzio_mzmine_light.png", 350, 200, model.isDarkModeProperty());
 
     HBox title = new HBox(FxLayout.DEFAULT_SPACE,
         /*FxLabels.styled("Welcome to ", "huge-title-label"),*/ mzmineIcon /*,
@@ -104,7 +104,8 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
 
     final HBox wizardImageWrapper = new LightAndDarkModeIcon(
         "icons/introductiontab/logos_mzio_mzwizard.png",
-        "icons/introductiontab/logos_mzio_mzwizard_light.png", 300, 150);
+        "icons/introductiontab/logos_mzio_mzwizard_light.png", 300, 150,
+        model.isDarkModeProperty());
     final Label lblWizard = FxLabels.newBoldTitle("Easy workflow setup");
     final Button btnWizard = FxButtons.graphicButton(wizardImageWrapper,
         "Open the mzwizard to easily configure a workflow.",
@@ -182,8 +183,8 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
   private Pane createNewVersionPane() {
     final VBox box = new VBox(20);
     final Label label = FxLabels.newBoldTitle("New version available!");
-    final Button downloadButton = FxButtons.createButton(FxIconUtil.getFontIcon("bi-download", 60,
-            Color.web("3391C1")),
+    final Button downloadButton = FxButtons.createButton(
+        FxIconUtil.getFontIcon("bi-download", 60, Color.web("3391C1")),
         () -> MZmineCore.getDesktop()
             .openWebPage("https://github.com/mzmine/mzmine3/releases/tag/v3.9.0"));
     box.getChildren().addAll(label, downloadButton);
@@ -192,12 +193,4 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     return box;
   }
 
-  void unsubsribe() {
-    if (mzmineIcon != null) {
-      mzmineIcon.unsubscribe();
-    }
-    if (wizardIcon != null) {
-      wizardIcon.unsubscribe();
-    }
-  }
 }
