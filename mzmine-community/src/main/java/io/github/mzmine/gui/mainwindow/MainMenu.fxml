@@ -687,7 +687,7 @@
     <MenuItem text="Open landing page" onAction="#handleAddIntroductionTab"/>
     <MenuItem text="Support" onAction="#openLink"
       userData="https://mzmine.github.io/mzmine_documentation/troubleshooting.html"/>
-    <MenuItem text="Report a problem" onAction="#openLink"
+    <MenuItem text="Report an issue" onAction="#openLink"
       userData="https://github.com/mzmine/mzmine3/issues"/>
     <MenuItem text="Show log file" onAction="#handleShowLogFile"/>
 
