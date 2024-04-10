@@ -23,23 +23,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist;
+package io.github.mzmine.gui.mainwindow.dependenciestab;
 
-import com.opencsv.exceptions.CsvException;
-import java.io.IOException;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.util.dependencylicenses.Dependencies;
 
-/**
- * Interface for extracting a list of standard molecules
- * given a file with specific format,
- * extract data on molecules and return StandardsList object
- */
-public interface StandardsListExtractor {
-  /**
-   * Extract standards list, should cache the list
-   *
-   * @return extracted and cached standards list
-   * @throws IOException
-   */
-  StandardsList extractStandardsList() throws IOException, CsvException;
+public class DependenciesTab extends SimpleTab {
 
+  public DependenciesTab() {
+    super("Dependencies");
+
+    setContent(Dependencies.listViewOfAllDependencies());
+  }
 }

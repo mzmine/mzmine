@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
-import net.csibio.aird.util.AirdScanUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -110,7 +109,7 @@ public class RawDataFileTypeDetector {
           return RawDataFileType.IMZML;
         }
         //the suffix is json and have a .aird file with same name
-        if (fileName.getName().toLowerCase().endsWith(AIRD_SUFFIX)) {
+        /*if (fileName.getName().toLowerCase().endsWith(AIRD_SUFFIX)) {
           String airdIndexFilePath = AirdScanUtil.getIndexPathByAirdPath(fileName.getPath());
           if (airdIndexFilePath != null) {
             File airdIndexFile = new File(airdIndexFilePath);
@@ -119,7 +118,7 @@ public class RawDataFileTypeDetector {
             }
           }
           logger.info("It's not an aird format file or the aird index file not exist");
-        }
+        }*/
         if (fileName.getName().contains(TDF_SUFFIX) || fileName.getName()
             .contains(TDF_BIN_SUFFIX)) {
           return RawDataFileType.BRUKER_TDF;

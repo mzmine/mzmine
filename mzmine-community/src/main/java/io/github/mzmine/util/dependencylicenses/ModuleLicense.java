@@ -23,23 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist;
+package io.github.mzmine.util.dependencylicenses;
 
-import com.opencsv.exceptions.CsvException;
-import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * Interface for extracting a list of standard molecules
- * given a file with specific format,
- * extract data on molecules and return StandardsList object
- */
-public interface StandardsListExtractor {
-  /**
-   * Extract standards list, should cache the list
-   *
-   * @return extracted and cached standards list
-   * @throws IOException
-   */
-  StandardsList extractStandardsList() throws IOException, CsvException;
+public record ModuleLicense(String moduleLicense, String moduleLicenseUrl) implements Comparable<ModuleLicense> {
 
+  @Override
+  public int compareTo(@NotNull ModuleLicense o) {
+    if(o.moduleLicense == null) {
+      if(this.moduleLicense == null) {
+        return 0;
+      }
+      return 1;
+    }
+    if(this.moduleLicense == null) {
+      return -1;
+    }
+    return this.moduleLicense.compareTo(o.moduleLicense);
+  }
 }

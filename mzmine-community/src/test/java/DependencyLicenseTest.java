@@ -23,23 +23,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist;
-
-import com.opencsv.exceptions.CsvException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.mzmine.util.dependencylicenses.Dependencies;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.logging.Logger;
+import org.junit.jupiter.api.Test;
 
-/**
- * Interface for extracting a list of standard molecules
- * given a file with specific format,
- * extract data on molecules and return StandardsList object
- */
-public interface StandardsListExtractor {
-  /**
-   * Extract standards list, should cache the list
-   *
-   * @return extracted and cached standards list
-   * @throws IOException
-   */
-  StandardsList extractStandardsList() throws IOException, CsvException;
+public class DependencyLicenseTest {
 
+  private static final Logger logger = Logger.getLogger(DependencyLicenseTest.class.getName());
+
+  @Test
+  void test() {
+    final ObjectMapper mapper = new ObjectMapper();
+    try (InputStream dps = this.getClass().getClassLoader()
+        .getResourceAsStream("dependency/dependency-licenses.json")) {
+      final Dependencies dependency = mapper.readValue(dps, Dependencies.class);
+      logger.info(dependency.toString());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

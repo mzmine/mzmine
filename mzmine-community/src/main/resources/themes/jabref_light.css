@@ -118,8 +118,8 @@ https://github.com/JabRef/jabref/blob/main/src/main/java/org/jabref/gui/Base.css
     );
 
     /* Specific color for general tooltips */
-    -jr-tooltip-bg: -jr-accent;
-    -jr-tooltip-fg: -jr-black;
+    -jr-tooltip-bg: -jr-theme;
+    -jr-tooltip-fg: -jr-white;
 
     /* Finally, some specific jr styles that depend on -fx definitions in *this* style */
     -jr-sidepane-background: -jr-gray-1;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -48,13 +48,11 @@ public class SpectraIdentificationResultsParameters extends SimpleParameterSet {
       new BooleanParameter("Show export pdf", "Show button in panel", true);
   public static final BooleanParameter emf =
       new BooleanParameter("Show export emf", "Show button in panel", true);
-  public static final BooleanParameter eps =
-      new BooleanParameter("Show export eps", "Show button in panel", true);
   public static final BooleanParameter svg =
       new BooleanParameter("Show export svg", "Show button in panel", true);
 
   public SpectraIdentificationResultsParameters() {
-    super(new Parameter[] {file, all, pdf, emf, eps, svg});
+    super(new Parameter[] {file, all, pdf, emf, svg});
   }
 
 }

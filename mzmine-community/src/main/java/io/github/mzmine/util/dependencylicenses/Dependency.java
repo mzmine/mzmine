@@ -23,23 +23,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist;
+package io.github.mzmine.util.dependencylicenses;
 
-import com.opencsv.exceptions.CsvException;
-import java.io.IOException;
+import java.util.Comparator;
+import java.util.List;
 
-/**
- * Interface for extracting a list of standard molecules
- * given a file with specific format,
- * extract data on molecules and return StandardsList object
- */
-public interface StandardsListExtractor {
-  /**
-   * Extract standards list, should cache the list
-   *
-   * @return extracted and cached standards list
-   * @throws IOException
-   */
-  StandardsList extractStandardsList() throws IOException, CsvException;
+public record Dependency(String moduleName, String moduleVersion, List<String> moduleUrls,
+                         List<ModuleLicense> moduleLicenses) {
 
+  public Dependency(String moduleName, String moduleVersion, List<String> moduleUrls,
+      List<ModuleLicense> moduleLicenses) {
+    this.moduleName = moduleName;
+    this.moduleVersion = moduleVersion;
+    this.moduleUrls = moduleUrls;
+    this.moduleLicenses = moduleLicenses != null ? moduleLicenses.stream().sorted(Comparator.reverseOrder()).toList() : null;
+  }
 }

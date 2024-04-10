@@ -36,7 +36,6 @@ import io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPH
 import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule;
 import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerModule;
-import io.github.mzmine.modules.dataprocessing.align_hierarchical.HierarAlignerGcModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_path.PathAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_ransac.RansacAlignerModule;
@@ -122,7 +121,6 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
-import io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule;
@@ -209,7 +207,6 @@ public class BatchModeModulesList {
        */
       AllSpectralDataImportModule.class, //
       TDFImportModule.class, //
-      MzMLImportModule.class, //
       ImzMLImportModule.class, //
       MzDataImportModule.class, //
       MSDKmzMLImportModule.class, //
@@ -296,7 +293,7 @@ public class BatchModeModulesList {
       JoinAlignerModule.class, //
       GCAlignerModule.class, //
       ADAP3AlignerModule.class, //
-      HierarAlignerGcModule.class, //
+//      HierarAlignerGcModule.class, // not MIT compatible license
       PathAlignerModule.class, //
       RansacAlignerModule.class, //
 

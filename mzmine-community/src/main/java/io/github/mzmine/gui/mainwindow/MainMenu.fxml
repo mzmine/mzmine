@@ -126,8 +126,6 @@
         userData="io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportModule"/>
       <MenuItem onAction="#runModule" text="mzData"
         userData="io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportModule"/>
-      <MenuItem onAction="#runModule" text="aird"
-        userData="io.github.mzmine.modules.io.import_rawdata_aird.AirdImportModule"/>
       <SeparatorMenuItem/>
 
       <MenuItem onAction="#runModule" text="Thermo RAW"
@@ -449,9 +447,9 @@
       <MenuItem text="GC aligner"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerModule"/>
-      <MenuItem text="Hierarchical aligner (GC)"
+      <!--<MenuItem text="Hierarchical aligner (GC)" // not mit compatible
         onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.align_hierarchical.HierarAlignerGcModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.align_hierarchical.HierarAlignerGcModule"/>-->
       <MenuItem text="ADAP aligner (GC)" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule"/>
       <MenuItem text="LC-Image-Aligner" onAction="#runModule"
@@ -533,29 +531,8 @@
       <MenuItem text="Principal component analysis (PCA)"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataanalysis.pca_new.PCAModule"/>
-      <!--<Menu text="Bubble plots">
-        <MenuItem text="Coefficient of variation (CV) plot"
-          onAction="#runModule"
-          userData="io.github.mzmine.modules.dataanalysis.bubbleplots.cvplot.CVPlotModule"/>
-        <MenuItem text="Logratio plot" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataanalysis.bubbleplots.logratioplot.LogratioPlotModule"/>
-      </Menu>
-      <Menu text="Dimensionality reduction">
-        <MenuItem text="Principal component analysis (PCA)"
-          onAction="#runModule"
-          userData="io.github.mzmine.modules.dataanalysis.projectionplots.PCAPlotModule"/>
-        <MenuItem text="Curvilinear distance analysis (CDA)"
-          onAction="#runModule"
-          userData="io.github.mzmine.modules.dataanalysis.projectionplots.CDAPlotModule"/>
-        <MenuItem text="Sammon's projection" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataanalysis.projectionplots.SammonsPlotModule"/>
-      </Menu>
-      <MenuItem text="Clustering" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataanalysis.clustering.ClusteringModule"/>
-      <MenuItem text="Heat map plot" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataanalysis.heatmaps.HeatMapModule"/>
       <MenuItem text="One-way ANOVA" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataanalysis.significance.anova.AnovaModule"/>-->
+        userData="io.github.mzmine.modules.dataanalysis.significance.anova.AnovaModule"/>
     </Menu>
   </Menu>
 
@@ -688,9 +665,13 @@
     <MenuItem text="Support" onAction="#openLink"
       userData="https://mzmine.github.io/mzmine_documentation/troubleshooting.html"/>
     <MenuItem text="Report an issue" onAction="#openLink"
-      userData="https://github.com/mzmine/mzmine3/issues"/>
+      userData="http://mzmine.github.io/support.html"/>
+    <MenuItem text="Open introduction tab" onAction="#handleAddIntroductionTab"/>
+    <MenuItem text="Dependencies" onAction="#showDependencyTab"/>
+    <SeparatorMenuItem/>
+    <MenuItem text="Check for updates" onAction="#versionCheck"/>
+    <SeparatorMenuItem/>
     <MenuItem text="Show log file" onAction="#handleShowLogFile"/>
-
   </Menu>
 
   <Menu text="Users">

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference;
 
 import com.google.common.collect.Range;
+import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -96,7 +97,7 @@ public class ReferenceCCSCalibrationModule implements MZmineProcessingModule, CC
       if(calibrants == null) {
         return null;
       }
-    } catch (IOException e) {
+    } catch (IOException | CsvException e) {
       logger.log(Level.WARNING,
           "Cannot parse calibrants from calibrant file " + calibrantFile.getAbsolutePath());
       return null;

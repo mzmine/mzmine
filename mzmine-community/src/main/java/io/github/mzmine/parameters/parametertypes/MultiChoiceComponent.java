@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,15 +26,14 @@
 package io.github.mzmine.parameters.parametertypes;
 
 
-import com.Ostermiller.util.CSVParser;
-import com.Ostermiller.util.CSVPrinter;
+import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.StringMapParser;
+import io.github.mzmine.util.io.WriterOptions;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,6 +72,7 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
   private final Label lbTitle;
   private final VBox buttonBar = new VBox();
   private final StringMapParser<T> parser;
+  private final String separator = ";";
 
   /**
    * Create the component.
@@ -188,10 +188,10 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
       }
 
       // Read the CSV file into a string array.
-      String[][] csvLines = null;
+      List<String[]> csvLines = null;
       try {
-        csvLines = CSVParser.parse(new FileReader(file));
-      } catch (IOException ex) {
+        csvLines = CSVParsingUtils.readData(file, separator);
+      } catch (IOException | CsvException ex) {
         final String msg = "There was a problem reading the choices file.";
         MZmineCore.getDesktop().displayErrorMessage(msg + "\n(" + ex.getMessage() + ')');
         logger.log(Level.SEVERE, msg, ex);
@@ -288,14 +288,14 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
    * @return a new list of adduct choices that includes the original choices plus any new ones found
    * by parsing the CSV lines.
    */
-  private void loadChoices(final String[][] lines, final Collection<T> choices) {
-    if (lines.length < 2) {
+  private void loadChoices(final List<String[]> lines, final Collection<T> choices) {
+    if (lines.size() < 2) {
       return;
     }
     // load a list of choices.
-    String[] header = lines[0];
-    for (int l = 1; l < lines.length; l++) {
-      String[] line = lines[l];
+    String[] header = lines.get(0);
+    for (int l = 1; l < lines.size(); l++) {
+      String[] line = lines.get(l);
       if (line.length != header.length) {
         logger.warning(
             "Line length is different to header length: " + line.length + " to " + header.length);
@@ -328,17 +328,18 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
    * @throws IOException if there are i/o problems.
    */
   private void exportToFile(final File file, final Collection<T> choices) throws IOException {
-    final CSVPrinter writer = new CSVPrinter(new FileWriter(file));
-    boolean firstLine = true;
-    for (final T choice : choices) {
-      Map<String, String> map = choice.getDataMap();
-      // write header
-      if (firstLine) {
-        writer.writeln(map.keySet().toArray(String[]::new));
-        firstLine = false;
+    try (var writer = CSVParsingUtils.createDefaultWriter(file, separator, WriterOptions.REPLACE)) {
+      boolean firstLine = true;
+      for (final T choice : choices) {
+        Map<String, String> map = choice.getDataMap();
+        // write header
+        if (firstLine) {
+          writer.writeNext(map.keySet().toArray(String[]::new));
+          firstLine = false;
+        }
+        // write values
+        writer.writeNext(map.values().toArray(String[]::new));
       }
-      // write values
-      writer.writeln(map.values().toArray(String[]::new));
     }
   }
 }

@@ -44,8 +44,6 @@ import java.io.Writer;
 import java.text.MessageFormat;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
-import net.sf.epsgraphics.ColorMode;
-import net.sf.epsgraphics.EpsGraphics;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.freehep.graphics2d.VectorGraphics;
@@ -75,7 +73,6 @@ public class SwingExportUtil {
       case "all":
         writeToPDF(panel, path, fileName);
         writeToEMF(panel, path, fileName);
-        writeToEPS(panel, path, fileName);
         writeToSVG(panel, path, fileName);
         break;
       case "pdf":
@@ -83,10 +80,6 @@ public class SwingExportUtil {
         break;
       case "emf":
         writeToEMF(panel, path, fileName);
-        writeToEPS(panel, path, fileName);
-        break;
-      case "eps":
-        writeToEPS(panel, path, fileName);
         break;
       case "svg":
         writeToSVG(panel, path, fileName);
@@ -130,27 +123,6 @@ public class SwingExportUtil {
         document.close();
       }
     }
-  }
-
-  /**
-   * Writes swing to EPS
-   *
-   * @param panel
-   * @param fileName
-   * @throws Exception
-   */
-  public static void writeToEPS(JComponent panel, File fileName) throws IOException {
-    // print the panel to pdf
-    int width = panel.getWidth();
-    int height = panel.getWidth();
-    logger.info(
-        () -> MessageFormat.format("Exporting panel to EPS file (width x height; {0} x {1}): {2}",
-            width, height, fileName.getAbsolutePath()));
-    EpsGraphics g;
-    g = new EpsGraphics("EpsTools Drawable Export", new FileOutputStream(fileName), 0, 0, width,
-        height, ColorMode.COLOR_RGB);
-    panel.print(g);
-    g.close();
   }
 
   /**
@@ -207,18 +179,6 @@ public class SwingExportUtil {
   public static void writeToPDF(JComponent panel, File path, String fileName)
       throws IOException, DocumentException {
     writeToPDF(panel, FileAndPathUtil.getRealFilePath(path, fileName, "pdf"));
-  }
-
-  /**
-   * Writes swing to EPS
-   *
-   * @param panel
-   * @param path
-   * @param fileName
-   * @throws Exception
-   */
-  public static void writeToEPS(JComponent panel, File path, String fileName) throws IOException {
-    writeToEPS(panel, FileAndPathUtil.getRealFilePath(path, fileName, "eps"));
   }
 
   /**

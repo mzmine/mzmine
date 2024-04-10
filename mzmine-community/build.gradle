@@ -24,6 +24,10 @@
  */
 
 
+import com.github.jk1.license.filter.LicenseBundleNormalizer
+import com.github.jk1.license.render.CsvReportRenderer
+import com.github.jk1.license.render.InventoryHtmlReportRenderer
+import com.github.jk1.license.render.JsonReportRenderer
 import org.gradle.internal.os.OperatingSystem
 
 import java.nio.file.FileSystems
@@ -40,6 +44,7 @@ plugins {
     // versioning now in version.properties file
     // https://github.com/ethauvin/semver-gradle
     alias(libs.plugins.semver)
+    alias(libs.plugins.licensereport)
 }
 
 // save version to main resources
@@ -115,7 +120,7 @@ repositories {
     maven { url = "https://jitpack.io" }
     maven { url = "https://www.xypron.de/repository/" }
     // For cpdetector
-    maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
+//    maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
     // For jimzml
     // maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
 }
@@ -159,9 +164,7 @@ dependencies {
     implementation(libs.commons.lang3)
     implementation(libs.fastutil)
     implementation "edu.ucar:netcdf4:4.5.5"
-    implementation "org.ostermiller:utils:1.07.00"
     implementation 'org.jetbrains:annotations:22.0.0'
-    implementation 'nz.ac.waikato.cms.weka:weka-dev:3.9.6'
     implementation 'net.sourceforge.jmol:jmol:14.31.10'
 
     implementation(libs.bundles.jfreechart)
@@ -175,15 +178,11 @@ dependencies {
     implementation(libs.bundles.msdk)
     implementation(libs.bundles.batik)
     implementation(libs.bundles.okhttp)
-    implementation "uk.ac.ebi.jmzml:jmzml:1.7.11"
     implementation "org.postgresql:postgresql:9.3-1102-jdbc41"
-    implementation "mysql:mysql-connector-java:5.1.34"
     implementation "org.rsc.chemspider:chemspider-api:1.0.0"
     implementation "org.nuiton.thirdparty:REngine:1.8-5"
     implementation "org.nuiton.thirdparty:Rserve:1.8-5"
     implementation 'com.github.jbytecode:RCaller:4.0.2'
-    implementation "mzmine:jmprojection:1.0"
-    implementation "mzmine:gslibml:0.0.1"
     implementation 'org.apache.xmlgraphics:fop:2.6'
     implementation "org.freehep:freehep-graphicsio-emf:2.4"
     implementation("eu.hansolo.fx:charts:21.0.7")
@@ -193,15 +192,10 @@ dependencies {
 
     implementation "org.du-lab.adap:adap:4.1.10"
     implementation "org.xerial:sqlite-jdbc:3.40.0.0"
-    implementation "gnf:clustering:20210422"
 
     implementation 'com.github.librepdf:openpdf:2.0.0'
-    implementation "net.sf.epsgraphics:epsgraphics:1.2"
     implementation "com.miglayout:miglayout:3.7.4"
 
-    implementation "javax.xml.bind:jaxb-api:2.3.1"
-    implementation "com.sun.xml.bind:jaxb-core:2.3.0.1"
-    implementation "com.sun.xml.bind:jaxb-impl:2.3.2"
     implementation "javax.activation:javax.activation-api:1.2.0"
     implementation "javax.mail:javax.mail-api:1.6.2"
     implementation "io.swagger:swagger-annotations:$swaggerVersion"
@@ -218,7 +212,6 @@ dependencies {
     //implementation 'com.github.robinschmid:jimzMLParser:mzmine_local_obo-SNAPSHOT'
     //implementation 'com.github.alanrace:jimzMLParser:1.0.6'
     implementation group: 'com.alanmrace', name: 'jimzmlparser', version: '1.0.3'
-    implementation "net.csibio.aird:aird-sdk:1.1.6.1"
     implementation "com.github.yannrichet:JMathPlot:1.0.1"
     implementation "de.jensd:fontawesomefx-fontawesome:4.7.0-9.1.2"
 
@@ -554,3 +547,69 @@ task copyTestResources(type: Copy) {
     into layout.buildDirectory.dir("classes/test")
 }
 processTestResources.dependsOn copyTestResources
+
+licenseReport {
+    // By default this plugin will collect the union of all licenses from
+    // the immediate pom and the parent poms. If your legal team thinks this
+    // is too liberal, you can restrict collected licenses to only include the
+    // those found in the immediate pom file
+    // Defaults to: true
+    unionParentPomLicenses = true
+
+    // Set output directory for the report data.
+    // Defaults to ${project.buildDir}/reports/dependency-license.
+    outputDir = getLayout().getBuildDirectory().get().dir("licensereport")
+//    outputDir = getLayout().getProjectDirectory().dir("licensereport")
+
+    // Adjust the configurations to fetch dependencies. Default is 'runtimeClasspath'
+    // For Android projects use 'releaseRuntimeClasspath' or 'yourFlavorNameReleaseRuntimeClasspath'
+    // Use 'ALL' to dynamically resolve all configurations:
+    // configurations = ALL
+    configurations = ['runtimeClasspath']
+
+    // Don't include artifacts of project's own group into the report
+    excludeOwnGroup = true
+
+    excludes = ['com.fasterxml.jackson:jackson-bom', // apache 2.0 https://github.com/FasterXML/jackson-bom?tab=Apache-2.0-1-ov-file#readme
+                'com.alanmrace:jimzmlparser', // no license provided
+                'colt:colt', // https://dst.lbl.gov/ACSSoftware/colt/license.html (CERN license, permissive)
+                'com.github.yannrichet:JMathArray', 'com.github.yannrichet:JMathPlot', 'com.github.yannrichet:JMathIO', // BSD 2-Clause
+                'net.jcip:jcip-annotations', // Creative Commons Attribution License
+                'io.mzio(.*)']
+
+    // Don't exclude bom dependencies.
+    // If set to true, then all boms will be excluded from the report
+    excludeBoms = false
+
+    filters = [new LicenseBundleNormalizer(bundlePath: "$projectDir/config/license-normalizer-bundle.json")]
+    renderers = [new JsonReportRenderer("licenses.json"), new CsvReportRenderer("licenses.csv"),
+                 new InventoryHtmlReportRenderer('licenses.html', 'Licenses')]
+
+    allowedLicensesFile = new File("$projectDir/config/allowed-licenses.json")
+
+    // if a project contains a dependency we are not allowed to use, we can use
+    // "gradlew mzmine-community:dependencies" to generate a dependency graph
+}
+tasks.register('copyLicenseInformationToResources', Copy) {
+    outputs.upToDateWhen { false }
+    mustRunAfter(checkLicense)
+    from(getLayout().getBuildDirectory().get().dir("/licensereport"))
+    into(getLayout().getProjectDirectory().dir("/src/main/resources/dependency/"))
+    include("project-licenses-for-check-license-task.json")
+    rename("project-licenses-for-check-license-task.json", "dependency-licenses.json")
+}
+tasks.register('copyLicenseInformationToBuild', Copy) {
+    outputs.upToDateWhen { false }
+    mustRunAfter(checkLicense)
+    from(getLayout().getBuildDirectory().get().dir("/licensereport"))
+    into(getLayout().getBuildDirectory().get().dir("/resources/main/dependency/"))
+    include("project-licenses-for-check-license-task.json")
+    rename("project-licenses-for-check-license-task.json", "dependency-licenses.json")
+}
+
+// compileJava does not actually depend on this but we want to fail the build if there are invalid licenses
+tasks.compileJava.dependsOn(checkLicense, copyLicenseInformationToResources, copyLicenseInformationToBuild)
+// copying must be finished before packaging
+tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
+tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
+

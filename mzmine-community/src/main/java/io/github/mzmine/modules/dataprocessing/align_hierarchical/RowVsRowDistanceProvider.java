@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,9 @@
 
 package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.List;
-
-import io.github.mzmine.datamodel.MZmineProject;
 
 public class RowVsRowDistanceProvider {
 
@@ -153,7 +152,7 @@ public class RowVsRowDistanceProvider {
 
     double score = this.getScore(i, j, mzMaxDiff, rtMaxDiff).getScore();
     // Score too low
-    if (score <= Math.max(HierarAlignerGCTask.MIN_SCORE_ABSOLUTE, minScore)) {
+    if (score <= Math.max(/*HierarAlignerGCTask.MIN_SCORE_ABSOLUTE*/ 0, minScore)) {
       // System.out.println("Found score " + score + " < " +
       // Math.max(JDXCompoundsIdentificationSingleTask.MIN_SCORE_ABSOLUTE,
       // minScore) + "!");
