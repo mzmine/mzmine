@@ -31,6 +31,7 @@ import io.github.mzmine.gui.NewVersionCheck;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.gui.WindowLocation;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.ModuleQuickSelectDialog;
@@ -255,7 +256,7 @@ public class MainMenuController {
   }
 
   public void showUsersTab(final ActionEvent e) {
-    MZmineCore.getDesktop().addTab(new UsersTab());
+    FxThread.runLater(() -> MZmineCore.getDesktop().addTab(new UsersTab()));
   }
 
   public void showUserSignUp(final ActionEvent e) {

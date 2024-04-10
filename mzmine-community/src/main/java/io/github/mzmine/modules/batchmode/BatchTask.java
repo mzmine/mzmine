@@ -149,6 +149,10 @@ public class BatchTask extends AbstractTask {
     // Submit the tasks to the task controller for processing
     // this runs the ThreadPoolTask on this thread (blocking) and calls all sub tasks in the default executor
     WrappedTask finishedTask = taskController.runTaskOnThisThreadBlocking(threadPoolTask);
+    if (finishedTask == null) {
+      return TaskStatus.ERROR;
+    }
+
     return finishedTask.getActualTask().getStatus();
   }
 
