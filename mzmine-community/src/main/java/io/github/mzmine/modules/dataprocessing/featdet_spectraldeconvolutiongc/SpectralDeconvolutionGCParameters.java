@@ -38,8 +38,8 @@ public class SpectralDeconvolutionGCParameters extends SimpleParameterSet {
 
   public static final RTToleranceParameter RT_TOLERANCE = new RTToleranceParameter();
   public static final IntegerParameter MIN_NUMBER_OF_SIGNALS = new IntegerParameter(
-      "Minimum number of deconvoluted signals in pseudo spectrum",
-      "Minimum number of signals in pseudo spectrum", 10, true, 1, 5000);
+      "Minimum signals in pseudo spectrum",
+      "Minimum number of deconvoluted signals in pseudo spectrum", 10, true, 1, 5000);
 
   public static final StringParameter SUFFIX = new StringParameter("Name suffix",
       "Suffix to be added to feature list name", "decon");
