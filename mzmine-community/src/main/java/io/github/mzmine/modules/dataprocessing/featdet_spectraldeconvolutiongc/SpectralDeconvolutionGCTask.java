@@ -39,13 +39,14 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogram;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
+import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -122,24 +123,10 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
   }
 
   private void createNewDeconvolutedFeatureList(List<FeatureListRow> deconvolutedFeatureListRows) {
+    deconvolutedFeatureList = FeatureListUtils.createCopy(featureList, suffix,
+        getMemoryMapStorage());
 
-    // Create new feature list.
-    deconvolutedFeatureList = new ModularFeatureList(featureList.getName() + " " + suffix,
-        getMemoryMapStorage(), featureList.getRawDataFiles());
-    // Copy previous applied methods.
-    for (final FeatureListAppliedMethod method : featureList.getAppliedMethods()) {
-      deconvolutedFeatureList.addDescriptionOfAppliedTask(method);
-    }
-
-    featureList.getRawDataFiles().forEach(
-        file -> deconvolutedFeatureList.setSelectedScans(file, featureList.getSeletedScans(file)));
-
-    DataTypeUtils.addDefaultChromatographicTypeColumns(
-        (ModularFeatureList) deconvolutedFeatureList);
-    // Add task description to featureList.
-    deconvolutedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(getTaskDescription(),
-            SpectralDeconvolutionGCModule.class, parameters, getModuleCallDate()));
+    deconvolutedFeatureListRows.sort(FeatureListRowSorter.DEFAULT_RT);
 
     int newID = 1;
     for (FeatureListRow featureListRow : deconvolutedFeatureListRows) {
@@ -157,35 +144,29 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
       if (group.size() < minNumberOfSignals) {
         continue;
       }
-      List<SpectralDeconvolutionGCTask.PseudoSpectrumDataPoint> pseudoSpectrumDataPoints = new ArrayList<>();
-      group.sort(Comparator.comparingDouble(ModularFeature::getHeight).reversed());
+
+      // is already sorted by intensity best first
+      ModularFeature mainFeature = group.getFirst();
+
+      group.sort(Comparator.comparingDouble(ModularFeature::getMZ));
+      double[] mzs = new double[group.size()];
+      double[] intensities = new double[group.size()];
       for (int i = 0; i < group.size(); i++) {
-        pseudoSpectrumDataPoints.add(
-            new PseudoSpectrumDataPoint(group.get(i).getMZ(), group.get(i).getHeight()));
+        mzs[i] = group.get(i).getMZ();
+        intensities[i] = group.get(i).getHeight();
       }
-      if (pseudoSpectrumDataPoints.size() >= minNumberOfSignals) {
-        pseudoSpectrumDataPoints.sort(Comparator.comparingDouble(PseudoSpectrumDataPoint::mz));
-        double[] mzs = pseudoSpectrumDataPoints.stream().mapToDouble(PseudoSpectrumDataPoint::mz)
-            .toArray();
-        double[] intensities = pseudoSpectrumDataPoints.stream()
-            .mapToDouble(PseudoSpectrumDataPoint::intensity).toArray();
 
-        // Create PseudoSpectrum, take first feature to ensure most intense is representative feature
-        PseudoSpectrum pseudoSpectrum = new SimplePseudoSpectrum(featureList.getRawDataFile(0), 1,
-            // MS Level
-            group.get(0).getRT(), null, // No MsMsInfo for pseudo spectrum
-            mzs, intensities, group.get(0).getRepresentativeScan().getPolarity(),
-            "Correlated Features Pseudo Spectrum", PseudoSpectrumType.GC_EI);
+      // Create PseudoSpectrum, take first feature to ensure most intense is representative feature
+      PseudoSpectrum pseudoSpectrum = new SimplePseudoSpectrum(featureList.getRawDataFile(0), 1,
+          // MS Level
+          group.getFirst().getRT(), null, // No MsMsInfo for pseudo spectrum
+          mzs, intensities, group.getFirst().getRepresentativeScan().getPolarity(),
+          "Correlated Features Pseudo Spectrum", PseudoSpectrumType.GC_EI);
 
-        group.get(0).setAllMS2FragmentScans(List.of(pseudoSpectrum));
-        deconvolutedFeatureListRowsByRtOnly.add(group.get(0).getRow());
-      }
+      mainFeature.setAllMS2FragmentScans(List.of(pseudoSpectrum));
+      deconvolutedFeatureListRowsByRtOnly.add(mainFeature.getRow());
     }
     return deconvolutedFeatureListRowsByRtOnly;
-  }
-
-  private record PseudoSpectrumDataPoint(double mz, double intensity) {
-
   }
 
   @Override
