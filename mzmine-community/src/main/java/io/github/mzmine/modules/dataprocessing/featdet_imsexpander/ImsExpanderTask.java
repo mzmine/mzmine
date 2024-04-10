@@ -48,6 +48,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.taskcontrol.threadpools.ThreadPoolTask;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListUtils;
@@ -198,9 +199,9 @@ public class ImsExpanderTask extends AbstractTask {
     // might need a copy of task list -  we usually clear the tasks list to not hold on to memory
     ThreadPoolTask poolTask = ThreadPoolTask.createDefaultTaskManagerPool(getTaskDescription(),
         new ArrayList<>(tasks));
-    MZmineCore.getTaskController().runTaskOnThisThreadBlocking(poolTask);
+    var wrappedTask = MZmineCore.getTaskController().runTaskOnThisThreadBlocking(poolTask);
 
-    if (poolTask.getStatus() == TaskStatus.CANCELED) {
+    if (wrappedTask == null || poolTask.getStatus() == TaskStatus.CANCELED) {
       setStatus(TaskStatus.CANCELED);
       return;
     }
