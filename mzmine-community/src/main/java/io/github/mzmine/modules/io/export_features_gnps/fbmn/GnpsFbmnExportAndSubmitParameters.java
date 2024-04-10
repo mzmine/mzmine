@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,7 +36,17 @@
 
 package io.github.mzmine.modules.io.export_features_gnps.fbmn;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.fbmnPaper;
+import static io.github.mzmine.javafx.components.factories.FxTexts.gnpsPaper;
+import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.iimnPaper;
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.mzminePaper;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -50,6 +60,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
+import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
 
@@ -95,15 +106,18 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    String message = "<html><strong>About the GNPS Export/Submit Module:</strong>"
-        + "<p>The GNPS Export module was designed for the <strong>Feature-Based Molecular Networking</strong> (FBMN) and the advanced Ion Identity Molecular Networking workflow on GNPS <a href=\"http://gnps.ucsd.edu\">http://gnps.ucsd.edu</a>.<br>"
-        + "See the <a href=\"https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/\"><strong>FBMN documentation here</strong></a> (or a youtube <a href=\"https://www.youtube.com/watch?v=vFcGG7T_44E&list=PL4L2Xw5k8ITzd9hx5XIP94vFPxj1sSafB&index=4&t=146s\">playlist here</a>) and <strong>please cite</strong>:<br>"
-        + "<ul>"
-        + "<li>the <strong>IIMN</strong> paper: Schmid, Petras, Nothias et al.: <a href=\"https://www.nature.com/articles/s41467-021-23953-9\">Nature Communications 12, 3832 (2021)</a></li>"
-        + "<li>the <strong>FBMN</strong> paper: Nothias, Petras, Schmid et al.: <a href=\"https://www.nature.com/articles/s41592-020-0933-6\">Nature Methods 17, 905–908 (2020)</a></li>"
-        + "<li>the <strong>GNPS</strong> paper: Wang et al.:<a href=\"https://www.nature.com/nbt/journal/v34/n8/full/nbt.3597.html\">Nature Biotechnology 34.8 (2016): 828-837</a></li>"
-        + "<li>and the <strong>MZmine</strong> paper: Pluskal et al.: <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">BMC Bioinformatics, 11, 395 (2010)</a></li>"
-        + "</ul></p>";
+    TextFlow message = FxTextFlows.newTextFlow(boldText("About the GNPS Export/Submit Module:\n"),
+        text("The GNPS Export module was designed for the"),
+        boldText("Feature-Based Molecular Networking (FBMN)"),
+        boldText("and the advanced Ion Identity Molecular Networking (IIMN)"), text("workflow on"),
+        hyperlinkText("GNPS", "https://gnps.ucsd.edu"), text("See the"),
+        hyperlinkText("FBMN documentation here",
+            "https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/"),
+        text("or a "), hyperlinkText("youtube playlist",
+            "https://www.youtube.com/watch?v=vFcGG7T_44E&list=PL4L2Xw5k8ITzd9hx5XIP94vFPxj1sSafB&index=4&t=146s"),
+        text("and"), boldText("please cite:\n"), boldText("IIMN paper: "), iimnPaper, linebreak(),
+        boldText("FBMN paper: "), fbmnPaper, linebreak(), boldText("GNPS paper: "), gnpsPaper,
+        linebreak(), boldText("mzmine paper: "), mzminePaper);
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();

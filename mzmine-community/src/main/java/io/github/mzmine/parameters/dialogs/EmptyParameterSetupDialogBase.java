@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,15 +25,15 @@
 
 package io.github.mzmine.parameters.dialogs;
 
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
 import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -47,6 +47,7 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 
@@ -82,12 +83,12 @@ public class EmptyParameterSetupDialogBase extends Stage {
    * @param message: html-formatted text
    */
   public EmptyParameterSetupDialogBase(boolean valueCheckRequired, ParameterSet parameters,
-      String message) {
+      TextFlow message) {
     this(valueCheckRequired, parameters, true, true, message);
   }
 
   public EmptyParameterSetupDialogBase(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, boolean addCancelButton, String message) {
+      boolean addOkButton, boolean addCancelButton, TextFlow message) {
     super();
     Image mzmineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
     this.getIcons().add(mzmineIcon);

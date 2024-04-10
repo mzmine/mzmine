@@ -39,6 +39,10 @@ Text, Text:hover {
   -fx-fill: -fx-light-text-color
 }
 
+TextFlow {
+  -fx-background-color: -jr-sidepane-background;
+}
+
 .title-label {
   -fx-font-size: 14.0pt;
 }

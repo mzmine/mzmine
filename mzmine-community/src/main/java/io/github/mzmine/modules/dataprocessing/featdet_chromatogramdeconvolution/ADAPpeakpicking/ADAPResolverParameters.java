@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,8 +28,15 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.mzminePaper;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
@@ -43,6 +50,7 @@ import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import io.github.mzmine.util.ExitCode;
 import java.text.NumberFormat;
+import javafx.scene.text.TextFlow;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,13 +102,12 @@ public class ADAPResolverParameters extends GeneralResolverParameters {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    String message = "<html>ADAP Module Disclaimer:"
-        + "<br> If you use the  ADAP Chromatogram Deconvolution Module, please cite the "
-        + "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"
-        + "<br><a href=\"http://pubs.acs.org/doi/abs/10.1021/acs.analchem.7b00947\"> Myers OD, Sumner SJ, Li S, Barnes S, Du X: One Step Forward for Reducing False Positive and False Negative "
-        + "<br>Compound Identifications from Mass Spectrometry Metabolomics Data: New Algorithms for Constructing Extracted "
-        + "<br>Ion Chromatograms and Detecting Chromatographic Peaks. Anal Chem 2017, DOI: 10.1021/acs.analchem.7b00947</a>"
-        + "</html>";
+    final TextFlow message = FxTextFlows.newTextFlow(boldText("ADAP Module Disclaimer:"),
+        linebreak(), text("If you use the  ADAP Chromatogram Deconvolution Module, please cite: "),
+        linebreak(), boldText("mzmine paper: "), mzminePaper, linebreak(), boldText("ADAP paper: "),
+        hyperlinkText(
+            "Myers OD, Sumner SJ, Li S, Barnes S, Du X. Anal. Chem. 2017, 89, 17, 8696–8703",
+            "https://pubs.acs.org/doi/abs/10.1021/acs.analchem.7b00947"));
 
     final FeatureResolverSetupDialog dialog = new FeatureResolverSetupDialog(valueCheckRequired,
         this, message);

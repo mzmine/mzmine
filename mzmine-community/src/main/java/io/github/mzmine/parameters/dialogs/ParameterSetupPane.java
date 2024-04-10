@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,8 @@
 
 package io.github.mzmine.parameters.dialogs;
 
-import com.google.common.base.Strings;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -58,7 +58,8 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
-import javafx.scene.web.WebView;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.TextFlow;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 
@@ -80,7 +81,7 @@ public class ParameterSetupPane extends BorderPane {
   // if needed.
   protected final ButtonBar pnlButtons;
   // Footer message
-  protected final String footerMessage;
+  protected final TextFlow footerMessage;
   // the centerPane is empty and used as the main container for all parameter components
   protected final BorderPane mainPane;
   protected final ScrollPane mainScrollPane;
@@ -110,7 +111,7 @@ public class ParameterSetupPane extends BorderPane {
    * @param message: html-formatted text
    */
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, String message) {
+      boolean addOkButton, TextFlow message) {
     this(valueCheckRequired, parameters, addOkButton, false, message, true, true);
   }
 
@@ -120,7 +121,7 @@ public class ParameterSetupPane extends BorderPane {
    * @param message: html-formatted text
    */
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, boolean addCancelButton, String message, boolean addParamComponents) {
+      boolean addOkButton, boolean addCancelButton, TextFlow message, boolean addParamComponents) {
     this(valueCheckRequired, parameters, addOkButton, addCancelButton, message, addParamComponents,
         true);
   }
@@ -128,10 +129,9 @@ public class ParameterSetupPane extends BorderPane {
   /**
    * Method to display setup dialog with a html-formatted footer message at the bottom.
    *
-   * @param message: html-formatted text
    */
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, boolean addCancelButton, String message, boolean addParamComponents,
+      boolean addOkButton, boolean addCancelButton, TextFlow message, boolean addParamComponents,
       boolean addHelp) {
     this.valueCheckRequired = valueCheckRequired;
     this.parameterSet = parameters;
@@ -199,17 +199,19 @@ public class ParameterSetupPane extends BorderPane {
     }
     mainPane.setBottom(pnlButtons);
 
-    if (!Strings.isNullOrEmpty(footerMessage)) {
-      WebView label = new WebView();
-      label.getEngine().loadContent(footerMessage);
-      label.setMaxHeight(100.0);
-      mainPane.setTop(label);
-    }
-
     if (addParamComponents) {
       paramsPane = createParameterPane(parameterSet.getParameters());
       centerPane.setCenter(paramsPane);
     }
+
+    if (footerMessage != null) {
+      final VBox pane = new VBox(footerMessage);
+      footerMessage.prefWidthProperty().bind(mainPane.widthProperty().subtract(30));
+      pane.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
+      pane.setFillWidth(true);
+      mainPane.setTop(pane);
+    }
+
 //    setMinWidth(500.0);
 //    setMinHeight(400.0);
   }
@@ -332,6 +334,7 @@ public class ParameterSetupPane extends BorderPane {
       paramsPane.getRowConstraints().add(rowConstraints);
       rowCounter++;
     }
+
     return paramsPane;
   }
 

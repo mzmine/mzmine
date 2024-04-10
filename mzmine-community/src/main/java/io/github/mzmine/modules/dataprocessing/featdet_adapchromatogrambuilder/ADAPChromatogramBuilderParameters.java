@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,13 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.mzminePaper;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -45,6 +52,7 @@ import java.util.Collection;
 import java.util.Map;
 import javafx.application.Platform;
 import javafx.scene.control.ButtonType;
+import javafx.scene.text.TextFlow;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -98,13 +106,14 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     assert Platform.isFxApplicationThread();
-    String message = "<html>ADAP Module Disclaimer:"
-        + "<br> If you use the ADAP Chromatogram Builder Module, please cite the "
-        + "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"
-        + "<br><a href=\"http://pubs.acs.org/doi/abs/10.1021/acs.analchem.7b00947\"> Myers OD, Sumner SJ, Li S, Barnes S, Du X: One Step Forward for Reducing False Positive and False Negative "
-        + "<br>Compound Identifications from Mass Spectrometry Metabolomics Data: New Algorithms for Constructing Extracted "
-        + "<br>Ion Chromatograms and Detecting Chromatographic Features. Anal Chem 2017, DOI: 10.1021/acs.analchem.7b00947</a>"
-        + "</html>";
+
+    final TextFlow message = FxTextFlows.newTextFlow(boldText("ADAP Module Disclaimer:\n"),
+        text("If you use the ADAP Chromatogram Builder Module, please cite: "), linebreak(),
+        boldText("mzmine paper "), mzminePaper, linebreak(), text("and the following article: "),
+        hyperlinkText(
+            "Myers OD, Sumner SJ, Li S, Barnes S, Du X, Anal. Chem. 2017, 89, 17, 8696–8703",
+            "http://pubs.acs.org/doi/abs/10.1021/acs.analchem.7b00947"));
+
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();

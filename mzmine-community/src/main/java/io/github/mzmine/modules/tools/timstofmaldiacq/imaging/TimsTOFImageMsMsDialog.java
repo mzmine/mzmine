@@ -57,6 +57,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextFlow;
 import javafx.util.Duration;
 import org.jfree.chart.annotations.XYPointerAnnotation;
 
@@ -74,7 +75,7 @@ public class TimsTOFImageMsMsDialog extends ParameterSetupDialogWithPreview {
   }
 
   public TimsTOFImageMsMsDialog(boolean valueCheckRequired, ParameterSet parameters,
-      String message) {
+      TextFlow message) {
     super(valueCheckRequired, parameters, message);
 
     SortableFeatureComboBox fBox = new SortableFeatureComboBox();

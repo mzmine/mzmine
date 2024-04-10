@@ -50,6 +50,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.text.TextFlow;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -73,7 +74,7 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
   }
 
   public MobilityMzRegionExtractionSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
-      String message) {
+      TextFlow message) {
     super(valueCheckRequired, parameters, message);
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();

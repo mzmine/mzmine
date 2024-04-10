@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,10 @@
 
 package io.github.mzmine.modules.io.export_features_venn;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -32,6 +36,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
+import javafx.scene.text.TextFlow;
 
 public class VennExportParameters extends SimpleParameterSet {
 
@@ -50,10 +55,12 @@ public class VennExportParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    String message = "Exports a feature list to a csv that can be plotted as a venn diagram by"
-        + " other software such as "
-        + "<a href=\"https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/10.1002/pmic.201400320\">VennDis</a>"
-        + " or <a href=\"https://bioinfogp.cnb.csic.es/tools/venny/index.html\">VENNY</a>";
+    final TextFlow message = FxTextFlows.newTextFlow(text(
+            "Exports a feature list to a csv that can be plotted as a venn diagram by other software such as "),
+        hyperlinkText("VennDis",
+            "https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/10.1002/pmic.201400320"),
+        text(" or "),
+        hyperlinkText("VENNY", "https://bioinfogp.cnb.csic.es/tools/venny/index.html"));
 
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();

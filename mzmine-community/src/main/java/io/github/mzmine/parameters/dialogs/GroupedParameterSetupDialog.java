@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextFlow;
 import org.controlsfx.control.PropertySheet;
 import org.controlsfx.control.PropertySheet.Item;
 import org.controlsfx.control.PropertySheet.Mode;
@@ -62,7 +63,7 @@ public class GroupedParameterSetupDialog extends EmptyParameterSetupDialogBase {
    */
   @SuppressWarnings({"rawtypes", "unchecked"})
   public GroupedParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
-      String message) {
+      TextFlow message) {
     super(valueCheckRequired, parameters, message);
 
     items = FXCollections.observableArrayList();

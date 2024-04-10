@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,7 +24,15 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.mzminePaper;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
 import dulab.adap.workflow.TwoStepDecompositionParameters;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -38,9 +46,9 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.util.ExitCode;
 import java.text.NumberFormat;
 import javafx.collections.FXCollections;
+import javafx.scene.text.TextFlow;
 
 /**
- *
  * @author aleksandrsmirnov
  */
 public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
@@ -51,12 +59,12 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
   // ----- First-phase parameters -------------------------------------------
   // ------------------------------------------------------------------------
 
-  public static final DoubleParameter MIN_CLUSTER_DISTANCE =
-      new DoubleParameter("Min cluster distance (min)", "Minimum distance between any two clusters",
-          NumberFormat.getNumberInstance(), 0.01);
+  public static final DoubleParameter MIN_CLUSTER_DISTANCE = new DoubleParameter(
+      "Min cluster distance (min)", "Minimum distance between any two clusters",
+      NumberFormat.getNumberInstance(), 0.01);
 
-  public static final IntegerParameter MIN_CLUSTER_SIZE =
-      new IntegerParameter("Min cluster size", "Minimum size of a cluster", 2);
+  public static final IntegerParameter MIN_CLUSTER_SIZE = new IntegerParameter("Min cluster size",
+      "Minimum size of a cluster", 2);
 
   public static final DoubleParameter MIN_CLUSTER_INTENSITY = new DoubleParameter(
       "Min cluster intensity",
@@ -71,10 +79,10 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
   // ----- Second-phase parameters ------------------------------------------
   // ------------------------------------------------------------------------
 
-  public static final DoubleParameter EDGE_TO_HEIGHT_RATIO =
-      new DoubleParameter("Min edge-to-height ratio",
-          "A peak is considered shared if its edge-to-height ratio is below this parameter",
-          NumberFormat.getInstance(), 0.3, 0.0, 1.0);
+  public static final DoubleParameter EDGE_TO_HEIGHT_RATIO = new DoubleParameter(
+      "Min edge-to-height ratio",
+      "A peak is considered shared if its edge-to-height ratio is below this parameter",
+      NumberFormat.getInstance(), 0.3, 0.0, 1.0);
 
   public static final DoubleParameter DELTA_TO_HEIGHT_RATIO = new DoubleParameter(
       "Min delta-to-height ratio",
@@ -87,10 +95,10 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
   public static final DoubleParameter MIN_MODEL_SHARPNESS = new DoubleParameter("Min sharpness",
       "Minimum sharpness that the model peak can have", NumberFormat.getNumberInstance(), 10.0);
 
-  public static final DoubleParameter SHAPE_SIM_THRESHOLD =
-      new DoubleParameter("Shape-similarity tolerance (0..90)",
-          "Shape-similarity threshold is used to find similar peaks",
-          NumberFormat.getNumberInstance(), 18.0);
+  public static final DoubleParameter SHAPE_SIM_THRESHOLD = new DoubleParameter(
+      "Shape-similarity tolerance (0..90)",
+      "Shape-similarity threshold is used to find similar peaks", NumberFormat.getNumberInstance(),
+      18.0);
 
   public static final ComboParameter<String> MODEL_PEAK_CHOICE = new ComboParameter<>(
       "Choice of Model Peak based on",
@@ -114,8 +122,7 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
       new OriginalFeatureListHandlingParameter(false);
 
   public ADAP3DecompositionV1_5Parameters() {
-    super(
-        new Parameter[]{PEAK_LISTS, MIN_CLUSTER_DISTANCE, MIN_CLUSTER_SIZE, MIN_CLUSTER_INTENSITY,
+    super(new Parameter[]{PEAK_LISTS, MIN_CLUSTER_DISTANCE, MIN_CLUSTER_SIZE, MIN_CLUSTER_INTENSITY,
             USE_ISSHARED, EDGE_TO_HEIGHT_RATIO, DELTA_TO_HEIGHT_RATIO, MIN_MODEL_SHARPNESS,
             SHAPE_SIM_THRESHOLD, MODEL_PEAK_CHOICE, MZ_VALUES, SUFFIX, handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_hierarch_clustering/featdet_hierarch_clustering.html");
@@ -123,16 +130,15 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    String message = "<html>Module Disclaimer:"
-        + "<br> If you use this Spectral Deconvolution Module, please cite the "
-        + "<a href=\"https://doi.org/10.1038/s41587-023-01690-2\">MZmine 3 paper</a> and the following article:"
-        + "<br><a href=\"http://pubs.acs.org/doi/10.1021/acs.jproteome.7b00633\"> Smirnov A, Jia W, Walker D, Jones D, Du X: ADAP-GC 3.2: Graphical Software Tool for "
-        + "<br>Efficient Spectral Deconvolution of Gas Cromatography&mdash;High-Resolution Mass Spectrometry "
-        + "<br>Metabolomics Data. J. Proteome Res 2017, DOI: 10.1021/acs.jproteome.7b00633</a>"
-        + "</html>";
+    TextFlow message = FxTextFlows.newTextFlow(FxTexts.boldText("Module Disclaimer:"), linebreak(),
+        text("If you use this Spectral Deconvolution Module, please cite:"), linebreak(),
+        boldText("mzmine paper: "), mzminePaper, linebreak(), boldText("ADAP paper: "),
+        hyperlinkText(
+            "Smirnov A, Jia W, Walker D, Jones D, Du X: J. Proteome Res. 2018, 17, 1, 470–478",
+            "https://pubs.acs.org/doi/10.1021/acs.jproteome.7b00633"));
 
-    final ADAP3DecompositionV1_5SetupDialog dialog =
-        new ADAP3DecompositionV1_5SetupDialog(valueCheckRequired, this, message);
+    final ADAP3DecompositionV1_5SetupDialog dialog = new ADAP3DecompositionV1_5SetupDialog(
+        valueCheckRequired, this, message);
 
     dialog.showAndWait();
     return dialog.getExitCode();

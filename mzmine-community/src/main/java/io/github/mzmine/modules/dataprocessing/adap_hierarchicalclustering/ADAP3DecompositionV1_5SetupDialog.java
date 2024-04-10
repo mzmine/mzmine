@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,7 +24,16 @@
  */
 package io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering;
 
+import com.google.common.collect.Range;
+import com.google.common.collect.Sets;
+import dulab.adap.common.algorithms.FeatureTools;
+import dulab.adap.datamodel.Peak;
+import dulab.adap.workflow.TwoStepDecomposition;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.text.DecimalFormat;
@@ -36,26 +45,19 @@ import java.util.List;
 import java.util.NavigableMap;
 import java.util.Random;
 import java.util.Set;
-
-import io.github.mzmine.modules.dataprocessing.adap_mcr.ChromatogramPeakPair;
-import javafx.event.ActionEvent;
-import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
-import org.apache.commons.lang3.ArrayUtils;
-import com.google.common.collect.Range;
-import com.google.common.collect.Sets;
-import dulab.adap.common.algorithms.FeatureTools;
-import dulab.adap.datamodel.Peak;
-import dulab.adap.workflow.TwoStepDecomposition;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.TextFlow;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  *
@@ -107,7 +109,7 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
   private Object[] currentValues;
 
   public ADAP3DecompositionV1_5SetupDialog(boolean valueCheckRequired,
-      final ParameterSet parameters, String message) {
+      final ParameterSet parameters, TextFlow message) {
     super(valueCheckRequired, parameters, message);
 
     Parameter[] params = parameters.getParameters();

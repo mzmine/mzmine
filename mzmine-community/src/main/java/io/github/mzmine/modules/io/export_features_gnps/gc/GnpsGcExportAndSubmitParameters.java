@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,7 +36,15 @@
 
 package io.github.mzmine.modules.io.export_features_gnps.gc;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.gnpsPaper;
+import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.mzminePaper;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportParameters;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportParameters.MzMode;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -48,6 +56,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
+import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
@@ -88,14 +97,16 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    String message = "<html><strong>Export/Submit to GNPS-GC:</strong>"
-                     + "<p>The GNPS Export module was designed for the <strong>GC</strong> workflow on GNPS <a href=\"http://gnps.ucsd.edu\">http://gnps.ucsd.edu</a>.<br>"
-                     + "See the <a href=\"https://ccms-ucsd.github.io/GNPSDocumentation/gc-ms-documentation/\"><strong>GNPS-GC-MS documentation here</strong></a> and <strong>please cite</strong>:<br>"
-                     + "<ul>"
-                     + "<li>the preprint <strong>GC-MS</strong> on GNPS: Aksenov et al.: <a href=\"https://www.biorxiv.org/content/10.1101/812404v1\">bioRxiv 812404 (2019)</a>.</li>"
-                     + "<li>the <strong>GNPS</strong> paper: Wang et al.:<a href=\"https://www.nature.com/nbt/journal/v34/n8/full/nbt.3597.html\">Nature Biotechnology 34.8 (2016): 828-837</a></li>"
-                     + "<li>and the <strong>MZmine</strong> paper: Pluskal et al.: <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">BMC Bioinformatics, 11, 395 (2010)</a></li>"
-                     + "</ul></p>";
+
+    final TextFlow message = FxTextFlows.newTextFlow(boldText("Export/Submit to GNPS-GC:"),
+        linebreak(), text("The GNPS Export module was designed for the "), boldText("GC "),
+        text("workflow on"), hyperlinkText("GNPS ", "https://gnps.ucsd.edu"),
+        text("See the GNPS-GC-MS documentation "),
+        hyperlinkText("here", "https://ccms-ucsd.github.io/GNPSDocumentation/gc-ms-documentation"),
+        text("and please cite"), linebreak(), boldText("FBMN-GC paper: "), hyperlinkText(
+            "Aksenov, A.A., Laponogov, I., Zhang, Z. et al. Nat Biotechnol 39, 169–173 (2021)",
+            "https://www.nature.com/articles/s41587-020-0700-3"), linebreak(),
+        boldText("GNPS paper: "), gnpsPaper, linebreak(), boldText("mzmine paper: "), mzminePaper);
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();

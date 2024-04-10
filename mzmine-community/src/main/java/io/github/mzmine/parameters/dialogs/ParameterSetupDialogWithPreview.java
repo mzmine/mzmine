@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.text.TextFlow;
 
 public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
 
@@ -53,11 +54,11 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
   private Runnable onPreviewShown;
 
   public ParameterSetupDialogWithPreview(boolean valueCheckRequired, ParameterSet parameters) {
-    this(valueCheckRequired, parameters, "");
+    this(valueCheckRequired, parameters, null);
   }
 
   public ParameterSetupDialogWithPreview(boolean valueCheckRequired, ParameterSet parameters,
-      String message) {
+      TextFlow message) {
     super(valueCheckRequired, parameters, message);
 
     paramPreviewSplit = new SplitPane();
