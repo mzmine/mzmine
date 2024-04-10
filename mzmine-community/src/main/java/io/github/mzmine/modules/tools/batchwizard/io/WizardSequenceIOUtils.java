@@ -231,7 +231,7 @@ public class WizardSequenceIOUtils {
    */
   @Nullable
   public static File getWizardSettingsPath() {
-    File prefPath = FileAndPathUtil.getUserSettingsDir();
+    File prefPath = FileAndPathUtil.getMzmineDir();
     if (prefPath == null) {
       logger.warning("Cannot find parameters default location in user folder");
     } else {
