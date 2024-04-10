@@ -84,7 +84,6 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
   private final Boolean exportGnps;
   private final Boolean exportMsp;
   private final Integer minRtDataPoints; //min number of data points
-  private final Range<Double> rtForCWT;
   private final double sampleCountRatio;
   private final boolean rtSmoothing;
   private final boolean recalibrateRetentionTime;
@@ -112,8 +111,6 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         IonInterfaceGcElectronImpactWizardParameters.minNumberOfDataPoints);
     rtFwhm = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.approximateChromatographicFWHM);
-    rtForCWT = getValue(params,
-        IonInterfaceGcElectronImpactWizardParameters.RT_FOR_CWT_SCALES_DURATION);
 
     // currently the alignment uses only relative values as input.
     // in the future the ADAP alignment should use either absolute or relative as defined by the
