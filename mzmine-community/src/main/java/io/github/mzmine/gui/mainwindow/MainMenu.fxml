@@ -379,7 +379,7 @@
 <!--      <MenuItem text="Multivariate curve resolution"-->
 <!--        onAction="#runModule"-->
 <!--        userData="io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule"/>-->
-    </Menu>-->
+    </Menu>
 
     <Menu text="Feature list filtering">
       <MenuItem text="Duplicate feature filter"
