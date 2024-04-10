@@ -409,6 +409,9 @@
     </Menu>
 
     <Menu text="Spectral deconvolution (GC)">
+      <MenuItem text="GC-EI spectral deconvolution"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule"/>
       <MenuItem text="Hierarchical clustering"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule"/>

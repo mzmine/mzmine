@@ -605,4 +605,15 @@ public class FeatureListUtils {
     }
     return map;
   }
+
+  public static ModularFeatureList createCopy(final FeatureList featureList, final String suffix,
+      final MemoryMapStorage storage) {
+    ModularFeatureList newFlist = new ModularFeatureList(featureList.getName() + " " + suffix,
+        storage, featureList.getRawDataFiles());
+
+    FeatureListUtils.copyPeakListAppliedMethods(featureList, newFlist);
+    FeatureListUtils.transferRowTypes(newFlist, List.of(featureList));
+    FeatureListUtils.transferSelectedScans(newFlist, List.of(featureList));
+    return newFlist;
+  }
 }
