@@ -96,18 +96,18 @@ public class ListDoubleRangeComponent extends GridPane {
     }
   }
 
-  static List<Range<Double>> toRanges(java.lang.String text) {
+  static List<Range<Double>> toRanges(String text) {
     final String filtered = text.replaceAll("[1234567890.,\\- ]", "");
-    if (!filtered.equals(text)) {
+    if (!filtered.isBlank()) {
       throw new IllegalArgumentException(
           "String contains illegal characters. only 1234567890.,- are allowed.");
     }
     List<Range<Double>> result = new ArrayList<>();
-    if (filtered.isEmpty()) {
+    if (text.isEmpty()) {
       return result;
     }
     try {
-      String[] split = filtered.split(",");
+      String[] split = text.split(",");
       for (String rangeStr : split) {
         String[] doubleStrings = rangeStr.split("-");
         switch (doubleStrings.length) {
