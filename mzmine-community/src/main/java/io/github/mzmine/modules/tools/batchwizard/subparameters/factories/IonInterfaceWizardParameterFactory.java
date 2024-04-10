@@ -27,6 +27,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceDirectAndFlowInjectWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceGcElectronImpactWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceHplcWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceImagingWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
@@ -49,7 +50,7 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
   /**
    * GC-EI is a different workflow, GC uses the LC workflow
    */
-//  GC_EI,
+  GC_EI,
   /**
    * imaging workflows
    */
@@ -68,7 +69,7 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
   public String toString() {
     return switch (this) {
       case HPLC, UHPLC, HILIC, MALDI, LDI, DESI, SIMS -> super.toString();
-//      case GC_EI -> "GC-EI";
+      case GC_EI -> "GC-EI";
       case GC_CI -> "GC-CI";
       case DIRECT_INFUSION -> "Direct";
       case FLOW_INJECT -> "Flow inject";
@@ -99,11 +100,11 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
           new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES),
           new RTTolerance(0.1f, Unit.MINUTES));
       // different workflow for GC-EI
-      /*case GC_EI ->
+      case GC_EI ->
           new IonInterfaceGcElectronImpactWizardParameters(this, false, true,
               Range.closed(0.3, 30d),
               new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES),
-              new RTTolerance(0.1f, Unit.MINUTES), 4, Range.closed(0.001, 0.06));*/
+              new RTTolerance(0.1f, Unit.MINUTES), 4, Range.closed(0.001, 0.06));
       // parameters for imaging
       case MALDI, LDI, DESI, SIMS -> new IonInterfaceImagingWizardParameters(this, 25, false);
       //
@@ -115,7 +116,7 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
   public boolean isImaging() {
     return switch (this) {
       case MALDI, LDI, DESI, SIMS -> true;
-      case HPLC, UHPLC, HILIC, GC_CI, /*GC_EI,*/ DIRECT_INFUSION, FLOW_INJECT -> false;
+      case HPLC, UHPLC, HILIC, GC_CI, GC_EI, DIRECT_INFUSION, FLOW_INJECT -> false;
     };
   }
 
@@ -127,7 +128,7 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
       case MALDI, LDI, DESI, SIMS -> IonIterfaceGroup.SPATIAL_IMAGING;
       case HPLC, UHPLC, HILIC, GC_CI -> IonIterfaceGroup.CHROMATOGRAPHY_SOFT;
       case DIRECT_INFUSION, FLOW_INJECT -> IonIterfaceGroup.DIRECT_AND_FLOW;
-//      case GC_EI -> IonIterfaceGroup.CHROMATOGRAPHY_HARD;
+      case GC_EI -> IonIterfaceGroup.CHROMATOGRAPHY_HARD;
     };
   }
 
@@ -140,8 +141,8 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
     return switch (this) {
       case DIRECT_INFUSION, FLOW_INJECT, HPLC, UHPLC, HILIC, GC_CI, MALDI, LDI, DESI, SIMS ->
           IonMobilityWizardParameterFactory.values();
-//      case GC_EI ->
-//          new IonMobilityWizardParameterFactory[]{IonMobilityWizardParameterFactory.NO_IMS};
+      case GC_EI ->
+          new IonMobilityWizardParameterFactory[]{IonMobilityWizardParameterFactory.NO_IMS};
     };
   }
 
@@ -159,8 +160,8 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
           new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DDA,
               WorkflowWizardParameterFactory.LIBRARY_GENERATION,
               WorkflowWizardParameterFactory.DIA};
-//      case GC_EI ->
-//          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DECONVOLUTION};
+      case GC_EI ->
+          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DECONVOLUTION};
       case MALDI, LDI, DESI, SIMS ->
           new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.IMAGING};
     };
