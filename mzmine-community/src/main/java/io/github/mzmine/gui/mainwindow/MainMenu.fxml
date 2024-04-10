@@ -94,10 +94,8 @@
     </MenuItem>
 
     <SeparatorMenuItem/>
-    <MenuItem text="Save MZmine parameters" onAction="#runModule"
-      userData=""/>
-    <MenuItem text="Load MZmine parameters" onAction="#runModule"
-      userData=""/>
+    <MenuItem text="Save configuration" onAction="#saveConfiguration"/>
+    <MenuItem text="Load configuration" onAction="#loadConfiguration"/>
 
     <SeparatorMenuItem/>
     <MenuItem text="Exit" onAction="#exitApplication"/>
