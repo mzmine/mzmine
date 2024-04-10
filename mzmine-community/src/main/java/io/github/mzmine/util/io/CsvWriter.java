@@ -40,6 +40,23 @@ public class CsvWriter {
   /**
    * Write a list of objects to a CSV file using Jackson. Great in combination with record classes.
    * Use annotations on the class or field level to define naming, order, and other output
+   * behavior. Replaces and auto detects separator from tsv or csv ending.
+   *
+   * @param outFile   file to write to
+   * @param items     items to write to like a List<pojo class>
+   * @param pojoClass the pojo class, often a record class
+   * @param <T>       the type of the pojo objects to be written
+   * @throws IOException may create io exception if write fails
+   */
+  public static <T> void writeToFile(@NotNull File outFile, Iterable<T> items, Class<T> pojoClass)
+      throws IOException {
+    writeToFile(outFile, items, pojoClass, WriterOptions.REPLACE,
+        CSVUtils.detectSeparatorFromName(outFile));
+  }
+
+  /**
+   * Write a list of objects to a CSV file using Jackson. Great in combination with record classes.
+   * Use annotations on the class or field level to define naming, order, and other output
    * behavior.
    *
    * @param outFile   file to write to
@@ -51,10 +68,28 @@ public class CsvWriter {
    */
   public static <T> void writeToFile(@NotNull File outFile, Iterable<T> items, Class<T> pojoClass,
       WriterOptions option) throws IOException {
+    writeToFile(outFile, items, pojoClass, option, CSVUtils.detectSeparatorFromName(outFile));
+  }
+
+  /**
+   * Write a list of objects to a CSV file using Jackson. Great in combination with record classes.
+   * Use annotations on the class or field level to define naming, order, and other output
+   * behavior.
+   *
+   * @param outFile   file to write to
+   * @param items     items to write to like a List<pojo class>
+   * @param pojoClass the pojo class, often a record class
+   * @param option    append to the file or overwrite
+   * @param <T>       the type of the pojo objects to be written
+   * @throws IOException may create io exception if write fails
+   */
+  public static <T> void writeToFile(@NotNull File outFile, Iterable<T> items, Class<T> pojoClass,
+      WriterOptions option, char separator) throws IOException {
     FileAndPathUtil.createDirectory(outFile.getParentFile());
     boolean createHeader = option == WriterOptions.REPLACE || !outFile.exists();
     CsvMapper tsvMapper = new CsvMapper();
-    CsvSchema schema = tsvMapper.schemaFor(pojoClass).withUseHeader(createHeader);
+    CsvSchema schema = tsvMapper.schemaFor(pojoClass).withUseHeader(createHeader)
+        .withColumnSeparator(separator);
 
     try (var fileWriter = Files.newBufferedWriter(outFile.toPath(), StandardCharsets.UTF_8,
         option.toOpenOption()); //

@@ -212,7 +212,7 @@ dependencies {
     implementation "com.github.oshi:oshi-core:4.5.2"
     // because the version that is pulled by SIRIUS crashes
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
-    implementation 'com.opencsv:opencsv:5.8'
+    implementation(libs.opencsv)
 
     implementation 'net.java.dev.jna:jna:$jnaVersion'
     //implementation 'com.github.robinschmid:jimzMLParser:mzmine_local_obo-SNAPSHOT'
