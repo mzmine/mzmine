@@ -58,7 +58,7 @@ semver {
 
 // version is now in version.properties
 group = "io.github.mzmine"
-description = "MZmine"
+description = "mzmine"
 
 defaultTasks "test", "jpackage", "notarizeApp"
 
@@ -68,7 +68,7 @@ if (OperatingSystem.current().isLinux()) project.ext.osSuffix = "Linux"
 if (OperatingSystem.current().isWindows()) project.ext.osSuffix = "Windows"
 if (OperatingSystem.current().isMacOsX()) {
     project.ext.osSuffix = "macOS"
-    project.ext.appName = "MZmine"
+    project.ext.appName = "mzmine"
     project.ext.appleID = "mzmine.devel@gmail.com"
 
     getLogger().lifecycle('Checking macOS system variables...')
@@ -90,7 +90,7 @@ if (OperatingSystem.current().isMacOsX()) {
         project.ext.macSigning = false
     }
 
-    project.ext.imageDir = layout.buildDirectory.dir('jpackage/MZmine.app').get().asFile.toPath()
+    project.ext.imageDir = layout.buildDirectory.dir('jpackage/mzmine.app').get().asFile.toPath()
     project.ext.jarsDir = imageDir.resolve('Contents').resolve('app')
 
     getLogger().info("imageDir " + imageDir)
@@ -152,7 +152,7 @@ dependencies {
     implementation(project(":utils"))
     implementation(project(":taskcontroller"))
     implementation(project(":javafx-framework"))
-    // MZmine version parsing
+    // mzmine version parsing
     implementation 'com.vdurmont:semver4j:3.1.0'
 //    implementation "org.graphstream:gs-core:2.0"
     // use patched version via jitpack from https://github.com/robinschmid/gs-core/tree/patch-1
@@ -274,7 +274,7 @@ tasks.withType(JavaExec) {
  */
 application {
     mainClass.set("io.github.mzmine.main.MZmineCore")
-    applicationName = "MZmine"
+    applicationName = "mzmine"
     applicationDefaultJvmArgs = [
             // https://github.com/controlsfx/controlsfx/wiki/Using-ControlsFX-with-JDK-9-and-above
             "--add-exports=javafx.base/com.sun.javafx.event=org.controlsfx.controls",
@@ -321,13 +321,13 @@ runtime {
         if (OperatingSystem.current().isWindows()) {
             // The WiX toolset must be installed, see https://wixtoolset.org/releases/
             installerType = "msi"
-            installerName = "MZmine_Windows_installer"
+            installerName = "mzmine_Windows_installer"
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/MZmineIcon.ico",
-                            "--add-launcher", "MZmine_console=gradle/win_console_launcher.properties"
+                            "--add-launcher", "mzmine_console=gradle/win_console_launcher.properties"
             ]
             installerOptions = ["--win-menu",
-                                "--win-menu-group", "MZmine",
+                                "--win-menu-group", "mzmine",
                                 "--win-shortcut",
                                 "--win-dir-chooser",
                                 "--win-upgrade-uuid", "$win_uuid",
@@ -355,7 +355,7 @@ runtime {
                         "--mac-signing-key-user-name", developerID,
                 ]
             }
-            installerName = "MZmine_macOS_installer"
+            installerName = "mzmine_macOS_installer"
         }
         if (OperatingSystem.current().isLinux()) {
             // leave installer type empty to generate all that match
@@ -364,13 +364,13 @@ runtime {
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/MZmineIcon.png"]
             installerOptions = ["--linux-shortcut",
-                                "--linux-menu-group", "MZmine",
+                                "--linux-menu-group", "mzmine",
                                 "--license-file", "LICENSE.txt",
                                 "--linux-deb-maintainer", "plusik@gmail.com"]
 
-            installerName = "MZmine_Linux_installer"
+            installerName = "mzmine_Linux_installer"
         }
-        imageName = "MZmine"
+        imageName = "mzmine"
         jvmArgs = ["-showversion",
                    "-XX:MaxHeapFreeRatio=100",
                    "-XX:InitialRAMPercentage=30",
@@ -488,7 +488,7 @@ task signApp(dependsOn: jpackage) {
             getLogger().lifecycle("Zipping .app directory...")
             exec {
                 commandLine(['sh', '-c', "cd ${layout.buildDirectory.dir("jpackage").get()} " +
-                        "&& zip -rq MZmine_macOS_portable.zip MZmine.app"])
+                        "&& zip -rq mzmine_macOS_portable.zip mzmine.app"])
             }
         }
     }
@@ -505,7 +505,7 @@ task notarizeApp(dependsOn: signApp) {
             ExecResult execResult = exec {
                 commandLine(["xcrun", "notarytool", "submit", "--wait", "--apple-id", "${appleID}",
                              "--password", "${appleIDPassword}", "--team-id", "${appleTeamID}",
-                             "${layout.buildDirectory.dir("jpackage/MZmine_macOS_portable.zip").get()}"])
+                             "${layout.buildDirectory.dir("jpackage/mzmine_macOS_portable.zip").get()}"])
             }
             int returnCode = execResult.getExitValue()
             if (returnCode != 0) {
