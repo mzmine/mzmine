@@ -203,7 +203,7 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
 
   @Override
   protected @NotNull List<FeatureList> getProcessedFeatureLists() {
-    return List.of(featureList);
+    return List.of(deconvolutedFeatureList);
   }
 
   @Override
