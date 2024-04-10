@@ -1,12 +1,3 @@
-import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
-import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
-import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
-import static io.github.mzmine.javafx.components.factories.FxTexts.mzminePaper;
-import static io.github.mzmine.javafx.components.factories.FxTexts.text;
-
-import io.github.mzmine.javafx.components.factories.FxTextFlows;
-import io.github.mzmine.javafx.components.factories.FxTexts;
-import javafx.scene.layout.Region;///*
 // * Copyright (c) 2004-2022 The MZmine Development Team
 // *
 // * Permission is hereby granted, free of charge, to any person

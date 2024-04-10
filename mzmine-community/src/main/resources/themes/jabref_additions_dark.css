@@ -39,7 +39,7 @@ Text, Text:hover {
   -fx-fill: -fx-light-text-color
 }
 
-TextFlow {
+.text-flow {
   -fx-background-color: -jr-sidepane-background;
 }
 
