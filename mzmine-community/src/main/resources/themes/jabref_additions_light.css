@@ -39,6 +39,10 @@ BorderPane, GridPane, .tab-pane {
   -fx-fill: -fx-dark-text-color
 }
 
+.text-flow {
+  -fx-background-color: -jr-sidepane-background;
+}
+
 .title-label {
   -fx-font-size: 14.0pt;
 }

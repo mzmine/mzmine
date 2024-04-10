@@ -40,26 +40,19 @@ import javafx.scene.layout.GridPane;
 public class ListDoubleRangeComponent extends GridPane {
 
   private TextField inputField;
-  private Label textField;
+  private Label parsedInput;
 
   public ListDoubleRangeComponent() {
     inputField = new TextField();
-    inputField.setPrefColumnCount(16);
-    /*
-     * inputField.getDocument().addDocumentListener(new DocumentListener() {
-     *
-     * @Override public void changedUpdate(DocumentEvent e) { update(); }
-     *
-     * @Override public void removeUpdate(DocumentEvent e) { update(); }
-     *
-     * @Override public void insertUpdate(DocumentEvent e) { update(); } });
-     */
+    inputField.setPrefColumnCount(25);
 
-    textField = new Label();
+    parsedInput = new Label();
     // textField.setColumns(8);
 
     add(inputField, 0, 0);
-    add(textField, 0, 1);
+    add(parsedInput, 0, 1);
+
+    inputField.textProperty().addListener((_, _, _) -> update());
   }
 
   public List<Range<Double>> getValue() {
@@ -74,12 +67,12 @@ public class ListDoubleRangeComponent extends GridPane {
     String text = fromRanges(ranges);
 
     // textField.setForeground(Color.black);
-    textField.setText(text);
+    parsedInput.setText(text);
     inputField.setText(text);
   }
 
   public void setToolTipText(String toolTip) {
-    textField.setTooltip(new Tooltip(toolTip));
+    parsedInput.setTooltip(new Tooltip(toolTip));
     inputField.setTooltip(new Tooltip(toolTip));
   }
 
@@ -89,10 +82,10 @@ public class ListDoubleRangeComponent extends GridPane {
       List<Range<Double>> ranges = toRanges(inputField.getText());
 
       // textField.setForeground(Color.black);
-      textField.setText(fromRanges(ranges));
+      parsedInput.setText(fromRanges(ranges));
     } catch (IllegalArgumentException e) {
-      // textField.setForeground(Color.red);
-      textField.setText(e.getMessage());
+//       textField.setForeground(Color.red);
+      parsedInput.setText(e.getMessage());
     }
   }
 

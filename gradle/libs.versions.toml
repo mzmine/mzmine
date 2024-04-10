@@ -94,6 +94,7 @@ commons-cli = { group = "commons-cli", name = "commons-cli", version = "1.6.0" }
 commons-math = { group = "org.apache.commons", name = "commons-math", version = "2.2" }
 commons-math3 = { group = "org.apache.commons", name = "commons-math3", version = "3.6.1" }
 commons-lang3 = "org.apache.commons:commons-lang3:3.0"
+opencsv = { group = "com.opencsv", name = "opencsv", version = "5.8" }
 
 # testing
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
