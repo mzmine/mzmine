@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,7 +30,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.Workfl
 import io.github.mzmine.parameters.Parameter;
 
 public sealed class WorkflowWizardParameters extends WizardStepParameters permits
-    WorkflowDdaWizardParameters, WorkflowGcElectronImpactWizardParameters,
+    WorkflowDdaWizardParameters, /*WorkflowGcElectronImpactWizardParameters,*/
     WorkflowImagingWizardParameters, WorkflowLibraryGenerationWizardParameters,
     WorkflowDiaWizardParameters {
 
