@@ -817,7 +817,8 @@ TextFlow > .tooltip-text-monospaced {
 
 .accordion .titled-pane .title {
     -fx-background-color: transparent;
-    -fx-border-color: transparent;
+    -fx-border-color: -fx-outer-border;
+    -fx-border-style: hidden hidden solid hidden;
     -fx-background-insets: 5 5 5 5;
 }
 
@@ -832,7 +833,7 @@ TextFlow > .tooltip-text-monospaced {
  * left since the arrow is positioned on the right.
  */
 .titled-pane > .title > .arrow-button {
-    -fx-padding: 0.0em 0.0em 0.0em 0.583em;
+    -fx-padding: 0.0em 0.6em 0.0em 0.3em;
 }
 
 .text-input {

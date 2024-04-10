@@ -46,6 +46,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTim
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
@@ -58,7 +59,6 @@ import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.util.javafx.SortableFeatureComboBox;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
@@ -84,6 +84,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
@@ -105,7 +106,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   private final Map<SimpleXYChart<IonTimeSeriesToXYProvider>, AbstractTask> updateTasksMap = new HashMap<>();
 
   public FeatureResolverSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
-      String message) {
+      Region message) {
     super(valueCheckRequired, parameters, message);
 
     uf = MZmineCore.getConfiguration().getUnitFormat();
