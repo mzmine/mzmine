@@ -93,7 +93,7 @@ public abstract class WizardBatchBuilder {
         default -> throw unsupportedException;
       };
       // only used for GC EI
-//      case DECONVOLUTION -> new WizardBatchBuilderGcEiDeconvolution(steps);
+      case DECONVOLUTION -> new WizardBatchBuilderGcEiDeconvolution(steps);
       case IMAGING -> new WizardBatchBuilderImagingDda(steps);
       case LIBRARY_GENERATION -> {
         // requires annotation!
