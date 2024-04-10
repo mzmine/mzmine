@@ -101,6 +101,7 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
   }
 
   private List<List<ModularFeature>> groupFeaturesByRT(List<ModularFeature> features) {
+    features.sort(Comparator.comparingDouble(ModularFeature::getHeight).reversed());
     List<List<ModularFeature>> groupedFeatures = new ArrayList<>();
     for (ModularFeature feature : features) {
       boolean addedToGroup = false;
@@ -123,15 +124,6 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
     }
 
     return groupedFeatures;
-  }
-
-  private void addFeatureDataToLists(FeatureListRow featureListRow,
-      List<PseudoSpectrumDataPoint> pseudoSpectrumDataPoints) {
-    ModularFeature feature = (ModularFeature) featureListRow.getBestFeature();
-    if (feature != null) {
-      pseudoSpectrumDataPoints.add(
-          new PseudoSpectrumDataPoint(feature.getMZ(), feature.getHeight()));
-    }
   }
 
   private void createNewDeconvolutedFeatureList(List<FeatureListRow> deconvolutedFeatureListRows) {
