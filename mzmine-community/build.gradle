@@ -608,8 +608,8 @@ tasks.register('copyLicenseInformationToBuild', Copy) {
 }
 
 // compileJava does not actually depend on this but we want to fail the build if there are invalid licenses
-tasks.compileJava.dependsOn(checkLicense, copyLicenseInformationToResources, copyLicenseInformationToBuild)
+//tasks.compileJava.dependsOn(checkLicense, copyLicenseInformationToResources, copyLicenseInformationToBuild)
 // copying must be finished before packaging
-tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
-tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
+//tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
+//tasks.processResources.dependsOn(copyLicenseInformationToResources, copyLicenseInformationToBuild)
 

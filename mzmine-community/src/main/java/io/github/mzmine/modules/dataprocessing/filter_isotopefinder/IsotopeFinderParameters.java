@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.javafx.components.factories.FxTexts;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -38,7 +40,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.util.ExitCode;
 import java.util.Map;
-import org.intellij.lang.annotations.Language;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
 public class IsotopeFinderParameters extends SimpleParameterSet {
@@ -68,11 +70,11 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    @Language("HTML") String message = """
-        <p><strong>Important:</strong> The isotope finder will search for all possible isotope signals in the mass lists for each
-          feature. The resulting pattern may contain signals from different charge states as this module tries
-          to capture all available information, whereas the isotope grouper acts as a feature filter.</p>
-                """;
+    Region message = FxTextFlows.newTextFlowInAccordion("Important note", true, FxTexts.text("""
+        The isotope finder will search for all possible isotope signals in the mass lists for each
+        feature. The resulting pattern may contain signals from different charge states as this module tries
+        to capture all available information, whereas the isotope grouper acts as a feature filter.
+        """));
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();

@@ -25,8 +25,12 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import io.github.mzmine.javafx.components.util.FxLayout;
 import javafx.scene.Node;
+import javafx.scene.control.Accordion;
 import javafx.scene.control.Hyperlink;
+import javafx.scene.control.TitledPane;
+import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
@@ -51,5 +55,28 @@ public class FxTextFlows {
     var textFlow = new TextFlow(nodes);
     textFlow.setTextAlignment(textAlignment);
     return textFlow;
+  }
+
+  public static Region newTextFlowInAccordion(final String title,
+      Node... nodes) {
+    return newTextFlowInAccordion(title, false, TextAlignment.LEFT, nodes);
+  }
+
+  public static Region newTextFlowInAccordion(final String title, boolean expanded,
+      Node... nodes) {
+    return newTextFlowInAccordion(title, expanded, TextAlignment.LEFT, nodes);
+  }
+
+  public static Region newTextFlowInAccordion(final String title, boolean expanded, final TextAlignment textAlignment,
+      Node... nodes) {
+    TextFlow textFlow = newTextFlow(nodes);
+    textFlow.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
+    textFlow.setTextAlignment(textAlignment);
+    final TitledPane pane = new TitledPane(title, textFlow);
+    final Accordion accordion = new Accordion(pane);
+    if(expanded) {
+      accordion.setExpandedPane(accordion.getPanes().getFirst());
+    }
+    return accordion;
   }
 }
