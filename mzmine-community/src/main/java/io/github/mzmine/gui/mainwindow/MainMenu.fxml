@@ -497,70 +497,75 @@
 
   <!-- VISUALIZATION -->
   <Menu text="Visualization">
-    <MenuItem text="Raw data overview" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule"/>
-    <MenuItem onAction="#runModule" text="Ion mobility raw data overview"
-      userData="io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule"/>
-    <MenuItem onAction="#runModule" text="Image viewer"
-      userData="io.github.mzmine.modules.visualization.image.ImageVisualizerModule"/>
+    <Menu text="Raw data">
+      <MenuItem text="Raw data overview" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule"/>
+      <MenuItem onAction="#runModule" text="Ion mobility raw data overview"
+        userData="io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule"/>
+      <MenuItem onAction="#runModule" text="Image viewer"
+        userData="io.github.mzmine.modules.visualization.image.ImageVisualizerModule"/>
 
-    <SeparatorMenuItem/>
+      <SeparatorMenuItem/>
 
-    <MenuItem text="MS spectrum" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule"/>
-    <MenuItem text="IMS frame visualizer" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.frames.FrameVisualizerModule"/>
-    <MenuItem text="Chromatogram plot" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule"/>
-    <MenuItem text="2D plot" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule"/>
-    <MenuItem text="3D plot" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule"/>
-    <Menu text="Massvoltammogram">
-      <MenuItem text="From Raw Data File" onAction="#runModule"
+      <MenuItem text="MS spectrum" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule"/>
+      <MenuItem text="IMS frame visualizer" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.frames.FrameVisualizerModule"/>
+
+      <SeparatorMenuItem/>
+
+      <MenuItem text="Chromatogram plot" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule"/>
+      <MenuItem text="2D plot" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule"/>
+      <MenuItem text="3D plot" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule"/>
+      <MenuItem onAction="#runModule" text="MS/MS scatter plot"
+        userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
+      <MenuItem text="Massvoltammogram (raw data)" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule"/>
-      <MenuItem text="From Feature List" onAction="#runModule"
+
+      <SeparatorMenuItem/>
+
+      <MenuItem text="Raw data summary" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule"/>
+      <MenuItem text="Scan histogram" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule"/>
+      <MenuItem text="Scan inject time analysis" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule"/>
+    </Menu>
+
+    <Menu text="Feature lists">
+      <MenuItem onAction="#runModule"
+        text="Feature overview / Interactive Ion Identity Molecular Networks"
+        userData="io.github.mzmine.modules.visualization.network_overview.FeatureNetworkOverviewModule"/>
+      <MenuItem onAction="#runModule" text="Correlated features Δm/z histogram"
+        userData="io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule"/>
+      <MenuItem onAction="#runModule"
+        text="Correlation coefficient histogram (grouped feature shapes)"
+        userData="io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureCorrelationHistogramModule"/>
+
+      <SeparatorMenuItem/>
+
+      <MenuItem text="Scatter plot" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule"/>
+      <MenuItem text="Histogram plot" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.histogram.HistogramVisualizerModule"/>
+      <MenuItem text="Feature intensity plot" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule"/>
+
+      <SeparatorMenuItem/>
+
+      <MenuItem text="Kendrick mass plot" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule"/>
+      <MenuItem text="Van Krevelen diagram" onAction="#runModule"
+        userData="io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule"/>
+      <MenuItem text="Massvoltammogram (feature list)" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule"/>
     </Menu>
+
     <MenuItem onAction="#showMSnTreeTab" text="MS(n) spectra tree"
       userData="io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule"/>
-
-    <SeparatorMenuItem/>
-
-    <MenuItem onAction="#runModule" text="MS/MS scatter plot"
-      userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
-    <MenuItem onAction="#runModule"
-      text="Feature overview / Interactive Ion Identity Molecular Networks"
-      userData="io.github.mzmine.modules.visualization.network_overview.FeatureNetworkOverviewModule"/>
-    <MenuItem onAction="#runModule" text="Correlated features Δm/z histogram"
-      userData="io.github.mzmine.modules.visualization.scan_histogram.CorrelatedFeaturesMzHistogramModule"/>
-    <MenuItem onAction="#runModule"
-      text="Correlation coefficient histogram (grouped feature shapes)"
-      userData="io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureCorrelationHistogramModule"/>
-
-    <SeparatorMenuItem/>
-
-    <MenuItem text="Raw data summary" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.raw_data_summary.RawDataSummaryModule"/>
-
-    <MenuItem text="Scan histogram" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.scan_histogram.ScanHistogramModule"/>
-
-    <MenuItem text="Scan inject time analysis" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule"/>
-
-    <SeparatorMenuItem/>
-
-    <MenuItem text="Scatter plot" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule"/>
-    <MenuItem text="Histogram plot" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.histogram.HistogramVisualizerModule"/>
-    <MenuItem text="Feature intensity plot" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule"/>
-    <MenuItem text="Kendrick mass plot" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule"/>
-    <MenuItem text="Van Krevelen diagram" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule"/>
 
   </Menu>
 
