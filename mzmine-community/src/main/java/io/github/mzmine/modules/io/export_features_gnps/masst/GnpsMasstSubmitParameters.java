@@ -42,7 +42,7 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PasswordParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
-import javafx.scene.text.TextFlow;
+import javafx.scene.layout.Region;
 
 /**
  * Submit MASST search on GNPS
@@ -97,7 +97,7 @@ public class GnpsMasstSubmitParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    final TextFlow message = FxTextFlows.newTextFlow(
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
         boldText("About the Mass Spectrometry Search Tool (MASST) direct submission:"), linebreak(),
         text("When using MASST please cite:"), linebreak(), masstPaper);
 

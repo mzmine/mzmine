@@ -56,7 +56,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
-import javafx.scene.text.TextFlow;
+import javafx.scene.layout.Region;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
@@ -98,11 +98,11 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
-    final TextFlow message = FxTextFlows.newTextFlow(boldText("Export/Submit to GNPS-GC:"),
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite", boldText("Export/Submit to GNPS-GC:"),
         linebreak(), text("The GNPS Export module was designed for the "), boldText("GC "),
-        text("workflow on"), hyperlinkText("GNPS ", "https://gnps.ucsd.edu"),
+        text("workflow on "), hyperlinkText("GNPS ", "https://gnps.ucsd.edu"),
         text("See the GNPS-GC-MS documentation "),
-        hyperlinkText("here", "https://ccms-ucsd.github.io/GNPSDocumentation/gc-ms-documentation"),
+        hyperlinkText("here ", "https://ccms-ucsd.github.io/GNPSDocumentation/gc-ms-documentation"),
         text("and please cite"), linebreak(), boldText("FBMN-GC paper: "), hyperlinkText(
             "Aksenov, A.A., Laponogov, I., Zhang, Z. et al. Nat Biotechnol 39, 169–173 (2021)",
             "https://www.nature.com/articles/s41587-020-0700-3"), linebreak(),

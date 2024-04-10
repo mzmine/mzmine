@@ -32,8 +32,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.TextFlow;
 import org.controlsfx.control.PropertySheet;
 import org.controlsfx.control.PropertySheet.Item;
 import org.controlsfx.control.PropertySheet.Mode;
@@ -63,7 +63,7 @@ public class GroupedParameterSetupDialog extends EmptyParameterSetupDialogBase {
    */
   @SuppressWarnings({"rawtypes", "unchecked"})
   public GroupedParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
-      TextFlow message) {
+      Region message) {
     super(valueCheckRequired, parameters, message);
 
     items = FXCollections.observableArrayList();

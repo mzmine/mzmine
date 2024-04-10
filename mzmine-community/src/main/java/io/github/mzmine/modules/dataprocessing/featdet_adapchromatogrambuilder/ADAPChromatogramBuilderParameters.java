@@ -52,7 +52,7 @@ import java.util.Collection;
 import java.util.Map;
 import javafx.application.Platform;
 import javafx.scene.control.ButtonType;
-import javafx.scene.text.TextFlow;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -107,7 +107,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     assert Platform.isFxApplicationThread();
 
-    final TextFlow message = FxTextFlows.newTextFlow(boldText("ADAP Module Disclaimer:\n"),
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite", boldText("ADAP Module Disclaimer:\n"),
         text("If you use the ADAP Chromatogram Builder Module, please cite: "), linebreak(),
         boldText("mzmine paper "), mzminePaper, linebreak(), text("and the following article: "),
         hyperlinkText(

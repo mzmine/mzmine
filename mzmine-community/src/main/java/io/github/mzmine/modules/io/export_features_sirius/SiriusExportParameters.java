@@ -59,7 +59,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
 import java.util.List;
-import javafx.scene.text.TextFlow;
+import javafx.scene.layout.Region;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
 
@@ -112,10 +112,11 @@ public class SiriusExportParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    final TextFlow message = FxTextFlows.newTextFlow(boldText("SIRIUS Module Disclaimer: "),
-        linebreak(), text("If you use the SIRIUS export module, cite:"), linebreak(),
-        boldText("mzmine paper: "), mzminePaper, linebreak(), boldText("SIRIUS 4 paper: "),
-        sirius4Paper, linebreak(), text("Sirius can be downloaded at the following adress: "),
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
+        boldText("SIRIUS Module Disclaimer: "), linebreak(),
+        text("If you use the SIRIUS export module, cite:"), linebreak(), boldText("mzmine paper: "),
+        mzminePaper, linebreak(), boldText("SIRIUS 4 paper: "), sirius4Paper, linebreak(),
+        text("Sirius can be downloaded at the following adress: "),
         hyperlinkText("https://bio.informatik.uni-jena.de/software/sirius/"), linebreak(),
         text("Sirius results can be mapped into GNPS molecular networks "),
         hyperlinkText("see here",

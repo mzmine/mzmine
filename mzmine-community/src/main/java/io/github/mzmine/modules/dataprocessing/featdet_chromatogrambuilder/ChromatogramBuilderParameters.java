@@ -40,14 +40,14 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
-import javafx.scene.text.TextFlow;
+import javafx.scene.layout.Region;
 
 public class ChromatogramBuilderParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter(new ScanSelection(1));
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      new ScanSelection(1));
 
   public static final DoubleParameter minimumTimeSpan = new DoubleParameter("Min time span (min)",
       "Minimum time span over which the same ion must be observed in order to be recognized as a chromatogram.\n"
@@ -61,16 +61,17 @@ public class ChromatogramBuilderParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final StringParameter suffix =
-      new StringParameter("Suffix", "This string is added to filename as suffix", "chromatograms");
+  public static final StringParameter suffix = new StringParameter("Suffix",
+      "This string is added to filename as suffix", "chromatograms");
 
   public ChromatogramBuilderParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, minimumTimeSpan, minimumHeight,
-        mzTolerance, suffix});
+    super(new Parameter[]{dataFiles, scanSelection, minimumTimeSpan, minimumHeight, mzTolerance,
+        suffix});
   }
 
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    TextFlow message = FxTextFlows.newTextFlow(boldText("Note:\n"), text("""
+    Region message = FxTextFlows.newTextFlowInAccordion("Important note", true, boldText("Note:\n"),
+        text("""
             starting with MZmine 2.39, this module is considered deprecated
             and will be removed in future MZmine versions. Please use the ADAP Chromatogram Builder
             which is much faster and generates better results.

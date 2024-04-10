@@ -36,7 +36,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
-import javafx.scene.text.TextFlow;
+import javafx.scene.layout.Region;
 
 public class VennExportParameters extends SimpleParameterSet {
 
@@ -55,7 +55,7 @@ public class VennExportParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    final TextFlow message = FxTextFlows.newTextFlow(text(
+    final Region message = FxTextFlows.newTextFlowInAccordion("Important note", text(
             "Exports a feature list to a csv that can be plotted as a venn diagram by other software such as "),
         hyperlinkText("VennDis",
             "https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/10.1002/pmic.201400320"),

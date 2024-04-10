@@ -27,7 +27,7 @@ package io.github.mzmine.parameters.dialogs;
 
 import io.github.mzmine.parameters.ParameterSet;
 import javafx.scene.layout.GridPane;
-import javafx.scene.text.TextFlow;
+import javafx.scene.layout.Region;
 
 /**
  * This class represents the parameter setup dialog to set the values of SimpleParameterSet. Each
@@ -48,12 +48,12 @@ public class ParameterSetupDialog extends EmptyParameterSetupDialogBase {
    * Method to display setup dialog with a html-formatted footer message at the bottom.
    *
    */
-  public ParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters, TextFlow message) {
+  public ParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters, Region message) {
     this(valueCheckRequired, parameters, true, true, message);
   }
 
   public ParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, boolean addCancelButton, TextFlow message) {
+      boolean addOkButton, boolean addCancelButton, Region message) {
     super(valueCheckRequired, parameters, addOkButton, addCancelButton, message);
 
     this.paramsPane = createParameterPane(parameters.getParameters());

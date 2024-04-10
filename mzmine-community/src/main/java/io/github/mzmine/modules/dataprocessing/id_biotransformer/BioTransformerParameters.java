@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 
-import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
 import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
 
@@ -45,7 +44,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParamet
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import javafx.application.Platform;
-import javafx.scene.text.TextFlow;
+import javafx.scene.layout.Region;
 
 public class BioTransformerParameters extends SimpleParameterSet {
 
@@ -102,9 +101,7 @@ public class BioTransformerParameters extends SimpleParameterSet {
     if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
     }
-    final TextFlow message = FxTextFlows.newTextFlow(
-
-        boldText("Please cite:\n"), hyperlinkText("""
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite", hyperlinkText("""
             Djoumbou Feunang Y, Fiamoncini J, de la Fuente AG, Manach C, Greiner R, and Wishart DS; BioTransformer: A Comprehensive Computational Tool for Small Molecule Metabolism Prediction and Metabolite Identification; Journal of Cheminformatics; 2019; Journal of Cheminformatics 11:2; 
             DOI: 10.1186/s13321-018-0324-5
             """, "https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0324-5"), linebreak(),

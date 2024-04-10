@@ -49,7 +49,7 @@ import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
-import javafx.scene.text.TextFlow;
+import javafx.scene.layout.Region;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ProjectSaveAsParameters extends SimpleParameterSet {
@@ -76,7 +76,7 @@ public class ProjectSaveAsParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     assert Platform.isFxApplicationThread();
 
-    final TextFlow message = FxTextFlows.newTextFlow(
+    final Region message = FxTextFlows.newTextFlowInAccordion("Important note", true,
         text("There are currently two project formats supported:"), linebreak(),
         boldText("Standalone: "),
         text("Adds the raw data files into a project (large but flexible)"), linebreak(),

@@ -32,7 +32,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.text.TextFlow;
+import javafx.scene.layout.Region;
 
 public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
 
@@ -58,7 +58,7 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
   }
 
   public ParameterSetupDialogWithPreview(boolean valueCheckRequired, ParameterSet parameters,
-      TextFlow message) {
+      Region message) {
     super(valueCheckRequired, parameters, message);
 
     paramPreviewSplit = new SplitPane();

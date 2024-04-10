@@ -46,7 +46,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.util.ExitCode;
 import java.text.NumberFormat;
 import javafx.collections.FXCollections;
-import javafx.scene.text.TextFlow;
+import javafx.scene.layout.Region;
 
 /**
  * @author aleksandrsmirnov
@@ -130,7 +130,7 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    TextFlow message = FxTextFlows.newTextFlow(FxTexts.boldText("Module Disclaimer:"), linebreak(),
+    Region message = FxTextFlows.newTextFlowInAccordion("How to cite", FxTexts.boldText(":"), linebreak(),
         text("If you use this Spectral Deconvolution Module, please cite:"), linebreak(),
         boldText("mzmine paper: "), mzminePaper, linebreak(), boldText("ADAP paper: "),
         hyperlinkText(

@@ -60,7 +60,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
-import javafx.scene.text.TextFlow;
+import javafx.scene.layout.Region;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
 
@@ -106,7 +106,7 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    TextFlow message = FxTextFlows.newTextFlow(boldText("About the GNPS Export/Submit Module:\n"),
+    Region message = FxTextFlows.newTextFlowInAccordion("About the module/How to cite", boldText("About the GNPS Export/Submit Module:\n"),
         text("The GNPS Export module was designed for the"),
         boldText("Feature-Based Molecular Networking (FBMN)"),
         boldText("and the advanced Ion Identity Molecular Networking (IIMN)"), text("workflow on"),

@@ -40,7 +40,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 import io.github.mzmine.util.ExitCode;
 import java.util.Map;
-import javafx.scene.text.TextFlow;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
 public class IsotopeFinderParameters extends SimpleParameterSet {
@@ -70,12 +70,11 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    TextFlow message = FxTextFlows.newTextFlow(FxTexts.boldText(
-        "Important: "), FxTexts.text("""
-          The isotope finder will search for all possible isotope signals in the mass lists for each
-          feature. The resulting pattern may contain signals from different charge states as this module tries
-          to capture all available information, whereas the isotope grouper acts as a feature filter.
-          """));
+    Region message = FxTextFlows.newTextFlowInAccordion("Important note", true, FxTexts.text("""
+        The isotope finder will search for all possible isotope signals in the mass lists for each
+        feature. The resulting pattern may contain signals from different charge states as this module tries
+        to capture all available information, whereas the isotope grouper acts as a feature filter.
+        """));
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();

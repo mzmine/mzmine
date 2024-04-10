@@ -58,7 +58,6 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.TextFlow;
 import javafx.util.Duration;
 import org.apache.commons.text.WordUtils;
 
@@ -90,14 +89,11 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   protected MassCalibrationTask previewTask;
   protected final PauseTransition debounceTime = new PauseTransition(Duration.millis(500));
 
-  protected static final TextFlow universalCalibrantsMessage = FxTextFlows.newTextFlow(
-      boldText("Universal calibrants list disclaimer:\n"), text(
-          "If you use universal calibrants matching mode, please cite suitable publication (source of universal "
-              + "calibrants list) depending on which list you used. References are available in the help file."));
-
   public MassCalibrationSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
-
-    super(valueCheckRequired, parameters, universalCalibrantsMessage);
+    super(valueCheckRequired, parameters, FxTextFlows.newTextFlowInAccordion("How to cite",
+        boldText("Universal calibrants list disclaimer:\n"), text(
+            "If you use universal calibrants matching mode, please cite suitable publication (source of universal "
+                + "calibrants list) depending on which list you used. References are available in the help file.")));
 
     dataFiles = ProjectService.getProjectManager().getCurrentProject().getDataFiles();
 

@@ -47,7 +47,8 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.text.TextFlow;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 
@@ -83,12 +84,12 @@ public class EmptyParameterSetupDialogBase extends Stage {
    * @param message: html-formatted text
    */
   public EmptyParameterSetupDialogBase(boolean valueCheckRequired, ParameterSet parameters,
-      TextFlow message) {
+      Region message) {
     this(valueCheckRequired, parameters, true, true, message);
   }
 
   public EmptyParameterSetupDialogBase(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, boolean addCancelButton, TextFlow message) {
+      boolean addOkButton, boolean addCancelButton, Region message) {
     super();
     Image mzmineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
     this.getIcons().add(mzmineIcon);
@@ -124,7 +125,7 @@ public class EmptyParameterSetupDialogBase extends Stage {
 
     mainPane = new BorderPane(paramPane);
     mainPane.setMaxHeight(calcMaxHeight());
-    Scene scene = new Scene(mainPane);
+    Scene scene = new Scene(new StackPane(mainPane));
 
     // Use main CSS
     scene.getStylesheets()

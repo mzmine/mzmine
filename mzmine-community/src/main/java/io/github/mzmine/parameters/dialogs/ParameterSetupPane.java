@@ -26,7 +26,6 @@
 package io.github.mzmine.parameters.dialogs;
 
 import io.github.mzmine.gui.helpwindow.HelpWindow;
-import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -59,7 +58,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.TextFlow;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 
@@ -81,7 +79,7 @@ public class ParameterSetupPane extends BorderPane {
   // if needed.
   protected final ButtonBar pnlButtons;
   // Footer message
-  protected final TextFlow footerMessage;
+  protected final Region footerMessage;
   // the centerPane is empty and used as the main container for all parameter components
   protected final BorderPane mainPane;
   protected final ScrollPane mainScrollPane;
@@ -111,7 +109,7 @@ public class ParameterSetupPane extends BorderPane {
    * @param message: html-formatted text
    */
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, TextFlow message) {
+      boolean addOkButton, Region message) {
     this(valueCheckRequired, parameters, addOkButton, false, message, true, true);
   }
 
@@ -121,7 +119,7 @@ public class ParameterSetupPane extends BorderPane {
    * @param message: html-formatted text
    */
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, boolean addCancelButton, TextFlow message, boolean addParamComponents) {
+      boolean addOkButton, boolean addCancelButton, Region message, boolean addParamComponents) {
     this(valueCheckRequired, parameters, addOkButton, addCancelButton, message, addParamComponents,
         true);
   }
@@ -131,7 +129,7 @@ public class ParameterSetupPane extends BorderPane {
    *
    */
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, boolean addCancelButton, TextFlow message, boolean addParamComponents,
+      boolean addOkButton, boolean addCancelButton, Region message, boolean addParamComponents,
       boolean addHelp) {
     this.valueCheckRequired = valueCheckRequired;
     this.parameterSet = parameters;
@@ -206,8 +204,7 @@ public class ParameterSetupPane extends BorderPane {
 
     if (footerMessage != null) {
       final VBox pane = new VBox(footerMessage);
-      footerMessage.prefWidthProperty().bind(mainPane.widthProperty().subtract(30));
-      pane.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
+      footerMessage.prefWidthProperty().bind(pane.widthProperty());
       pane.setFillWidth(true);
       mainPane.setTop(pane);
     }

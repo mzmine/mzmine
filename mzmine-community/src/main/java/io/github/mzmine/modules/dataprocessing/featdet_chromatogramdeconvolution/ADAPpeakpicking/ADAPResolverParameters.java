@@ -50,7 +50,7 @@ import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleComboParameter;
 import io.github.mzmine.util.ExitCode;
 import java.text.NumberFormat;
-import javafx.scene.text.TextFlow;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -102,7 +102,7 @@ public class ADAPResolverParameters extends GeneralResolverParameters {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    final TextFlow message = FxTextFlows.newTextFlow(boldText("ADAP Module Disclaimer:"),
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite", boldText("ADAP Module Disclaimer:"),
         linebreak(), text("If you use the  ADAP Chromatogram Deconvolution Module, please cite: "),
         linebreak(), boldText("mzmine paper: "), mzminePaper, linebreak(), boldText("ADAP paper: "),
         hyperlinkText(

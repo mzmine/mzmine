@@ -55,8 +55,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.TextFlow;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
@@ -109,7 +109,7 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
   private Object[] currentValues;
 
   public ADAP3DecompositionV1_5SetupDialog(boolean valueCheckRequired,
-      final ParameterSet parameters, TextFlow message) {
+      final ParameterSet parameters, Region message) {
     super(valueCheckRequired, parameters, message);
 
     Parameter[] params = parameters.getParameters();
