@@ -40,14 +40,11 @@ import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.SaveImage;
-import io.github.mzmine.util.SaveImage.FileType;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.io.XSSFExcelWriterReader;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -64,8 +61,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -95,7 +90,6 @@ import org.jfree.data.xy.XYZDataset;
 public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
   private static final Logger logger = Logger.getLogger(EChartViewer.class.getName());
-  private final Menu exportMenu;
   // one history for each plot/subplot
   protected ZoomHistory zoomHistory;
   protected List<AxesRangeChangedListener> axesRangeListener;
@@ -174,7 +168,8 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       ChartLogicsFX.setAxesMargins(getChart(), 0.05);
     }
 
-    exportMenu = (Menu) getContextMenu().getItems().get(0);
+    // remove the standard export
+    getContextMenu().getItems().remove(0);
 
     // Add Export to Excel and graphics export menu
     if (graphicsExportMenu || dataExportMenu) {
@@ -192,10 +187,6 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       AxesSetupDialog dialog = new AxesSetupDialog(this.getScene().getWindow(), chart.getXYPlot());
       dialog.show();
     });
-
-    addMenuItem(exportMenu, "EPS..", event -> handleSave("EMF Image", "EMF", ".emf", FileType.EMF));
-
-    addMenuItem(exportMenu, "EMF..", event -> handleSave("EPS Image", "EPS", ".eps", FileType.EPS));
 
     addMenuItem(getContextMenu(), "Copy chart to clipboard", event -> {
       BufferedImage bufferedImage = getChart().createBufferedImage((int) this.getWidth(),
@@ -223,27 +214,6 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       }
     });
 
-  }
-
-  private void handleSave(String description, String extensions, String extension,
-      FileType filetype) {
-    FileChooser chooser = new FileChooser();
-    chooser.getExtensionFilters().add(new ExtensionFilter(description, extensions));
-    File file = chooser.showSaveDialog(null);
-
-    if (file != null) {
-      String filepath = file.getPath();
-      if (!filepath.toLowerCase().endsWith(extension)) {
-        filepath += extension;
-      }
-
-      int width = (int) this.getWidth();
-      int height = (int) this.getHeight();
-
-      // Save image
-      SaveImage SI = new SaveImage(getChart(), filepath, width, height, filetype);
-      new Thread(SI).start();
-    }
   }
 
   protected void addMenuItem(Menu parent, String title, EventHandler<ActionEvent> al) {
