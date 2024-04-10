@@ -156,8 +156,8 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
       // Create PseudoSpectrum, take first feature to ensure most intense is representative feature
       PseudoSpectrum pseudoSpectrum = new SimplePseudoSpectrum(featureList.getRawDataFile(0), 1,
           // MS Level
-          group.getFirst().getRT(), null, // No MsMsInfo for pseudo spectrum
-          mzs, intensities, group.getFirst().getRepresentativeScan().getPolarity(),
+          mainFeature.getRT(), null, // No MsMsInfo for pseudo spectrum
+          mzs, intensities, mainFeature.getRepresentativeScan().getPolarity(),
           "Correlated Features Pseudo Spectrum", PseudoSpectrumType.GC_EI);
 
       mainFeature.setAllMS2FragmentScans(List.of(pseudoSpectrum));
