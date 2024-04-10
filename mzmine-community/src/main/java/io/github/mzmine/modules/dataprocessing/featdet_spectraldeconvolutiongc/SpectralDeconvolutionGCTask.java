@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
+import com.google.common.collect.RangeMap;
+import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrumType;
@@ -37,6 +39,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogram;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -102,28 +105,20 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
 
   private List<List<ModularFeature>> groupFeaturesByRT(List<ModularFeature> features) {
     features.sort(Comparator.comparingDouble(ModularFeature::getHeight).reversed());
-    List<List<ModularFeature>> groupedFeatures = new ArrayList<>();
+
+    RangeMap<Float, List<ModularFeature>> rangeRtMap = TreeRangeMap.create();
+
     for (ModularFeature feature : features) {
-      boolean addedToGroup = false;
-      for (List<ModularFeature> group : groupedFeatures) {
-        // Compare current feature with the first feature in each group (representative feature)
-        ModularFeature representativeFeature = group.get(0);
-        if (rtTolerance.checkWithinTolerance(feature.getRT(), representativeFeature.getRT())) {
-          // If within RT tolerance, add to the group
-          group.add(feature);
-          addedToGroup = true;
-          break;
-        }
+      Float rt = feature.getRT();
+      List<ModularFeature> group = rangeRtMap.get(rt);
+      if (group == null) {
+        group = new ArrayList<>();
+        rangeRtMap.put(rtTolerance.getToleranceRange(rt), group);
       }
-      // If feature doesn't fit into any existing group, create a new group
-      if (!addedToGroup) {
-        List<ModularFeature> newGroup = new ArrayList<>();
-        newGroup.add(feature);
-        groupedFeatures.add(newGroup);
-      }
+      group.add(feature);
     }
 
-    return groupedFeatures;
+    return new ArrayList<>(rangeRtMap.asMapOfRanges().values());
   }
 
   private void createNewDeconvolutedFeatureList(List<FeatureListRow> deconvolutedFeatureListRows) {
