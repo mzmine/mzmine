@@ -220,10 +220,10 @@
         text="Targeted feature detection"
         userData="io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule"/>
     </Menu>
-    <Menu text="GC-MS">
+    <!--<Menu text="GC-MS">
       <MenuItem onAction="#runModule" text="ADAP chromatogram builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule"/>
-    </Menu>
+    </Menu>-->
     <Menu text="LC-IMS-MS">
       <MenuItem onAction="#runModule"
         text="Ion mobility trace builder"
@@ -265,8 +265,8 @@
     <Menu text="Chromatogram resolving">
       <MenuItem text="Local minimum resolver" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule"/>
-      <MenuItem text="ADAP resolver" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule"/>
+      <!--<MenuItem text="ADAP resolver" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule"/>-->
       <MenuItem text="Baseline resolver" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselineFeatureResolverModule"/>
       <MenuItem text="CentWave resolver" onAction="#runModule"
@@ -412,13 +412,13 @@
       <MenuItem text="GC-EI spectral deconvolution"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule"/>
-      <MenuItem text="Hierarchical clustering"
-        onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule"/>
-      <MenuItem text="Multivariate curve resolution"
-        onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule"/>
-    </Menu>
+<!--      <MenuItem text="Hierarchical clustering"-->
+<!--        onAction="#runModule"-->
+<!--        userData="io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule"/>-->
+<!--      <MenuItem text="Multivariate curve resolution"-->
+<!--        onAction="#runModule"-->
+<!--        userData="io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule"/>-->
+    </Menu>-->
 
     <Menu text="Feature list filtering">
       <MenuItem text="Duplicate feature filter"
@@ -453,8 +453,8 @@
       <!--<MenuItem text="Hierarchical aligner (GC)" // not mit compatible
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.align_hierarchical.HierarAlignerGcModule"/>-->
-      <MenuItem text="ADAP aligner (GC)" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule"/>
+      <!--<MenuItem text="ADAP aligner (GC)" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule"/>-->
       <MenuItem text="LC-Image-Aligner" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.align_lcimage.LcImageAlignerModule"/>
     </Menu>

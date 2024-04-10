@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,11 @@
 package io.github.mzmine.parameters.parametertypes.ranges;
 
 import com.google.common.collect.Range;
-
 import io.github.mzmine.parameters.UserParameter;
-
 import java.util.Collection;
 import java.util.List;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.w3c.dom.Element;
 
 /**
@@ -40,6 +39,9 @@ import org.w3c.dom.Element;
 
 public class ListDoubleRangeParameter
     implements UserParameter<List<Range<Double>>, ListDoubleRangeComponent> {
+
+  private static final Logger logger = Logger.getLogger(ListDoubleRangeParameter.class.getName());
+  private final String rangeSeparator = "_";
   private final String name, description;
   private final boolean valueRequired;
 
@@ -103,15 +105,23 @@ public class ListDoubleRangeParameter
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    value = dulab.adap.common.algorithms.String.toRanges(xmlElement.getTextContent());
+    final String text = xmlElement.getTextContent();
+    if(text == null || text.isBlank()) {
+      value = null;
+      return;
+    }
+    try {
+      value = ListDoubleRangeComponent.toRanges(text);
+    } catch (NullPointerException e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+    }
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
     if (value == null)
       return;
-
-    xmlElement.setTextContent(dulab.adap.common.algorithms.String.fromRanges(value));
+    xmlElement.setTextContent(ListDoubleRangeComponent.fromRanges(value));
   }
 
   @Override
