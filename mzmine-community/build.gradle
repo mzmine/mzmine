@@ -190,7 +190,7 @@ dependencies {
     implementation 'org.eclipse.parsson:jakarta.json:1.1.0'
     implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5'
 
-    implementation "org.du-lab.adap:adap:4.1.10"
+//    implementation "org.du-lab.adap:adap:4.1.10"
     implementation "org.xerial:sqlite-jdbc:3.40.0.0"
 
     implementation 'com.github.librepdf:openpdf:2.0.0'
@@ -206,7 +206,7 @@ dependencies {
     implementation "com.github.oshi:oshi-core:4.5.2"
     // because the version that is pulled by SIRIUS crashes
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
-    implementation 'com.opencsv:opencsv:5.8'
+    implementation(libs.opencsv)
 
     implementation 'net.java.dev.jna:jna:$jnaVersion'
     //implementation 'com.github.robinschmid:jimzMLParser:mzmine_local_obo-SNAPSHOT'
@@ -458,7 +458,7 @@ task signApp(dependsOn: jpackage) {
             ArrayList<Path> jarNestedLibs = [
                     FileSystems.newFileSystem(jarsDir.resolve("jna-inchi-darwin-x86-64-1.0.1.jar")).getPath("darwin-x86-64/libjnainchi.dylib"),
                     FileSystems.newFileSystem(jarsDir.resolve("jna-inchi-darwin-aarch64-1.0.1.jar")).getPath("darwin-aarch64/libjnainchi.dylib"),
-                    FileSystems.newFileSystem(jarsDir.resolve("adap-4.1.10.jar")).getPath("lib/macosx-x86_64/libadapwavelet.so"),
+                    /*FileSystems.newFileSystem(jarsDir.resolve("adap-4.1.10.jar")).getPath("lib/macosx-x86_64/libadapwavelet.so"),*/
             ]
 
             // Move each library out of .jar, sign it, and put it back

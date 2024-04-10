@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,6 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowImagingWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowLibraryGenerationWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
@@ -46,7 +45,7 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
   /**
    * Currently only used in GC-EI; maybe in the future for all ion fragmentation (DIA)
    */
-  DECONVOLUTION,
+  /*DECONVOLUTION,*/
   /**
    * uses annotations to build spectral libraries
    */
@@ -65,7 +64,7 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
     return switch (this) {
       case DDA, DIA -> super.toString();
       case MS1_ONLY -> "MS1 only";
-      case DECONVOLUTION -> "Spectral deconvolution";
+//      case DECONVOLUTION -> "Spectral deconvolution";
       case LIBRARY_GENERATION -> "Library generation";
       case IMAGING -> "Imaging";
     };
@@ -86,8 +85,8 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
       case LIBRARY_GENERATION ->
           new WorkflowLibraryGenerationWizardParameters(null, true, true, false);
       case DDA -> new WorkflowDdaWizardParameters(true, true, null, true, true, false);
-      case DECONVOLUTION ->
-          new WorkflowGcElectronImpactWizardParameters(true, null, true, true, false);
+//      case DECONVOLUTION ->
+//          new WorkflowGcElectronImpactWizardParameters(true, null, true, true, false);
       case DIA -> new WorkflowDiaWizardParameters(0.8, 5, true, null, true, true, false);
     };
   }
