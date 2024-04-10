@@ -28,7 +28,6 @@ package io.github.mzmine.modules.batchmode;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -363,9 +362,6 @@ public class BatchTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Could not start batch step " + method.getName());
       return;
-    } else {
-      // track step by module
-      GoogleAnalyticsTracker.trackModule(method);
     }
 
     // If current step didn't produce any tasks, continue with next step

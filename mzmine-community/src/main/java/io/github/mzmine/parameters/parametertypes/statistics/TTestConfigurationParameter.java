@@ -95,7 +95,8 @@ public class TTestConfigurationParameter implements
     final String a = xmlElement.getAttribute(XML_GRP_A_ATTR);
     final String b = xmlElement.getAttribute(XML_GRP_B_ATTR);
 
-    value = new StorableTTestConfiguration(TTestSamplingConfig.valueOf(sampling), colName, a, b);
+    value = new StorableTTestConfiguration(
+        !sampling.isBlank() ? TTestSamplingConfig.valueOf(sampling) : null, colName, a, b);
   }
 
   @Override
