@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,8 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ccscalc;
 
-import com.Ostermiller.util.CSVParser;
 import com.google.common.collect.Range;
+import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -123,9 +123,10 @@ public class CCSUtils {
    * @return A list of {@link CCSCalibrant}s or null.
    * @throws IOException while trying to read file
    */
-  public static List<CCSCalibrant> getCalibrantsFromCSV(final File file) throws IOException {
+  public static List<CCSCalibrant> getCalibrantsFromCSV(final File file)
+      throws IOException, CsvException {
     final FileReader fileReader = new FileReader(file);
-    final String[][] content = CSVParser.parse(fileReader, ';');
+    final List<String[]> content = CSVParsingUtils.readData(file, ";");
     fileReader.close();
 
     List<ImportType> importTypes = CSVParsingUtils.findLineIds(
@@ -133,7 +134,7 @@ public class CCSUtils {
             new ImportType(true, "mobility", DataTypes.get(
                 io.github.mzmine.datamodel.features.types.numbers.MobilityType.class)), //
             new ImportType(true, "ccs", DataTypes.get(CCSType.class)), //
-            new ImportType(true, "charge", DataTypes.get(ChargeType.class))), content[0],
+            new ImportType(true, "charge", DataTypes.get(ChargeType.class))), content.get(0),
         new SimpleStringProperty());
 
     if (importTypes == null) {
@@ -150,16 +151,16 @@ public class CCSUtils {
     final int chargeIndex = importTypes.stream().filter(t -> t.getCsvColumnName().equals("charge"))
         .findFirst().orElseThrow().getColumnIndex();
 
-    final int numCalibrants = content.length - 1; // first line is headers
+    final int numCalibrants = content.size() - 1; // first line is headers
     List<CCSCalibrant> calibrants = new ArrayList<>();
 
     for (int i = 0; i < numCalibrants; i++) {
       try {
         calibrants.add(new CCSCalibrant(null, null, //
-            Double.parseDouble(content[i + 1][mzIndex]), // mz
-            Float.parseFloat(content[i + 1][mobilityIndex]), // mobility
-            Float.parseFloat(content[i + 1][ccsIndex]), // ccs
-            Integer.parseInt(content[i + 1][chargeIndex]))); // charge
+            Double.parseDouble(content.get(i + 1)[mzIndex]), // mz
+            Float.parseFloat(content.get(i + 1)[mobilityIndex]), // mobility
+            Float.parseFloat(content.get(i + 1)[ccsIndex]), // ccs
+            Integer.parseInt(content.get(i + 1)[chargeIndex]))); // charge
       } catch (NumberFormatException e) {
         final int finalI = i;
         logger.warning(

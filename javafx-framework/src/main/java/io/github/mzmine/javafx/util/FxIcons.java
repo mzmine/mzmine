@@ -31,7 +31,7 @@ public enum FxIcons implements IconCodeSupplier {
   ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN,
 
   //
-  USER, BUG, WEBSITE, GEAR_PREFERENCES, RELOAD, YOUTUBE, DEVELOPMENT, BOOK;
+  USER, BUG, WEBSITE, GEAR_PREFERENCES, RELOAD, YOUTUBE, DEVELOPMENT, BOOK, ROCKET;
 
 
   @Override
@@ -50,8 +50,9 @@ public enum FxIcons implements IconCodeSupplier {
       case ARROW_DOWN -> "bi-arrow-down";
       case RELOAD -> "bi-arrow-repeat";
       case YOUTUBE -> "bi-youtube";
-      case DEVELOPMENT -> "hwf-document-file-java";
+      case DEVELOPMENT -> "bi-code-slash";
       case BOOK -> "bi-book-half";
+      case ROCKET -> "las-rocket";
     };
   }
 }

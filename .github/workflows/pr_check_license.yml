@@ -1,0 +1,31 @@
+name: Check dependency licenses
+
+on:
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  gradle_build:
+    name: test and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21.0.2'
+      #          cache: 'gradle'  # now done with gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Execute dependency license check
+        run: ./gradlew mzmine-community:checkLicense --stacktrace
+
+      - name: Upload license report
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v2
+        with:
+          name: license_report
+          path: mzmine-community/licensereport/*.json
+          retention-days: 7  # store for 7 days

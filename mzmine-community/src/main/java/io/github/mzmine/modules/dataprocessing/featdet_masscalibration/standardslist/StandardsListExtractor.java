@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist;
 
+import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
 
 /**
@@ -39,7 +40,6 @@ public interface StandardsListExtractor {
    * @return extracted and cached standards list
    * @throws IOException
    */
-  StandardsList extractStandardsList() throws IOException;
+  StandardsList extractStandardsList() throws IOException, CsvException;
 
-  void closeInputStreams();
 }

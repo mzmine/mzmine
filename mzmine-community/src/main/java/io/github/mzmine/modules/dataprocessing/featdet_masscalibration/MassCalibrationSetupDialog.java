@@ -25,7 +25,11 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts.ErrorDistributionChart;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts.ErrorVsMzChart;
@@ -85,14 +89,11 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   protected MassCalibrationTask previewTask;
   protected final PauseTransition debounceTime = new PauseTransition(Duration.millis(500));
 
-  protected static final String universalCalibrantsMessage =
-      "Universal calibrants list disclaimer: "
-          + "If you use universal calibrants matching mode, please cite suitable publication (source of universal "
-          + "calibrants list) depending on which list you used. References are available in the help file.";
-
   public MassCalibrationSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
-
-    super(valueCheckRequired, parameters, universalCalibrantsMessage);
+    super(valueCheckRequired, parameters, FxTextFlows.newTextFlowInAccordion("How to cite",
+        boldText("Universal calibrants list disclaimer:\n"), text(
+            "If you use universal calibrants matching mode, please cite suitable publication (source of universal "
+                + "calibrants list) depending on which list you used. References are available in the help file.")));
 
     dataFiles = ProjectService.getProjectManager().getCurrentProject().getDataFiles();
 
@@ -109,7 +110,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     //TODO: Improve handling of ComboBox in case no raw files are loaded
     if (previewDataFile != null) {
       comboDataFileName = new ComboBox<>(FXCollections.observableList(
-        ProjectService.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
+          ProjectService.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
       comboDataFileName.setOnAction(e -> {
         parametersChanged(true);
       });

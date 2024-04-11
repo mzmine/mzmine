@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,8 +38,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MathUtils;
-import io.github.mzmine.util.R.REngineType;
-import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.maths.CenterFunction;
 import java.util.ArrayList;
@@ -70,7 +68,7 @@ public class SavitzkyGolayFeatureResolver implements FeatureResolver {
 
   @Override
   public ResolvedPeak[] resolvePeaks(final Feature chromatogram, ParameterSet parameters,
-      RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
+      CenterFunction mzCenterFunction, double msmsRange,
       float rTRangeMSMS) {
 
     List<Scan> scanNumbers = chromatogram.getScanNumbers();
@@ -81,10 +79,11 @@ public class SavitzkyGolayFeatureResolver implements FeatureResolver {
       final Scan scanNum = scanNumbers.get(i);
       retentionTimes[i] = scanNum.getRetentionTime();
       DataPoint dp = chromatogram.getDataPointAtIndex(i);
-      if (dp != null)
+      if (dp != null) {
         intensities[i] = dp.getIntensity();
-      else
+      } else {
         intensities[i] = 0.0;
+      }
     }
 
     // Calculate intensity statistics.
@@ -322,23 +321,4 @@ public class SavitzkyGolayFeatureResolver implements FeatureResolver {
     return SavitzkyGolayFeatureResolverParameters.class;
   }
 
-  @Override
-  public boolean getRequiresR() {
-    return false;
-  }
-
-  @Override
-  public String[] getRequiredRPackages() {
-    return null;
-  }
-
-  @Override
-  public String[] getRequiredRPackagesVersions() {
-    return null;
-  }
-
-  @Override
-  public REngineType getREngineType(ParameterSet parameters) {
-    return null;
-  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,10 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -36,13 +40,14 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
+import javafx.scene.layout.Region;
 
 public class ChromatogramBuilderParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter(new ScanSelection(1));
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      new ScanSelection(1));
 
   public static final DoubleParameter minimumTimeSpan = new DoubleParameter("Min time span (min)",
       "Minimum time span over which the same ion must be observed in order to be recognized as a chromatogram.\n"
@@ -56,20 +61,22 @@ public class ChromatogramBuilderParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final StringParameter suffix =
-      new StringParameter("Suffix", "This string is added to filename as suffix", "chromatograms");
+  public static final StringParameter suffix = new StringParameter("Suffix",
+      "This string is added to filename as suffix", "chromatograms");
 
   public ChromatogramBuilderParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, minimumTimeSpan, minimumHeight,
-        mzTolerance, suffix});
+    super(new Parameter[]{dataFiles, scanSelection, minimumTimeSpan, minimumHeight, mzTolerance,
+        suffix});
   }
 
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    String message =
-        "<html><b>Note:</b> starting with MZmine.39, this module is considered deprecated <br>"
-            + "and will be removed in future MZmine versions. Please use the <b>ADAP Chromatogram Builder</b>,<br>"
-            + "which is much faster and generates better results.<br>"
-            + "Contact the developers if you have any questions or concerns.</html>";
+    Region message = FxTextFlows.newTextFlowInAccordion("Important note", true, boldText("Note:\n"),
+        text("""
+            starting with MZmine 2.39, this module is considered deprecated
+            and will be removed in future MZmine versions. Please use the ADAP Chromatogram Builder
+            which is much faster and generates better results.
+            Contact the developers if you have any questions or concerns.
+            """));
 
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
