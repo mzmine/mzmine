@@ -174,7 +174,7 @@ public abstract class WizardBatchBuilder {
             "Error during extraction of value from parameter " + parameter.getName(), ex);
       }
     }
-    return null;
+    return new OptionalValue<>(false, null);
   }
 
   /**

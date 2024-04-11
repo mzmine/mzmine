@@ -190,6 +190,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   // only parameters that are used in all workflows
   // input
   protected final File[] dataFiles;
+  protected final OptionalValue<File> metadataFile;
   // annotation
   protected final File[] libraries;
   //filter
@@ -225,6 +226,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     // input
     Optional<? extends WizardStepParameters> params = steps.get(WizardPart.DATA_IMPORT);
     dataFiles = getValue(params, AllSpectralDataImportParameters.fileNames);
+    metadataFile = getOptional(params, AllSpectralDataImportParameters.metadataFile);
 
     // annotation
     params = steps.get(WizardPart.ANNOTATION);
@@ -681,8 +683,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     IonModification[] adductChoices;
     if (polarity == Polarity.Positive) {
       adducts = new IonModification[]{IonModification.H, IonModification.H_H2O_1,
-          IonModification.NA,
-          IonModification.Hneg_NA2, IonModification.K, IonModification.NH4, IonModification.H2plus};
+          IonModification.NA, IonModification.Hneg_NA2, IonModification.K, IonModification.NH4,
+          IonModification.H2plus};
       adductChoices = IonModification.getDefaultValuesPos();
     } else {
       adducts = new IonModification[]{IonModification.H_NEG, IonModification.FA,
@@ -854,6 +856,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
     param.getParameter(AllSpectralDataImportParameters.fileNames).setValue(dataFiles);
+    param.setParameter(AllSpectralDataImportParameters.metadataFile, metadataFile.active(),
+        metadataFile.value());
     param.getParameter(SpectralLibraryImportParameters.dataBaseFiles).setValue(libraries);
     // turn advanced off but still set the noise levels etc
     param.getParameter(AllSpectralDataImportParameters.advancedImport).setValue(false);

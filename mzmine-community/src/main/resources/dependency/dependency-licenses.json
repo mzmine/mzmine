@@ -2525,7 +2525,7 @@
             ]
         },
         {
-            "moduleName": "org.kordamp.ikonli:ikonli-hawcons-pack",
+            "moduleName": "org.kordamp.ikonli:ikonli-javafx",
             "moduleVersion": "12.3.1",
             "moduleUrls": [
                 "https://github.com/kordamp/ikonli"
@@ -2538,7 +2538,7 @@
             ]
         },
         {
-            "moduleName": "org.kordamp.ikonli:ikonli-javafx",
+            "moduleName": "org.kordamp.ikonli:ikonli-lineawesome-pack",
             "moduleVersion": "12.3.1",
             "moduleUrls": [
                 "https://github.com/kordamp/ikonli"
