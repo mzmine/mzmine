@@ -81,7 +81,7 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
       new MsMsSpectraMergeParameters(), true);
   public static final ComboParameter<FeatureTableExportType> CSV_TYPE = new ComboParameter<>(
       "CSV export",
-      "Either the new comprehensive export of MZmine 3 or the legacy export from MZmine 2",
+      "Either the new comprehensive export of mzmine or the legacy export from MZmine 2",
       FeatureTableExportType.values(), FeatureTableExportType.SIMPLE);
   public static final ComboParameter<AbundanceMeasure> FEATURE_INTENSITY = new ComboParameter<>(
       "Feature intensity", "Intensity in the quantification table (csv).",

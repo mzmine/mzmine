@@ -36,51 +36,51 @@ jobs:
         if: runner.os == 'Windows'
         uses: papeloto/action-zip@v1
         with:
-          files: mzmine-community/build/jpackage/MZmine/
-          dest: mzmine-community/build/jpackage/MZmine_Windows_portable.zip
+          files: mzmine-community/build/jpackage/mzmine/
+          dest: mzmine-community/build/jpackage/mzmine_Windows_portable.zip
       - name: Zip portable linux
         if: runner.os == 'Linux'
         uses: papeloto/action-zip@v1
         with:
-          files: mzmine-community/build/jpackage/MZmine/
-          dest: mzmine-community/build/jpackage/MZmine_Linux_portable.zip
+          files: mzmine-community/build/jpackage/mzmine/
+          dest: mzmine-community/build/jpackage/mzmine_Linux_portable.zip
 
       # UPLOAD ALL FILES
       - name: Upload windows builds
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v2
         with:
-          name: MZmine_windows_msi_installer
+          name: mzmine_windows_msi_installer
           path: mzmine-community/build/jpackage/*.msi
           retention-days: 7  # store for 7 days
       - name: Upload windows portable builds
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v2
         with:
-          name: MZmine_windows_portable
-          path: mzmine-community/build/jpackage/MZmine_Windows_portable.zip
+          name: mzmine_windows_portable
+          path: mzmine-community/build/jpackage/mzmine_Windows_portable.zip
           retention-days: 7  # store for 7 days
 
       - name: Upload builds ubuntu deb
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v2
         with:
-          name: MZmine_linux_deb_package
+          name: mzmine_linux_deb_package
           path: mzmine-community/build/jpackage/*.deb
           retention-days: 7  # store for 7 days
       - name: Upload builds ubuntu rpm
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v2
         with:
-          name: MZmine_linux_rpm_package
+          name: mzmine_linux_rpm_package
           path: mzmine-community/build/jpackage/*.rpm
           retention-days: 7  # store for 7 days
       - name: Upload linux portable builds
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v2
         with:
-          name: MZmine_linux_portable
-          path: mzmine-community/build/jpackage/MZmine_Linux_portable.zip
+          name: mzmine_linux_portable
+          path: mzmine-community/build/jpackage/mzmine_Linux_portable.zip
           retention-days: 7  # store for 7 days
 
 
@@ -117,14 +117,14 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           npm install --python=python3.11 -g appdmg
-          appdmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/MZmine_macOS_installer.dmg
+          appdmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
 
       - name: Upload macOS installer
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v2
         with:
-          name: MZmine_macOS_installer
-          path: mzmine-community/build/jpackage/MZmine_macOS_installer.dmg
+          name: mzmine_macOS_installer
+          path: mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
           retention-days: 7  # store for 7 days
 
 #      - name: Remove dmg File and Make .app executable
@@ -142,8 +142,8 @@ jobs:
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v2
         with:
-          name: MZmine_macos_portable
-          path: mzmine-community/build/jpackage/MZmine_macOS_portable.zip
+          name: mzmine_macos_portable
+          path: mzmine-community/build/jpackage/mzmine_macOS_portable.zip
           retention-days: 7  # store for 7 days
 
 
