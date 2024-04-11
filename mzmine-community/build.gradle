@@ -408,7 +408,7 @@ task signApp(dependsOn: jpackage) {
             getLogger().lifecycle("Signing native ThermoRawFileParser...")
 
             // Unzip ThermoRawFileParser.zip
-            String mzmineJarName = "mzmine3-${semver.version}"
+            String mzmineJarName = "mzmine-community-${semver.version}"
             getLogger().info("tmp mzmine jar unzip to " + "${jarsDir}/${mzmineJarName}/vendorlib/thermo")
             getLogger().info("check if jar exists " + "${jarsDir.resolve(mzmineJarName).toFile().exists()}")
             exec { commandLine(['sh', '-c', "cd ${jarsDir} && unzip -q ${mzmineJarName}.jar -d ${mzmineJarName}"]) }
