@@ -109,13 +109,12 @@ public class MZminePreferences extends SimpleParameterSet {
       "Full R executable file path (If left blank, MZmine will try to find out automatically). On Windows, this should point to your R.exe file.",
       FileSelectionType.OPEN, true);
 
-  public static final BooleanParameter sendStatistics = new BooleanParameter(
-      "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
-      true);
-
-  public static final OptionalModuleParameter sendErrorEMail = new OptionalModuleParameter(
-      "Send error e-Mail notifications", "Send error e-Mail notifications",
-      new ErrorMailSettings());
+//  public static final BooleanParameter sendStatistics = new BooleanParameter(
+//      "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
+//      true);
+//  public static final OptionalModuleParameter sendErrorEMail = new OptionalModuleParameter(
+//      "Send error e-Mail notifications", "Send error e-Mail notifications",
+//      new ErrorMailSettings());
 
   public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
 
@@ -196,7 +195,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public MZminePreferences() {
     super(// start with performance
-        numOfThreads, memoryOption, tempDirectory, proxySettings, rExecPath, sendStatistics,
+        numOfThreads, memoryOption, tempDirectory, proxySettings, rExecPath,
         /*applyTimsPressureCompensation,*/
         // visuals
         // number formats
@@ -207,7 +206,7 @@ public class MZminePreferences extends SimpleParameterSet {
         // other preferences
         defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
         imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
-        windowSetttings, sendErrorEMail,
+        windowSetttings,
         // silent parameters without controls
         showTempFolderAlert, username);
   }
@@ -225,16 +224,16 @@ public class MZminePreferences extends SimpleParameterSet {
     // add groups
     dialog.addParameterGroup("General",
         new Parameter[]{numOfThreads, memoryOption, tempDirectory, proxySettings, rExecPath,
-            sendStatistics/*, applyTimsPressureCompensation*/});
+            /*, applyTimsPressureCompensation*/});
     dialog.addParameterGroup("Formats",
         new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,
             scoreFormat, unitFormat});
     dialog.addParameterGroup("Visuals",
         new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
             showPrecursorWindow, imageTransformation, imageNormalization});
-    dialog.addParameterGroup("Other", new Parameter[]{sendErrorEMail,
+//    dialog.addParameterGroup("Other", new Parameter[]{
         // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
-    });
+//    });
     dialog.setFilterText(filterParameters);
 
     // check

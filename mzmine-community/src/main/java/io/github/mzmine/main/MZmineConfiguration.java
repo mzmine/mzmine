@@ -118,8 +118,6 @@ public interface MZmineConfiguration {
 
   String getRexecPath();
 
-  Boolean getSendStatistics();
-
   /**
    * For color blindness or "normal vision"
    *
