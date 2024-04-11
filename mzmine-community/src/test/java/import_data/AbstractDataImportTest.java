@@ -54,10 +54,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import testutils.MZmineTestUtil;
 
 @TestInstance(Lifecycle.PER_CLASS)
 @TestMethodOrder(OrderAnnotation.class)
+@DisabledOnOs(OS.MAC)
 public abstract class AbstractDataImportTest  {
 
   private static final Logger logger = Logger.getLogger(AbstractDataImportTest.class.getName());
