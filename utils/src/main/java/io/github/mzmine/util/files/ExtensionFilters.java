@@ -30,6 +30,14 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ExtensionFilters {
 
+  /**
+   * mzmine specific
+   */
+  public static final ExtensionFilter MZ_USER = new ExtensionFilter("mzmine user", "*.mzuser");
+  public static final ExtensionFilter MZ_CONFIG = new ExtensionFilter("mzmine config", "*.mzconfig");
+  public static final ExtensionFilter MZ_BATCH = new ExtensionFilter("mzmine batch", "*.mzbatch");
+  public static final ExtensionFilter MZ_WIZARD = new ExtensionFilter("mzmine mzwizard", "*.mzmwizard");
+
   /*
    * CSV and TSV import export
    */
@@ -99,4 +107,11 @@ public class ExtensionFilters {
       MZML_ZIP_GZIP, //
       ALL_FILES);
 
+
+  public static String getExtensionName(ExtensionFilter filter) {
+    return filter.getExtensions().stream().findFirst().map(ext -> {
+      var split = ext.split("\\.");
+      return split[split.length - 1];
+    }).orElse("");
+  }
 }
