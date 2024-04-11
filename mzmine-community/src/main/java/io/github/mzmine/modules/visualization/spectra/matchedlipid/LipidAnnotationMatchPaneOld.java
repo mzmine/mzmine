@@ -26,12 +26,12 @@
 package io.github.mzmine.modules.visualization.spectra.matchedlipid;
 
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.color.ColorScaleUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidFragment;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.javafx.util.color.ColorScaleUtil;
-import io.github.mzmine.javafx.util.FxColorUtil;
 import java.text.DecimalFormat;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
@@ -92,7 +92,7 @@ public class LipidAnnotationMatchPaneOld extends GridPane {
   private Pane createTitlePane() {
     String styleWhiteScoreSmall = "white-score-label-small";
     // create Top panel
-    double msMsScore = matchedLipid.getMsMsScore();
+    double msMsScore = matchedLipid.getMsMsScore() * 100;
     Color gradientCol = FxColorUtil.awtColorToFX(
         ColorScaleUtil.getColor(FxColorUtil.fxColorToAWT(MIN_MSMS_SCORE_COLOR), FxColorUtil.fxColorToAWT(MAX_MSMS_SCORE_COLOR), MIN_MSMS_SCORE_COLOR_VALUE,
             MAX_MSMS_SCORE_COLOR_VALUE, msMsScore));
