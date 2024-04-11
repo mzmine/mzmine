@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]
     paths-ignore:
-      - 'src/main/resources/mzmineversion.properties'
+      - 'mzmine-community/src/main/resources/mzmineversion.properties'
 
 jobs:
   gradle_dev_build:
