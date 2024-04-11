@@ -45,8 +45,7 @@ fastutil = { group = "it.unimi.dsi", name = "fastutil", version = "8.5.6" }
 controlsfx = { module = "org.controlsfx:controlsfx", version.ref = "controlsfx" }
 ikonli-javafx = { module = "org.kordamp.ikonli:ikonli-javafx", version.ref = "ikonli" }
 ikonli-bootstrap = { module = "org.kordamp.ikonli:ikonli-bootstrapicons-pack", version.ref = "ikonli" }
-ikonli-hawcons = { module = "org.kordamp.ikonli:ikonli-hawcons-pack", version.ref = "ikonli" }
-ikonli-lineawesome = { group = "org.kordamp.ikonli", name = "ikonli-lineawesome-pack", version = "12.3.1" }
+ikonli-lineawesome = { group = "org.kordamp.ikonli", name = "ikonli-lineawesome-pack", version.ref = "ikonli" }
 graphstream-javafx = { module = "org.graphstream:gs-ui-javafx", version.ref = "graphstream" }
 graphstream-algo = { module = "org.graphstream:gs-algo", version.ref = "graphstream" }
 graphstream-core = "com.github.robinschmid:gs-core:45504f632f"
@@ -105,13 +104,13 @@ mockito = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito
 [bundles]
 # convention plugins
 default-convention = ["jetbrains-annotations"]
-javafx-convention = ["controlsfx", "ikonli-javafx", "ikonli-bootstrap", "ikonli-hawcons", "ikonli-lineawesome"]
+javafx-convention = ["controlsfx", "ikonli-javafx", "ikonli-bootstrap", "ikonli-lineawesome"]
 # default productivity
 productivity = ["jetbrains-annotations"]
 
 mzio = ["mzio-memory-management", "mzio-taskcontroller", "mzio-user-client", "mzio-user-management", "mzio-user-management-fx", "mzio-global-events"]
 # UI
-ikonli = ["ikonli-bootstrap", "ikonli-hawcons", "ikonli-javafx", "ikonli-lineawesome"]
+ikonli = ["ikonli-bootstrap", "ikonli-javafx", "ikonli-lineawesome"]
 jfreechart = ["jfree-core", "jfree-fx", "jfree-fxgraphics"]
 graphstream = ["graphstream-algo", "graphstream-core", "graphstream-javafx"]
 # chemistry

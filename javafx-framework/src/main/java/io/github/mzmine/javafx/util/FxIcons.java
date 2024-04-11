@@ -50,7 +50,7 @@ public enum FxIcons implements IconCodeSupplier {
       case ARROW_DOWN -> "bi-arrow-down";
       case RELOAD -> "bi-arrow-repeat";
       case YOUTUBE -> "bi-youtube";
-      case DEVELOPMENT -> "hwf-document-file-java";
+      case DEVELOPMENT -> "bi-code-slash";
       case BOOK -> "bi-book-half";
       case ROCKET -> "las-rocket";
     };
