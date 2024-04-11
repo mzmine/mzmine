@@ -783,7 +783,7 @@ public class MainWindowController {
         "Are you sure you want to remove selected files?", ButtonType.YES, ButtonType.NO,
         ButtonType.CANCEL);
     Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-    stage.getIcons().add(new Image("MZmineIcon.png"));
+    stage.getIcons().add(new Image("mzmineIcon.png"));
     alert.setHeaderText("Remove file");
     alert.showAndWait();
 
@@ -819,7 +819,7 @@ public class MainWindowController {
         AnchorPane pane = loader.load();
         Stage stage = new Stage();
         stage.setTitle("Feature list summary - " + selectedValue.getName());
-        stage.getIcons().add(FxIconUtil.loadImageFromResources("MZmineIcon.png"));
+        stage.getIcons().add(FxIconUtil.loadImageFromResources("mzmineIcon.png"));
         stage.setScene(new Scene(pane));
         stage.getScene().getStylesheets()
             .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
@@ -841,7 +841,7 @@ public class MainWindowController {
         AnchorPane pane = loader.load();
         Stage stage = new Stage();
         stage.setTitle("MS data file list summary - " + selectedValue.getName());
-        stage.getIcons().add(FxIconUtil.loadImageFromResources("MZmineIcon.png"));
+        stage.getIcons().add(FxIconUtil.loadImageFromResources("mzmineIcon.png"));
         stage.setScene(new Scene(pane));
         stage.getScene().getStylesheets()
             .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
@@ -989,7 +989,7 @@ public class MainWindowController {
     popup.setTitle("Set color");
     popup.setResizable(false);
     popup.initModality(Modality.APPLICATION_MODAL);
-    popup.getIcons().add(new Image("MZmineIcon.png"));
+    popup.getIcons().add(new Image("mzmineIcon.png"));
     popup.show();
 
     popup.setOnHiding(e -> {

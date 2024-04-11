@@ -278,7 +278,7 @@ public class MsMsVisualizerTab extends MZmineTab {
     highlightDialog.setTitle("Values ranges to highlight");
     highlightDialog.setResizable(false);
     highlightDialog.initModality(Modality.APPLICATION_MODAL);
-    highlightDialog.getIcons().add(new Image("MZmineIcon.png"));
+    highlightDialog.getIcons().add(new Image("mzmineIcon.png"));
     highlightDialog.show();
 
     minField1.requestFocus();
