@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
@@ -59,7 +60,7 @@ public class ProjectSavingTask extends AbstractTask {
 
   public static final String VERSION_FILENAME = "MZMINE_VERSION";
   public static final String STANDALONE_FILENAME = "STANDALONE"; // only exists if it's a standalone project.
-  public static final String CONFIG_FILENAME = "configuration.xml";
+  public static final String CONFIG_FILENAME = "configuration" + MZmineConfiguration.CONFIG_FILE;
   public static final String PARAMETERS_FILENAME = "User parameters.xml";
   private static final Logger logger = Logger.getLogger(ProjectSavingTask.class.getName());
   private final ProjectSaveOption projectType;

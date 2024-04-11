@@ -59,6 +59,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 public class MZminePreferences extends SimpleParameterSet {
@@ -243,6 +244,15 @@ public class MZminePreferences extends SimpleParameterSet {
       return retVal;
     }
 
+    applyConfig(previousTheme);
+
+    return retVal;
+  }
+
+  public void applyConfig() {
+    applyConfig(null);
+  }
+  public void applyConfig(final @Nullable Themes previousTheme) {
     // Update proxy settings
     updateSystemProxySettings();
 
@@ -252,7 +262,9 @@ public class MZminePreferences extends SimpleParameterSet {
     keepInMemory.enforceToMemoryMapping();
 
     final Themes theme = getValue(MZminePreferences.theme);
-    updateChartColorsToTheme(previousTheme, theme);
+    if (previousTheme != null) {
+      updateChartColorsToTheme(previousTheme, theme);
+    }
     theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     darkModeProperty.set(theme.isDark());
 
@@ -275,8 +287,6 @@ public class MZminePreferences extends SimpleParameterSet {
       }
       FileAndPathUtil.setTempDir(tempDir);
     }
-
-    return retVal;
   }
 
   private void updateChartColorsToTheme(Themes previousTheme, Themes theme) {
