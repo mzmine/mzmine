@@ -179,6 +179,13 @@
           }
         },
         {
+          "group": "org.kordamp.ikonli",
+          "module": "ikonli-lineawesome-pack",
+          "version": {
+            "requires": "12.3.1"
+          }
+        },
+        {
           "group": "io.mzio",
           "module": "user-management",
           "version": {

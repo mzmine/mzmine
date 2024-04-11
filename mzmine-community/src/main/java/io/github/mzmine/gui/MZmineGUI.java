@@ -63,6 +63,7 @@ import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
+import io.mzio.users.client.UserAuthStore;
 import java.io.File;
 import java.net.URL;
 import java.time.Instant;
@@ -308,7 +309,6 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
       final List<File> rawDataFiles = new ArrayList<>();
       final List<File> libraryFiles = new ArrayList<>();
-      File lastBatchFile = null;
 
       for (File selectedFile : dragboard.getFiles()) {
         final String extension = FilenameUtils.getExtension(selectedFile.getName()).toLowerCase();
@@ -340,6 +340,11 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
           boolean result = copyToUserDirectory(selectedFile);
           String resultStr = result ? "succeeded" : "failed";
           messages.add(STR."Adding wizard file \{selectedFile.getName()} \{resultStr}");
+        }
+        if (UserAuthStore.isUserFile(extension)) {
+          var result = UserAuthStore.copyAddUserFile(selectedFile);
+          String resultStr = result ? "succeeded" : "failed";
+          messages.add(STR."Adding user \{selectedFile.getName()} \{resultStr}");
         }
 
 //        if(selectedFile.getName().strip().toLowerCase().endsWith("mzbatch")) {
