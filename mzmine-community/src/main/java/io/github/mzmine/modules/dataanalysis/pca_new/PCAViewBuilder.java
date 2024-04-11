@@ -187,7 +187,7 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
     });
 
     model.selectedRowsProperty().addListener((_, old, rows) -> {
-      if (rows.isEmpty() || old.equals(rows)) {
+      if (rows.isEmpty() || (old != null && old.equals(rows))) {
         return;
       }
 
