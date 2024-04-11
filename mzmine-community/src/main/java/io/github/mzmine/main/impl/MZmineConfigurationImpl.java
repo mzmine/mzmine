@@ -244,11 +244,6 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     }
   }
 
-  @Override
-  public Boolean getSendStatistics() {
-    return preferences.getParameter(MZminePreferences.sendStatistics).getValue();
-  }
-
   @SuppressWarnings("unchecked")
   @Override
   public void loadConfiguration(File file, boolean loadPreferences) throws IOException {

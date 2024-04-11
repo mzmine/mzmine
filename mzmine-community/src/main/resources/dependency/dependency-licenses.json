@@ -440,19 +440,6 @@
             ]
         },
         {
-            "moduleName": "com.thoughtworks.qdox:qdox",
-            "moduleVersion": "1.12",
-            "moduleUrls": [
-                "http://qdox.codehaus.org"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
             "moduleName": "com.vdurmont:semver4j",
             "moduleVersion": "3.1.0",
             "moduleUrls": [
@@ -1527,7 +1514,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-anim",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1537,7 +1524,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-awt-util",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1547,7 +1534,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-bridge",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1567,7 +1554,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-constants",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1577,7 +1564,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-css",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1587,7 +1574,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-dom",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1597,7 +1584,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-ext",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1607,7 +1594,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-extension",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1627,7 +1614,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-gvt",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1637,7 +1624,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-i18n",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1647,7 +1634,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-parser",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1677,7 +1664,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-script",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1687,7 +1674,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-shared-resources",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1727,7 +1714,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-svg-dom",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1747,7 +1734,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-svggen",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1787,7 +1774,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-transcoder",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1807,7 +1794,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-util",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1817,47 +1804,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-xml",
-            "moduleVersion": "1.14",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:fop",
-            "moduleVersion": "2.6",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:fop-core",
-            "moduleVersion": "2.6",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:fop-events",
-            "moduleVersion": "2.6",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:fop-util",
-            "moduleVersion": "2.6",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1867,7 +1814,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:xmlgraphics-commons",
-            "moduleVersion": "2.6",
+            "moduleVersion": "2.4",
             "moduleUrls": [
                 "http://xmlgraphics.apache.org/commons/"
             ],
