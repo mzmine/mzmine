@@ -124,7 +124,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDesktop {
 
   public static final int MAX_TABS = 30;
-  private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
+  private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("mzmineIcon.png");
   private static final String mzMineFXML = "mainwindow/MainWindow.fxml";
   private static final Logger logger = Logger.getLogger(MZmineGUI.class.getName());
   private static MainWindowController mainWindowController;

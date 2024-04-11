@@ -36,7 +36,7 @@ public class DesktopSetup implements Runnable {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
+  private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("mzmineIcon.png");
 
   @Override
   public void run() {
