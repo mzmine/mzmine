@@ -235,17 +235,6 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   }
 
   @Override
-  public String getRexecPath() {
-    File f = preferences.getParameter(MZminePreferences.rExecPath).getValue();
-    if (f == null) {
-      return null;
-    } else {
-      return f.getPath();
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
   public void loadConfiguration(File file, boolean loadPreferences) throws IOException {
     List<String> exculdeWarningsFor = List.of("jmzml", "adap");
 

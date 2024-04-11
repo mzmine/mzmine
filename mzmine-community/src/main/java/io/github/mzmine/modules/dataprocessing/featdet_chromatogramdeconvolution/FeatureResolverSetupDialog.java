@@ -55,9 +55,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
-import io.github.mzmine.util.R.REngineType;
-import io.github.mzmine.util.R.RSessionWrapper;
-import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.SortableFeatureComboBox;
 import io.github.mzmine.util.maths.CenterFunction;
@@ -238,31 +235,9 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
       return null;
     }
     CenterFunction cf = new CenterFunction(CenterMeasure.MEDIAN, Weighting.logger10, 0, 4);
-    try {
-      RSessionWrapper rWrapper = null;
-      if (resolver.getRequiresR()) {
-        // Check R availability, by trying to open the
-        // connection.
-        String[] reqPackages = resolver.getRequiredRPackages();
-        String[] reqPackagesVersions = resolver.getRequiredRPackagesVersions();
-        String callerFeatureName = resolver.getName();
-        REngineType rEngineType = parameterSet.getParameter(GeneralResolverParameters.RENGINE_TYPE)
-            .getValue();
-        rWrapper = new RSessionWrapper(rEngineType, callerFeatureName, reqPackages,
-            reqPackagesVersions);
-        rWrapper.open();
-      }
-      ResolvedPeak[] resolvedFeatures = resolver.resolvePeaks(feature, parameterSet, rWrapper, cf,
-          0, 0);
-      if (rWrapper != null) {
-        rWrapper.close(false);
-      }
-      return resolvedFeatures;
-    } catch (RSessionWrapperException e) {
-      e.printStackTrace();
-      logger.log(Level.SEVERE, "Feature deconvolution error", e);
-    }
-    return null;
+    ResolvedPeak[] resolvedFeatures = resolver.resolvePeaks(feature, parameterSet, cf,
+        0, 0);
+    return resolvedFeatures;
   }
 
   @Override
