@@ -157,19 +157,6 @@
             ]
         },
         {
-            "moduleName": "com.github.jbytecode:RCaller",
-            "moduleVersion": "4.0.2",
-            "moduleUrls": [
-                "https://github.com/jbytecode/rcaller"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-3.0"
-                }
-            ]
-        },
-        {
             "moduleName": "com.github.librepdf:openpdf",
             "moduleVersion": "2.0.0",
             "moduleLicenses": [
@@ -2573,26 +2560,6 @@
                 {
                     "moduleLicense": "Apache License, Version 2.0",
                     "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.nuiton.thirdparty:REngine",
-            "moduleVersion": "1.8-5",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.nuiton.thirdparty:Rserve",
-            "moduleVersion": "1.8-5",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
                 }
             ]
         },

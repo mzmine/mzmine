@@ -42,8 +42,6 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePaletteParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
@@ -104,10 +102,6 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final OptionalModuleParameter proxySettings = new OptionalModuleParameter(
       "Use proxy", "Use proxy for internet connection?", new ProxySettings(), false);
-
-  public static final FileNameParameter rExecPath = new FileNameParameter("R executable path",
-      "Full R executable file path (If left blank, MZmine will try to find out automatically). On Windows, this should point to your R.exe file.",
-      FileSelectionType.OPEN, true);
 
 //  public static final BooleanParameter sendStatistics = new BooleanParameter(
 //      "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
@@ -195,7 +189,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public MZminePreferences() {
     super(// start with performance
-        numOfThreads, memoryOption, tempDirectory, proxySettings, rExecPath,
+        numOfThreads, memoryOption, tempDirectory, proxySettings,
         /*applyTimsPressureCompensation,*/
         // visuals
         // number formats
@@ -223,7 +217,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
     // add groups
     dialog.addParameterGroup("General",
-        new Parameter[]{numOfThreads, memoryOption, tempDirectory, proxySettings, rExecPath,
+        new Parameter[]{numOfThreads, memoryOption, tempDirectory, proxySettings,
             /*, applyTimsPressureCompensation*/});
     dialog.addParameterGroup("Formats",
         new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,

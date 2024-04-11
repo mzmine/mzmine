@@ -38,8 +38,6 @@ import io.github.mzmine.modules.dataprocessing.align_path.PathAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_ransac.RansacAlignerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adap3d.ADAP3DModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselineFeatureResolverModule;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule;
@@ -60,7 +58,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
 import io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule;
-import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule;
 import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule;
 import io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule;
@@ -91,7 +88,6 @@ import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrela
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingModule;
-import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.ExternalCCSCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule;
@@ -235,7 +231,6 @@ public class BatchModeModulesList {
        * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATAFILTERING}
        */
       AlignScansModule.class, //
-      BaselineCorrectionModule.class, //
       CropFilterModule.class, //
       ShoulderPeaksFilterModule.class, //
       ScanSignalRemovalModule.class, //
@@ -278,8 +273,6 @@ public class BatchModeModulesList {
        */
       SmoothingModule.class, //
 //      AdapResolverModule.class, //
-      BaselineFeatureResolverModule.class, //
-      CentWaveResolverModule.class, //
       MinimumSearchFeatureResolverModule.class, //
       NoiseAmplitudeResolverModule.class, //
       SavitzkyGolayResolverModule.class, //
@@ -348,7 +341,6 @@ public class BatchModeModulesList {
       /*
         {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_ANNOTATION}
        */
-      CameraSearchModule.class, //
       CCSCalcModule.class, //
       ExternalCCSCalibrationModule.class, //
       ReferenceCCSCalibrationModule.class, //
