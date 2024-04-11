@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -40,19 +39,20 @@ public class ShoulderPeaksFilterParameters extends SimpleParameterSet {
       "Mass resolution is the dimensionless ratio of the mass of the peak divided by its width."
           + "\nPeak width is taken as the full width at half maximum intensity (FWHM).");
 
-  public static final ComboParameter<PeakModelType> peakModel =
-      new ComboParameter<PeakModelType>("Peak model function",
-          "Peaks under the curve of this peak model will be removed", PeakModelType.values());
+  public static final ComboParameter<PeakModelType> peakModel = new ComboParameter<PeakModelType>(
+      "Peak model function", "Peaks under the curve of this peak model will be removed",
+      PeakModelType.values());
 
   public ShoulderPeaksFilterParameters() {
-    super(new Parameter[] {dataFiles, resolution, peakModel});
-
+    super(
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/FTMS-shoulder-peak-filter.html",
+        dataFiles, resolution, peakModel);
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    ShoulderPeaksFilterSetupDialog dialog =
-        new ShoulderPeaksFilterSetupDialog(valueCheckRequired, this);
+    ShoulderPeaksFilterSetupDialog dialog = new ShoulderPeaksFilterSetupDialog(valueCheckRequired,
+        this);
     dialog.showAndWait();
     return dialog.getExitCode();
   }

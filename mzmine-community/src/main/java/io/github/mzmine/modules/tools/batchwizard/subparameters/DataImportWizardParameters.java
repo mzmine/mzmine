@@ -39,6 +39,7 @@ public final class DataImportWizardParameters extends WizardStepParameters {
   public DataImportWizardParameters() {
     super(WizardPart.DATA_IMPORT, DataImportWizardParameterFactory.Data,
         // parameters
+        AllSpectralDataImportParameters.metadataFile, //
         AllSpectralDataImportParameters.fileNames);
   }
 

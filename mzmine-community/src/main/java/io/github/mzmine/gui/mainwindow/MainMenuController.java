@@ -30,7 +30,10 @@ import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.NewVersionCheck;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.gui.WindowLocation;
+import io.github.mzmine.gui.mainwindow.dependenciestab.DependenciesTab;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -40,6 +43,7 @@ import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab;
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.mzio.users.client.UserAuthStore;
 import io.mzio.users.gui.fx.UsersViewState;
 import io.mzio.users.user.CurrentUserService;
@@ -51,6 +55,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -59,6 +64,7 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.stage.FileChooser;
 import org.apache.commons.io.FileUtils;
 
 /**
@@ -265,6 +271,41 @@ public class MainMenuController {
 
   public void removeLocalUser(final ActionEvent e) {
     UserAuthStore.removeUserFile(CurrentUserService.getUser());
+  }
+
+  public void showDependencyTab(ActionEvent actionEvent) {
+    MZmineCore.getDesktop().addTab(new DependenciesTab());
+  }
+
+  public void saveConfiguration(final ActionEvent event) {
+    try {
+      var chooser = new FileChooser();
+      chooser.setInitialDirectory(MZmineConfiguration.CONFIG_FILE.getParentFile());
+      File file = chooser.showSaveDialog(null);
+      if (file == null) {
+        return;
+      }
+      file = FileAndPathUtil.getRealFilePath(file, MZmineConfiguration.CONFIG_EXTENSION);
+      ConfigService.getConfiguration().saveConfiguration(file);
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Cannot save config", ex);
+    }
+  }
+
+  public void loadConfiguration(final ActionEvent event) {
+    try {
+      var chooser = new FileChooser();
+      chooser.setInitialDirectory(MZmineConfiguration.CONFIG_FILE.getParentFile());
+      File file = chooser.showOpenDialog(null);
+      if (file == null) {
+        return;
+      }
+      ConfigService.getConfiguration().loadConfiguration(file, true);
+      ConfigService.getPreferences().applyConfig();
+
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Cannot save config", ex);
+    }
   }
 }
 

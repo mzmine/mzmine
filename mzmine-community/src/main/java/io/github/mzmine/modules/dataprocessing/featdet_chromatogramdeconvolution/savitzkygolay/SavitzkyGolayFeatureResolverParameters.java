@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,7 +52,7 @@ public class SavitzkyGolayFeatureResolverParameters extends GeneralResolverParam
 
   public SavitzkyGolayFeatureResolverParameters() {
     super(new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, MIN_PEAK_HEIGHT,
-        PEAK_DURATION, DERIVATIVE_THRESHOLD_LEVEL, RENGINE_TYPE, MIN_NUMBER_OF_DATAPOINTS},
+        PEAK_DURATION, DERIVATIVE_THRESHOLD_LEVEL, MIN_NUMBER_OF_DATAPOINTS},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_savitzky-golay/savitzky-golay-resolver.html");
   }
 

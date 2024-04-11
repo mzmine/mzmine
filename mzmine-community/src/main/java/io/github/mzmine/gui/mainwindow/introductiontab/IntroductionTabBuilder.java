@@ -153,8 +153,12 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
         "Configure mzmine",
         () -> MZmineCore.getConfiguration().getPreferences().showSetupDialog(true));
 
+    final ButtonBase btnWhatsNew = FxIconUtil.newIconButton(FxIcons.ROCKET, 45,
+        "See what's new in mzmine",
+        () -> MZmineCore.getDesktop().openWebPage("https://mzio.io/mzmine-news/"));
+
     FlowPane pane = new FlowPane(20, 20, btnPreferences, btnDocs, btnYoutube, btnWebsite,
-        btnUserManagement, btnDevelopment);
+        btnUserManagement, btnDevelopment, btnWhatsNew);
 
     pane.setAlignment(Pos.CENTER);
     return pane;

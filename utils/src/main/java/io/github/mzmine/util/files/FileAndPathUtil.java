@@ -537,8 +537,12 @@ public class FileAndPathUtil {
 
 
   @Nullable
-  public static File getUserSettingsDir() {
+  public static File getMzmineDir() {
     return USER_MZMINE_DIR;
+  }
+  @Nullable
+  public static File resolveInMzmineDir(String name) {
+    return new File(USER_MZMINE_DIR, name);
   }
 
 

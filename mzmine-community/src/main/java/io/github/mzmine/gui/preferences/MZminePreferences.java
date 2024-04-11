@@ -42,8 +42,6 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePaletteParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
@@ -59,6 +57,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 public class MZminePreferences extends SimpleParameterSet {
@@ -104,17 +103,12 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final OptionalModuleParameter proxySettings = new OptionalModuleParameter(
       "Use proxy", "Use proxy for internet connection?", new ProxySettings(), false);
 
-  public static final FileNameParameter rExecPath = new FileNameParameter("R executable path",
-      "Full R executable file path (If left blank, MZmine will try to find out automatically). On Windows, this should point to your R.exe file.",
-      FileSelectionType.OPEN, true);
-
-  public static final BooleanParameter sendStatistics = new BooleanParameter(
-      "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
-      true);
-
-  public static final OptionalModuleParameter sendErrorEMail = new OptionalModuleParameter(
-      "Send error e-Mail notifications", "Send error e-Mail notifications",
-      new ErrorMailSettings());
+//  public static final BooleanParameter sendStatistics = new BooleanParameter(
+//      "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
+//      true);
+//  public static final OptionalModuleParameter sendErrorEMail = new OptionalModuleParameter(
+//      "Send error e-Mail notifications", "Send error e-Mail notifications",
+//      new ErrorMailSettings());
 
   public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
 
@@ -195,7 +189,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public MZminePreferences() {
     super(// start with performance
-        numOfThreads, memoryOption, tempDirectory, proxySettings, rExecPath, sendStatistics,
+        numOfThreads, memoryOption, tempDirectory, proxySettings,
         /*applyTimsPressureCompensation,*/
         // visuals
         // number formats
@@ -206,7 +200,7 @@ public class MZminePreferences extends SimpleParameterSet {
         // other preferences
         defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
         imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
-        windowSetttings, sendErrorEMail,
+        windowSetttings,
         // silent parameters without controls
         showTempFolderAlert, username);
   }
@@ -223,17 +217,17 @@ public class MZminePreferences extends SimpleParameterSet {
 
     // add groups
     dialog.addParameterGroup("General",
-        new Parameter[]{numOfThreads, memoryOption, tempDirectory, proxySettings, rExecPath,
-            sendStatistics/*, applyTimsPressureCompensation*/});
+        new Parameter[]{numOfThreads, memoryOption, tempDirectory, proxySettings,
+            /*, applyTimsPressureCompensation*/});
     dialog.addParameterGroup("Formats",
         new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,
             scoreFormat, unitFormat});
     dialog.addParameterGroup("Visuals",
         new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
             showPrecursorWindow, imageTransformation, imageNormalization});
-    dialog.addParameterGroup("Other", new Parameter[]{sendErrorEMail,
+//    dialog.addParameterGroup("Other", new Parameter[]{
         // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
-    });
+//    });
     dialog.setFilterText(filterParameters);
 
     // check
@@ -243,6 +237,15 @@ public class MZminePreferences extends SimpleParameterSet {
       return retVal;
     }
 
+    applyConfig(previousTheme);
+
+    return retVal;
+  }
+
+  public void applyConfig() {
+    applyConfig(null);
+  }
+  public void applyConfig(final @Nullable Themes previousTheme) {
     // Update proxy settings
     updateSystemProxySettings();
 
@@ -252,7 +255,9 @@ public class MZminePreferences extends SimpleParameterSet {
     keepInMemory.enforceToMemoryMapping();
 
     final Themes theme = getValue(MZminePreferences.theme);
-    updateChartColorsToTheme(previousTheme, theme);
+    if (previousTheme != null) {
+      updateChartColorsToTheme(previousTheme, theme);
+    }
     theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     darkModeProperty.set(theme.isDark());
 
@@ -275,8 +280,6 @@ public class MZminePreferences extends SimpleParameterSet {
       }
       FileAndPathUtil.setTempDir(tempDir);
     }
-
-    return retVal;
   }
 
   private void updateChartColorsToTheme(Themes previousTheme, Themes theme) {
