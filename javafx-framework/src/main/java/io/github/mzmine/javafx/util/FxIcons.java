@@ -36,7 +36,7 @@ public enum FxIcons implements IconCodeSupplier {
   DARK_MODE_SWITCH,
 
   //
-  USER, BUG, WEBSITE, GEAR_PREFERENCES, RELOAD, YOUTUBE, DEVELOPMENT, BOOK, ROCKET;
+  USER, DOCUMENTATION, BUG, WEBSITE, GEAR_PREFERENCES, RELOAD, YOUTUBE, DEVELOPMENT, BOOK, ROCKET;
 
 
   @Override
@@ -58,6 +58,7 @@ public enum FxIcons implements IconCodeSupplier {
       case YOUTUBE -> "bi-youtube";
       case DEVELOPMENT -> "bi-code-slash";
       case BOOK -> "bi-book";
+      case DOCUMENTATION -> "bi-book";
       case ROCKET -> "las-rocket";
     };
   }

@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.NewVersionCheck;
@@ -44,6 +45,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.mzio.links.MzioMZmineLinks;
 import io.mzio.users.client.UserAuthStore;
 import io.mzio.users.gui.fx.UsersViewState;
 import io.mzio.users.user.CurrentUserService;
@@ -319,6 +321,10 @@ public class MainMenuController {
       desktop.open(UserAuthStore.getUserPath());
     } catch (IOException e) {
     }
+  }
+
+  public void openUserAccountConsole(final ActionEvent e) {
+    DesktopService.getDesktop().openWebPage(MzioMZmineLinks.USER_CONSOLE.getUrl());
   }
 }
 
