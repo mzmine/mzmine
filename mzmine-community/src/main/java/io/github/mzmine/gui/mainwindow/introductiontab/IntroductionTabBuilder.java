@@ -25,38 +25,47 @@
 
 package io.github.mzmine.gui.mainwindow.introductiontab;
 
+import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
+import static io.github.mzmine.javafx.components.util.FxLayout.newScrollPane;
+import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
+
 import io.github.mzmine.gui.mainwindow.UsersTab;
+import io.github.mzmine.javafx.components.animations.FxFlashingAnimation;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
-import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardTab;
 import io.github.mzmine.util.javafx.LightAndDarkModeIcon;
 import java.util.logging.Logger;
+import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
+import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
+import org.controlsfx.control.ToggleSwitch;
+import org.jetbrains.annotations.NotNull;
 
 public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> {
 
   private static final Logger logger = Logger.getLogger(IntroductionTabBuilder.class.getName());
-  private LightAndDarkModeIcon mzmineIcon;
-  private LightAndDarkModeIcon wizardIcon;
 
   protected IntroductionTabBuilder(IntroductionTabModel model) {
     super(model);
@@ -66,9 +75,9 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
   public Region build() {
     final VBox main = new VBox(40);
     main.setAlignment(Pos.CENTER);
-    model.isDarkModeProperty().bind(ConfigService.isDarkModeProperty());
 
-    mzmineIcon = new LightAndDarkModeIcon("icons/introductiontab/logos_mzio_mzmine.png",
+    LightAndDarkModeIcon mzmineIcon = new LightAndDarkModeIcon(
+        "icons/introductiontab/logos_mzio_mzmine.png",
         "icons/introductiontab/logos_mzio_mzmine_light.png", 350, 200, model.isDarkModeProperty());
 
     HBox title = new HBox(FxLayout.DEFAULT_SPACE,
@@ -92,11 +101,19 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
       }
     });
 
-    final ScrollPane scroll = new ScrollPane(main);
-    scroll.setFitToWidth(true);
-    scroll.setFitToHeight(true);
-    scroll.setCenterShape(true);
-    return scroll;
+    var darkMode = createDarkModeButton();
+    var root = FxLayout.newBorderPane(main);
+    root.setRight(darkMode);
+
+    return newScrollPane(root);
+  }
+
+  @NotNull
+  private Region createDarkModeButton() {
+    var darkModeSwitch = new ToggleSwitch("");
+    var icon = FxIconUtil.getFontIcon(FxIcons.DARK_MODE_SWITCH, 26);
+    darkModeSwitch.selectedProperty().bindBidirectional(model.isDarkModeProperty());
+    return newVBox(Pos.TOP_RIGHT, newHBox(Pos.CENTER_RIGHT, darkModeSwitch, icon));
   }
 
   private Region createWizardRow() {
@@ -132,14 +149,14 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
   private Pane createManagementRow() {
 
     final ButtonBase btnYoutube = FxIconUtil.newIconButton(FxIcons.YOUTUBE, 45, "Video tutorials",
-        () -> MZmineCore.getDesktop()
-            .openWebPage("https://www.youtube.com/@mzioGmbH/playlists"));
+        () -> MZmineCore.getDesktop().openWebPage("https://www.youtube.com/@mzioGmbH/playlists"));
 
     final ButtonBase btnWebsite = FxIconUtil.newIconButton(FxIcons.WEBSITE, 45, "mzmine website",
         () -> MZmineCore.getDesktop().openWebPage("https://mzio.io/#mzmine"));
 
     final ButtonBase btnUserManagement = FxIconUtil.newIconButton(FxIcons.USER, 45,
-        "Account management", () -> MZmineCore.getDesktop().addTab(new UsersTab()));
+        "User management", () -> MZmineCore.getDesktop().addTab(new UsersTab()));
+    FxFlashingAnimation.animate(btnUserManagement, model.needsUserLoginProperty());
 
     final ButtonBase btnDevelopment = FxIconUtil.newIconButton(FxIcons.DEVELOPMENT, 45,
         "Join the development", () -> MZmineCore.getDesktop()
@@ -157,9 +174,8 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
         "See what's new in mzmine",
         () -> MZmineCore.getDesktop().openWebPage("https://mzio.io/mzmine-news/"));
 
-    FlowPane pane = new FlowPane(20, 20, btnPreferences, btnDocs, btnYoutube, btnWebsite,
-        btnUserManagement, btnDevelopment, btnWhatsNew);
-
+    FlowPane pane = new FlowPane(20, 20, btnPreferences, btnDocs, btnYoutube, btnWebsite, btnUserManagement,
+        btnDevelopment, btnWhatsNew);
     pane.setAlignment(Pos.CENTER);
     return pane;
   }

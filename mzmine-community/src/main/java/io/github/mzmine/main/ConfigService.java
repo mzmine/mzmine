@@ -64,4 +64,8 @@ public final class ConfigService {
   public static BooleanProperty isDarkModeProperty() {
     return config.getPreferences().darkModeProperty();
   }
+
+  public static void setDarkMode(final Boolean dark) {
+    getPreferences().setDarkMode(dark);
+  }
 }

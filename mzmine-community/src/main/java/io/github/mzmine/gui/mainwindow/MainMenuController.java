@@ -88,7 +88,7 @@ public class MainMenuController {
     // disable project
     recentProjectsMenu.setDisable(true);
 
-    CurrentUserService.addListener(user -> currentUser.set(user));
+    CurrentUserService.subscribe(user -> currentUser.set(user));
     itemRemoveUser.disableProperty().bind(currentUser.map(Objects::isNull));
     itemRemoveUser.textProperty().bind(
         currentUser.map(user -> STR."Remove user \{user.getNickname()} from local system")

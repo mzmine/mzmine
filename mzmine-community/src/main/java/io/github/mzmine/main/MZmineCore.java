@@ -168,7 +168,7 @@ public final class MZmineCore {
       }
 
       // listen for user changes so that the latest user is saved
-      CurrentUserService.addListener(user -> {
+      CurrentUserService.subscribe(user -> {
         var nickname = user == null ? null : user.getNickname();
         ConfigService.getPreferences().setParameter(MZminePreferences.username, nickname);
       });
