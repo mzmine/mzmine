@@ -203,6 +203,16 @@ public class MZminePreferences extends SimpleParameterSet {
         windowSetttings,
         // silent parameters without controls
         showTempFolderAlert, username);
+
+    darkModeProperty.subscribe(state -> {
+      var oldTheme = getValue(theme);
+
+      if(oldTheme.isDark() != state) {
+        var theme = state ? Themes.JABREF_DARK : Themes.JABREF_LIGHT;
+        setParameter(MZminePreferences.theme, theme);
+        applyConfig(oldTheme);
+      }
+    });
   }
 
   @Override
@@ -250,18 +260,22 @@ public class MZminePreferences extends SimpleParameterSet {
     updateSystemProxySettings();
 
     // enforce memory option (only applies to new data)
-    final KeepInMemory keepInMemory = MZmineCore.getConfiguration().getPreferences()
+    var config = MZmineCore.getConfiguration();
+    if (config == null) {
+      return;
+    }
+    final KeepInMemory keepInMemory = config.getPreferences()
         .getParameter(MZminePreferences.memoryOption).getValue();
     keepInMemory.enforceToMemoryMapping();
 
     final Themes theme = getValue(MZminePreferences.theme);
     if (previousTheme != null) {
-      updateChartColorsToTheme(previousTheme, theme);
+      showDialogToAdjustColorsToTheme(previousTheme, theme);
     }
     theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     darkModeProperty.set(theme.isDark());
 
-    Boolean presentation = MZmineCore.getConfiguration().getPreferences()
+    Boolean presentation = config.getPreferences()
         .getParameter(MZminePreferences.presentationMode).getValue();
     if (presentation) {
       MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
@@ -282,7 +296,7 @@ public class MZminePreferences extends SimpleParameterSet {
     }
   }
 
-  private void updateChartColorsToTheme(Themes previousTheme, Themes theme) {
+  private void showDialogToAdjustColorsToTheme(Themes previousTheme, Themes theme) {
     if (previousTheme.isDark() != theme.isDark()) {
       final ChartThemeParameters chartParams = getValue(MZminePreferences.chartParam);
       final Color bgColor = chartParams.getValue(ChartThemeParameters.color);
@@ -318,46 +332,56 @@ public class MZminePreferences extends SimpleParameterSet {
         return;
       }
 
-      if (theme.isDark()) {
-        if (ColorUtils.isLight(bgColor)) {
-          chartParams.setParameter(ChartThemeParameters.color, Color.TRANSPARENT);
-        }
-        if (ColorUtils.isDark(axisFont.getColor())) {
-          chartParams.setParameter(ChartThemeParameters.axisLabelFont,
-              new FontSpecs(Color.WHITE, axisFont.getFont()));
-        }
-        if (ColorUtils.isDark(itemFont.getColor())) {
-          chartParams.setParameter(ChartThemeParameters.itemLabelFont,
-              new FontSpecs(Color.WHITE, itemFont.getFont()));
-        }
-        if (ColorUtils.isDark(titleFont.getColor())) {
-          chartParams.setParameter(ChartThemeParameters.titleFont,
-              new FontSpecs(Color.WHITE, titleFont.getFont()));
-        }
-        if (ColorUtils.isDark(subTitleFont.getColor())) {
-          chartParams.setParameter(ChartThemeParameters.subTitleFont,
-              new FontSpecs(Color.WHITE, subTitleFont.getFont()));
-        }
-      } else {
-        if (ColorUtils.isDark(bgColor)) {
-          chartParams.setParameter(ChartThemeParameters.color, Color.WHITE);
-        }
-        if (ColorUtils.isLight(axisFont.getColor())) {
-          chartParams.setParameter(ChartThemeParameters.axisLabelFont,
-              new FontSpecs(Color.BLACK, axisFont.getFont()));
-        }
-        if (ColorUtils.isLight(itemFont.getColor())) {
-          chartParams.setParameter(ChartThemeParameters.itemLabelFont,
-              new FontSpecs(Color.BLACK, itemFont.getFont()));
-        }
-        if (ColorUtils.isLight(titleFont.getColor())) {
-          chartParams.setParameter(ChartThemeParameters.titleFont,
-              new FontSpecs(Color.BLACK, titleFont.getFont()));
-        }
-        if (ColorUtils.isLight(subTitleFont.getColor())) {
-          chartParams.setParameter(ChartThemeParameters.subTitleFont,
-              new FontSpecs(Color.BLACK, subTitleFont.getFont()));
-        }
+      adjustColorsToThemeDarkMode(theme);
+    }
+  }
+
+  private void adjustColorsToThemeDarkMode(final Themes theme) {
+    final ChartThemeParameters chartParams = getValue(MZminePreferences.chartParam);
+    final Color bgColor = chartParams.getValue(ChartThemeParameters.color);
+    final FontSpecs axisFont = chartParams.getValue(ChartThemeParameters.axisLabelFont);
+    final FontSpecs itemFont = chartParams.getValue(ChartThemeParameters.itemLabelFont);
+    final FontSpecs titleFont = chartParams.getValue(ChartThemeParameters.titleFont);
+    final FontSpecs subTitleFont = chartParams.getValue(ChartThemeParameters.subTitleFont);
+    if (theme.isDark()) {
+      if (ColorUtils.isLight(bgColor)) {
+        chartParams.setParameter(ChartThemeParameters.color, Color.TRANSPARENT);
+      }
+      if (ColorUtils.isDark(axisFont.getColor())) {
+        chartParams.setParameter(ChartThemeParameters.axisLabelFont,
+            new FontSpecs(Color.WHITE, axisFont.getFont()));
+      }
+      if (ColorUtils.isDark(itemFont.getColor())) {
+        chartParams.setParameter(ChartThemeParameters.itemLabelFont,
+            new FontSpecs(Color.WHITE, itemFont.getFont()));
+      }
+      if (ColorUtils.isDark(titleFont.getColor())) {
+        chartParams.setParameter(ChartThemeParameters.titleFont,
+            new FontSpecs(Color.WHITE, titleFont.getFont()));
+      }
+      if (ColorUtils.isDark(subTitleFont.getColor())) {
+        chartParams.setParameter(ChartThemeParameters.subTitleFont,
+            new FontSpecs(Color.WHITE, subTitleFont.getFont()));
+      }
+    } else {
+      if (ColorUtils.isDark(bgColor)) {
+        chartParams.setParameter(ChartThemeParameters.color, Color.WHITE);
+      }
+      if (ColorUtils.isLight(axisFont.getColor())) {
+        chartParams.setParameter(ChartThemeParameters.axisLabelFont,
+            new FontSpecs(Color.BLACK, axisFont.getFont()));
+      }
+      if (ColorUtils.isLight(itemFont.getColor())) {
+        chartParams.setParameter(ChartThemeParameters.itemLabelFont,
+            new FontSpecs(Color.BLACK, itemFont.getFont()));
+      }
+      if (ColorUtils.isLight(titleFont.getColor())) {
+        chartParams.setParameter(ChartThemeParameters.titleFont,
+            new FontSpecs(Color.BLACK, titleFont.getFont()));
+      }
+      if (ColorUtils.isLight(subTitleFont.getColor())) {
+        chartParams.setParameter(ChartThemeParameters.subTitleFont,
+            new FontSpecs(Color.BLACK, subTitleFont.getFont()));
       }
     }
   }
@@ -417,5 +441,9 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public BooleanProperty darkModeProperty() {
     return darkModeProperty;
+  }
+
+  public void setDarkMode(final boolean dark) {
+    darkModeProperty.set(dark);
   }
 }

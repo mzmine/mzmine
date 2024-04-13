@@ -23,22 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.mainwindow.introductiontab;
+package io.github.mzmine.javafx.components.animations;
 
-import io.github.mzmine.gui.mainwindow.SimpleTab;
-import javafx.scene.layout.Region;
+import javafx.animation.FadeTransition;
+import javafx.beans.binding.BooleanExpression;
+import javafx.util.Subscription;
 
-public class MZmineIntroductionTab extends SimpleTab {
+public class FxConditionalTransitions {
 
-  public static final String TITLE = "Welcome to mzmine";
-
-  public MZmineIntroductionTab() {
-    super(TITLE);
-
-    IntroductionTabController controller = new IntroductionTabController();
-    final Region content = controller.buildView();
-    setContent(content);
-
-    setOnClosed(_ -> controller.close());
+  /**
+   * Starts the transition conditionally
+   *
+   * @return the subsription to the property
+   */
+  static Subscription startConditionally(final FadeTransition transition,
+      final BooleanExpression startProperty) {
+    return startProperty.subscribe(state -> {
+      if (state) {
+        transition.playFromStart();
+      } else {
+        transition.stop();
+      }
+    });
   }
 }

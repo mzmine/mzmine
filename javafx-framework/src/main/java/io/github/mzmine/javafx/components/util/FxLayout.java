@@ -31,6 +31,7 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -146,5 +147,13 @@ public class FxLayout {
   public static Node wrapInBorder(Node node) {
     return Borders.wrap(node).lineBorder().radius(FxLayout.DEFAULT_SPACE)
         .innerPadding(FxLayout.DEFAULT_SPACE).outerPadding(FxLayout.DEFAULT_SPACE).buildAll();
+  }
+
+  public static ScrollPane newScrollPane(final Node root) {
+    ScrollPane scroll = new ScrollPane(root);
+    scroll.setFitToWidth(true);
+    scroll.setFitToHeight(true);
+    scroll.setCenterShape(true);
+    return scroll;
   }
 }

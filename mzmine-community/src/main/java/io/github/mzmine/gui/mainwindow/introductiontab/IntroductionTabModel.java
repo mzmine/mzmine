@@ -25,16 +25,26 @@
 
 package io.github.mzmine.gui.mainwindow.introductiontab;
 
-import io.github.mzmine.main.ConfigService;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 
 public class IntroductionTabModel {
 
   private final BooleanProperty newVersionAvailable = new SimpleBooleanProperty(false);
-  private final BooleanProperty isDarkMode = new SimpleBooleanProperty(
-      ConfigService.isDarkModeProperty().get());
+  private final BooleanProperty isDarkMode = new SimpleBooleanProperty();
+  private final BooleanProperty needsUserLogin = new SimpleBooleanProperty();
 
+  public boolean isNeedsUserLogin() {
+    return needsUserLogin.get();
+  }
+
+  public BooleanProperty needsUserLoginProperty() {
+    return needsUserLogin;
+  }
+
+  public void setNeedsUserLogin(final boolean needsUserLogin) {
+    this.needsUserLogin.set(needsUserLogin);
+  }
 
   public boolean isIsDarkMode() {
     return isDarkMode.get();
