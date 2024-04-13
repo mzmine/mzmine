@@ -27,6 +27,7 @@ package io.github.mzmine.gui.preferences;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
@@ -46,8 +47,11 @@ import io.github.mzmine.parameters.parametertypes.paintscale.PaintScalePalettePa
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.mzio.users.gui.fx.UsersController;
+import io.mzio.users.user.CurrentUserService;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Map;
@@ -400,6 +404,12 @@ public class MZminePreferences extends SimpleParameterSet {
     updateSystemProxySettings();
     updateGuiFormat();
     darkModeProperty.set(getValue(MZminePreferences.theme).isDark());
+    String username = ConfigService.getPreference(MZminePreferences.username);
+    // this will set the current user to CurrentUserService
+    // loads all users already logged in from the user folder
+    if (StringUtils.hasValue(username)) {
+      new UsersController().setCurrentUserByName(username);
+    }
   }
 
   private void updateSystemProxySettings() {
