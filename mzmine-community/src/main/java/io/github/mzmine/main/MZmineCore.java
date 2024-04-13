@@ -168,16 +168,17 @@ public final class MZmineCore {
       }
 
       // listen for user changes so that the latest user is saved
-      CurrentUserService.subscribe(user -> {
-        var nickname = user == null ? null : user.getNickname();
-        ConfigService.getPreferences().setParameter(MZminePreferences.username, nickname);
-      });
       String username = ConfigService.getPreference(MZminePreferences.username);
       // this will set the current user to CurrentUserService
       // loads all users already logged in from the user folder
       if (StringUtils.hasValue(username)) {
         new UsersController().setCurrentUserByName(username);
       }
+
+      CurrentUserService.subscribe(user -> {
+        var nickname = user == null ? null : user.getNickname();
+        ConfigService.getPreferences().setParameter(MZminePreferences.username, nickname);
+      });
 
       // add event listener
       EventService.subscribe(mzEvent -> {
