@@ -205,11 +205,13 @@ public class MZminePreferences extends SimpleParameterSet {
         showTempFolderAlert, username);
 
     darkModeProperty.subscribe(state -> {
-      var theme = state ? Themes.JABREF_DARK : Themes.JABREF_LIGHT;
-      setParameter(MZminePreferences.theme, theme);
-      applyConfig();
-      // directly adjust the colors to match theme
-      adjustColorsToThemeDarkMode(theme);
+      var oldTheme = getValue(theme);
+
+      if(oldTheme.isDark() != state) {
+        var theme = state ? Themes.JABREF_DARK : Themes.JABREF_LIGHT;
+        setParameter(MZminePreferences.theme, theme);
+        applyConfig(oldTheme);
+      }
     });
   }
 
