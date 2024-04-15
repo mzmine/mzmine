@@ -143,7 +143,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       alert.setTitle("Confirmation");
-      alert.setHeaderText("Exit MZmine");
+      alert.setHeaderText("Exit mzmine");
       String s = "Are you sure you want to exit?";
       alert.setContentText(s);
       Optional<ButtonType> result = alert.showAndWait();
@@ -471,7 +471,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
     DesktopService.setDesktop(this);
 
-    logger.finest("Initializing MZmine main window");
+    logger.finest("Initializing mzmine main window");
 
     MZminePreferences preferences = MZmineCore.getConfiguration().getPreferences();
     try {
@@ -489,7 +489,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       Platform.exit();
     }
 
-    stage.setTitle("MZmine " + MZmineCore.getMZmineVersion());
+    stage.setTitle("mzmine " + MZmineCore.getMZmineVersion());
     stage.setMinWidth(600);
     stage.setMinHeight(400);
 
@@ -514,7 +514,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     desktopSetupThread.setPriority(Thread.MIN_PRIORITY);
     desktopSetupThread.start();
 
-    setStatusBarText("Welcome to MZmine " + MZmineCore.getMZmineVersion());
+    setStatusBarText("Welcome to mzmine " + MZmineCore.getMZmineVersion());
 
     stage.show();
 
@@ -526,7 +526,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
           .contains("users") || tmpPath.equals(userDir)) {
         FxThread.runLater(() -> displayNotification("""
                 Set temp folder to a fast local drive (prefer a public folder over a user folder).
-                MZmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
+                mzmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
                 """, "Change", MZmineCore::openTempPreferences,
             () -> preferences.setParameter(MZminePreferences.showTempFolderAlert, false)));
       }
@@ -566,7 +566,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   @Override
   public @NotNull String getName() {
-    return "MZmine desktop";
+    return "mzmine desktop";
   }
 
   @Override
