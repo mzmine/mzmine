@@ -206,7 +206,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     final Button downloadButton = FxButtons.createButton(
         FxIconUtil.getFontIcon("bi-download", 60, Color.web("3391C1")),
         () -> MZmineCore.getDesktop()
-            .openWebPage("https://github.com/mzmine/mzmine3/releases/tag/v3.9.0"));
+            .openWebPage("https://github.com/mzmine/mzmine3/releases"));
     box.getChildren().addAll(label, downloadButton);
 //    box.visibleProperty().bindBidirectional(model.newVersionAvailableProperty());
     box.setAlignment(Pos.CENTER);
