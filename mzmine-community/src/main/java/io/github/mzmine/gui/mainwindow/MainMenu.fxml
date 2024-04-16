@@ -104,17 +104,50 @@
 
   <!-- RAW DATA METHODS -->
   <Menu text="Raw data methods">
-    <Menu text="Raw data import">
-      <MenuItem onAction="#runModule" text="Import MS data"
-        userData="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule">
-        <accelerator>
-          <KeyCodeCombination alt="UP" code="I"
-            control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
-        </accelerator>
-      </MenuItem>
-    </Menu>
+    <MenuItem onAction="#runModule" text="Import MS data"
+      userData="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="I"
+          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+      </accelerator>
+    </MenuItem>
 
     <Menu text="Spectral libraries">
+      <Menu text="Spectra processing">
+        <MenuItem text="Mass detection" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule"/>
+        <MenuItem text="Mobility scan merging" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule"/>
+        <MenuItem onAction="#runModule"
+          text="FTMS shoulder peak filter"
+          userData="io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.ShoulderPeaksFilterModule"/>
+        <MenuItem onAction="#runModule" text="Scan signal removal"
+          userData="io.github.mzmine.modules.dataprocessing.filter_scan_signals.ScanSignalRemovalModule"/>
+        <MenuItem onAction="#runModule"
+          text="Mass calibration"
+          userData="io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationModule"/>
+      </Menu>
+
+      <Menu text="Raw data filtering">
+        <MenuItem text="Scan by scan filtering"
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule"/>
+        <MenuItem text="Crop filter" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule"/>
+        <MenuItem text="Baseline correction" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule"/>
+        <MenuItem text="Align scans (MS1)" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule"/>
+        <MenuItem text="Scan smoothing (MS1)" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule"/>
+        <MenuItem text="Denormalize scans (multiply by inject time)" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.featdet_denormalize_by_inject_time.DenormalizeScansMultiplyByInjectTimeModule"/>
+        <MenuItem text="Split MALDI spots to raw data files" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.filter_maldipseudofilegenerator.MaldiPseudoFileGeneratorModule"/>
+      </Menu>
+
+      <SeparatorMenuItem/>
+
       <MenuItem onAction="#runModule"
         text="Spectral library import"
         userData="io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule"/>
@@ -122,6 +155,8 @@
         text="Spectral library to feature list"
         userData="io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule"/>
     </Menu>
+
+    <SeparatorMenuItem/>
 
     <Menu text="Raw data export">
       <MenuItem text="Export scans"
@@ -131,38 +166,7 @@
         userData="io.github.mzmine.modules.io.export_msn_tree.MSnTreeExportModule"/>
     </Menu>
 
-    <Menu text="Spectra processing">
-      <MenuItem text="Mass detection" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule"/>
-      <MenuItem text="Mobility scan merging" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule"/>
-      <MenuItem onAction="#runModule"
-        text="FTMS shoulder peak filter"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.ShoulderPeaksFilterModule"/>
-      <MenuItem onAction="#runModule" text="Scan signal removal"
-        userData="io.github.mzmine.modules.dataprocessing.filter_scan_signals.ScanSignalRemovalModule"/>
-      <MenuItem onAction="#runModule"
-        text="Mass calibration"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationModule"/>
-    </Menu>
-
-    <Menu text="Raw data filtering">
-      <MenuItem text="Scan by scan filtering"
-        onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule"/>
-      <MenuItem text="Crop filter" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule"/>
-      <MenuItem text="Baseline correction" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule"/>
-      <MenuItem text="Align scans (MS1)" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule"/>
-      <MenuItem text="Scan smoothing (MS1)" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule"/>
-      <MenuItem text="Denormalize scans (multiply by inject time)" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_denormalize_by_inject_time.DenormalizeScansMultiplyByInjectTimeModule"/>
-      <MenuItem text="Split MALDI spots to raw data files" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.filter_maldipseudofilegenerator.MaldiPseudoFileGeneratorModule"/>
-    </Menu>
+    <SeparatorMenuItem/>
 
     <Menu text="File merging">
       <MenuItem text="Raw data file merging" onAction="#runModule"
