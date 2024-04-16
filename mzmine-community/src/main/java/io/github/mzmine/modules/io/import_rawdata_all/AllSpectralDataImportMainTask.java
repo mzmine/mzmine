@@ -54,6 +54,7 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
       if (metaTask.isCanceled()) {
         setStatus(metaTask.getStatus());
         setErrorMessage(metaTask.getErrorMessage());
+        return;
       }
     }
 
