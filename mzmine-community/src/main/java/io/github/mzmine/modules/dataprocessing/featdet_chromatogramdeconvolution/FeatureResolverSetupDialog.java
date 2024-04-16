@@ -46,6 +46,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTim
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -53,6 +54,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -94,7 +96,8 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   protected final NumberFormat rtFormat;
   protected final NumberFormat intensityFormat;
   protected final NumberFormat mobilityFormat;
-  private final PauseTransition delayedUpdateListener;
+  private final PauseTransition delayedParameterUpdateListener;
+  private final PauseTransition delayedFeatureUpdateListener;
   protected ComboBox<FeatureList> flistBox;
   protected SortableFeatureComboBox fBox;
   protected SortableFeatureComboBox fBoxBadFeature;
@@ -121,6 +124,12 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     previewChartBadFeature.setDomainAxisNumberFormatOverride(rtFormat);
     previewChartBadFeature.setRangeAxisNumberFormatOverride(intensityFormat);
 
+    // add pause to delay response to parameter changes
+    delayedParameterUpdateListener = new PauseTransition(Duration.seconds(0.5));
+    delayedParameterUpdateListener.setOnFinished(event -> updateWithCurrentParameters());
+    delayedFeatureUpdateListener = new PauseTransition(Duration.seconds(0.1));
+    delayedFeatureUpdateListener.setOnFinished(_ -> updateWithCurrentParameters());
+
     ObservableList<FeatureList> flists = FXCollections.observableArrayList(
         ProjectService.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
@@ -129,21 +138,21 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
-            fBox.getFeatureBox().setItems(FXCollections.observableArrayList(
+            fBox.setItems(FXCollections.observableArrayList(
                 newValue.getFeatures(newValue.getRawDataFile(0))));
-            fBoxBadFeature.getFeatureBox().setItems(FXCollections.observableArrayList(
+            fBoxBadFeature.setItems(FXCollections.observableArrayList(
                 newValue.getFeatures(newValue.getRawDataFile(0))));
-            fBox.getFeatureBox().setValue(findGoodEIC(
+            fBox.setSelectedFeature(findGoodEIC(
                 (List<ModularFeatureListRow>) (List<? extends FeatureListRow>) newValue.getRows()));
-            fBoxBadFeature.getFeatureBox().setValue(findBadFeature(
+            fBoxBadFeature.setSelectedFeature(findBadFeature(
                 (List<ModularFeatureListRow>) (List<? extends FeatureListRow>) newValue.getRows()));
           } else {
-            fBox.getFeatureBox().setItems(FXCollections.emptyObservableList());
-            fBoxBadFeature.getFeatureBox().setItems(FXCollections.emptyObservableList());
+            fBox.setItems(FXCollections.emptyObservableList());
+            fBoxBadFeature.setItems(FXCollections.emptyObservableList());
           }
         }));
 
-    fBox.getFeatureBox().setConverter(new StringConverter<>() {
+    fBox.setConverter(new StringConverter<>() {
       @Override
       public String toString(Feature object) {
         if (object == null) {
@@ -157,11 +166,11 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
         return null;
       }
     });
-    fBox.getFeatureBox().getSelectionModel().selectedItemProperty().addListener(
-        ((observable, oldValue, newValue) -> onSelectedFeatureChanged(previewChart, newValue)));
+    fBox.selectedFeatureProperty().addListener(
+        ((_, _, newValue) -> /*startUpdateThreadForChart(previewChart, newValue)*/ delayedFeatureUpdateListener.playFromStart()));
 
     fBoxBadFeature = new SortableFeatureComboBox();
-    fBoxBadFeature.getFeatureBox().setConverter(new StringConverter<>() {
+    fBoxBadFeature.setConverter(new StringConverter<>() {
       @Override
       public String toString(Feature object) {
         if (object == null) {
@@ -176,24 +185,26 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
         return null;
       }
     });
-    fBoxBadFeature.getFeatureBox().getSelectionModel().selectedItemProperty().addListener(
-        ((observable, oldValue, newValue) -> onSelectedFeatureChanged(previewChartBadFeature,
-            newValue)));
+    fBoxBadFeature.selectedFeatureProperty().addListener(
+        ((_, _, newValue) -> /*startUpdateThreadForChart(previewChartBadFeature, newValue)*/ delayedFeatureUpdateListener.playFromStart()));
 
     final BorderPane pnBadFeaturePreview = new BorderPane();
+    pnBadFeaturePreview.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
     previewChartBadFeature.setMinHeight(200);
     pnBadFeaturePreview.setCenter(previewChartBadFeature);
     pnBadFeaturePreview.setBottom(new HBox(new Label("Feature "), fBoxBadFeature));
 
     final BorderPane pnFeaturePreview = new BorderPane();
     previewChart.setMinHeight(200);
-    GridPane pnControls = new GridPane();
+    GridPane pnControls = new GridPane(5, 5);
+    pnControls.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
     pnControls.add(new Label("Feature list "), 0, 0);
     pnControls.add(flistBox, 1, 0);
     pnControls.add(new Label("Feature "), 0, 1);
     pnControls.add(fBox, 1, 1);
     pnFeaturePreview.setCenter(previewChart);
     pnFeaturePreview.setBottom(pnControls);
+
 
     GridPane preview = new GridPane();
     preview.add(pnBadFeaturePreview, 0, 0, 2, 1);
@@ -205,13 +216,9 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     preview.getColumnConstraints()
         .add(new ColumnConstraints(200, -1, -1, Priority.ALWAYS, HPos.LEFT, true));
     previewWrapperPane.setCenter(preview);
-
-    // add pause to delay response to parameter changes
-    delayedUpdateListener = new PauseTransition(Duration.seconds(0.5));
-    delayedUpdateListener.setOnFinished(event -> updateWithCurrentParameters());
   }
 
-  protected void onSelectedFeatureChanged(SimpleXYChart<IonTimeSeriesToXYProvider> chart,
+  protected void startUpdateThreadForChart(SimpleXYChart<IonTimeSeriesToXYProvider> chart,
       Feature newValue) {
     if (newValue == null) {
       return;
@@ -225,18 +232,17 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     // do all of this and only update the chart once finished
     final AbstractTask updateTask = new UpdateTask(chart, newValue);
     updateTasksMap.put(chart, updateTask);
-    MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH);
+    TaskService.getController().addTask(updateTask, TaskPriority.HIGH);
   }
 
   @Deprecated
   protected ResolvedPeak[] resolveFeature(Feature feature) {
     FeatureResolver resolver = ((GeneralResolverParameters) parameterSet).getResolver();
-    if (fBox.getFeatureBox().getValue() == null) {
+    if (fBox.getSelectedFeature() == null) {
       return null;
     }
     CenterFunction cf = new CenterFunction(CenterMeasure.MEDIAN, Weighting.logger10, 0, 4);
-    ResolvedPeak[] resolvedFeatures = resolver.resolvePeaks(feature, parameterSet, cf,
-        0, 0);
+    ResolvedPeak[] resolvedFeatures = resolver.resolvePeaks(feature, parameterSet, cf, 0, 0);
     return resolvedFeatures;
   }
 
@@ -244,7 +250,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   protected void parametersChanged() {
     super.parametersChanged();
     // add a delay to accumulate changes then call updateWithCurrentParameters
-    delayedUpdateListener.playFromStart();
+    delayedParameterUpdateListener.playFromStart();
   }
 
   private void updateWithCurrentParameters() {
@@ -257,8 +263,8 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
 
     List<String> errors = new ArrayList<>();
     if (parameterSet.checkParameterValues(errors, true)) {
-      onSelectedFeatureChanged(previewChart, fBox.getFeatureBox().getValue());
-      onSelectedFeatureChanged(previewChartBadFeature, fBoxBadFeature.getFeatureBox().getValue());
+      startUpdateThreadForChart(previewChart, fBox.getSelectedFeature());
+      startUpdateThreadForChart(previewChartBadFeature, fBoxBadFeature.getSelectedFeature());
     }
   }
 

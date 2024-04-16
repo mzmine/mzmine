@@ -93,14 +93,14 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
-            fBox.getFeatureBox().setItems(FXCollections.observableArrayList(
+            fBox.setItems(FXCollections.observableArrayList(
                 newValue.getFeatures(newValue.getRawDataFile(0))));
           } else {
-            fBox.getFeatureBox().setItems(FXCollections.emptyObservableList());
+            fBox.setItems(FXCollections.emptyObservableList());
           }
         }));
 
-    fBox.getFeatureBox().setConverter(new StringConverter<>() {
+    fBox.setConverter(new StringConverter<>() {
       @Override
       public String toString(Feature object) {
         if (object == null) {
@@ -115,8 +115,8 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
       }
     });
 
-    fBox.getFeatureBox().getSelectionModel().selectedItemProperty()
-        .addListener(((observable, oldValue, newValue) -> onSelectedFeatureChanged(newValue)));
+    fBox.selectedFeatureProperty()
+        .addListener(((_, _, newValue) -> onSelectedFeatureChanged(newValue)));
 
     ComboBox<SmoothingDimension> previewDimensionBox = new ComboBox<>(
         FXCollections.observableArrayList(SmoothingDimension.values()));
@@ -192,7 +192,7 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
   protected void parametersChanged() {
     super.parametersChanged();
     updateParameterSetFromComponents();
-    onSelectedFeatureChanged(fBox.getFeatureBox().getValue());
+    onSelectedFeatureChanged(fBox.getSelectedFeature());
   }
 
   @Nullable
