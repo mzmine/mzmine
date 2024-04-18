@@ -30,24 +30,15 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayFeatureResolverParameters.PEAK_DURATION;
 
 import com.google.common.collect.Range;
-import io.github.msdk.featuredetection.adap3d.datamodel.Peak;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.AbstractResolver;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.collections.BinarySearch;
 import io.github.mzmine.util.collections.IndexRange;
-import io.github.mzmine.util.maths.CenterFunction;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
