@@ -25,7 +25,7 @@
 
 package io.github.mzmine.util.color;
 
-import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist;
 
 import com.google.common.io.Files;
-
+import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -50,7 +50,8 @@ public class StandardsListExtractorFactory {
    * @throws IOException              thrown by concrete extractor while opening the file
    * @throws IllegalArgumentException thrown when file with unsupported extension is given
    */
-  public static StandardsListExtractor createFromFilename(String filename, boolean useCache) throws IOException {
+  public static StandardsListExtractor createFromFilename(String filename, boolean useCache)
+      throws IOException, CsvException {
 
     if (useCache == false) {
       return createExtractor(filename);

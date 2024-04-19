@@ -27,9 +27,9 @@ package io.github.mzmine.parameters.parametertypes.colorpalette;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.color.ColorsFX;
+import io.github.mzmine.javafx.util.color.ColorsFX;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.util.color.Vision;
+import io.github.mzmine.javafx.util.color.Vision;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.geometry.Insets;

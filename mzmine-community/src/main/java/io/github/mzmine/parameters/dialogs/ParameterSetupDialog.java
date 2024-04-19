@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.parameters.dialogs;
 
 import io.github.mzmine.parameters.ParameterSet;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Region;
 
 /**
  * This class represents the parameter setup dialog to set the values of SimpleParameterSet. Each
@@ -46,14 +47,13 @@ public class ParameterSetupDialog extends EmptyParameterSetupDialogBase {
   /**
    * Method to display setup dialog with a html-formatted footer message at the bottom.
    *
-   * @param message: html-formatted text
    */
-  public ParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters, String message) {
+  public ParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters, Region message) {
     this(valueCheckRequired, parameters, true, true, message);
   }
 
   public ParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
-      boolean addOkButton, boolean addCancelButton, String message) {
+      boolean addOkButton, boolean addCancelButton, Region message) {
     super(valueCheckRequired, parameters, addOkButton, addCancelButton, message);
 
     this.paramsPane = createParameterPane(parameters.getParameters());

@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase;
 
-import com.Ostermiller.util.CSVParser;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
@@ -40,12 +39,13 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.CSVParsingUtils;
 import java.awt.Color;
 import java.io.File;
-import java.io.FileReader;
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +71,7 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
   private Scan currentScan;
   private SpectraPlot spectraPlot;
 
-  private String[][] databaseValues;
+  private List<String[]> databaseValues;
   private int finishedLines = 0;
 
   private File dataBaseFile;
@@ -151,25 +151,24 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
     // load custom database
     try {
       // read database contents in memory
-      FileReader dbFileReader = new FileReader(dataBaseFile);
-      databaseValues = CSVParser.parse(dbFileReader, fieldSeparator.charAt(0));
+      databaseValues = CSVParsingUtils.readData(dataBaseFile,
+          String.valueOf(fieldSeparator.charAt(0)));
       if (ignoreFirstLine)
         finishedLines++;
-      for (; finishedLines < databaseValues.length; finishedLines++) {
+      for (; finishedLines < databaseValues.size(); finishedLines++) {
         if (isCanceled()) {
-          dbFileReader.close();
           return;
         }
 
-        int numOfColumns = Math.min(fieldOrder.length, databaseValues[finishedLines].length);
+        int numOfColumns = Math.min(fieldOrder.length, databaseValues.get(finishedLines).length);
         String lineName = null;
         double lineMZ = 0;
 
         for (int i = 0; i < numOfColumns; i++) {
           if (fieldOrder[i] == FieldItem.FIELD_NAME)
-            lineName = databaseValues[finishedLines][i].toString();
+            lineName = databaseValues.get(finishedLines)[i].toString();
           if (fieldOrder[i] == FieldItem.FIELD_MZ)
-            lineMZ = Double.parseDouble(databaseValues[finishedLines][i].toString());
+            lineMZ = Double.parseDouble(databaseValues.get(finishedLines)[i].toString());
         }
 
         for (int i = 0; i < massList.length; i++) {
@@ -199,8 +198,6 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
         }
         finishedLines++;
       }
-      // close the file reader
-      dbFileReader.close();
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
       setStatus(TaskStatus.ERROR);

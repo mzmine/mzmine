@@ -37,6 +37,8 @@ import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -66,7 +68,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelec
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
-import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupEntity;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewCell;
@@ -225,7 +226,7 @@ public class MainWindowController {
       HBox box = new HBox(3, rawIcon);
       if ((rawDataFile.isContainsZeroIntensity() && MassSpectrumType.isCentroided(
           rawDataFile.getSpectraType())) || rawDataFile.isContainsEmptyScans()) {
-        FontIcon fontIcon = FxIconUtil.getFontIcon("bi-exclamation-triangle", 15,
+        FontIcon fontIcon = FxIconUtil.getFontIcon(FxIcons.EXCLAMATION_TRIANGLE, 15,
             MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor());
         box.getChildren().add(fontIcon);
 
@@ -252,7 +253,6 @@ public class MainWindowController {
 
   @FXML
   public void initialize() {
-
     // do not switch panes by arrows
     mainTabPane.addEventFilter(KeyEvent.ANY, event -> {
       if (event.getCode().isArrowKey() && event.getTarget() == mainTabPane) {
@@ -437,8 +437,8 @@ public class MainWindowController {
           if (clickedFile instanceof ImagingRawDataFile) {
             if (MZmineCore.getDesktop().displayConfirmation(
                 "Warning!\n" + "You are trying to open an IMS MS imaging file.\n"
-                    + "The amount of information may crash MZmine.\n"
-                    + "Would you like to open the overview anyway?", ButtonType.YES, ButtonType.NO)
+                + "The amount of information may crash MZmine.\n"
+                + "Would you like to open the overview anyway?", ButtonType.YES, ButtonType.NO)
                 == ButtonType.NO) {
               return;
             }
@@ -783,7 +783,7 @@ public class MainWindowController {
         "Are you sure you want to remove selected files?", ButtonType.YES, ButtonType.NO,
         ButtonType.CANCEL);
     Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-    stage.getIcons().add(new Image("MZmineIcon.png"));
+    stage.getIcons().add(new Image("mzmineIcon.png"));
     alert.setHeaderText("Remove file");
     alert.showAndWait();
 
@@ -819,7 +819,7 @@ public class MainWindowController {
         AnchorPane pane = loader.load();
         Stage stage = new Stage();
         stage.setTitle("Feature list summary - " + selectedValue.getName());
-        stage.getIcons().add(FxIconUtil.loadImageFromResources("MZmineIcon.png"));
+        stage.getIcons().add(FxIconUtil.loadImageFromResources("mzmineIcon.png"));
         stage.setScene(new Scene(pane));
         stage.getScene().getStylesheets()
             .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
@@ -841,7 +841,7 @@ public class MainWindowController {
         AnchorPane pane = loader.load();
         Stage stage = new Stage();
         stage.setTitle("MS data file list summary - " + selectedValue.getName());
-        stage.getIcons().add(FxIconUtil.loadImageFromResources("MZmineIcon.png"));
+        stage.getIcons().add(FxIconUtil.loadImageFromResources("mzmineIcon.png"));
         stage.setScene(new Scene(pane));
         stage.getScene().getStylesheets()
             .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
@@ -989,7 +989,7 @@ public class MainWindowController {
     popup.setTitle("Set color");
     popup.setResizable(false);
     popup.initModality(Modality.APPLICATION_MODAL);
-    popup.getIcons().add(new Image("MZmineIcon.png"));
+    popup.getIcons().add(new Image("mzmineIcon.png"));
     popup.show();
 
     popup.setOnHiding(e -> {

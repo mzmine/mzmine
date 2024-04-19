@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -65,7 +65,7 @@ public class MobilityScanMergerParameters extends SimpleParameterSet {
   public MobilityScanMergerParameters() {
     super(new Parameter[]{rawDataFiles, noiseLevel, mergingType, weightingType, scanSelection,
             mzTolerance},
-        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_file_merging/mobility-scan-merging.html");
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mobility_scan_merging/mobility-scan-merging.html");
   }
 
   @Override

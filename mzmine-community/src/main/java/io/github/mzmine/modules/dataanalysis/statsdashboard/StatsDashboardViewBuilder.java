@@ -105,8 +105,8 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
         new Tab("Volcano Plot", volcanoPlotController.buildView()));
     stats.getItems().add(analysisTab);
     stats.getItems().add(boxplotController.buildView());
-
     stats.setDividerPosition(0, 0.9d);
+    stats.setMinHeight(Region.USE_COMPUTED_SIZE);
     return stats;
   }
 }

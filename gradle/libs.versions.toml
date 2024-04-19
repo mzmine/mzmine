@@ -4,6 +4,7 @@ javafx = { strictly = "21.0.1" }
 javafx-plugin = "0.0.13"
 log4j-core = { strictly = "[2.23.0, 2.23.0[", prefer = "2.23.0" }
 
+licenseplugin = "2.6"
 beryx-runtime = "1.12.7"
 semver = "1.0.4"
 msdk = "0.0.27"
@@ -23,8 +24,16 @@ jackson = '2.16.1'
 ikonli = "12.3.1"
 graphstream = "2.0"
 djl = "0.26.0"
+mzio = "1.0.0"
 
 [libraries]
+# mzio
+mzio-taskcontroller = { module = "io.mzio:taskcontroller", version.ref = "mzio" }
+mzio-user-management = { module = "io.mzio:user-management", version.ref = "mzio" }
+mzio-user-management-fx = { module = "io.mzio:user-management-fx", version.ref = "mzio" }
+mzio-user-client = { module = "io.mzio:user-client", version.ref = "mzio" }
+mzio-memory-management = { module = "io.mzio:memory-management", version.ref = "mzio" }
+mzio-global-events = { module = "io.mzio:global-events", version.ref = "mzio" }
 #
 javafx-plugin = { module = "org.openjfx.javafxplugin:org.openjfx.javafxplugin.gradle.plugin", version.ref = "javafx-plugin" }
 # productivity
@@ -37,6 +46,7 @@ fastutil = { group = "it.unimi.dsi", name = "fastutil", version = "8.5.6" }
 controlsfx = { module = "org.controlsfx:controlsfx", version.ref = "controlsfx" }
 ikonli-javafx = { module = "org.kordamp.ikonli:ikonli-javafx", version.ref = "ikonli" }
 ikonli-bootstrap = { module = "org.kordamp.ikonli:ikonli-bootstrapicons-pack", version.ref = "ikonli" }
+ikonli-lineawesome = { group = "org.kordamp.ikonli", name = "ikonli-lineawesome-pack", version.ref = "ikonli" }
 graphstream-javafx = { module = "org.graphstream:gs-ui-javafx", version.ref = "graphstream" }
 graphstream-algo = { module = "org.graphstream:gs-algo", version.ref = "graphstream" }
 graphstream-core = "com.github.robinschmid:gs-core:45504f632f"
@@ -87,7 +97,7 @@ commons-math3 = { group = "org.apache.commons", name = "commons-math3", version 
 commons-lang3 = "org.apache.commons:commons-lang3:3.0"
 djl-pytorch-engine = {module="ai.djl.pytorch:pytorch-engine", version.ref="djl"}
 djl-api = {module="ai.djl:api", version.ref="djl"}
-
+opencsv = { group = "com.opencsv", name = "opencsv", version = "5.8" }
 
 # testing
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
@@ -97,12 +107,13 @@ mockito = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito
 [bundles]
 # convention plugins
 default-convention = ["jetbrains-annotations"]
-javafx-convention = ["controlsfx", "ikonli-javafx", "ikonli-bootstrap"]
+javafx-convention = ["controlsfx", "ikonli-javafx", "ikonli-bootstrap", "ikonli-lineawesome"]
 # default productivity
 productivity = ["jetbrains-annotations"]
 djl-pytorch = ["djl-api", "djl-pytorch-engine"]
+mzio = ["mzio-memory-management", "mzio-taskcontroller", "mzio-user-client", "mzio-user-management", "mzio-user-management-fx", "mzio-global-events"]
 # UI
-ikonli = ["ikonli-bootstrap", "ikonli-javafx"]
+ikonli = ["ikonli-bootstrap", "ikonli-javafx", "ikonli-lineawesome"]
 jfreechart = ["jfree-core", "jfree-fx", "jfree-fxgraphics"]
 graphstream = ["graphstream-algo", "graphstream-core", "graphstream-javafx"]
 # chemistry
@@ -121,3 +132,4 @@ batik = ["batik-anim", "batik-svggen", "batik-swing"]
 semver = { id = "net.thauvin.erik.gradle.semver", version.ref = "semver" }
 beryx-runtime = { id = "org.beryx.runtime", version.ref = "beryx-runtime" }
 javafx = { id = "org.openjfx.javafxplugin", version.ref = "javafx-plugin" }
+licensereport = { id = "com.github.jk1.dependency-license-report", version.ref = "licenseplugin" }

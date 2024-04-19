@@ -26,8 +26,8 @@
 package util;
 
 import io.github.mzmine.util.color.ColorUtils;
-import io.github.mzmine.util.color.ColorsFX;
-import io.github.mzmine.util.color.Vision;
+import io.github.mzmine.javafx.util.color.ColorsFX;
+import io.github.mzmine.javafx.util.color.Vision;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Assertions;

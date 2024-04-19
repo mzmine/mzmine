@@ -97,7 +97,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
         mzmineVersionError = null;
       }
     } else {
-      mzmineVersionError = "Batch was created with an older version of MZmine prior to MZmine 3.4.0 (this version is %s).".formatted(
+      mzmineVersionError = "Batch was created with an older version of mzmine prior to MZmine 3.4.0 (this version is %s).".formatted(
           mzmineVersion);
       logger.warning(mzmineVersionError);
     }

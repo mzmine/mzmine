@@ -54,8 +54,6 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import javax.swing.JMenuItem;
-import net.sf.epsgraphics.ColorMode;
-import net.sf.epsgraphics.EpsGraphics;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.batik.svggen.SVGGraphics2DIOException;
@@ -232,9 +230,6 @@ public class ChartExportUtil {
         break;
       case "JPG":
         writeChartToJPEG(chart, info, size.width, size.height, f, (int) sett.getDPI());
-        break;
-      case "EPS":
-        writeChartToEPS(chart, size.width, size.height, f);
         break;
       case "SVG":
         writeChartToSVG(chart, size.width, size.height, f);
@@ -442,22 +437,6 @@ public class ChartExportUtil {
         e.printStackTrace();
         throw e;
       }
-    }
-  }
-
-  public static void writeChartToEPS(JFreeChart chart, int width, int height, File name)
-      throws IOException {
-    EpsGraphics g;
-    try {
-      g = new EpsGraphics("EpsTools Drawable Export", new FileOutputStream(name), 0, 0, width,
-          height, ColorMode.COLOR_RGB);
-      Rectangle2D rectangle2d = new Rectangle2D.Double(0, 0, width, height);
-      chart.draw(g, rectangle2d);
-      g.close();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-      throw e;
     }
   }
 

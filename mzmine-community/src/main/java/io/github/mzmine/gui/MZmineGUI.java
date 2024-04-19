@@ -28,13 +28,14 @@ package io.github.mzmine.gui;
 
 import static io.github.mzmine.gui.WindowLocation.TAB;
 import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
+import static io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils.copyToUserDirectory;
 
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
-import io.github.mzmine.gui.helpwindow.HelpWindow;
+import io.github.mzmine.gui.mainwindow.AboutTab;
 import io.github.mzmine.gui.mainwindow.GlobalKeyHandler;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
@@ -42,7 +43,8 @@ import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
-import io.github.mzmine.main.GoogleAnalyticsTracker;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -50,6 +52,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModul
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
+import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
@@ -57,11 +60,10 @@ import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.javafx.FxColorUtil;
-import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
+import io.mzio.users.client.UserAuthStore;
 import java.io.File;
 import java.net.URL;
 import java.time.Instant;
@@ -123,7 +125,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDesktop {
 
   public static final int MAX_TABS = 30;
-  private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
+  private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("mzmineIcon.png");
   private static final String mzMineFXML = "mainwindow/MainWindow.fxml";
   private static final Logger logger = Logger.getLogger(MZmineGUI.class.getName());
   private static MainWindowController mainWindowController;
@@ -267,13 +269,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
   }
 
   public static void showAboutWindow() {
-    // Show the about window
-    FxThread.runLater(() -> {
-      final URL aboutPage = MZmineGUI.class.getClassLoader()
-          .getResource("aboutpage/AboutMZmine.html");
-      HelpWindow aboutWindow = new HelpWindow(aboutPage.toString());
-      aboutWindow.show();
-    });
+    MZmineCore.getDesktop().addTab(new AboutTab());
   }
 
   /**
@@ -300,6 +296,8 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
    */
 
   public static void activateSetOnDragDropped(DragEvent event) {
+    List<String> messages = new ArrayList<>();
+
     Dragboard dragboard = event.getDragboard();
     boolean hasFileDropped = false;
     if (dragboard.hasFiles()) {
@@ -337,7 +335,28 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
         if (isLibraryFile) {
           libraryFiles.add(selectedFile);
         }
+
+        if (WizardSequenceIOUtils.isWizardFile(extension)) {
+          boolean result = copyToUserDirectory(selectedFile);
+          String resultStr = result ? "succeeded" : "failed";
+          messages.add(STR."Adding wizard file \{selectedFile.getName()} \{resultStr}");
+        }
+        if (UserAuthStore.isUserFile(extension)) {
+          var result = UserAuthStore.copyAddUserFile(selectedFile);
+          String resultStr = result ? "succeeded" : "failed";
+          messages.add(STR."Adding user \{selectedFile.getName()} \{resultStr}");
+        }
+
+//        if(selectedFile.getName().strip().toLowerCase().endsWith("mzbatch")) {
+//          lastBatchFile = selectedFile;
+//        }
       }
+
+//      if (lastBatchFile != null) {
+        // TODO not sure yet how to open the dialog and open the load batch dialog
+//        MZmineCore.setupAndRunModule(BatchModeModule.class);
+//      }
+
 
       if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
         if (!rawDataFiles.isEmpty()) {
@@ -536,9 +555,6 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     nvcThread.setPriority(Thread.MIN_PRIORITY);
     nvcThread.start();
 
-    // Tracker
-    GoogleAnalyticsTracker.track("MZmine Loaded (GUI mode)", "/JAVA/Main/GUI");
-
     // add global keys that may be added to other dialogs to receive the same key event handling
     rootScene.addEventFilter(KeyEvent.KEY_PRESSED, GlobalKeyHandler.getInstance());
 
@@ -687,7 +703,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       alert.getDialogPane().getScene().getStylesheets()
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       Text text = new Text(msg);
-      text.setWrappingWidth(400);
+      text.setWrappingWidth(370);
       final FlowPane pane = new FlowPane(text);
       pane.setPadding(new Insets(5));
       alert.getDialogPane().setContent(pane);
@@ -836,7 +852,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       alert.getDialogPane().getButtonTypes().addAll(ButtonType.YES, ButtonType.NO);
 
       Text text = new Text(message);
-      text.setWrappingWidth(400);
+      text.setWrappingWidth(370);
       final FlowPane pane = new FlowPane(text);
       pane.setPadding(new Insets(5));
       alert.getDialogPane().setContent(pane);

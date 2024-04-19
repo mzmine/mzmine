@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,8 @@ import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.javafx.util.color.ColorsFX;
+import io.github.mzmine.javafx.util.color.Vision;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
@@ -41,9 +43,7 @@ import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
 import io.github.mzmine.util.StringCrypter;
 import io.github.mzmine.util.XMLUtils;
-import io.github.mzmine.util.color.ColorsFX;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.util.color.Vision;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -235,23 +235,8 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   }
 
   @Override
-  public String getRexecPath() {
-    File f = preferences.getParameter(MZminePreferences.rExecPath).getValue();
-    if (f == null) {
-      return null;
-    } else {
-      return f.getPath();
-    }
-  }
-
-  @Override
-  public Boolean getSendStatistics() {
-    return preferences.getParameter(MZminePreferences.sendStatistics).getValue();
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
   public void loadConfiguration(File file, boolean loadPreferences) throws IOException {
+    List<String> exculdeWarningsFor = List.of("jmzml", "adap");
 
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -317,8 +302,12 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
           var parameterElement = (Element) moduleElement.getElementsByTagName("parameters").item(0);
           moduleParameters.loadValuesFromXML(parameterElement);
         } catch (Exception | NoClassDefFoundError e) {
-          logger.log(Level.WARNING, "Failed to load configuration for module " + moduleClassName,
-              e);
+          boolean exclude = exculdeWarningsFor.stream()
+              .anyMatch(ex -> moduleClassName.toLowerCase().contains(ex));
+          if (!exclude) {
+            logger.log(Level.WARNING, "Failed to load configuration for module " + moduleClassName,
+                e);
+          }
         }
       }
 
