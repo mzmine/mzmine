@@ -647,7 +647,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   @Override
   public void displayMessage(String title, String msg, @Nullable String url) {
-    logger.warning(() -> String.format("%s - %s - %s", title, msg, url));
+    logger.info(() -> String.format("%s - %s - %s", title, msg, url));
 
     FxThread.runLater(() -> {
 
