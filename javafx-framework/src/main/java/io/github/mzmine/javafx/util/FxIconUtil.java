@@ -31,10 +31,18 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
+import javafx.beans.binding.BooleanExpression;
+import javafx.beans.property.BooleanProperty;
+import javafx.css.PseudoClass;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -173,6 +181,12 @@ public class FxIconUtil {
   public static ButtonBase newIconButton(final IconCodeSupplier fxIcons, int size,
       @Nullable String tooltip, @Nullable Runnable onAction) {
     return FxIconButtonBuilder.ofIconButton(fxIcons).size(size).tooltip(tooltip).onAction(onAction)
+        .build();
+  }
+
+  public static ButtonBase newFlashableIconButton(final FxIcons fxIcons, final int size, final BooleanExpression flashingProperty,
+      final String tooltip, final Runnable onAction) {
+    return FxIconButtonBuilder.ofIconButton(fxIcons).size(size).tooltip(tooltip).onAction(onAction).flashingProperty(flashingProperty)
         .build();
   }
 }

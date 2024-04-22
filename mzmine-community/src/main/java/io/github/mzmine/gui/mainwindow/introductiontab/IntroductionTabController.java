@@ -27,6 +27,9 @@ package io.github.mzmine.gui.mainwindow.introductiontab;
 
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.main.ConfigService;
+import io.mzio.users.user.CurrentUserService;
+import io.mzio.users.user.UserChangedSubscription;
 import java.util.logging.Logger;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
@@ -36,11 +39,21 @@ public class IntroductionTabController extends FxController<IntroductionTabModel
   private static final Logger logger = Logger.getLogger(IntroductionTabController.class.getName());
 
   private final IntroductionTabBuilder introductionTabBuilder;
+  private UserChangedSubscription userListener;
 
   protected IntroductionTabController() {
     super(new IntroductionTabModel());
+    addBindings();
     introductionTabBuilder = new IntroductionTabBuilder(model);
     runVersionCheck();
+  }
+
+  private void addBindings() {
+    model.setIsDarkMode(ConfigService.getConfiguration().isDarkMode());
+    model.isDarkModeProperty().subscribe((_, isDark) -> {
+      ConfigService.setDarkMode(isDark);
+    });
+    userListener = CurrentUserService.subscribe(user -> model.setNeedsUserLogin(user == null));
   }
 
   @Override
@@ -52,4 +65,9 @@ public class IntroductionTabController extends FxController<IntroductionTabModel
     onTaskThreadDelayed(new FxVersionCheckTask(model), new Duration(5000));
   }
 
+  @Override
+  public void close() {
+    super.close();
+    userListener.unsubscribe();
+  }
 }

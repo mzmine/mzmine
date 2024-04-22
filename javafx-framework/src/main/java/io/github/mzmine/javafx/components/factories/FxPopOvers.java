@@ -23,22 +23,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.mainwindow.introductiontab;
+package io.github.mzmine.javafx.components.factories;
 
-import io.github.mzmine.gui.mainwindow.SimpleTab;
-import javafx.scene.layout.Region;
+import javafx.scene.Node;
+import javafx.util.Duration;
+import org.controlsfx.control.PopOver;
+import org.controlsfx.control.PopOver.ArrowLocation;
 
-public class MZmineIntroductionTab extends SimpleTab {
+/**
+ * Still needs more styling to be viable
+ */
+public class FxPopOvers {
 
-  public static final String TITLE = "Welcome to mzmine";
-
-  public MZmineIntroductionTab() {
-    super(TITLE);
-
-    IntroductionTabController controller = new IntroductionTabController();
-    final Region content = controller.buildView();
-    setContent(content);
-
-    setOnClosed(_ -> controller.close());
+  public static PopOver newPopOver(Node content) {
+    var popOver = new PopOver(content);
+    popOver.setAutoHide(true);
+    popOver.setAutoFix(true);
+    popOver.setHideOnEscape(true);
+    popOver.setDetachable(true);
+    popOver.setAnimated(true);
+    popOver.setDetached(false);
+    popOver.setArrowLocation(ArrowLocation.BOTTOM_LEFT);
+    popOver.setFadeInDuration(Duration.millis(500));
+    popOver.setFadeOutDuration(Duration.millis(1000));
+//    popOver.show(owner);
+    return popOver;
   }
+
 }
