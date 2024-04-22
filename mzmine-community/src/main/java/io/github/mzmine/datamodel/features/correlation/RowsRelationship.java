@@ -147,6 +147,9 @@ public interface RowsRelationship {
      */
     ONLINE_REACTION,
     /**
+     */
+    MS2Deepscore,
+    /**
      * External or other undefined
      */
     OTHER;
@@ -175,7 +178,8 @@ public interface RowsRelationship {
         case MS2_NEUTRAL_LOSS_SIM -> "MS2 neutral loss cosine";
         case MS2_GNPS_COSINE_SIM -> "GNPS mod-cosine";
         case ONLINE_REACTION -> "Online reaction";
-        case OTHER -> "Other";
+          case MS2Deepscore -> "MS2Deepscore";
+          case OTHER -> "Other";
       };
     }
   }
