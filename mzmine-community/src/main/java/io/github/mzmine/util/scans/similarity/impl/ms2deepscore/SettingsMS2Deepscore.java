@@ -27,11 +27,11 @@ package io.github.mzmine.util.scans.similarity.impl.ms2deepscore;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record SettingsMS2Deepscore(@JsonProperty("embedding_dim") int embeddingDimension,
+public record SettingsMS2Deepscore(@JsonProperty("embedding_dim") Integer embeddingDimension,
                                    @JsonProperty("ionisation_mode") String ionisationMode,
                                    @JsonProperty("min_mz") int minimumMZ,
                                    @JsonProperty("max_mz") int maximumMZ,
-                                   @JsonProperty("mz_bin_width") int binWidth,
+                                   @JsonProperty("mz_bin_width") Double binWidth,
                                    @JsonProperty("additional_metadata") Object[][] additionalMetadata
 
 ) {
