@@ -32,7 +32,6 @@ import ai.djl.ndarray.NDArray;
 import ai.djl.ndarray.NDManager;
 import ai.djl.repository.zoo.ModelNotFoundException;
 import ai.djl.translate.TranslateException;
-import io.github.mzmine.datamodel.PolarityType;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -50,8 +49,6 @@ class MS2DeepscoreModelTest {
   static void setUp()
       throws URISyntaxException, ModelNotFoundException, MalformedModelException, IOException {
     // load model and setup objects that are shared with all tests
-    MassSpecTestData spec = new MassSpecTestData(new double[]{200d, 200.1d},
-        new double[]{1000d, 2000d}, PolarityType.POSITIVE, 221d);
     URI modelFilePath = MS2DeepscoreModelTest.class.getClassLoader()
         .getResource("models/java_embeddings_ms2deepscore_model.pt").toURI();
     model = new MS2DeepscoreModel(modelFilePath);
