@@ -35,9 +35,9 @@ import ai.djl.translate.TranslateException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Random;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -98,8 +98,7 @@ class MS2DeepscoreModelTest {
       NDArray metadataNDArray = manager.create(metadataArray);
 
       NDArray predictions = model.predict(spectrumNDArray, metadataNDArray);
-//      todo @robin if I just used pure list of long, it gave me an error like expected: [J@50de186c<[1, 50]> but was: [J@3f57bcad<[1, 50]>, so I am guessing something like a different array type, but did not figure it out quickly
-      assertEquals("[2, 50]", Arrays.toString(predictions.getShape().getShape()));
+      Assertions.assertArrayEquals(new long[]{2, 50}, predictions.getShape().getShape());
 //      Test that the first number in the embedding is correct for the first test spectrum
       assertEquals(predictions.get(0).getFloat(0), -0.046006925, 0.0001);
 //      Test that the first number in the embedding is correct for the second spectrum
