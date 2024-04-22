@@ -51,7 +51,9 @@ class MS2DeepscoreModelTest {
     // load model and setup objects that are shared with all tests
     URI modelFilePath = MS2DeepscoreModelTest.class.getClassLoader()
         .getResource("models/java_embeddings_ms2deepscore_model.pt").toURI();
-    model = new MS2DeepscoreModel(modelFilePath);
+    URI settingsFilePath = MS2DeepscoreModelTest.class.getClassLoader()
+        .getResource("models/ms2deepscore_model_settings.json").toURI();
+    model = new MS2DeepscoreModel(modelFilePath, settingsFilePath);
 
   }
 

@@ -34,7 +34,10 @@ import ai.djl.repository.zoo.ModelNotFoundException;
 import ai.djl.repository.zoo.ZooModel;
 import ai.djl.training.util.ProgressBar;
 import ai.djl.translate.TranslateException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.datamodel.Scan;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Paths;
@@ -46,16 +49,29 @@ public class MS2DeepscoreModel {
    * Predicts the MS2Deepscore similarity
    */
   private final ZooModel<NDList, NDList> model;
+  private final SettingsMS2Deepscore settings;
 
-  public MS2DeepscoreModel(URI modelFilePath)
+  public MS2DeepscoreModel(URI modelFilePath, URI settingsFilePath)
       throws ModelNotFoundException, MalformedModelException, IOException {
 //        todo load settings as well.
     Criteria<NDList, NDList> criteria = Criteria.builder().setTypes(NDList.class, NDList.class)
         .optModelPath(Paths.get(modelFilePath))
         .optOption("mapLocation", "true") // this model requires mapLocation for GPU
         .optProgress(new ProgressBar()).build();
-
     this.model = criteria.loadModel();
+    this.settings = loadSettings(settingsFilePath);
+  }
+
+  private SettingsMS2Deepscore loadSettings(URI settingsFilePath) throws IOException {
+
+    ObjectMapper mapper = new ObjectMapper();
+    //    Allows skipping fields in json which are not in SettingsMS2Deepscore (the for us useless settings)
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    //    Makes sure that all the important settings were in the json (with the expected name)
+    mapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, true);
+
+    // JSON file to Java object
+    return mapper.readValue(new File(settingsFilePath), SettingsMS2Deepscore.class);
   }
 
   public NDArray predict(NDArray spectrumNDArray1, NDArray metadataNDArray1)
