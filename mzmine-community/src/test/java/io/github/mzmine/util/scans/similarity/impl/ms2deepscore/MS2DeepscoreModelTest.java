@@ -74,7 +74,7 @@ class MS2DeepscoreModelTest {
     return listOfList;
   }
 
-  private NDArray generateNDArray(int listLength, float[] listValues) {
+  private float[][] generateNestedArray(int listLength, float[] listValues) {
 
     float[][] listOfList = new float[listValues.length][listLength];
     for (int j = 0; j < listValues.length; j++) {
@@ -82,21 +82,18 @@ class MS2DeepscoreModelTest {
         listOfList[j][i] = listValues[j];
       }
     }
-
-    try (NDManager manager = NDManager.newBaseManager()) {
-      return manager.create(listOfList);
-    }
+    return listOfList;
   }
 
   @Test
   void test_correct_prediction() {
     try (NDManager manager = NDManager.newBaseManager()) {
 //      Create test input data
-
-      // Creates a NDArray which contains a matrix of shape 2 by listLength. This represents 2 vectorized spectra.
-      NDArray spectrumNDArray = generateNDArray(990, new float[]{0.1F, 0.2F});
-      // Creates a NDArray which contains a matrix of shape 2 by listLength. This represents the vectorized metadata of 2 spectra
-      NDArray metadataNDArray = generateNDArray(2, new float[]{0.0F, 1.0F});
+      float[][] spectrumArray = generateNestedArray(990, new float[]{0.1F, 0.2F});
+      float[][] metadataArray = generateNestedArray(2, new float[]{0.0F, 1.0F});
+      // Convert input nested float array to NDArray
+      NDArray spectrumNDArray = manager.create(spectrumArray);
+      NDArray metadataNDArray = manager.create(metadataArray);
 
       NDArray predictions = model.predict(spectrumNDArray, metadataNDArray);
 //      todo @robin if I just used pure list of long, it gave me an error like expected: [J@50de186c<[1, 50]> but was: [J@3f57bcad<[1, 50]>, so I am guessing something like a different array type, but did not figure it out quickly
