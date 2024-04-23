@@ -26,7 +26,9 @@
 package io.github.mzmine.util.scans.similarity.impl.ms2deepscore;
 
 
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Bins spectra and returns two tensors, one for metadata and one for fragments
@@ -53,6 +55,30 @@ public class SpectrumTensorizer {
       }
 
     }
+    return vector;
+  }
+
+  private double binarizePolarity(Scan scan) {
+    @NotNull PolarityType polarity = scan.getPolarity();
+    if (!(polarity == PolarityType.POSITIVE || polarity == PolarityType.NEGATIVE)) {
+      throw new RuntimeException("The polarity has to be positive or negative");
+    }
+    if (polarity == PolarityType.POSITIVE) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+
+  private double scalePrecursorMZ(Scan scan, double mean, double standardDeviation) {
+//    @robin what happens if this is null, does that throw an exception?
+    @NotNull double precursorMZ = scan.getPrecursorMz();
+    return (precursorMZ - mean) / standardDeviation;
+  }
+
+
+  public double[] tensorizeMetadata(Scan scan) {
+    double[] vector = new double[]{scalePrecursorMZ(scan, 0, 1000), binarizePolarity(scan)};
     return vector;
   }
 }

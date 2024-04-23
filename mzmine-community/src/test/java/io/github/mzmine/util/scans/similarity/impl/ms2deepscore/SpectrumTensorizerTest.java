@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import org.junit.jupiter.api.Assertions;
@@ -44,18 +45,24 @@ class SpectrumTensorizerTest {
   static void setUp() {
     RawDataFile dummyFile = new RawDataFileImpl("testfile", null, null,
         javafx.scene.paint.Color.BLACK);
-    testSpectrum = new SimpleScan(dummyFile, -1, 2, 0.1F, null,
+    testSpectrum = new SimpleScan(dummyFile, -1, 2, 0.1F, new DDAMsMsInfoImpl(200.0, 1, 2),
         new double[]{5, 12, 12.1, 14., 14.3}, new double[]{100, 200, 400, 200, 100},
-        MassSpectrumType.ANY, PolarityType.ANY, "Pseudo", null);
+        MassSpectrumType.ANY, PolarityType.POSITIVE, "Pseudo", null);
 
-    settingsMS2Deepscore = new SettingsMS2Deepscore(null, "positive", 10, 15, 1.0, null);
+    settingsMS2Deepscore = new SettingsMS2Deepscore(50, "positive", 10, 15, 1.0, null);
   }
 
   @Test
-  void testTensorizeSpectrum() {
+  void testTensorizeFragments() {
     SpectrumTensorizer spectrumTensorizer = new SpectrumTensorizer(settingsMS2Deepscore);
     double[] results = spectrumTensorizer.tensorizeFragments(testSpectrum);
     Assertions.assertArrayEquals(new double[]{0.0, 0.0, 400.0, 0.0, 200.0}, results, 0.0001);
   }
 
+  @Test
+  void testTensorizeSMetadata() {
+    SpectrumTensorizer spectrumTensorizer = new SpectrumTensorizer(settingsMS2Deepscore);
+    double[] results = spectrumTensorizer.tensorizeMetadata(testSpectrum);
+    Assertions.assertArrayEquals(new double[]{0.2, 1.0}, results, 0.0001);
+  }
 }
