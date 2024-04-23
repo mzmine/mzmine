@@ -64,11 +64,11 @@ class MS2DeepscoreModelTest {
     RawDataFile dummyFile = new RawDataFileImpl("testfile", null, null,
         javafx.scene.paint.Color.BLACK);
     testSpectra = new SimpleScan[]{
-        new SimpleScan(dummyFile, -1, 2, 0.1F, new DDAMsMsInfoImpl(200.0, 1, 2),
-            new double[]{5, 12, 12.1, 14., 14.3}, new double[]{100, 200, 400, 200, 100},
+        new SimpleScan(dummyFile, -1, 2, 0.1F, new DDAMsMsInfoImpl(600.0, 1, 2),
+            new double[]{100.1, 200.1, 300.1, 400.1, 500.1}, new double[]{0.2, 0.4, 0.6, 0.8, 1.0},
             MassSpectrumType.ANY, PolarityType.POSITIVE, "Pseudo", null),
-        new SimpleScan(dummyFile, -1, 2, 0.1F, new DDAMsMsInfoImpl(200.0, 1, 2),
-            new double[]{5, 12, 12.1, 14., 14.3}, new double[]{100, 200, 400, 200, 100},
+        new SimpleScan(dummyFile, -1, 2, 0.1F, new DDAMsMsInfoImpl(1000.0, 1, 2),
+            new double[]{600.1, 700.1, 800.1, 900.1, 1000.1}, new double[]{0.2, 0.4, 0.6, 0.8, 1.0},
             MassSpectrumType.ANY, PolarityType.POSITIVE, "Pseudo", null)};
   }
 
@@ -115,18 +115,21 @@ class MS2DeepscoreModelTest {
     assertEquals(predictions.get(0).getFloat(0), -0.046006925, 0.0001);
 //      Test that the first number in the embedding is correct for the second spectrum
     assertEquals(predictions.get(1).getFloat(0), -0.03738583, 0.0001);
-
   }
 
   @Test
   void testCreateEmbeddingFromScan() {
-    NDArray embeddings = null;
+    NDArray embeddings;
     try {
       embeddings = model.predictEmbeddingFromSpectra(testSpectra);
     } catch (TranslateException e) {
       throw new RuntimeException(e);
     }
-    System.out.println(embeddings);
+    Assertions.assertArrayEquals(new long[]{2, 50}, embeddings.getShape().getShape());
+//      Test that the first number in the embedding is correct for the first test spectrum
+    assertEquals(embeddings.get(0).getFloat(0), -0.06332766, 0.0001);
+//      Test that the first number in the embedding is correct for the second spectrum
+    assertEquals(embeddings.get(1).getFloat(0), -0.05749714, 0.0001);
   }
 }
 
