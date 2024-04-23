@@ -32,7 +32,8 @@ public record SettingsMS2Deepscore(@JsonProperty("embedding_dim") Integer embedd
                                    @JsonProperty("min_mz") int minimumMZ,
                                    @JsonProperty("max_mz") int maximumMZ,
                                    @JsonProperty("mz_bin_width") Double binWidth,
-                                   @JsonProperty("additional_metadata") Object[][] additionalMetadata
+                                   @JsonProperty("additional_metadata") Object[][] additionalMetadata,
+                                   @JsonProperty("intensity_scaling") float intensityScaling
 
 ) {
 

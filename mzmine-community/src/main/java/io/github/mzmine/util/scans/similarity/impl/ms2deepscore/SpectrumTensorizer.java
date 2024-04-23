@@ -51,9 +51,9 @@ public class SpectrumTensorizer {
       float intensity = (float) spectrum.getIntensityValue(i);
       if (settings.minimumMZ() <= mz && mz < settings.maximumMZ()) {
         int binIndex = (int) ((mz - settings.minimumMZ() / settings.binWidth()));
-        vector[binIndex] = Math.max(vector[binIndex], intensity);
+        vector[binIndex] = (float) Math.max(vector[binIndex],
+            Math.pow(intensity, settings.intensityScaling()));
       }
-
     }
     return vector;
   }

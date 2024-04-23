@@ -46,17 +46,17 @@ class SpectrumTensorizerTest {
     RawDataFile dummyFile = new RawDataFileImpl("testfile", null, null,
         javafx.scene.paint.Color.BLACK);
     testSpectrum = new SimpleScan(dummyFile, -1, 2, 0.1F, new DDAMsMsInfoImpl(200.0, 1, 2),
-        new double[]{5, 12, 12.1, 14., 14.3}, new double[]{100, 200, 400, 200, 100},
+        new double[]{5, 12, 12.1, 14., 14.3}, new double[]{100, 200, 400, 900, 100},
         MassSpectrumType.ANY, PolarityType.POSITIVE, "Pseudo", null);
 
-    settingsMS2Deepscore = new SettingsMS2Deepscore(50, "positive", 10, 15, 1.0, null);
+    settingsMS2Deepscore = new SettingsMS2Deepscore(50, "positive", 10, 15, 1.0, null, 0.5F);
   }
 
   @Test
   void testTensorizeFragments() {
     SpectrumTensorizer spectrumTensorizer = new SpectrumTensorizer(settingsMS2Deepscore);
     float[] results = spectrumTensorizer.tensorizeFragments(testSpectrum);
-    Assertions.assertArrayEquals(new float[]{0.0F, 0.0F, 400.0F, 0.0F, 200.0F}, results, 0.0001F);
+    Assertions.assertArrayEquals(new float[]{0.0F, 0.0F, 20.0F, 0.0F, 30.0F}, results, 0.0001F);
   }
 
   @Test
