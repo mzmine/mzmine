@@ -60,6 +60,11 @@ public class MS2DeepscoreModel {
         .optProgress(new ProgressBar()).build();
     this.model = criteria.loadModel();
     this.settings = loadSettings(settingsFilePath);
+    if (!Arrays.deepToString(settings.additionalMetadata()).equals(
+        "[[StandardScaler, {metadata_field=precursor_mz, mean=0.0, standard_deviation=1000.0}], [CategoricalToBinary, {metadata_field=ionmode, entries_becoming_one=positive, entries_becoming_zero=negative}]]")) {
+      throw new RuntimeException(
+          "The model uses an additional metadata format that is not supported. Please use the default MS2Deepscore model or ask the developers for support.");
+    }
   }
 
   private SettingsMS2Deepscore loadSettings(URI settingsFilePath) throws IOException {
