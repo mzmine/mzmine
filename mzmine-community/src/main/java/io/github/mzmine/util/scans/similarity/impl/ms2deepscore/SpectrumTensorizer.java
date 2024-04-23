@@ -26,6 +26,8 @@
 package io.github.mzmine.util.scans.similarity.impl.ms2deepscore;
 
 
+import ai.djl.ndarray.NDArray;
+import ai.djl.ndarray.NDManager;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import org.jetbrains.annotations.NotNull;
@@ -36,14 +38,14 @@ import org.jetbrains.annotations.NotNull;
 public class SpectrumTensorizer {
 
   private final SettingsMS2Deepscore settings;
+  private final int numBins;
 
   public SpectrumTensorizer(SettingsMS2Deepscore settings) {
     this.settings = settings;
-
+    this.numBins = (int) ((settings.maximumMZ() - settings.minimumMZ() / settings.binWidth()));
   }
 
   public double[] tensorizeFragments(Scan spectrum) {
-    int numBins = (int) ((settings.maximumMZ() - settings.minimumMZ() / settings.binWidth()));
     double[] vector = new double[numBins];
     int numberOfDataPoints = spectrum.getNumberOfDataPoints();
     for (int i = 0; i < numberOfDataPoints; i++) {
@@ -80,5 +82,24 @@ public class SpectrumTensorizer {
   public double[] tensorizeMetadata(Scan scan) {
     double[] vector = new double[]{scalePrecursorMZ(scan, 0, 1000), binarizePolarity(scan)};
     return vector;
+  }
+
+  public TensorizedSpectra tensorizeSpectra(Scan[] scans) {
+
+    double[][] metadataVectors = new double[scans.length][numBins];
+    double[][] fragmentVectors = new double[scans.length][numBins];
+
+    for (int i = 0; i < scans.length; i++) {
+      metadataVectors[i] = tensorizeMetadata(scans[i]);
+      fragmentVectors[i] = tensorizeFragments(scans[i]);
+    }
+    try (NDManager manager = NDManager.newBaseManager()) {
+//      Create test input data
+      // Convert input nested float array to NDArray
+      NDArray metadataNDArray = manager.create(metadataVectors);
+      NDArray fragmentsNDArray = manager.create(fragmentVectors);
+
+      return new TensorizedSpectra(fragmentsNDArray, metadataNDArray);
+    }
   }
 }
