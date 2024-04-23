@@ -25,8 +25,6 @@
 
 package io.github.mzmine.util.scans.similarity.impl.ms2deepscore;
 
-import ai.djl.ndarray.NDArray;
-
-public record TensorizedSpectra(NDArray tensorizedFragments, NDArray tensorizedMetadata) {
+public record TensorizedSpectra(float[][] tensorizedFragments, float[][] tensorizedMetadata) {
 
 }

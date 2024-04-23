@@ -29,6 +29,7 @@ import ai.djl.MalformedModelException;
 import ai.djl.inference.Predictor;
 import ai.djl.ndarray.NDArray;
 import ai.djl.ndarray.NDList;
+import ai.djl.ndarray.NDManager;
 import ai.djl.repository.zoo.Criteria;
 import ai.djl.repository.zoo.ModelNotFoundException;
 import ai.djl.repository.zoo.ZooModel;
@@ -85,15 +86,20 @@ public class MS2DeepscoreModel {
 
   public NDArray predictEmbeddingFromTensors(TensorizedSpectra tensorizedSpectra)
       throws TranslateException {
-
+//    Todo This is an autoclosable object. Using a try block is suggested, but in that case the output is not available outside this function ... I am not sure about how to fix this.
+    NDManager manager = NDManager.newBaseManager();
     Predictor<NDList, NDList> predictor = model.newPredictor();
-    NDList predictions = predictor.predict(new NDList(tensorizedSpectra.tensorizedFragments(),
-        tensorizedSpectra.tensorizedMetadata()));
+    NDList predictions = predictor.predict(
+        new NDList(manager.create(tensorizedSpectra.tensorizedFragments()),
+            manager.create(tensorizedSpectra.tensorizedMetadata())));
+
     return predictions.getFirst();
+
   }
 
-  public NDArray predictEmbeddingFromSpectrum(Scan[] scans) throws TranslateException {
-    return predictEmbeddingFromTensors(spectrumTensorizer.tensorizeSpectra(scans));
+  public NDArray predictEmbeddingFromSpectra(Scan[] scans) throws TranslateException {
+    TensorizedSpectra tensorizedSepctra = spectrumTensorizer.tensorizeSpectra(scans);
+    return predictEmbeddingFromTensors(tensorizedSepctra);
   }
 
   public Double predictPair(Scan Spectrum1, Scan Spectrum2) {

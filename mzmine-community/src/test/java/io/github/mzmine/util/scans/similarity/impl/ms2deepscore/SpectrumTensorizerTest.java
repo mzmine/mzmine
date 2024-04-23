@@ -55,14 +55,14 @@ class SpectrumTensorizerTest {
   @Test
   void testTensorizeFragments() {
     SpectrumTensorizer spectrumTensorizer = new SpectrumTensorizer(settingsMS2Deepscore);
-    double[] results = spectrumTensorizer.tensorizeFragments(testSpectrum);
-    Assertions.assertArrayEquals(new double[]{0.0, 0.0, 400.0, 0.0, 200.0}, results, 0.0001);
+    float[] results = spectrumTensorizer.tensorizeFragments(testSpectrum);
+    Assertions.assertArrayEquals(new float[]{0.0F, 0.0F, 400.0F, 0.0F, 200.0F}, results, 0.0001F);
   }
 
   @Test
   void testTensorizeSMetadata() {
     SpectrumTensorizer spectrumTensorizer = new SpectrumTensorizer(settingsMS2Deepscore);
-    double[] results = spectrumTensorizer.tensorizeMetadata(testSpectrum);
-    Assertions.assertArrayEquals(new double[]{0.2, 1.0}, results, 0.0001);
+    float[] results = spectrumTensorizer.tensorizeMetadata(testSpectrum);
+    Assertions.assertArrayEquals(new float[]{0.2F, 1.0F}, results, 0.0001F);
   }
 }

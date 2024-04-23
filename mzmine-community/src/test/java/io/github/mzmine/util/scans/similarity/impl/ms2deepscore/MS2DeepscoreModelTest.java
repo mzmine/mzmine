@@ -29,9 +29,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import ai.djl.MalformedModelException;
 import ai.djl.ndarray.NDArray;
-import ai.djl.ndarray.NDManager;
 import ai.djl.repository.zoo.ModelNotFoundException;
 import ai.djl.translate.TranslateException;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -44,6 +49,7 @@ import org.junit.jupiter.api.Test;
 class MS2DeepscoreModelTest {
 
   private static MS2DeepscoreModel model;
+  private static SimpleScan[] testSpectra;
 
   @BeforeAll
   static void setUp()
@@ -55,6 +61,15 @@ class MS2DeepscoreModelTest {
         .getResource("models/ms2deepscore_model_settings.json").toURI();
     model = new MS2DeepscoreModel(modelFilePath, settingsFilePath);
 
+    RawDataFile dummyFile = new RawDataFileImpl("testfile", null, null,
+        javafx.scene.paint.Color.BLACK);
+    testSpectra = new SimpleScan[]{
+        new SimpleScan(dummyFile, -1, 2, 0.1F, new DDAMsMsInfoImpl(200.0, 1, 2),
+            new double[]{5, 12, 12.1, 14., 14.3}, new double[]{100, 200, 400, 200, 100},
+            MassSpectrumType.ANY, PolarityType.POSITIVE, "Pseudo", null),
+        new SimpleScan(dummyFile, -1, 2, 0.1F, new DDAMsMsInfoImpl(200.0, 1, 2),
+            new double[]{5, 12, 12.1, 14., 14.3}, new double[]{100, 200, 400, 200, 100},
+            MassSpectrumType.ANY, PolarityType.POSITIVE, "Pseudo", null)};
   }
 
 
@@ -88,26 +103,30 @@ class MS2DeepscoreModelTest {
   }
 
   @Test
-  void test_correct_prediction() {
-    try (NDManager manager = NDManager.newBaseManager()) {
+  void testCorrectPrediction() throws TranslateException {
 //      Create test input data
-      float[][] spectrumArray = generateNestedArray(990, new float[]{0.1F, 0.2F});
-      float[][] metadataArray = generateNestedArray(2, new float[]{0.0F, 1.0F});
-      // Convert input nested float array to NDArray
-      NDArray spectrumNDArray = manager.create(spectrumArray);
-      NDArray metadataNDArray = manager.create(metadataArray);
+    float[][] spectrumArray = generateNestedArray(990, new float[]{0.1F, 0.2F});
+    float[][] metadataArray = generateNestedArray(2, new float[]{0.0F, 1.0F});
 
-      NDArray predictions = model.predictEmbeddingFromTensors(
-          new TensorizedSpectra(spectrumNDArray, metadataNDArray));
-      Assertions.assertArrayEquals(new long[]{2, 50}, predictions.getShape().getShape());
+    NDArray predictions = model.predictEmbeddingFromTensors(
+        new TensorizedSpectra(spectrumArray, metadataArray));
+    Assertions.assertArrayEquals(new long[]{2, 50}, predictions.getShape().getShape());
 //      Test that the first number in the embedding is correct for the first test spectrum
-      assertEquals(predictions.get(0).getFloat(0), -0.046006925, 0.0001);
+    assertEquals(predictions.get(0).getFloat(0), -0.046006925, 0.0001);
 //      Test that the first number in the embedding is correct for the second spectrum
-      assertEquals(predictions.get(1).getFloat(0), -0.03738583, 0.0001);
+    assertEquals(predictions.get(1).getFloat(0), -0.03738583, 0.0001);
 
+  }
+
+  @Test
+  void testCreateEmbeddingFromScan() {
+    NDArray embeddings = null;
+    try {
+      embeddings = model.predictEmbeddingFromSpectra(testSpectra);
     } catch (TranslateException e) {
       throw new RuntimeException(e);
     }
+    System.out.println(embeddings);
   }
 }
 

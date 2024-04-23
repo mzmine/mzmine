@@ -26,8 +26,6 @@
 package io.github.mzmine.util.scans.similarity.impl.ms2deepscore;
 
 
-import ai.djl.ndarray.NDArray;
-import ai.djl.ndarray.NDManager;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import org.jetbrains.annotations.NotNull;
@@ -45,12 +43,12 @@ public class SpectrumTensorizer {
     this.numBins = (int) ((settings.maximumMZ() - settings.minimumMZ() / settings.binWidth()));
   }
 
-  public double[] tensorizeFragments(Scan spectrum) {
-    double[] vector = new double[numBins];
+  public float[] tensorizeFragments(Scan spectrum) {
+    float[] vector = new float[numBins];
     int numberOfDataPoints = spectrum.getNumberOfDataPoints();
     for (int i = 0; i < numberOfDataPoints; i++) {
-      double mz = spectrum.getMzValue(i);
-      double intensity = spectrum.getIntensityValue(i);
+      float mz = (float) spectrum.getMzValue(i);
+      float intensity = (float) spectrum.getIntensityValue(i);
       if (settings.minimumMZ() <= mz && mz < settings.maximumMZ()) {
         int binIndex = (int) ((mz - settings.minimumMZ() / settings.binWidth()));
         vector[binIndex] = Math.max(vector[binIndex], intensity);
@@ -60,7 +58,7 @@ public class SpectrumTensorizer {
     return vector;
   }
 
-  private double binarizePolarity(Scan scan) {
+  private float binarizePolarity(Scan scan) {
     @NotNull PolarityType polarity = scan.getPolarity();
     if (!(polarity == PolarityType.POSITIVE || polarity == PolarityType.NEGATIVE)) {
       throw new RuntimeException("The polarity has to be positive or negative");
@@ -72,34 +70,30 @@ public class SpectrumTensorizer {
     }
   }
 
-  private double scalePrecursorMZ(Scan scan, double mean, double standardDeviation) {
+  private float scalePrecursorMZ(Scan scan, float mean, float standardDeviation) {
 //    @robin what happens if this is null, does that throw an exception?
     @NotNull double precursorMZ = scan.getPrecursorMz();
-    return (precursorMZ - mean) / standardDeviation;
+
+    return (float) (precursorMZ - mean) / standardDeviation;
   }
 
 
-  public double[] tensorizeMetadata(Scan scan) {
-    double[] vector = new double[]{scalePrecursorMZ(scan, 0, 1000), binarizePolarity(scan)};
+  public float[] tensorizeMetadata(Scan scan) {
+    float[] vector = new float[]{scalePrecursorMZ(scan, 0, 1000), binarizePolarity(scan)};
     return vector;
   }
 
   public TensorizedSpectra tensorizeSpectra(Scan[] scans) {
 
-    double[][] metadataVectors = new double[scans.length][numBins];
-    double[][] fragmentVectors = new double[scans.length][numBins];
+    float[][] metadataVectors = new float[scans.length][numBins];
+    float[][] fragmentVectors = new float[scans.length][numBins];
 
     for (int i = 0; i < scans.length; i++) {
       metadataVectors[i] = tensorizeMetadata(scans[i]);
       fragmentVectors[i] = tensorizeFragments(scans[i]);
     }
-    try (NDManager manager = NDManager.newBaseManager()) {
-//      Create test input data
-      // Convert input nested float array to NDArray
-      NDArray metadataNDArray = manager.create(metadataVectors);
-      NDArray fragmentsNDArray = manager.create(fragmentVectors);
 
-      return new TensorizedSpectra(fragmentsNDArray, metadataNDArray);
-    }
+    return new TensorizedSpectra(fragmentVectors, metadataVectors);
+
   }
 }
