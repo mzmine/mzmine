@@ -97,7 +97,8 @@ class MS2DeepscoreModelTest {
       NDArray spectrumNDArray = manager.create(spectrumArray);
       NDArray metadataNDArray = manager.create(metadataArray);
 
-      NDArray predictions = model.predict(spectrumNDArray, metadataNDArray);
+      NDArray predictions = model.predictEmbeddingFromTensors(
+          new TensorizedSpectra(spectrumNDArray, metadataNDArray));
       Assertions.assertArrayEquals(new long[]{2, 50}, predictions.getShape().getShape());
 //      Test that the first number in the embedding is correct for the first test spectrum
       assertEquals(predictions.get(0).getFloat(0), -0.046006925, 0.0001);

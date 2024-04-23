@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MS2DeepscoreModel {
 
@@ -50,6 +51,7 @@ public class MS2DeepscoreModel {
    */
   private final ZooModel<NDList, NDList> model;
   private final SettingsMS2Deepscore settings;
+  private final SpectrumTensorizer spectrumTensorizer;
 
   public MS2DeepscoreModel(URI modelFilePath, URI settingsFilePath)
       throws ModelNotFoundException, MalformedModelException, IOException {
@@ -65,6 +67,8 @@ public class MS2DeepscoreModel {
       throw new RuntimeException(
           "The model uses an additional metadata format that is not supported. Please use the default MS2Deepscore model or ask the developers for support.");
     }
+    this.spectrumTensorizer = new SpectrumTensorizer(settings);
+
   }
 
   private SettingsMS2Deepscore loadSettings(URI settingsFilePath) throws IOException {
@@ -79,18 +83,17 @@ public class MS2DeepscoreModel {
     return mapper.readValue(new File(settingsFilePath), SettingsMS2Deepscore.class);
   }
 
-  public NDArray predict(NDArray spectrumNDArray1, NDArray metadataNDArray1)
+  public NDArray predictEmbeddingFromTensors(TensorizedSpectra tensorizedSpectra)
       throws TranslateException {
 
     Predictor<NDList, NDList> predictor = model.newPredictor();
-    NDList predictions = predictor.predict(new NDList(spectrumNDArray1, metadataNDArray1));
+    NDList predictions = predictor.predict(new NDList(tensorizedSpectra.tensorizedFragments(),
+        tensorizedSpectra.tensorizedMetadata()));
     return predictions.getFirst();
   }
 
-  public NDList tensorizeSpectrum(Scan Spectrum) {
-//        Tensorizes a spectrum to be able to use as input for the model
-//        todo write the method for tensorization, using the settings.
-    return new NDList();
+  public NDArray predictEmbeddingFromSpectrum(Scan[] scans) throws TranslateException {
+    return predictEmbeddingFromTensors(spectrumTensorizer.tensorizeSpectra(scans));
   }
 
   public Double predictPair(Scan Spectrum1, Scan Spectrum2) {
