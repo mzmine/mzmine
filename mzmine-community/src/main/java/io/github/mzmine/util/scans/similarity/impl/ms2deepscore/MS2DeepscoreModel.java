@@ -42,10 +42,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 
-public class MS2DeepscoreModel {
+public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
 
   /**
    * Predicts the MS2Deepscore similarity
@@ -97,20 +96,8 @@ public class MS2DeepscoreModel {
 
   }
 
-  public NDArray predictEmbeddingFromSpectra(Scan[] scans) throws TranslateException {
+  public NDArray predictEmbedding(Scan[] scans) throws TranslateException {
     TensorizedSpectra tensorizedSepctra = spectrumTensorizer.tensorizeSpectra(scans);
     return predictEmbeddingFromTensors(tensorizedSepctra);
-  }
-
-  public Double predictPair(Scan Spectrum1, Scan Spectrum2) {
-//    Predict the similarity between two spectra
-//        todo write method
-    return 1.0;
-  }
-
-  public Double[][] predictMatrix(ArrayList<Scan> spectra1, ArrayList<Scan> spectra2) {
-//    Predict the similarity between two lists of spectra
-    //        todo write method
-    return new Double[3][3];
   }
 }

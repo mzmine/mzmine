@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import ai.djl.MalformedModelException;
 import ai.djl.ndarray.NDArray;
+import ai.djl.ndarray.NDManager;
 import ai.djl.repository.zoo.ModelNotFoundException;
 import ai.djl.translate.TranslateException;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -40,6 +41,7 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Random;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -121,7 +123,7 @@ class MS2DeepscoreModelTest {
   void testCreateEmbeddingFromScan() {
     NDArray embeddings;
     try {
-      embeddings = model.predictEmbeddingFromSpectra(testSpectra);
+      embeddings = model.predictEmbedding(testSpectra);
     } catch (TranslateException e) {
       throw new RuntimeException(e);
     }
@@ -131,5 +133,40 @@ class MS2DeepscoreModelTest {
 //      Test that the first number in the embedding is correct for the second spectrum
     assertEquals(embeddings.get(1).getFloat(0), -0.05749714, 0.0001);
   }
-}
 
+  @Test
+  void testPredictMatrix() {
+    double[][] similarityMatrix;
+    try {
+      similarityMatrix = model.predictMatrix(testSpectra, testSpectra);
+    } catch (TranslateException e) {
+      throw new RuntimeException(e);
+    }
+    //      todo add check that it is correct
+    System.out.println(Arrays.deepToString(similarityMatrix));
+  }
+
+  @Test
+  void testDotProduct() {
+    try (NDManager manager = NDManager.newBaseManager()) {
+      NDArray embedding1 = manager.create(
+          new double[][]{new double[]{1.0, 1.0, 0.0, 0.0}, new double[]{1.0, 0.0, 1.0, 1.0}});
+      NDArray embedding2 = manager.create(
+          new double[][]{new double[]{1.0, 1.0, 0.0, 0.0}, new double[]{0.0, 0.0, 1.0, 1.0}});
+      double[][] similarity_matrix = model.dotProduct(embedding1, embedding2);
+//      todo add check that it is correct
+      System.out.println(Arrays.deepToString(similarity_matrix));
+    }
+  }
+
+  @Test
+  void testConvertNDArrayToDoubleMatrix() {
+    try (NDManager manager = NDManager.newBaseManager()) {
+      double[][] inputMatrix = new double[][]{new double[]{1.0, 1.0, 0.0, 0.0},
+          new double[]{1.0, 0.0, 1.0, 1.0}};
+      NDArray embedding = manager.create(inputMatrix);
+      double[][] outputMatrix = model.convertNDArrayToDoubleMatrix(embedding);
+      Assertions.assertArrayEquals(outputMatrix, inputMatrix);
+    }
+  }
+}
