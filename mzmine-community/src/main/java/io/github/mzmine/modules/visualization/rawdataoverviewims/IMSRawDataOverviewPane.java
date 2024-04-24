@@ -63,7 +63,7 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.O
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.MZmineIconUtils;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Stroke;
@@ -238,14 +238,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
     // ticChart.removeDatasets(mzRangeTicDatasetIndices);
 
     massDetectionPane.getChildren().remove(massDetectionFrameIcon);
-    massDetectionFrameIcon = selectedFrame.get().getMassList() != null ? FxIconUtil.getCheckedIcon()
-        : FxIconUtil.getUncheckedIcon();
+    massDetectionFrameIcon = selectedFrame.get().getMassList() != null ? MZmineIconUtils.getCheckedIcon()
+        : MZmineIconUtils.getUncheckedIcon();
     massDetectionPane.add(massDetectionFrameIcon, 1, 2);
 
     massDetectionPane.getChildren().remove(massDetectionScanIcon);
     massDetectionScanIcon =
         selectedFrame.get().getMobilityScans().stream().anyMatch(s -> s.getMassList() != null)
-            ? FxIconUtil.getCheckedIcon() : FxIconUtil.getUncheckedIcon();
+            ? MZmineIconUtils.getCheckedIcon() : MZmineIconUtils.getUncheckedIcon();
     massDetectionPane.add(massDetectionScanIcon, 1, 1);
 
     mzRangeTicDatasetIndices.clear();

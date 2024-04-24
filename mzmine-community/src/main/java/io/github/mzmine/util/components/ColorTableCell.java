@@ -24,7 +24,7 @@
  */
 package io.github.mzmine.util.components;
 
-import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import javafx.scene.Node;
 import javafx.scene.control.TableCell;
 import javafx.scene.paint.Color;

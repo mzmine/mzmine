@@ -28,7 +28,7 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,10 +25,10 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_maldispotfeaturedetection;
 
-import com.Ostermiller.util.CSVParser;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
+import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
@@ -60,11 +60,11 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -252,9 +252,9 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
     }
 
     try {
-      final String[][] spotSampleNames = CSVParser.parse(new FileReader(file), ';');
+      final List<String[]> spotSampleNames = CSVParsingUtils.readData(file, ";");
 
-      final String[] firstLine = spotSampleNames[0];
+      final String[] firstLine = spotSampleNames.getFirst();
       int spotIndex = -1;
       int nameIndex = -1;
 
@@ -274,10 +274,11 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
         throw new RuntimeException("Did not find name column.");
       }
 
-      for (int i = 1; i < spotSampleNames.length; i++) {
-        spotNameMap.put(spotSampleNames[i][spotIndex].toUpperCase(), spotSampleNames[i][nameIndex]);
+      for (int i = 1; i < spotSampleNames.size(); i++) {
+        spotNameMap.put(spotSampleNames.get(i)[spotIndex].toUpperCase(),
+            spotSampleNames.get(i)[nameIndex]);
       }
-    } catch (IOException e) {
+    } catch (IOException | CsvException e) {
       logger.log(Level.WARNING, e.getMessage(), e);
     }
 

@@ -63,6 +63,9 @@ public class ComboParameter<ValueType> implements
     this.description = description;
     this.choices = FXCollections.observableList(choices);
     this.value = defaultValue;
+    if (defaultValue == null && !choices.isEmpty()) {
+      this.value = choices.get(0);
+    }
   }
 
   @Override

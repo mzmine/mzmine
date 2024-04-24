@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.batchmode;
 
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -43,9 +44,10 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.XMLUtils;
+import io.github.mzmine.util.files.ExtensionFilters;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.DraggableListCell;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -260,10 +262,14 @@ public class BatchComponentController implements LastFilesComponent {
     try {
       final FileChooser chooser = new FileChooser();
 
-      final ExtensionFilter extension = new ExtensionFilter("MZmine batch files", "*.xml");
-      chooser.getExtensionFilters().add(extension);
-      chooser.getExtensionFilters().add(new ExtensionFilter("All files", "*.*"));
-      chooser.setSelectedExtensionFilter(extension);
+      var allBatchExtensions = new ExtensionFilter("MZmine batch files", "*.xml",
+          ExtensionFilters.MZ_BATCH.getExtensions().getFirst());
+      chooser.getExtensionFilters().addAll( //
+          ExtensionFilters.MZ_BATCH, //
+          allBatchExtensions, //
+          ExtensionFilters.ALL_FILES //
+      );
+      chooser.setSelectedExtensionFilter(allBatchExtensions);
 
       final File lastFile = btnLoadLast.getLastFile();
       if (lastFile != null) {
@@ -283,10 +289,9 @@ public class BatchComponentController implements LastFilesComponent {
   public void onSavePressed() {
     try {
       final FileChooser chooser = new FileChooser();
-      final ExtensionFilter extension = new ExtensionFilter("MZmine batch files", "*.xml");
-      chooser.getExtensionFilters().add(extension);
-      chooser.getExtensionFilters().add(new ExtensionFilter("All files", "*.*"));
-      chooser.setSelectedExtensionFilter(extension);
+      chooser.getExtensionFilters().add(ExtensionFilters.MZ_BATCH);
+      chooser.getExtensionFilters().add(ExtensionFilters.ALL_FILES);
+      chooser.setSelectedExtensionFilter(ExtensionFilters.MZ_BATCH);
 
       final File lastFile = btnLoadLast.getLastFile();
       if (lastFile != null) {
@@ -363,7 +368,7 @@ public class BatchComponentController implements LastFilesComponent {
    * @throws TransformerException         if there is a transformation problem.
    * @throws FileNotFoundException        if the file can't be found.
    */
-  private void saveBatchSteps(final File file)
+  private void saveBatchSteps(File file)
       throws ParserConfigurationException, TransformerException, IOException {
 
     // Create the document.
@@ -374,6 +379,9 @@ public class BatchComponentController implements LastFilesComponent {
 
     // Serialize batch queue.
     batchQueue.saveToXml(element);
+
+    String extension = ExtensionFilters.getExtensionName(ExtensionFilters.MZ_BATCH);
+    file = FileAndPathUtil.getRealFilePath(file, extension);
 
     XMLUtils.saveToFile(file, document);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,12 +39,21 @@ Text, Text:hover {
   -fx-fill: -fx-light-text-color
 }
 
+.text-flow {
+  -fx-background-color: -jr-sidepane-background;
+}
+
 .title-label {
   -fx-font-size: 14.0pt;
 }
 
 .bold-title-label {
   -fx-font-size: 14.0pt;
+  -fx-font-weight: bold;
+}
+
+.huge-title-label {
+  -fx-font-size: 26.0pt;
   -fx-font-weight: bold;
 }
 
@@ -74,3 +83,18 @@ Text, Text:hover {
      -fx-background-color: transparent ;
      -fx-background-insets: 0px ;
  }
+
+.bold-label {
+  -fx-font-weight: bold;
+}
+
+.italic-label {
+  -fx-font-style: italic;
+}
+
+.icon-button .ikonli-font-icon {
+    -fx-icon-color: -fx-text-background-color;
+}
+.icon-button:hover .ikonli-font-icon {
+    -fx-icon-color: -jr-selected;
+}

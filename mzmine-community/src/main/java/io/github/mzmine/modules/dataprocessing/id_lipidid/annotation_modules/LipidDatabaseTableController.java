@@ -32,9 +32,9 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidCla
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYDataset;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.color.ColorsFX;
+import io.github.mzmine.javafx.util.color.ColorsFX;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.util.color.Vision;
+import io.github.mzmine.javafx.util.color.Vision;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

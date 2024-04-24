@@ -31,7 +31,9 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.utils.TaskUtils;
 import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -224,6 +226,31 @@ public class LatestTaskScheduler {
     }
     try (var _ = taskLock.lockWrite()) {
       return runningTasks.remove(taskName);
+    }
+  }
+
+  /**
+   * Cancel all tasks, except {@link FxUpdateTask} which define that they should keep on running
+   */
+  public void cancelTasks() {
+    if (runningTasks == null) {
+      return;
+    }
+
+    List<String> tasksToRemove = new ArrayList<>();
+    try (var _ = taskLock.lockRead()) {
+      runningTasks.forEach((key, task) -> {
+        if (task!=null && (!(task instanceof FxUpdateTask<?> ut) || ut.isCancelTaskOnParentClosed())) {
+          task.cancel();
+        }
+        tasksToRemove.add(key);
+      });
+    }
+
+    try (var _ = taskLock.lockWrite()) {
+      for (final String key : tasksToRemove) {
+        runningTasks.remove(key);
+      }
     }
   }
 }

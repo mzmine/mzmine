@@ -43,6 +43,7 @@ import io.github.mzmine.parameters.ValuePropertyComponent;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import java.awt.Stroke;
 import java.text.DecimalFormat;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,6 +63,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.math.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.plot.ValueMarker;
@@ -236,10 +238,10 @@ public class VolcanoPlotViewBuilder extends FxViewBuilder<VolcanoPlotModel> {
   // todo: enable as soon as we merge the pr with mvci row listener interfaces.
   private void initializeExternalSelectedRowListener() {
     model.selectedRowsProperty().addListener((_, old, rows) -> {
-      if (rows.isEmpty() || old.equals(rows)) {
+      if (rows.isEmpty() || ListUtils.isEqualList(old, rows)) {
         return;
       }
-      final FeatureListRow selectedRow = rows.get(0);
+      final FeatureListRow selectedRow = rows.getFirst();
       if (selectedRow == null) {
         return;
       }

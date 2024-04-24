@@ -33,7 +33,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
-import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.util.javafx.WindowsMenu;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;

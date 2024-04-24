@@ -474,6 +474,13 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       if (matchLabelColors.get()) {
         newRenderer.setDefaultItemLabelPaint(color);
       }
+      else {
+        if(MZmineCore.getConfiguration().isDarkMode()) {
+          newRenderer.setDefaultItemLabelPaint(Color.white);
+        } else {
+          newRenderer.setDefaultItemLabelPaint(Color.black);
+        }
+      }
       ((AbstractRenderer) newRenderer).setItemLabelAnchorOffset(1.3d);
 
       int nextDatasetId = JFreeChartUtils.getNextDatasetIndex(plot);

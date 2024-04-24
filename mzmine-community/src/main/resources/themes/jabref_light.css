@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,8 +44,10 @@ https://github.com/JabRef/jabref/blob/main/src/main/java/org/jabref/gui/Base.css
     */
 
     /* This theme is the original JabRef dark blue color */
-    -jr-theme: #50618F;
-    -jr-accent: #a3b7e6;
+    /*-jr-theme: #50618F;*/
+    /*-jr-accent: #a3b7e6;*/
+    -jr-theme: #3391C1;
+    -jr-accent: #156CA2;
     -jr-transparent-accent: rgba(163, 183, 230, 0.16);
     -jr-selected: -jr-accent;
     -jr-checked: -jr-theme;
@@ -116,8 +118,8 @@ https://github.com/JabRef/jabref/blob/main/src/main/java/org/jabref/gui/Base.css
     );
 
     /* Specific color for general tooltips */
-    -jr-tooltip-bg: -jr-accent;
-    -jr-tooltip-fg: -jr-black;
+    -jr-tooltip-bg: -jr-theme;
+    -jr-tooltip-fg: -jr-white;
 
     /* Finally, some specific jr styles that depend on -fx definitions in *this* style */
     -jr-sidepane-background: -jr-gray-1;
@@ -431,6 +433,7 @@ TextFlow > .tooltip-text-monospaced {
     -fx-background-color: -jr-accent;
     -fx-border-color: -jr-accent;
 }
+
 
 .icon-buttonNoSpaceBottom,
 .icon-buttonNoSpaceTop,
@@ -814,7 +817,8 @@ TextFlow > .tooltip-text-monospaced {
 
 .accordion .titled-pane .title {
     -fx-background-color: transparent;
-    -fx-border-color: transparent;
+    -fx-border-color: -fx-outer-border;
+    -fx-border-style: hidden hidden solid hidden;
     -fx-background-insets: 5 5 5 5;
 }
 
@@ -829,7 +833,7 @@ TextFlow > .tooltip-text-monospaced {
  * left since the arrow is positioned on the right.
  */
 .titled-pane > .title > .arrow-button {
-    -fx-padding: 0.0em 0.0em 0.0em 0.583em;
+    -fx-padding: 0.0em 0.6em 0.0em 0.3em;
 }
 
 .text-input {
@@ -1201,41 +1205,6 @@ We want to have a look that matches our icons in the tool-bar */
     -fx-background-color: -jr-sidepane-background;
 }
 
-.notification-bar > .pane {
-    -fx-background-color: -jr-gray-3;
-    -fx-background-radius: 4px;
-}
-
-.notification-bar > .pane > .title,
-.notification-bar > .pane > .label,
-.notification-bar > .pane > .button-bar > .container > .action {
-    -fx-text-fill: -jr-base;
-    -fx-padding: 1ex 1ex 1ex 1ex;
-}
-
-.notification-bar > .pane {
-    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.3), 9, 0, 0, 2);
-    -fx-padding: 6px 7px 6px 32px;
-    -fx-background-radius: 0px;
-    -fx-border-radius: 0px;
-}
-
-.notification-bar > .pane > .button-bar > .container {
-    -fx-padding: 0px 24px 0px 0px;
-}
-
-.notification-bar > .pane > .label {
-    -fx-graphic-text-gap: 8px;
-}
-
-.notification-pane .notification-bar > .pane .close-button > .graphic {
-    -fx-background-color: -jr-base;
-}
-
-.notification-bar > .pane > .label > .ikonli-font-icon {
-    -fx-icon-size: 16px;
-    -fx-icon-color: -jr-base;
-}
 
 .progress-bar > .bar {
     -fx-background-color: -jr-theme;

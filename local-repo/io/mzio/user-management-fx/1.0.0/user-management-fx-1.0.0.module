@@ -1,0 +1,235 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "io.mzio",
+    "module": "user-management-fx",
+    "version": "1.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "user-management-fx-1.0.0.jar",
+          "url": "user-management-fx-1.0.0.jar",
+          "size": 34014,
+          "sha512": "5f53677f3722c3281a8bc5213e6848814c112d94f7c24657601cd3874dd5a50115109bae247a5f639c0f2a1c0b9f306600256d65ad4b0e8cdd83f95227b42ef9",
+          "sha256": "d610e713f5856e2e668f02b51ec2fea3a1763595c730c47f5fc9336d4ecadfb3",
+          "sha1": "e98ce376f12905806512cc6cca849b7c2c15f39f",
+          "md5": "946c7540d13255c88003593f18105fd3"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains",
+          "module": "annotations",
+          "version": {
+            "requires": "22.0.0"
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-base",
+          "version": {
+            "requires": "21"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "javafx-base",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "win"
+            }
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-graphics",
+          "version": {
+            "requires": "21"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "javafx-graphics",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "win"
+            }
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-controls",
+          "version": {
+            "requires": "21"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "javafx-controls",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "win"
+            }
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-fxml",
+          "version": {
+            "requires": "21"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "javafx-fxml",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "win"
+            }
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-media",
+          "version": {
+            "requires": "21"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "javafx-media",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "win"
+            }
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-swing",
+          "version": {
+            "requires": "21"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "javafx-swing",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "win"
+            }
+          }
+        },
+        {
+          "group": "org.openjfx",
+          "module": "javafx-web",
+          "version": {
+            "requires": "21"
+          },
+          "thirdPartyCompatibility": {
+            "artifactSelector": {
+              "name": "javafx-web",
+              "type": "jar",
+              "extension": "jar",
+              "classifier": "win"
+            }
+          }
+        },
+        {
+          "group": "org.controlsfx",
+          "module": "controlsfx",
+          "version": {
+            "requires": "11.1.1"
+          }
+        },
+        {
+          "group": "org.kordamp.ikonli",
+          "module": "ikonli-javafx",
+          "version": {
+            "requires": "12.3.1"
+          }
+        },
+        {
+          "group": "org.kordamp.ikonli",
+          "module": "ikonli-bootstrapicons-pack",
+          "version": {
+            "requires": "12.3.1"
+          }
+        },
+        {
+          "group": "org.kordamp.ikonli",
+          "module": "ikonli-lineawesome-pack",
+          "version": {
+            "requires": "12.3.1"
+          }
+        },
+        {
+          "group": "io.mzio",
+          "module": "user-management",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
+          "group": "io.mzio",
+          "module": "user-client",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
+          "group": "io.github.mzmine",
+          "module": "javafx-framework"
+        },
+        {
+          "group": "io.github.mzmine",
+          "module": "taskcontroller"
+        },
+        {
+          "group": "io.github.mzmine",
+          "module": "utils"
+        },
+        {
+          "group": "com.javax0.license3j",
+          "module": "license3j",
+          "version": {
+            "requires": "3.2.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "user-management-fx-1.0.0.jar",
+          "url": "user-management-fx-1.0.0.jar",
+          "size": 34014,
+          "sha512": "5f53677f3722c3281a8bc5213e6848814c112d94f7c24657601cd3874dd5a50115109bae247a5f639c0f2a1c0b9f306600256d65ad4b0e8cdd83f95227b42ef9",
+          "sha256": "d610e713f5856e2e668f02b51ec2fea3a1763595c730c47f5fc9336d4ecadfb3",
+          "sha1": "e98ce376f12905806512cc6cca849b7c2c15f39f",
+          "md5": "946c7540d13255c88003593f18105fd3"
+        }
+      ]
+    }
+  ]
+}

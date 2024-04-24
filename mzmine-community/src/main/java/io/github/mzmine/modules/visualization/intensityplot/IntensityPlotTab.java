@@ -34,7 +34,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
-import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;

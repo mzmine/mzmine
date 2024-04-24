@@ -147,4 +147,20 @@ public abstract class FxController<ViewModelClass> {
     scheduler.onTaskThreadDelayed(task, uniqueTaskName, delay);
   }
 
+  /**
+   * Cancel all tasks, except {@link FxUpdateTask} which define that they should keep on running
+   */
+  public void cancelTasks() {
+    scheduler.cancelTasks();
+  }
+
+  /**
+   * Default close behavior like cancelling all tasks. Closing the view does not automatically close
+   * the controller. But if the controller is part of a tab this close method can be called from the
+   * onClosed callback of the tab.
+   */
+  public void close() {
+    cancelTasks();
+  }
+
 }

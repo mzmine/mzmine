@@ -55,7 +55,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.project.ProjectService;
-import io.github.mzmine.util.DialogLoggerUtil;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
 import javafx.scene.control.Button;

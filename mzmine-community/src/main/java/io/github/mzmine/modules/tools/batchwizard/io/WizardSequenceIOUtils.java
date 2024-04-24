@@ -28,12 +28,14 @@ package io.github.mzmine.modules.tools.batchwizard.io;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.XMLUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -60,8 +62,9 @@ import org.w3c.dom.NodeList;
 public class WizardSequenceIOUtils {
 
   private static final Logger logger = Logger.getLogger(WizardSequenceIOUtils.class.getName());
+  private static final String WIZARD_EXTENSION = "mzmwizard";
   public static final ExtensionFilter FILE_FILTER = new ExtensionFilter("MZmine wizard preset",
-      "*.mzmwizard");
+      "*." + WIZARD_EXTENSION);
   private static final String PART_TAG = "wiz_part";
   private static final String ELEMENT_TAG = "wizard";
   private static final String PART_ATTRIBUTE = "part";
@@ -163,7 +166,7 @@ public class WizardSequenceIOUtils {
           });
         } catch (Exception e) {
           logger.warning("Cannot set preset " + uniquePresetId + " to part " + part
-              + ". Maybe it was renamed. " + e.getMessage());
+                         + ". Maybe it was renamed. " + e.getMessage());
         }
       }
 
@@ -228,7 +231,7 @@ public class WizardSequenceIOUtils {
    */
   @Nullable
   public static File getWizardSettingsPath() {
-    File prefPath = FileAndPathUtil.getUserSettingsDir();
+    File prefPath = FileAndPathUtil.getMzmineDir();
     if (prefPath == null) {
       logger.warning("Cannot find parameters default location in user folder");
     } else {
@@ -238,4 +241,21 @@ public class WizardSequenceIOUtils {
     return prefPath;
   }
 
+  public static boolean isWizardFile(final String file) {
+    return StringUtils.hasValue(file) && file.toLowerCase().strip().endsWith(WIZARD_EXTENSION);
+  }
+
+  public static boolean copyToUserDirectory(final File file) {
+    try {
+      File wizDir = getWizardSettingsPath();
+      if (wizDir == null) {
+        return false;
+      }
+      Files.copy(file.toPath(), wizDir.toPath().resolve(file.getName()),
+          StandardCopyOption.REPLACE_EXISTING);
+      return true;
+    } catch (IOException e) {
+      return false;
+    }
+  }
 }

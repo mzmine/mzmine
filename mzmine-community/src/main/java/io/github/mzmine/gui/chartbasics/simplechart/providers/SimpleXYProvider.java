@@ -26,7 +26,7 @@
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import java.awt.Color;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;

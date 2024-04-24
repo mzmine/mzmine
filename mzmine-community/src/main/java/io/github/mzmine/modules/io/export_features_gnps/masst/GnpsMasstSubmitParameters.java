@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,12 @@
 
 package io.github.mzmine.modules.io.export_features_gnps.masst;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.masstPaper;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -36,6 +42,7 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PasswordParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
+import javafx.scene.layout.Region;
 
 /**
  * Submit MASST search on GNPS
@@ -90,11 +97,9 @@ public class GnpsMasstSubmitParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    String message = """
-        <html><strong>About the Mass Spectrometry Search Tool (MASST) direct submission:</strong><br>
-        When using MASST please cite:<br>
-        Wang, M., Jarmusch, A.K., Vargas, F. et al. Mass spectrometry searches using MASST. Nat Biotechnol 38, 23–26 (2020). <a href="https://doi.org/10.1038/s41587-019-0375-9">https://doi.org/10.1038/s41587-019-0375-9</a>
-        </html>""";
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
+        boldText("About the Mass Spectrometry Search Tool (MASST) direct submission:"), linebreak(),
+        text("When using MASST please cite:"), linebreak(), masstPaper);
 
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();

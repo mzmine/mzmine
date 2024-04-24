@@ -27,19 +27,16 @@ package io.github.mzmine.modules.tools.batchwizard.builders;
 
 
 import com.google.common.collect.Range;
-import dulab.adap.workflow.TwoStepDecompositionParameters;
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
-import io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAP3DecompositionV1_5Parameters;
-import io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule;
-import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAP3DecompositionV2Parameters;
-import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule;
 import io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
+import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
@@ -73,7 +70,6 @@ import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpectralSimilarityParameters;
 import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarity;
 import java.io.File;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -88,7 +84,6 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
   private final Boolean exportGnps;
   private final Boolean exportMsp;
   private final Integer minRtDataPoints; //min number of data points
-  private final Range<Double> rtForCWT;
   private final double sampleCountRatio;
   private final boolean rtSmoothing;
   private final boolean recalibrateRetentionTime;
@@ -116,8 +111,6 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         IonInterfaceGcElectronImpactWizardParameters.minNumberOfDataPoints);
     rtFwhm = getValue(params,
         IonInterfaceGcElectronImpactWizardParameters.approximateChromatographicFWHM);
-    rtForCWT = getValue(params,
-        IonInterfaceGcElectronImpactWizardParameters.RT_FOR_CWT_SCALES_DURATION);
 
     // currently the alignment uses only relative values as input.
     // in the future the ADAP alignment should use either absolute or relative as defined by the
@@ -159,8 +152,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
       makeAndAddRetentionTimeCalibration(q, mzTolInterSample, interSampleRtTol,
           handleOriginalFeatureLists);
     }
-    makeMultiCurveResolutionStep(q);
-    //makeHierarchicalClustering(q);
+    makeSpectralDeconvolutionStep(q);
     makeAndAddAlignmentStep(q);
     makeAndAddDuplicateRowFilterStep(q, handleOriginalFeatureLists, mzTolFeaturesIntraSample,
         rtFwhm, imsInstrumentType);
@@ -199,60 +191,20 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     minParam.setParameter(GeneralResolverParameters.handleOriginal, OriginalFeatureListOption.KEEP);
   }
 
-  private void makeMultiCurveResolutionStep(final BatchQueue q) {
+  private void makeSpectralDeconvolutionStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(ADAPMultivariateCurveResolutionModule.class).cloneParameterSet();
-    String patternToFindEICs;
-    if (rtSmoothing) {
-      patternToFindEICs = "*eics sm";
-    } else {
-      patternToFindEICs = "*eics";
-    }
-    double retentionTimeFWHM = rtFwhm.getToleranceInMinutes() * 4;
-    param.setParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH, retentionTimeFWHM);
-    param.setParameter(ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE,
-        (double) intraSampleRtTol.getToleranceInMinutes());
-    param.setParameter(ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE,
+        .getModuleParameters(SpectralDeconvolutionGCModule.class).cloneParameterSet();
+    param.setParameter(SpectralDeconvolutionGCParameters.RT_TOLERANCE, intraSampleRtTol);
+    param.setParameter(SpectralDeconvolutionGCParameters.MIN_NUMBER_OF_SIGNALS,
         minNumberOfSignalsInDeconSpectra);
-    param.setParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS,
+    param.setParameter(SpectralDeconvolutionGCParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    FeatureListsSelection featureListsSelection = new FeatureListsSelection(
-        FeatureListsSelectionType.NAME_PATTERN);
-    featureListsSelection.setNamePattern(patternToFindEICs);
-    param.setParameter(ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS, featureListsSelection);
-    param.setParameter(ADAP3DecompositionV2Parameters.ADJUST_APEX_RET_TIME, false);
-    param.setParameter(ADAP3DecompositionV2Parameters.HANDLE_ORIGINAL, handleOriginalFeatureLists);
-    param.setParameter(ADAP3DecompositionV2Parameters.SUFFIX, "spec_decon");
+    param.setParameter(SpectralDeconvolutionGCParameters.HANDLE_ORIGINAL,
+        handleOriginalFeatureLists);
+    param.setParameter(SpectralDeconvolutionGCParameters.SUFFIX, "spec_decon");
     q.add(new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(ADAPMultivariateCurveResolutionModule.class), param));
-
+        MZmineCore.getModuleInstance(SpectralDeconvolutionGCModule.class), param));
   }
-
-  private void makeHierarchicalClustering(BatchQueue q) {
-    final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(ADAPHierarchicalClusteringModule.class).cloneParameterSet();
-    double rtWidth = rtFwhm.getToleranceInMinutes();
-    param.setParameter(ADAP3DecompositionV1_5Parameters.PEAK_LISTS,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(ADAP3DecompositionV1_5Parameters.MIN_CLUSTER_DISTANCE, rtWidth);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.MIN_CLUSTER_SIZE,
-        minNumberOfSignalsInDeconSpectra);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.MIN_CLUSTER_INTENSITY, minFeatureHeight);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.EDGE_TO_HEIGHT_RATIO, 0.3);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.DELTA_TO_HEIGHT_RATIO, 0.2);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.USE_ISSHARED, false);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.MIN_MODEL_SHARPNESS, 10.0);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.SHAPE_SIM_THRESHOLD, 18.0);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.MODEL_PEAK_CHOICE,
-        TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_INTENSITY);
-    param.setParameter(ADAP3DecompositionV1_5Parameters.SUFFIX, "spec-decon");
-    param.setParameter(ADAP3DecompositionV1_5Parameters.MZ_VALUES, List.of());
-    param.setParameter(ADAP3DecompositionV1_5Parameters.handleOriginal, handleOriginalFeatureLists);
-
-    q.add(new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(ADAPHierarchicalClusteringModule.class), param));
-  }
-
 
   protected void makeAndAddAlignmentStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()

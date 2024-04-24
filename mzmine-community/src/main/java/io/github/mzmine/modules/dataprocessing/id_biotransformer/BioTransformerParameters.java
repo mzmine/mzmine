@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.hyperlinkText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -40,6 +44,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParamet
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import javafx.application.Platform;
+import javafx.scene.layout.Region;
 
 public class BioTransformerParameters extends SimpleParameterSet {
 
@@ -96,12 +101,14 @@ public class BioTransformerParameters extends SimpleParameterSet {
     if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
     }
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, """
-        Please cite:
-        <a href="https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0324-5">Djoumbou Feunang Y, Fiamoncini J, de la Fuente AG, Manach C, Greiner R, and Wishart DS; BioTransformer: A Comprehensive Computational Tool for Small Molecule Metabolism Prediction and Metabolite Identification; Journal of Cheminformatics; 2019; Journal of Cheminformatics 11:2; 
-        DOI: 10.1186/s13321-018-0324-5</a>
-        Wishart DS, Tian S, Allen D, Oler E, Peters H, Lui VW, Gautam V, Djoumbou Feunang Y, Greiner R, Metz TO; BioTransformer 3.0 – A Web Server for Accurately Predicting Metabolic Transformation Products [Submitted in Nucleic Acids Research, Webserver Issue.Apr.2022]\s
-        """);
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite", hyperlinkText("""
+            Djoumbou Feunang Y, Fiamoncini J, de la Fuente AG, Manach C, Greiner R, and Wishart DS; BioTransformer: A Comprehensive Computational Tool for Small Molecule Metabolism Prediction and Metabolite Identification; Journal of Cheminformatics; 2019; Journal of Cheminformatics 11:2; 
+            DOI: 10.1186/s13321-018-0324-5
+            """, "https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0324-5"), linebreak(),
+        hyperlinkText("""
+            Wishart DS, Tian S, Allen D, Oler E, Peters H, Lui VW, Gautam V, Djoumbou Feunang Y, Greiner R, Metz TO; BioTransformer 3.0 – A Web Server for Accurately Predicting Metabolic Transformation Products [Submitted in Nucleic Acids Research, Webserver Issue.Apr.2022]
+            """, "http://biotransformer.ca/"));
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
