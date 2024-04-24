@@ -155,7 +155,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
         () -> MZmineCore.getDesktop().openWebPage("https://mzio.io/#mzmine"));
 
     final ButtonBase btnUserManagement = FxIconUtil.newIconButton(FxIcons.USER, 45,
-        "User management", () -> MZmineCore.getDesktop().addTab(new UsersTab()));
+        "User management", UsersTab::showTab);
     FxFlashingAnimation.animate(btnUserManagement, model.needsUserLoginProperty());
 
     final ButtonBase btnDevelopment = FxIconUtil.newIconButton(FxIcons.DEVELOPMENT, 45,

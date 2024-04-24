@@ -184,7 +184,7 @@ public final class MZmineCore {
       EventService.subscribe(mzEvent -> {
         if (mzEvent instanceof AuthRequiredEvent) {
           if (DesktopService.isGUI()) {
-            getDesktop().addTab(new UsersTab());
+            getDesktop().addTab(UsersTab.showTab());
           } else {
             getDesktop().displayMessage("Requires user login. Open mzmine and login to a user");
           }

@@ -266,11 +266,11 @@ public class MainMenuController {
   }
 
   public void showUsersTab(final ActionEvent e) {
-    FxThread.runLater(() -> MZmineCore.getDesktop().addTab(new UsersTab()));
+    FxThread.runLater(UsersTab::showTab);
   }
 
   public void showUserSignUp(final ActionEvent e) {
-    MZmineCore.getDesktop().addTab(new UsersTab(UsersViewState.LOGIN));
+    UsersTab.showTab(UsersViewState.LOGIN);
   }
 
   public void removeLocalUser(final ActionEvent e) {
