@@ -145,7 +145,6 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportModule;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportModule;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportModule;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportModule;
-import io.github.mzmine.modules.io.import_rawdata_waters_raw.WatersRawImportModule;
 import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportModule;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
@@ -206,7 +205,7 @@ public class BatchModeModulesList {
       MzXMLImportModule.class, //
       NetCDFImportModule.class, //
       ThermoRawImportModule.class, //
-      WatersRawImportModule.class, //
+//      WatersRawImportModule.class, //
       ZipImportModule.class, //
       SpectralLibraryImportModule.class, //
       SpectralLibraryToFeatureListModule.class, //
