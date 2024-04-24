@@ -40,9 +40,11 @@ import io.github.mzmine.gui.mainwindow.GlobalKeyHandler;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
@@ -64,7 +66,11 @@ import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
 import io.mzio.users.client.UserAuthStore;
+import io.mzio.users.gui.fx.UsersViewState;
+import io.mzio.users.user.CurrentUserService;
+import io.mzio.users.user.MZmineUser;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -345,6 +351,9 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
           var result = UserAuthStore.copyAddUserFile(selectedFile);
           String resultStr = result ? "succeeded" : "failed";
           messages.add(STR."Adding user \{selectedFile.getName()} \{resultStr}");
+          if (result) {
+            askChangeUser(selectedFile.getName());
+          }
         }
 
 //        if(selectedFile.getName().strip().toLowerCase().endsWith("mzbatch")) {
@@ -353,10 +362,9 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       }
 
 //      if (lastBatchFile != null) {
-        // TODO not sure yet how to open the dialog and open the load batch dialog
+      // TODO not sure yet how to open the dialog and open the load batch dialog
 //        MZmineCore.setupAndRunModule(BatchModeModule.class);
 //      }
-
 
       if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
         if (!rawDataFiles.isEmpty()) {
@@ -392,6 +400,25 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     }
     event.setDropCompleted(hasFileDropped);
     event.consume();
+  }
+
+  private static void askChangeUser(final String fileName) {
+    try {
+      MZmineUser user = UserAuthStore.readUserByFileName(fileName);
+      if (user == null) {
+        return;
+      }
+
+      boolean changeUserResult = DialogLoggerUtil.showDialogYesNo("Changing active user",
+          STR."Switch to user \{user.getNickname()}?");
+
+      if (changeUserResult) {
+        CurrentUserService.setUser(user);
+      }
+    } catch (IOException e) {
+      logger.warning("Cannot find local user after copying user file by drag and drop");
+    }
+    UsersTab.showTab(UsersViewState.LOCAL_USERS);
   }
 
   public static void handleTaskManagerLocationChange(WindowLocation loc) {
