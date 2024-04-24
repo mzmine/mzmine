@@ -25,7 +25,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_fragtree;
 
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.Scan;
@@ -34,21 +33,17 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.SimpleCalculationTask;
 import io.github.mzmine.taskcontrol.TaskService;
-import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.collections.BinarySearch;
-import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.scans.FragmentScanSelection;
 import io.github.mzmine.util.scans.FragmentScanSelection.IncludeInputSpectra;
 import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -65,14 +60,30 @@ public class FragmentTreeCalcTask extends AbstractFeatureListTask {
   private FragmentScanSelection selection = new FragmentScanSelection(ms2MergeTol, true,
       IncludeInputSpectra.NONE, IntensityMergingType.MAXIMUM, MsLevelFilter.ALL_LEVELS, null);
   private MZTolerance formulaTolerance = new MZTolerance(0.005, 5);
-  private final boolean checkCHONPS = true;
-  private final boolean checkRDBE = true;
+  private final boolean checkCHONPS;
+  private final boolean checkRDBE;
+  private final SpectralSignalFilter defaultSignalFilter = new SpectralSignalFilter(true, 10, 50,
+      200, 98);
 
-  protected FragmentTreeCalcTask(@Nullable MemoryMapStorage storage,
-      @NotNull Instant moduleCallDate, ParameterSet parameters, FeatureList flist) {
+  public FragmentTreeCalcTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
+      ParameterSet parameters, FeatureList flist) {
     super(storage, moduleCallDate, parameters, FragmentTreeCalcModule.class);
 
+    checkCHONPS = true;
+    checkRDBE = true;
     this.flist = flist;
+  }
+
+  public FragmentTreeCalcTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
+      FeatureList flist, boolean checkCHONPS, boolean checkRDBE, MZTolerance formulaTolerance,
+      MZTolerance ms2MergeTol) {
+    super(storage, moduleCallDate, new SimpleParameterSet(), FragmentTreeCalcModule.class);
+
+    this.flist = flist;
+    this.checkCHONPS = checkCHONPS;
+    this.checkRDBE = checkRDBE;
+    this.formulaTolerance = formulaTolerance;
+    this.ms2MergeTol = ms2MergeTol;
   }
 
   @Override
@@ -104,7 +115,7 @@ public class FragmentTreeCalcTask extends AbstractFeatureListTask {
       return;
     }
 
-    final var precursorFormulaTask = new PrecursorFormulaGenerationTask(this, row, ionTypeOverride,
+    final var precursorFormulaTask = new FragTreePrecursorFormulaTask(this, row, ionTypeOverride,
         formulaTolerance, checkCHONPS, checkRDBE);
     final var task = new SimpleCalculationTask<>(precursorFormulaTask);
     TaskService.getController().addTask(task);
@@ -120,26 +131,10 @@ public class FragmentTreeCalcTask extends AbstractFeatureListTask {
         }
       }
 
-      getPeaksWithFormulae(row, formula, mergedMs2);
+      final List<PeakWithFormulae> peaksWithFormulae = FragTreeUtils.getPeaksWithFormulae(formula,
+          mergedMs2, defaultSignalFilter, ms2MergeTol);
+
     }
-  }
-
-  private List<PeakWithFormulae> getPeaksWithFormulae(FeatureListRow row, IMolecularFormula formula,
-      Scan mergedMs2) {
-    final List<FormulaWithExactMz> subFormulae = List.of(
-        FormulaUtils.getAllFormulas(formula, mergedMs2.getMzValue(0) - 1));
-
-    final SpectralSignalFilter signalFilter = new SpectralSignalFilter(true, 10, 50, 200, 98);
-    final @Nullable DataPoint[] intenseSignals = signalFilter.applyFilterAndSortByIntensity(
-        mergedMs2, row.getAverageMZ());
-
-    List<PeakWithFormulae> peaksWithFormulae = new ArrayList<>();
-    for (DataPoint signal : intenseSignals) {
-      final IndexRange indexRange = BinarySearch.indexRange(
-          ms2MergeTol.getToleranceRange(signal.getMZ()), subFormulae, FormulaWithExactMz::mz);
-      peaksWithFormulae.add(new PeakWithFormulae(signal, indexRange.sublist(subFormulae)));
-    }
-    return peaksWithFormulae;
   }
 
   @Override

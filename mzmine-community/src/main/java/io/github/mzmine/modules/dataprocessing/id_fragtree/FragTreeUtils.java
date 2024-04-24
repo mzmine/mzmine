@@ -25,10 +25,22 @@
 
 package io.github.mzmine.modules.dataprocessing.id_fragtree;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.FormulaWithExactMz;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.IndexRange;
+import io.github.mzmine.util.scans.ScanUtils;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.openscience.cdk.Isotope;
+import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -36,14 +48,21 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 public class FragTreeUtils {
 
   @NotNull
-  static MolecularFormulaRange setupFormulaRange(List<IonType> ionTypes) {
+  static MolecularFormulaRange setupFormulaRange(@NotNull List<IonType> ionTypes) {
     final MolecularFormulaRange elementCounts = new MolecularFormulaRange();
-    elementCounts.addIsotope(new Isotope("C"), 0, 100);
-    elementCounts.addIsotope(new Isotope("H"), 0, 400);
-    elementCounts.addIsotope(new Isotope("O"), 0, 10);
-    elementCounts.addIsotope(new Isotope("N"), 0, 10);
-    elementCounts.addIsotope(new Isotope("P"), 0, 2);
-    elementCounts.addIsotope(new Isotope("S"), 0, 2);
+
+    try {
+      final Isotopes isos = Isotopes.getInstance();
+      elementCounts.addIsotope(isos.getMajorIsotope("C"), 0, 100);
+      elementCounts.addIsotope(isos.getMajorIsotope("H"), 0, 300);
+      elementCounts.addIsotope(isos.getMajorIsotope("O"), 0, 10);
+      elementCounts.addIsotope(isos.getMajorIsotope("N"), 0, 10);
+      elementCounts.addIsotope(isos.getMajorIsotope("P"), 0, 2);
+      elementCounts.addIsotope(isos.getMajorIsotope("S"), 0, 2);
+
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
 
     for (IonType ionType : ionTypes) {
       if (ionType.isUndefinedAdduct()) {
@@ -60,7 +79,7 @@ public class FragTreeUtils {
       MolecularFormulaRange elementCounts) {
     final IMolecularFormula adductFormula = ionType.getAdduct().getCDKFormula();
 
-    if(adductFormula != null) {
+    if (adductFormula != null) {
       for (IIsotope isotope : adductFormula.isotopes()) {
         if (!elementCounts.contains(isotope)) {
           elementCounts.addIsotope(isotope, 0, 1);
@@ -88,5 +107,23 @@ public class FragTreeUtils {
     final int minCount = elementCounts.getIsotopeCountMin(isotope);
     elementCounts.removeIsotope(isotope);
     elementCounts.addIsotope(isotope, minCount, maxCount + 1);
+  }
+
+  public static List<PeakWithFormulae> getPeaksWithFormulae(IMolecularFormula ionFormula,
+      MassSpectrum mergedMs2, SpectralSignalFilter defaultSignalFilter, MZTolerance fragmentFormulaTol) {
+    final List<FormulaWithExactMz> subFormulae = List.of(
+        FormulaUtils.getAllFormulas(ionFormula, mergedMs2.getMzValue(0) - 1));
+
+    final @Nullable DataPoint[] intenseSignals = defaultSignalFilter.applyFilterAndSortByIntensity(
+        ScanUtils.extractDataPoints(mergedMs2), FormulaUtils.calculateMzRatio(ionFormula));
+
+    List<PeakWithFormulae> peaksWithFormulae = new ArrayList<>();
+    for (DataPoint signal : intenseSignals) {
+      final IndexRange indexRange = BinarySearch.indexRange(
+          fragmentFormulaTol.getToleranceRange(signal.getMZ()), subFormulae,
+          FormulaWithExactMz::mz);
+      peaksWithFormulae.add(new PeakWithFormulae(signal, indexRange.sublist(subFormulae)));
+    }
+    return peaksWithFormulae;
   }
 }
