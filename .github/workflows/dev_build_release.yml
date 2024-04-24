@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]
     paths-ignore:
-      - 'src/main/resources/mzmineversion.properties'
+      - 'mzmine-community/src/main/resources/mzmineversion.properties'
 
 jobs:
   gradle_dev_build:
@@ -89,7 +89,7 @@ jobs:
       # 1. upload the dmg installer
       # 2. remove the dmg isntaller from path
       # 3. zip and upload the jpackage directory
-      # This is needed because zipping of the /jpackage/MZmine.app portable version zips the content
+      # This is needed because zipping of the /jpackage/mzmine.app portable version zips the content
       # of the folder not the folder itself
       - name: Setup node for macOS packaging
         if: runner.os == 'macOS'
@@ -131,13 +131,13 @@ jobs:
 #        if: runner.os == 'macOS'
 #        run: |
 #          find ./build/jpackage/ -name '*.dmg' -delete
-#          chmod a+x build/jpackage/MZmine.app/Contents/MacOS/MZmine
+#          chmod a+x build/jpackage/mzmine.app/Contents/MacOS/mzmine
 #      - name: Zip portable macos
 #        if: runner.os == 'macOS'
 #        uses: papeloto/action-zip@v1
 #        with:
 #          files: build/jpackage/
-#          dest: build/jpackage/MZmine_macOS_portable.zip
+#          dest: build/jpackage/mzmine_macOS_portable.zip
       - name: Upload macOS portable builds
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v2

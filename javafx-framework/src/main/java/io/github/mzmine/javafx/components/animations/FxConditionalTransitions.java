@@ -23,32 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package import_data;
+package io.github.mzmine.javafx.components.animations;
 
-import java.util.List;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
+import javafx.animation.FadeTransition;
+import javafx.beans.binding.BooleanExpression;
+import javafx.util.Subscription;
 
-/**
- * {@link Lifecycle#PER_CLASS} creates only one test instance of this class and executes everything
- * in sequence. As we are using data import, chromatogram building, ... Only with this option the
- * init (@BeforeAll) and tearDown method are not static.
- *
- * @author Robin Schmid (https://github.com/robinschmid)
- */
-@TestInstance(Lifecycle.PER_CLASS)
-//@TestMethodOrder(OrderAnnotation.class)
-//@Disabled
-@DisabledOnOs(OS.MAC)
-public class ThermoRawImportTest extends AbstractDataImportTest {
+public class FxConditionalTransitions {
 
-  @Override
-  public List<String> getFileNames() {
-    return List.of( //
-        "rawdatafiles/additional/astral.raw" //
-//      , "rawdatafiles/additional/astral.raw" //
-    );
+  /**
+   * Starts the transition conditionally
+   *
+   * @return the subsription to the property
+   */
+  static Subscription startConditionally(final FadeTransition transition,
+      final BooleanExpression startProperty) {
+    return startProperty.subscribe(state -> {
+      if (state) {
+        transition.playFromStart();
+      } else {
+        transition.stop();
+      }
+    });
   }
 }

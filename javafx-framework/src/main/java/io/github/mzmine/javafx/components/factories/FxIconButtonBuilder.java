@@ -25,8 +25,10 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import io.github.mzmine.javafx.components.animations.FxFlashingAnimation;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.IconCodeSupplier;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
@@ -38,15 +40,26 @@ public class FxIconButtonBuilder {
 
   private final FontIcon icon;
   private final ButtonBase button;
+  private BooleanExpression flashingProperty;
 
   private FxIconButtonBuilder(final ButtonBase button, String iconCode) {
     icon = new FontIcon(iconCode);
     icon.setIconSize(FxIconUtil.DEFAULT_ICON_SIZE);
     this.button = button;
-    button.setGraphic(icon);
     button.getStyleClass().add("icon-button");
   }
 
+
+  public ButtonBase build() {
+    if (flashingProperty != null) {
+      FxFlashingAnimation.animate(icon, flashingProperty);
+    }
+
+    button.setGraphic(icon);
+    return button;
+  }
+
+  //
   public static FxIconButtonBuilder ofIconButton(IconCodeSupplier iconCode) {
     return new FxIconButtonBuilder(new Button(), iconCode.getIconCode());
   }
@@ -82,14 +95,15 @@ public class FxIconButtonBuilder {
     return this;
   }
 
-  public ButtonBase build() {
-    return button;
-  }
-
   public FxIconButtonBuilder bindDisable(final ObservableValue<? extends Boolean> disableWhen) {
     if (disableWhen != null) {
       button.disableProperty().bind(disableWhen);
     }
+    return this;
+  }
+
+  public FxIconButtonBuilder flashingProperty(final BooleanExpression flashingProperty) {
+    this.flashingProperty = flashingProperty;
     return this;
   }
 }

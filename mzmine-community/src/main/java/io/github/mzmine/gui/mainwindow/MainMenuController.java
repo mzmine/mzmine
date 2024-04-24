@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.NewVersionCheck;
@@ -32,9 +33,9 @@ import io.github.mzmine.gui.NewVersionCheck.CheckType;
 import io.github.mzmine.gui.WindowLocation;
 import io.github.mzmine.gui.mainwindow.dependenciestab.DependenciesTab;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineConfiguration;
-import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.ModuleQuickSelectDialog;
@@ -44,11 +45,14 @@ import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataTab
 import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFXML;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.mzio.links.MzioMZmineLinks;
 import io.mzio.users.client.UserAuthStore;
 import io.mzio.users.gui.fx.UsersViewState;
 import io.mzio.users.user.CurrentUserService;
 import io.mzio.users.user.MZmineUser;
+import java.awt.Desktop;
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -86,7 +90,7 @@ public class MainMenuController {
     // disable project
     recentProjectsMenu.setDisable(true);
 
-    CurrentUserService.addListener(user -> currentUser.set(user));
+    CurrentUserService.subscribe(user -> currentUser.set(user));
     itemRemoveUser.disableProperty().bind(currentUser.map(Objects::isNull));
     itemRemoveUser.textProperty().bind(
         currentUser.map(user -> STR."Remove user \{user.getNickname()} from local system")
@@ -306,6 +310,21 @@ public class MainMenuController {
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Cannot save config", ex);
     }
+  }
+
+  public void openUsersDirectory(final ActionEvent event) {
+    if (!Desktop.isDesktopSupported()) {
+      return;
+    }
+    try {
+      Desktop desktop = Desktop.getDesktop();
+      desktop.open(UserAuthStore.getUserPath());
+    } catch (IOException e) {
+    }
+  }
+
+  public void openUserAccountConsole(final ActionEvent e) {
+    DesktopService.getDesktop().openWebPage(MzioMZmineLinks.USER_CONSOLE.getUrl());
   }
 }
 

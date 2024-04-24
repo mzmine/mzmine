@@ -63,6 +63,7 @@ import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
+import io.mzio.users.client.UserAuthStore;
 import java.io.File;
 import java.net.URL;
 import java.time.Instant;
@@ -124,7 +125,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDesktop {
 
   public static final int MAX_TABS = 30;
-  private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
+  private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("mzmineIcon.png");
   private static final String mzMineFXML = "mainwindow/MainWindow.fxml";
   private static final Logger logger = Logger.getLogger(MZmineGUI.class.getName());
   private static MainWindowController mainWindowController;
@@ -142,7 +143,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       alert.setTitle("Confirmation");
-      alert.setHeaderText("Exit MZmine");
+      alert.setHeaderText("Exit mzmine");
       String s = "Are you sure you want to exit?";
       alert.setContentText(s);
       Optional<ButtonType> result = alert.showAndWait();
@@ -308,7 +309,6 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
       final List<File> rawDataFiles = new ArrayList<>();
       final List<File> libraryFiles = new ArrayList<>();
-      File lastBatchFile = null;
 
       for (File selectedFile : dragboard.getFiles()) {
         final String extension = FilenameUtils.getExtension(selectedFile.getName()).toLowerCase();
@@ -340,6 +340,11 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
           boolean result = copyToUserDirectory(selectedFile);
           String resultStr = result ? "succeeded" : "failed";
           messages.add(STR."Adding wizard file \{selectedFile.getName()} \{resultStr}");
+        }
+        if (UserAuthStore.isUserFile(extension)) {
+          var result = UserAuthStore.copyAddUserFile(selectedFile);
+          String resultStr = result ? "succeeded" : "failed";
+          messages.add(STR."Adding user \{selectedFile.getName()} \{resultStr}");
         }
 
 //        if(selectedFile.getName().strip().toLowerCase().endsWith("mzbatch")) {
@@ -466,7 +471,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
     DesktopService.setDesktop(this);
 
-    logger.finest("Initializing MZmine main window");
+    logger.finest("Initializing mzmine main window");
 
     MZminePreferences preferences = MZmineCore.getConfiguration().getPreferences();
     try {
@@ -484,7 +489,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       Platform.exit();
     }
 
-    stage.setTitle("MZmine " + MZmineCore.getMZmineVersion());
+    stage.setTitle("mzmine " + MZmineCore.getMZmineVersion());
     stage.setMinWidth(600);
     stage.setMinHeight(400);
 
@@ -509,7 +514,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     desktopSetupThread.setPriority(Thread.MIN_PRIORITY);
     desktopSetupThread.start();
 
-    setStatusBarText("Welcome to MZmine " + MZmineCore.getMZmineVersion());
+    setStatusBarText("Welcome to mzmine " + MZmineCore.getMZmineVersion());
 
     stage.show();
 
@@ -521,7 +526,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
           .contains("users") || tmpPath.equals(userDir)) {
         FxThread.runLater(() -> displayNotification("""
                 Set temp folder to a fast local drive (prefer a public folder over a user folder).
-                MZmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
+                mzmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
                 """, "Change", MZmineCore::openTempPreferences,
             () -> preferences.setParameter(MZminePreferences.showTempFolderAlert, false)));
       }
@@ -561,7 +566,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
 
   @Override
   public @NotNull String getName() {
-    return "MZmine desktop";
+    return "mzmine desktop";
   }
 
   @Override

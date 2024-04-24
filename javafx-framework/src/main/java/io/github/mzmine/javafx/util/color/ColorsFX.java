@@ -42,6 +42,7 @@ public class ColorsFX {
   private static final Color NEGATIVE_MARKER_COLORBLIND = new Color(0.835f, 0.369f, 0.f,
       1f); // orange
 
+
   private static final Color POSITIVE_MARKER = new Color(0.220f, 0.557f, 0.235f, 1f); // green
   private static final Color NEGATIVE_MARKER = new Color(0.808f, 0.090f, 0.161f, 1f); // red
 
@@ -59,7 +60,7 @@ public class ColorsFX {
       new Color(0.941f, 0.894f, 0.259f, 1f), // yellow
       new Color(0.f, 0.447f, 0.698f, 1f), // blue
       new Color(0.835f, 0.369f, 0.f, 1f), // vermillion (darker orange)
-      new Color(0.800f, 0.475f, 0.655f, 1f)}; // reddish purple
+      new Color(0.749f, 0.1725f, 0.5176f, 1f)}; // reddish purple
 
   /**
    * Color palette with black+7colors for color blindness: <br> Orange, sky blue, bluish green,
@@ -72,7 +73,7 @@ public class ColorsFX {
       new Color(0.941f, 0.894f, 0.259f, 1f), // yellow
       new Color(0.f, 0.447f, 0.698f, 1f), // blue
       new Color(0.835f, 0.369f, 0.f, 1f), // vermillion (darker orange)
-      new Color(0.800f, 0.475f, 0.655f, 1f)}; // reddish purple
+      new Color(0.749f, 0.1725f, 0.5176f, 1f)}; // reddish purple
 
   private static Color[] COLORS_PROTANOPIA = new Color[]{
       new Color(0.902f, 0.624f, 0f, 1f), // orang

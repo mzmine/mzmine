@@ -23,32 +23,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package import_data;
+package io.github.mzmine.javafx.components.factories;
 
-import java.util.List;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
+import javafx.scene.Node;
+import javafx.util.Duration;
+import org.controlsfx.control.PopOver;
+import org.controlsfx.control.PopOver.ArrowLocation;
 
 /**
- * {@link Lifecycle#PER_CLASS} creates only one test instance of this class and executes everything
- * in sequence. As we are using data import, chromatogram building, ... Only with this option the
- * init (@BeforeAll) and tearDown method are not static.
- *
- * @author Robin Schmid (https://github.com/robinschmid)
+ * Still needs more styling to be viable
  */
-@TestInstance(Lifecycle.PER_CLASS)
-//@TestMethodOrder(OrderAnnotation.class)
-//@Disabled
-@DisabledOnOs(OS.MAC)
-public class ThermoRawImportTest extends AbstractDataImportTest {
+public class FxPopOvers {
 
-  @Override
-  public List<String> getFileNames() {
-    return List.of( //
-        "rawdatafiles/additional/astral.raw" //
-//      , "rawdatafiles/additional/astral.raw" //
-    );
+  public static PopOver newPopOver(Node content) {
+    var popOver = new PopOver(content);
+    popOver.setAutoHide(true);
+    popOver.setAutoFix(true);
+    popOver.setHideOnEscape(true);
+    popOver.setDetachable(true);
+    popOver.setAnimated(true);
+    popOver.setDetached(false);
+    popOver.setArrowLocation(ArrowLocation.BOTTOM_LEFT);
+    popOver.setFadeInDuration(Duration.millis(500));
+    popOver.setFadeOutDuration(Duration.millis(1000));
+//    popOver.show(owner);
+    return popOver;
   }
+
 }

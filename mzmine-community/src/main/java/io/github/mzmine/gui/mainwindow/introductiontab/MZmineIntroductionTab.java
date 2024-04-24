@@ -38,5 +38,7 @@ public class MZmineIntroductionTab extends SimpleTab {
     IntroductionTabController controller = new IntroductionTabController();
     final Region content = controller.buildView();
     setContent(content);
+
+    setOnClosed(_ -> controller.close());
   }
 }

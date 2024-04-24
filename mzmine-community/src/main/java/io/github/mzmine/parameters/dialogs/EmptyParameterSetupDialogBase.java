@@ -91,7 +91,7 @@ public class EmptyParameterSetupDialogBase extends Stage {
   public EmptyParameterSetupDialogBase(boolean valueCheckRequired, ParameterSet parameters,
       boolean addOkButton, boolean addCancelButton, Region message) {
     super();
-    Image mzmineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
+    Image mzmineIcon = FxIconUtil.loadImageFromResources("mzmineIcon.png");
     this.getIcons().add(mzmineIcon);
 
     final var thisDialog = this;

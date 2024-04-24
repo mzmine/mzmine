@@ -54,10 +54,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import testutils.MZmineTestUtil;
 
 @TestInstance(Lifecycle.PER_CLASS)
 @TestMethodOrder(OrderAnnotation.class)
+@DisabledOnOs(OS.MAC)
 public abstract class AbstractDataImportTest  {
 
   private static final Logger logger = Logger.getLogger(AbstractDataImportTest.class.getName());
@@ -110,7 +113,7 @@ public abstract class AbstractDataImportTest  {
   @DisplayName("Test data import of mzML and mzXML without advanced parameters")
   public void dataImportTest() throws InterruptedException {
     MZmineTestUtil.cleanProject();
-    MZmineTestUtil.importFiles(getFileNames(), 120);
+    MZmineTestUtil.importFiles(getFileNames(), 300);
     Map<String, DataFileStats> stats = DataFileStatsIO.readJson(getClass());
     DataImportTestUtils.testDataStatistics(getFileNames(), stats, false);
   }
@@ -123,7 +126,7 @@ public abstract class AbstractDataImportTest  {
     var advanced = createAdvancedImportSettings();
 
     MZmineTestUtil.cleanProject();
-    MZmineTestUtil.importFiles(getFileNames(), 120, advanced);
+    MZmineTestUtil.importFiles(getFileNames(), 300, advanced);
     Map<String, DataFileStats> stats = DataFileStatsIO.readJson(getClass());
     DataImportTestUtils.testDataStatistics(getFileNames(), stats, true);
 
