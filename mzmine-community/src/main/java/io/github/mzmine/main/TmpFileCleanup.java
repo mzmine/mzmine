@@ -26,6 +26,7 @@
 package io.github.mzmine.main;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
 import io.github.mzmine.project.ProjectManager;
@@ -66,8 +67,9 @@ public class TmpFileCleanup implements Runnable {
           new File(System.getProperty("java.io.tmpdir"))};
       File[] remainingTmpFiles = Arrays.stream(tempDir).map(f -> f.listFiles((dir, name) -> {
         if (name.matches("mzmine.*\\.tmp") || name.matches(
-            "(.)*" + RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER + "(.)*") || name.matches(
-            "(.)*" + FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER + "(.)*")) {
+            STR."(.)*\{RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER}(.)*") || name.matches(
+            STR."(.)*\{FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER}(.)*") || name.matches(
+            STR."(.)*\{ThermoRawImportTask.THERMO_RAW_PARSER_DIR}(.)*")) {
           return true;
         }
         return false;

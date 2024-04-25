@@ -34,8 +34,8 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.ZipUtils;
+import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
@@ -68,6 +68,7 @@ public class ThermoRawImportTask extends AbstractTask {
 
   private MSDKmzMLImportTask msdkTask;
   private int convertedScans;
+  public static final String THERMO_RAW_PARSER_DIR = "mzmine_thermo_raw_parser";
 
 
   public ThermoRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
@@ -164,7 +165,7 @@ public class ThermoRawImportTask extends AbstractTask {
       if (parsedScans != totalScans) {
         throw (new RuntimeException(
             "ThermoRawFileParser process crashed before all scans were extracted (" + parsedScans
-            + " out of " + totalScans + ")"));
+                + " out of " + totalScans + ")"));
       }
 
       msdkTask.addAppliedMethodAndAddToProject(dataFile);
@@ -194,8 +195,8 @@ public class ThermoRawImportTask extends AbstractTask {
   }
 
   private File unzipThermoRawFileParser() throws IOException {
-    final String tmpPath = System.getProperty("java.io.tmpdir");
-    File thermoRawFileParserFolder = new File(tmpPath, "mzmine_thermo_raw_parser");
+
+    File thermoRawFileParserFolder = FileAndPathUtil.createTempDirectory(THERMO_RAW_PARSER_DIR).toFile();
     final File thermoRawFileParserExe = new File(thermoRawFileParserFolder,
         "ThermoRawFileParser.exe");
 
@@ -210,7 +211,7 @@ public class ThermoRawImportTask extends AbstractTask {
     // In case the folder already exists, unzip to a different folder
     if (thermoRawFileParserFolder.exists()) {
       logger.finest("Folder " + thermoRawFileParserFolder + " exists, creating a new one");
-      thermoRawFileParserFolder = FileAndPathUtil.createTempDirectory("mzmine_thermo_raw_parser")
+      thermoRawFileParserFolder = FileAndPathUtil.createTempDirectory(THERMO_RAW_PARSER_DIR)
           .toFile();
     }
 
