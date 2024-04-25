@@ -47,7 +47,7 @@ import java.util.Arrays;
 public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
 
   /**
-   * Predicts the MS2Deepscore similarity
+   * Predicts the MS2Deepscore embedding
    */
   private final ZooModel<NDList, NDList> model;
   private final SettingsMS2Deepscore settings;
