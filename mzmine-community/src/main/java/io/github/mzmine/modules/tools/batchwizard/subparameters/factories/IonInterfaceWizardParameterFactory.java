@@ -94,8 +94,8 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
           new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES),
           new RTTolerance(0.1f, Unit.MINUTES));
       case HILIC -> new IonInterfaceHplcWizardParameters(this, true, 15, 5, Range.closed(0.3, 30d),
-          new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(3, Unit.SECONDS),
-          new RTTolerance(3, Unit.SECONDS));
+          new RTTolerance(0.15f, Unit.MINUTES), new RTTolerance(3, Unit.SECONDS),
+          new RTTolerance(6, Unit.SECONDS));
       case GC_CI -> new IonInterfaceHplcWizardParameters(this, true, 30, 6, Range.closed(0.3, 30d),
           new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES),
           new RTTolerance(0.1f, Unit.MINUTES));

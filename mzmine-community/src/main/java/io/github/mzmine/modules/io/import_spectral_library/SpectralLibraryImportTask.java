@@ -88,7 +88,7 @@ public class SpectralLibraryImportTask extends AbstractTask {
         logger.log(Level.WARNING, "Library was empty or there was an error while reading");
       }
     } catch (Exception e) {
-      logger.log(Level.SEVERE, "Could not read file " + dataBaseFile, e);
+      logger.log(Level.SEVERE, STR."Could not read file \{dataBaseFile}. The file/path may not exist.", e);
       setStatus(TaskStatus.ERROR);
       setErrorMessage(e.toString());
       return;

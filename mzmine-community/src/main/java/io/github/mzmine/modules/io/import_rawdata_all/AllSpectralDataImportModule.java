@@ -284,12 +284,11 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     // if any is null the data type was not detected then error out
     if (fileTypes.stream().anyMatch(Objects::isNull)) {
       String files = IntStream.range(0, fileTypes.size()).filter(i -> fileTypes.get(i) == null)
-          .mapToObj(i -> fileNames[i].getAbsolutePath()).collect(Collectors.joining("\n"));
-      String msg =
-          "Could not identify the data type needed for import of n files=" + fileTypes.stream()
-              .filter(Objects::isNull).count();
+          .mapToObj(i -> fileNames[i].getAbsolutePath()).collect(Collectors.joining(",\n"));
+      String msg = STR."Could not identify the data type needed for import of n files=\{fileTypes.stream()
+          .filter(Objects::isNull).count()}. The file/path might not exist.\n.\{files}";
       MZmineCore.getDesktop().displayErrorMessage(msg);
-      logger.log(Level.SEVERE, msg + ".  " + files);
+      logger.log(Level.SEVERE, STR."\{msg}.  \{files}");
       return ExitCode.ERROR;
     }
 
@@ -312,13 +311,13 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       final File fileName = fileNames[i];
 
       if ((!fileName.exists()) || (!fileName.canRead())) {
-        MZmineCore.getDesktop().displayErrorMessage("Cannot read file " + fileName);
-        logger.warning("Cannot read file " + fileName);
+        MZmineCore.getDesktop().displayErrorMessage(STR."Cannot read file \{fileName}. The file/path might not exist.");
+        logger.warning(STR."Cannot read file \{fileName}. The file/path might not exist.");
         return ExitCode.ERROR;
       }
 
       final RawDataFileType fileType = fileTypes.get(i);
-      logger.finest("File " + fileName + " type detected as " + fileType);
+      logger.finest(STR."File \{fileName} type detected as \{fileType}");
 
       try {
         RawDataFile newMZmineFile = createDataFile(fileType, fileName.getAbsolutePath(),
@@ -353,7 +352,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         }
 
       } catch (IOException e) {
-        MZmineCore.getDesktop().displayErrorMessage("Could not create a new temporary file " + e);
+        MZmineCore.getDesktop().displayErrorMessage(
+            STR."Could not create a new temporary file \{e}. Does the dirve of the temporary storage have enough space?");
         logger.log(Level.SEVERE, "Could not create a new temporary file ", e);
         return ExitCode.ERROR;
       }
