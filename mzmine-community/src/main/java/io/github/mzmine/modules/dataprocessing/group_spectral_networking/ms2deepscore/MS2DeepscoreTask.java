@@ -58,7 +58,7 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
   private static final Logger logger = Logger.getLogger(MS2DeepscoreTask.class.getName());
   private final @NotNull FeatureList[] featureLists;
   private final int minSignals;
-  private final Double minScore;
+  private final double minScore;
 
   private String description;
 
