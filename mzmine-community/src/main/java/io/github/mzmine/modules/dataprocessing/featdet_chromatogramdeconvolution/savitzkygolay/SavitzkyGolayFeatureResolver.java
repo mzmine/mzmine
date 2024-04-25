@@ -65,6 +65,26 @@ public class SavitzkyGolayFeatureResolver extends AbstractResolver {
     derivativeThreshold = generalParameters.getParameter(DERIVATIVE_THRESHOLD_LEVEL).getValue();
   }
 
+  /**
+   * Calculates the value according with the comparative threshold.
+   *
+   * @param derivativeIntensities     intensity first derivative.
+   * @param comparativeThresholdLevel threshold.
+   * @return double derivative threshold level.
+   */
+  private static double calcDerivativeThreshold(final double[] derivativeIntensities,
+      final double comparativeThresholdLevel) {
+
+    final int length = derivativeIntensities.length;
+    final double[] intensities = new double[length];
+    for (int i = 0; i < length; i++) {
+
+      intensities[i] = Math.abs(derivativeIntensities[i]);
+    }
+
+    return MathUtils.calcQuantile(intensities, comparativeThresholdLevel);
+  }
+
   @Override
   public Class<? extends MZmineProcessingModule> getModuleClass() {
     return SavitzkyGolayResolverModule.class;
@@ -86,7 +106,7 @@ public class SavitzkyGolayFeatureResolver extends AbstractResolver {
 
     avgIntensity /= scanCount;
 
-    final List<Range<Double>> resolvedPeaks = new ArrayList<>(3);
+    final List<Range<Double>> resolvedPeaks = new ArrayList<>();
 
     // If the current chromatogram has characteristics of background or just
     // noise return an empty array.
@@ -271,30 +291,10 @@ public class SavitzkyGolayFeatureResolver extends AbstractResolver {
     return resolvedPeaks;
   }
 
-  /**
-   * Calculates the value according with the comparative threshold.
-   *
-   * @param derivativeIntensities     intensity first derivative.
-   * @param comparativeThresholdLevel threshold.
-   * @return double derivative threshold level.
-   */
-  private static double calcDerivativeThreshold(final double[] derivativeIntensities,
-      final double comparativeThresholdLevel) {
-
-    final int length = derivativeIntensities.length;
-    final double[] intensities = new double[length];
-    for (int i = 0; i < length; i++) {
-
-      intensities[i] = Math.abs(derivativeIntensities[i]);
-    }
-
-    return MathUtils.calcQuantile(intensities, comparativeThresholdLevel);
-  }
-
   private double getMaxIntensity(double[] x, double[] y, Range<Double> range) {
     final IndexRange indexRange = BinarySearch.indexRange(x, range);
     double max = 0;
-    for (int i = indexRange.maxInclusive(); i < indexRange.maxExclusive(); i++) {
+    for (int i = indexRange.min(); i < indexRange.maxExclusive(); i++) {
       max = Math.max(max, y[i]);
     }
     return max;

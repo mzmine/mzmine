@@ -48,12 +48,62 @@ public class NoiseAmplitudeFeatureResolver extends AbstractResolver {
   private static final double MAX_NOISE_LEVEL = 0.3;
   private final Range<Double> peakDuration;
   private final double minimumPeakHeight;
+  private double amplitudeOfNoise = generalParameters.getParameter(NOISE_AMPLITUDE).getValue();
 
   protected NoiseAmplitudeFeatureResolver(@NotNull ParameterSet parameters,
       @NotNull ModularFeatureList flist) {
     super(parameters, flist);
     peakDuration = generalParameters.getParameter(PEAK_DURATION).getValue();
     minimumPeakHeight = generalParameters.getParameter(MIN_PEAK_HEIGHT).getValue();
+  }
+
+  /**
+   * This method put a new intensity into a treeMap and score the frequency (the number of times
+   * that is present this level of intensity).
+   *
+   * @param intensity        intensity to add to map.
+   * @param binsFrequency    map of bins to add to.
+   * @param amplitudeOfNoise noise amplitude.
+   */
+  private static void addNewIntensity(final double intensity,
+      final TreeMap<Integer, Integer> binsFrequency, final double amplitudeOfNoise) {
+
+    final int bin =
+        intensity < amplitudeOfNoise ? 1 : (int) Math.floor(intensity / amplitudeOfNoise);
+    binsFrequency.put(bin, binsFrequency.containsKey(bin) ? binsFrequency.get(bin) + 1 : 1);
+  }
+
+  /**
+   * This method returns the noise threshold level. This level is calculated using the intensity
+   * with more data points.
+   *
+   * @param binsFrequency    bins holding intensity frequencies.
+   * @param maxIntensity     maximum intensity.
+   * @param amplitudeOfNoise noise amplitude.
+   * @return the intensity level of the highest frequency bin.
+   */
+  private static double getNoiseThreshold(final TreeMap<Integer, Integer> binsFrequency,
+      final double maxIntensity, final double amplitudeOfNoise) {
+
+    int numberOfBin = 0;
+    int maxFrequency = 0;
+
+    for (final Integer bin : binsFrequency.keySet()) {
+
+      final int freq = binsFrequency.get(bin);
+      if (freq > maxFrequency) {
+
+        maxFrequency = freq;
+        numberOfBin = bin;
+      }
+    }
+
+    double noiseThreshold = (numberOfBin + 2) * amplitudeOfNoise;
+    if (noiseThreshold / maxIntensity > MAX_NOISE_LEVEL) {
+
+      noiseThreshold = amplitudeOfNoise;
+    }
+    return noiseThreshold;
   }
 
   @Override
@@ -69,8 +119,6 @@ public class NoiseAmplitudeFeatureResolver extends AbstractResolver {
 
     final int scanCount = x.length;
 
-    final double amplitudeOfNoise = generalParameters.getParameter(NOISE_AMPLITUDE).getValue();
-
     // This treeMap stores the score of frequency of intensity ranges
     final TreeMap<Integer, Integer> binsFrequency = new TreeMap<Integer, Integer>();
     double maxIntensity = 0.0;
@@ -83,7 +131,7 @@ public class NoiseAmplitudeFeatureResolver extends AbstractResolver {
 
     avgIntensity /= scanCount;
 
-    final List<Range<Double>> resolvedPeaks = new ArrayList<>(3);
+    final List<Range<Double>> resolvedPeaks = new ArrayList<>();
 
     // If the current chromatogram has characteristics of background or just
     // noise.
@@ -120,8 +168,8 @@ public class NoiseAmplitudeFeatureResolver extends AbstractResolver {
             if (peakDuration.contains(x[currentPeakEnd] - x[currentPeakStart])
                 && currentPeakMax >= minimumPeakHeight) {
               resolvedPeaks.add(featureRange);
-              currentPeakMax = 0;
             }
+            currentPeakMax = 0;
           }
 
           activePeak = false;
@@ -130,54 +178,5 @@ public class NoiseAmplitudeFeatureResolver extends AbstractResolver {
     }
 
     return resolvedPeaks;
-  }
-
-  /**
-   * This method put a new intensity into a treeMap and score the frequency (the number of times
-   * that is present this level of intensity).
-   * 
-   * @param intensity intensity to add to map.
-   * @param binsFrequency map of bins to add to.
-   * @param amplitudeOfNoise noise amplitude.
-   */
-  private static void addNewIntensity(final double intensity,
-      final TreeMap<Integer, Integer> binsFrequency, final double amplitudeOfNoise) {
-
-    final int bin =
-        intensity < amplitudeOfNoise ? 1 : (int) Math.floor(intensity / amplitudeOfNoise);
-    binsFrequency.put(bin, binsFrequency.containsKey(bin) ? binsFrequency.get(bin) + 1 : 1);
-  }
-
-  /**
-   * This method returns the noise threshold level. This level is calculated using the intensity
-   * with more data points.
-   * 
-   * @param binsFrequency bins holding intensity frequencies.
-   * @param maxIntensity maximum intensity.
-   * @param amplitudeOfNoise noise amplitude.
-   * @return the intensity level of the highest frequency bin.
-   */
-  private static double getNoiseThreshold(final TreeMap<Integer, Integer> binsFrequency,
-      final double maxIntensity, final double amplitudeOfNoise) {
-
-    int numberOfBin = 0;
-    int maxFrequency = 0;
-
-    for (final Integer bin : binsFrequency.keySet()) {
-
-      final int freq = binsFrequency.get(bin);
-      if (freq > maxFrequency) {
-
-        maxFrequency = freq;
-        numberOfBin = bin;
-      }
-    }
-
-    double noiseThreshold = (numberOfBin + 2) * amplitudeOfNoise;
-    if (noiseThreshold / maxIntensity > MAX_NOISE_LEVEL) {
-
-      noiseThreshold = amplitudeOfNoise;
-    }
-    return noiseThreshold;
   }
 }
