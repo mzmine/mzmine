@@ -112,48 +112,45 @@
       </accelerator>
     </MenuItem>
 
-    <Menu text="Spectral libraries">
-      <Menu text="Spectra processing">
-        <MenuItem text="Mass detection" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule"/>
-        <MenuItem text="Mobility scan merging" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule"/>
-        <MenuItem onAction="#runModule"
-          text="FTMS shoulder peak filter"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.ShoulderPeaksFilterModule"/>
-        <MenuItem onAction="#runModule" text="Scan signal removal"
-          userData="io.github.mzmine.modules.dataprocessing.filter_scan_signals.ScanSignalRemovalModule"/>
-        <MenuItem onAction="#runModule"
-          text="Mass calibration"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationModule"/>
-      </Menu>
 
-      <Menu text="Raw data filtering">
-        <MenuItem text="Scan by scan filtering"
-          onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule"/>
-        <MenuItem text="Crop filter" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule"/>
-        <MenuItem text="Baseline correction" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule"/>
-        <MenuItem text="Align scans (MS1)" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule"/>
-        <MenuItem text="Scan smoothing (MS1)" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule"/>
-        <MenuItem text="Denormalize scans (multiply by inject time)" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.featdet_denormalize_by_inject_time.DenormalizeScansMultiplyByInjectTimeModule"/>
-        <MenuItem text="Split MALDI spots to raw data files" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.filter_maldipseudofilegenerator.MaldiPseudoFileGeneratorModule"/>
-      </Menu>
-
-      <SeparatorMenuItem/>
-
+    <Menu text="Spectra processing">
+      <MenuItem text="Mass detection" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule"/>
+      <MenuItem text="Mobility scan merging" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule"/>
       <MenuItem onAction="#runModule"
-        text="Spectral library import"
-        userData="io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule"/>
+        text="FTMS shoulder peak filter"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.ShoulderPeaksFilterModule"/>
+      <MenuItem onAction="#runModule" text="Scan signal removal"
+        userData="io.github.mzmine.modules.dataprocessing.filter_scan_signals.ScanSignalRemovalModule"/>
       <MenuItem onAction="#runModule"
-        text="Spectral library to feature list"
-        userData="io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule"/>
+        text="Mass calibration"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationModule"/>
+    </Menu>
+
+    <Menu text="Raw data filtering">
+      <MenuItem text="Scan by scan filtering"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule"/>
+      <MenuItem text="Crop filter" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule"/>
+      <MenuItem text="Baseline correction" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule"/>
+      <MenuItem text="Align scans (MS1)" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule"/>
+      <MenuItem text="Scan smoothing (MS1)" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule"/>
+      <MenuItem text="Denormalize scans (multiply by inject time)" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_denormalize_by_inject_time.DenormalizeScansMultiplyByInjectTimeModule"/>
+      <MenuItem text="Split MALDI spots to raw data files" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_maldipseudofilegenerator.MaldiPseudoFileGeneratorModule"/>
+    </Menu>
+
+    <SeparatorMenuItem/>
+
+    <Menu text="File merging">
+      <MenuItem text="Raw data file merging" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule"/>
     </Menu>
 
     <SeparatorMenuItem/>
@@ -168,9 +165,13 @@
 
     <SeparatorMenuItem/>
 
-    <Menu text="File merging">
-      <MenuItem text="Raw data file merging" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule"/>
+    <Menu text="Spectral libraries">
+      <MenuItem onAction="#runModule"
+        text="Spectral library import"
+        userData="io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule"/>
+      <MenuItem onAction="#runModule"
+        text="Spectral library to feature list"
+        userData="io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule"/>
     </Menu>
 
   </Menu>
@@ -190,12 +191,12 @@
     </Menu>
 
     <Menu text="LC-IMS-MS">
-<!--      <MenuItem onAction="#runModule"-->
-<!--        text="Ion mobility trace builder"-->
-<!--        userData="io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule"/>-->
-<!--      <MenuItem onAction="#runModule"-->
-<!--        text="Recursive IMS builder"-->
-<!--        userData="io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule"/>-->
+      <!--      <MenuItem onAction="#runModule"-->
+      <!--        text="Ion mobility trace builder"-->
+      <!--        userData="io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule"/>-->
+      <!--      <MenuItem onAction="#runModule"-->
+      <!--        text="Recursive IMS builder"-->
+      <!--        userData="io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule"/>-->
       <MenuItem onAction="#runModule" text="Chromatogram builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule"/>
       <MenuItem onAction="#runModule"
@@ -221,10 +222,10 @@
         text="MSn feature list builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule"/>
     </Menu>
-<!--    <Menu text="SRM">-->
-<!--      <MenuItem onAction="#runModule"-->
-<!--        text="SRM feature list builder (TODO)" userData="TODO"/>-->
-<!--    </Menu>-->
+    <!--    <Menu text="SRM">-->
+    <!--      <MenuItem onAction="#runModule"-->
+    <!--        text="SRM feature list builder (TODO)" userData="TODO"/>-->
+    <!--    </Menu>-->
 
     <SeparatorMenuItem/>
 
@@ -365,8 +366,8 @@
       <MenuItem text="Annotate Isomers" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule"/>
       <SeparatorMenuItem/>
-<!--      <MenuItem text="CliqueMS group (unfinished)" onAction="#runModule"-->
-<!--        userData="io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule"/>-->
+      <!--      <MenuItem text="CliqueMS group (unfinished)" onAction="#runModule"-->
+      <!--        userData="io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule"/>-->
       <MenuItem text="Image co-localization grouping" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule"/>
     </Menu>
@@ -375,12 +376,12 @@
       <MenuItem text="GC-EI spectral deconvolution"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule"/>
-<!--      <MenuItem text="Hierarchical clustering"-->
-<!--        onAction="#runModule"-->
-<!--        userData="io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule"/>-->
-<!--      <MenuItem text="Multivariate curve resolution"-->
-<!--        onAction="#runModule"-->
-<!--        userData="io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule"/>-->
+      <!--      <MenuItem text="Hierarchical clustering"-->
+      <!--        onAction="#runModule"-->
+      <!--        userData="io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule"/>-->
+      <!--      <MenuItem text="Multivariate curve resolution"-->
+      <!--        onAction="#runModule"-->
+      <!--        userData="io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule"/>-->
     </Menu>
 
     <Menu text="Feature list filtering">
@@ -395,9 +396,9 @@
       <SeparatorMenuItem/>
       <MenuItem text="Feature list blank subtraction" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule"/>
-<!--      <MenuItem text="Peak comparison rows filter" documentation lacking -->
-<!--        onAction="#runModule"-->
-<!--        userData="io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter.PeakComparisonRowFilterModule"/>-->
+      <!--      <MenuItem text="Peak comparison rows filter" documentation lacking -->
+      <!--        onAction="#runModule"-->
+      <!--        userData="io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter.PeakComparisonRowFilterModule"/>-->
       <MenuItem onAction="#runModule" text="mobility-m/z region filter"
         userData="io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule"/>
       <MenuItem text="Neutral loss filter" onAction="#runModule"
@@ -447,10 +448,10 @@
         <MenuItem text="Local compound database search"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule"/>
-<!--        <MenuItem-->
-<!--          text="Precursor search in spectral libraries"-->
-<!--          onAction="#runModule"-->
-<!--          userData="io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule"/>-->
+        <!--        <MenuItem-->
+        <!--          text="Precursor search in spectral libraries"-->
+        <!--          onAction="#runModule"-->
+        <!--          userData="io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule"/>-->
         <MenuItem text="BioTransformer 3.0"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule"/>

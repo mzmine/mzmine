@@ -105,7 +105,7 @@ public final class MZmineCore {
   public static void main(final String[] args) {
     try {
       Semver version = getMZmineVersion();
-      logger.info("Starting MZmine " + version);
+      logger.info("Starting mzmine " + version);
       /*
        * Dump the MZmine and JVM arguments for debugging purposes
        */
@@ -113,7 +113,7 @@ public final class MZmineCore {
       final List<String> jvmArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();
       final String jvmArgsString = String.join(" ", jvmArgs);
       final String classPathString = System.getProperty("java.class.path");
-      logger.finest("MZmine arguments: " + mzmineArgsString);
+      logger.finest("mzmine arguments: " + mzmineArgsString);
       logger.finest("Java VM arguments: " + jvmArgsString);
       logger.finest("Java class path: " + classPathString);
 
@@ -184,9 +184,9 @@ public final class MZmineCore {
       EventService.subscribe(mzEvent -> {
         if (mzEvent instanceof AuthRequiredEvent) {
           if (DesktopService.isGUI()) {
-            getDesktop().addTab(new UsersTab());
+            getDesktop().addTab(UsersTab.showTab());
           } else {
-            getDesktop().displayMessage("Requires user login. Open MZmine and login to a user");
+            getDesktop().displayMessage("Requires user login. Open mzmine and login to a user");
           }
         }
       });
@@ -223,7 +223,7 @@ public final class MZmineCore {
       // If we have no arguments, run in GUI mode, otherwise run in batch mode
       if (!headLessMode) {
         try {
-          logger.info("Starting MZmine GUI");
+          logger.info("Starting mzmine GUI");
           FxThread.setIsFxInitialized(true);
           Application.launch(MZmineGUI.class, args);
         } catch (Throwable e) {
@@ -254,7 +254,7 @@ public final class MZmineCore {
         }
       }
     } catch (Exception ex) {
-      logger.log(Level.SEVERE, "Error during MZmine start up", ex);
+      logger.log(Level.SEVERE, "Error during mzmine start up", ex);
       exit(null);
     }
   }
@@ -322,7 +322,7 @@ public final class MZmineCore {
     if (DesktopService.getDesktop() instanceof MZmineDesktop mZmineDesktop) {
       return mZmineDesktop;
     }
-    throw new IllegalStateException("Desktop was not initialized. Requires MZmineDesktop");
+    throw new IllegalStateException("Desktop was not initialized. Requires mzmineDesktop");
   }
 
   @NotNull

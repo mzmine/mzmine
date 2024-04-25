@@ -84,8 +84,8 @@ public class ExtensionFilters {
   private static final ExtensionFilter BRUKER_D = new ExtensionFilter("Bruker tdf files", "*.d");
   private static final ExtensionFilter THERMO_RAW = new ExtensionFilter("Thermo RAW files", "*.raw",
       "*.RAW");
-  private static final ExtensionFilter WATERS_RAW = new ExtensionFilter("Waters RAW folders",
-      "*.raw", "*.RAW");
+//  private static final ExtensionFilter WATERS_RAW = new ExtensionFilter("Waters RAW folders",
+//      "*.raw", "*.RAW");
   private static final ExtensionFilter MZDATA = new ExtensionFilter("mzData MS data", "*.mzData",
       "*.mzdata");
   private static final ExtensionFilter AIRD = new ExtensionFilter("aird MS data", "*.aird",
@@ -100,7 +100,7 @@ public class ExtensionFilters {
       IMZML, //
       BRUKER_D, //
       THERMO_RAW, //
-      WATERS_RAW, //
+//      WATERS_RAW, //
       MZDATA, //
       AIRD, //
       NETCDF, //
