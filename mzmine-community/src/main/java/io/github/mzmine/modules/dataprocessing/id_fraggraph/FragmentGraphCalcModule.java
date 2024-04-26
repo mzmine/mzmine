@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_fragtree;
+package io.github.mzmine.modules.dataprocessing.id_fraggraph;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -36,10 +36,10 @@ import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FragmentTreeCalcModule extends TaskPerFeatureListModule {
+public class FragmentGraphCalcModule extends TaskPerFeatureListModule {
 
-  public FragmentTreeCalcModule() {
-    super("Fragment tree calculation", FragmentTreeCalcParameters.class,
+  public FragmentGraphCalcModule() {
+    super("Fragment tree calculation", FragmentGraphCalcParameters.class,
         MZmineModuleCategory.ANNOTATION, false,
         "Calculates fragmentation trees based on MSn spectra.");
   }

@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_fragtree;
+package io.github.mzmine.modules.dataprocessing.id_fraggraph;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
@@ -45,7 +45,7 @@ import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-public class FragTreeUtils {
+public class FragmentUtils {
 
   @NotNull
   static MolecularFormulaRange setupFormulaRange(@NotNull List<IonType> ionTypes) {

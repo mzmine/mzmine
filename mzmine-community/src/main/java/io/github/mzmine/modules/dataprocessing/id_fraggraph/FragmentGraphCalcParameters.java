@@ -23,16 +23,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_fragtree;
+package io.github.mzmine.modules.dataprocessing.id_fraggraph;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
-public class FragmentTreeCalcParameters extends SimpleParameterSet {
+public class FragmentGraphCalcParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
-  public FragmentTreeCalcParameters() {
+  public FragmentGraphCalcParameters() {
     super(flists);
   }
 }

@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_fragtree;
+package io.github.mzmine.modules.dataprocessing.id_fraggraph;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.PolarityType;
@@ -47,7 +47,7 @@ import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 
-public class FragTreePrecursorFormulaTask implements TaskSubProcessor,
+public class FragGraphPrecursorFormulaTask implements TaskSubProcessor,
     TaskSubSupplier<ConcurrentLinkedQueue<IMolecularFormula>> {
 
   private static final int DEFAULT_MAX_FORMULA_COUNT = 100;
@@ -73,7 +73,7 @@ public class FragTreePrecursorFormulaTask implements TaskSubProcessor,
   private final String desc;
   private final List<IonType> assignedIonTypes;
 
-  public FragTreePrecursorFormulaTask(@Nullable Task parent, @NotNull FeatureListRow row,
+  public FragGraphPrecursorFormulaTask(@Nullable Task parent, @NotNull FeatureListRow row,
       @Nullable IonType ionTypeOverride, @NotNull MZTolerance formulaTolerance, boolean checkCHONPS,
       boolean checkRDBE) {
 
@@ -81,7 +81,7 @@ public class FragTreePrecursorFormulaTask implements TaskSubProcessor,
         DEFAULT_MAX_FORMULA_COUNT);
   }
 
-  public FragTreePrecursorFormulaTask(@Nullable Task parent, @NotNull FeatureListRow row,
+  public FragGraphPrecursorFormulaTask(@Nullable Task parent, @NotNull FeatureListRow row,
       @Nullable IonType ionTypeOverride, @NotNull MZTolerance formulaTolerance, boolean checkCHONPS,
       boolean checkRDBE, int maxFormulaCount) {
 
@@ -104,7 +104,7 @@ public class FragTreePrecursorFormulaTask implements TaskSubProcessor,
     this.maxFormulaCount = maxFormulaCount;
   }
 
-  public FragTreePrecursorFormulaTask(@Nullable Task parent, double mz, PolarityType polarity,
+  public FragGraphPrecursorFormulaTask(@Nullable Task parent, double mz, PolarityType polarity,
       int charge, @NotNull List<IonType> possibleIonTypes, @Nullable IonType ionTypeOverride,
       @NotNull MZTolerance formulaTolerance, boolean checkCHONPS, boolean checkRDBE,
       int maxFormulaCount) {
@@ -163,7 +163,7 @@ public class FragTreePrecursorFormulaTask implements TaskSubProcessor,
    * the adduct so the fragments can but don't have to include the adduct in their formula.
    */
   public MolecularFormulaGenerator setUpFormulaGenerator() {
-    final MolecularFormulaRange elementCounts = FragTreeUtils.setupFormulaRange(assignedIonTypes);
+    final MolecularFormulaRange elementCounts = FragmentUtils.setupFormulaRange(assignedIonTypes);
     final double neutralMassWithAdduct =
         averageMZ * charge + polarity.getSign() * charge * FormulaUtils.electronMass;
     final Range<Double> formulaMassRange = formulaTolerance.getToleranceRange(

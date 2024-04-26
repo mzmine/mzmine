@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package modules.fragtree;
+package modules.fraggraph;
 
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
@@ -31,9 +31,9 @@ import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
-import io.github.mzmine.modules.dataprocessing.id_fragtree.FragTreePrecursorFormulaTask;
-import io.github.mzmine.modules.dataprocessing.id_fragtree.FragTreeUtils;
-import io.github.mzmine.modules.dataprocessing.id_fragtree.PeakWithFormulae;
+import io.github.mzmine.modules.dataprocessing.id_fraggraph.FragGraphPrecursorFormulaTask;
+import io.github.mzmine.modules.dataprocessing.id_fraggraph.FragmentUtils;
+import io.github.mzmine.modules.dataprocessing.id_fraggraph.PeakWithFormulae;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.List;
 import java.util.Optional;
@@ -45,9 +45,9 @@ import org.openscience.cdk.formula.MolecularFormulaGenerator;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class FragmentTreeTest {
+public class FragmentGraphTest {
 
-  private static final Logger logger = Logger.getLogger(FragmentTreeTest.class.getName());
+  private static final Logger logger = Logger.getLogger(FragmentGraphTest.class.getName());
 
   private final double[] caffeineMzs = new double[]{42.03426, 69.04623, 83.06062, 108.05574,
       110.06946, 122.07037, 123.04293, 138.06653, 194.49059, 195.08994};
@@ -61,7 +61,7 @@ public class FragmentTreeTest {
   @Test
   void testFormulaGeneration() {
 
-    FragTreePrecursorFormulaTask formulaTask = new FragTreePrecursorFormulaTask(null, 195.08994,
+    FragGraphPrecursorFormulaTask formulaTask = new FragGraphPrecursorFormulaTask(null, 195.08994,
         PolarityType.POSITIVE, 1,
         List.of(new IonType(IonModification.H), new IonType(IonModification.NA)), null,
         new MZTolerance(0.005, 10), true, true, 20);
@@ -76,7 +76,7 @@ public class FragmentTreeTest {
     Assertions.assertTrue(caffeineOptional.isPresent());
     final IMolecularFormula caf = caffeineOptional.get();
 
-    final List<PeakWithFormulae> peaksWithFormulae = FragTreeUtils.getPeaksWithFormulae(caf,
+    final List<PeakWithFormulae> peaksWithFormulae = FragmentUtils.getPeaksWithFormulae(caf,
         caffeineSpectrum, new SpectralSignalFilter(true, 10, 50, 100, 0.98),
         new MZTolerance(0.005, 10));
 

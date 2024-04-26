@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_fragtree;
+package io.github.mzmine.modules.dataprocessing.id_fraggraph;
 
 import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
@@ -51,9 +51,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-public class FragmentTreeCalcTask extends AbstractFeatureListTask {
+public class FragmentGraphCalcTask extends AbstractFeatureListTask {
 
-  private static final Logger logger = Logger.getLogger(FragmentTreeCalcTask.class.getName());
+  private static final Logger logger = Logger.getLogger(FragmentGraphCalcTask.class.getName());
 
   private final FeatureList flist;
   private MZTolerance ms2MergeTol = new MZTolerance(0.005, 5);
@@ -65,19 +65,19 @@ public class FragmentTreeCalcTask extends AbstractFeatureListTask {
   private final SpectralSignalFilter defaultSignalFilter = new SpectralSignalFilter(true, 10, 50,
       200, 98);
 
-  public FragmentTreeCalcTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
+  public FragmentGraphCalcTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       ParameterSet parameters, FeatureList flist) {
-    super(storage, moduleCallDate, parameters, FragmentTreeCalcModule.class);
+    super(storage, moduleCallDate, parameters, FragmentGraphCalcModule.class);
 
     checkCHONPS = true;
     checkRDBE = true;
     this.flist = flist;
   }
 
-  public FragmentTreeCalcTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
+  public FragmentGraphCalcTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       FeatureList flist, boolean checkCHONPS, boolean checkRDBE, MZTolerance formulaTolerance,
       MZTolerance ms2MergeTol) {
-    super(storage, moduleCallDate, new SimpleParameterSet(), FragmentTreeCalcModule.class);
+    super(storage, moduleCallDate, new SimpleParameterSet(), FragmentGraphCalcModule.class);
 
     this.flist = flist;
     this.checkCHONPS = checkCHONPS;
@@ -115,7 +115,7 @@ public class FragmentTreeCalcTask extends AbstractFeatureListTask {
       return;
     }
 
-    final var precursorFormulaTask = new FragTreePrecursorFormulaTask(this, row, ionTypeOverride,
+    final var precursorFormulaTask = new FragGraphPrecursorFormulaTask(this, row, ionTypeOverride,
         formulaTolerance, checkCHONPS, checkRDBE);
     final var task = new SimpleCalculationTask<>(precursorFormulaTask);
     TaskService.getController().addTask(task);
@@ -131,7 +131,7 @@ public class FragmentTreeCalcTask extends AbstractFeatureListTask {
         }
       }
 
-      final List<PeakWithFormulae> peaksWithFormulae = FragTreeUtils.getPeaksWithFormulae(formula,
+      final List<PeakWithFormulae> peaksWithFormulae = FragmentUtils.getPeaksWithFormulae(formula,
           mergedMs2, defaultSignalFilter, ms2MergeTol);
 
     }
