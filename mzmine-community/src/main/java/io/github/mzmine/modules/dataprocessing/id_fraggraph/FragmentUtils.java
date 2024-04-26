@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.collections.BinarySearch;
@@ -37,6 +38,7 @@ import io.github.mzmine.util.collections.IndexRange;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -109,13 +111,20 @@ public class FragmentUtils {
     elementCounts.addIsotope(isotope, minCount, maxCount + 1);
   }
 
+  /**
+   * @return A list of peaks with all possible formulae for all peaks. The peaks are sorted by
+   * ascending mz.
+   */
   public static List<PeakWithFormulae> getPeaksWithFormulae(IMolecularFormula ionFormula,
-      MassSpectrum mergedMs2, SpectralSignalFilter defaultSignalFilter, MZTolerance fragmentFormulaTol) {
+      MassSpectrum mergedMs2, SpectralSignalFilter defaultSignalFilter,
+      MZTolerance fragmentFormulaTol) {
     final List<FormulaWithExactMz> subFormulae = List.of(
         FormulaUtils.getAllFormulas(ionFormula, mergedMs2.getMzValue(0) - 1));
 
-    final @Nullable DataPoint[] intenseSignals = defaultSignalFilter.applyFilterAndSortByIntensity(
-        ScanUtils.extractDataPoints(mergedMs2), FormulaUtils.calculateMzRatio(ionFormula));
+    final @Nullable DataPoint[] intenseSignals = Arrays.stream(
+            defaultSignalFilter.applyFilterAndSortByIntensity(ScanUtils.extractDataPoints(mergedMs2),
+                FormulaUtils.calculateMzRatio(ionFormula))).sorted(DataPointSorter.DEFAULT_MZ_ASCENDING)
+        .toArray(DataPoint[]::new);
 
     List<PeakWithFormulae> peaksWithFormulae = new ArrayList<>();
     for (DataPoint signal : intenseSignals) {

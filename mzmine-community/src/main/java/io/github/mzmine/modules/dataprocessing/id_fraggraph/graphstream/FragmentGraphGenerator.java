@@ -26,11 +26,14 @@
 package io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream;
 
 import io.github.mzmine.modules.dataprocessing.id_fraggraph.PeakWithFormulae;
+import io.github.mzmine.util.FormulaWithExactMz;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.jetbrains.annotations.NotNull;
@@ -41,27 +44,43 @@ public class FragmentGraphGenerator {
   private final List<PeakWithFormulae> peaksWithFormulae;
   private final Map<PeakWithFormulae, PeakFormulaeModel> nodeModelMap = new HashMap<>();
 
-  private final Double root;
+  private final FormulaWithExactMz root;
 
   private final MultiGraph graph;
 
   private final NumberFormat nodeNameFormatter = new DecimalFormat("0.00000");
 
   public FragmentGraphGenerator(String graphId, List<PeakWithFormulae> peaksWithFormulae,
-      Double root) {
+      FormulaWithExactMz root) {
     this.peaksWithFormulae = peaksWithFormulae;
     this.root = root;
     graph = new MultiGraph(graphId);
 
     generateNodes(peaksWithFormulae);
+    addEdges(nodeModelMap.values());
   }
 
   private void generateNodes(List<PeakWithFormulae> peaksWithFormulae) {
     for (PeakWithFormulae peakWithFormulae : peaksWithFormulae) {
-      final Node node = getOrCreateNode(peakWithFormulae);
+      getOrCreateNode(peakWithFormulae);
     }
+  }
 
+  private void addEdges(Collection<PeakFormulaeModel> nodeModels) {
+    final SubFormulaEdgeGenerator edgeGenerator = new SubFormulaEdgeGenerator(
+        nodeModels.stream().toList());
+    edgeGenerator.generateEdges();
+    final List<SubFormulaEdge> edges = edgeGenerator.getEdges();
 
+    for (SubFormulaEdge edge : edges) {
+      final Edge graphEdge = graph.addEdge(
+          toEdgeName(edge.smaller().getPeakWithFormulae(), edge.larger().getPeakWithFormulae()),
+          getNode(edge.smaller()), getNode(edge.larger()));
+
+      for (FragEdgeAttr edgeAttr : FragEdgeAttr.values()) {
+        edgeAttr.setToEdge(edge, graphEdge);
+      }
+    }
   }
 
   @Nullable
@@ -69,13 +88,19 @@ public class FragmentGraphGenerator {
     return graph.getNode(toNodeName(peakWithFormulae));
   }
 
+  @Nullable
+  private Node getNode(PeakFormulaeModel model) {
+    return graph.getNode(toNodeName(model.getPeakWithFormulae()));
+  }
+
   @NotNull
   private Node getOrCreateNode(PeakWithFormulae peakWithFormulae) {
     final Node node = getNode(peakWithFormulae);
-    if(node == null) {
+    if (node == null) {
       final var newNode = graph.addNode(toNodeName(peakWithFormulae));
       final PeakFormulaeModel model = nodeModelMap.computeIfAbsent(peakWithFormulae,
           pwf -> new PeakFormulaeModel(newNode, peakWithFormulae));
+
       // todo: some magic to select a good formula
       return newNode;
     }
@@ -90,6 +115,14 @@ public class FragmentGraphGenerator {
    */
   public String toNodeName(PeakWithFormulae peak) {
     return nodeNameFormatter.format(peak.peak().getMZ());
+  }
+
+  public String toEdgeName(PeakWithFormulae a, PeakWithFormulae b) {
+    PeakWithFormulae smaller = a.peak().getMZ() < b.peak().getMZ() ? a : b;
+    PeakWithFormulae larger = a.peak().getMZ() > b.peak().getMZ() ? a : b;
+
+    return STR."\{nodeNameFormatter.format(smaller.peak().getMZ())}-\{nodeNameFormatter.format(
+        larger.peak().getMZ())}";
   }
 
   public MultiGraph getGraph() {

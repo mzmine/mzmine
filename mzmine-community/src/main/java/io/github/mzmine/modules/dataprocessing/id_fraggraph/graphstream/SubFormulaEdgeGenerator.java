@@ -25,19 +25,50 @@
 
 package io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream;
 
+import io.github.mzmine.util.FormulaUtils;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Logger;
 
+/**
+ * Generates all possible sub formula edges for a fragmentation graph.
+ * <p>
+ * TODO: refine edges to clean up the graph and reflect deleted edges.
+ */
 public class SubFormulaEdgeGenerator {
 
+  private static final Logger logger = Logger.getLogger(SubFormulaEdgeGenerator.class.getName());
+
   private final List<PeakFormulaeModel> peaks;
+  private List<SubFormulaEdge> edges = new ArrayList<>();
 
   public SubFormulaEdgeGenerator(List<PeakFormulaeModel> peaks) {
-    this.peaks = peaks;
+    // ensure the list is sorted by decreasing mz
+    this.peaks = peaks.stream()
+        .sorted(Comparator.comparingDouble(p -> p.getPeakWithFormulae().peak().getMZ() * -1))
+        .toList();
   }
 
-  private void generateEdges() {
-    for (PeakFormulaeModel peak : peaks) {
-
+  public void generateEdges() {
+    logger.finest(() -> STR."Generating edges for \{peaks.size()} signals.");
+    for (int i = 0; i < peaks.size() - 1; i++) {
+      PeakFormulaeModel larger = peaks.get(i);
+      // check all smaller formulae only
+      for (int j = i + 1; j < peaks.size(); j++) {
+        PeakFormulaeModel smaller = peaks.get(j);
+        if (!FormulaUtils.isSubFormula(smaller.getSelectedFormulaWithMz(),
+            larger.getSelectedFormulaWithMz())) {
+          continue;
+        }
+        edges.add(new SubFormulaEdge(smaller, larger));
+      }
     }
+    logger.finest(
+        () -> STR."Finished edge generation. Generated \{edges.size()} edges for \{peaks.size()} signals.");
+  }
+
+  public List<SubFormulaEdge> getEdges() {
+    return edges;
   }
 }

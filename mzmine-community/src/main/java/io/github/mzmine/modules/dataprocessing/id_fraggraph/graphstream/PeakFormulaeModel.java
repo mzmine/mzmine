@@ -57,6 +57,12 @@ public class PeakFormulaeModel {
         value.setToNode(node, formulae);
         value.setToNode(node, n);
       }
+
+      node.setAttribute("ui.label",
+          STR."\{node.getAttribute(FragNodeAttr.MZ.name())}\n\{node.getAttribute(
+              FragNodeAttr.FORMULA.name())}");
+
+      // todo: can we even trigger edge updates from here?
     });
   }
 

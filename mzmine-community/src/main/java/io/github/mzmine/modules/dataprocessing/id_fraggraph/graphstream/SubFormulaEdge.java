@@ -44,6 +44,14 @@ public class SubFormulaEdge {
     }
   }
 
+  public PeakFormulaeModel smaller() {
+    return a;
+  }
+
+  public PeakFormulaeModel larger() {
+    return b;
+  }
+
   public double getDeltaMz() {
     return b.getPeakWithFormulae().peak().getMZ() - a.getPeakWithFormulae().peak().getMZ();
   }
