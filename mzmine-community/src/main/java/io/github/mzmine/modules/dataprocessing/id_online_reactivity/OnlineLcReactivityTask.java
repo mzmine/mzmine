@@ -25,7 +25,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_online_reactivity;
 
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toMap;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -55,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
@@ -75,8 +78,12 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
   private final String description;
   private final List<IonModification> eductAdducts;
   private final List<IonModification> productAdducts;
-  private final MetadataColumn<?> sampleIdCol;
-  private final MetadataColumn<?> unreactedControlsCol;
+  private final MetadataColumn<String> sampleIdColumn;
+  private final MetadataColumn<String> sampleTypeColumn;
+  private final @NotNull MetadataTable metadata;
+  private @Nullable Map<RawDataFile, ReactionSampleType> sampleTypeMap;
+  private Map<String, List<RawDataFile>> controlsSampleIdMap;
+  private final String undefinedId = "UNDEFINED_REACTION_SAMPLE_ID";
 
   public OnlineLcReactivityTask(@NotNull ParameterSet parameters, FeatureList flist,
       @NotNull Instant moduleCallDate) {
@@ -88,11 +95,12 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
     eductAdducts = parameters.getValue(OnlineLcReactivityParameters.eductAdducts);
     productAdducts = parameters.getValue(OnlineLcReactivityParameters.productAdducts);
 
-    MetadataTable metadata = MZmineCore.getProjectMetadata();
-    sampleIdCol = parameters.getOptionalValue(OnlineLcReactivityParameters.uniqueSampleId)
-        .map(metadata::getColumnByName).orElse(null);
-    unreactedControlsCol = parameters.getOptionalValue(
-        OnlineLcReactivityParameters.unreactedControls).map(metadata::getColumnByName).orElse(null);
+    this.metadata = MZmineCore.getProjectMetadata();
+    sampleIdColumn = (MetadataColumn<String>) parameters.getOptionalValue(
+        OnlineLcReactivityParameters.uniqueSampleId).map(metadata::getColumnByName).orElse(null);
+    sampleTypeColumn = (MetadataColumn<String>) parameters.getOptionalValue(
+            OnlineLcReactivityParameters.reactionSampleType).map(metadata::getColumnByName)
+        .orElse(null);
 
     description = "Online reactivity task on " + flist.getName();
   }
@@ -162,6 +170,17 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
     }
 
     List<RawDataFile> raws = flist.getRawDataFiles();
+
+    if (sampleTypeColumn != null) {
+      if (!createSampleTypeMap(raws)) {
+        return;
+      }
+    }
+    if (sampleIdColumn != null) {
+      if (!createControlsMap(raws)) {
+        return;
+      }
+    }
 
     // reactions are filter out if they dont match any raw data files
     List<ReactionMatchingRawFiles> reactions = loadReactionsFilteredByRawFiles(raws);
@@ -233,6 +252,82 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
   }
 
   /**
+   * @return false on error true success
+   */
+  private boolean createSampleTypeMap(final List<RawDataFile> raws) {
+    sampleTypeMap = raws.stream().collect(toMap(raw -> raw,
+        raw -> metadata.get(sampleTypeColumn, raw).map(ReactionSampleType::parse)
+            .orElse(ReactionSampleType.UNKNOWN)));
+    String undefinedRawDataFiles = sampleTypeMap.entrySet().stream()
+        .filter(e -> e.getValue() == ReactionSampleType.UNKNOWN).map(Entry::getKey)
+        .map(Objects::toString).collect(Collectors.joining("\n"));
+    if (!undefinedRawDataFiles.isBlank()) {
+      error(STR."""
+          Sample type is NOT set for all samples. The column name is \{sampleTypeColumn.getTitle()}.
+          Use \{ReactionSampleType.CONTROL.toString()} or \{ReactionSampleType.REACTED.toString()}
+          Samples that were undefined are:
+          \{undefinedRawDataFiles}""");
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * @return false on error true success
+   */
+  private boolean createControlsMap(final List<RawDataFile> raws) {
+
+    controlsSampleIdMap = raws.stream().filter(this::isControl)
+        .collect(groupingBy(this::getMetadataSampleId));
+
+    if (controlsSampleIdMap.isEmpty()) {
+      error(
+          STR."No control samples defined. Make sure that unique sample IDs were defined in column \{sampleIdColumn.getTitle()}");
+      return false;
+    }
+    List<RawDataFile> undefinedSamples = controlsSampleIdMap.get(undefinedId);
+    if (undefinedSamples != null && !undefinedSamples.isEmpty()) {
+      error(STR."""
+          There were samples without set uinique ID in column \{sampleIdColumn.getTitle()}
+          \{undefinedSamples.stream().map(RawDataFile::getName).collect(Collectors.joining("\n"))}
+          """);
+      return false;
+    }
+    // additional check that all reacted samples have a non reacted control
+    Map<String, List<RawDataFile>> missingControls = raws.stream()
+        .filter(raw -> !controlsSampleIdMap.containsKey(getMetadataSampleId(raw)))
+        .collect(groupingBy(this::getMetadataSampleId));
+    if (!missingControls.isEmpty()) {
+      error(STR."""
+          Some reacted sample are missing their control samples. Make sure that the unique sample IDs are matching
+          and that the samples are defined as control in the metadata type column. Samples without control are:
+          unique ID: [samples],
+          \{missingControls.entrySet().stream().map(
+          e -> STR."\{e.getKey()}, [\{e.getValue().stream().map(RawDataFile::getName)
+              .collect(Collectors.joining(", "))}]").collect(Collectors.joining("\n"))}
+          """);
+      return false;
+    }
+    return true;
+  }
+
+  private String getMetadataSampleId(final RawDataFile raw) {
+    return metadata.get(sampleIdColumn, raw).orElse(undefinedId);
+  }
+
+  private boolean isControl(final RawDataFile raw) {
+    return sampleTypeMap == null || sampleTypeMap.get(raw) == ReactionSampleType.CONTROL;
+  }
+
+  private boolean isReacted(final RawDataFile raw) {
+    return sampleTypeMap == null || sampleTypeMap.get(raw) == ReactionSampleType.REACTED;
+  }
+
+  private boolean isUnknown(final RawDataFile raw) {
+    return sampleTypeMap == null || sampleTypeMap.get(raw) == ReactionSampleType.UNKNOWN;
+  }
+
+  /**
    * Load reactions and filter them out if there is no raw data file matching
    *
    * @return modifiable list
@@ -298,9 +393,9 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
         continue; // no correlation between rows
       }
       double mzB = rowB.getAverageMZ();
-      for (int r = startReaction; r < filteredReactions.size(); r++) {
-        ReactionMatchingRawFiles reaction = filteredReactions.get(r);
-        Range<Double> mzRange = mzRanges[r];
+      for (int reactIndex = startReaction; reactIndex < filteredReactions.size(); reactIndex++) {
+        ReactionMatchingRawFiles reaction = filteredReactions.get(reactIndex);
+        Range<Double> mzRange = mzRanges[reactIndex];
         if (mzB < mzRange.lowerEndpoint()) {
           break; // mz is less than lowest reaction --> check next row
         } else if (mzB > mzRange.upperEndpoint()) {
@@ -323,8 +418,46 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
   }
 
   private boolean anyRawFileOverlapWithReaction(final ReactionMatchingRawFiles reaction,
-      final FeatureListRow a, final FeatureListRow b) {
-    return reaction.raws().stream().anyMatch(raw -> a.hasFeature(raw) && b.hasFeature(raw));
+      final FeatureListRow educt, final FeatureListRow product) {
+    // product raw file needs to be labelled by metadata as product --> productRAW
+    return reaction.raws().stream()
+        // check only reacted files first
+        .filter(
+            raw -> sampleTypeMap == null || sampleTypeMap.get(raw) == ReactionSampleType.REACTED)
+        // product was detected in reacted sample
+        .filter(product::hasFeature)
+        // product was not detected in linked control raw files
+        // educt was detected in linked control raw files
+        .anyMatch(raw -> checkEductProductInControl(raw, educt, product));
+  }
+
+  /**
+   * Find control raws connected to reacted sample and then check
+   *
+   * @param reactedSample used to find control samples
+   * @param educt         must be detected in at least one control sample
+   * @param product       cannot be detected in any control sample
+   * @return true if all checks match
+   */
+  private boolean checkEductProductInControl(final RawDataFile reactedSample,
+      final FeatureListRow educt, final FeatureListRow product) {
+    if (controlsSampleIdMap == null) {
+      return true;
+    }
+    String sampleId = getMetadataSampleId(reactedSample);
+    List<RawDataFile> controls = controlsSampleIdMap.getOrDefault(sampleId, List.of());
+    // whole loop for product
+    boolean eductDetected = false;
+    for (final RawDataFile control : controls) {
+      if (product.hasFeature(control)) {
+        return false;
+      }
+      if (educt.hasFeature(control)) {
+        eductDetected = true;
+      }
+    }
+
+    return eductDetected;
   }
 
   /**

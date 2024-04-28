@@ -180,6 +180,23 @@ public class MetadataTable {
 
     return null;
   }
+  /**
+   * Return parameter value of the corresponding RawData file.
+   *
+   * @param column      project parameter column
+   * @param rawDataFile RawData file
+   * @param <T>         type of the project parameter
+   * @return parameter value
+   */
+  @SuppressWarnings("unchecked")
+  public <T> Optional<T> get(MetadataColumn<T> column, RawDataFile rawDataFile) {
+    var row = data.get(column);
+    if (row != null) {
+      return Optional.ofNullable((T) row.get(rawDataFile));
+    }
+
+    return Optional.empty();
+  }
 
   /**
    * Try to set particular value of the parameter of the RawData file. The parameter column will be
