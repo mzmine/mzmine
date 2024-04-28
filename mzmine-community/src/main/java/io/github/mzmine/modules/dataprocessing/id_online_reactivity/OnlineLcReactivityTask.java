@@ -422,8 +422,7 @@ public class OnlineLcReactivityTask extends AbstractFeatureListTask {
     // product raw file needs to be labelled by metadata as product --> productRAW
     return reaction.raws().stream()
         // check only reacted files first
-        .filter(
-            raw -> sampleTypeMap == null || sampleTypeMap.get(raw) == ReactionSampleType.REACTED)
+        .filter(this::isReacted)
         // product was detected in reacted sample
         .filter(product::hasFeature)
         // product was not detected in linked control raw files
