@@ -31,7 +31,9 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
+import javafx.scene.control.Accordion;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -39,6 +41,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.controlsfx.tools.Borders;
+import org.jetbrains.annotations.NotNull;
 
 public class FxLayout {
 
@@ -155,5 +158,30 @@ public class FxLayout {
     scroll.setFitToHeight(true);
     scroll.setCenterShape(true);
     return scroll;
+  }
+
+  public static TitledPane newTitledPane(String title, Node node) {
+    return new TitledPane(title, node);
+  }
+
+  public static Accordion newAccordion(TitledPane... panes) {
+    return new Accordion(panes);
+  }
+
+  public static Accordion newAccordion(TitledPane expandedPane, @NotNull TitledPane... panes) {
+    final Accordion accordion = newAccordion(panes);
+    if(!accordion.getPanes().contains(expandedPane)) {
+      accordion.getPanes().add(expandedPane);
+    }
+    accordion.setExpandedPane(expandedPane);
+    return accordion;
+  }
+
+  public static Accordion newAccordion(boolean expandFirst, TitledPane... panes) {
+    if(expandFirst && panes.length > 0) {
+      var first = panes[0];
+      return newAccordion(first, panes);
+    }
+    return newAccordion(panes);
   }
 }

@@ -25,21 +25,35 @@
 
 package io.github.mzmine.modules.dataprocessing.id_fraggraph.mvci;
 
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class FragmentGraphController extends FxController<FragmentGraphModel> {
 
   private final FxViewBuilder<FragmentGraphModel> builder;
 
-  protected FragmentGraphController() {
+  public FragmentGraphController() {
     super(new FragmentGraphModel());
     builder = new FragmentGraphBuilder(model);
+
+    model.spectrumProperty().addListener((_, _, _) -> calculateNewGraph());
+    model.precursorFormulaProperty().addListener((_, _, _) -> calculateNewGraph());
   }
 
   @Override
   protected @NotNull FxViewBuilder<FragmentGraphModel> getViewBuilder() {
     return builder;
+  }
+
+  public void update(MassSpectrum spectrum, IMolecularFormula precursorFormula) {
+    model.setSpectrum(spectrum);
+    model.setPrecursorFormula(precursorFormula);
+  }
+
+  private void calculateNewGraph() {
+    onTaskThreadDelayed(new FormulaChangedUpdateTask("Calculate new fragment graph", model));
   }
 }

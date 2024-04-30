@@ -25,49 +25,64 @@
 
 package io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream;
 
+import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.id_fraggraph.PeakWithFormulae;
 import io.github.mzmine.util.FormulaWithExactMz;
+import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.graphstream.graph.Node;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Maps the results of the formula prediction to a node in a fragment graph.
+ * Maps the results of the formula prediction to a node in a fragment graph. Contains all available
+ * formulae and the selected formulae and its mz delta. Also contains a reference to the node to
+ * update the node in the gui if the formula changes.
+ * <p>
+ * TODO: add a reference to the filtered node.
  */
 public class PeakFormulaeModel {
 
-  private final Node node;
+  private static final Logger logger = Logger.getLogger(PeakFormulaeModel.class.getName());
+
+  private final Node unfilteredNode;
+  private Node filteredNode = null;
   private final PeakWithFormulae peakWithFormulae;
   private final ObjectProperty<FormulaWithExactMz> selectedFormulaWithMz = new SimpleObjectProperty<>();
   private final DoubleProperty deltaMz = new SimpleDoubleProperty(0);
 
-  public PeakFormulaeModel(Node node, PeakWithFormulae formulae) {
-    this.node = node;
+  public PeakFormulaeModel(Node unfilteredNode, PeakWithFormulae formulae) {
+    this.unfilteredNode = unfilteredNode;
     this.peakWithFormulae = formulae;
+    final NumberFormats formats = ConfigService.getGuiFormats();
 
     deltaMz.bind(Bindings.createDoubleBinding(
-        () -> formulae.peak().getMZ() - selectedFormulaWithMz.get().mz(), selectedFormulaWithMz));
+        () -> selectedFormulaWithMz.get() != null ? formulae.peak().getMZ()
+            - selectedFormulaWithMz.get().mz() : 0d, selectedFormulaWithMz));
 
-    selectedFormulaWithMz.set(formulae.formulae().getFirst());
     selectedFormulaWithMz.addListener((_, _, n) -> {
       for (FragNodeAttr value : FragNodeAttr.values()) {
-        value.setToNode(node, formulae);
-        value.setToNode(node, n);
+        value.setToNode(unfilteredNode, formulae);
+        value.setToNode(unfilteredNode, n);
       }
 
-      node.setAttribute("ui.label",
-          STR."\{node.getAttribute(FragNodeAttr.MZ.name())}\n\{node.getAttribute(
-              FragNodeAttr.FORMULA.name())}");
+      unfilteredNode.setAttribute("ui.label", STR."""
+          \{unfilteredNode.getAttribute(FragNodeAttr.MZ.name())}
+          \{unfilteredNode.getAttribute(FragNodeAttr.FORMULA.name())}
+          \{formats.ppm(deltaMz.get())} ppm
+          """);
 
       // todo: can we even trigger edge updates from here?
     });
+    selectedFormulaWithMz.set(formulae.formulae().getFirst());
   }
 
-  public Node getNode() {
-    return node;
+  public Node getUnfilteredNode() {
+    return unfilteredNode;
   }
 
   public PeakWithFormulae getPeakWithFormulae() {
@@ -98,7 +113,6 @@ public class PeakFormulaeModel {
     this.deltaMz.set(deltaMz);
   }
 
-
   @Override
   public boolean equals(Object o) {
     // todo: write test to ensure stability if some records get refactored to classes
@@ -109,7 +123,8 @@ public class PeakFormulaeModel {
       return false;
     }
 
-    if (getNode() != null ? !getNode().equals(model.getNode()) : model.getNode() != null) {
+    if (getUnfilteredNode() != null ? !getUnfilteredNode().equals(model.getUnfilteredNode())
+        : model.getUnfilteredNode() != null) {
       return false;
     }
     if (!getPeakWithFormulae().equals(model.getPeakWithFormulae())) {
@@ -120,9 +135,26 @@ public class PeakFormulaeModel {
 
   @Override
   public int hashCode() {
-    int result = getNode() != null ? getNode().hashCode() : 0;
+    int result = getUnfilteredNode() != null ? getUnfilteredNode().hashCode() : 0;
     result = 31 * result + getPeakWithFormulae().hashCode();
     result = 31 * result + getSelectedFormulaWithMz().hashCode();
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return STR."PeakFormulaeModel{node=\{unfilteredNode}, selectedFormulaWithMz=\{selectedFormulaWithMz}, deltaMz=\{deltaMz}\{'}'}";
+  }
+
+  public void setFilteredNode(@Nullable Node node) {
+    if(this.filteredNode != null) {
+      logger.warning(() -> STR."Warning, node for \{toString()} has already been set. Resetting.");
+    }
+    filteredNode = node;
+  }
+
+  @Nullable
+  public Node getFilteredNode() {
+    return filteredNode;
   }
 }

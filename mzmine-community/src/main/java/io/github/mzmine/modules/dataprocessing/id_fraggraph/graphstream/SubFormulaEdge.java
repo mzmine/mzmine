@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream;
 
 import io.github.mzmine.util.FormulaUtils;
+import java.text.NumberFormat;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
@@ -33,15 +34,20 @@ public class SubFormulaEdge {
 
   private final PeakFormulaeModel a;
   private final PeakFormulaeModel b;
+  private final String id;
 
-  public SubFormulaEdge(PeakFormulaeModel a, PeakFormulaeModel b) {
-    if(a.getPeakWithFormulae().peak().getMZ() < b.getPeakWithFormulae().peak().getMZ()) {
+  public SubFormulaEdge(PeakFormulaeModel a, PeakFormulaeModel b, NumberFormat nodeNameFormatter) {
+    if (a.getPeakWithFormulae().peak().getMZ() < b.getPeakWithFormulae().peak().getMZ()) {
       this.a = a;
       this.b = b;
     } else {
       this.a = b;
       this.b = a;
     }
+
+    id = STR."\{nodeNameFormatter.format(
+        a.getPeakWithFormulae().peak().getMZ())}-\{nodeNameFormatter.format(
+        b.getPeakWithFormulae().peak().getMZ())}";
   }
 
   public PeakFormulaeModel smaller() {
@@ -58,13 +64,17 @@ public class SubFormulaEdge {
 
   public IMolecularFormula getLossFormula() {
     final IMolecularFormula formula = b.getSelectedFormulaWithMz().formula();
-    final IMolecularFormula loss = FormulaUtils.subtractFormula(
-        FormulaUtils.cloneFormula(formula), a.getSelectedFormulaWithMz().formula());
+    final IMolecularFormula loss = FormulaUtils.subtractFormula(FormulaUtils.cloneFormula(formula),
+        a.getSelectedFormulaWithMz().formula());
     return loss;
   }
 
   public String getLossFormulaAsString() {
     return MolecularFormulaManipulator.getString(getLossFormula());
+  }
+
+  public String getId() {
+    return id;
   }
 
   @Override
@@ -87,5 +97,10 @@ public class SubFormulaEdge {
     int result = a.hashCode();
     result = 31 * result + b.hashCode();
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return STR."SubFormulaEdge{id='\{id}\{'\''}\{'}'}";
   }
 }

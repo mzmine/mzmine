@@ -25,19 +25,130 @@
 
 package io.github.mzmine.modules.dataprocessing.id_fraggraph.mvci;
 
+import static io.github.mzmine.javafx.components.util.FxLayout.newAccordion;
+import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
+import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
+
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream.PeakFormulaeModel;
+import io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream.SubFormulaEdge;
+import io.github.mzmine.modules.visualization.networking.visual.NetworkPane;
+import io.github.mzmine.util.FormulaUtils;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import javafx.beans.binding.Bindings;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javafx.scene.control.Accordion;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
+import javafx.util.StringConverter;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Element;
+import org.graphstream.graph.Node;
+import org.jetbrains.annotations.NotNull;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class FragmentGraphBuilder  extends FxViewBuilder<FragmentGraphModel> {
+class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
 
-  public FragmentGraphBuilder(FragmentGraphModel model) {
+  private static final Logger logger = Logger.getLogger(FragmentGraphBuilder.class.getName());
+
+  FragmentGraphBuilder(FragmentGraphModel model) {
     super(model);
   }
 
   @Override
   public Region build() {
     final BorderPane pane = new BorderPane();
+    addGrapListenerForNetworkUpdate(pane);
+
+    final TextField formulaField = createBoundFormulaTextField();
+    final Label formulaMassLabel = createBoundFormulaMassLabel();
+
+    final Accordion settingsAccordion = newAccordion(true, newTitledPane("Precursor settings",
+        newHBox(new Label("Precursor formula: "), formulaField, new Label("m/z:"),
+            formulaMassLabel)));
+
+    pane.setTop(settingsAccordion);
+
     return pane;
+  }
+
+  @NotNull
+  private Label createBoundFormulaMassLabel() {
+    final Label formulaMassLabel = new Label();
+    formulaMassLabel.textProperty().bind(Bindings.createStringBinding(() -> {
+      if (model.getPrecursorFormula() == null) {
+        return "Cannot parse formula";
+      }
+      final double mz = FormulaUtils.calculateMzRatio(model.getPrecursorFormula());
+      return ConfigService.getGuiFormats().mz(mz);
+    }, model.precursorFormulaProperty()));
+    return formulaMassLabel;
+  }
+
+  @NotNull
+  private TextField createBoundFormulaTextField() {
+    final TextField formulaField = new TextField();
+    formulaField.editableProperty().bind(model.precursorFormulaEditableProperty());
+    Bindings.bindBidirectional(formulaField.textProperty(), model.precursorFormulaProperty(),
+        new StringConverter<>() {
+          @Override
+          public String toString(IMolecularFormula object) {
+            if (object == null) {
+              return "";
+            }
+            return MolecularFormulaManipulator.getString(object);
+          }
+
+          @Override
+          public IMolecularFormula fromString(String string) {
+            final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(string);
+            return formula;
+          }
+        });
+    return formulaField;
+  }
+
+  private void addGrapListenerForNetworkUpdate(BorderPane pane) {
+    model.graphProperty().addListener((_, _, graph) -> {
+      pane.setCenter(null);
+      if (graph == null) {
+        return;
+      }
+      NetworkPane network = new NetworkPane(graph.getId(), false, graph);
+      network.showFullGraph();
+      pane.setCenter(network);
+
+      network.getSelectedNodes().addListener((ListChangeListener<Node>) c -> {
+        c.next();
+        final ObservableList<? extends Node> selected = c.getList();
+        final Map<String, ? extends Node> idSelectedNodesMap = selected.stream()
+            .collect(Collectors.toMap(Element::getId, node -> node));
+        final List<PeakFormulaeModel> selectedNodes = model.getAllNodes().stream().filter(
+                peakFormulaNode -> idSelectedNodesMap.containsKey(peakFormulaNode.getUnfilteredNode().getId()))
+            .toList();
+        model.selectedNodesProperty().setAll(selectedNodes);
+        logger.finest(() -> STR."Selected nodes: \{selectedNodes.toString()}");
+      });
+
+      network.getSelectedEdges().addListener((ListChangeListener<? super Edge>) c -> {
+        c.next();
+        final ObservableList<? extends Edge> list = c.getList();
+        final Map<String, ? extends Edge> idSelectedEdgesMap = list.stream()
+            .collect(Collectors.toMap(Element::getId, edge -> edge));
+        final List<SubFormulaEdge> selectedEdges = model.getAllEdges().stream()
+            .filter(subFormulaEdge -> idSelectedEdgesMap.containsKey(subFormulaEdge.getId()))
+            .toList();
+        model.getSelectedEdges().setAll(selectedEdges);
+        logger.finest(() -> STR."Selected edges: \{selectedEdges.toString()}");
+      });
+    });
   }
 }

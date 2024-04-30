@@ -23,46 +23,43 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package modules.fraggraph;
+package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.dataprocessing.id_fraggraph.FragGraphPrecursorFormulaTask;
-import io.github.mzmine.modules.dataprocessing.id_fraggraph.FragmentUtils;
-import io.github.mzmine.modules.dataprocessing.id_fraggraph.PeakWithFormulae;
-import io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream.FragmentGraphGenerator;
+import io.github.mzmine.modules.dataprocessing.id_fraggraph.mvci.FragmentGraphController;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.FormulaWithExactMz;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import javafx.scene.layout.Region;
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class FragmentGraphTest {
+public class FragWindow {
 
-  private static final Logger logger = Logger.getLogger(FragmentGraphTest.class.getName());
+  private static final Logger logger = Logger.getLogger(FragWindow.class.getName());
 
-  private final double[] caffeineMzs = new double[]{42.03426, 69.04623, 83.06062, 108.05574,
+  private static final double[] caffeineMzs = new double[]{42.03426, 69.04623, 83.06062, 108.05574,
       110.06946, 122.07037, 123.04293, 138.06653, 194.49059, 195.08994};
-  private final double[] caffeineIntensities = new double[]{26.287885, 7.195664, 3.313599, 1.74958,
+  private static final double[] caffeineIntensities = new double[]{26.287885, 7.195664, 3.313599, 1.74958,
       24.935937, 1.416748, 7.110247, 93.499455, 1.125151, 100};
 
-  private final MassList caffeineSpectrum = new SimpleMassList(null, caffeineMzs,
+  private static final MassList caffeineSpectrum = new SimpleMassList(null, caffeineMzs,
       caffeineIntensities);
 
+  private static FragmentGraphController controller;
 
-  @Test
-  void testFormulaGeneration() {
+  public static Region testWindow() {
+
+    controller = new FragmentGraphController();
+    final Region region = controller.buildView();
 
     FragGraphPrecursorFormulaTask formulaTask = new FragGraphPrecursorFormulaTask(null, 195.08994,
         PolarityType.POSITIVE, 1,
@@ -76,19 +73,10 @@ public class FragmentGraphTest {
 
     final Optional<IMolecularFormula> caffeineOptional = formulae.stream()
         .filter(f -> MolecularFormulaManipulator.getString(f).equals("[C8H11N4O2]+")).findAny();
-    Assertions.assertTrue(caffeineOptional.isPresent());
     final IMolecularFormula caf = caffeineOptional.get();
 
-    final List<PeakWithFormulae> peaksWithFormulae = FragmentUtils.getPeaksWithFormulae(caf,
-        caffeineSpectrum, new SpectralSignalFilter(true, 10, 50, 100, 0.98),
-        new MZTolerance(0.005, 10));
+    controller.update(caffeineSpectrum, caf);
 
-    for (PeakWithFormulae pair : peaksWithFormulae) {
-      logger.info(pair.toString());
-    }
-
-    FragmentGraphGenerator builder = new FragmentGraphGenerator("caffeine", peaksWithFormulae,
-        new FormulaWithExactMz(caf, FormulaUtils.calculateMzRatio(caf)));
+    return region;
   }
-
 }

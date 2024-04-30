@@ -27,16 +27,39 @@ package io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream;
 
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import org.graphstream.graph.Edge;
 
+/**
+ * Edge attributes for a fragment graph. This class describes the available values and sets them
+ * from a {@link SubFormulaEdge} to an {@link Edge}.
+ */
 public enum FragEdgeAttr {
   DELTA_MZ, DELTA_FORMULA;
 
-  public void setToEdge(SubFormulaEdge edge, Edge graphEdge) {
+  public void setToEdgeAttributes(SubFormulaEdge edge, Edge graphEdge) {
     final NumberFormats formats = ConfigService.getGuiFormats();
-    switch (this) {
-      case DELTA_MZ -> graphEdge.setAttribute(this.name(), formats.mz(edge.getDeltaMz()));
-      case DELTA_FORMULA -> graphEdge.setAttribute(name(), edge.getLossFormulaAsString());
-    }
+    graphEdge.setAttribute(name(), valueAsString(edge, formats));
+  }
+
+  public String valueAsString(SubFormulaEdge edge, NumberFormats formats) {
+    return switch (this) {
+      case DELTA_MZ -> formats.mz(edge.getDeltaMz());
+      case DELTA_FORMULA -> edge.getLossFormulaAsString();
+    };
+  }
+
+  public String valueAsString(SubFormulaEdge edge) {
+    final NumberFormats formats = ConfigService.getGuiFormats();
+    return valueAsString(edge, formats);
+  }
+
+  public static void applyAllAsLabel(SubFormulaEdge edge, Edge graphEdge) {
+    final NumberFormats formats = ConfigService.getGuiFormats();
+    final String label = Arrays.stream(FragEdgeAttr.values())
+        .map(attr -> attr.valueAsString(edge, formats)).filter(str -> !str.isBlank())
+        .collect(Collectors.joining("\n"));
+    graphEdge.setAttribute("ui.label", label);
   }
 }

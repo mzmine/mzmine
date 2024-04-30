@@ -32,6 +32,10 @@ import io.github.mzmine.util.FormulaWithExactMz;
 import org.graphstream.graph.Node;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
+/**
+ * Node attributes for a fragment graph. This class describes the available values and sets them
+ * from a {@link PeakWithFormulae} and a {@link FormulaWithExactMz} to a {@link Node}.
+ */
 public enum FragNodeAttr {
   MZ, INTENSITY, FORMULA;
 
@@ -41,6 +45,7 @@ public enum FragNodeAttr {
       case MZ -> node.setAttribute(name(), formats.mz(peak.peak().getMZ()));
       case INTENSITY -> node.setAttribute(name(), formats.intensity(peak.peak().getIntensity()));
       case FORMULA -> {
+
       }
     }
   }

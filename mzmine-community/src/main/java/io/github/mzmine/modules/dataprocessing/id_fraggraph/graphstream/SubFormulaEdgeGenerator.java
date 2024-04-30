@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream;
 
 import io.github.mzmine.util.FormulaUtils;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -35,22 +36,27 @@ import java.util.logging.Logger;
  * Generates all possible sub formula edges for a fragmentation graph.
  * <p>
  * TODO: refine edges to clean up the graph and reflect deleted edges.
+ * Todo: maybe it's better to create an edge from every node to every node and only set the edges
+ *  that are sub formulae to visible?
  */
 public class SubFormulaEdgeGenerator {
 
   private static final Logger logger = Logger.getLogger(SubFormulaEdgeGenerator.class.getName());
 
   private final List<PeakFormulaeModel> peaks;
+  private final NumberFormat idFormatter;
   private List<SubFormulaEdge> edges = new ArrayList<>();
 
-  public SubFormulaEdgeGenerator(List<PeakFormulaeModel> peaks) {
+  public SubFormulaEdgeGenerator(List<PeakFormulaeModel> peaks, NumberFormat idFormatter) {
     // ensure the list is sorted by decreasing mz
     this.peaks = peaks.stream()
         .sorted(Comparator.comparingDouble(p -> p.getPeakWithFormulae().peak().getMZ() * -1))
         .toList();
+    this.idFormatter = idFormatter;
+    generateEdges();
   }
 
-  public void generateEdges() {
+  private void generateEdges() {
     logger.finest(() -> STR."Generating edges for \{peaks.size()} signals.");
     for (int i = 0; i < peaks.size() - 1; i++) {
       PeakFormulaeModel larger = peaks.get(i);
@@ -61,7 +67,7 @@ public class SubFormulaEdgeGenerator {
             larger.getSelectedFormulaWithMz())) {
           continue;
         }
-        edges.add(new SubFormulaEdge(smaller, larger));
+        edges.add(new SubFormulaEdge(smaller, larger, idFormatter));
       }
     }
     logger.finest(

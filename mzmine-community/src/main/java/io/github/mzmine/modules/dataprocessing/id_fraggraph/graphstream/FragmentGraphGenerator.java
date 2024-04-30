@@ -29,10 +29,11 @@ import io.github.mzmine.modules.dataprocessing.id_fraggraph.PeakWithFormulae;
 import io.github.mzmine.util.FormulaWithExactMz;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
@@ -40,6 +41,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FragmentGraphGenerator {
+
+  private static final Logger logger = Logger.getLogger(FragmentGraphGenerator.class.getName());
 
   private final List<PeakWithFormulae> peaksWithFormulae;
   private final Map<PeakWithFormulae, PeakFormulaeModel> nodeModelMap = new HashMap<>();
@@ -49,37 +52,49 @@ public class FragmentGraphGenerator {
   private final MultiGraph graph;
 
   private final NumberFormat nodeNameFormatter = new DecimalFormat("0.00000");
+  private List<SubFormulaEdge> edges;
 
   public FragmentGraphGenerator(String graphId, List<PeakWithFormulae> peaksWithFormulae,
       FormulaWithExactMz root) {
-    this.peaksWithFormulae = peaksWithFormulae;
+    this.peaksWithFormulae = new ArrayList<>(
+        peaksWithFormulae.stream().filter(pf -> !pf.formulae().isEmpty()).toList());
     this.root = root;
+
+    System.setProperty("org.graphstream.ui", "javafx");
     graph = new MultiGraph(graphId);
 
-    generateNodes(peaksWithFormulae);
-    addEdges(nodeModelMap.values());
+    generateNodes();
+    addEdges();
   }
 
-  private void generateNodes(List<PeakWithFormulae> peaksWithFormulae) {
+  private void generateNodes() {
+    logger.finest(() -> STR."Generating nodes fragment graph of precursor \{root.toString()}");
+
+    boolean rootFound = false;
     for (PeakWithFormulae peakWithFormulae : peaksWithFormulae) {
-      getOrCreateNode(peakWithFormulae);
+      final Node node = getOrCreateNode(peakWithFormulae);
+      if (!rootFound && peakWithFormulae.formulae().contains(root)) {
+        node.setAttribute("ui.class", "root_fragment");
+        rootFound = true;
+      }
     }
   }
 
-  private void addEdges(Collection<PeakFormulaeModel> nodeModels) {
+  private void addEdges() {
+    logger.finest(() -> STR."Generating edges for fragment graph of \{root.toString()}");
+
     final SubFormulaEdgeGenerator edgeGenerator = new SubFormulaEdgeGenerator(
-        nodeModels.stream().toList());
-    edgeGenerator.generateEdges();
-    final List<SubFormulaEdge> edges = edgeGenerator.getEdges();
+        nodeModelMap.values().stream().toList(), nodeNameFormatter);
+    edges = edgeGenerator.getEdges();
 
     for (SubFormulaEdge edge : edges) {
-      final Edge graphEdge = graph.addEdge(
-          toEdgeName(edge.smaller().getPeakWithFormulae(), edge.larger().getPeakWithFormulae()),
-          getNode(edge.smaller()), getNode(edge.larger()));
+      final Edge graphEdge = graph.addEdge(edge.getId(), getNode(edge.smaller()),
+          getNode(edge.larger()), true);
 
       for (FragEdgeAttr edgeAttr : FragEdgeAttr.values()) {
-        edgeAttr.setToEdge(edge, graphEdge);
+        edgeAttr.setToEdgeAttributes(edge, graphEdge);
       }
+      FragEdgeAttr.applyAllAsLabel(edge, graphEdge);
     }
   }
 
@@ -96,15 +111,15 @@ public class FragmentGraphGenerator {
   @NotNull
   private Node getOrCreateNode(PeakWithFormulae peakWithFormulae) {
     final Node node = getNode(peakWithFormulae);
-    if (node == null) {
-      final var newNode = graph.addNode(toNodeName(peakWithFormulae));
-      final PeakFormulaeModel model = nodeModelMap.computeIfAbsent(peakWithFormulae,
-          pwf -> new PeakFormulaeModel(newNode, peakWithFormulae));
-
-      // todo: some magic to select a good formula
-      return newNode;
+    if(node != null) {
+      return node;
     }
-    return node;
+    final var newNode = graph.addNode(toNodeName(peakWithFormulae));
+    final PeakFormulaeModel model = nodeModelMap.computeIfAbsent(peakWithFormulae,
+        pwf -> new PeakFormulaeModel(newNode, peakWithFormulae));
+
+    // todo: some magic to select a good formula
+    return newNode;
   }
 
   /**
@@ -127,5 +142,13 @@ public class FragmentGraphGenerator {
 
   public MultiGraph getGraph() {
     return graph;
+  }
+
+  public Map<PeakWithFormulae, PeakFormulaeModel> getNodeModelMap() {
+    return nodeModelMap;
+  }
+
+  public List<SubFormulaEdge> getEdges() {
+    return edges;
   }
 }
