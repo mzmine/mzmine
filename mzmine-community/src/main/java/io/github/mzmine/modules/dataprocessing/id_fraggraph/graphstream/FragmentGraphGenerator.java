@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
@@ -65,6 +66,17 @@ public class FragmentGraphGenerator {
 
     generateNodes();
     addEdges();
+
+    final Map<String, PeakFormulaeModel> newMap = this.peaksWithFormulae.stream().collect(
+        Collectors.toMap(this::toNodeName,
+            pwf -> new PeakFormulaeModel(graph.getNode(toNodeName(pwf)), pwf)));
+
+    logger.finest(newMap.toString());
+
+//    graph.nodes().forEach(node -> {
+//      final PeakFormulaeModel model = nodeModelMap.computeIfAbsent(peakWithFormulae,
+//          pwf -> new PeakFormulaeModel(newNode, peakWithFormulae));
+//    });
   }
 
   private void generateNodes() {
@@ -111,12 +123,14 @@ public class FragmentGraphGenerator {
   @NotNull
   private Node getOrCreateNode(PeakWithFormulae peakWithFormulae) {
     final Node node = getNode(peakWithFormulae);
-    if(node != null) {
+    if (node != null) {
       return node;
     }
-    final var newNode = graph.addNode(toNodeName(peakWithFormulae));
-    final PeakFormulaeModel model = nodeModelMap.computeIfAbsent(peakWithFormulae,
-        pwf -> new PeakFormulaeModel(newNode, peakWithFormulae));
+
+    final Node newNode = graph.addNode(toNodeName(peakWithFormulae));
+    final PeakFormulaeModel model = new PeakFormulaeModel(
+        newNode, peakWithFormulae);
+    nodeModelMap.put(peakWithFormulae, model);
 
     // todo: some magic to select a good formula
     return newNode;

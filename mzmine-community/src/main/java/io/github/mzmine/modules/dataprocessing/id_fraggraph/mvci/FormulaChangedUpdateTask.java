@@ -35,8 +35,10 @@ import io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream.SubFormu
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javafx.collections.FXCollections;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -49,8 +51,8 @@ public class FormulaChangedUpdateTask extends FxUpdateTask<FragmentGraphModel> {
 
   private final MZTolerance formulaTolerance = new MZTolerance(0.005, 15);
   private MultiGraph graph;
-  private List<PeakFormulaeModel> allNodeModels;
-  private List<SubFormulaEdge> edges;
+  private Map<String, PeakFormulaeModel> allNodeModels;
+  private Map<String, SubFormulaEdge> edges;
 
   public FormulaChangedUpdateTask(@NotNull String taskName, FragmentGraphModel model) {
     super(taskName, model);
@@ -74,17 +76,17 @@ public class FormulaChangedUpdateTask extends FxUpdateTask<FragmentGraphModel> {
     graph = graphGenerator.getGraph();
 
     allNodeModels = graphGenerator.getNodeModelMap().values().stream()
-        .sorted(Comparator.comparingDouble(pfm -> pfm.getPeakWithFormulae().peak().getMZ() * -1))
-        .toList();
-    edges = graphGenerator.getEdges();
+        .collect(Collectors.toMap(PeakFormulaeModel::getId, nodeModel -> nodeModel));
+    edges = graphGenerator.getEdges().stream()
+        .collect(Collectors.toMap(SubFormulaEdge::getId, e -> e));
   }
 
   @Override
   protected void updateGuiModel() {
     model.getSelectedEdges().clear();
     model.getSelectedNodes().clear();
-    model.getAllNodes().setAll(allNodeModels);
-    model.getAllEdges().setAll(edges);
+    model.setAllNodes(FXCollections.observableMap(allNodeModels));
+    model.setAllEdges(FXCollections.observableMap(edges));
     model.setGraph(graph);
   }
 

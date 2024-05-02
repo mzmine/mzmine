@@ -29,13 +29,13 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream.PeakFormulaeModel;
 import io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream.SubFormulaEdge;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ListProperty;
+import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
@@ -48,14 +48,15 @@ class FragmentGraphModel {
   private final BooleanProperty precursorFormulaEditable = new SimpleBooleanProperty(false);
   private final ObjectProperty<MassSpectrum> spectrum = new SimpleObjectProperty<>();
   private final ObjectProperty<MultiGraph> graph = new SimpleObjectProperty<>();
-  private final ListProperty<PeakFormulaeModel> selectedNodes = new SimpleListProperty<>(
-      FXCollections.observableArrayList());
-  private final ListProperty<PeakFormulaeModel> allNodes = new SimpleListProperty<>(
-      FXCollections.observableArrayList());
-  private final ListProperty<SubFormulaEdge> selectedEdges = new SimpleListProperty<>(
-      FXCollections.observableArrayList());
-  private final ListProperty<SubFormulaEdge> allEdges = new SimpleListProperty<>(
-      FXCollections.observableArrayList());
+  private final MapProperty<String, PeakFormulaeModel> selectedNodes = new SimpleMapProperty<>(
+      FXCollections.observableHashMap());
+  private final MapProperty<String, PeakFormulaeModel> allNodes = new SimpleMapProperty<>(
+      FXCollections.observableHashMap());
+  private final MapProperty<String, SubFormulaEdge> selectedEdges = new SimpleMapProperty<>(
+      FXCollections.observableHashMap());
+  private final MapProperty<String, SubFormulaEdge> allEdges = new SimpleMapProperty<>(
+      FXCollections.observableHashMap());
+
 
   public IMolecularFormula getPrecursorFormula() {
     return precursorFormula.get();
@@ -93,54 +94,6 @@ class FragmentGraphModel {
     this.graph.set(graph);
   }
 
-  public ObservableList<PeakFormulaeModel> getSelectedNodes() {
-    return selectedNodes.get();
-  }
-
-  public ListProperty<PeakFormulaeModel> selectedNodesProperty() {
-    return selectedNodes;
-  }
-
-  public void setSelectedNodes(ObservableList<PeakFormulaeModel> selectedNodes) {
-    this.selectedNodes.set(selectedNodes);
-  }
-
-  public ObservableList<SubFormulaEdge> getSelectedEdges() {
-    return selectedEdges.get();
-  }
-
-  public ListProperty<SubFormulaEdge> selectedEdgesProperty() {
-    return selectedEdges;
-  }
-
-  public void setSelectedEdges(ObservableList<SubFormulaEdge> selectedEdges) {
-    this.selectedEdges.set(selectedEdges);
-  }
-
-  public ObservableList<PeakFormulaeModel> getAllNodes() {
-    return allNodes.get();
-  }
-
-  public ListProperty<PeakFormulaeModel> allNodesProperty() {
-    return allNodes;
-  }
-
-  public void setAllNodes(ObservableList<PeakFormulaeModel> allNodes) {
-    this.allNodes.set(allNodes);
-  }
-
-  public ObservableList<SubFormulaEdge> getAllEdges() {
-    return allEdges.get();
-  }
-
-  public ListProperty<SubFormulaEdge> allEdgesProperty() {
-    return allEdges;
-  }
-
-  public void setAllEdges(ObservableList<SubFormulaEdge> allEdges) {
-    this.allEdges.set(allEdges);
-  }
-
   public boolean isPrecursorFormulaEditable() {
     return precursorFormulaEditable.get();
   }
@@ -151,5 +104,53 @@ class FragmentGraphModel {
 
   public void setPrecursorFormulaEditable(boolean precursorFormulaEditable) {
     this.precursorFormulaEditable.set(precursorFormulaEditable);
+  }
+
+  public ObservableMap<String, PeakFormulaeModel> getSelectedNodes() {
+    return selectedNodes.get();
+  }
+
+  public MapProperty<String, PeakFormulaeModel> selectedNodesProperty() {
+    return selectedNodes;
+  }
+
+  public void setSelectedNodes(ObservableMap<String, PeakFormulaeModel> selectedNodes) {
+    this.selectedNodes.set(selectedNodes);
+  }
+
+  public ObservableMap<String, PeakFormulaeModel> getAllNodes() {
+    return allNodes.get();
+  }
+
+  public MapProperty<String, PeakFormulaeModel> allNodesProperty() {
+    return allNodes;
+  }
+
+  public void setAllNodes(ObservableMap<String, PeakFormulaeModel> allNodes) {
+    this.allNodes.set(allNodes);
+  }
+
+  public ObservableMap<String, SubFormulaEdge> getSelectedEdges() {
+    return selectedEdges.get();
+  }
+
+  public MapProperty<String, SubFormulaEdge> selectedEdgesProperty() {
+    return selectedEdges;
+  }
+
+  public void setSelectedEdges(ObservableMap<String, SubFormulaEdge> selectedEdges) {
+    this.selectedEdges.set(selectedEdges);
+  }
+
+  public ObservableMap<String, SubFormulaEdge> getAllEdges() {
+    return allEdges.get();
+  }
+
+  public MapProperty<String, SubFormulaEdge> allEdgesProperty() {
+    return allEdges;
+  }
+
+  public void setAllEdges(ObservableMap<String, SubFormulaEdge> allEdges) {
+    this.allEdges.set(allEdges);
   }
 }

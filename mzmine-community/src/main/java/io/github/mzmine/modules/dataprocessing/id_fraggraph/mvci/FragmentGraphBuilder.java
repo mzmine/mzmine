@@ -31,15 +31,14 @@ import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
 
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream.PeakFormulaeModel;
 import io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream.SubFormulaEdge;
 import io.github.mzmine.modules.visualization.networking.visual.NetworkPane;
 import io.github.mzmine.util.FormulaUtils;
-import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.binding.Bindings;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Accordion;
@@ -124,29 +123,35 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
       }
       NetworkPane network = new NetworkPane(graph.getId(), false, graph);
       network.showFullGraph();
+
+      // update mappings to filtered nodes
+//      network.getGraph().getEdgeFilteredGraph().nodes().forEach(node -> {
+//        final PeakFormulaeModel nodeModel = model.getAllNodes().get(node.getId());
+//        if (nodeModel != null) {
+//          nodeModel.setFilteredNode(node);
+//        }
+//      });
+
       pane.setCenter(network);
 
       network.getSelectedNodes().addListener((ListChangeListener<Node>) c -> {
         c.next();
         final ObservableList<? extends Node> selected = c.getList();
-        final Map<String, ? extends Node> idSelectedNodesMap = selected.stream()
-            .collect(Collectors.toMap(Element::getId, node -> node));
-        final List<PeakFormulaeModel> selectedNodes = model.getAllNodes().stream().filter(
-                peakFormulaNode -> idSelectedNodesMap.containsKey(peakFormulaNode.getUnfilteredNode().getId()))
-            .toList();
-        model.selectedNodesProperty().setAll(selectedNodes);
+        var selectedNodes = selected.stream().map(Element::getId)
+            .map(id -> model.getAllNodes().get(id)).filter(Objects::nonNull).collect(
+                Collectors.toMap(modelNode -> modelNode.getUnfilteredNode().getId(),
+                    modelNode -> modelNode));
+        model.setSelectedNodes(FXCollections.observableMap(selectedNodes));
         logger.finest(() -> STR."Selected nodes: \{selectedNodes.toString()}");
       });
 
       network.getSelectedEdges().addListener((ListChangeListener<? super Edge>) c -> {
         c.next();
-        final ObservableList<? extends Edge> list = c.getList();
-        final Map<String, ? extends Edge> idSelectedEdgesMap = list.stream()
-            .collect(Collectors.toMap(Element::getId, edge -> edge));
-        final List<SubFormulaEdge> selectedEdges = model.getAllEdges().stream()
-            .filter(subFormulaEdge -> idSelectedEdgesMap.containsKey(subFormulaEdge.getId()))
-            .toList();
-        model.getSelectedEdges().setAll(selectedEdges);
+        final ObservableList<? extends Edge> selected = c.getList();
+        var selectedEdges = selected.stream().map(Element::getId)
+            .map(id -> model.getAllEdges().get(id)).filter(Objects::nonNull)
+            .collect(Collectors.toMap(SubFormulaEdge::getId, edge -> edge));
+        model.setSelectedEdges(FXCollections.observableMap(selectedEdges));
         logger.finest(() -> STR."Selected edges: \{selectedEdges.toString()}");
       });
     });

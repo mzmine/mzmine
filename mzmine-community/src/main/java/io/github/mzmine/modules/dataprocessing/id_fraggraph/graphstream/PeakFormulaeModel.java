@@ -157,4 +157,8 @@ public class PeakFormulaeModel {
   public Node getFilteredNode() {
     return filteredNode;
   }
+
+  public String getId() {
+    return getUnfilteredNode().getId();
+  }
 }
