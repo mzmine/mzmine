@@ -115,7 +115,7 @@ public class FragmentUtils {
    * @return A list of peaks with all possible formulae for all peaks. The peaks are sorted by
    * ascending mz.
    */
-  public static List<PeakWithFormulae> getPeaksWithFormulae(IMolecularFormula ionFormula,
+  public static List<SignalWithFormulae> getPeaksWithFormulae(IMolecularFormula ionFormula,
       MassSpectrum mergedMs2, SpectralSignalFilter defaultSignalFilter,
       MZTolerance fragmentFormulaTol) {
     final List<FormulaWithExactMz> subFormulae = List.of(
@@ -126,12 +126,12 @@ public class FragmentUtils {
                 FormulaUtils.calculateMzRatio(ionFormula))).sorted(DataPointSorter.DEFAULT_MZ_ASCENDING)
         .toArray(DataPoint[]::new);
 
-    List<PeakWithFormulae> peaksWithFormulae = new ArrayList<>();
+    List<SignalWithFormulae> peaksWithFormulae = new ArrayList<>();
     for (DataPoint signal : intenseSignals) {
       final IndexRange indexRange = BinarySearch.indexRange(
           fragmentFormulaTol.getToleranceRange(signal.getMZ()), subFormulae,
           FormulaWithExactMz::mz);
-      peaksWithFormulae.add(new PeakWithFormulae(signal, indexRange.sublist(subFormulae)));
+      peaksWithFormulae.add(new SignalWithFormulae(signal, indexRange.sublist(subFormulae)));
     }
     return peaksWithFormulae;
   }

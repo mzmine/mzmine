@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.dataprocessing.id_fraggraph.FragGraphPrecursorFormulaTask;
 import io.github.mzmine.modules.dataprocessing.id_fraggraph.FragmentUtils;
-import io.github.mzmine.modules.dataprocessing.id_fraggraph.PeakWithFormulae;
+import io.github.mzmine.modules.dataprocessing.id_fraggraph.SignalWithFormulae;
 import io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream.FragmentGraphGenerator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
@@ -79,11 +79,11 @@ public class FragmentGraphTest {
     Assertions.assertTrue(caffeineOptional.isPresent());
     final IMolecularFormula caf = caffeineOptional.get();
 
-    final List<PeakWithFormulae> peaksWithFormulae = FragmentUtils.getPeaksWithFormulae(caf,
+    final List<SignalWithFormulae> peaksWithFormulae = FragmentUtils.getPeaksWithFormulae(caf,
         caffeineSpectrum, new SpectralSignalFilter(true, 10, 50, 100, 0.98),
         new MZTolerance(0.005, 10));
 
-    for (PeakWithFormulae pair : peaksWithFormulae) {
+    for (SignalWithFormulae pair : peaksWithFormulae) {
       logger.info(pair.toString());
     }
 

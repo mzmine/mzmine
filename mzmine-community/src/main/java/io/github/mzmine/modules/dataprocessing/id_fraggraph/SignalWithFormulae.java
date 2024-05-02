@@ -29,6 +29,6 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.util.FormulaWithExactMz;
 import java.util.List;
 
-public record PeakWithFormulae(DataPoint peak, List<FormulaWithExactMz> formulae) {
+public record SignalWithFormulae(DataPoint peak, List<FormulaWithExactMz> formulae) {
 
 }

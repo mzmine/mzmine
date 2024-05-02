@@ -32,11 +32,11 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class SubFormulaEdge {
 
-  private final PeakFormulaeModel a;
-  private final PeakFormulaeModel b;
+  private final SignalFormulaeModel a;
+  private final SignalFormulaeModel b;
   private final String id;
 
-  public SubFormulaEdge(PeakFormulaeModel a, PeakFormulaeModel b, NumberFormat nodeNameFormatter) {
+  public SubFormulaEdge(SignalFormulaeModel a, SignalFormulaeModel b, NumberFormat nodeNameFormatter) {
     if (a.getPeakWithFormulae().peak().getMZ() < b.getPeakWithFormulae().peak().getMZ()) {
       this.a = a;
       this.b = b;
@@ -50,11 +50,11 @@ public class SubFormulaEdge {
         b.getPeakWithFormulae().peak().getMZ())}";
   }
 
-  public PeakFormulaeModel smaller() {
+  public SignalFormulaeModel smaller() {
     return a;
   }
 
-  public PeakFormulaeModel larger() {
+  public SignalFormulaeModel larger() {
     return b;
   }
 

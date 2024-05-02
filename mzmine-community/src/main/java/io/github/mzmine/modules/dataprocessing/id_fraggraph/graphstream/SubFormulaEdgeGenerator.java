@@ -43,11 +43,11 @@ public class SubFormulaEdgeGenerator {
 
   private static final Logger logger = Logger.getLogger(SubFormulaEdgeGenerator.class.getName());
 
-  private final List<PeakFormulaeModel> peaks;
+  private final List<SignalFormulaeModel> peaks;
   private final NumberFormat idFormatter;
   private List<SubFormulaEdge> edges = new ArrayList<>();
 
-  public SubFormulaEdgeGenerator(List<PeakFormulaeModel> peaks, NumberFormat idFormatter) {
+  public SubFormulaEdgeGenerator(List<SignalFormulaeModel> peaks, NumberFormat idFormatter) {
     // ensure the list is sorted by decreasing mz
     this.peaks = peaks.stream()
         .sorted(Comparator.comparingDouble(p -> p.getPeakWithFormulae().peak().getMZ() * -1))
@@ -59,10 +59,10 @@ public class SubFormulaEdgeGenerator {
   private void generateEdges() {
     logger.finest(() -> STR."Generating edges for \{peaks.size()} signals.");
     for (int i = 0; i < peaks.size() - 1; i++) {
-      PeakFormulaeModel larger = peaks.get(i);
+      SignalFormulaeModel larger = peaks.get(i);
       // check all smaller formulae only
       for (int j = i + 1; j < peaks.size(); j++) {
-        PeakFormulaeModel smaller = peaks.get(j);
+        SignalFormulaeModel smaller = peaks.get(j);
         if (!FormulaUtils.isSubFormula(smaller.getSelectedFormulaWithMz(),
             larger.getSelectedFormulaWithMz())) {
           continue;

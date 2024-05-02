@@ -593,6 +593,9 @@ public class FormulaUtils {
         }
       } while (count > 0 && found);
     }
+    final Integer resultCharge = Objects.requireNonNullElse(result.getCharge(), 0);
+    final Integer subtractCharge = Objects.requireNonNullElse(sub.getCharge(), 0);
+    result.setCharge(resultCharge - subtractCharge);
     return result;
   }
 

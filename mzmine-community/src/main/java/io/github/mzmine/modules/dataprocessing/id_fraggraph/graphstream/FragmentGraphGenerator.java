@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream;
 
-import io.github.mzmine.modules.dataprocessing.id_fraggraph.PeakWithFormulae;
+import io.github.mzmine.modules.dataprocessing.id_fraggraph.SignalWithFormulae;
 import io.github.mzmine.util.FormulaWithExactMz;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -45,8 +45,8 @@ public class FragmentGraphGenerator {
 
   private static final Logger logger = Logger.getLogger(FragmentGraphGenerator.class.getName());
 
-  private final List<PeakWithFormulae> peaksWithFormulae;
-  private final Map<PeakWithFormulae, PeakFormulaeModel> nodeModelMap = new HashMap<>();
+  private final List<SignalWithFormulae> peaksWithFormulae;
+  private final Map<SignalWithFormulae, SignalFormulaeModel> nodeModelMap = new HashMap<>();
 
   private final FormulaWithExactMz root;
 
@@ -55,7 +55,7 @@ public class FragmentGraphGenerator {
   private final NumberFormat nodeNameFormatter = new DecimalFormat("0.00000");
   private List<SubFormulaEdge> edges;
 
-  public FragmentGraphGenerator(String graphId, List<PeakWithFormulae> peaksWithFormulae,
+  public FragmentGraphGenerator(String graphId, List<SignalWithFormulae> peaksWithFormulae,
       FormulaWithExactMz root) {
     this.peaksWithFormulae = new ArrayList<>(
         peaksWithFormulae.stream().filter(pf -> !pf.formulae().isEmpty()).toList());
@@ -67,15 +67,15 @@ public class FragmentGraphGenerator {
     generateNodes();
     addEdges();
 
-    final Map<String, PeakFormulaeModel> newMap = this.peaksWithFormulae.stream().collect(
+    final Map<String, SignalFormulaeModel> newMap = this.peaksWithFormulae.stream().collect(
         Collectors.toMap(this::toNodeName,
-            pwf -> new PeakFormulaeModel(graph.getNode(toNodeName(pwf)), pwf)));
+            pwf -> new SignalFormulaeModel(graph.getNode(toNodeName(pwf)), pwf)));
 
     logger.finest(newMap.toString());
 
 //    graph.nodes().forEach(node -> {
-//      final PeakFormulaeModel model = nodeModelMap.computeIfAbsent(peakWithFormulae,
-//          pwf -> new PeakFormulaeModel(newNode, peakWithFormulae));
+//      final SignalFormulaeModel model = nodeModelMap.computeIfAbsent(peakWithFormulae,
+//          pwf -> new SignalFormulaeModel(newNode, peakWithFormulae));
 //    });
   }
 
@@ -83,9 +83,9 @@ public class FragmentGraphGenerator {
     logger.finest(() -> STR."Generating nodes fragment graph of precursor \{root.toString()}");
 
     boolean rootFound = false;
-    for (PeakWithFormulae peakWithFormulae : peaksWithFormulae) {
-      final Node node = getOrCreateNode(peakWithFormulae);
-      if (!rootFound && peakWithFormulae.formulae().contains(root)) {
+    for (SignalWithFormulae signalWithFormulae : peaksWithFormulae) {
+      final Node node = getOrCreateNode(signalWithFormulae);
+      if (!rootFound && signalWithFormulae.formulae().contains(root)) {
         node.setAttribute("ui.class", "root_fragment");
         rootFound = true;
       }
@@ -111,26 +111,26 @@ public class FragmentGraphGenerator {
   }
 
   @Nullable
-  private Node getNode(PeakWithFormulae peakWithFormulae) {
-    return graph.getNode(toNodeName(peakWithFormulae));
+  private Node getNode(SignalWithFormulae signalWithFormulae) {
+    return graph.getNode(toNodeName(signalWithFormulae));
   }
 
   @Nullable
-  private Node getNode(PeakFormulaeModel model) {
+  private Node getNode(SignalFormulaeModel model) {
     return graph.getNode(toNodeName(model.getPeakWithFormulae()));
   }
 
   @NotNull
-  private Node getOrCreateNode(PeakWithFormulae peakWithFormulae) {
-    final Node node = getNode(peakWithFormulae);
+  private Node getOrCreateNode(SignalWithFormulae signalWithFormulae) {
+    final Node node = getNode(signalWithFormulae);
     if (node != null) {
       return node;
     }
 
-    final Node newNode = graph.addNode(toNodeName(peakWithFormulae));
-    final PeakFormulaeModel model = new PeakFormulaeModel(
-        newNode, peakWithFormulae);
-    nodeModelMap.put(peakWithFormulae, model);
+    final Node newNode = graph.addNode(toNodeName(signalWithFormulae));
+    final SignalFormulaeModel model = new SignalFormulaeModel(
+        newNode, signalWithFormulae);
+    nodeModelMap.put(signalWithFormulae, model);
 
     // todo: some magic to select a good formula
     return newNode;
@@ -142,13 +142,13 @@ public class FragmentGraphGenerator {
    *
    * @return The node name -> mz formatted to 5 decimal digits
    */
-  public String toNodeName(PeakWithFormulae peak) {
+  public String toNodeName(SignalWithFormulae peak) {
     return nodeNameFormatter.format(peak.peak().getMZ());
   }
 
-  public String toEdgeName(PeakWithFormulae a, PeakWithFormulae b) {
-    PeakWithFormulae smaller = a.peak().getMZ() < b.peak().getMZ() ? a : b;
-    PeakWithFormulae larger = a.peak().getMZ() > b.peak().getMZ() ? a : b;
+  public String toEdgeName(SignalWithFormulae a, SignalWithFormulae b) {
+    SignalWithFormulae smaller = a.peak().getMZ() < b.peak().getMZ() ? a : b;
+    SignalWithFormulae larger = a.peak().getMZ() > b.peak().getMZ() ? a : b;
 
     return STR."\{nodeNameFormatter.format(smaller.peak().getMZ())}-\{nodeNameFormatter.format(
         larger.peak().getMZ())}";
@@ -158,7 +158,7 @@ public class FragmentGraphGenerator {
     return graph;
   }
 
-  public Map<PeakWithFormulae, PeakFormulaeModel> getNodeModelMap() {
+  public Map<SignalWithFormulae, SignalFormulaeModel> getNodeModelMap() {
     return nodeModelMap;
   }
 

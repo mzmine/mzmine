@@ -26,7 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.id_fraggraph.mvci;
 
 import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream.PeakFormulaeModel;
+import io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream.SignalFormulaeModel;
 import io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream.SubFormulaEdge;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.MapProperty;
@@ -48,9 +48,9 @@ class FragmentGraphModel {
   private final BooleanProperty precursorFormulaEditable = new SimpleBooleanProperty(false);
   private final ObjectProperty<MassSpectrum> spectrum = new SimpleObjectProperty<>();
   private final ObjectProperty<MultiGraph> graph = new SimpleObjectProperty<>();
-  private final MapProperty<String, PeakFormulaeModel> selectedNodes = new SimpleMapProperty<>(
+  private final MapProperty<String, SignalFormulaeModel> selectedNodes = new SimpleMapProperty<>(
       FXCollections.observableHashMap());
-  private final MapProperty<String, PeakFormulaeModel> allNodes = new SimpleMapProperty<>(
+  private final MapProperty<String, SignalFormulaeModel> allNodes = new SimpleMapProperty<>(
       FXCollections.observableHashMap());
   private final MapProperty<String, SubFormulaEdge> selectedEdges = new SimpleMapProperty<>(
       FXCollections.observableHashMap());
@@ -106,27 +106,27 @@ class FragmentGraphModel {
     this.precursorFormulaEditable.set(precursorFormulaEditable);
   }
 
-  public ObservableMap<String, PeakFormulaeModel> getSelectedNodes() {
+  public ObservableMap<String, SignalFormulaeModel> getSelectedNodes() {
     return selectedNodes.get();
   }
 
-  public MapProperty<String, PeakFormulaeModel> selectedNodesProperty() {
+  public MapProperty<String, SignalFormulaeModel> selectedNodesProperty() {
     return selectedNodes;
   }
 
-  public void setSelectedNodes(ObservableMap<String, PeakFormulaeModel> selectedNodes) {
+  public void setSelectedNodes(ObservableMap<String, SignalFormulaeModel> selectedNodes) {
     this.selectedNodes.set(selectedNodes);
   }
 
-  public ObservableMap<String, PeakFormulaeModel> getAllNodes() {
+  public ObservableMap<String, SignalFormulaeModel> getAllNodes() {
     return allNodes.get();
   }
 
-  public MapProperty<String, PeakFormulaeModel> allNodesProperty() {
+  public MapProperty<String, SignalFormulaeModel> allNodesProperty() {
     return allNodes;
   }
 
-  public void setAllNodes(ObservableMap<String, PeakFormulaeModel> allNodes) {
+  public void setAllNodes(ObservableMap<String, SignalFormulaeModel> allNodes) {
     this.allNodes.set(allNodes);
   }
 

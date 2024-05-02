@@ -27,19 +27,19 @@ package io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream;
 
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.dataprocessing.id_fraggraph.PeakWithFormulae;
+import io.github.mzmine.modules.dataprocessing.id_fraggraph.SignalWithFormulae;
 import io.github.mzmine.util.FormulaWithExactMz;
 import org.graphstream.graph.Node;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * Node attributes for a fragment graph. This class describes the available values and sets them
- * from a {@link PeakWithFormulae} and a {@link FormulaWithExactMz} to a {@link Node}.
+ * from a {@link SignalWithFormulae} and a {@link FormulaWithExactMz} to a {@link Node}.
  */
 public enum FragNodeAttr {
   MZ, INTENSITY, FORMULA;
 
-  public void setToNode(Node node, PeakWithFormulae peak) {
+  public void setToNode(Node node, SignalWithFormulae peak) {
     final NumberFormats formats = ConfigService.getGuiFormats();
     switch (this) {
       case MZ -> node.setAttribute(name(), formats.mz(peak.peak().getMZ()));

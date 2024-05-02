@@ -27,7 +27,7 @@ package io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream;
 
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.dataprocessing.id_fraggraph.PeakWithFormulae;
+import io.github.mzmine.modules.dataprocessing.id_fraggraph.SignalWithFormulae;
 import io.github.mzmine.util.FormulaWithExactMz;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
@@ -45,19 +45,19 @@ import org.jetbrains.annotations.Nullable;
  * <p>
  * TODO: add a reference to the filtered node.
  */
-public class PeakFormulaeModel {
+public class SignalFormulaeModel {
 
-  private static final Logger logger = Logger.getLogger(PeakFormulaeModel.class.getName());
+  private static final Logger logger = Logger.getLogger(SignalFormulaeModel.class.getName());
 
   private final Node unfilteredNode;
   private Node filteredNode = null;
-  private final PeakWithFormulae peakWithFormulae;
+  private final SignalWithFormulae signalWithFormulae;
   private final ObjectProperty<FormulaWithExactMz> selectedFormulaWithMz = new SimpleObjectProperty<>();
   private final DoubleProperty deltaMz = new SimpleDoubleProperty(0);
 
-  public PeakFormulaeModel(Node unfilteredNode, PeakWithFormulae formulae) {
+  public SignalFormulaeModel(Node unfilteredNode, SignalWithFormulae formulae) {
     this.unfilteredNode = unfilteredNode;
-    this.peakWithFormulae = formulae;
+    this.signalWithFormulae = formulae;
     final NumberFormats formats = ConfigService.getGuiFormats();
 
     deltaMz.bind(Bindings.createDoubleBinding(
@@ -85,8 +85,8 @@ public class PeakFormulaeModel {
     return unfilteredNode;
   }
 
-  public PeakWithFormulae getPeakWithFormulae() {
-    return peakWithFormulae;
+  public SignalWithFormulae getPeakWithFormulae() {
+    return signalWithFormulae;
   }
 
   public FormulaWithExactMz getSelectedFormulaWithMz() {
@@ -119,7 +119,7 @@ public class PeakFormulaeModel {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof PeakFormulaeModel model)) {
+    if (!(o instanceof SignalFormulaeModel model)) {
       return false;
     }
 

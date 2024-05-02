@@ -131,7 +131,7 @@ public class FragmentGraphCalcTask extends AbstractFeatureListTask {
         }
       }
 
-      final List<PeakWithFormulae> peaksWithFormulae = FragmentUtils.getPeaksWithFormulae(formula,
+      final List<SignalWithFormulae> peaksWithFormulae = FragmentUtils.getPeaksWithFormulae(formula,
           mergedMs2, defaultSignalFilter, ms2MergeTol);
     }
   }

@@ -126,7 +126,7 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
 
       // update mappings to filtered nodes
 //      network.getGraph().getEdgeFilteredGraph().nodes().forEach(node -> {
-//        final PeakFormulaeModel nodeModel = model.getAllNodes().get(node.getId());
+//        final SignalFormulaeModel nodeModel = model.getAllNodes().get(node.getId());
 //        if (nodeModel != null) {
 //          nodeModel.setFilteredNode(node);
 //        }
@@ -154,6 +154,8 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
         model.setSelectedEdges(FXCollections.observableMap(selectedEdges));
         logger.finest(() -> STR."Selected edges: \{selectedEdges.toString()}");
       });
+
+
     });
   }
 }
