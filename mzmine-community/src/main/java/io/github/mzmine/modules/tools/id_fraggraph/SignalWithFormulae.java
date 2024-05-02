@@ -23,31 +23,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_fraggraph;
+package io.github.mzmine.modules.tools.id_fraggraph;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.impl.TaskPerFeatureListModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.time.Instant;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.util.FormulaWithExactMz;
+import java.util.List;
 
-public class FragmentGraphCalcModule extends TaskPerFeatureListModule {
+public record SignalWithFormulae(DataPoint peak, List<FormulaWithExactMz> formulae) {
 
-  public FragmentGraphCalcModule() {
-    super("Fragment tree calculation", FragmentGraphCalcParameters.class,
-        MZmineModuleCategory.ANNOTATION, false,
-        "Calculates fragmentation trees based on MSn spectra.");
-  }
-
-  @Override
-  public @NotNull Task createTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage,
-      @NotNull FeatureList featureList) {
-    return null;
-  }
 }

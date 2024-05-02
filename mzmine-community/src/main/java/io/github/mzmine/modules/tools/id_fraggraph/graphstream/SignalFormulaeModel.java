@@ -23,11 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream;
+package io.github.mzmine.modules.tools.id_fraggraph.graphstream;
 
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.dataprocessing.id_fraggraph.SignalWithFormulae;
+import io.github.mzmine.modules.tools.id_fraggraph.SignalWithFormulae;
 import io.github.mzmine.util.FormulaWithExactMz;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;

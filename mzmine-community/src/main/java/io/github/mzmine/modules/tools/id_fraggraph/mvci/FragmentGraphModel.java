@@ -23,11 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_fraggraph.mvci;
+package io.github.mzmine.modules.tools.id_fraggraph.mvci;
 
 import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream.SignalFormulaeModel;
-import io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream.SubFormulaEdge;
+import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
+import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;

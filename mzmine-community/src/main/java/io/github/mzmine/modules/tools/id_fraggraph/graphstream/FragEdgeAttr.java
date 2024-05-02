@@ -23,40 +23,43 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream;
+package io.github.mzmine.modules.tools.id_fraggraph.graphstream;
 
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.dataprocessing.id_fraggraph.SignalWithFormulae;
-import io.github.mzmine.util.FormulaWithExactMz;
-import org.graphstream.graph.Node;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+import org.graphstream.graph.Edge;
 
 /**
- * Node attributes for a fragment graph. This class describes the available values and sets them
- * from a {@link SignalWithFormulae} and a {@link FormulaWithExactMz} to a {@link Node}.
+ * Edge attributes for a fragment graph. This class describes the available values and sets them
+ * from a {@link SubFormulaEdge} to an {@link Edge}.
  */
-public enum FragNodeAttr {
-  MZ, INTENSITY, FORMULA;
+public enum FragEdgeAttr {
+  DELTA_MZ, DELTA_FORMULA;
 
-  public void setToNode(Node node, SignalWithFormulae peak) {
+  public void setToEdgeAttributes(SubFormulaEdge edge, Edge graphEdge) {
     final NumberFormats formats = ConfigService.getGuiFormats();
-    switch (this) {
-      case MZ -> node.setAttribute(name(), formats.mz(peak.peak().getMZ()));
-      case INTENSITY -> node.setAttribute(name(), formats.intensity(peak.peak().getIntensity()));
-      case FORMULA -> {
-
-      }
-    }
+    graphEdge.setAttribute(name(), valueAsString(edge, formats));
   }
 
-  public void setToNode(Node node, FormulaWithExactMz peak) {
-    switch (this) {
-      case MZ, INTENSITY -> {
-      }
-      case FORMULA -> {
-        node.setAttribute(name(), MolecularFormulaManipulator.getString(peak.formula()));
-      }
-    }
+  public String valueAsString(SubFormulaEdge edge, NumberFormats formats) {
+    return switch (this) {
+      case DELTA_MZ -> formats.mz(edge.getDeltaMz());
+      case DELTA_FORMULA -> edge.getLossFormulaAsString();
+    };
+  }
+
+  public String valueAsString(SubFormulaEdge edge) {
+    final NumberFormats formats = ConfigService.getGuiFormats();
+    return valueAsString(edge, formats);
+  }
+
+  public static void applyAllAsLabel(SubFormulaEdge edge, Edge graphEdge) {
+    final NumberFormats formats = ConfigService.getGuiFormats();
+    final String label = Arrays.stream(FragEdgeAttr.values())
+        .map(attr -> attr.valueAsString(edge, formats)).filter(str -> !str.isBlank())
+        .collect(Collectors.joining("\n"));
+    graphEdge.setAttribute("ui.label", label);
   }
 }

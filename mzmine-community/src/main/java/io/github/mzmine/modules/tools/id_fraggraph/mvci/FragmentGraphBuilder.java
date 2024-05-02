@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_fraggraph.mvci;
+package io.github.mzmine.modules.tools.id_fraggraph.mvci;
 
 import static io.github.mzmine.javafx.components.util.FxLayout.newAccordion;
 import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
@@ -31,7 +31,7 @@ import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
 
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.dataprocessing.id_fraggraph.graphstream.SubFormulaEdge;
+import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
 import io.github.mzmine.modules.visualization.networking.visual.NetworkPane;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.Objects;

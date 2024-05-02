@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.id_fraggraph;
+package io.github.mzmine.modules.tools.id_fraggraph;
 
 import io.github.mzmine.datamodel.MergedMassSpectrum.MergingType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
