@@ -36,7 +36,7 @@ public class ParseTextToSpectrumUtil {
 
   public static MassSpectrum parseStringToSpectrum(String singalList) {
     if (singalList.isBlank()) {
-      return new SimpleMassSpectrum(new double[0], new double[0]);
+      return MassSpectrum.EMPTY;
     }
 
     final List<DataPoint> dataPoints = new ArrayList<>();
@@ -62,6 +62,9 @@ public class ParseTextToSpectrumUtil {
   }
 
   public static String spectrumToString(MassSpectrum spectrum) {
+    if(spectrum == null) {
+      return "";
+    }
     StringBuilder b = new StringBuilder();
     for (int i = 0; i < spectrum.getNumberOfDataPoints(); i++) {
       b.append(spectrum.getMzValue(i)).append("\t").append(spectrum.getIntensityValue(i));

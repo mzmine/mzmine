@@ -50,7 +50,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 public class FragmentUtils {
 
   @NotNull
-  static MolecularFormulaRange setupFormulaRange(@NotNull List<IonType> ionTypes) {
+  public static MolecularFormulaRange setupFormulaRange(@NotNull List<IonType> ionTypes) {
     final MolecularFormulaRange elementCounts = new MolecularFormulaRange();
 
     try {

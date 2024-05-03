@@ -40,8 +40,10 @@ public class FormulaTable extends TableView<ResultFormula> {
     TableColumn<ResultFormula, String> formula = new TableColumn<>("Ion formula");
     formula.setCellValueFactory(cell -> new ReadOnlyStringWrapper(
         MolecularFormulaManipulator.getString(cell.getValue().getFormulaAsObject())));
+    formula.setMinWidth(150);
 
     TableColumn<ResultFormula, Double> mz = new TableColumn<>("m/z");
+    mz.setMinWidth(100);
     mz.setCellValueFactory(cell -> {
       try {
         return new ReadOnlyObjectWrapper<>(
@@ -52,16 +54,23 @@ public class FormulaTable extends TableView<ResultFormula> {
     });
 
     TableColumn<ResultFormula, ResultFormula> ppm = new TableColumn<>("ppm");
+    ppm.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
+    ppm.setMinWidth(100);
     ppm.setCellFactory(col -> new TableCell<>() {
       {
         textProperty().bind(Bindings.createStringBinding(() -> {
           final ResultFormula formula1 = itemProperty().get();
+          if (formula1 == null) {
+            return "";
+          }
           return formats.ppm(formula1.getPpmDiff());
         }, itemProperty()));
       }
     });
 
     TableColumn<ResultFormula, ResultFormula> abs = new TableColumn<>("abs.");
+    abs.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
+    abs.setMinWidth(100);
     abs.setCellFactory(col -> new TableCell<>() {
       {
         textProperty().bind(Bindings.createStringBinding(() -> {
@@ -69,12 +78,14 @@ public class FormulaTable extends TableView<ResultFormula> {
           if (form == null) {
             return "";
           }
-          return formats.ppm(form.getPpmDiff());
+          return formats.mz(form.getAbsoluteMzDiff());
         }, itemProperty()));
       }
     });
 
     TableColumn<ResultFormula, ResultFormula> isoScore = new TableColumn<>("Isotope score");
+    isoScore.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
+    isoScore.setMinWidth(100);
     isoScore.setCellFactory(col -> new TableCell<>() {
       {
         textProperty().bind(Bindings.createStringBinding(() -> {
@@ -83,11 +94,13 @@ public class FormulaTable extends TableView<ResultFormula> {
             return "0.0";
           }
           return formats.score(Objects.requireNonNullElse(form.getIsotopeScore(), 0f));
-        }));
+        }, itemProperty()));
       }
     });
 
     TableColumn<ResultFormula, ResultFormula> ms2Score = new TableColumn<>("MS2 score");
+    ms2Score.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
+    ms2Score.setMinWidth(100);
     ms2Score.setCellFactory(col -> new TableCell<>() {
       {
         textProperty().bind(Bindings.createStringBinding(() -> {
@@ -96,7 +109,7 @@ public class FormulaTable extends TableView<ResultFormula> {
             return "0.0";
           }
           return formats.score(Objects.requireNonNullElse(form.getMSMSScore(), 0f));
-        }));
+        }, itemProperty()));
       }
     });
 

@@ -31,34 +31,58 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
-import io.github.mzmine.util.FormulaWithExactMz;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyMapProperty;
 import javafx.beans.property.ReadOnlyMapWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class FragDashboardModel {
 
+  /**
+   * Controls the fragment signals to be matched to. Bound bidirectionally to a text field to
+   * manually edit the input.
+   */
   private final ObjectProperty<MassSpectrum> spectrum = new SimpleObjectProperty<>();
+
+  /**
+   * Controls the isotope signals to be matched to. Bound bidirectionally to a text field to
+   * manually edit the input.
+   */
   private final ObjectProperty<MassSpectrum> isotopePattern = new SimpleObjectProperty<>();
+
+  /**
+   * The measured precursor m/z (accurate mass).
+   */
   private final DoubleProperty precursorMz = new SimpleDoubleProperty();
   private final ObjectProperty<IonType> ionType = new SimpleObjectProperty<>(
       new IonType(IonModification.H));
   private final ListProperty<IonType> ionTypes = new SimpleListProperty<>(
       FXCollections.observableArrayList(new IonType(IonModification.H),
           new IonType(IonModification.H_NEG)));
-  private final ListProperty<ResultFormula> precursorFormulae = new SimpleListProperty<>();
+
+  /**
+   * A list of possible precursor formulae for the given precursor m/z. Displayed in a table in the
+   * view.
+   */
+  private final ListProperty<ResultFormula> precursorFormulae = new SimpleListProperty<>(FXCollections.observableArrayList());
+
+  /**
+   * The currently selected precursor formula.
+   */
   private final ObjectProperty<IMolecularFormula> precursorFormula = new SimpleObjectProperty<>();
+
+  private final BooleanProperty allowGraphRecalculation = new SimpleBooleanProperty(false);
   private final ListProperty<SignalFormulaeModel> selectedNodes = new SimpleListProperty<>(
       FXCollections.observableArrayList());
   private final ListProperty<SubFormulaEdge> selectedEdges = new SimpleListProperty<>(
@@ -225,5 +249,17 @@ public class FragDashboardModel {
 
   MapProperty<String, SubFormulaEdge> allEdgesMapPropertyModifiable() {
     return allEdgesMap;
+  }
+
+  public boolean getAllowGraphRecalculation() {
+    return allowGraphRecalculation.get();
+  }
+
+  public BooleanProperty allowGraphRecalculationProperty() {
+    return allowGraphRecalculation;
+  }
+
+  public void setAllowGraphRecalculation(boolean allowGraphRecalculation) {
+    this.allowGraphRecalculation.set(allowGraphRecalculation);
   }
 }

@@ -25,11 +25,17 @@
 
 package io.github.mzmine.modules.tools.fraggraphdashboard;
 
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable.SpectrumPlotTableController;
 import io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable.SpectrumPlotTableViewBuilder.Layout;
+import io.github.mzmine.modules.tools.id_fraggraph.mvci.FormulaChangedUpdateTask;
 import io.github.mzmine.modules.tools.id_fraggraph.mvci.FragmentGraphController;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import java.util.List;
+import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 
 public class FragDashboardController extends FxController<FragDashboardModel> {
@@ -37,12 +43,12 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
   private FragDashboardBuilder fragDashboardBuilder;
   private final FragmentGraphController fragmentGraphController = new FragmentGraphController();
 
-  protected FragDashboardController() {
+  public FragDashboardController() {
     super(new FragDashboardModel());
 
-    model.precursorFormulaProperty()
-        .bindBidirectional(fragmentGraphController.precursorFormulaProperty());
-    model.spectrumProperty().bindBidirectional(fragmentGraphController.spectrumProperty());
+//    model.precursorFormulaProperty()
+//        .bindBidirectional(fragmentGraphController.precursorFormulaProperty());
+//    model.spectrumProperty().bindBidirectional(fragmentGraphController.spectrumProperty());
     model.allEdgesProperty().bindBidirectional(fragmentGraphController.allEdgesProperty());
     model.allNodesProperty().bindBidirectional(fragmentGraphController.allNodesProperty());
     model.selectedEdgesProperty()
@@ -54,12 +60,34 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
     SpectrumPlotTableController isotopeController = new SpectrumPlotTableController(
         Layout.HORIZONTAL);
 
+    model.spectrumProperty().bindBidirectional(ms2Controller.spectrumProperty());
+    model.isotopePatternProperty().bindBidirectional(isotopeController.spectrumProperty());
+
     fragDashboardBuilder = new FragDashboardBuilder(model, fragmentGraphController.buildView(),
-        ms2Controller.buildView(), isotopeController.buildView());
+        ms2Controller.buildView(), isotopeController.buildView(), this::updateFragmentGraph,
+        this::startFormulaCalculation);
   }
 
   @Override
   protected @NotNull FxViewBuilder<FragDashboardModel> getViewBuilder() {
     return fragDashboardBuilder;
+  }
+
+  public void updateFragmentGraph() {
+    fragmentGraphController.precursorFormulaProperty().set(model.getPrecursorFormula());
+    fragmentGraphController.spectrumProperty().set(model.getSpectrum());
+  }
+
+  public void startFormulaCalculation() {
+    onTaskThreadDelayed(
+        new FragGraphPrecursorFormulaTask(model, null, new MZTolerance(0.005, 15), true, true, 20,
+            PolarityType.POSITIVE, List.of(), new MZTolerance(0.005, 15)), new Duration(200));
+  }
+
+  public void setInput(double precursorMz, @NotNull MassSpectrum ms2Spectrum,
+      @NotNull MassSpectrum isotopePattern) {
+    model.setPrecursorMz(precursorMz);
+    model.setSpectrum(ms2Spectrum);
+    model.setIsotopePattern(isotopePattern);
   }
 }

@@ -20,6 +20,7 @@
 package io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable;
 
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -27,8 +28,8 @@ import javafx.beans.property.StringProperty;
 
 public class SpectrumPlotTableModel {
 
-  private final ObjectProperty<MassSpectrum> spectrum = new SimpleObjectProperty<>();
-  private final StringProperty signalList = new SimpleStringProperty();
+  private final ObjectProperty<MassSpectrum> spectrum = new SimpleObjectProperty<>(MassSpectrum.EMPTY);
+  private final StringProperty signalList = new SimpleStringProperty("");
 
   public MassSpectrum getSpectrum() {
     return spectrum.get();

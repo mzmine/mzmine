@@ -28,8 +28,14 @@ package io.github.mzmine.modules.tools.fraggraphdashboard.nodetable;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
+import java.text.ParseException;
+import java.util.Comparator;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
+import javafx.util.Callback;
 
 public class NodeTable extends TableView<SignalFormulaeModel> {
 
@@ -40,13 +46,28 @@ public class NodeTable extends TableView<SignalFormulaeModel> {
 
     final TableColumn<SignalFormulaeModel, SignalFormulaeModel> mzColumn = new TableColumn<>("m/z");
     mzColumn.setCellFactory(_ -> new MzCell());
+    mzColumn.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
+    mzColumn.setComparator(
+        Comparator.comparingDouble(sfm -> sfm.getPeakWithFormulae().peak().getMZ()));
+    mzColumn.setMinWidth(70);
 
-    final TableColumn<SignalFormulaeModel, SignalFormulaeModel> formulaColumn = new TableColumn<>("Formula");
+    final TableColumn<SignalFormulaeModel, SignalFormulaeModel> formulaColumn = new TableColumn<>(
+        "Formula");
     formulaColumn.setCellFactory(_ -> new FormulaComboCell());
+    formulaColumn.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
+    formulaColumn.setMinWidth(150);
 
     final TableColumn<SignalFormulaeModel, String> deltaMzColumn = new TableColumn<>("Δm/z");
     deltaMzColumn.setCellValueFactory(
         param -> param.getValue().deltaMzProperty().map(delta -> formats.mz(delta.doubleValue())));
+    deltaMzColumn.setMinWidth(70);
+    deltaMzColumn.setComparator(Comparator.comparingDouble(ppmStr -> {
+      try {
+        return formats.mzFormat().parse(ppmStr).doubleValue();
+      } catch (ParseException e) {
+        return 0.0d;
+      }
+    }));
 
     getColumns().add(mzColumn);
     getColumns().add(formulaColumn);

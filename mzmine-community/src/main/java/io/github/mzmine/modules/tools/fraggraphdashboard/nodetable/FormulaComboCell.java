@@ -27,19 +27,69 @@ package io.github.mzmine.modules.tools.fraggraphdashboard.nodetable;
 
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
 import io.github.mzmine.util.FormulaWithExactMz;
+import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableCell;
+import javafx.util.StringConverter;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaComboCell extends TableCell<SignalFormulaeModel, SignalFormulaeModel> {
 
-  public FormulaComboCell() {
-    final ComboBox<FormulaWithExactMz> combo = new ComboBox<>();
+  private static Logger logger = Logger.getLogger(FormulaComboCell.class.getName());
 
-    combo.itemsProperty().bind(Bindings.createObjectBinding(
-        () -> FXCollections.observableList(itemProperty().get().getPeakWithFormulae().formulae()),
-        itemProperty()));
-    combo.valueProperty().bindBidirectional(itemProperty().get().selectedFormulaWithMzProperty());
+  private final ComboBox<FormulaWithExactMz> combo = new ComboBox<>();
+
+  public FormulaComboCell() {
+
+//    combo.itemsProperty().bind(Bindings.createObjectBinding(
+//        () -> itemProperty().get() == null ? FXCollections.emptyObservableList()
+//            : FXCollections.observableList(itemProperty().get().getPeakWithFormulae().formulae()),
+//        itemProperty()));
+
+//    combo.valueProperty().bindBidirectional(itemProperty().get().selectedFormulaWithMzProperty());
+    setGraphic(combo);
+    combo.valueProperty().addListener((_, o, n) -> {
+      if (n == null || getItem() == null) {
+        return;
+      }
+      if (!getItem().getPeakWithFormulae().formulae().contains(n)) {
+        logger.warning("Selected formula not a part of the item.");
+        return;
+      }
+      if (getItem().getSelectedFormulaWithMz().equals(n)) {
+        return;
+      }
+      logger.finest(() -> STR."Updating selected formula from \{o} to \{n}.");
+      getItem().setSelectedFormulaWithMz(n);
+    });
+    combo.setConverter(new StringConverter<>() {
+      @Override
+      public String toString(FormulaWithExactMz formulaWithExactMz) {
+        if (formulaWithExactMz == null || formulaWithExactMz.formula() == null) {
+          return null;
+        }
+        return MolecularFormulaManipulator.getString(formulaWithExactMz.formula());
+      }
+
+      @Override
+      public FormulaWithExactMz fromString(String s) {
+        return null;
+      }
+    });
+  }
+
+  @Override
+  protected void updateItem(SignalFormulaeModel item, boolean empty) {
+    super.updateItem(item, empty);
+    if (empty || item == null) {
+      setGraphic(null);
+      setText(null);
+      return;
+    }
+
+    combo.getItems().setAll(item.getPeakWithFormulae().formulae());
+    combo.getSelectionModel().select(item.getSelectedFormulaWithMz());
   }
 }

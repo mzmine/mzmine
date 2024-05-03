@@ -234,6 +234,32 @@ public class ScanUtils {
     return result;
   }
 
+  public static DataPoint[] normalizeSpectrum(@NotNull MassSpectrum spectrum,
+      double normalizedValue) {
+    int basePeakIndex = spectrum.getBasePeakIndex();
+    if (basePeakIndex < 0) {
+      return new DataPoint[0];
+    }
+    final double maxIntensity = spectrum.getBasePeakIntensity();
+
+    DataPoint dataPoints[] = ScanUtils.extractDataPoints(spectrum);
+
+    DataPoint newDataPoints[] = new DataPoint[dataPoints.length];
+
+    for (int i = 0; i < dataPoints.length; i++) {
+
+      double mz = dataPoints[i].getMZ();
+      double intensity = dataPoints[i].getIntensity() / maxIntensity * normalizedValue;
+
+      newDataPoints[i] = new SimpleDataPoint(mz, intensity);
+    }
+    return newDataPoints;
+  }
+
+  public static DataPoint[] normalizeSpectrum(MassSpectrum spec) {
+    return normalizeSpectrum(spec, 1);
+  }
+
   /**
    * Find a base peak of a given scan in a given m/z range
    *
@@ -519,7 +545,7 @@ public class ScanUtils {
           }
 
           double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
-                                                                       - leftNeighbourBinIndex);
+              - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }

@@ -26,6 +26,7 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.util.collections.BinarySearch;
 import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +44,8 @@ import org.jetbrains.annotations.Nullable;
  * {@code ArrayList<DataPoint> list = new ArrayList<>(); list.addAll(spectrum);}
  */
 public interface MassSpectrum extends Iterable<DataPoint> {
+
+  MassSpectrum EMPTY =  new SimpleMassSpectrum(new double[0], new double[0]);
 
   /**
    * @return Number of m/z and intensity data points. This corresponds to the capacity of the

@@ -20,18 +20,25 @@
 package io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable;
 
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ProviderAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.MassSpectrumProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
+import java.util.logging.Logger;
 import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
+import org.freehep.graphicsio.emf.gdi.TextA;
 
 public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTableModel> {
+
+  private static Logger logger = Logger.getLogger(SpectrumPlotTableViewBuilder.class.getName());
 
   private final Layout layout;
 
@@ -42,11 +49,13 @@ public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTabl
 
   @Override
   public Region build() {
-
     Region pane;
-
-    TextField peaks = new TextField();
-    peaks.textProperty().bindBidirectional(model.signalListProperty());
+    TextArea peakTable = new TextArea();
+    model.signalListProperty().bindBidirectional(peakTable.textProperty());
+    peakTable.textProperty().addListener((_, _, t) -> model.signalListProperty()
+        .getValue()); // if we dont do this the binding is only updated when it feels like it
+//    model.signalListProperty().addListener((_, _, t) -> logger.info("trigger signalList"));
+//    model.spectrumProperty().addListener((_, _, t) -> logger.info("trigger spectrum"));
 
     SimpleXYChart<PlotXYDataProvider> plot = new SimpleXYChart<>();
     model.spectrumProperty().addListener((_, _, spec) -> {
@@ -55,15 +64,15 @@ public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTabl
         if (spec == null) {
           return;
         }
-        plot.addDataset(new MassSpectrumProvider(spec, "Spectrum",
-            ConfigService.getDefaultColorPalette().getAWT(0)));
+        plot.addDataset(new ProviderAndRenderer(new MassSpectrumProvider(spec, "Spectrum",
+            ConfigService.getDefaultColorPalette().getAWT(0)), new ColoredXYBarRenderer(false)));
       });
     });
     plot.setMinSize(200, 200);
 
     pane = switch (layout) {
       case HORIZONTAL, VERTICAL -> {
-        var split = new SplitPane(plot, peaks);
+        var split = new SplitPane(plot, peakTable);
         split.setOrientation(
             layout == Layout.HORIZONTAL ? Orientation.HORIZONTAL : Orientation.VERTICAL);
         yield split;
@@ -72,7 +81,7 @@ public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTabl
         var spectrumTab = new Tab("Spectrum");
         spectrumTab.setContent(plot);
         var textTab = new Tab("Signal list");
-        textTab.setContent(peaks);
+        textTab.setContent(peakTable);
         yield new TabPane(spectrumTab, textTab);
       }
     };

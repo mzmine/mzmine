@@ -26,11 +26,16 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
-import io.github.mzmine.modules.tools.id_fraggraph.FragGraphPrecursorFormulaTask;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardController;
+import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardModel;
+import io.github.mzmine.modules.tools.fraggraphdashboard.FragGraphPrecursorFormulaTask;
 import io.github.mzmine.modules.tools.id_fraggraph.mvci.FragmentGraphController;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.List;
@@ -48,34 +53,21 @@ public class FragWindow {
 
   private static final double[] caffeineMzs = new double[]{42.03426, 69.04623, 83.06062, 108.05574,
       110.06946, 122.07037, 123.04293, 138.06653, 194.49059, 195.08994};
-  private static final double[] caffeineIntensities = new double[]{26.287885, 7.195664, 3.313599, 1.74958,
-      24.935937, 1.416748, 7.110247, 93.499455, 1.125151, 100};
+  private static final double[] caffeineIntensities = new double[]{26.287885, 7.195664, 3.313599,
+      1.74958, 24.935937, 1.416748, 7.110247, 93.499455, 1.125151, 100};
 
   private static final MassList caffeineSpectrum = new SimpleMassList(null, caffeineMzs,
       caffeineIntensities);
 
-  private static FragmentGraphController controller;
+  private static FragDashboardController controller;
 
   public static Region testWindow() {
 
-    controller = new FragmentGraphController();
+    controller = new FragDashboardController();
     final Region region = controller.buildView();
 
-    FragGraphPrecursorFormulaTask formulaTask = new FragGraphPrecursorFormulaTask(null, 195.08994,
-        PolarityType.POSITIVE, 1,
-        List.of(new IonType(IonModification.H), new IonType(IonModification.NA)), null,
-        new MZTolerance(0.005, 10), true, true, 20);
-
-    final MolecularFormulaGenerator generator = formulaTask.setUpFormulaGenerator();
-    formulaTask.generateFormulae(false, generator);
-
-    final ConcurrentLinkedQueue<IMolecularFormula> formulae = formulaTask.get();
-
-    final Optional<IMolecularFormula> caffeineOptional = formulae.stream()
-        .filter(f -> MolecularFormulaManipulator.getString(f).equals("[C8H11N4O2]+")).findAny();
-    final IMolecularFormula caf = caffeineOptional.get();
-
-    controller.update(caffeineSpectrum, caf);
+    controller.setInput(195.08994, caffeineSpectrum,
+        new SimpleMassSpectrum(new double[0], new double[0]));
 
     return region;
   }

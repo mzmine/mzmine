@@ -1,44 +1,54 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * This file is part of MZmine.
  *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ *
  */
 
-package io.github.mzmine.modules.tools.id_fraggraph;
+package io.github.mzmine.modules.tools.fraggraphdashboard;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.mvci.FxUpdateTask;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicChecker;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
+import io.github.mzmine.modules.tools.id_fraggraph.FragmentUtils;
+import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
+import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.operations.TaskSubProcessor;
 import io.github.mzmine.taskcontrol.operations.TaskSubSupplier;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javax.validation.constraints.Null;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
@@ -47,24 +57,16 @@ import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 
-public class FragGraphPrecursorFormulaTask implements TaskSubProcessor,
-    TaskSubSupplier<ConcurrentLinkedQueue<IMolecularFormula>> {
+public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardModel> {
 
   private static final int DEFAULT_MAX_FORMULA_COUNT = 100;
 
-  private Task parent;
   private final IonType ionTypeOverride;
   private final MZTolerance formulaTolerance;
   private final boolean checkCHONPS;
   private final boolean checkRDBE;
 
-  /**
-   * List of viable formulae. This queue may be polled from another task to compute the
-   * fragmentation tree.
-   */
-  final ConcurrentLinkedQueue<IMolecularFormula> formulae = new ConcurrentLinkedQueue<>();
   private MolecularFormulaGenerator generator;
-
   private final int maxFormulaCount;
   private int formulaCount = 0;
   private final Integer charge;
@@ -72,20 +74,23 @@ public class FragGraphPrecursorFormulaTask implements TaskSubProcessor,
   private final double averageMZ;
   private final String desc;
   private final List<IonType> assignedIonTypes;
+  private final MassSpectrum ms2Spectrum;
+  private final MassSpectrum measuredIsotopePattern;
 
-  public FragGraphPrecursorFormulaTask(@Nullable Task parent, @NotNull FeatureListRow row,
+  @NotNull
+  private MZTolerance ms2Tolerance = new MZTolerance(0.005, 15);
+
+  public FragGraphPrecursorFormulaTask(FragDashboardModel model, @NotNull FeatureListRow row,
       @Nullable IonType ionTypeOverride, @NotNull MZTolerance formulaTolerance, boolean checkCHONPS,
       boolean checkRDBE) {
-
-    this(parent, row, ionTypeOverride, formulaTolerance, checkCHONPS, checkRDBE,
+    this(model, row, ionTypeOverride, formulaTolerance, checkCHONPS, checkRDBE,
         DEFAULT_MAX_FORMULA_COUNT);
   }
 
-  public FragGraphPrecursorFormulaTask(@Nullable Task parent, @NotNull FeatureListRow row,
+  public FragGraphPrecursorFormulaTask(FragDashboardModel model, @NotNull FeatureListRow row,
       @Nullable IonType ionTypeOverride, @NotNull MZTolerance formulaTolerance, boolean checkCHONPS,
       boolean checkRDBE, int maxFormulaCount) {
-
-    this.parent = parent;
+    super("Calculate precursor formulae", model);
     charge = row.getRowCharge();
     polarity = row.getBestFeature().getRepresentativeScan().getPolarity();
     averageMZ = row.getAverageMZ();
@@ -102,14 +107,16 @@ public class FragGraphPrecursorFormulaTask implements TaskSubProcessor,
     this.checkCHONPS = checkCHONPS;
     this.checkRDBE = checkRDBE;
     this.maxFormulaCount = maxFormulaCount;
+    this.ms2Spectrum = row.getMostIntenseFragmentScan();
+    this.measuredIsotopePattern = row.getBestIsotopePattern();
   }
 
-  public FragGraphPrecursorFormulaTask(@Nullable Task parent, double mz, PolarityType polarity,
+  public FragGraphPrecursorFormulaTask(FragDashboardModel model, double mz, PolarityType polarity,
       int charge, @NotNull List<IonType> possibleIonTypes, @Nullable IonType ionTypeOverride,
       @NotNull MZTolerance formulaTolerance, boolean checkCHONPS, boolean checkRDBE,
-      int maxFormulaCount) {
+      int maxFormulaCount, MassSpectrum ms2Spectrum, MassSpectrum isotopePattern) {
+    super("Calculate precursor formulae", model);
 
-    this.parent = parent;
     this.charge = charge;
     this.polarity = polarity;
     this.averageMZ = mz;
@@ -126,16 +133,28 @@ public class FragGraphPrecursorFormulaTask implements TaskSubProcessor,
     this.checkCHONPS = checkCHONPS;
     this.checkRDBE = checkRDBE;
     this.maxFormulaCount = maxFormulaCount;
+    this.ms2Spectrum = ms2Spectrum;
+    this.measuredIsotopePattern = isotopePattern;
   }
 
-  @Override
-  public Task getParentTask() {
-    return parent;
-  }
-
-  @Override
-  public void setParentTask(@Nullable Task parentTask) {
-    this.parent = parentTask;
+  public FragGraphPrecursorFormulaTask(@NotNull FragDashboardModel model,
+      @Nullable IonType ionTypeOverride, @NotNull MZTolerance formulaTolerance, boolean checkCHONPS,
+      boolean checkRDBE, int maxFormulaCount, @NotNull PolarityType polarity,
+      @NotNull List<IonType> assignedIonTypes, @NotNull MZTolerance ms2Tolerance) {
+    super("Calculate precursor formulae", model);
+    this.ionTypeOverride = ionTypeOverride;
+    this.formulaTolerance = formulaTolerance;
+    this.checkCHONPS = checkCHONPS;
+    this.checkRDBE = checkRDBE;
+    this.maxFormulaCount = maxFormulaCount;
+    this.ms2Tolerance = ms2Tolerance;
+    this.charge = 1;
+    this.polarity = polarity;
+    this.averageMZ = model.getPrecursorMz();
+    this.desc = getName();
+    this.assignedIonTypes = assignedIonTypes;
+    this.ms2Spectrum = model.getSpectrum();
+    this.measuredIsotopePattern = model.getIsotopePattern();
   }
 
   @Override
@@ -155,6 +174,11 @@ public class FragGraphPrecursorFormulaTask implements TaskSubProcessor,
 
     generator = setUpFormulaGenerator();
     generateFormulae(couldBeRadical, generator);
+  }
+
+  @Override
+  protected void updateGuiModel() {
+
   }
 
 
@@ -178,14 +202,28 @@ public class FragGraphPrecursorFormulaTask implements TaskSubProcessor,
     IMolecularFormula formula = null;
     do {
       formula = generator.getNextFormula();
+      if (isCanceled() || formulaCount >= maxFormulaCount) {
+        break;
+      }
+
       if (isFeasibleFormula(couldBeRadical, formula)) {
         formula.setCharge(polarity.getSign() * charge);
-        formulae.add(formula);
+
+        final IsotopePattern calcIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(
+            formula, 0.01, formulaTolerance.getMzToleranceForMass(averageMZ), charge, polarity,
+            false);
+        final float isotopeSimilarity = IsotopePatternScoreCalculator.getSimilarityScore(
+            measuredIsotopePattern, calcIsotopePattern, formulaTolerance, 0.1);
+
+        final MSMSScore msmsScore = MSMSScoreCalculator.evaluateMSMS(ms2Tolerance, formula,
+            ScanUtils.extractDataPoints(ms2Spectrum), averageMZ, charge);
+
+        final ResultFormula resultFormula = new ResultFormula(formula, calcIsotopePattern,
+            isotopeSimilarity, msmsScore.explainedIntensity(), msmsScore.annotation(), averageMZ);
+
+        // i know we should not do this, but it will take forever otherwise.
+        FxThread.runLater(() -> model.getPrecursorFormulae().add(resultFormula));
         formulaCount++;
-      }
-      if (isCanceled() || (parent != null && parent.isCanceled())
-          || formulaCount >= maxFormulaCount) {
-        break;
       }
     } while (formula != null);
   }
@@ -194,8 +232,8 @@ public class FragGraphPrecursorFormulaTask implements TaskSubProcessor,
     if (formula == null) {
       return false;
     }
-    if (formula != null && //
-        (checkCHONPS && ElementalHeuristicChecker.checkFormula(formula, true, true, true))) {
+
+    if (checkCHONPS && ElementalHeuristicChecker.checkFormula(formula, true, true, true)) {
 
       final Double rdbe = RDBERestrictionChecker.calculateRDBE(formula);
       if (checkRDBE && rdbe != null) {
@@ -207,10 +245,5 @@ public class FragGraphPrecursorFormulaTask implements TaskSubProcessor,
       }
     }
     return false;
-  }
-
-  @Override
-  public ConcurrentLinkedQueue<IMolecularFormula> get() {
-    return formulae;
   }
 }
