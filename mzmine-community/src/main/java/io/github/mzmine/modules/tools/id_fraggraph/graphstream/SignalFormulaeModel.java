@@ -26,17 +26,21 @@
 package io.github.mzmine.modules.tools.id_fraggraph.graphstream;
 
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.javafx.properties.PropertyUtils;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.id_fraggraph.SignalWithFormulae;
 import io.github.mzmine.util.FormulaWithExactMz;
+import io.github.mzmine.util.GraphStreamUtils;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Maps the results of the formula prediction to a node in a fragment graph. Contains all available
@@ -50,7 +54,7 @@ public class SignalFormulaeModel {
   private static final Logger logger = Logger.getLogger(SignalFormulaeModel.class.getName());
 
   private final Node unfilteredNode;
-  private Node filteredNode = null;
+  private final List<Graph> passThroughGraphs = new ArrayList<>();
   private final SignalWithFormulae signalWithFormulae;
   private final ObjectProperty<FormulaWithExactMz> selectedFormulaWithMz = new SimpleObjectProperty<>();
   private final DoubleProperty deltaMz = new SimpleDoubleProperty(0);
@@ -79,6 +83,22 @@ public class SignalFormulaeModel {
       // todo: can we even trigger edge updates from here?
     });
     selectedFormulaWithMz.set(formulae.formulae().getFirst());
+
+    // todo does this work every time? are the listeners above triggered before or after this binding?
+    //  should be ok if it is added last?
+    PropertyUtils.onChange(this::applyToPassThroughGraphs, deltaMz, selectedFormulaWithMz);
+  }
+
+  private void applyToPassThroughGraphs() {
+    final String nodeId = unfilteredNode.getId();
+
+    passThroughGraphs.forEach(g -> {
+      final Node node = g.getNode(nodeId);
+      if(node == null) {
+        return;
+      }
+      GraphStreamUtils.copyAttributes(unfilteredNode, node);
+    });
   }
 
   public Node getUnfilteredNode() {
@@ -146,19 +166,22 @@ public class SignalFormulaeModel {
     return STR."PeakFormulaeModel{node=\{unfilteredNode}, selectedFormulaWithMz=\{selectedFormulaWithMz}, deltaMz=\{deltaMz}\{'}'}";
   }
 
-  public void setFilteredNode(@Nullable Node node) {
-    if(this.filteredNode != null) {
-      logger.warning(() -> STR."Warning, node for \{toString()} has already been set. Resetting.");
-    }
-    filteredNode = node;
-  }
-
-  @Nullable
-  public Node getFilteredNode() {
-    return filteredNode;
-  }
-
   public String getId() {
     return getUnfilteredNode().getId();
+  }
+
+  public void addPassThroughGraph(Graph g) {
+    if(g == null) {
+      return;
+    }
+    passThroughGraphs.add(g);
+  }
+
+  public void removePassThroughGraph(Graph g) {
+    passThroughGraphs.remove(g);
+  }
+
+  public void clearPassThroughGraphs() {
+    passThroughGraphs.clear();
   }
 }

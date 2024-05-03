@@ -28,6 +28,10 @@ package io.github.mzmine.modules.tools.id_fraggraph.mvci;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
+import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
+import javafx.beans.property.MapProperty;
+import javafx.beans.property.ObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
@@ -55,5 +59,29 @@ public class FragmentGraphController extends FxController<FragmentGraphModel> {
 
   private void calculateNewGraph() {
     onTaskThreadDelayed(new FormulaChangedUpdateTask("Calculate new fragment graph", model));
+  }
+
+  public ObjectProperty<IMolecularFormula> precursorFormulaProperty() {
+    return model.precursorFormulaProperty();
+  }
+
+  public ObjectProperty<MassSpectrum> spectrumProperty() {
+    return model.spectrumProperty();
+  }
+
+  public MapProperty<String, SignalFormulaeModel> selectedNodesProperty() {
+    return model.selectedNodesProperty();
+  }
+
+  public MapProperty<String, SignalFormulaeModel> allNodesProperty() {
+    return model.allNodesProperty();
+  }
+
+  public MapProperty<String, SubFormulaEdge> selectedEdgesProperty() {
+    return model.selectedEdgesProperty();
+  }
+
+  public MapProperty<String, SubFormulaEdge> allEdgesProperty() {
+    return model.allEdgesProperty();
   }
 }

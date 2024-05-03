@@ -23,31 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.id_fraggraph.mvci;
+package io.github.mzmine.modules.tools.fraggraphdashboard;
 
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
-import org.graphstream.graph.implementations.MultiGraph;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-class FragmentGraphModel {
-
-  FragmentGraphModel() {
-  }
-
+public class FragDashboardModel {
   private final ObjectProperty<IMolecularFormula> precursorFormula = new SimpleObjectProperty<>();
   private final ObjectProperty<MassSpectrum> spectrum = new SimpleObjectProperty<>();
-  private final BooleanProperty precursorFormulaEditable = new SimpleBooleanProperty(false);
-  private final ObjectProperty<MultiGraph> graph = new SimpleObjectProperty<>();
   private final MapProperty<String, SignalFormulaeModel> selectedNodes = new SimpleMapProperty<>(
       FXCollections.observableHashMap());
   private final MapProperty<String, SignalFormulaeModel> allNodes = new SimpleMapProperty<>(
@@ -57,6 +48,8 @@ class FragmentGraphModel {
   private final MapProperty<String, SubFormulaEdge> allEdges = new SimpleMapProperty<>(
       FXCollections.observableHashMap());
 
+  public FragDashboardModel() {
+  }
 
   public IMolecularFormula getPrecursorFormula() {
     return precursorFormula.get();
@@ -80,30 +73,6 @@ class FragmentGraphModel {
 
   public void setSpectrum(MassSpectrum spectrum) {
     this.spectrum.set(spectrum);
-  }
-
-  public MultiGraph getGraph() {
-    return graph.get();
-  }
-
-  public ObjectProperty<MultiGraph> graphProperty() {
-    return graph;
-  }
-
-  public void setGraph(MultiGraph graph) {
-    this.graph.set(graph);
-  }
-
-  public boolean isPrecursorFormulaEditable() {
-    return precursorFormulaEditable.get();
-  }
-
-  public BooleanProperty precursorFormulaEditableProperty() {
-    return precursorFormulaEditable;
-  }
-
-  public void setPrecursorFormulaEditable(boolean precursorFormulaEditable) {
-    this.precursorFormulaEditable.set(precursorFormulaEditable);
   }
 
   public ObservableMap<String, SignalFormulaeModel> getSelectedNodes() {

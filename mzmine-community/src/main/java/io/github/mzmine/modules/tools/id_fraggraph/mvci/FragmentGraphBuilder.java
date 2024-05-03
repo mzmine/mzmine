@@ -96,6 +96,7 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
   private TextField createBoundFormulaTextField() {
     final TextField formulaField = new TextField();
     formulaField.editableProperty().bind(model.precursorFormulaEditableProperty());
+
     Bindings.bindBidirectional(formulaField.textProperty(), model.precursorFormulaProperty(),
         new StringConverter<>() {
           @Override
@@ -124,6 +125,10 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
       NetworkPane network = new NetworkPane(graph.getId(), false, graph);
       network.showFullGraph();
 
+      model.getAllNodes().values().forEach(nodeModel -> {
+        nodeModel.clearPassThroughGraphs();
+        nodeModel.addPassThroughGraph(network.getGraphicGraph());
+      });
       // update mappings to filtered nodes
 //      network.getGraph().getEdgeFilteredGraph().nodes().forEach(node -> {
 //        final SignalFormulaeModel nodeModel = model.getAllNodes().get(node.getId());
@@ -154,8 +159,6 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
         model.setSelectedEdges(FXCollections.observableMap(selectedEdges));
         logger.finest(() -> STR."Selected edges: \{selectedEdges.toString()}");
       });
-
-
     });
   }
 }
