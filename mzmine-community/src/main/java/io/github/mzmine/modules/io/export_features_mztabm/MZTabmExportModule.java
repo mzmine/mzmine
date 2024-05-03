@@ -39,42 +39,37 @@ import java.util.Collection;
 public class MZTabmExportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Export to mzTab-m file.";
-  //TODO modify desc
+
   private static final String MODULE_DESCRIPTION = //
       "This method exports the feature list contents into a mzTab-m file.";
 
   @Override
-  public @NotNull
-  String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
 
   @Override
-  public @NotNull
-  ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Instant moduleCallDate) {
     MZTabmExportTask task = new MZTabmExportTask(project, parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
   }
 
-  //TODO update on addition of SMF and SME support
   @Override
-  public @NotNull
-  MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.FEATURELISTEXPORT;
   }
 
   @Override
-  public @NotNull
-  String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @NotNull
-  Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return MZTabmExportParameters.class;
   }
 }

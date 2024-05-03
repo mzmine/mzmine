@@ -45,7 +45,7 @@ public class MZTabmExportParameters extends SimpleParameterSet {
 
   public static final FileNameParameter filename = new FileNameParameter("Filename",
       "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.mzTab\" would become \"blahSourcePeakListNameblah.mzTab\"). "
+          + "(i.e. \"{}.mzTab\" would become \"featureListName.mzTab\"). "
           + "If the file already exists, it will be overwritten.", extensions,
       FileSelectionType.SAVE);
 
