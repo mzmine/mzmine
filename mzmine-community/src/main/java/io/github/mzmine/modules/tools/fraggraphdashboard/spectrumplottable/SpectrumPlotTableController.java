@@ -31,7 +31,7 @@ public class SpectrumPlotTableController extends FxController<SpectrumPlotTableM
 
   private final Layout layout;
 
-  protected SpectrumPlotTableController(Layout layout) {
+  public SpectrumPlotTableController(Layout layout) {
     super(new SpectrumPlotTableModel());
     this.layout = layout;
     model.signalListProperty().bindBidirectional(model.spectrumProperty(), new StringConverter<>() {

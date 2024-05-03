@@ -27,6 +27,8 @@ package io.github.mzmine.modules.tools.fraggraphdashboard;
 
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable.SpectrumPlotTableController;
+import io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable.SpectrumPlotTableViewBuilder.Layout;
 import io.github.mzmine.modules.tools.id_fraggraph.mvci.FragmentGraphController;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,7 +39,6 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
 
   protected FragDashboardController() {
     super(new FragDashboardModel());
-    fragDashboardBuilder = new FragDashboardBuilder(model, fragmentGraphController.buildView());
 
     model.precursorFormulaProperty()
         .bindBidirectional(fragmentGraphController.precursorFormulaProperty());
@@ -49,6 +50,12 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
     model.selectedNodesProperty()
         .bindBidirectional(fragmentGraphController.selectedNodesProperty());
 
+    SpectrumPlotTableController ms2Controller = new SpectrumPlotTableController(Layout.HORIZONTAL);
+    SpectrumPlotTableController isotopeController = new SpectrumPlotTableController(
+        Layout.HORIZONTAL);
+
+    fragDashboardBuilder = new FragDashboardBuilder(model, fragmentGraphController.buildView(),
+        ms2Controller.buildView(), isotopeController.buildView());
   }
 
   @Override

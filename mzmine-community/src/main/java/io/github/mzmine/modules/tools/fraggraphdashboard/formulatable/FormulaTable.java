@@ -19,17 +19,87 @@
 
 package io.github.mzmine.modules.tools.fraggraphdashboard.formulatable;
 
-import io.github.mzmine.util.FormulaWithExactMz;
+import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import java.text.ParseException;
+import java.util.Objects;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class FormulaTable extends TableView<FormulaWithExactMz> {
+public class FormulaTable extends TableView<ResultFormula> {
+
+  private final NumberFormats formats = ConfigService.getGuiFormats();
 
   public FormulaTable() {
-    TableColumn<FormulaWithExactMz, String> formula = new TableColumn<>("Ion formula");
+    TableColumn<ResultFormula, String> formula = new TableColumn<>("Ion formula");
     formula.setCellValueFactory(cell -> new ReadOnlyStringWrapper(
-        MolecularFormulaManipulator.getString(cell.getValue().formula())));
+        MolecularFormulaManipulator.getString(cell.getValue().getFormulaAsObject())));
+
+    TableColumn<ResultFormula, Double> mz = new TableColumn<>("m/z");
+    mz.setCellValueFactory(cell -> {
+      try {
+        return new ReadOnlyObjectWrapper<>(
+            formats.mzFormat().parse(formats.mz(cell.getValue().getExactMass())).doubleValue());
+      } catch (ParseException e) {
+        return new ReadOnlyObjectWrapper<>(Double.NaN);
+      }
+    });
+
+    TableColumn<ResultFormula, ResultFormula> ppm = new TableColumn<>("ppm");
+    ppm.setCellFactory(col -> new TableCell<>() {
+      {
+        textProperty().bind(Bindings.createStringBinding(() -> {
+          final ResultFormula formula1 = itemProperty().get();
+          return formats.ppm(formula1.getPpmDiff());
+        }, itemProperty()));
+      }
+    });
+
+    TableColumn<ResultFormula, ResultFormula> abs = new TableColumn<>("abs.");
+    abs.setCellFactory(col -> new TableCell<>() {
+      {
+        textProperty().bind(Bindings.createStringBinding(() -> {
+          final ResultFormula form = itemProperty().get();
+          if (form == null) {
+            return "";
+          }
+          return formats.ppm(form.getPpmDiff());
+        }, itemProperty()));
+      }
+    });
+
+    TableColumn<ResultFormula, ResultFormula> isoScore = new TableColumn<>("Isotope score");
+    isoScore.setCellFactory(col -> new TableCell<>() {
+      {
+        textProperty().bind(Bindings.createStringBinding(() -> {
+          final var form = itemProperty().get();
+          if (form == null) {
+            return "0.0";
+          }
+          return formats.score(Objects.requireNonNullElse(form.getIsotopeScore(), 0f));
+        }));
+      }
+    });
+
+    TableColumn<ResultFormula, ResultFormula> ms2Score = new TableColumn<>("MS2 score");
+    ms2Score.setCellFactory(col -> new TableCell<>() {
+      {
+        textProperty().bind(Bindings.createStringBinding(() -> {
+          final var form = itemProperty().get();
+          if (form == null) {
+            return "0.0";
+          }
+          return formats.score(Objects.requireNonNullElse(form.getMSMSScore(), 0f));
+        }));
+      }
+    });
+
+    getColumns().addAll(formula, mz, ppm, abs, isoScore, ms2Score);
   }
 }

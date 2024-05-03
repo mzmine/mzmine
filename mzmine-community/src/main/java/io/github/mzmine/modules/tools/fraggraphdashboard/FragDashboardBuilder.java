@@ -25,35 +25,73 @@
 
 package io.github.mzmine.modules.tools.fraggraphdashboard;
 
+import static io.github.mzmine.javafx.components.util.FxLayout.*;
+
+import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import io.github.mzmine.modules.tools.fraggraphdashboard.formulatable.FormulaTable;
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.NodeTable;
-import java.util.Comparator;
-import java.util.stream.Collectors;
-import javafx.beans.binding.Bindings;
+import java.util.logging.Logger;
 import javafx.beans.property.SimpleListProperty;
-import javafx.collections.FXCollections;
+import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
 public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
 
-  protected FragDashboardBuilder(FragDashboardModel model, @NotNull Region region) {
+  private static Logger logger = Logger.getLogger(FragDashboardBuilder.class.getName());
+
+  private final Region fragmentGraph;
+  private final Region ms2Chart;
+  private final Region isotopeChart;
+
+  protected FragDashboardBuilder(FragDashboardModel model, @NotNull Region fragmentGraph,
+      @NotNull Region ms2Chart, @NotNull Region isotopeChart) {
     super(model);
+    this.fragmentGraph = fragmentGraph;
+    this.ms2Chart = ms2Chart;
+    this.isotopeChart = isotopeChart;
   }
 
   @Override
   public Region build() {
 
+    final BorderPane mainPane = new BorderPane();
 
     NodeTable nodeTable = new NodeTable();
     nodeTable.itemsProperty().bindBidirectional(model.allNodesProperty());
     model.selectedNodesProperty().bindBidirectional(
         new SimpleListProperty<>(nodeTable.getSelectionModel().getSelectedItems()));
 
-    FxLayout.newTitledPane("Fragment table", nodeTable);
+    // bind formula table to model
+    final FormulaTable formulaTable = new FormulaTable();
+    formulaTable.itemsProperty().bind(model.precursorFormulaeProperty());
+    final var formulaWrap = new BorderPane(formulaTable, null, null,
+        newFlowPane(Pos.CENTER_LEFT, FxButtons.createButton("Select formula", () -> {
+          final ResultFormula selected = formulaTable.getSelectionModel().getSelectedItem();
+          if (selected == null) {
+            logger.fine(() -> "Select button clicked, but no formula selected.");
+            return;
+          }
+          model.setPrecursorFormula(selected.getFormulaAsObject());
+        })), null);
 
+    final SplitPane nodeSpectraFormulaSplit = new SplitPane(nodeTable,
+        new TabPane(new Tab("MS2 spectrum", ms2Chart), new Tab("Isotope spectrum", isotopeChart),
+            new Tab("Precursor formulae", formulaWrap)));
+    nodeSpectraFormulaSplit.setOrientation(Orientation.VERTICAL);
 
-    return null;
+    final SplitPane graphSplit = new SplitPane(fragmentGraph, nodeSpectraFormulaSplit);
+    graphSplit.setOrientation(Orientation.HORIZONTAL);
+
+    mainPane.setCenter(graphSplit);
+    return mainPane;
   }
 }
