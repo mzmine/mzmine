@@ -25,15 +25,19 @@
 
 package io.github.mzmine.modules.tools.id_fraggraph.mvci;
 
+import static io.github.mzmine.javafx.components.factories.FxLabels.*;
 import static io.github.mzmine.javafx.components.util.FxLayout.newAccordion;
 import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
 
+import io.github.mzmine.javafx.components.factories.FxLabels;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
 import io.github.mzmine.modules.visualization.networking.visual.NetworkPane;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.components.FormulaTextField;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -45,6 +49,7 @@ import javafx.scene.control.Accordion;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.util.StringConverter;
 import org.graphstream.graph.Edge;
@@ -69,12 +74,16 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
 
     final TextField formulaField = createBoundFormulaTextField();
     final Label formulaMassLabel = createBoundFormulaMassLabel();
+    final FlowPane formulaWrapper = FxLayout.newFlowPane(newLabel("Formula:"), formulaField,
+        newLabel("m/z"), formulaMassLabel);
+    formulaWrapper.disableProperty().bind(model.precursorFormulaEditableProperty());
+    formulaWrapper.visibleProperty().bind(model.precursorFormulaEditableProperty());
 
-    final Accordion settingsAccordion = newAccordion(true, newTitledPane("Precursor settings",
-        newHBox(new Label("Precursor formula: "), formulaField, new Label("m/z:"),
-            formulaMassLabel)));
+//    final Accordion settingsAccordion = newAccordion(true, newTitledPane("Precursor settings",
+//        newHBox(new Label("Precursor formula: "), formulaField, new Label("m/z:"),
+//            formulaMassLabel)));
 
-    pane.setTop(settingsAccordion);
+    pane.setTop(formulaWrapper);
 
     return pane;
   }
@@ -94,25 +103,9 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
 
   @NotNull
   private TextField createBoundFormulaTextField() {
-    final TextField formulaField = new TextField();
+    final FormulaTextField formulaField = new FormulaTextField();
     formulaField.editableProperty().bind(model.precursorFormulaEditableProperty());
-
-    Bindings.bindBidirectional(formulaField.textProperty(), model.precursorFormulaProperty(),
-        new StringConverter<>() {
-          @Override
-          public String toString(IMolecularFormula object) {
-            if (object == null) {
-              return "";
-            }
-            return MolecularFormulaManipulator.getString(object);
-          }
-
-          @Override
-          public IMolecularFormula fromString(String string) {
-            final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(string);
-            return formula;
-          }
-        });
+    formulaField.formulaProperty().bindBidirectional(model.precursorFormulaProperty());
     return formulaField;
   }
 
