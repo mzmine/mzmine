@@ -125,7 +125,7 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
       NetworkPane network = new NetworkPane(graph.getId(), false, graph);
       network.showFullGraph();
 
-      model.getAllNodes().values().forEach(nodeModel -> {
+      model.getAllNodes().forEach(nodeModel -> {
         nodeModel.clearPassThroughGraphs();
         nodeModel.addPassThroughGraph(network.getGraphicGraph());
       });
@@ -143,10 +143,8 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
         c.next();
         final ObservableList<? extends Node> selected = c.getList();
         var selectedNodes = selected.stream().map(Element::getId)
-            .map(id -> model.getAllNodes().get(id)).filter(Objects::nonNull).collect(
-                Collectors.toMap(modelNode -> modelNode.getUnfilteredNode().getId(),
-                    modelNode -> modelNode));
-        model.setSelectedNodes(FXCollections.observableMap(selectedNodes));
+            .map(id -> model.getAllNodesMap().get(id)).filter(Objects::nonNull).toList();
+        model.selectedNodesProperty().setAll(selectedNodes);
         logger.finest(() -> STR."Selected nodes: \{selectedNodes.toString()}");
       });
 
@@ -154,9 +152,8 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
         c.next();
         final ObservableList<? extends Edge> selected = c.getList();
         var selectedEdges = selected.stream().map(Element::getId)
-            .map(id -> model.getAllEdges().get(id)).filter(Objects::nonNull)
-            .collect(Collectors.toMap(SubFormulaEdge::getId, edge -> edge));
-        model.setSelectedEdges(FXCollections.observableMap(selectedEdges));
+            .map(id -> model.getAllEdgesMap().get(id)).filter(Objects::nonNull).toList();
+        model.getSelectedEdges().setAll(selectedEdges);
         logger.finest(() -> STR."Selected edges: \{selectedEdges.toString()}");
       });
     });

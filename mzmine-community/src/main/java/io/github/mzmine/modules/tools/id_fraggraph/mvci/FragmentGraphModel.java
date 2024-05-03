@@ -28,35 +28,45 @@ package io.github.mzmine.modules.tools.id_fraggraph.mvci;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
+import io.github.mzmine.util.javafx.ListToMapListener;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyMapProperty;
+import javafx.beans.property.ReadOnlyMapWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
+import javafx.collections.ObservableList;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 class FragmentGraphModel {
 
   FragmentGraphModel() {
+    allNodes.addListener(new ListToMapListener<>(SignalFormulaeModel::getId, allNodesMap));
+    allEdges.addListener(new ListToMapListener<>(SubFormulaEdge::getId, allEdgesMap));
   }
 
   private final ObjectProperty<IMolecularFormula> precursorFormula = new SimpleObjectProperty<>();
-  private final ObjectProperty<MassSpectrum> spectrum = new SimpleObjectProperty<>();
+  private final ObjectProperty<MassSpectrum> ms2Spectrum = new SimpleObjectProperty<>();
   private final BooleanProperty precursorFormulaEditable = new SimpleBooleanProperty(false);
   private final ObjectProperty<MultiGraph> graph = new SimpleObjectProperty<>();
-  private final MapProperty<String, SignalFormulaeModel> selectedNodes = new SimpleMapProperty<>(
+  private final ListProperty<SignalFormulaeModel> selectedNodes = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
+  private final ListProperty<SubFormulaEdge> selectedEdges = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
+  private final ListProperty<SignalFormulaeModel> allNodes = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
+  private final ListProperty<SubFormulaEdge> allEdges = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
+  private final MapProperty<String, SignalFormulaeModel> allNodesMap = new SimpleMapProperty<>(
       FXCollections.observableHashMap());
-  private final MapProperty<String, SignalFormulaeModel> allNodes = new SimpleMapProperty<>(
+  private final MapProperty<String, SubFormulaEdge> allEdgesMap = new SimpleMapProperty<>(
       FXCollections.observableHashMap());
-  private final MapProperty<String, SubFormulaEdge> selectedEdges = new SimpleMapProperty<>(
-      FXCollections.observableHashMap());
-  private final MapProperty<String, SubFormulaEdge> allEdges = new SimpleMapProperty<>(
-      FXCollections.observableHashMap());
-
 
   public IMolecularFormula getPrecursorFormula() {
     return precursorFormula.get();
@@ -70,16 +80,16 @@ class FragmentGraphModel {
     this.precursorFormula.set(precursorFormula);
   }
 
-  public MassSpectrum getSpectrum() {
-    return spectrum.get();
+  public MassSpectrum getMs2Spectrum() {
+    return ms2Spectrum.get();
   }
 
-  public ObjectProperty<MassSpectrum> spectrumProperty() {
-    return spectrum;
+  public ObjectProperty<MassSpectrum> ms2SpectrumProperty() {
+    return ms2Spectrum;
   }
 
-  public void setSpectrum(MassSpectrum spectrum) {
-    this.spectrum.set(spectrum);
+  public void setMs2Spectrum(MassSpectrum ms2Spectrum) {
+    this.ms2Spectrum.set(ms2Spectrum);
   }
 
   public MultiGraph getGraph() {
@@ -106,51 +116,68 @@ class FragmentGraphModel {
     this.precursorFormulaEditable.set(precursorFormulaEditable);
   }
 
-  public ObservableMap<String, SignalFormulaeModel> getSelectedNodes() {
+  public ObservableList<SignalFormulaeModel> getSelectedNodes() {
     return selectedNodes.get();
   }
 
-  public MapProperty<String, SignalFormulaeModel> selectedNodesProperty() {
+  public ListProperty<SignalFormulaeModel> selectedNodesProperty() {
     return selectedNodes;
   }
 
-  public void setSelectedNodes(ObservableMap<String, SignalFormulaeModel> selectedNodes) {
+  public void setSelectedNodes(ObservableList<SignalFormulaeModel> selectedNodes) {
     this.selectedNodes.set(selectedNodes);
   }
 
-  public ObservableMap<String, SignalFormulaeModel> getAllNodes() {
+  public ObservableList<SignalFormulaeModel> getAllNodes() {
     return allNodes.get();
   }
 
-  public MapProperty<String, SignalFormulaeModel> allNodesProperty() {
+  public ListProperty<SignalFormulaeModel> allNodesProperty() {
     return allNodes;
   }
 
-  public void setAllNodes(ObservableMap<String, SignalFormulaeModel> allNodes) {
+  public void setAllNodes(ObservableList<SignalFormulaeModel> allNodes) {
     this.allNodes.set(allNodes);
   }
 
-  public ObservableMap<String, SubFormulaEdge> getSelectedEdges() {
+  public ObservableList<SubFormulaEdge> getSelectedEdges() {
     return selectedEdges.get();
   }
 
-  public MapProperty<String, SubFormulaEdge> selectedEdgesProperty() {
+  public ListProperty<SubFormulaEdge> selectedEdgesProperty() {
     return selectedEdges;
   }
 
-  public void setSelectedEdges(ObservableMap<String, SubFormulaEdge> selectedEdges) {
+  public void setSelectedEdges(ObservableList<SubFormulaEdge> selectedEdges) {
     this.selectedEdges.set(selectedEdges);
   }
 
-  public ObservableMap<String, SubFormulaEdge> getAllEdges() {
+  public ObservableList<SubFormulaEdge> getAllEdges() {
     return allEdges.get();
   }
 
-  public MapProperty<String, SubFormulaEdge> allEdgesProperty() {
+  public ListProperty<SubFormulaEdge> allEdgesProperty() {
     return allEdges;
   }
 
-  public void setAllEdges(ObservableMap<String, SubFormulaEdge> allEdges) {
+  public void setAllEdges(ObservableList<SubFormulaEdge> allEdges) {
     this.allEdges.set(allEdges);
   }
+
+  public ReadOnlyMapProperty<String, SignalFormulaeModel> getAllNodesMap() {
+    return new ReadOnlyMapWrapper<>(allNodesMap.get());
+  }
+
+  public ReadOnlyMapProperty<String, SignalFormulaeModel> allNodesMapProperty() {
+    return new ReadOnlyMapWrapper<>(allNodesMap);
+  }
+
+  public ReadOnlyMapProperty<String, SubFormulaEdge> getAllEdgesMap() {
+    return new ReadOnlyMapWrapper<>(allEdgesMap.get());
+  }
+
+  public ReadOnlyMapProperty<String, SubFormulaEdge> allEdgesMapProperty() {
+    return new ReadOnlyMapWrapper<>(allEdgesMap);
+  }
+
 }

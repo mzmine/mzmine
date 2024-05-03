@@ -25,11 +25,13 @@
 
 package io.github.mzmine.modules.tools.fraggraphdashboard;
 
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.NodeTable;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
@@ -43,18 +45,14 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
   @Override
   public Region build() {
 
+
     NodeTable nodeTable = new NodeTable();
-    nodeTable.itemsProperty().bind(Bindings.createObjectBinding(
-        () -> FXCollections.observableArrayList(model.getAllNodes().values().stream()
-            .sorted(Comparator.comparingDouble(sfm -> sfm.getPeakWithFormulae().peak().getMZ()))
-            .toList()), model.allNodesProperty()));
+    nodeTable.itemsProperty().bindBidirectional(model.allNodesProperty());
+    model.selectedNodesProperty().bindBidirectional(
+        new SimpleListProperty<>(nodeTable.getSelectionModel().getSelectedItems()));
 
-    nodeTable.getSelectionModel().getSelectedIndices();
+    FxLayout.newTitledPane("Fragment table", nodeTable);
 
-    model.selectedNodesProperty().bindBidirectional(Bindings.createObjectBinding(
-        () -> FXCollections.observableMap(nodeTable.getSelectionModel().getSelectedItems().stream()
-            .collect(Collectors.toMap(sfm -> sfm.getId(), sfm -> sfm))),
-        nodeTable.getSelectionModel().getSelectedItems()));
 
     return null;
   }

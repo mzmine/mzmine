@@ -35,10 +35,8 @@ import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import javafx.collections.FXCollections;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -51,8 +49,8 @@ public class FormulaChangedUpdateTask extends FxUpdateTask<FragmentGraphModel> {
 
   private final MZTolerance formulaTolerance = new MZTolerance(0.005, 15);
   private MultiGraph graph;
-  private Map<String, SignalFormulaeModel> allNodeModels;
-  private Map<String, SubFormulaEdge> edges;
+  private List<SignalFormulaeModel> allNodeModels;
+  private List<SubFormulaEdge> edges;
 
   public FormulaChangedUpdateTask(@NotNull String taskName, FragmentGraphModel model) {
     super(taskName, model);
@@ -60,15 +58,15 @@ public class FormulaChangedUpdateTask extends FxUpdateTask<FragmentGraphModel> {
 
   @Override
   public boolean checkPreConditions() {
-    return model.getPrecursorFormula() != null && model.getSpectrum() != null
-        && model.getSpectrum().getNumberOfDataPoints() > 1;
+    return model.getPrecursorFormula() != null && model.getMs2Spectrum() != null
+        && model.getMs2Spectrum().getNumberOfDataPoints() > 1;
   }
 
   @Override
   protected void process() {
     final IMolecularFormula newFormula = model.getPrecursorFormula();
-    final List<SignalWithFormulae> peaksWithFormulae = FragmentUtils.getPeaksWithFormulae(newFormula,
-        model.getSpectrum(), signalFilter, formulaTolerance);
+    final List<SignalWithFormulae> peaksWithFormulae = FragmentUtils.getPeaksWithFormulae(
+        newFormula, model.getMs2Spectrum(), signalFilter, formulaTolerance);
     final FragmentGraphGenerator graphGenerator = new FragmentGraphGenerator(
         STR."Fragment graph for \{MolecularFormulaManipulator.getString(newFormula)}",
         peaksWithFormulae,
@@ -76,17 +74,19 @@ public class FormulaChangedUpdateTask extends FxUpdateTask<FragmentGraphModel> {
     graph = graphGenerator.getGraph();
 
     allNodeModels = graphGenerator.getNodeModelMap().values().stream()
-        .collect(Collectors.toMap(SignalFormulaeModel::getId, nodeModel -> nodeModel));
+        .sorted(Comparator.comparingDouble(sfm -> sfm.getPeakWithFormulae().peak().getMZ()))
+        .toList();
     edges = graphGenerator.getEdges().stream()
-        .collect(Collectors.toMap(SubFormulaEdge::getId, e -> e));
+        .sorted(Comparator.comparingDouble(e -> e.smaller().getPeakWithFormulae().peak().getMZ()))
+        .toList();
   }
 
   @Override
   protected void updateGuiModel() {
     model.getSelectedEdges().clear();
     model.getSelectedNodes().clear();
-    model.setAllNodes(FXCollections.observableMap(allNodeModels));
-    model.setAllEdges(FXCollections.observableMap(edges));
+    model.allNodesProperty().setAll(allNodeModels);
+    model.allEdgesProperty().setAll(edges);
     model.setGraph(graph);
   }
 

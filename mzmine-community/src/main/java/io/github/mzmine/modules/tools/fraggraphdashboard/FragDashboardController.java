@@ -48,6 +48,7 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
         .bindBidirectional(fragmentGraphController.selectedEdgesProperty());
     model.selectedNodesProperty()
         .bindBidirectional(fragmentGraphController.selectedNodesProperty());
+
   }
 
   @Override

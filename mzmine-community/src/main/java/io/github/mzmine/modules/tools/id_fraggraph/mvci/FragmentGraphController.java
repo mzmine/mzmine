@@ -30,8 +30,9 @@ import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
-import javafx.beans.property.MapProperty;
+import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyMapProperty;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
@@ -43,7 +44,7 @@ public class FragmentGraphController extends FxController<FragmentGraphModel> {
     super(new FragmentGraphModel());
     builder = new FragmentGraphBuilder(model);
 
-    model.spectrumProperty().addListener((_, _, _) -> calculateNewGraph());
+    model.ms2SpectrumProperty().addListener((_, _, _) -> calculateNewGraph());
     model.precursorFormulaProperty().addListener((_, _, _) -> calculateNewGraph());
   }
 
@@ -53,7 +54,7 @@ public class FragmentGraphController extends FxController<FragmentGraphModel> {
   }
 
   public void update(MassSpectrum spectrum, IMolecularFormula precursorFormula) {
-    model.setSpectrum(spectrum);
+    model.setMs2Spectrum(spectrum);
     model.setPrecursorFormula(precursorFormula);
   }
 
@@ -66,22 +67,30 @@ public class FragmentGraphController extends FxController<FragmentGraphModel> {
   }
 
   public ObjectProperty<MassSpectrum> spectrumProperty() {
-    return model.spectrumProperty();
+    return model.ms2SpectrumProperty();
   }
 
-  public MapProperty<String, SignalFormulaeModel> selectedNodesProperty() {
-    return model.selectedNodesProperty();
+  public ReadOnlyMapProperty<String, SignalFormulaeModel> allNodesMapProperty() {
+    return model.allNodesMapProperty();
   }
 
-  public MapProperty<String, SignalFormulaeModel> allNodesProperty() {
+  public ReadOnlyMapProperty<String, SubFormulaEdge> allEdgesMapProperty() {
+    return model.allEdgesMapProperty();
+  }
+
+  public ListProperty<SignalFormulaeModel> allNodesProperty() {
     return model.allNodesProperty();
   }
 
-  public MapProperty<String, SubFormulaEdge> selectedEdgesProperty() {
-    return model.selectedEdgesProperty();
+  public ListProperty< SubFormulaEdge> allEdgesProperty() {
+    return model.allEdgesProperty();
   }
 
-  public MapProperty<String, SubFormulaEdge> allEdgesProperty() {
-    return model.allEdgesProperty();
+  public ListProperty<SignalFormulaeModel> selectedNodesProperty() {
+    return model.selectedNodesProperty();
+  }
+
+  public ListProperty<SubFormulaEdge> selectedEdgesProperty() {
+    return model.selectedEdgesProperty();
   }
 }

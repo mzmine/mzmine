@@ -26,29 +26,113 @@
 package io.github.mzmine.modules.tools.fraggraphdashboard;
 
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
+import io.github.mzmine.util.FormulaWithExactMz;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyMapProperty;
+import javafx.beans.property.ReadOnlyMapWrapper;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class FragDashboardModel {
-  private final ObjectProperty<IMolecularFormula> precursorFormula = new SimpleObjectProperty<>();
+
   private final ObjectProperty<MassSpectrum> spectrum = new SimpleObjectProperty<>();
-  private final MapProperty<String, SignalFormulaeModel> selectedNodes = new SimpleMapProperty<>(
+  private final ObjectProperty<MassSpectrum> isotopePattern = new SimpleObjectProperty<>();
+  private final DoubleProperty precursorMz = new SimpleDoubleProperty();
+  private final ObjectProperty<IonType> ionType = new SimpleObjectProperty<>(
+      new IonType(IonModification.H));
+  private final ListProperty<IonType> ionTypes = new SimpleListProperty<>(
+      FXCollections.observableArrayList(new IonType(IonModification.H),
+          new IonType(IonModification.H_NEG)));
+  private final ListProperty<ResultFormula> precursorFormulae = new SimpleListProperty<>();
+  private final ObjectProperty<IMolecularFormula> precursorFormula = new SimpleObjectProperty<>();
+  private final ListProperty<SignalFormulaeModel> selectedNodes = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
+  private final ListProperty<SubFormulaEdge> selectedEdges = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
+  private final ListProperty<SignalFormulaeModel> allNodes = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
+  private final ListProperty<SubFormulaEdge> allEdges = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
+  private final MapProperty<String, SignalFormulaeModel> allNodesMap = new SimpleMapProperty<>(
       FXCollections.observableHashMap());
-  private final MapProperty<String, SignalFormulaeModel> allNodes = new SimpleMapProperty<>(
-      FXCollections.observableHashMap());
-  private final MapProperty<String, SubFormulaEdge> selectedEdges = new SimpleMapProperty<>(
-      FXCollections.observableHashMap());
-  private final MapProperty<String, SubFormulaEdge> allEdges = new SimpleMapProperty<>(
+  private final MapProperty<String, SubFormulaEdge> allEdgesMap = new SimpleMapProperty<>(
       FXCollections.observableHashMap());
 
   public FragDashboardModel() {
+  }
+
+  public MassSpectrum getIsotopePattern() {
+    return isotopePattern.get();
+  }
+
+  public ObjectProperty<MassSpectrum> isotopePatternProperty() {
+    return isotopePattern;
+  }
+
+  public void setIsotopePattern(MassSpectrum isotopePattern) {
+    this.isotopePattern.set(isotopePattern);
+  }
+
+  public double getPrecursorMz() {
+    return precursorMz.get();
+  }
+
+  public DoubleProperty precursorMzProperty() {
+    return precursorMz;
+  }
+
+  public void setPrecursorMz(double precursorMz) {
+    this.precursorMz.set(precursorMz);
+  }
+
+  public IonType getIonType() {
+    return ionType.get();
+  }
+
+  public ObjectProperty<IonType> ionTypeProperty() {
+    return ionType;
+  }
+
+  public void setIonType(IonType ionType) {
+    this.ionType.set(ionType);
+  }
+
+  public ObservableList<IonType> getIonTypes() {
+    return ionTypes.get();
+  }
+
+  public ListProperty<IonType> ionTypesProperty() {
+    return ionTypes;
+  }
+
+  public void setIonTypes(ObservableList<IonType> ionTypes) {
+    this.ionTypes.set(ionTypes);
+  }
+
+  public ObservableList<ResultFormula> getPrecursorFormulae() {
+    return precursorFormulae.get();
+  }
+
+  public ListProperty<ResultFormula> precursorFormulaeProperty() {
+    return precursorFormulae;
+  }
+
+  public void setPrecursorFormulae(ObservableList<ResultFormula> precursorFormulae) {
+    this.precursorFormulae.set(precursorFormulae);
   }
 
   public IMolecularFormula getPrecursorFormula() {
@@ -75,51 +159,71 @@ public class FragDashboardModel {
     this.spectrum.set(spectrum);
   }
 
-  public ObservableMap<String, SignalFormulaeModel> getSelectedNodes() {
+  public ObservableList<SignalFormulaeModel> getSelectedNodes() {
     return selectedNodes.get();
   }
 
-  public MapProperty<String, SignalFormulaeModel> selectedNodesProperty() {
+  public ListProperty<SignalFormulaeModel> selectedNodesProperty() {
     return selectedNodes;
   }
 
-  public void setSelectedNodes(ObservableMap<String, SignalFormulaeModel> selectedNodes) {
+  public void setSelectedNodes(ObservableList<SignalFormulaeModel> selectedNodes) {
     this.selectedNodes.set(selectedNodes);
   }
 
-  public ObservableMap<String, SignalFormulaeModel> getAllNodes() {
+  public ObservableList<SignalFormulaeModel> getAllNodes() {
     return allNodes.get();
   }
 
-  public MapProperty<String, SignalFormulaeModel> allNodesProperty() {
+  public ListProperty<SignalFormulaeModel> allNodesProperty() {
     return allNodes;
   }
 
-  public void setAllNodes(ObservableMap<String, SignalFormulaeModel> allNodes) {
+  public void setAllNodes(ObservableList<SignalFormulaeModel> allNodes) {
     this.allNodes.set(allNodes);
   }
 
-  public ObservableMap<String, SubFormulaEdge> getSelectedEdges() {
+  public ObservableList<SubFormulaEdge> getSelectedEdges() {
     return selectedEdges.get();
   }
 
-  public MapProperty<String, SubFormulaEdge> selectedEdgesProperty() {
+  public ListProperty<SubFormulaEdge> selectedEdgesProperty() {
     return selectedEdges;
   }
 
-  public void setSelectedEdges(ObservableMap<String, SubFormulaEdge> selectedEdges) {
+  public void setSelectedEdges(ObservableList<SubFormulaEdge> selectedEdges) {
     this.selectedEdges.set(selectedEdges);
   }
 
-  public ObservableMap<String, SubFormulaEdge> getAllEdges() {
+  public ObservableList<SubFormulaEdge> getAllEdges() {
     return allEdges.get();
   }
 
-  public MapProperty<String, SubFormulaEdge> allEdgesProperty() {
+  public ListProperty<SubFormulaEdge> allEdgesProperty() {
     return allEdges;
   }
 
-  public void setAllEdges(ObservableMap<String, SubFormulaEdge> allEdges) {
+  public void setAllEdges(ObservableList<SubFormulaEdge> allEdges) {
     this.allEdges.set(allEdges);
+  }
+
+  public ReadOnlyMapProperty<String, SignalFormulaeModel> getAllNodesMap() {
+    return new ReadOnlyMapWrapper<>(allNodesMap);
+  }
+
+  public ReadOnlyMapProperty<String, SignalFormulaeModel> allNodesMapProperty() {
+    return new ReadOnlyMapWrapper<>(allNodesMap);
+  }
+
+  public ReadOnlyMapProperty<String, SubFormulaEdge> getAllEdgesMap() {
+    return new ReadOnlyMapWrapper<>(allEdgesMap);
+  }
+
+  public ReadOnlyMapProperty<String, SubFormulaEdge> allEdgesMapProperty() {
+    return new ReadOnlyMapWrapper<>(allEdgesMap);
+  }
+
+  MapProperty<String, SubFormulaEdge> allEdgesMapPropertyModifiable() {
+    return allEdgesMap;
   }
 }
