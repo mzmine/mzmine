@@ -84,8 +84,7 @@ public class SignalFormulaeModel {
 
     selectedFormulaWithMz.addListener((_, _, n) -> {
       for (FragNodeAttr value : FragNodeAttr.values()) {
-        value.setToNode(unfilteredNode, formulae);
-        value.setToNode(unfilteredNode, n);
+        value.setToNode(unfilteredNode, this);
       }
 
       unfilteredNode.setAttribute("ui.label", STR."""
@@ -100,7 +99,8 @@ public class SignalFormulaeModel {
 
     // todo does this work every time? are the listeners above triggered before or after this binding?
     //  should be ok if it is added last?
-    PropertyUtils.onChange(this::applyToPassThroughGraphs, deltaMzAbs, selectedFormulaWithMz, deltaMzPpm);
+    PropertyUtils.onChange(this::applyToPassThroughGraphs, deltaMzAbs, selectedFormulaWithMz,
+        deltaMzPpm, mz);
   }
 
   private void applyToPassThroughGraphs() {

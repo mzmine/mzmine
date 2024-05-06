@@ -37,26 +37,18 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  * from a {@link SignalWithFormulae} and a {@link FormulaWithExactMz} to a {@link Node}.
  */
 public enum FragNodeAttr {
-  MZ, INTENSITY, FORMULA;
+  MZ, INTENSITY, FORMULA, DELTA_MZ_ABS, DELTA_MZ_PPM;
 
-  public void setToNode(Node node, SignalWithFormulae peak) {
+  public void setToNode(Node node, SignalFormulaeModel sfm) {
     final NumberFormats formats = ConfigService.getGuiFormats();
     switch (this) {
-      case MZ -> node.setAttribute(name(), formats.mz(peak.peak().getMZ()));
-      case INTENSITY -> node.setAttribute(name(), formats.intensity(peak.peak().getIntensity()));
-      case FORMULA -> {
-
-      }
-    }
-  }
-
-  public void setToNode(Node node, FormulaWithExactMz peak) {
-    switch (this) {
-      case MZ, INTENSITY -> {
-      }
-      case FORMULA -> {
-        node.setAttribute(name(), MolecularFormulaManipulator.getString(peak.formula()));
-      }
+      case MZ -> node.setAttribute(name(), formats.mz(sfm.getMz()));
+      case INTENSITY -> node.setAttribute(name(),
+          formats.intensity(sfm.getPeakWithFormulae().peak().getIntensity()));
+      case FORMULA -> node.setAttribute(name(),
+          MolecularFormulaManipulator.getString(sfm.getSelectedFormulaWithMz().formula()));
+      case DELTA_MZ_ABS -> node.setAttribute(name(), formats.mz(sfm.getDeltaMzAbs()));
+      case DELTA_MZ_PPM -> node.setAttribute(name(), formats.mz(sfm.getDeltaMzPpm()));
     }
   }
 }
