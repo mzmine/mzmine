@@ -38,6 +38,12 @@ import java.util.logging.Logger;
  * TODO: refine edges to clean up the graph and reflect deleted edges.
  * Todo: maybe it's better to create an edge from every node to every node and only set the edges
  *  that are sub formulae to visible?
+ *  1. implement this
+ *  2. make a list of all edges and a list of the possible edges in the graph
+ *  3. update the list of all possible edges when the selected formula changes
+ *  4. create table of all edges
+ *  5. use only possible edges in the edge table
+ *  6. option to show/hide edges from the edge table
  */
 public class SubFormulaEdgeGenerator {
 
