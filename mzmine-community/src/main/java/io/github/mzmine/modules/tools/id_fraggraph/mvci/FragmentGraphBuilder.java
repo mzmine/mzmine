@@ -70,17 +70,10 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
 
     final TextField formulaField = createBoundFormulaTextField();
     final Label formulaMassLabel = createBoundFormulaMassLabel();
-    final FlowPane formulaWrapper = FxLayout.newFlowPane(newLabel("Formula:"), formulaField,
-        newLabel("m/z"), formulaMassLabel);
-    formulaWrapper.disableProperty().bind(model.precursorFormulaEditableProperty());
-    formulaWrapper.visibleProperty().bind(model.precursorFormulaEditableProperty());
 
 //    final Accordion settingsAccordion = newAccordion(true, newTitledPane("Precursor settings",
 //        newHBox(new Label("Precursor formula: "), formulaField, new Label("m/z:"),
 //            formulaMassLabel)));
-
-    pane.setTop(formulaWrapper);
-
     return pane;
   }
 

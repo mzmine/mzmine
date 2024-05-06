@@ -24,6 +24,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ProviderAndRenderer
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.MassSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
 import java.util.logging.Logger;
@@ -51,6 +52,7 @@ public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTabl
   public Region build() {
     Region pane;
     TextArea peakTable = new TextArea();
+    final NumberFormats formats = ConfigService.getGuiFormats();
     model.signalListProperty().bindBidirectional(peakTable.textProperty());
     peakTable.textProperty().addListener((_, _, t) -> model.signalListProperty()
         .getValue()); // if we dont do this the binding is only updated when it feels like it
@@ -58,6 +60,11 @@ public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTabl
 //    model.spectrumProperty().addListener((_, _, t) -> logger.info("trigger spectrum"));
 
     SimpleXYChart<PlotXYDataProvider> plot = new SimpleXYChart<>();
+    plot.setDomainAxisLabel("m/z");
+    plot.setDomainAxisNumberFormatOverride(formats.mzFormat());
+    plot.setRangeAxisLabel("Intensity");
+    plot.setRangeAxisNumberFormatOverride(formats.intensityFormat());
+
     model.spectrumProperty().addListener((_, _, spec) -> {
       plot.applyWithNotifyChanges(false, () -> {
         plot.removeAllDatasets();
@@ -75,6 +82,9 @@ public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTabl
         var split = new SplitPane(plot, peakTable);
         split.setOrientation(
             layout == Layout.HORIZONTAL ? Orientation.HORIZONTAL : Orientation.VERTICAL);
+        if(layout == Layout.HORIZONTAL) {
+          split.setDividerPositions(0.65);
+        }
         yield split;
       }
       case TAB -> {

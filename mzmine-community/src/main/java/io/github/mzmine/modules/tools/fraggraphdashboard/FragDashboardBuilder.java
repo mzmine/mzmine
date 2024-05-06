@@ -114,7 +114,9 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
         createButton("Select formula", () -> selectFormulaFromTable(formulaTable))), null, null,
         null);
 
-    final SplitPane nodeTableGraphSplit = new SplitPane(fragmentGraph, nodeTable);
+    final SplitPane nodeTableGraphSplit = new SplitPane(fragmentGraph,
+        new TabPane(new Tab("Fragments", nodeTable)));
+    nodeTableGraphSplit.setDividerPositions(0.6);
     nodeTableGraphSplit.setOrientation(Orientation.HORIZONTAL);
 
     final TabPane spectraFormulaTab = new TabPane(new Tab("Precursor formulae", formulaWrap),
@@ -127,6 +129,7 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
     final SplitPane tabAndGraphSplit = new SplitPane(nodeTableGraphSplit,
         new BorderPane(spectraFormulaTab, formulaSummaryBar, null, null, null));
     tabAndGraphSplit.setOrientation(Orientation.VERTICAL);
+    tabAndGraphSplit.setDividerPositions(0.65);
 
     mainPane.setCenter(tabAndGraphSplit);
     return mainPane;
