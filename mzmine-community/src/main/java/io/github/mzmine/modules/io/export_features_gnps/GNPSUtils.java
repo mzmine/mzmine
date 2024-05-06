@@ -87,6 +87,8 @@ public class GNPSUtils {
   private static final Logger logger = Logger.getLogger(GNPSUtils.class.getName());
 
   /**
+   * Universal spectrum identifier or GNPS library ID
+   *
    * @param libIDorUSI GNPS library ID
    * @return library spectrum or null
    */
