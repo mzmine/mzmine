@@ -28,36 +28,32 @@ package io.github.mzmine.modules.tools.id_fraggraph.mvci;
 import static io.github.mzmine.javafx.components.factories.FxLabels.*;
 import static io.github.mzmine.javafx.components.util.FxLayout.newAccordion;
 import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
-import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
 
-import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
+import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
 import io.github.mzmine.modules.visualization.networking.visual.NetworkPane;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.components.FormulaTextField;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Accordion;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
-import javafx.util.StringConverter;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
 import org.graphstream.graph.Node;
 import org.jetbrains.annotations.NotNull;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
 
@@ -70,7 +66,7 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
   @Override
   public Region build() {
     final BorderPane pane = new BorderPane();
-    addGrapListenerForNetworkUpdate(pane);
+    addGraphListenerForNetworkUpdate(pane);
 
     final TextField formulaField = createBoundFormulaTextField();
     final Label formulaMassLabel = createBoundFormulaMassLabel();
@@ -109,9 +105,15 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
     return formulaField;
   }
 
-  private void addGrapListenerForNetworkUpdate(BorderPane pane) {
+  private void addGraphListenerForNetworkUpdate(BorderPane pane) {
+    final List<ChangeListener<ObservableList<SignalFormulaeModel>>> oldNodeListeners = new ArrayList<>();
+
     model.graphProperty().addListener((_, _, graph) -> {
       pane.setCenter(null);
+      for (ChangeListener<ObservableList<SignalFormulaeModel>> old : oldNodeListeners) {
+        model.selectedNodesProperty().removeListener(old);
+      }
+
       if (graph == null) {
         return;
       }
@@ -132,23 +134,50 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
 
       pane.setCenter(network);
 
+      // listen to changes in network selection and map to model
       network.getSelectedNodes().addListener((ListChangeListener<Node>) c -> {
         c.next();
         final ObservableList<? extends Node> selected = c.getList();
         var selectedNodes = selected.stream().map(Element::getId)
             .map(id -> model.getAllNodesMap().get(id)).filter(Objects::nonNull).toList();
-        model.selectedNodesProperty().setAll(selectedNodes);
+//        model.selectedNodesProperty().clear();
+        if (model.getSelectedNodes().equals(selectedNodes)) {
+          return;
+        }
+        model.setSelectedNodes(FXCollections.observableArrayList(selectedNodes));
         logger.finest(() -> STR."Selected nodes: \{selectedNodes.toString()}");
       });
+
+      // listen to changes in model and map to graph
+      final ChangeListener<ObservableList<SignalFormulaeModel>> modelToGraphNodeListener = createModelToGraphNodeListener(
+          network);
+      model.selectedNodesProperty().addListener(modelToGraphNodeListener);
+      oldNodeListeners.add(modelToGraphNodeListener);
 
       network.getSelectedEdges().addListener((ListChangeListener<? super Edge>) c -> {
         c.next();
         final ObservableList<? extends Edge> selected = c.getList();
         var selectedEdges = selected.stream().map(Element::getId)
             .map(id -> model.getAllEdgesMap().get(id)).filter(Objects::nonNull).toList();
-        model.getSelectedEdges().setAll(selectedEdges);
+        model.getSelectedEdges().clear();
+        model.getSelectedEdges().addAll(selectedEdges);
         logger.finest(() -> STR."Selected edges: \{selectedEdges.toString()}");
       });
     });
+  }
+
+  @NotNull
+  private ChangeListener<ObservableList<SignalFormulaeModel>> createModelToGraphNodeListener(
+      NetworkPane network) {
+    return (_, _, n) -> {
+      if (network.getSelectedNodes().stream().map(Element::getId)
+          .map(id -> model.getAllNodesMap().get(id)).filter(Objects::nonNull).toList().equals(n)) {
+        return;
+      }
+      var selectedNodes = n.stream().map(SignalFormulaeModel::getId)
+          .map(id -> model.getAllNodesMap().get(id)).filter(Objects::nonNull)
+          .map(SignalFormulaeModel::getUnfilteredNode).toList();
+      network.getSelectedNodes().setAll(selectedNodes);
+    };
   }
 }

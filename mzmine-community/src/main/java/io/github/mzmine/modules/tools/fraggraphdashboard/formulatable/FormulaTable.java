@@ -98,7 +98,7 @@ public class FormulaTable extends TableView<ResultFormula> {
       }
     });
 
-    TableColumn<ResultFormula, ResultFormula> ms2Score = new TableColumn<>("MS2 score");
+    TableColumn<ResultFormula, ResultFormula> ms2Score = new TableColumn<>("Fragment score");
     ms2Score.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
     ms2Score.setMinWidth(100);
     ms2Score.setCellFactory(col -> new TableCell<>() {

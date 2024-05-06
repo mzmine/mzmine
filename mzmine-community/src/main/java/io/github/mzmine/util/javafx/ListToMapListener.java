@@ -46,16 +46,16 @@ public class ListToMapListener<ListContent, MapKey> implements ListChangeListene
   @Override
   public void onChanged(Change<? extends ListContent> change) {
     while (change.next()) {
-      if (change.wasAdded()) {
-        final List<? extends ListContent> added = change.getAddedSubList();
-        map.putAll(added.stream().collect(Collectors.toMap(mapper, model -> model)));
-      }
-
       if (change.wasRemoved()) {
         final List<? extends ListContent> removed = change.getRemoved();
         for (ListContent model : removed) {
           map.remove(mapper.apply(model));
         }
+      }
+
+      if (change.wasAdded()) {
+        final List<? extends ListContent> added = change.getAddedSubList();
+        map.putAll(added.stream().collect(Collectors.toMap(mapper, model -> model)));
       }
     }
   }

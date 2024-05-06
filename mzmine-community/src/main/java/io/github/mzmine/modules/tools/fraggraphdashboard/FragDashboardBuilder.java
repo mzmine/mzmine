@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.fraggraphdashboard;
 
+import static io.github.mzmine.javafx.components.factories.FxButtons.createButton;
 import static io.github.mzmine.javafx.components.factories.FxLabels.*;
 import static io.github.mzmine.javafx.components.util.FxLayout.*;
 
@@ -36,11 +37,15 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.tools.fraggraphdashboard.formulatable.FormulaTable;
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.NodeTable;
+import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.components.FormulaTextField;
+import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleListProperty;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -84,44 +89,67 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
 
     NodeTable nodeTable = new NodeTable();
     nodeTable.itemsProperty().bindBidirectional(model.allNodesProperty());
-    model.selectedNodesProperty().bindBidirectional(
-        new SimpleListProperty<>(nodeTable.getSelectionModel().getSelectedItems()));
+//    model.selectedNodesProperty().bindContentBidirectional(
+//        new SimpleListProperty<>(nodeTable.getSelectionModel().getSelectedItems()));
+    model.selectedNodesProperty().addListener((_, _, n) -> {
+      if (n.isEmpty() || (nodeTable.getSelectionModel().getSelectedItem() != null
+          && nodeTable.getSelectionModel().getSelectedItem().equals(n.getFirst()))) {
+        return;
+      }
+      nodeTable.getSelectionModel().clearAndSelect(nodeTable.getItems().indexOf(n.getFirst()));
+    });
+    nodeTable.getSelectionModel().selectedItemProperty().addListener((_, _, n) -> {
+      if (n == null || (!model.getSelectedNodes().isEmpty() && model.getSelectedNodes().getFirst()
+          .equals(n))) {
+        return;
+      }
+      model.selectedNodesProperty().setAll(n);
+    });
 
     // bind formula table to model
     final FormulaTable formulaTable = new FormulaTable();
     formulaTable.itemsProperty().bind(model.precursorFormulaeProperty());
-    final var formulaWrap = new BorderPane(formulaTable,
-        FxButtons.createButton("Calculate formulae", calculateFormulaeMethod), null,
-        newFlowPane(Pos.CENTER_LEFT, FxButtons.createButton("Select formula", () -> {
-          final ResultFormula selected = formulaTable.getSelectionModel().getSelectedItem();
-          if (selected == null) {
-            logger.fine(() -> "Select button clicked, but no formula selected.");
-            return;
-          }
-          model.setPrecursorFormula(selected.getFormulaAsObject());
-        })), null);
+    final var formulaWrap = new BorderPane(formulaTable, newFlowPane(Pos.CENTER_LEFT,
+        createButton("Calculate formulae", () -> clearTableAndStartFormulaCalc(formulaTable)),
+        createButton("Select formula", () -> selectFormulaFromTable(formulaTable))), null, null,
+        null);
 
-    final SplitPane nodeSpectraFormulaSplit = new SplitPane(nodeTable,
-        new TabPane(new Tab("MS2 spectrum", ms2Chart), new Tab("Isotope spectrum", isotopeChart),
-            new Tab("Precursor formulae", formulaWrap)));
-    nodeSpectraFormulaSplit.setOrientation(Orientation.VERTICAL);
+    final SplitPane nodeTableGraphSplit = new SplitPane(fragmentGraph, nodeTable);
+    nodeTableGraphSplit.setOrientation(Orientation.HORIZONTAL);
+
+    final TabPane spectraFormulaTab = new TabPane(new Tab("Precursor formulae", formulaWrap),
+        new Tab("Fragmentation spectrum", ms2Chart), new Tab("Isotopes", isotopeChart));
 
     // set up a summary for the precursor formula. the text field can be edited directly and is bound
     // to formula property of the model. Same goes for the exact mass
     final FlowPane formulaSummaryBar = createFormulaSummaryBar();
 
-    final SplitPane graphSplit = new SplitPane(fragmentGraph,
-        new BorderPane(nodeSpectraFormulaSplit, formulaSummaryBar, null, null, null));
-    graphSplit.setOrientation(Orientation.HORIZONTAL);
+    final SplitPane tabAndGraphSplit = new SplitPane(nodeTableGraphSplit,
+        new BorderPane(spectraFormulaTab, formulaSummaryBar, null, null, null));
+    tabAndGraphSplit.setOrientation(Orientation.VERTICAL);
 
-    mainPane.setCenter(graphSplit);
+    mainPane.setCenter(tabAndGraphSplit);
     return mainPane;
+  }
+
+  private void clearTableAndStartFormulaCalc(FormulaTable formulaTable) {
+    formulaTable.getItems().clear();
+    calculateFormulaeMethod.run();
+  }
+
+  private void selectFormulaFromTable(FormulaTable formulaTable) {
+    final ResultFormula selected = formulaTable.getSelectionModel().getSelectedItem();
+    if (selected == null) {
+      logger.fine(() -> "Select button clicked, but no formula selected.");
+      return;
+    }
+    model.setPrecursorFormula(selected.getFormulaAsObject());
   }
 
   @NotNull
   private FlowPane createFormulaSummaryBar() {
 
-    final Button updateGraph = FxButtons.createButton("Update graph", updateGraphMethod);
+    final Button updateGraph = createButton("Update graph", updateGraphMethod);
     updateGraph.disableProperty().bind(model.allowGraphRecalculationProperty().not());
 
     FormulaTextField selectedFormulaField = new FormulaTextField();

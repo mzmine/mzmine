@@ -68,7 +68,7 @@ public class FormulaComboCell extends TableCell<SignalFormulaeModel, SignalFormu
       @Override
       public String toString(FormulaWithExactMz formulaWithExactMz) {
         if (formulaWithExactMz == null || formulaWithExactMz.formula() == null) {
-          return null;
+          return "";
         }
         return MolecularFormulaManipulator.getString(formulaWithExactMz.formula());
       }
@@ -89,6 +89,7 @@ public class FormulaComboCell extends TableCell<SignalFormulaeModel, SignalFormu
       return;
     }
 
+    setGraphic(combo);
     combo.getItems().setAll(item.getPeakWithFormulae().formulae());
     combo.getSelectionModel().select(item.getSelectedFormulaWithMz());
   }

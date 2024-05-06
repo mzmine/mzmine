@@ -91,10 +91,6 @@ public class FragDashboardModel {
       FXCollections.observableArrayList());
   private final ListProperty<SubFormulaEdge> allEdges = new SimpleListProperty<>(
       FXCollections.observableArrayList());
-  private final MapProperty<String, SignalFormulaeModel> allNodesMap = new SimpleMapProperty<>(
-      FXCollections.observableHashMap());
-  private final MapProperty<String, SubFormulaEdge> allEdgesMap = new SimpleMapProperty<>(
-      FXCollections.observableHashMap());
 
   public FragDashboardModel() {
   }
@@ -229,26 +225,6 @@ public class FragDashboardModel {
 
   public void setAllEdges(ObservableList<SubFormulaEdge> allEdges) {
     this.allEdges.set(allEdges);
-  }
-
-  public ReadOnlyMapProperty<String, SignalFormulaeModel> getAllNodesMap() {
-    return new ReadOnlyMapWrapper<>(allNodesMap);
-  }
-
-  public ReadOnlyMapProperty<String, SignalFormulaeModel> allNodesMapProperty() {
-    return new ReadOnlyMapWrapper<>(allNodesMap);
-  }
-
-  public ReadOnlyMapProperty<String, SubFormulaEdge> getAllEdgesMap() {
-    return new ReadOnlyMapWrapper<>(allEdgesMap);
-  }
-
-  public ReadOnlyMapProperty<String, SubFormulaEdge> allEdgesMapProperty() {
-    return new ReadOnlyMapWrapper<>(allEdgesMap);
-  }
-
-  MapProperty<String, SubFormulaEdge> allEdgesMapPropertyModifiable() {
-    return allEdgesMap;
   }
 
   public boolean getAllowGraphRecalculation() {

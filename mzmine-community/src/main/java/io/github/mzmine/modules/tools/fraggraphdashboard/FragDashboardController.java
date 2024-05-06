@@ -49,12 +49,12 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
 //    model.precursorFormulaProperty()
 //        .bindBidirectional(fragmentGraphController.precursorFormulaProperty());
 //    model.spectrumProperty().bindBidirectional(fragmentGraphController.spectrumProperty());
-    model.allEdgesProperty().bindBidirectional(fragmentGraphController.allEdgesProperty());
-    model.allNodesProperty().bindBidirectional(fragmentGraphController.allNodesProperty());
+    model.allEdgesProperty().bindContentBidirectional(fragmentGraphController.allEdgesProperty());
+    model.allNodesProperty().bindContentBidirectional(fragmentGraphController.allNodesProperty());
     model.selectedEdgesProperty()
-        .bindBidirectional(fragmentGraphController.selectedEdgesProperty());
+        .bindContentBidirectional(fragmentGraphController.selectedEdgesProperty());
     model.selectedNodesProperty()
-        .bindBidirectional(fragmentGraphController.selectedNodesProperty());
+        .bindContentBidirectional(fragmentGraphController.selectedNodesProperty());
 
     SpectrumPlotTableController ms2Controller = new SpectrumPlotTableController(Layout.HORIZONTAL);
     SpectrumPlotTableController isotopeController = new SpectrumPlotTableController(

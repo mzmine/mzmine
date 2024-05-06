@@ -31,16 +31,20 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.id_fraggraph.SignalWithFormulae;
 import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.GraphStreamUtils;
+import io.github.mzmine.util.MathUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.property.ReadOnlyDoubleWrapper;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * Maps the results of the formula prediction to a node in a fragment graph. Contains all available
@@ -57,16 +61,26 @@ public class SignalFormulaeModel {
   private final List<Graph> passThroughGraphs = new ArrayList<>();
   private final SignalWithFormulae signalWithFormulae;
   private final ObjectProperty<FormulaWithExactMz> selectedFormulaWithMz = new SimpleObjectProperty<>();
-  private final DoubleProperty deltaMz = new SimpleDoubleProperty(0);
+  private final ReadOnlyDoubleWrapper mz = new ReadOnlyDoubleWrapper(0);
+  private final ReadOnlyDoubleWrapper deltaMzAbs = new ReadOnlyDoubleWrapper(0);
+  private final ReadOnlyDoubleWrapper deltaMzPpm = new ReadOnlyDoubleWrapper(0);
 
   public SignalFormulaeModel(Node unfilteredNode, SignalWithFormulae formulae) {
     this.unfilteredNode = unfilteredNode;
     this.signalWithFormulae = formulae;
     final NumberFormats formats = ConfigService.getGuiFormats();
 
-    deltaMz.bind(Bindings.createDoubleBinding(
+    deltaMzAbs.bind(Bindings.createDoubleBinding(
         () -> selectedFormulaWithMz.get() != null ? formulae.peak().getMZ()
             - selectedFormulaWithMz.get().mz() : 0d, selectedFormulaWithMz));
+
+    deltaMzPpm.bind(Bindings.createDoubleBinding(
+        () -> selectedFormulaWithMz.get() != null ? MathUtils.getPpmDiff(formulae.peak().getMZ(),
+            selectedFormulaWithMz.get().mz()) : 0d, selectedFormulaWithMz));
+
+    mz.bind(Bindings.createDoubleBinding(
+        () -> selectedFormulaWithMz.get() != null ? selectedFormulaWithMz.get().mz() : 0d,
+        selectedFormulaWithMz));
 
     selectedFormulaWithMz.addListener((_, _, n) -> {
       for (FragNodeAttr value : FragNodeAttr.values()) {
@@ -77,7 +91,7 @@ public class SignalFormulaeModel {
       unfilteredNode.setAttribute("ui.label", STR."""
           \{unfilteredNode.getAttribute(FragNodeAttr.MZ.name())}
           \{unfilteredNode.getAttribute(FragNodeAttr.FORMULA.name())}
-          \{formats.ppm(deltaMz.get())} ppm
+          \{formats.mz(deltaMzAbs.get())}, \{formats.ppm(deltaMzPpm.get())} ppm
           """);
 
       // todo: can we even trigger edge updates from here?
@@ -86,7 +100,7 @@ public class SignalFormulaeModel {
 
     // todo does this work every time? are the listeners above triggered before or after this binding?
     //  should be ok if it is added last?
-    PropertyUtils.onChange(this::applyToPassThroughGraphs, deltaMz, selectedFormulaWithMz);
+    PropertyUtils.onChange(this::applyToPassThroughGraphs, deltaMzAbs, selectedFormulaWithMz, deltaMzPpm);
   }
 
   private void applyToPassThroughGraphs() {
@@ -94,7 +108,7 @@ public class SignalFormulaeModel {
 
     passThroughGraphs.forEach(g -> {
       final Node node = g.getNode(nodeId);
-      if(node == null) {
+      if (node == null) {
         return;
       }
       GraphStreamUtils.copyAttributes(unfilteredNode, node);
@@ -121,16 +135,12 @@ public class SignalFormulaeModel {
     this.selectedFormulaWithMz.set(selectedFormulaWithMz);
   }
 
-  public double getDeltaMz() {
-    return deltaMz.get();
+  public double getDeltaMzAbs() {
+    return deltaMzAbs.get();
   }
 
-  public DoubleProperty deltaMzProperty() {
-    return deltaMz;
-  }
-
-  public void setDeltaMz(double deltaMz) {
-    this.deltaMz.set(deltaMz);
+  public ReadOnlyDoubleProperty deltaMzAbsProperty() {
+    return deltaMzAbs.getReadOnlyProperty();
   }
 
   @Override
@@ -163,7 +173,7 @@ public class SignalFormulaeModel {
 
   @Override
   public String toString() {
-    return STR."PeakFormulaeModel{node=\{unfilteredNode}, selectedFormulaWithMz=\{selectedFormulaWithMz}, deltaMz=\{deltaMz}\{'}'}";
+    return STR."PeakFormulaeModel{node=\{unfilteredNode}, selectedFormulaWithMz=\{selectedFormulaWithMz}, deltaMz=\{deltaMzAbs}\{'}'}";
   }
 
   public String getId() {
@@ -171,7 +181,7 @@ public class SignalFormulaeModel {
   }
 
   public void addPassThroughGraph(Graph g) {
-    if(g == null) {
+    if (g == null) {
       return;
     }
     passThroughGraphs.add(g);
@@ -184,4 +194,21 @@ public class SignalFormulaeModel {
   public void clearPassThroughGraphs() {
     passThroughGraphs.clear();
   }
+
+  public double getDeltaMzPpm() {
+    return deltaMzPpm.get();
+  }
+
+  public ReadOnlyDoubleProperty deltaMzPpmProperty() {
+    return deltaMzPpm.getReadOnlyProperty();
+  }
+
+  public double getMz() {
+    return mz.get();
+  }
+
+  public ReadOnlyDoubleProperty mzProperty() {
+    return mz.getReadOnlyProperty();
+  }
+
 }

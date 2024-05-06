@@ -31,11 +31,8 @@ import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeMod
 import java.text.ParseException;
 import java.util.Comparator;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
-import javafx.util.Callback;
 
 public class NodeTable extends TableView<SignalFormulaeModel> {
 
@@ -44,33 +41,52 @@ public class NodeTable extends TableView<SignalFormulaeModel> {
   public NodeTable() {
     super();
 
-    final TableColumn<SignalFormulaeModel, SignalFormulaeModel> mzColumn = new TableColumn<>("m/z");
-    mzColumn.setCellFactory(_ -> new MzCell());
-    mzColumn.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
-    mzColumn.setComparator(
-        Comparator.comparingDouble(sfm -> sfm.getPeakWithFormulae().peak().getMZ()));
+    final TableColumn<SignalFormulaeModel, String> mzColumn = new TableColumn<>("m/z");
+    mzColumn.setCellValueFactory(cellData -> cellData.getValue().mzProperty().map(formats::mz));
+    mzColumn.setComparator(Comparator.comparingDouble(this::mzDoubleFormatter));
+    mzColumn.getStyleClass().add("align-right-column");
     mzColumn.setMinWidth(70);
+    mzColumn.setReorderable(false);
 
     final TableColumn<SignalFormulaeModel, SignalFormulaeModel> formulaColumn = new TableColumn<>(
         "Formula");
     formulaColumn.setCellFactory(_ -> new FormulaComboCell());
     formulaColumn.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
     formulaColumn.setMinWidth(150);
+    formulaColumn.setReorderable(false);
 
-    final TableColumn<SignalFormulaeModel, String> deltaMzColumn = new TableColumn<>("Δm/z");
+    final TableColumn<SignalFormulaeModel, String> deltaMzColumn = new TableColumn<>("Δm/z (abs)");
     deltaMzColumn.setCellValueFactory(
-        param -> param.getValue().deltaMzProperty().map(delta -> formats.mz(delta.doubleValue())));
-    deltaMzColumn.setMinWidth(70);
-    deltaMzColumn.setComparator(Comparator.comparingDouble(ppmStr -> {
+        param -> param.getValue().deltaMzAbsProperty().map(formats::mz));
+    deltaMzColumn.setMinWidth(90);
+    deltaMzColumn.setReorderable(false);
+    deltaMzColumn.getStyleClass().add("align-right-column");
+    deltaMzColumn.setComparator(Comparator.comparingDouble(this::mzDoubleFormatter));
+
+    final TableColumn<SignalFormulaeModel, String> ppm = new TableColumn<>("Δm/z (ppm)");
+    ppm.setCellValueFactory(param -> param.getValue().deltaMzPpmProperty().map(formats::ppm));
+    ppm.setMinWidth(90);
+    ppm.setReorderable(false);
+    ppm.getStyleClass().add("align-right-column");
+    ppm.setComparator(Comparator.comparingDouble(ppmStr -> {
       try {
-        return formats.mzFormat().parse(ppmStr).doubleValue();
+        return formats.ppmFormat().parse(ppmStr).doubleValue();
       } catch (ParseException e) {
         return 0.0d;
       }
     }));
 
-    getColumns().add(mzColumn);
     getColumns().add(formulaColumn);
+    getColumns().add(mzColumn);
     getColumns().add(deltaMzColumn);
+    getColumns().add(ppm);
+  }
+
+  private double mzDoubleFormatter(String diffStr) {
+    try {
+      return formats.mzFormat().parse(diffStr).doubleValue();
+    } catch (ParseException e) {
+      return 0.0d;
+    }
   }
 }

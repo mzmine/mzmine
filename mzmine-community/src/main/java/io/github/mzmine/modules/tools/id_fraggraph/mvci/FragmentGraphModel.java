@@ -29,6 +29,8 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
 import io.github.mzmine.util.javafx.ListToMapListener;
+import java.util.ArrayList;
+import java.util.Map;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
@@ -47,8 +49,8 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 class FragmentGraphModel {
 
   FragmentGraphModel() {
-    allNodes.addListener(new ListToMapListener<>(SignalFormulaeModel::getId, allNodesMap));
-    allEdges.addListener(new ListToMapListener<>(SubFormulaEdge::getId, allEdgesMap));
+    allNodes.addListener(new ListToMapListener<>(SignalFormulaeModel::getId, allNodesMap.get()));
+    allEdges.addListener(new ListToMapListener<>(SubFormulaEdge::getId, allEdgesMap.get()));
   }
 
   private final ObjectProperty<IMolecularFormula> precursorFormula = new SimpleObjectProperty<>();
@@ -56,16 +58,16 @@ class FragmentGraphModel {
   private final BooleanProperty precursorFormulaEditable = new SimpleBooleanProperty(false);
   private final ObjectProperty<MultiGraph> graph = new SimpleObjectProperty<>();
   private final ListProperty<SignalFormulaeModel> selectedNodes = new SimpleListProperty<>(
-      FXCollections.observableArrayList());
+      FXCollections.observableArrayList(new ArrayList<>()));
   private final ListProperty<SubFormulaEdge> selectedEdges = new SimpleListProperty<>(
       FXCollections.observableArrayList());
   private final ListProperty<SignalFormulaeModel> allNodes = new SimpleListProperty<>(
       FXCollections.observableArrayList());
   private final ListProperty<SubFormulaEdge> allEdges = new SimpleListProperty<>(
       FXCollections.observableArrayList());
-  private final MapProperty<String, SignalFormulaeModel> allNodesMap = new SimpleMapProperty<>(
+  private final ReadOnlyMapWrapper<String, SignalFormulaeModel> allNodesMap = new ReadOnlyMapWrapper<>(
       FXCollections.observableHashMap());
-  private final MapProperty<String, SubFormulaEdge> allEdgesMap = new SimpleMapProperty<>(
+  private final ReadOnlyMapWrapper<String, SubFormulaEdge> allEdgesMap = new ReadOnlyMapWrapper<>(
       FXCollections.observableHashMap());
 
   public IMolecularFormula getPrecursorFormula() {
@@ -164,20 +166,20 @@ class FragmentGraphModel {
     this.allEdges.set(allEdges);
   }
 
-  public ReadOnlyMapProperty<String, SignalFormulaeModel> getAllNodesMap() {
-    return new ReadOnlyMapWrapper<>(allNodesMap.get());
+  public Map<String, SignalFormulaeModel> getAllNodesMap() {
+    return allNodesMap.getReadOnlyProperty();
   }
 
   public ReadOnlyMapProperty<String, SignalFormulaeModel> allNodesMapProperty() {
-    return new ReadOnlyMapWrapper<>(allNodesMap);
+    return allNodesMap.getReadOnlyProperty();
   }
 
-  public ReadOnlyMapProperty<String, SubFormulaEdge> getAllEdgesMap() {
-    return new ReadOnlyMapWrapper<>(allEdgesMap.get());
+  public Map<String, SubFormulaEdge> getAllEdgesMap() {
+    return allEdgesMap.getReadOnlyProperty();
   }
 
   public ReadOnlyMapProperty<String, SubFormulaEdge> allEdgesMapProperty() {
-    return new ReadOnlyMapWrapper<>(allEdgesMap);
+    return allEdgesMap.getReadOnlyProperty();
   }
 
 }
