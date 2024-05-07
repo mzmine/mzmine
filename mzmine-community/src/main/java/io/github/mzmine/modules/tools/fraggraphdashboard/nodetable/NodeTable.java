@@ -42,8 +42,8 @@ public class NodeTable extends TableView<SignalFormulaeModel> {
     super();
 
     final TableColumn<SignalFormulaeModel, String> mzColumn = new TableColumn<>("m/z");
-    mzColumn.setCellValueFactory(cellData -> cellData.getValue().mzProperty().map(formats::mz));
-    mzColumn.setComparator(Comparator.comparingDouble(this::mzDoubleFormatter));
+    mzColumn.setCellValueFactory(cellData -> cellData.getValue().calculatedMzProperty().map(formats::mz));
+    mzColumn.setComparator(Comparator.comparingDouble(this::mzDoubleParser));
     mzColumn.getStyleClass().add("align-right-column");
     mzColumn.setMinWidth(70);
     mzColumn.setReorderable(false);
@@ -61,7 +61,7 @@ public class NodeTable extends TableView<SignalFormulaeModel> {
     deltaMzColumn.setMinWidth(90);
     deltaMzColumn.setReorderable(false);
     deltaMzColumn.getStyleClass().add("align-right-column");
-    deltaMzColumn.setComparator(Comparator.comparingDouble(this::mzDoubleFormatter));
+    deltaMzColumn.setComparator(Comparator.comparingDouble(this::mzDoubleParser));
 
     final TableColumn<SignalFormulaeModel, String> ppm = new TableColumn<>("Δm/z (ppm)");
     ppm.setCellValueFactory(param -> param.getValue().deltaMzPpmProperty().map(formats::ppm));
@@ -82,7 +82,7 @@ public class NodeTable extends TableView<SignalFormulaeModel> {
     getColumns().add(ppm);
   }
 
-  private double mzDoubleFormatter(String diffStr) {
+  private double mzDoubleParser(String diffStr) {
     try {
       return formats.mzFormat().parse(diffStr).doubleValue();
     } catch (ParseException e) {

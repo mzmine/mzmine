@@ -17,7 +17,7 @@
  *
  */
 
-package io.github.mzmine.modules.tools.fraggraphdashboard.formulatable;
+package io.github.mzmine.modules.tools.fraggraphdashboard.nodetable;
 
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;

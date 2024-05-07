@@ -67,12 +67,6 @@ public class FragmentGraphGenerator {
     generateNodes();
     addEdges();
 
-    final Map<String, SignalFormulaeModel> newMap = this.peaksWithFormulae.stream().collect(
-        Collectors.toMap(this::toNodeName,
-            pwf -> new SignalFormulaeModel(graph.getNode(toNodeName(pwf)), pwf)));
-
-    logger.finest(newMap.toString());
-
 //    graph.nodes().forEach(node -> {
 //      final SignalFormulaeModel model = nodeModelMap.computeIfAbsent(peakWithFormulae,
 //          pwf -> new SignalFormulaeModel(newNode, peakWithFormulae));
@@ -102,11 +96,7 @@ public class FragmentGraphGenerator {
     for (SubFormulaEdge edge : edges) {
       final Edge graphEdge = graph.addEdge(edge.getId(), getNode(edge.smaller()),
           getNode(edge.larger()), true);
-
-      for (FragEdgeAttr edgeAttr : FragEdgeAttr.values()) {
-        edgeAttr.setToEdgeAttributes(edge, graphEdge);
-      }
-      FragEdgeAttr.applyAllAsLabel(edge, graphEdge);
+      edge.addGraph(graph, true);
     }
   }
 
@@ -128,8 +118,7 @@ public class FragmentGraphGenerator {
     }
 
     final Node newNode = graph.addNode(toNodeName(signalWithFormulae));
-    final SignalFormulaeModel model = new SignalFormulaeModel(
-        newNode, signalWithFormulae);
+    final SignalFormulaeModel model = new SignalFormulaeModel(newNode, signalWithFormulae);
     nodeModelMap.put(signalWithFormulae, model);
 
     // todo: some magic to select a good formula

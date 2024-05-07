@@ -36,15 +36,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.ReadOnlyDoubleWrapper;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
-import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * Maps the results of the formula prediction to a node in a fragment graph. Contains all available
@@ -61,7 +58,7 @@ public class SignalFormulaeModel {
   private final List<Graph> passThroughGraphs = new ArrayList<>();
   private final SignalWithFormulae signalWithFormulae;
   private final ObjectProperty<FormulaWithExactMz> selectedFormulaWithMz = new SimpleObjectProperty<>();
-  private final ReadOnlyDoubleWrapper mz = new ReadOnlyDoubleWrapper(0);
+  private final ReadOnlyDoubleWrapper calculatedMz = new ReadOnlyDoubleWrapper(0);
   private final ReadOnlyDoubleWrapper deltaMzAbs = new ReadOnlyDoubleWrapper(0);
   private final ReadOnlyDoubleWrapper deltaMzPpm = new ReadOnlyDoubleWrapper(0);
 
@@ -78,7 +75,7 @@ public class SignalFormulaeModel {
         () -> selectedFormulaWithMz.get() != null ? MathUtils.getPpmDiff(formulae.peak().getMZ(),
             selectedFormulaWithMz.get().mz()) : 0d, selectedFormulaWithMz));
 
-    mz.bind(Bindings.createDoubleBinding(
+    calculatedMz.bind(Bindings.createDoubleBinding(
         () -> selectedFormulaWithMz.get() != null ? selectedFormulaWithMz.get().mz() : 0d,
         selectedFormulaWithMz));
 
@@ -100,7 +97,7 @@ public class SignalFormulaeModel {
     // todo does this work every time? are the listeners above triggered before or after this binding?
     //  should be ok if it is added last?
     PropertyUtils.onChange(this::applyToPassThroughGraphs, deltaMzAbs, selectedFormulaWithMz,
-        deltaMzPpm, mz);
+        deltaMzPpm, calculatedMz);
   }
 
   private void applyToPassThroughGraphs() {
@@ -203,12 +200,12 @@ public class SignalFormulaeModel {
     return deltaMzPpm.getReadOnlyProperty();
   }
 
-  public double getMz() {
-    return mz.get();
+  public double getCalculatedMz() {
+    return calculatedMz.get();
   }
 
-  public ReadOnlyDoubleProperty mzProperty() {
-    return mz.getReadOnlyProperty();
+  public ReadOnlyDoubleProperty calculatedMzProperty() {
+    return calculatedMz.getReadOnlyProperty();
   }
 
 }

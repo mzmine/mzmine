@@ -101,7 +101,7 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
   private void addGraphListenerForNetworkUpdate(BorderPane pane) {
     final List<ChangeListener<ObservableList<SignalFormulaeModel>>> oldNodeListeners = new ArrayList<>();
 
-    model.graphProperty().addListener((_, _, graph) -> {
+    model.graphProperty().addListener((_, oldGraph, graph) -> {
       pane.setCenter(null);
       for (ChangeListener<ObservableList<SignalFormulaeModel>> old : oldNodeListeners) {
         model.selectedNodesProperty().removeListener(old);
@@ -116,6 +116,10 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
       model.getAllNodes().forEach(nodeModel -> {
         nodeModel.clearPassThroughGraphs();
         nodeModel.addPassThroughGraph(network.getGraphicGraph());
+      });
+      model.getAllEdges().forEach(edge -> {
+        edge.removeGraph(oldGraph);
+        edge.addGraph(network.getGraphicGraph(), true);
       });
       // update mappings to filtered nodes
 //      network.getGraph().getEdgeFilteredGraph().nodes().forEach(node -> {

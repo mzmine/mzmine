@@ -36,7 +36,7 @@ import org.graphstream.graph.Edge;
  * from a {@link SubFormulaEdge} to an {@link Edge}.
  */
 public enum FragEdgeAttr {
-  DELTA_MZ, DELTA_FORMULA;
+  COMPUTED_DELTA_MZ, MEASURED_DELTA_MZ, MASS_ERROR_ABS, MASS_ERROR_PPM, DELTA_FORMULA;
 
   public void setToEdgeAttributes(SubFormulaEdge edge, Edge graphEdge) {
     final NumberFormats formats = ConfigService.getGuiFormats();
@@ -45,8 +45,11 @@ public enum FragEdgeAttr {
 
   public String valueAsString(SubFormulaEdge edge, NumberFormats formats) {
     return switch (this) {
-      case DELTA_MZ -> formats.mz(edge.getDeltaMz());
-      case DELTA_FORMULA -> edge.getLossFormulaAsString();
+      case COMPUTED_DELTA_MZ -> formats.mz(edge.getComputedMassDiff());
+      case MEASURED_DELTA_MZ -> formats.mz(edge.getMeasuredMassDiff());
+      case MASS_ERROR_ABS -> formats.mz(edge.getMassErrorAbs());
+      case MASS_ERROR_PPM -> formats.ppm(edge.getMassErrorPpm());
+      case DELTA_FORMULA -> edge.getLossFormulaString();
     };
   }
 
@@ -55,11 +58,13 @@ public enum FragEdgeAttr {
     return valueAsString(edge, formats);
   }
 
-  public static void applyAllAsLabel(SubFormulaEdge edge, Edge graphEdge) {
+  public static void applyToEdge(SubFormulaEdge edge, Edge graphEdge) {
     final NumberFormats formats = ConfigService.getGuiFormats();
-    final String label = Arrays.stream(FragEdgeAttr.values())
-        .map(attr -> attr.valueAsString(edge, formats)).filter(str -> !str.isBlank())
-        .collect(Collectors.joining("\n"));
+    final String label = STR."""
+        Δm/z \{COMPUTED_DELTA_MZ.valueAsString(edge)}
+        (\{MASS_ERROR_ABS.valueAsString(edge)}, \{MASS_ERROR_PPM.valueAsString(edge)})
+        -\{DELTA_FORMULA.valueAsString(edge)}
+        """;
     graphEdge.setAttribute("ui.label", label);
   }
 }

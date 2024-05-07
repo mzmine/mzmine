@@ -42,7 +42,7 @@ public enum FragNodeAttr {
   public void setToNode(Node node, SignalFormulaeModel sfm) {
     final NumberFormats formats = ConfigService.getGuiFormats();
     switch (this) {
-      case MZ -> node.setAttribute(name(), formats.mz(sfm.getMz()));
+      case MZ -> node.setAttribute(name(), formats.mz(sfm.getCalculatedMz()));
       case INTENSITY -> node.setAttribute(name(),
           formats.intensity(sfm.getPeakWithFormulae().peak().getIntensity()));
       case FORMULA -> node.setAttribute(name(),
