@@ -28,8 +28,11 @@ package io.github.mzmine.modules.tools.id_fraggraph.mvci;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardBuilder;
+import io.github.mzmine.modules.tools.id_fraggraph.FragmentGraphCalcParameters;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
+import io.github.mzmine.parameters.ParameterSet;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyMapProperty;
@@ -40,8 +43,11 @@ public class FragmentGraphController extends FxController<FragmentGraphModel> {
 
   private final FxViewBuilder<FragmentGraphModel> builder;
 
-  public FragmentGraphController() {
+  private final ParameterSet parameters;
+
+  public FragmentGraphController(ParameterSet parameters) {
     super(new FragmentGraphModel());
+    this.parameters = parameters;
     builder = new FragmentGraphBuilder(model);
 
     model.ms2SpectrumProperty().addListener((_, _, _) -> calculateNewGraph());
@@ -59,7 +65,9 @@ public class FragmentGraphController extends FxController<FragmentGraphModel> {
   }
 
   private void calculateNewGraph() {
-    onTaskThreadDelayed(new FormulaChangedUpdateTask("Calculate new fragment graph", model));
+    onTaskThreadDelayed(new FormulaChangedUpdateTask("Calculate new fragment graph", model,
+        parameters.getValue(FragmentGraphCalcParameters.ms2Tolerance),
+        parameters.getValue(FragmentGraphCalcParameters.ms2SignalFilter).createFilter()));
   }
 
   public ObjectProperty<IMolecularFormula> precursorFormulaProperty() {
@@ -82,7 +90,7 @@ public class FragmentGraphController extends FxController<FragmentGraphModel> {
     return model.allNodesProperty();
   }
 
-  public ListProperty< SubFormulaEdge> allEdgesProperty() {
+  public ListProperty<SubFormulaEdge> allEdgesProperty() {
     return model.allEdgesProperty();
   }
 

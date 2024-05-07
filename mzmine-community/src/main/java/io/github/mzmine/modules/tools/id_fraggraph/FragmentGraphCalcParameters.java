@@ -50,7 +50,8 @@ public class FragmentGraphCalcParameters extends SimpleParameterSet {
   public static final ParameterSetParameter<SignalFiltersParameters> ms2SignalFilter = new ParameterSetParameter<>(
       "Fragment spectrum signal filters",
       "Refine the MS2 spectrum by narrowing down the fragment ion search in spectra with a lot of signals.",
-      (SignalFiltersParameters) (new SignalFiltersParameters()).cloneParameterSet());
+      (SignalFiltersParameters) (new SignalFiltersParameters().setValue(
+          new SpectralSignalFilter(false, 10, 20, 15, 0.95))).cloneParameterSet());
 
   public static final ElementsCompositionRangeParameter elements = new ElementsCompositionRangeParameter(
       "Elements", "Define elements for sum formula prediction");

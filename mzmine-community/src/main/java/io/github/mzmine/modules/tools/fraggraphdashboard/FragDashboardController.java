@@ -45,7 +45,7 @@ import org.jetbrains.annotations.NotNull;
 public class FragDashboardController extends FxController<FragDashboardModel> {
 
   private FragDashboardBuilder fragDashboardBuilder;
-  private final FragmentGraphController fragmentGraphController = new FragmentGraphController();
+  private final FragmentGraphController fragmentGraphController;
 
   private final ParameterSet parameters;
 
@@ -56,6 +56,7 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
   public FragDashboardController(ParameterSet parameters) {
     super(new FragDashboardModel());
     this.parameters = parameters;
+    fragmentGraphController = new FragmentGraphController(parameters);
 
 //    model.precursorFormulaProperty()
 //        .bindBidirectional(fragmentGraphController.precursorFormulaProperty());
@@ -90,8 +91,7 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
   }
 
   public void startFormulaCalculation() {
-    onTaskThreadDelayed(
-        new FragGraphPrecursorFormulaTask(model, parameters), new Duration(200));
+    onTaskThreadDelayed(new FragGraphPrecursorFormulaTask(model, parameters), new Duration(200));
   }
 
   public void setInput(double precursorMz, @NotNull MassSpectrum ms2Spectrum,

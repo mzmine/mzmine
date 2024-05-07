@@ -44,16 +44,18 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaChangedUpdateTask extends FxUpdateTask<FragmentGraphModel> {
 
-  private final SpectralSignalFilter signalFilter = new SpectralSignalFilter(false, 10, 25, 25,
-      0.98);
+  private final SpectralSignalFilter signalFilter;
 
-  private final MZTolerance formulaTolerance = new MZTolerance(0.005, 15);
+  private final MZTolerance formulaTolerance;
   private MultiGraph graph;
   private List<SignalFormulaeModel> allNodeModels;
   private List<SubFormulaEdge> edges;
 
-  public FormulaChangedUpdateTask(@NotNull String taskName, FragmentGraphModel model) {
+  public FormulaChangedUpdateTask(@NotNull String taskName, FragmentGraphModel model,
+      MZTolerance fragmentFormulaTolerance, SpectralSignalFilter signalFilter) {
     super(taskName, model);
+    formulaTolerance = fragmentFormulaTolerance;
+    this.signalFilter = signalFilter;
   }
 
   @Override
