@@ -26,7 +26,19 @@
 package io.github.mzmine.modules.tools.id_fraggraph.graphstream;
 
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.MathUtils;
 import java.text.NumberFormat;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.property.ReadOnlyDoubleWrapper;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
@@ -35,8 +47,19 @@ public class SubFormulaEdge {
   private final SignalFormulaeModel a;
   private final SignalFormulaeModel b;
   private final String id;
+  private final ReadOnlyBooleanWrapper valid = new ReadOnlyBooleanWrapper(false);
+  private final BooleanProperty visible = new SimpleBooleanProperty(false);
+  private final ReadOnlyBooleanWrapper visibleAndValid = new ReadOnlyBooleanWrapper(false);
+  private final ReadOnlyObjectWrapper<@Nullable IMolecularFormula> lossFormula = new ReadOnlyObjectWrapper<>();
+  private final ReadOnlyStringWrapper lossFormulaString = new ReadOnlyStringWrapper();
+  private final ReadOnlyDoubleWrapper measuredMassDiff = new ReadOnlyDoubleWrapper(0);
+  private final ReadOnlyDoubleWrapper computedMassDiff = new ReadOnlyDoubleWrapper(0);
+  private final ReadOnlyDoubleWrapper massErrorAbs = new ReadOnlyDoubleWrapper(0);
+  private final ReadOnlyDoubleWrapper massErrorPpm = new ReadOnlyDoubleWrapper(0);
 
-  public SubFormulaEdge(SignalFormulaeModel a, SignalFormulaeModel b, NumberFormat nodeNameFormatter) {
+
+  public SubFormulaEdge(SignalFormulaeModel a, SignalFormulaeModel b,
+      NumberFormat nodeNameFormatter) {
     if (a.getPeakWithFormulae().peak().getMZ() < b.getPeakWithFormulae().peak().getMZ()) {
       this.a = a;
       this.b = b;
@@ -48,7 +71,35 @@ public class SubFormulaEdge {
     id = STR."\{nodeNameFormatter.format(
         a.getPeakWithFormulae().peak().getMZ())}-\{nodeNameFormatter.format(
         b.getPeakWithFormulae().peak().getMZ())}";
+
+    if (FormulaUtils.isSubFormula(a.getSelectedFormulaWithMz(), b.getSelectedFormulaWithMz())) {
+      valid.set(true);
+      visible.set(true);
+    }
+
+    valid.bind(Bindings.createBooleanBinding(
+        () -> FormulaUtils.isSubFormula(a.getSelectedFormulaWithMz(), b.getSelectedFormulaWithMz()),
+        a.selectedFormulaWithMzProperty(), b.selectedFormulaWithMzProperty()));
+    visibleAndValid.bind(valid.and(visible));
+
+    lossFormula.bind(
+        Bindings.createObjectBinding(this::computeLossFormula, a.selectedFormulaWithMzProperty(),
+            b.selectedFormulaWithMzProperty()));
+    lossFormulaString.bind(Bindings.createStringBinding(
+        () -> lossFormula.get() != null ? MolecularFormulaManipulator.getString(lossFormula.get())
+            : null));
+    measuredMassDiff.set(
+        a.getPeakWithFormulae().peak().getMZ() - b.getPeakWithFormulae().peak().getMZ());
+    computedMassDiff.bind(Bindings.createDoubleBinding(
+        () -> a.getSelectedFormulaWithMz().mz() - b.getSelectedFormulaWithMz().mz(),
+        a.selectedFormulaWithMzProperty(), b.selectedFormulaWithMzProperty()));
+    massErrorAbs.bind(measuredMassDiff.subtract(computedMassDiff));
+    massErrorPpm.bind(Bindings.createDoubleBinding(
+        () -> MathUtils.getPpmDiff(computedMassDiff.get(), measuredMassDiff.get()),
+        computedMassDiff, measuredMassDiff));
+
   }
+
 
   public SignalFormulaeModel smaller() {
     return a;
@@ -62,15 +113,82 @@ public class SubFormulaEdge {
     return b.getPeakWithFormulae().peak().getMZ() - a.getPeakWithFormulae().peak().getMZ();
   }
 
-  public IMolecularFormula getLossFormula() {
+  public @Nullable IMolecularFormula computeLossFormula() {
+    if (!FormulaUtils.isSubFormula(a.getSelectedFormulaWithMz(), b.getSelectedFormulaWithMz())) {
+      return null;
+    }
     final IMolecularFormula formula = b.getSelectedFormulaWithMz().formula();
     final IMolecularFormula loss = FormulaUtils.subtractFormula(FormulaUtils.cloneFormula(formula),
         a.getSelectedFormulaWithMz().formula());
     return loss;
   }
 
-  public String getLossFormulaAsString() {
-    return MolecularFormulaManipulator.getString(getLossFormula());
+  public boolean isValid() {
+    return valid.get();
+  }
+
+  public ReadOnlyBooleanProperty validProperty() {
+    return valid.getReadOnlyProperty();
+  }
+
+  public boolean isVisible() {
+    return visible.get();
+  }
+
+  public BooleanProperty visibleProperty() {
+    return visible;
+  }
+
+  public boolean isVisibleAndValid() {
+    return visibleAndValid.get();
+  }
+
+  public ReadOnlyBooleanProperty visibleAndValidProperty() {
+    return visibleAndValid.getReadOnlyProperty();
+  }
+
+  public void setVisible(boolean visible) {
+    this.visible.set(visible);
+  }
+
+  public String getLossFormulaString() {
+    return lossFormulaString.get();
+  }
+
+  public ReadOnlyStringProperty lossFormulaStringProperty() {
+    return lossFormulaString.getReadOnlyProperty();
+  }
+
+  public double getMeasuredMassDiff() {
+    return measuredMassDiff.get();
+  }
+
+  public ReadOnlyDoubleProperty measuredMassDiffProperty() {
+    return measuredMassDiff.getReadOnlyProperty();
+  }
+
+  public double getComputedMassDiff() {
+    return computedMassDiff.get();
+  }
+
+  public ReadOnlyDoubleProperty computedMassDiffProperty() {
+    return computedMassDiff.getReadOnlyProperty();
+  }
+
+  public double getMassErrorAbs() {
+    return massErrorAbs.get();
+  }
+
+  public ReadOnlyDoubleProperty massErrorAbsProperty() {
+    return massErrorAbs.getReadOnlyProperty();
+  }
+
+  public double getMassErrorPpm() {
+    return massErrorPpm.get();
+  }
+
+  public ReadOnlyDoubleProperty massErrorPpmProperty() {
+    return massErrorPpm.getReadOnlyProperty();
   }
 
   public String getId() {
