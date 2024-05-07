@@ -327,7 +327,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
       dataPointsVisible = !dataPointsVisible;
       int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
-      for (int i = 0; i <numDatasets; i++) {
+      for (int i = 0; i < numDatasets; i++) {
         XYItemRenderer renderer = plot.getRenderer(i);
         if (!(renderer instanceof ContinuousRenderer contRend)) {
           continue;
@@ -356,7 +356,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   void switchIsotopePeaksVisible() {
     isotopesVisible = !isotopesVisible;
     int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
-    for (int i = 0; i <numDatasets; i++) {
+    for (int i = 0; i < numDatasets; i++) {
       XYDataset dataSet = plot.getDataset(i);
       if (!(dataSet instanceof IsotopesDataSet)) {
         continue;
@@ -400,6 +400,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
         plot.setDataset(i, null);
       }
       plot.clearDomainMarkers();
+      this.getDatasetToLabelsCoords().clear();
     });
   }
 
@@ -473,9 +474,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
       if (matchLabelColors.get()) {
         newRenderer.setDefaultItemLabelPaint(color);
-      }
-      else {
-        if(MZmineCore.getConfiguration().isDarkMode()) {
+      } else {
+        if (MZmineCore.getConfiguration().isDarkMode()) {
           newRenderer.setDefaultItemLabelPaint(Color.white);
         } else {
           newRenderer.setDefaultItemLabelPaint(Color.black);
@@ -567,7 +567,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
   public ScanDataSet getMainScanDataSet() {
     int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
-    for (int i = 0; i <numDatasets; i++) {
+    for (int i = 0; i < numDatasets; i++) {
       XYDataset dataSet = plot.getDataset(i);
       if (dataSet instanceof ScanDataSet) {
         return (ScanDataSet) dataSet;
