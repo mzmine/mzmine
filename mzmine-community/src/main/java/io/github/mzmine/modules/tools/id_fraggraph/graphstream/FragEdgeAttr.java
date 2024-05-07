@@ -49,7 +49,7 @@ public enum FragEdgeAttr {
       case MEASURED_DELTA_MZ -> formats.mz(edge.getMeasuredMassDiff());
       case MASS_ERROR_ABS -> formats.mz(edge.getMassErrorAbs());
       case MASS_ERROR_PPM -> formats.ppm(edge.getMassErrorPpm());
-      case DELTA_FORMULA -> edge.getLossFormulaString();
+      case DELTA_FORMULA -> STR."-[\{edge.getLossFormulaString()}]";
     };
   }
 
@@ -63,7 +63,7 @@ public enum FragEdgeAttr {
     final String label = STR."""
         Δm/z \{COMPUTED_DELTA_MZ.valueAsString(edge)}
         (\{MASS_ERROR_ABS.valueAsString(edge)}, \{MASS_ERROR_PPM.valueAsString(edge)})
-        -\{DELTA_FORMULA.valueAsString(edge)}
+        \{DELTA_FORMULA.valueAsString(edge)}
         """;
     graphEdge.setAttribute("ui.label", label);
   }

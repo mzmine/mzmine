@@ -72,8 +72,9 @@ public class SignalFormulaeModel {
             - selectedFormulaWithMz.get().mz() : 0d, selectedFormulaWithMz));
 
     deltaMzPpm.bind(Bindings.createDoubleBinding(
-        () -> selectedFormulaWithMz.get() != null ? MathUtils.getPpmDiff(formulae.peak().getMZ(),
-            selectedFormulaWithMz.get().mz()) : 0d, selectedFormulaWithMz));
+        () -> selectedFormulaWithMz.get() != null ? MathUtils.getPpmDiff(
+            selectedFormulaWithMz.get().mz(), formulae.peak().getMZ()) : 0d,
+        selectedFormulaWithMz));
 
     calculatedMz.bind(Bindings.createDoubleBinding(
         () -> selectedFormulaWithMz.get() != null ? selectedFormulaWithMz.get().mz() : 0d,

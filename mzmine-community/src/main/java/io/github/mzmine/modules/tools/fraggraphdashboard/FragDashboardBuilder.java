@@ -33,12 +33,15 @@ import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.EdgeTable;
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.FormulaTable;
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.NodeTable;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.components.FormulaTextField;
+import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ListProperty;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -46,6 +49,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -71,7 +75,10 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
     this.fragmentGraph = fragmentGraph;
     this.ms2Chart = ms2Chart;
     this.isotopeChart = isotopeChart;
-    this.updateGraphMethod = updateGraphMethod;
+    this.updateGraphMethod = () -> {
+      model.setAllowGraphRecalculation(false);
+      updateGraphMethod.run();
+    };
     this.calculateFormulaeMethod = calculateFormulaeMethod;
   }
 
@@ -81,23 +88,9 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
     final BorderPane mainPane = new BorderPane();
 
     NodeTable nodeTable = new NodeTable();
-    nodeTable.itemsProperty().bindBidirectional(model.allNodesProperty());
-//    model.selectedNodesProperty().bindContentBidirectional(
-//        new SimpleListProperty<>(nodeTable.getSelectionModel().getSelectedItems()));
-    model.selectedNodesProperty().addListener((_, _, n) -> {
-      if (n.isEmpty() || (nodeTable.getSelectionModel().getSelectedItem() != null
-          && nodeTable.getSelectionModel().getSelectedItem().equals(n.getFirst()))) {
-        return;
-      }
-      nodeTable.getSelectionModel().clearAndSelect(nodeTable.getItems().indexOf(n.getFirst()));
-    });
-    nodeTable.getSelectionModel().selectedItemProperty().addListener((_, _, n) -> {
-      if (n == null || (!model.getSelectedNodes().isEmpty() && model.getSelectedNodes().getFirst()
-          .equals(n))) {
-        return;
-      }
-      model.selectedNodesProperty().setAll(n);
-    });
+    allListenersToTable(nodeTable, model.allNodesProperty(), model.selectedNodesProperty());
+    EdgeTable edgeTable = new EdgeTable();
+    allListenersToTable(edgeTable, model.allEdgesProperty(), model.selectedEdgesProperty());
 
     // bind formula table to model
     final FormulaTable formulaTable = new FormulaTable();
@@ -108,7 +101,7 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
         null);
 
     final SplitPane nodeTableGraphSplit = new SplitPane(fragmentGraph,
-        new TabPane(new Tab("Fragments", nodeTable)));
+        new TabPane(new Tab("Fragments", nodeTable), new Tab("Neutral losses", edgeTable)));
     nodeTableGraphSplit.setDividerPositions(0.6);
     nodeTableGraphSplit.setOrientation(Orientation.HORIZONTAL);
 
@@ -126,6 +119,26 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
 
     mainPane.setCenter(tabAndGraphSplit);
     return mainPane;
+  }
+
+  private <T> void allListenersToTable(TableView<T> table, ListProperty<T> allElements,
+      ListProperty<T> selectedElements) {
+    table.itemsProperty().bindBidirectional(allElements);
+//    model.selectedNodesProperty().bindContentBidirectional(
+//        new SimpleListProperty<>(nodeTable.getSelectionModel().getSelectedItems()));
+    selectedElements.addListener((_, _, n) -> {
+      if (n.isEmpty() || (table.getSelectionModel().getSelectedItem() != null
+          && table.getSelectionModel().getSelectedItem().equals(n.getFirst()))) {
+        return;
+      }
+      table.getSelectionModel().clearAndSelect(table.getItems().indexOf(n.getFirst()));
+    });
+    table.getSelectionModel().selectedItemProperty().addListener((_, _, n) -> {
+      if (n == null || (!selectedElements.isEmpty() && selectedElements.getFirst().equals(n))) {
+        return;
+      }
+      selectedElements.setAll(List.of(n));
+    });
   }
 
   private void clearTableAndStartFormulaCalc(FormulaTable formulaTable) {

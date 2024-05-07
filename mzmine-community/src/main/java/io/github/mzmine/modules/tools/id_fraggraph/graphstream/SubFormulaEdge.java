@@ -38,6 +38,7 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.ReadOnlyDoubleWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -61,9 +62,12 @@ public class SubFormulaEdge {
   private final ReadOnlyObjectWrapper<@Nullable IMolecularFormula> lossFormula = new ReadOnlyObjectWrapper<>();
   private final ReadOnlyStringWrapper lossFormulaString = new ReadOnlyStringWrapper();
   private final ReadOnlyDoubleWrapper measuredMassDiff = new ReadOnlyDoubleWrapper(0);
-  private final ReadOnlyDoubleWrapper computedMassDiff = new ReadOnlyDoubleWrapper(0);
-  private final ReadOnlyDoubleWrapper massErrorAbs = new ReadOnlyDoubleWrapper(0);
-  private final ReadOnlyDoubleWrapper massErrorPpm = new ReadOnlyDoubleWrapper(0);
+  private final ReadOnlyObjectWrapper<@Nullable Double> computedMassDiff = new ReadOnlyObjectWrapper<>(
+      null);
+  private final ReadOnlyObjectWrapper<@Nullable Double> massErrorAbs = new ReadOnlyObjectWrapper<>(
+      null);
+  private final ReadOnlyObjectWrapper<@Nullable Double> massErrorPpm = new ReadOnlyObjectWrapper<>(
+      null);
 
   public SubFormulaEdge(SignalFormulaeModel a, SignalFormulaeModel b,
       NumberFormat nodeNameFormatter) {
@@ -94,18 +98,29 @@ public class SubFormulaEdge {
             b.selectedFormulaWithMzProperty()));
     lossFormulaString.bind(Bindings.createStringBinding(
         () -> lossFormula.get() != null ? MolecularFormulaManipulator.getString(lossFormula.get())
-            : null));
+            : null, lossFormula));
+    // the signals do not change, can just set this property for now
     measuredMassDiff.set(
         a.getPeakWithFormulae().peak().getMZ() - b.getPeakWithFormulae().peak().getMZ());
-    computedMassDiff.bind(Bindings.createDoubleBinding(
-        () -> a.getSelectedFormulaWithMz().mz() - b.getSelectedFormulaWithMz().mz(),
-        a.selectedFormulaWithMzProperty(), b.selectedFormulaWithMzProperty()));
-    massErrorAbs.bind(
-        Bindings.createDoubleBinding(() -> measuredMassDiff.get() - computedMassDiff.get(),
-            computedMassDiff, measuredMassDiff));
-    massErrorPpm.bind(Bindings.createDoubleBinding(
-        () -> MathUtils.getPpmDiff(computedMassDiff.get(), measuredMassDiff.get()),
-        computedMassDiff, measuredMassDiff));
+
+    // if the formula cannot be set, then this property must be null
+    computedMassDiff.bind(Bindings.createObjectBinding(() -> {
+          if (isValid() && a.getSelectedFormulaWithMz() != null
+              && b.getSelectedFormulaWithMz() != null) {
+            return a.getSelectedFormulaWithMz().mz() - b.getSelectedFormulaWithMz().mz();
+          }
+          return null;
+        }, a.selectedFormulaWithMzProperty(), b.selectedFormulaWithMzProperty(), lossFormulaString,
+        valid));
+
+    massErrorAbs.bind(Bindings.createObjectBinding(() -> {
+      return isValid() && computedMassDiff.get() != null ? measuredMassDiff.get()
+          - computedMassDiff.get() : null; // double properties cannot be set to null.
+    }, computedMassDiff, measuredMassDiff, valid));
+
+    massErrorPpm.bind(Bindings.createObjectBinding(
+        () -> isValid() && computedMassDiff != null ? MathUtils.getPpmDiff(computedMassDiff.get(),
+            measuredMassDiff.get()) : null, computedMassDiff, measuredMassDiff, valid));
 
     PropertyUtils.onChange(this::applyToGraphs, visibleAndValid, lossFormulaString,
         measuredMassDiff, computedMassDiff, massErrorAbs, massErrorPpm);
@@ -138,10 +153,6 @@ public class SubFormulaEdge {
       edge.setAttribute("ui.hide");
     } else {
       edge.removeAttribute("ui.hide");
-    }
-
-    if (!isValid()) {
-      edge.setAttribute("ui.label", "INVALID");
     }
   }
 
@@ -207,27 +218,27 @@ public class SubFormulaEdge {
     return measuredMassDiff.getReadOnlyProperty();
   }
 
-  public double getComputedMassDiff() {
+  public @Nullable Double getComputedMassDiff() {
     return computedMassDiff.get();
   }
 
-  public ReadOnlyDoubleProperty computedMassDiffProperty() {
+  public ReadOnlyObjectProperty<@Nullable Double> computedMassDiffProperty() {
     return computedMassDiff.getReadOnlyProperty();
   }
 
-  public double getMassErrorAbs() {
+  public @Nullable Double getMassErrorAbs() {
     return massErrorAbs.get();
   }
 
-  public ReadOnlyDoubleProperty massErrorAbsProperty() {
+  public ReadOnlyObjectProperty<@Nullable Double> massErrorAbsProperty() {
     return massErrorAbs.getReadOnlyProperty();
   }
 
-  public double getMassErrorPpm() {
+  public @Nullable Double getMassErrorPpm() {
     return massErrorPpm.get();
   }
 
-  public ReadOnlyDoubleProperty massErrorPpmProperty() {
+  public ReadOnlyObjectProperty<@Nullable Double> massErrorPpmProperty() {
     return massErrorPpm.getReadOnlyProperty();
   }
 

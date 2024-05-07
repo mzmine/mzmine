@@ -33,6 +33,7 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
+import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
 import io.github.mzmine.modules.visualization.networking.visual.NetworkPane;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.components.FormulaTextField;
@@ -100,18 +101,18 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
 
   private void addGraphListenerForNetworkUpdate(BorderPane pane) {
     final List<ChangeListener<ObservableList<SignalFormulaeModel>>> oldNodeListeners = new ArrayList<>();
+    final List<ChangeListener<ObservableList<SubFormulaEdge>>> oldEdgeListeners = new ArrayList<>();
 
     model.graphProperty().addListener((_, oldGraph, graph) -> {
       pane.setCenter(null);
-      for (ChangeListener<ObservableList<SignalFormulaeModel>> old : oldNodeListeners) {
-        model.selectedNodesProperty().removeListener(old);
-      }
+      removeOldListeners(oldNodeListeners, oldEdgeListeners);
 
       if (graph == null) {
         return;
       }
       NetworkPane network = new NetworkPane(graph.getId(), false, graph);
       network.showFullGraph();
+      pane.setCenter(network);
 
       model.getAllNodes().forEach(nodeModel -> {
         nodeModel.clearPassThroughGraphs();
@@ -121,29 +122,9 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
         edge.removeGraph(oldGraph);
         edge.addGraph(network.getGraphicGraph(), true);
       });
-      // update mappings to filtered nodes
-//      network.getGraph().getEdgeFilteredGraph().nodes().forEach(node -> {
-//        final SignalFormulaeModel nodeModel = model.getAllNodes().get(node.getId());
-//        if (nodeModel != null) {
-//          nodeModel.setFilteredNode(node);
-//        }
-//      });
 
-      pane.setCenter(network);
-
-      // listen to changes in network selection and map to model
-      network.getSelectedNodes().addListener((ListChangeListener<Node>) c -> {
-        c.next();
-        final ObservableList<? extends Node> selected = c.getList();
-        var selectedNodes = selected.stream().map(Element::getId)
-            .map(id -> model.getAllNodesMap().get(id)).filter(Objects::nonNull).toList();
-//        model.selectedNodesProperty().clear();
-        if (model.getSelectedNodes().equals(selectedNodes)) {
-          return;
-        }
-        model.setSelectedNodes(FXCollections.observableArrayList(selectedNodes));
-        logger.finest(() -> STR."Selected nodes: \{selectedNodes.toString()}");
-      });
+      addNetworkToModelNodeListener(network);
+      addNetworkToModelEdgeListener(network);
 
       // listen to changes in model and map to graph
       final ChangeListener<ObservableList<SignalFormulaeModel>> modelToGraphNodeListener = createModelToGraphNodeListener(
@@ -151,16 +132,50 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
       model.selectedNodesProperty().addListener(modelToGraphNodeListener);
       oldNodeListeners.add(modelToGraphNodeListener);
 
-      network.getSelectedEdges().addListener((ListChangeListener<? super Edge>) c -> {
-        c.next();
-        final ObservableList<? extends Edge> selected = c.getList();
-        var selectedEdges = selected.stream().map(Element::getId)
-            .map(id -> model.getAllEdgesMap().get(id)).filter(Objects::nonNull).toList();
-        model.getSelectedEdges().clear();
-        model.getSelectedEdges().addAll(selectedEdges);
-        logger.finest(() -> STR."Selected edges: \{selectedEdges.toString()}");
-      });
+      final ChangeListener<ObservableList<SubFormulaEdge>> modelToGraphEdgeListener = createModelToGraphEdgeListener(
+          network);
+      model.selectedEdgesProperty().addListener(modelToGraphEdgeListener);
+      oldEdgeListeners.add(modelToGraphEdgeListener);
     });
+  }
+
+  private void addNetworkToModelEdgeListener(NetworkPane network) {
+    network.getSelectedEdges().addListener((ListChangeListener<? super Edge>) c -> {
+      c.next();
+      final ObservableList<? extends Edge> selected = c.getList();
+      var selectedEdges = selected.stream().map(Element::getId)
+          .map(id -> model.getAllEdgesMap().get(id)).filter(Objects::nonNull).toList();
+      model.getSelectedEdges().clear();
+      model.getSelectedEdges().addAll(selectedEdges);
+      logger.finest(() -> STR."Selected edges: \{selectedEdges.toString()}");
+    });
+  }
+
+  private void addNetworkToModelNodeListener(NetworkPane network) {
+    // listen to changes in network selection and map to model
+    network.getSelectedNodes().addListener((ListChangeListener<Node>) c -> {
+      c.next();
+      final ObservableList<? extends Node> selected = c.getList();
+      var selectedNodes = selected.stream().map(Element::getId)
+          .map(id -> model.getAllNodesMap().get(id)).filter(Objects::nonNull).toList();
+//        model.selectedNodesProperty().clear();
+      if (model.getSelectedNodes().equals(selectedNodes)) {
+        return;
+      }
+      model.setSelectedNodes(FXCollections.observableArrayList(selectedNodes));
+      logger.finest(() -> STR."Selected nodes: \{selectedNodes.toString()}");
+    });
+  }
+
+  private void removeOldListeners(
+      List<ChangeListener<ObservableList<SignalFormulaeModel>>> oldNodeListeners,
+      List<ChangeListener<ObservableList<SubFormulaEdge>>> oldEdgeListeners) {
+    for (ChangeListener<ObservableList<SignalFormulaeModel>> old : oldNodeListeners) {
+      model.selectedNodesProperty().removeListener(old);
+    }
+    for (ChangeListener<ObservableList<SubFormulaEdge>> old : oldEdgeListeners) {
+      model.selectedEdgesProperty().removeListener(old);
+    }
   }
 
   @NotNull
@@ -173,8 +188,31 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
       }
       var selectedNodes = n.stream().map(SignalFormulaeModel::getId)
           .map(id -> model.getAllNodesMap().get(id)).filter(Objects::nonNull)
-          .map(SignalFormulaeModel::getUnfilteredNode).toList();
+          .map(sfm -> network.getGraphicGraph().getNode(sfm.getId())).toList();
       network.getSelectedNodes().setAll(selectedNodes);
+    };
+  }
+
+  @NotNull
+  private ChangeListener<ObservableList<SubFormulaEdge>> createModelToGraphEdgeListener(
+      NetworkPane network) {
+    return (_, _, n) -> {
+      if (network.getSelectedEdges().stream().map(Element::getId)
+          .map(id -> model.getAllEdgesMap().get(id)).filter(Objects::nonNull).toList().equals(n)) {
+        return;
+      }
+      // select the edges
+      var selectedEdges = n.stream().map(edge -> network.getGraphicGraph().getEdge(edge.getId()))
+          .filter(Objects::nonNull).toList();
+      network.getSelectedEdges().setAll(selectedEdges);
+
+      // also select nodes
+      final List<Node> nodesToSelect = selectedEdges.stream().<Node>mapMulti((edge, c) -> {
+        c.accept(network.getGraphicGraph().getNode(edge.getNode0().getId()));
+        c.accept(network.getGraphicGraph().getNode(edge.getNode1().getId()));
+      }).filter(Objects::nonNull).toList();
+      network.getSelectedNodes().setAll(nodesToSelect);
+
     };
   }
 }
