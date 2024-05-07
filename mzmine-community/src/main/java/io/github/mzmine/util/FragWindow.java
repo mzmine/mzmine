@@ -26,26 +26,11 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardController;
-import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardModel;
-import io.github.mzmine.modules.tools.fraggraphdashboard.FragGraphPrecursorFormulaTask;
-import io.github.mzmine.modules.tools.id_fraggraph.mvci.FragmentGraphController;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 import javafx.scene.layout.Region;
-import org.openscience.cdk.formula.MolecularFormulaGenerator;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FragWindow {
 

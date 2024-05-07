@@ -25,14 +25,44 @@
 
 package io.github.mzmine.modules.tools.id_fraggraph;
 
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalFiltersParameters;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.elements.ElementsCompositionRangeParameter;
+import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class FragmentGraphCalcParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter flists = new FeatureListsParameter();
+  public static final MZToleranceParameter ms1Tolerance = new MZToleranceParameter(
+      "Precursor formula tolerance",
+      "Maximum allowed tolerance for the prediction of precursor ion formulae.", 0.005, 5);
+
+  public static final MZToleranceParameter ms2Tolerance = new MZToleranceParameter(
+      "Fragment ion tolerance", "Maximum allowed tolerance for fragment ions.", 0.005, 10);
+
+  public static final ParameterSetParameter<SignalFiltersParameters> ms2SignalFilter = new ParameterSetParameter<>(
+      "Fragment spectrum signal filters",
+      "Refine the MS2 spectrum by narrowing down the fragment ion search in spectra with a lot of signals.",
+      (SignalFiltersParameters) (new SignalFiltersParameters()).cloneParameterSet());
+
+  public static final ElementsCompositionRangeParameter elements = new ElementsCompositionRangeParameter(
+      "Elements", "Define elements for sum formula prediction");
+  public static final IntegerParameter maximumFormulae = new IntegerParameter(
+      "Maximum number of formulae",
+      "Restrict the precursor formula calculation to a certain number.", 50);
+
+  public static final ParameterSetParameter<ElementalHeuristicParameters> heuristicParams = new ParameterSetParameter<>(
+      "Heuristics parameters", "Refine calculated precursor and fragment formulae.",
+      new ElementalHeuristicParameters());
 
   public FragmentGraphCalcParameters() {
-    super(flists);
+    super(ms1Tolerance, ms2Tolerance, ms2SignalFilter, elements, maximumFormulae, heuristicParams);
   }
 }

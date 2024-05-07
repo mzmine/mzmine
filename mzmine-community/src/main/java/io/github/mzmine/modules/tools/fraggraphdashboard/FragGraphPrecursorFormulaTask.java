@@ -30,12 +30,15 @@ import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicChecker;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
+import io.github.mzmine.modules.tools.id_fraggraph.FragmentGraphCalcParameters;
 import io.github.mzmine.modules.tools.id_fraggraph.FragmentUtils;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskService;
@@ -79,68 +82,23 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
 
   @NotNull
   private MZTolerance ms2Tolerance = new MZTolerance(0.005, 15);
+  private final MolecularFormulaRange elements;
 
-  public FragGraphPrecursorFormulaTask(FragDashboardModel model, @NotNull FeatureListRow row,
-      @Nullable IonType ionTypeOverride, @NotNull MZTolerance formulaTolerance, boolean checkCHONPS,
-      boolean checkRDBE) {
-    this(model, row, ionTypeOverride, formulaTolerance, checkCHONPS, checkRDBE,
-        DEFAULT_MAX_FORMULA_COUNT);
+  public FragGraphPrecursorFormulaTask(@NotNull FragDashboardModel model, ParameterSet parameters) {
+    this(model, null, parameters.getValue(FragmentGraphCalcParameters.ms1Tolerance),
+        parameters.getEmbeddedParameterValue(FragmentGraphCalcParameters.heuristicParams)
+            .getValue(ElementalHeuristicParameters.checkNOPS), true,
+        parameters.getValue(FragmentGraphCalcParameters.maximumFormulae), PolarityType.POSITIVE,
+        List.of(), parameters.getValue(FragmentGraphCalcParameters.ms2Tolerance),
+        parameters.getValue(FragmentGraphCalcParameters.elements));
   }
 
-  public FragGraphPrecursorFormulaTask(FragDashboardModel model, @NotNull FeatureListRow row,
-      @Nullable IonType ionTypeOverride, @NotNull MZTolerance formulaTolerance, boolean checkCHONPS,
-      boolean checkRDBE, int maxFormulaCount) {
-    super("Calculate precursor formulae", model);
-    charge = row.getRowCharge();
-    polarity = row.getBestFeature().getRepresentativeScan().getPolarity();
-    averageMZ = row.getAverageMZ();
-    this.desc = STR."Generating precursor formulae for \{row.toString()}";
-
-    if (ionTypeOverride != null) {
-      assignedIonTypes = List.of(ionTypeOverride);
-    } else {
-      assignedIonTypes = FeatureUtils.extractAllIonTypes(row);
-    }
-
-    this.ionTypeOverride = ionTypeOverride;
-    this.formulaTolerance = formulaTolerance;
-    this.checkCHONPS = checkCHONPS;
-    this.checkRDBE = checkRDBE;
-    this.maxFormulaCount = maxFormulaCount;
-    this.ms2Spectrum = row.getMostIntenseFragmentScan();
-    this.measuredIsotopePattern = row.getBestIsotopePattern();
-  }
-
-  public FragGraphPrecursorFormulaTask(FragDashboardModel model, double mz, PolarityType polarity,
-      int charge, @NotNull List<IonType> possibleIonTypes, @Nullable IonType ionTypeOverride,
-      @NotNull MZTolerance formulaTolerance, boolean checkCHONPS, boolean checkRDBE,
-      int maxFormulaCount, MassSpectrum ms2Spectrum, MassSpectrum isotopePattern) {
-    super("Calculate precursor formulae", model);
-
-    this.charge = charge;
-    this.polarity = polarity;
-    this.averageMZ = mz;
-    this.desc = STR."Generating precursor formulae for \{String.format("%.4f", mz)}";
-
-    if (ionTypeOverride != null) {
-      assignedIonTypes = List.of(ionTypeOverride);
-    } else {
-      assignedIonTypes = possibleIonTypes;
-    }
-
-    this.ionTypeOverride = ionTypeOverride;
-    this.formulaTolerance = formulaTolerance;
-    this.checkCHONPS = checkCHONPS;
-    this.checkRDBE = checkRDBE;
-    this.maxFormulaCount = maxFormulaCount;
-    this.ms2Spectrum = ms2Spectrum;
-    this.measuredIsotopePattern = isotopePattern;
-  }
-
+  // todo make use of polarity and the assigned ion types if we have a row
   public FragGraphPrecursorFormulaTask(@NotNull FragDashboardModel model,
       @Nullable IonType ionTypeOverride, @NotNull MZTolerance formulaTolerance, boolean checkCHONPS,
       boolean checkRDBE, int maxFormulaCount, @NotNull PolarityType polarity,
-      @NotNull List<IonType> assignedIonTypes, @NotNull MZTolerance ms2Tolerance) {
+      @NotNull List<IonType> assignedIonTypes, @NotNull MZTolerance ms2Tolerance,
+      @NotNull MolecularFormulaRange elements) {
     super("Calculate precursor formulae", model);
     this.ionTypeOverride = ionTypeOverride;
     this.formulaTolerance = formulaTolerance;
@@ -148,6 +106,7 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
     this.checkRDBE = checkRDBE;
     this.maxFormulaCount = maxFormulaCount;
     this.ms2Tolerance = ms2Tolerance;
+    this.elements = elements;
     this.charge = 1;
     this.polarity = polarity;
     this.averageMZ = model.getPrecursorMz();
@@ -187,7 +146,7 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
    * the adduct so the fragments can but don't have to include the adduct in their formula.
    */
   public MolecularFormulaGenerator setUpFormulaGenerator() {
-    final MolecularFormulaRange elementCounts = FragmentUtils.setupFormulaRange(assignedIonTypes);
+//    final MolecularFormulaRange elementCounts = FragmentUtils.setupFormulaRange(assignedIonTypes);
     final double neutralMassWithAdduct =
         averageMZ * charge + polarity.getSign() * charge * FormulaUtils.electronMass;
     final Range<Double> formulaMassRange = formulaTolerance.getToleranceRange(
@@ -195,7 +154,7 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
 
     final IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
     return new MolecularFormulaGenerator(builder, formulaMassRange.lowerEndpoint(),
-        formulaMassRange.upperEndpoint(), elementCounts);
+        formulaMassRange.upperEndpoint(), elements);
   }
 
   public void generateFormulae(boolean couldBeRadical, MolecularFormulaGenerator generator) {
@@ -233,7 +192,8 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
       return false;
     }
 
-    if (checkCHONPS && ElementalHeuristicChecker.checkFormula(formula, true, true, true)) {
+    if (checkCHONPS && ElementalHeuristicChecker.checkFormula(formula, checkCHONPS, checkCHONPS,
+        true)) {
 
       final Double rdbe = RDBERestrictionChecker.calculateRDBE(formula);
       if (checkRDBE && rdbe != null) {

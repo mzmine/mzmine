@@ -30,12 +30,17 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.*;
 import static io.github.mzmine.javafx.components.util.FxLayout.*;
 
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.javafx.util.IconCodeSupplier;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.EdgeTable;
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.FormulaTable;
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.NodeTable;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.components.FormulaTextField;
 import java.util.List;
@@ -54,6 +59,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 
 public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
@@ -65,16 +71,18 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
   private final Region fragmentGraph;
   private final Region ms2Chart;
   private final Region isotopeChart;
+  private final ParameterSet parameters;
   private final Runnable updateGraphMethod;
   private final Runnable calculateFormulaeMethod;
 
   protected FragDashboardBuilder(FragDashboardModel model, @NotNull Region fragmentGraph,
       @NotNull Region ms2Chart, @NotNull Region isotopeChart, Runnable updateGraphMethod,
-      Runnable calculateFormulaeMethod) {
+      Runnable calculateFormulaeMethod, ParameterSet parameters) {
     super(model);
     this.fragmentGraph = fragmentGraph;
     this.ms2Chart = ms2Chart;
     this.isotopeChart = isotopeChart;
+    this.parameters = parameters;
     this.updateGraphMethod = () -> {
       model.setAllowGraphRecalculation(false);
       updateGraphMethod.run();
@@ -118,7 +126,13 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
     tabAndGraphSplit.setDividerPositions(0.65);
 
     mainPane.setCenter(tabAndGraphSplit);
-    return mainPane;
+
+    final Button settingsButton = createButton("Settings", null,
+        FxIconUtil.getFontIcon(FxIcons.GEAR_PREFERENCES, 20),
+        () -> parameters.showSetupDialog(true));
+    StackPane stack = new StackPane(mainPane, settingsButton);
+    stack.setAlignment(Pos.TOP_RIGHT);
+    return stack;
   }
 
   private <T> void allListenersToTable(TableView<T> table, ListProperty<T> allElements,
