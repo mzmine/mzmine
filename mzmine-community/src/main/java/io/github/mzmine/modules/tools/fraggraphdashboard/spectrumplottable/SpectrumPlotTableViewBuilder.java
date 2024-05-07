@@ -40,6 +40,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
 import org.freehep.graphicsio.emf.gdi.TextA;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.NumberAxis;
 
 public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTableModel> {
@@ -55,7 +56,6 @@ public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTabl
 
   @Override
   public Region build() {
-    Region pane;
     TextArea peakTable = new TextArea();
     final NumberFormats formats = ConfigService.getGuiFormats();
     model.signalListProperty().bindBidirectional(peakTable.textProperty());
@@ -87,7 +87,12 @@ public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTabl
     });
     plot.setMinSize(200, 200);
 
-    pane = switch (layout) {
+    return initialisePane(plot, peakTable);
+  }
+
+  @NotNull
+  private Region initialisePane(SpectraPlot plot, TextArea peakTable) {
+    return switch (layout) {
       case HORIZONTAL, VERTICAL -> {
         var split = new SplitPane(plot, peakTable);
         split.setOrientation(
@@ -106,7 +111,6 @@ public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTabl
         yield new TabPane(spectrumTab, textTab);
       }
     };
-    return pane;
   }
 
   public enum Layout {
