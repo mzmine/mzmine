@@ -69,10 +69,10 @@ public class SubFormulaEdgeGenerator {
       // check all smaller formulae only
       for (int j = i + 1; j < peaks.size(); j++) {
         SignalFormulaeModel smaller = peaks.get(j);
-        if (!FormulaUtils.isSubFormula(smaller.getSelectedFormulaWithMz(),
-            larger.getSelectedFormulaWithMz())) {
-          continue;
-        }
+//        if (!FormulaUtils.isSubFormula(smaller.getSelectedFormulaWithMz(), // generate edges only for sub formulae
+//            larger.getSelectedFormulaWithMz())) {
+//          continue;
+//        }
         edges.add(new SubFormulaEdge(smaller, larger, idFormatter));
       }
     }
