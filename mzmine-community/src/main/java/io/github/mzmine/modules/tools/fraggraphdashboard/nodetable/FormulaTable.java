@@ -43,6 +43,7 @@ public class FormulaTable extends TableView<ResultFormula> {
     formula.setMinWidth(150);
 
     TableColumn<ResultFormula, Double> mz = new TableColumn<>("m/z");
+    mz.getStyleClass().add("align-right-column");
     mz.setMinWidth(100);
     mz.setCellValueFactory(cell -> {
       try {
@@ -54,6 +55,7 @@ public class FormulaTable extends TableView<ResultFormula> {
     });
 
     TableColumn<ResultFormula, ResultFormula> ppm = new TableColumn<>("ppm");
+    ppm.getStyleClass().add("align-right-column");
     ppm.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
     ppm.setMinWidth(100);
     ppm.setCellFactory(col -> new TableCell<>() {
@@ -69,6 +71,7 @@ public class FormulaTable extends TableView<ResultFormula> {
     });
 
     TableColumn<ResultFormula, ResultFormula> abs = new TableColumn<>("abs.");
+    abs.getStyleClass().add("align-right-column");
     abs.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
     abs.setMinWidth(100);
     abs.setCellFactory(col -> new TableCell<>() {
@@ -84,6 +87,7 @@ public class FormulaTable extends TableView<ResultFormula> {
     });
 
     TableColumn<ResultFormula, ResultFormula> isoScore = new TableColumn<>("Isotope score");
+    isoScore.getStyleClass().add("align-right-column");
     isoScore.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
     isoScore.setMinWidth(100);
     isoScore.setCellFactory(col -> new TableCell<>() {
@@ -99,6 +103,7 @@ public class FormulaTable extends TableView<ResultFormula> {
     });
 
     TableColumn<ResultFormula, ResultFormula> ms2Score = new TableColumn<>("Fragment score");
+    ms2Score.getStyleClass().add("align-right-column");
     ms2Score.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
     ms2Score.setMinWidth(100);
     ms2Score.setCellFactory(col -> new TableCell<>() {
@@ -112,6 +117,8 @@ public class FormulaTable extends TableView<ResultFormula> {
         }, itemProperty()));
       }
     });
+
+
 
     getColumns().addAll(formula, mz, ppm, abs, isoScore, ms2Score);
   }

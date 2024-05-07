@@ -75,18 +75,21 @@ public class EdgeTable extends TableView<SubFormulaEdge> {
 
     TableColumn<SubFormulaEdge, String> massDifferenceAbs = new TableColumn<>(
         "Mass diff.\n(meas.)");
+    massDifferenceAbs.getStyleClass().add("align-right-column");
     massDifferenceAbs.setCellValueFactory(
         cell -> cell.getValue().measuredMassDiffProperty().map(formats::mz));
     massDifferenceAbs.setMinWidth(85);
     massDifferenceAbs.setComparator(Comparator.comparingDouble(this::mzDoubleParser));
 
     TableColumn<SubFormulaEdge, String> massErrorAbs = new TableColumn<>("Δm/z\n(abs.)");
+    massErrorAbs.getStyleClass().add("align-right-column");
     massErrorAbs.setCellValueFactory(
         cell -> cell.getValue().massErrorAbsProperty().map(formats::mz));
     massErrorAbs.setMinWidth(70);
     massErrorAbs.setComparator(Comparator.comparingDouble(this::mzDoubleParser));
 
     TableColumn<SubFormulaEdge, String> massErrorPpm = new TableColumn<>("Δm/z\n(ppm)");
+    massErrorPpm.getStyleClass().add("align-right-column");
     massErrorPpm.setCellValueFactory(
         cell -> cell.getValue().massErrorPpmProperty().map(formats::ppm));
     massErrorPpm.setMinWidth(70);
