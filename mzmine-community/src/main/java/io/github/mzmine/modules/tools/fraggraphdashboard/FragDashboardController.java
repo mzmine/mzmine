@@ -26,25 +26,20 @@
 package io.github.mzmine.modules.tools.fraggraphdashboard;
 
 import io.github.mzmine.datamodel.MassSpectrum;
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable.SpectrumPlotTableController;
 import io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable.SpectrumPlotTableViewBuilder.Layout;
 import io.github.mzmine.modules.tools.id_fraggraph.FragmentGraphCalcModule;
-import io.github.mzmine.modules.tools.id_fraggraph.FragmentGraphCalcParameters;
-import io.github.mzmine.modules.tools.id_fraggraph.mvci.FormulaChangedUpdateTask;
 import io.github.mzmine.modules.tools.id_fraggraph.mvci.FragmentGraphController;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import java.util.List;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 
 public class FragDashboardController extends FxController<FragDashboardModel> {
 
-  private FragDashboardBuilder fragDashboardBuilder;
+  private final FragDashboardBuilder fragDashboardBuilder;
   private final FragmentGraphController fragmentGraphController;
 
   private final ParameterSet parameters;

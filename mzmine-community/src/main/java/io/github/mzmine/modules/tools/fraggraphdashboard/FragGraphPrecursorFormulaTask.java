@@ -1,20 +1,26 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.tools.fraggraphdashboard;
@@ -23,11 +29,10 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicChecker;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
@@ -40,18 +45,9 @@ import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskService;
-import io.github.mzmine.taskcontrol.operations.TaskSubProcessor;
-import io.github.mzmine.taskcontrol.operations.TaskSubSupplier;
-import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javax.validation.constraints.Null;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
@@ -76,7 +72,7 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
   private final PolarityType polarity;
   private final double averageMZ;
   private final String desc;
-  private final List<IonType> assignedIonTypes;
+  private final List<IonModification> assignedIonTypes;
   private final MassSpectrum ms2Spectrum;
   private final MassSpectrum measuredIsotopePattern;
 
@@ -85,11 +81,15 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
   private final MolecularFormulaRange elements;
 
   public FragGraphPrecursorFormulaTask(@NotNull FragDashboardModel model, ParameterSet parameters) {
-    this(model, null, parameters.getValue(FragmentGraphCalcParameters.ms1Tolerance),
+    this(model, null, //
+        parameters.getValue(FragmentGraphCalcParameters.ms1Tolerance), //
         parameters.getEmbeddedParameterValue(FragmentGraphCalcParameters.heuristicParams)
-            .getValue(ElementalHeuristicParameters.checkNOPS), true,
-        parameters.getValue(FragmentGraphCalcParameters.maximumFormulae), PolarityType.POSITIVE,
-        List.of(), parameters.getValue(FragmentGraphCalcParameters.ms2Tolerance),
+            .getValue(ElementalHeuristicParameters.checkNOPS), //
+        true, //
+        parameters.getValue(FragmentGraphCalcParameters.maximumFormulae), //
+        parameters.getValue(FragmentGraphCalcParameters.polarity), //
+        parameters.getValue(FragmentGraphCalcParameters.adducts), //
+        parameters.getValue(FragmentGraphCalcParameters.ms2Tolerance), //
         parameters.getValue(FragmentGraphCalcParameters.elements));
   }
 
@@ -97,7 +97,7 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
   public FragGraphPrecursorFormulaTask(@NotNull FragDashboardModel model,
       @Nullable IonType ionTypeOverride, @NotNull MZTolerance formulaTolerance, boolean checkCHONPS,
       boolean checkRDBE, int maxFormulaCount, @NotNull PolarityType polarity,
-      @NotNull List<IonType> assignedIonTypes, @NotNull MZTolerance ms2Tolerance,
+      @NotNull List<IonModification> assignedIonTypes, @NotNull MZTolerance ms2Tolerance,
       @NotNull MolecularFormulaRange elements) {
     super("Calculate precursor formulae", model);
     this.ionTypeOverride = ionTypeOverride;
@@ -106,12 +106,18 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
     this.checkRDBE = checkRDBE;
     this.maxFormulaCount = maxFormulaCount;
     this.ms2Tolerance = ms2Tolerance;
-    this.elements = elements;
+    try {
+      this.elements = (MolecularFormulaRange) elements.clone();
+      assignedIonTypes.forEach(
+          ion -> FragmentUtils.reflectIonTypeInFormulaRange(new IonType(ion), this.elements));
+    } catch (CloneNotSupportedException e) {
+      throw new RuntimeException(e);
+    }
+    this.assignedIonTypes = assignedIonTypes;
     this.charge = 1;
     this.polarity = polarity;
     this.averageMZ = model.getPrecursorMz();
     this.desc = getName();
-    this.assignedIonTypes = assignedIonTypes;
     this.ms2Spectrum = model.getSpectrum();
     this.measuredIsotopePattern = model.getIsotopePattern();
   }
@@ -128,8 +134,7 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
 
   @Override
   public void process() {
-    final boolean couldBeRadical = assignedIonTypes.stream()
-        .anyMatch(ion -> ion.getAdduct().isElectron());
+    final boolean couldBeRadical = assignedIonTypes.stream().anyMatch(IonModification::isElectron);
 
     generator = setUpFormulaGenerator();
     generateFormulae(couldBeRadical, generator);

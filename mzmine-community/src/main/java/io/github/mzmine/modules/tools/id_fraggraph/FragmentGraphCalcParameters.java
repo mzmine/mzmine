@@ -25,18 +25,21 @@
 
 package io.github.mzmine.modules.tools.id_fraggraph;
 
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalFiltersParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.CheckComboParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.elements.ElementsCompositionRangeParameter;
-import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
 public class FragmentGraphCalcParameters extends SimpleParameterSet {
 
@@ -55,15 +58,28 @@ public class FragmentGraphCalcParameters extends SimpleParameterSet {
 
   public static final ElementsCompositionRangeParameter elements = new ElementsCompositionRangeParameter(
       "Elements", "Define elements for sum formula prediction");
+
   public static final IntegerParameter maximumFormulae = new IntegerParameter(
       "Maximum number of formulae",
       "Restrict the precursor formula calculation to a certain number.", 50);
+
+  public static final ComboParameter<PolarityType> polarity = new ComboParameter<>("Polarity",
+      "The polarity of the ion.", List.of(PolarityType.POSITIVE, PolarityType.NEGATIVE),
+      PolarityType.POSITIVE);
+
+  public static final CheckComboParameter<IonModification> adducts = new CheckComboParameter<>(
+      "Additional adducts",
+      "All elements of selected adducts will be added to the elements selected in the elements parameter.",
+      Stream.of(IonModification.getDefaultValuesPos(), IonModification.getDefaultValuesNeg())
+          .flatMap(Arrays::stream).distinct().toList(),
+      List.of(IonModification.H, IonModification.H_NEG));
 
   public static final ParameterSetParameter<ElementalHeuristicParameters> heuristicParams = new ParameterSetParameter<>(
       "Heuristics parameters", "Refine calculated precursor and fragment formulae.",
       new ElementalHeuristicParameters());
 
   public FragmentGraphCalcParameters() {
-    super(ms1Tolerance, ms2Tolerance, ms2SignalFilter, elements, maximumFormulae, heuristicParams);
+    super(ms1Tolerance, ms2Tolerance, ms2SignalFilter, elements, maximumFormulae, heuristicParams,
+        polarity, adducts);
   }
 }

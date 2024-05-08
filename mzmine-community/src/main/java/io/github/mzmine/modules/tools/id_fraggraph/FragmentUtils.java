@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.id_fraggraph;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
@@ -77,28 +78,36 @@ public class FragmentUtils {
     return elementCounts;
   }
 
-  private static void reflectIonTypeInFormulaRange(IonType ionType,
+  public static void reflectIonTypeInFormulaRange(IonType ionType,
       MolecularFormulaRange elementCounts) {
     final IMolecularFormula adductFormula = ionType.getAdduct().getCDKFormula();
 
     if (adductFormula != null) {
-      for (IIsotope isotope : adductFormula.isotopes()) {
-        if (!elementCounts.contains(isotope)) {
-          elementCounts.addIsotope(isotope, 0, 1);
-        } else {
-          increaseMaxIsotopeCountByOne(isotope, elementCounts);
-        }
-      }
+      reflectFormulaInMolecularFormulaRange(elementCounts, adductFormula);
     }
 
     if (ionType.getModification() != null && ionType.getModification().getCDKFormula() != null) {
       final IMolecularFormula modificationFormula = ionType.getModification().getCDKFormula();
-      for (IIsotope isotope : modificationFormula.isotopes()) {
-        if (!elementCounts.contains(isotope)) {
-          elementCounts.addIsotope(isotope, 0, 1);
-        } else {
-          increaseMaxIsotopeCountByOne(isotope, elementCounts);
-        }
+      reflectFormulaInMolecularFormulaRange(elementCounts, modificationFormula);
+    }
+  }
+
+  public static void reflectIonTypeInFormulaRange(IonizationType ionType,
+      MolecularFormulaRange elementCounts) {
+    final IMolecularFormula adductFormula = ionType.getAddedFormula();
+
+    if (adductFormula != null) {
+      reflectFormulaInMolecularFormulaRange(elementCounts, adductFormula);
+    }
+  }
+
+  public static void reflectFormulaInMolecularFormulaRange(MolecularFormulaRange elementCounts,
+      IMolecularFormula formula) {
+    for (IIsotope isotope : formula.isotopes()) {
+      if (!elementCounts.contains(isotope)) {
+        elementCounts.addIsotope(isotope, 0, 1);
+      } else {
+        increaseMaxIsotopeCountByOne(isotope, elementCounts);
       }
     }
   }

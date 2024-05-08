@@ -26,27 +26,32 @@
 package io.github.mzmine.modules.tools.fraggraphdashboard;
 
 import static io.github.mzmine.javafx.components.factories.FxButtons.createButton;
-import static io.github.mzmine.javafx.components.factories.FxLabels.*;
-import static io.github.mzmine.javafx.components.util.FxLayout.*;
+import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel;
+import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
+import static io.github.mzmine.javafx.components.util.FxLayout.newFlowPane;
+import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
 
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.gui.preferences.NumberFormats;
-import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
-import io.github.mzmine.javafx.util.IconCodeSupplier;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.EdgeTable;
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.FormulaTable;
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.NodeTable;
+import io.github.mzmine.modules.tools.id_fraggraph.FragmentGraphCalcParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboComponent;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.components.FormulaTextField;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ListProperty;
+import javafx.collections.FXCollections;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -74,6 +79,8 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
   private final ParameterSet parameters;
   private final Runnable updateGraphMethod;
   private final Runnable calculateFormulaeMethod;
+  private final ComboComponent<PolarityType> polarityCombo = new ComboComponent<>(
+      FXCollections.observableArrayList(PolarityType.POSITIVE, PolarityType.NEGATIVE));
 
   protected FragDashboardBuilder(FragDashboardModel model, @NotNull Region fragmentGraph,
       @NotNull Region ms2Chart, @NotNull Region isotopeChart, Runnable updateGraphMethod,
@@ -127,12 +134,21 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
 
     mainPane.setCenter(tabAndGraphSplit);
 
-    final Button settingsButton = createButton("Settings", null,
-        FxIconUtil.getFontIcon(FxIcons.GEAR_PREFERENCES, 20),
-        () -> parameters.showSetupDialog(true));
+    final Button settingsButton = createSettingsButton();
     StackPane stack = new StackPane(mainPane, settingsButton);
     stack.setAlignment(Pos.TOP_RIGHT);
     return stack;
+  }
+
+  @NotNull
+  private Button createSettingsButton() {
+    return createButton("Settings", null,
+        FxIconUtil.getFontIcon(FxIcons.GEAR_PREFERENCES, 20), () -> {
+          final ExitCode exitCode = parameters.showSetupDialog(true);
+          if (exitCode == ExitCode.OK) {
+            polarityCombo.setValue(parameters.getValue(FragmentGraphCalcParameters.polarity));
+          }
+        });
   }
 
   private <T> void allListenersToTable(TableView<T> table, ListProperty<T> allElements,
@@ -181,21 +197,31 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
       if (f != null) {
         // allow recalc if a new valid formula was set.
         model.allowGraphRecalculationProperty().set(true);
+        if(f.getCharge() != null) {
+          polarityCombo.setValue(PolarityType.fromInt(f.getCharge()));
+        }
       }
     });
 
     final Label formulaExactMassLabel = newLabel("");
     formulaExactMassLabel.textProperty().bind(Bindings.createStringBinding(
         () -> model.getPrecursorFormula() != null ? format.mz(
-            FormulaUtils.calculateMzRatio(model.getPrecursorFormula())) : "",
+            FormulaUtils.calculateMzRatio(model.getPrecursorFormula())) : "formula not set",
         model.precursorFormulaProperty()));
     final Label precursorMzLabel = newBoldLabel("Precursor m/z:");
     TextField mzField = new TextField();
     mzField.textProperty().bindBidirectional(model.precursorMzProperty(), format.mzFormat());
 
+    polarityCombo.setValue(parameters.getValue(FragmentGraphCalcParameters.polarity));
+    polarityCombo.valueProperty().addListener((_, _, n) -> {
+      if (n != null) {
+        parameters.setParameter(FragmentGraphCalcParameters.polarity, n);
+      }
+    });
+
     return newFlowPane(updateGraph,
-        newHBox(newLabel("Selected precursor formula:"), selectedFormulaField),
+        newHBox(newLabel("Precursor formula:"), selectedFormulaField),
         newHBox(newLabel("Exact mass:"), formulaExactMassLabel),
-        newHBox(precursorMzLabel, mzField));
+        newHBox(precursorMzLabel, mzField), newHBox(newLabel("Polarity:"), polarityCombo));
   }
 }
