@@ -40,6 +40,7 @@ public class NodeTable extends TableView<SignalFormulaeModel> {
 
   public NodeTable() {
     super();
+    setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_NEXT_COLUMN);
 
     final TableColumn<SignalFormulaeModel, String> mzColumn = new TableColumn<>("m/z");
     mzColumn.setCellValueFactory(cellData -> cellData.getValue().calculatedMzProperty().map(formats::mz));

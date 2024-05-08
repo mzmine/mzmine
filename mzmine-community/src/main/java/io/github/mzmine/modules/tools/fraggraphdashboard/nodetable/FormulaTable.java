@@ -43,10 +43,13 @@ public class FormulaTable extends TableView<ResultFormula> {
   private final NumberFormats formats = ConfigService.getGuiFormats();
 
   public FormulaTable() {
+    setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_NEXT_COLUMN);
+
     TableColumn<ResultFormula, String> formula = new TableColumn<>("Ion formula");
     formula.setCellValueFactory(cell -> new ReadOnlyStringWrapper(
         MolecularFormulaManipulator.getString(cell.getValue().getFormulaAsObject())));
     formula.setMinWidth(150);
+
 
     TableColumn<ResultFormula, Double> mz = new TableColumn<>("m/z");
     mz.getStyleClass().add("align-right-column");
