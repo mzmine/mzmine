@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,8 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -95,6 +97,7 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
       return ExitCode.OK;
     }
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
+    addSuggestedRepeatingUnits(dialog);
 
     var xAxisValueComponent = dialog.getComponentForParameter(xAxisValues);
     var xAxisCustomKendrickMassBaseComponent = dialog.getComponentForParameter(
@@ -166,6 +169,15 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
+  private void addSuggestedRepeatingUnits(ParameterSetupDialog dialog) {
+    VBox vbox = new VBox();
+    RepeatingUnitSuggester repeatingUnitSuggester = new RepeatingUnitSuggester(
+        featureList.getValue().getMatchingFeatureLists()[0]);
+    vbox.getChildren().add(repeatingUnitSuggester.getListView());
+    dialog.getParamsPane().addColumn(2);
+    dialog.getParamsPane().add(new Label("Suggested repeating units:"), 2, 0);
+    dialog.getParamsPane().add(vbox, 2, 1, 1, 8);
+  }
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
@@ -176,4 +188,5 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
   public int getVersion() {
     return 2;
   }
+
 }
