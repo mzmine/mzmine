@@ -139,8 +139,6 @@ public class FeatureResolverTask extends AbstractTask {
           if (((GeneralResolverParameters) parameters).getResolver(parameters,
               (ModularFeatureList) originalPeakList) != null) {
             dimensionIndependentResolve((ModularFeatureList) originalPeakList);
-          } else {
-            legacyResolve();
           }
           // resolving finished
 
@@ -181,22 +179,6 @@ public class FeatureResolverTask extends AbstractTask {
         }
       }
     }
-  }
-
-  /**
-   * Used for compatibility with old {@link FeatureResolver}s. New methods should implement
-   * {@link Resolver}. See
-   * {@link
-   * io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver}
-   * as an example implementation.
-   *
-   */
-  @Deprecated
-  private void legacyResolve() {
-    final FeatureResolver resolver = ((GeneralResolverParameters) parameters).getResolver();
-
-    // Resolve features.
-    newPeakList = resolvePeaks((ModularFeatureList) originalPeakList);
   }
 
   private void dimensionIndependentResolve(ModularFeatureList originalFeatureList) {
@@ -264,59 +246,6 @@ public class FeatureResolverTask extends AbstractTask {
     super.cancel();
   }
 
-  /**
-   * This method is kept around to keep compatibility with resolvers implementing the legacy
-   * interface {@link FeatureResolver}. All new resolvers should implement {@link Resolver} or
-   * {@link AbstractResolver} instead.
-   */
-  @Deprecated
-  private FeatureList resolvePeaks(final ModularFeatureList originalFeatureList) {
-
-    final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
-    final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
-
-    final FeatureResolver resolver = ((GeneralResolverParameters) parameters).getResolver();
-
-    processedRows = 0;
-    totalRows = originalFeatureList.getNumberOfRows();
-    int peakId = 1;
-    final Integer minNumDp = parameters.getValue(
-        GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
-
-    for (int i = 0; i < totalRows; i++) {
-      final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList.getRow(
-          i);
-      final ModularFeature originalFeature = originalRow.getFeature(dataFile);
-
-      final ResolvedPeak[] peaks = resolver.resolvePeaks(originalFeature, parameters,
-          mzCenterFunction, msmsRange, RTRangeMSMS);
-
-      for (final ResolvedPeak peak : peaks) {
-        if (peak.getScanNumbers().length < minNumDp) {
-          continue;
-        }
-        peak.setParentChromatogramRowID(originalRow.getID());
-        final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
-            peakId++);
-        final ModularFeature newFeature = FeatureConvertors.ResolvedPeakToMoularFeature(
-            resolvedFeatureList, peak, originalFeature.getFeatureData());
-        if (originalFeature.getMobilityUnit() != null) {
-          newFeature.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
-        }
-
-        newRow.addFeature(dataFile, newFeature);
-        newRow.setFeatureInformation(peak.getPeakInformation());
-        resolvedFeatureList.addRow(newRow);
-      }
-      processedRows++;
-    }
-
-    resolvedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters,
-            getModuleCallDate()));
-
-    return resolvedFeatureList;
-  }
 
   private ModularFeatureList createNewFeatureList(ModularFeatureList originalFeatureList) {
     if (originalFeatureList.getRawDataFiles().size() > 1) {
