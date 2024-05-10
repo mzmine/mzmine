@@ -25,10 +25,12 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
+import com.fasterxml.aalto.stax.InputFactoryImpl;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import com.google.common.math.Quantiles;
+import io.github.msdk.MSDKException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
@@ -43,8 +45,8 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.io.import_rawdata_all.MsDataImportAndMassDetectWrapperTask;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLParser;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
@@ -61,6 +63,10 @@ import io.github.mzmine.util.scans.SpectraMerging;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -72,6 +78,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.DataFormatException;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,9 +106,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
   private final @NotNull ScanImportProcessorConfig scanProcessorConfig;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
-  private MzMLFileImportMethod msdkTask = null;
   private int totalScansAfterFilter = 0, convertedScansAfterFilter;
   private String description;
+
+  private MzMLParser parser;
 
   /**
    * Create for file
@@ -169,18 +180,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
   @Nullable
   public RawDataFile importStreamOrFile() {
     try {
-      if (fis != null) {
-        msdkTask = new MzMLFileImportMethod(moduleCallDate, fis, storage, scanProcessorConfig);
-      } else {
-        msdkTask = new MzMLFileImportMethod(moduleCallDate, file, storage, scanProcessorConfig);
-      }
-
-      addTaskStatusListener((task, newStatus, oldStatus) -> {
-        if (newStatus == TaskStatus.CANCELED) {
-          msdkTask.cancel();
-        }
-      });
-      MzMLRawDataFile msdkTaskRes = msdkTask.parseMzMl();
+      MzMLRawDataFile msdkTaskRes = parseMzMl();
 
       if (isCanceled()) {
         return null;
@@ -204,6 +204,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
       } else {
         newMZmineFile = buildLCMSFile(msdkTaskRes);
       }
+      if (isCanceled() || newMZmineFile==null) {
+        return null;
+      }
+
       newMZmineFile.setStartTimeStamp(startTimeStamp);
       logger.info("Finished parsing " + file + ", parsed " + convertedScansAfterFilter + " scans");
 
@@ -227,14 +231,6 @@ public class MSDKmzMLImportTask extends AbstractTask {
     }
   }
 
-
-  @Override
-  public void cancel() {
-    if (msdkTask != null) {
-      msdkTask.cancel();
-    }
-    super.cancel();
-  }
 
   public RawDataFileImpl buildLCMSFile(MzMLRawDataFile file) throws IOException {
     String descriptionTemplate = description = "Importing %s, total / parsed is %d / ".formatted(
@@ -436,10 +432,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    if (msdkTask == null) {
+    if (parser == null) {
       return 0.0;
     }
-    final double msdkProgress = msdkTask.getFinishedPercentage();
+    final double msdkProgress = parser.getFinishedPercentage();
     final double parsingProgress = totalScansAfterFilter == 0 ? 0.0
         : (double) convertedScansAfterFilter / totalScansAfterFilter;
     return (msdkProgress * 0.95) + (parsingProgress * 0.05);
@@ -464,19 +460,113 @@ public class MSDKmzMLImportTask extends AbstractTask {
    * This is the number of total scans in mzML without filtering
    */
   public int getTotalScansInMzML() {
-    if (msdkTask == null || msdkTask.getParser() == null) {
+    if (parser == null) {
       return 0;
     }
-    return msdkTask.getParser().getTotalScans();
+    return parser.getTotalScans();
   }
 
   /**
    * THis is the number of parsed mzML scans, without filtering
    */
   public int getParsedMzMLScans() {
-    if (msdkTask == null || msdkTask.getParser() == null) {
+    if (parser == null) {
       return 0;
     }
-    return msdkTask.getParser().getParsedScans();
+    return parser.getParsedScans();
+  }
+
+  // actual parsing
+  /**
+   * Parse the MzML data and return the parsed data
+   *
+   * @return a {@link MzMLRawDataFile MzMLRawDataFile} object containing the parsed data
+   */
+  public MzMLRawDataFile parseMzMl() throws MSDKException {
+    try {
+      // comparison of woodstox and aalto:
+      // woodstox seems to use less memory
+      // aalto seems to be a bit faster
+      // both very similar
+      // most memory is consumed by data reading and decompression etc
+      // woodstox
+//      XMLInputFactory2 factory = (XMLInputFactory2) XMLInputFactory2.newFactory();
+//      factory.configureForSpeed();
+
+      // aalto
+      InputFactoryImpl factory = new InputFactoryImpl();
+      factory.configureForSpeed();
+
+      if (fis != null) {
+        logger.finest("Began parsing file from stream");
+        try (Reader reader = new InputStreamReader(fis)) {
+          // buffered reader had no performance gains. most likely because the XMLStreamReader already buffers
+//        BufferedReader br = new BufferedReader(reader, 8192*4);
+          XMLStreamReader xmlStreamReader = factory.createXMLStreamReader(reader);
+          return parseMzMlInternal(xmlStreamReader);
+        }
+      } else if (file != null) {
+        logger.finest("Began parsing file: " + file.getAbsolutePath());
+        // buffered reader had no performance gains. most likely because the XMLStreamReader already buffers
+//        try (BufferedReader br = Files.newBufferedReader(mzMLFile.toPath(),
+        try (var fis = Files.newInputStream(file.toPath()); Reader br = new InputStreamReader(
+            fis, StandardCharsets.UTF_8)) {
+          XMLStreamReader xmlStreamReader = factory.createXMLStreamReader(br);
+          return parseMzMlInternal(xmlStreamReader);
+        }
+      } else {
+        throw new MSDKException("Invalid input");
+      }
+    } catch (IOException | XMLStreamException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+
+  private MzMLRawDataFile parseMzMlInternal(XMLStreamReader xmlStreamReader) throws MSDKException {
+    try {
+      this.parser = new MzMLParser(this, storage, scanProcessorConfig);
+
+      int eventType;
+      try {
+        do {
+          // check if parsing has been cancelled?
+          if (isCanceled()) {
+            return null;
+          }
+
+          eventType = xmlStreamReader.next();
+
+          switch (eventType) {
+            case XMLStreamConstants.START_ELEMENT -> {
+              final String openingTagName = xmlStreamReader.getLocalName();
+              parser.processOpeningTag(xmlStreamReader, openingTagName);
+            }
+            case XMLStreamConstants.END_ELEMENT -> {
+              final String closingTagName = xmlStreamReader.getLocalName();
+              parser.processClosingTag(xmlStreamReader, closingTagName);
+            }
+
+//            processCharacters method is not used in the moment
+//            might be returned if new random access xml parser is introduced
+//            case XMLStreamConstants.CHARACTERS:
+//              parser.processCharacters(xmlStreamReader);
+//              break;
+          }
+
+        } while (eventType != XMLStreamConstants.END_DOCUMENT);
+
+      } catch (DataFormatException | XMLStreamException e) {
+        throw new RuntimeException(e);
+      }
+      logger.finest("Parsing Complete");
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Error while loading mzML/RAW file " + e.getMessage(), e);
+      throw (new MSDKException(e));
+    }
+    return parser.getMzMLRawFile();
+  }
+
+  public File getMzMLFile() {
+    return file;
   }
 }

@@ -56,14 +56,26 @@ public class MobilityScanStorage {
   private final Frame frame;
   private final DoubleBuffer rawMzValues;
   private final DoubleBuffer rawIntensityValues;
+  /**
+   * Per scan
+   */
   private final IntBuffer rawStorageOffsets;
+  /**
+   * Per scan
+   */
   private final IntBuffer rawBasePeakIndices;
   private final int rawMaxNumPoints;
 
   // mass list
   private DoubleBuffer massListMzValues = null;
   private DoubleBuffer massListIntensityValues = null;
+  /**
+   * Per scan
+   */
   private IntBuffer massListStorageOffsets = null;
+  /**
+   * Per scan
+   */
   private IntBuffer massListBasePeakIndices = null;
   private int massListMaxNumPoints = -1;
 

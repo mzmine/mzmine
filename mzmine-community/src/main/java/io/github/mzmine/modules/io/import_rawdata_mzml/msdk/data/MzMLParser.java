@@ -27,7 +27,7 @@ package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import io.github.msdk.datamodel.Chromatogram;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.TagTracker;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
@@ -58,7 +58,6 @@ public class MzMLParser {
 
   private final Vars vars;
   private final TagTracker tracker;
-  private final MzMLFileImportMethod importer;
   private final MemoryMapStorage storage;
   private final @NotNull ScanImportProcessorConfig scanProcessorConfig;
 
@@ -76,11 +75,10 @@ public class MzMLParser {
       .collect(Collectors.toMap(MzMLArrayType::getAccession, Function.identity()));
 
 
-  public MzMLParser(MzMLFileImportMethod importer, MemoryMapStorage storage,
+  public MzMLParser(MSDKmzMLImportTask importer, MemoryMapStorage storage,
       @NotNull ScanImportProcessorConfig scanProcessorConfig) {
     this.vars = new Vars();
     this.tracker = new TagTracker();
-    this.importer = importer;
     this.newRawFile = new MzMLRawDataFile(importer.getMzMLFile(), vars.msFunctionsList,
         vars.spectrumList, vars.chromatogramsList);
     this.storage = storage;
