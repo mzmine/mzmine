@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -363,8 +363,8 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
    */
   public boolean isModificationOf(IonType parent) {
     if (!hasMods() || !(parent.getModCount() < getModCount() && mass != parent.mass
-                        && adduct.equals(parent.adduct) && molecules == parent.molecules
-                        && charge == parent.charge)) {
+        && adduct.equals(parent.adduct) && molecules == parent.molecules
+        && charge == parent.charge)) {
       return false;
     } else if (!parent.hasMods()) {
       return true;
@@ -503,7 +503,8 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
   }
 
   /**
-   * Is adding or removing all sub adducts / modifications from the molecular formula
+   * Is adding or removing all sub adducts / modifications from the molecular formula. Does not
+   * affect the charge. Use {@link #ionize} to also change the charge of the molecule.
    *
    * @param formula
    * @return
@@ -537,6 +538,20 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
           .forEach(m -> FormulaUtils.subtractFormula(result, m.getCDKFormula()));
     }
     return result;
+  }
+
+  /**
+   * Clones and ionizes the given formula. The resulting molecule may be neutral if the charge of
+   * the molecule and the charge of this adduct are opposite.
+   *
+   * @param formula The formula to ionize.
+   */
+  public IMolecularFormula ionize(IMolecularFormula formula) throws CloneNotSupportedException {
+    final int formulaCharge = Objects.requireNonNullElse(formula.getCharge(), 0);
+    formula = addToFormula(formula);
+    final int ionTypeCharge = getCharge();
+    formula.setCharge(formulaCharge + ionTypeCharge);
+    return formula;
   }
 
 
