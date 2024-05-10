@@ -502,16 +502,23 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     return PolarityType.UNKNOWN;
   }
 
-  /**
-   * Is adding or removing all sub adducts / modifications from the molecular formula. Does not
-   * affect the charge. Use {@link #ionize} to also change the charge of the molecule.
-   *
-   * @param formula
-   * @return
-   * @throws CloneNotSupportedException
-   */
   public IMolecularFormula addToFormula(IMolecularFormula formula)
       throws CloneNotSupportedException {
+    return addToFormula(formula, true);
+  }
+
+  /**
+   * Is adding or removing all sub adducts / modifications from the molecular formula.
+   *
+   * @param formula the formula.
+   * @param ionize  if the formula shall be ionised.
+   * @return The resulting molecule may be neutral if the charge of the molecule and the charge of
+   * this adduct are opposite.
+   */
+  public IMolecularFormula addToFormula(IMolecularFormula formula, boolean ionize)
+      throws CloneNotSupportedException {
+    final int formulaCharge = Objects.requireNonNullElse(formula.getCharge(), 0);
+
     IMolecularFormula result = (IMolecularFormula) formula.clone();
     // add for n molecules the M formula
     for (int i = 2; i <= molecules; i++) {
@@ -537,23 +544,14 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
           .filter(m -> m.getMass() < 0 && m.getCDKFormula() != null)
           .forEach(m -> FormulaUtils.subtractFormula(result, m.getCDKFormula()));
     }
+
+    if (ionize) {
+      final int ionTypeCharge = getCharge();
+      result.setCharge(formulaCharge + ionTypeCharge);
+    }
+
     return result;
   }
-
-  /**
-   * Clones and ionizes the given formula. The resulting molecule may be neutral if the charge of
-   * the molecule and the charge of this adduct are opposite.
-   *
-   * @param formula The formula to ionize.
-   */
-  public IMolecularFormula ionize(IMolecularFormula formula) throws CloneNotSupportedException {
-    final int formulaCharge = Objects.requireNonNullElse(formula.getCharge(), 0);
-    formula = addToFormula(formula);
-    final int ionTypeCharge = getCharge();
-    formula.setCharge(formulaCharge + ionTypeCharge);
-    return formula;
-  }
-
 
   @Override
   public boolean equals(final Object obj) {
