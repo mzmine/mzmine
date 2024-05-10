@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,18 +26,17 @@ package io.github.mzmine.modules.dataprocessing.id_nist;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import java.io.File;
-import java.util.Collection;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
+import java.io.File;
+import java.util.Collection;
 
 /**
  * Holds NIST MS Search parameters.
@@ -58,13 +57,6 @@ public class NistMsSearchParameters extends SimpleParameterSet {
   public static final DirectoryParameter NIST_MS_SEARCH_DIR =
       new DirectoryParameter("NIST MS Search directory",
           "Full path of the directory containing the NIST MS Search executable (nistms$.exe)");
-
-  /**
-   * MS Level for search.
-   */
-  public static final IntegerParameter MS_LEVEL = new IntegerParameter("MS level",
-      "Choose MS level for spectal matching. Enter \"1\" for MS1 spectra or ADAP-GC Cluster Spectra.",
-      2, 1, 1000);
 
   /**
    * Match factor cut-off.
@@ -104,7 +96,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * Construct the parameter set.
    */
   public NistMsSearchParameters() {
-    super(new Parameter[] {PEAK_LISTS, NIST_MS_SEARCH_DIR, MS_LEVEL, DOT_PRODUCT,
+    super(new Parameter[]{PEAK_LISTS, NIST_MS_SEARCH_DIR, DOT_PRODUCT,
         MERGE_PARAMETER, INTEGER_MZ, IMPORT_PARAMETER},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectra_NIST/NIST-ms-search.html");
   }
@@ -154,4 +146,10 @@ public class NistMsSearchParameters extends SimpleParameterSet {
 
     return System.getProperty("os.name").toUpperCase().contains("WINDOWS");
   }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
 }

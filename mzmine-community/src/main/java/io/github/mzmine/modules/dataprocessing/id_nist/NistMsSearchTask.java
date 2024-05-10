@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,12 +29,10 @@ import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParame
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.IMPORT_PARAMETER;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.INTEGER_MZ;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MERGE_PARAMETER;
-import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MS_LEVEL;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.NIST_MS_SEARCH_DIR;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -133,8 +131,6 @@ public class NistMsSearchTask extends AbstractTask {
   private final FeatureListRow peakListRow;
   // Dot Product cut-offs.
   private final Double minDotProduct;
-  // MS Level.
-  private final int msLevel;
   // Optional params.
   private final MsMsSpectraMergeParameters mergeParameters;
   private final IntegerMode integerMZ;
@@ -177,7 +173,6 @@ public class NistMsSearchTask extends AbstractTask {
 
     // Parameters.
     minDotProduct = params.getParameter(DOT_PRODUCT).getValue();
-    msLevel = params.getParameter(MS_LEVEL).getValue();
     nistMsSearchDir = params.getParameter(NIST_MS_SEARCH_DIR).getValue();
     nistMsSearchExe = ((NistMsSearchParameters) params).getNistMsSearchExecutable();
     importOption = params.getParameter(IMPORT_PARAMETER).getValue();
@@ -315,8 +310,6 @@ public class NistMsSearchTask extends AbstractTask {
           DataPoint[] dataPoints = null;
           String comment = null;
 
-          // Get MS level data points.
-          if (msLevel > 1) {
             if (!row.hasMs2Fragmentation()) {
               progress++;
               continue;
@@ -339,15 +332,6 @@ public class NistMsSearchTask extends AbstractTask {
               comment =
                   "DATA_FILE = " + scan.getDataFile().getName() + " SCAN = " + scan.getScanNumber();
             }
-          } else {
-
-            // Clustered Spectra.
-            IsotopePattern ip = row.getBestIsotopePattern();
-            if (ip != null) {
-              dataPoints = ScanUtils.extractDataPoints(ip);
-              comment = "Clustered spectra at RT= " + row.getAverageRT();
-            }
-          }
 
           // Round high-res to low-res.
           if (integerMZ != null & dataPoints != null) {
