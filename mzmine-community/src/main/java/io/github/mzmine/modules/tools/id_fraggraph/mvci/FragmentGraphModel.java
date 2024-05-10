@@ -33,17 +33,16 @@ import java.util.ArrayList;
 import java.util.Map;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ListProperty;
-import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyMapProperty;
 import javafx.beans.property.ReadOnlyMapWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleListProperty;
-import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.graphstream.graph.implementations.MultiGraph;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 class FragmentGraphModel {
@@ -54,6 +53,7 @@ class FragmentGraphModel {
   }
 
   private final ObjectProperty<IMolecularFormula> precursorFormula = new SimpleObjectProperty<>();
+  private final ObjectProperty<@Nullable Double> measuredPrecursorMz = new SimpleObjectProperty<>();
   private final ObjectProperty<MassSpectrum> ms2Spectrum = new SimpleObjectProperty<>();
   private final BooleanProperty precursorFormulaEditable = new SimpleBooleanProperty(false);
   private final ObjectProperty<MultiGraph> graph = new SimpleObjectProperty<>();
@@ -80,6 +80,18 @@ class FragmentGraphModel {
 
   public void setPrecursorFormula(IMolecularFormula precursorFormula) {
     this.precursorFormula.set(precursorFormula);
+  }
+
+  public @Nullable Double getMeasuredPrecursorMz() {
+    return measuredPrecursorMz.get();
+  }
+
+  public ObjectProperty<@Nullable Double> measuredPrecursorMzProperty() {
+    return measuredPrecursorMz;
+  }
+
+  public void setMeasuredPrecursorMz(@Nullable Double measuredPrecursorMz) {
+    this.measuredPrecursorMz.set(measuredPrecursorMz);
   }
 
   public MassSpectrum getMs2Spectrum() {

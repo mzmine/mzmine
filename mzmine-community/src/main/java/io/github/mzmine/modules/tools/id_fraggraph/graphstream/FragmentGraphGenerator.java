@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.tools.id_fraggraph.graphstream;
 
 import io.github.mzmine.modules.tools.id_fraggraph.SignalWithFormulae;
-import io.github.mzmine.util.FormulaWithExactMz;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -34,7 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
@@ -48,18 +46,30 @@ public class FragmentGraphGenerator {
   private final List<SignalWithFormulae> peaksWithFormulae;
   private final Map<SignalWithFormulae, SignalFormulaeModel> nodeModelMap = new HashMap<>();
 
-  private final FormulaWithExactMz root;
+  private final SignalWithFormulae root;
 
   private final MultiGraph graph;
 
   private final NumberFormat nodeNameFormatter = new DecimalFormat("0.00000");
   private List<SubFormulaEdge> edges;
 
+  /**
+   * @param graphId           The id for the built graph.
+   * @param peaksWithFormulae A list of all signals in the ms2 spectrum with their corresponding
+   *                          formulae.
+   * @param root              The root signal = precursor. If none of the {@param peaksWithFormulae}
+   *                          contain the (first) precursor formula (which may happen if the
+   *                          precursor is completely fragmented in the ms2), this will be added and
+   *                          used as a root node.
+   */
   public FragmentGraphGenerator(String graphId, List<SignalWithFormulae> peaksWithFormulae,
-      FormulaWithExactMz root) {
+      SignalWithFormulae root) {
     this.peaksWithFormulae = new ArrayList<>(
         peaksWithFormulae.stream().filter(pf -> !pf.formulae().isEmpty()).toList());
     this.root = root;
+    if (!this.peaksWithFormulae.contains(root)) {
+      this.peaksWithFormulae.add(root);
+    }
 
     System.setProperty("org.graphstream.ui", "javafx");
     graph = new MultiGraph(graphId);
@@ -79,7 +89,7 @@ public class FragmentGraphGenerator {
     boolean rootFound = false;
     for (SignalWithFormulae signalWithFormulae : peaksWithFormulae) {
       final Node node = getOrCreateNode(signalWithFormulae);
-      if (!rootFound && signalWithFormulae.formulae().contains(root)) {
+      if (!rootFound && signalWithFormulae.formulae().contains(root.formulae().getFirst())) {
         node.setAttribute("ui.class", "root_fragment");
         rootFound = true;
       }

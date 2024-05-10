@@ -25,31 +25,19 @@
 
 package io.github.mzmine.modules.tools.id_fraggraph.mvci;
 
-import static io.github.mzmine.javafx.components.factories.FxLabels.*;
-import static io.github.mzmine.javafx.components.util.FxLayout.newAccordion;
-import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
-
-import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
-import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
 import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
 import io.github.mzmine.modules.visualization.networking.visual.NetworkPane;
-import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.components.FormulaTextField;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
-import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Element;
@@ -69,34 +57,10 @@ class FragmentGraphBuilder extends FxViewBuilder<FragmentGraphModel> {
     final BorderPane pane = new BorderPane();
     addGraphListenerForNetworkUpdate(pane);
 
-    final TextField formulaField = createBoundFormulaTextField();
-    final Label formulaMassLabel = createBoundFormulaMassLabel();
-
 //    final Accordion settingsAccordion = newAccordion(true, newTitledPane("Precursor settings",
 //        newHBox(new Label("Precursor formula: "), formulaField, new Label("m/z:"),
 //            formulaMassLabel)));
     return pane;
-  }
-
-  @NotNull
-  private Label createBoundFormulaMassLabel() {
-    final Label formulaMassLabel = new Label();
-    formulaMassLabel.textProperty().bind(Bindings.createStringBinding(() -> {
-      if (model.getPrecursorFormula() == null) {
-        return "Cannot parse formula";
-      }
-      final double mz = FormulaUtils.calculateMzRatio(model.getPrecursorFormula());
-      return ConfigService.getGuiFormats().mz(mz);
-    }, model.precursorFormulaProperty()));
-    return formulaMassLabel;
-  }
-
-  @NotNull
-  private TextField createBoundFormulaTextField() {
-    final FormulaTextField formulaField = new FormulaTextField();
-    formulaField.editableProperty().bind(model.precursorFormulaEditableProperty());
-    formulaField.formulaProperty().bindBidirectional(model.precursorFormulaProperty());
-    return formulaField;
   }
 
   private void addGraphListenerForNetworkUpdate(BorderPane pane) {

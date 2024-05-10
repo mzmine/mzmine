@@ -191,7 +191,7 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
     updateGraph.disableProperty().bind(model.allowGraphRecalculationProperty().not());
 
     FormulaTextField selectedFormulaField = new FormulaTextField();
-    selectedFormulaField.formulaProperty().bindBidirectional(model.precursorFormulaProperty());
+    // add listener first and then bind so we enable the graph if the formula is already set
     selectedFormulaField.formulaProperty().addListener((_, _, f) -> {
       if (f != null) {
         // allow recalc if a new valid formula was set.
@@ -201,6 +201,7 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
         }
       }
     });
+    selectedFormulaField.formulaProperty().bindBidirectional(model.precursorFormulaProperty());
 
     final Label formulaExactMassLabel = newLabel("");
     formulaExactMassLabel.textProperty().bind(Bindings.createStringBinding(

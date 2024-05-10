@@ -36,6 +36,7 @@ import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyMapProperty;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class FragmentGraphController extends FxController<FragmentGraphModel> {
@@ -99,5 +100,9 @@ public class FragmentGraphController extends FxController<FragmentGraphModel> {
 
   public ListProperty<SubFormulaEdge> selectedEdgesProperty() {
     return model.selectedEdgesProperty();
+  }
+
+  public ObjectProperty<@Nullable Double> measuredPrecursorMzProperty() {
+    return model.measuredPrecursorMzProperty();
   }
 }

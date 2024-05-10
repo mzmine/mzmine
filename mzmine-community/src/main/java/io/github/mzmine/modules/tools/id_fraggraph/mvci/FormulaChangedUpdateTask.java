@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.tools.id_fraggraph.mvci;
 
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.tools.id_fraggraph.FragmentUtils;
@@ -35,6 +37,7 @@ import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;
+import io.github.mzmine.util.collections.BinarySearch.DefaultTo;
 import java.util.Comparator;
 import java.util.List;
 import org.graphstream.graph.implementations.MultiGraph;
@@ -67,12 +70,15 @@ public class FormulaChangedUpdateTask extends FxUpdateTask<FragmentGraphModel> {
   @Override
   protected void process() {
     final IMolecularFormula newFormula = model.getPrecursorFormula();
+    final MassSpectrum ms2 = model.getMs2Spectrum();
     final List<SignalWithFormulae> peaksWithFormulae = FragmentUtils.getPeaksWithFormulae(
-        newFormula, model.getMs2Spectrum(), signalFilter, formulaTolerance);
+        newFormula, ms2, signalFilter, formulaTolerance);
+
+    // make sure we have a root signal
+    SignalWithFormulae root = generateRootSignal(newFormula, ms2);
     final FragmentGraphGenerator graphGenerator = new FragmentGraphGenerator(
         STR."Fragment graph for \{MolecularFormulaManipulator.getString(newFormula)}",
-        peaksWithFormulae,
-        new FormulaWithExactMz(newFormula, FormulaUtils.calculateMzRatio(newFormula)));
+        peaksWithFormulae, root);
     graph = graphGenerator.getGraph();
 
     allNodeModels = graphGenerator.getNodeModelMap().values().stream()
@@ -81,6 +87,23 @@ public class FormulaChangedUpdateTask extends FxUpdateTask<FragmentGraphModel> {
     edges = graphGenerator.getEdges().stream()
         .sorted(Comparator.comparingDouble(e -> e.smaller().getPeakWithFormulae().peak().getMZ()))
         .toList();
+  }
+
+  @NotNull
+  private SignalWithFormulae generateRootSignal(IMolecularFormula newFormula, MassSpectrum ms2) {
+    SignalWithFormulae root;
+    final double searchMz = model.getMeasuredPrecursorMz() != null ? model.getMeasuredPrecursorMz()
+        : FormulaUtils.calculateMzRatio(newFormula);
+    final int precursorSignalIndex = ms2.binarySearch(searchMz, DefaultTo.CLOSEST_VALUE);
+    if (formulaTolerance.checkWithinTolerance(searchMz, ms2.getMzValue(precursorSignalIndex))) {
+      root = new SignalWithFormulae(new SimpleDataPoint(ms2.getMzValue(precursorSignalIndex),
+          ms2.getIntensityValue(precursorSignalIndex)),
+          List.of(new FormulaWithExactMz(newFormula, searchMz)));
+    } else {
+      root = new SignalWithFormulae(new SimpleDataPoint(searchMz, 0),
+          List.of(new FormulaWithExactMz(newFormula, searchMz)));
+    }
+    return root;
   }
 
   @Override

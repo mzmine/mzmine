@@ -68,6 +68,8 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
         .bindContentBidirectional(fragmentGraphController.selectedEdgesProperty());
     model.selectedNodesProperty()
         .bindContentBidirectional(fragmentGraphController.selectedNodesProperty());
+    fragmentGraphController.measuredPrecursorMzProperty() // regular binding so we take control of the property with this controller.
+        .bind(model.precursorMzProperty().map(Number::doubleValue));
 
     SpectrumPlotTableController ms2Controller = new SpectrumPlotTableController(Layout.HORIZONTAL);
     SpectrumPlotTableController isotopeController = new SpectrumPlotTableController(
@@ -104,8 +106,8 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
 
   public void setInput(double precursorMz, @NotNull MassSpectrum ms2Spectrum,
       @Nullable MassSpectrum isotopePattern, @Nullable IMolecularFormula formula) {
-    if(ms2Spectrum instanceof Scan s){
-      if(s.getMassList() == null) {
+    if (ms2Spectrum instanceof Scan s) {
+      if (s.getMassList() == null) {
         throw new MissingMassListException(s);
       }
       ms2Spectrum = s.getMassList();
@@ -115,9 +117,10 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
   }
 
   public void setInput(double precursorMz, @NotNull MassSpectrum ms2Spectrum,
-      @Nullable MassSpectrum isotopePattern, @Nullable IMolecularFormula formula, @Nullable List<ResultFormula> formulae) {
+      @Nullable MassSpectrum isotopePattern, @Nullable IMolecularFormula formula,
+      @Nullable List<ResultFormula> formulae) {
     setInput(precursorMz, ms2Spectrum, isotopePattern, formula);
-    if(formulae != null) {
+    if (formulae != null) {
       model.precursorFormulaeProperty().setAll(formulae);
     }
   }

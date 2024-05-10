@@ -62,7 +62,9 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
 
   private final IonType ionTypeOverride;
   private final MZTolerance formulaTolerance;
-  private final boolean checkCHONPS;
+  private final boolean checkNOPS;
+  private final boolean checkCH;
+  private final boolean checkMultiple;
   private final boolean checkRDBE;
 
   private MolecularFormulaGenerator generator;
@@ -85,7 +87,10 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
         parameters.getValue(FragmentGraphCalcParameters.ms1Tolerance), //
         parameters.getEmbeddedParameterValue(FragmentGraphCalcParameters.heuristicParams)
             .getValue(ElementalHeuristicParameters.checkNOPS), //
-        true, //
+        parameters.getEmbeddedParameterValue(FragmentGraphCalcParameters.heuristicParams)
+            .getValue(ElementalHeuristicParameters.checkHC),
+        parameters.getEmbeddedParameterValue(FragmentGraphCalcParameters.heuristicParams)
+            .getValue(ElementalHeuristicParameters.checkMultiple), true, //
         parameters.getValue(FragmentGraphCalcParameters.maximumFormulae), //
         parameters.getValue(FragmentGraphCalcParameters.polarity), //
         parameters.getValue(FragmentGraphCalcParameters.adducts), //
@@ -95,14 +100,16 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
 
   // todo make use of polarity and the assigned ion types if we have a row
   public FragGraphPrecursorFormulaTask(@NotNull FragDashboardModel model,
-      @Nullable IonType ionTypeOverride, @NotNull MZTolerance formulaTolerance, boolean checkCHONPS,
-      boolean checkRDBE, int maxFormulaCount, @NotNull PolarityType polarity,
-      @NotNull List<IonModification> assignedIonTypes, @NotNull MZTolerance ms2Tolerance,
-      @NotNull MolecularFormulaRange elements) {
+      @Nullable IonType ionTypeOverride, @NotNull MZTolerance formulaTolerance, boolean checkNOPS,
+      boolean checkCH, boolean checkMultiple, boolean checkRDBE, int maxFormulaCount,
+      @NotNull PolarityType polarity, @NotNull List<IonModification> assignedIonTypes,
+      @NotNull MZTolerance ms2Tolerance, @NotNull MolecularFormulaRange elements) {
     super("Calculate precursor formulae", model);
     this.ionTypeOverride = ionTypeOverride;
     this.formulaTolerance = formulaTolerance;
-    this.checkCHONPS = checkCHONPS;
+    this.checkNOPS = checkNOPS;
+    this.checkCH = checkCH;
+    this.checkMultiple = checkMultiple;
     this.checkRDBE = checkRDBE;
     this.maxFormulaCount = maxFormulaCount;
     this.ms2Tolerance = ms2Tolerance;
@@ -201,16 +208,16 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
       return false;
     }
 
-    if (checkCHONPS && ElementalHeuristicChecker.checkFormula(formula, checkCHONPS, checkCHONPS,
-        true)) {
-
-      final Double rdbe = RDBERestrictionChecker.calculateRDBE(formula);
-      if (checkRDBE && rdbe != null) {
-        if (rdbe - rdbe.intValue() > 0) {
-          return true;
-        } else if (Double.compare(rdbe - rdbe.intValue(), 0) == 0 && couldBeRadical) {
-          return true;
-        }
+    if (!ElementalHeuristicChecker.checkFormula(formula, checkNOPS, checkNOPS, checkMultiple)) {
+      return false;
+    }
+    final Double rdbe = RDBERestrictionChecker.calculateRDBE(formula);
+    if (checkRDBE && rdbe != null) {
+      if (rdbe - rdbe.intValue() > 0) {
+        // we are looking at charged formulae (+h /-h) so valences will be .5 for formulae of integer rdbe.
+        return true;
+      } else if (Double.compare(rdbe - rdbe.intValue(), 0) == 0 && couldBeRadical) {
+        return true;
       }
     }
     return false;
