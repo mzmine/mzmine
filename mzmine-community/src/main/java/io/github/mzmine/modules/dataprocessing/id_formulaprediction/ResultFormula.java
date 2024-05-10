@@ -127,7 +127,7 @@ public class ResultFormula extends MolecularFormulaIdentity {
           }
 
           try {
-            var ionized = ionType.ionize(formula);
+            var ionized = ionType.addToFormula(formula);
             c.accept(new ResultFormula(ionized, row));
           } catch (CloneNotSupportedException e) {
             return;

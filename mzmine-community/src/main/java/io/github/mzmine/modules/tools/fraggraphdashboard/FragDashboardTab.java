@@ -116,7 +116,7 @@ public class FragDashboardTab extends SimpleTab {
                 TryCatch.npe(() -> row.getBestFeature().getRepresentativeScan().getPolarity(),
                     PolarityType.ANY)));
         try {
-          formula = adduct.ionize(formula);
+          formula = adduct.addToFormula(formula);
         } catch (CloneNotSupportedException e) {
           // dont set anything that does not make sense, e.g. a neutral molecule
           formula = null;
