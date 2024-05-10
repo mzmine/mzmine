@@ -703,15 +703,12 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     final Stream<IonModification> modifications = switch (polarity) {
       case POSITIVE -> Stream.of(IonModification.DEFAULT_VALUES_POSITIVE);
       case NEGATIVE -> Stream.of(IonModification.DEFAULT_VALUES_NEGATIVE);
-      case NEUTRAL -> null;
+      case NEUTRAL -> Stream.of();
       case ANY, UNKNOWN ->
           Stream.of(DEFAULT_VALUES_POSITIVE, DEFAULT_VALUES_NEGATIVE).flatMap(Arrays::stream);
       case null ->
           Stream.of(DEFAULT_VALUES_POSITIVE, DEFAULT_VALUES_NEGATIVE).flatMap(Arrays::stream);
     };
-    if (modifications == null) {
-      return null;
-    }
 
     return modifications.filter(m -> m.getCharge() != 0)
         .filter(m -> tol.checkWithinTolerance(m.getMZ(neutralMass), mz))

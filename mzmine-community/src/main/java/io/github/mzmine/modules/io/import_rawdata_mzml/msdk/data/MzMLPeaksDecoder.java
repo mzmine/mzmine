@@ -313,6 +313,7 @@ public class MzMLPeaksDecoder {
           }
           bos.write(buf, 0, count);
         } catch (DataFormatException e) {
+          decompressor.end();
           throw new IllegalStateException(
               "Encountered wrong data format " + "while trying to decompress binary data!", e);
         }
@@ -320,11 +321,11 @@ public class MzMLPeaksDecoder {
 
       // Get the decompressed data
       decompressedData = bos.toByteArray();
-      decompressor.end();
     } catch (IOException e) {
       // ToDo: add logging
       e.printStackTrace();
     }
+    decompressor.end();
     if (decompressedData == null) {
       throw new IllegalStateException("Decompression of binary data produced no result (null)!");
     }

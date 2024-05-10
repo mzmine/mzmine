@@ -101,6 +101,7 @@ public class ThermoRawImportTask extends AbstractTask {
     // Unzip ThermoRawFileParser
     try {
       final File thermoRawFileParserDir = unzipThermoRawFileParser();
+      taskDescription = "Opening file " + fileToOpen;
       String thermoRawFileParserCommand;
 
       if (Platform.isWindows()) {
@@ -215,16 +216,19 @@ public class ThermoRawImportTask extends AbstractTask {
           .toFile();
     }
 
-    logger.finest("Unpacking ThermoRawFileParser to folder " + thermoRawFileParserFolder);
+    logger.finest(STR."Unpacking ThermoRawFileParser to folder \{thermoRawFileParserFolder}");
+    taskDescription = "Unpacking thermo raw file parser.";
     InputStream zipStream = getClass().getResourceAsStream(
         "/vendorlib/thermo/ThermoRawFileParser.zip");
     if (zipStream == null) {
       throw new IOException(
           "Failed to open the resource /vendorlib/thermo/ThermoRawFileParser.zip");
     }
+
     ZipInputStream zipInputStream = new ZipInputStream(zipStream);
     ZipUtils.unzipStream(zipInputStream, thermoRawFileParserFolder);
     zipInputStream.close();
+    logger.finest(STR."Finished unpacking ThermoRawFileParser to folder \{thermoRawFileParserFolder}");
 
     // Delete the temporary folder on application exit
     FileUtils.forceDeleteOnExit(thermoRawFileParserFolder);
