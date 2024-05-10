@@ -26,16 +26,21 @@
 package io.github.mzmine.modules.tools.fraggraphdashboard;
 
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable.SpectrumPlotTableController;
 import io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable.SpectrumPlotTableViewBuilder.Layout;
-import io.github.mzmine.modules.tools.id_fraggraph.FragmentGraphCalcModule;
 import io.github.mzmine.modules.tools.id_fraggraph.mvci.FragmentGraphController;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.exceptions.MissingMassListException;
+import java.util.List;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class FragDashboardController extends FxController<FragDashboardModel> {
 
@@ -45,12 +50,13 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
   private final ParameterSet parameters;
 
   public FragDashboardController() {
-    this(ConfigService.getConfiguration().getModuleParameters(FragmentGraphCalcModule.class));
+    this(ConfigService.getConfiguration().getModuleParameters(FragDashboardModule.class));
   }
 
-  public FragDashboardController(ParameterSet parameters) {
+  public FragDashboardController(@Nullable ParameterSet parameters) {
     super(new FragDashboardModel());
-    this.parameters = parameters;
+    this.parameters = parameters != null ? parameters
+        : ConfigService.getConfiguration().getModuleParameters(FragDashboardModule.class);
     fragmentGraphController = new FragmentGraphController(parameters);
 
 //    model.precursorFormulaProperty()
@@ -90,9 +96,29 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
   }
 
   public void setInput(double precursorMz, @NotNull MassSpectrum ms2Spectrum,
-      @NotNull MassSpectrum isotopePattern) {
+      @Nullable MassSpectrum isotopePattern) {
     model.setPrecursorMz(precursorMz);
     model.setSpectrum(ms2Spectrum);
-    model.setIsotopePattern(isotopePattern);
+    model.setIsotopePattern(isotopePattern != null ? isotopePattern : MassSpectrum.EMPTY);
+  }
+
+  public void setInput(double precursorMz, @NotNull MassSpectrum ms2Spectrum,
+      @Nullable MassSpectrum isotopePattern, @Nullable IMolecularFormula formula) {
+    if(ms2Spectrum instanceof Scan s){
+      if(s.getMassList() == null) {
+        throw new MissingMassListException(s);
+      }
+      ms2Spectrum = s.getMassList();
+    }
+    setInput(precursorMz, ms2Spectrum, isotopePattern);
+    model.setPrecursorFormula(formula);
+  }
+
+  public void setInput(double precursorMz, @NotNull MassSpectrum ms2Spectrum,
+      @Nullable MassSpectrum isotopePattern, @Nullable IMolecularFormula formula, @Nullable List<ResultFormula> formulae) {
+    setInput(precursorMz, ms2Spectrum, isotopePattern, formula);
+    if(formulae != null) {
+      model.precursorFormulaeProperty().setAll(formulae);
+    }
   }
 }

@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.id_fraggraph;
+package io.github.mzmine.modules.tools.fraggraphdashboard;
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;

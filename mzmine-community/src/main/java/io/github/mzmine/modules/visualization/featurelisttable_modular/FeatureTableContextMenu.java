@@ -68,6 +68,7 @@ import io.github.mzmine.modules.io.export_features_gnps.masst.GnpsMasstSubmitMod
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
+import io.github.mzmine.modules.tools.fraggraphdashboard.FragDashboardTab;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
@@ -327,8 +328,15 @@ public class FeatureTableContextMenu extends ContextMenu {
     formulaPredictionItem.setOnAction(
         e -> FormulaPredictionModule.showSingleRowIdentificationDialog(selectedRows.get(0)));
 
+    final MenuItem fragmentDashboardItem = new ConditionalMenuItem("Open in fragmentation graph",
+        () -> selectedRow != null && selectedRow.getMostIntenseFragmentScan() != null);
+    fragmentDashboardItem.setOnAction(e -> {
+      FragDashboardTab.addNewTab(null, selectedRow,
+          null /*todo ideally use predicted formula, but we dont have the ion type there*/);
+    });
+
     searchMenu.getItems().addAll(spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
-        formulaPredictionItem, new SeparatorMenuItem(), masstSearch);
+        formulaPredictionItem, fragmentDashboardItem, new SeparatorMenuItem(), masstSearch);
   }
 
   private void initShowMenu() {
@@ -533,12 +541,12 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,
-            new SeparatorMenuItem(), showNetworkVisualizerItem,
-            show2DItem, show3DItem, showIntensityPlotItem, showInIMSRawDataOverviewItem,
-            showInMobilityMzVisualizerItem, new SeparatorMenuItem(), showSpectrumItem,
-            showFeatureFWHMMs1Item, showBestMobilityScanItem, extractSumSpectrumFromMobScans,
-            showMSMSItem, showMSMSMirrorItem, showAllMSMSItem, showPseudoSpectrumItem,
-            showDiaMirror, new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
+            new SeparatorMenuItem(), showNetworkVisualizerItem, show2DItem, show3DItem,
+            showIntensityPlotItem, showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem,
+            new SeparatorMenuItem(), showSpectrumItem, showFeatureFWHMMs1Item,
+            showBestMobilityScanItem, extractSumSpectrumFromMobScans, showMSMSItem,
+            showMSMSMirrorItem, showAllMSMSItem, showPseudoSpectrumItem, showDiaMirror,
+            new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
             showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
             showPeakRowSummaryItem, showCorrelatedImageFeaturesItem);
   }

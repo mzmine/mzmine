@@ -29,6 +29,7 @@ import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import java.text.ParseException;
+import java.util.Comparator;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -54,6 +55,7 @@ public class FormulaTable extends TableView<ResultFormula> {
     TableColumn<ResultFormula, Double> mz = new TableColumn<>("m/z");
     mz.getStyleClass().add("align-right-column");
     mz.setMinWidth(100);
+    mz.setComparator(Double::compare);
     mz.setCellValueFactory(cell -> {
       try {
         return new ReadOnlyObjectWrapper<>(
@@ -67,6 +69,7 @@ public class FormulaTable extends TableView<ResultFormula> {
     ppm.getStyleClass().add("align-right-column");
     ppm.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
     ppm.setMinWidth(100);
+    ppm.setComparator(Comparator.comparingDouble(ResultFormula::getPpmDiff));
     ppm.setCellFactory(col -> new TableCell<>() {
       {
         textProperty().bind(Bindings.createStringBinding(() -> {
@@ -83,6 +86,7 @@ public class FormulaTable extends TableView<ResultFormula> {
     abs.getStyleClass().add("align-right-column");
     abs.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
     abs.setMinWidth(100);
+    abs.setComparator(Comparator.comparingDouble(ResultFormula::getAbsoluteMzDiff));
     abs.setCellFactory(col -> new TableCell<>() {
       {
         textProperty().bind(Bindings.createStringBinding(() -> {
@@ -99,6 +103,7 @@ public class FormulaTable extends TableView<ResultFormula> {
     isoScore.getStyleClass().add("align-right-column");
     isoScore.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
     isoScore.setMinWidth(100);
+    isoScore.setComparator(Comparator.comparingDouble(ResultFormula::getIsotopeScore));
     isoScore.setCellFactory(col -> new TableCell<>() {
       {
         textProperty().bind(Bindings.createStringBinding(() -> {
@@ -115,6 +120,7 @@ public class FormulaTable extends TableView<ResultFormula> {
     ms2Score.getStyleClass().add("align-right-column");
     ms2Score.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
     ms2Score.setMinWidth(100);
+    ms2Score.setComparator(Comparator.comparingDouble(ResultFormula::getMSMSScore));
     ms2Score.setCellFactory(col -> new TableCell<>() {
       {
         textProperty().bind(Bindings.createStringBinding(() -> {
@@ -128,5 +134,13 @@ public class FormulaTable extends TableView<ResultFormula> {
     });
 
     getColumns().addAll(formula, mz, ppm, abs, isoScore, ms2Score);
+  }
+
+  private double mzDoubleParser(String diffStr) {
+    try {
+      return formats.mzFormat().parse(diffStr).doubleValue();
+    } catch (ParseException e) {
+      return 0.0d;
+    }
   }
 }

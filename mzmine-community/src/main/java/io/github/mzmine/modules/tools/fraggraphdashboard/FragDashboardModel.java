@@ -34,17 +34,14 @@ import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ListProperty;
-import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyMapProperty;
-import javafx.beans.property.ReadOnlyMapWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleListProperty;
-import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class FragDashboardModel {
@@ -75,12 +72,13 @@ public class FragDashboardModel {
    * A list of possible precursor formulae for the given precursor m/z. Displayed in a table in the
    * view.
    */
-  private final ListProperty<ResultFormula> precursorFormulae = new SimpleListProperty<>(FXCollections.observableArrayList());
+  private final ListProperty<ResultFormula> precursorFormulae = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
 
   /**
    * The currently selected precursor formula.
    */
-  private final ObjectProperty<IMolecularFormula> precursorFormula = new SimpleObjectProperty<>();
+  private final ObjectProperty<@Nullable IMolecularFormula> precursorFormula = new SimpleObjectProperty<>();
 
   private final BooleanProperty allowGraphRecalculation = new SimpleBooleanProperty(false);
   private final ListProperty<SignalFormulaeModel> selectedNodes = new SimpleListProperty<>(
@@ -155,15 +153,16 @@ public class FragDashboardModel {
     this.precursorFormulae.set(precursorFormulae);
   }
 
+  @Nullable
   public IMolecularFormula getPrecursorFormula() {
     return precursorFormula.get();
   }
 
-  public ObjectProperty<IMolecularFormula> precursorFormulaProperty() {
+  public ObjectProperty<@Nullable IMolecularFormula> precursorFormulaProperty() {
     return precursorFormula;
   }
 
-  public void setPrecursorFormula(IMolecularFormula precursorFormula) {
+  public void setPrecursorFormula(@Nullable IMolecularFormula precursorFormula) {
     this.precursorFormula.set(precursorFormula);
   }
 

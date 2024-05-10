@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,11 +27,24 @@ package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
+import io.github.mzmine.util.TryCatch;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -69,6 +82,55 @@ public class ResultFormula extends MolecularFormulaIdentity {
     this.isotopeScore = isotopeScore;
     this.msmsScore = msmsScore;
     this.msmsAnnotation = msmsAnnotation;
+  }
+
+  public ResultFormula(IMolecularFormula ionFormula, FeatureListRow row) {
+    super(ionFormula, FormulaUtils.calculateMzRatio(ionFormula));
+    predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(ionFormula, 0.01,
+        ionFormula.getCharge(), PolarityType.fromInt(ionFormula.getCharge()));
+
+    var measuredPattern =
+        row.getBestIsotopePattern() != null ? row.getBestIsotopePattern() : MassSpectrum.EMPTY;
+    this.isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(predictedIsotopePattern,
+        measuredPattern, MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA, 0);
+
+    var msmsScore1 = MSMSScoreCalculator.evaluateMSMS(ionFormula, row.getMostIntenseFragmentScan(),
+        MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA, 50);
+    this.msmsScore = msmsScore1.explainedIntensity();
+    this.msmsAnnotation = msmsScore1.annotation();
+  }
+
+  public static List<ResultFormula> forAllAnnotations(FeatureListRow row) {
+    return row.streamAllFeatureAnnotations().filter(a -> a instanceof FeatureAnnotation)
+        .map(a -> (FeatureAnnotation) a).filter(a -> a.getFormula() != null)
+        .<ResultFormula>mapMulti((a, c) -> {
+
+          final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(
+              a.getFormula());
+          if(formula == null) {
+            return;
+          }
+
+          IonType ionType = a.getAdductType();
+          if (ionType == null) {
+            final IonModification adduct = IonModification.getBestIonModification(
+                FormulaUtils.calculateMzRatio(formula), row.getAverageMZ(),
+                MZTolerance.FIFTEEN_PPM_OR_FIVE_MDA,
+                TryCatch.npe(() -> row.getBestFeature().getRepresentativeScan().getPolarity(),
+                    PolarityType.ANY));
+            if (adduct == null) {
+              return;
+            }
+            ionType = new IonType(adduct);
+          }
+
+          try {
+            var ionized = ionType.ionize(formula);
+            c.accept(new ResultFormula(ionized, row));
+          } catch (CloneNotSupportedException e) {
+            return;
+          }
+        }).toList();
   }
 
   public Map<DataPoint, String> getMSMSannotation() {
@@ -167,10 +229,10 @@ public class ResultFormula extends MolecularFormulaIdentity {
         continue;
       }
       switch (reader.getLocalName()) {
-        case MolecularFormulaIdentity.XML_ELEMENT -> id = MolecularFormulaIdentity.loadFromXML(
-            reader);
-        case ISOTOPE_SCORE_ELEMENT -> isotopeScore = ParsingUtils.stringToFloat(
-            reader.getElementText());
+        case MolecularFormulaIdentity.XML_ELEMENT ->
+            id = MolecularFormulaIdentity.loadFromXML(reader);
+        case ISOTOPE_SCORE_ELEMENT ->
+            isotopeScore = ParsingUtils.stringToFloat(reader.getElementText());
         case MSMS_SCORE_ELEMENT -> msmsScore = ParsingUtils.stringToFloat(reader.getElementText());
         case SimpleIsotopePattern.XML_ELEMENT -> pattern = SimpleIsotopePattern.loadFromXML(reader);
         case MSMS_ANNOTATIONS_ELEMENT -> annotations = loadAnnotations(reader);
@@ -208,7 +270,8 @@ public class ResultFormula extends MolecularFormulaIdentity {
       return false;
     }
     ResultFormula that = (ResultFormula) o;
-    final boolean patternEquals = Objects.equals(predictedIsotopePattern, that.predictedIsotopePattern);
+    final boolean patternEquals = Objects.equals(predictedIsotopePattern,
+        that.predictedIsotopePattern);
     final boolean annotationEquals = Objects.equals(msmsAnnotation, that.msmsAnnotation);
     final boolean formulaEquals = Objects.equals(getFormulaAsString(), that.getFormulaAsString());
     return Objects.equals(getIsotopeScore(), that.getIsotopeScore()) && Objects.equals(msmsScore,

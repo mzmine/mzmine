@@ -23,35 +23,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.id_fraggraph;
+package io.github.mzmine.modules.tools.fraggraphdashboard;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.impl.AbstractRunnableModule;
-import io.github.mzmine.modules.impl.TaskPerFeatureListModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class FragmentGraphCalcModule extends AbstractRunnableModule {
+public class FragDashboardModule extends AbstractRunnableModule {
 
-  public FragmentGraphCalcModule() {
-    super("Fragment tree calculation", FragmentGraphCalcParameters.class,
-        MZmineModuleCategory.ANNOTATION, "Calculates fragmentation trees based on MSn spectra.");
+  public FragDashboardModule() {
+    super("Fragment dashboard", FragmentGraphCalcParameters.class, MZmineModuleCategory.ANNOTATION,
+        "Analyse fragment ion spectra to determine the molecular formula.");
   }
 
   @Override
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-
-
-    return null;
+    FragDashboardTab.addNewTab(parameters);
+    return ExitCode.OK;
   }
 }

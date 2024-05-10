@@ -31,13 +31,13 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicChecker;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
-import io.github.mzmine.modules.tools.id_fraggraph.FragmentGraphCalcParameters;
 import io.github.mzmine.modules.tools.id_fraggraph.FragmentUtils;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
@@ -138,6 +138,10 @@ public class FragGraphPrecursorFormulaTask extends FxUpdateTask<FragDashboardMod
 
     generator = setUpFormulaGenerator();
     generateFormulae(couldBeRadical, generator);
+    if (formulaCount == 0) {
+      DesktopService.getDesktop().displayMessage(
+          "No formulae found. Consider changing the tolerances or the element ranges.");
+    }
   }
 
   @Override

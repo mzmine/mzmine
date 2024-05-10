@@ -41,7 +41,6 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormul
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.EdgeTable;
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.FormulaTable;
 import io.github.mzmine.modules.tools.fraggraphdashboard.nodetable.NodeTable;
-import io.github.mzmine.modules.tools.id_fraggraph.FragmentGraphCalcParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboComponent;
 import io.github.mzmine.util.ExitCode;
