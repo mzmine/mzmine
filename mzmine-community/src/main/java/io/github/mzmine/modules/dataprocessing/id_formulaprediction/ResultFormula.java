@@ -43,11 +43,13 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.TryCatch;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -100,14 +102,14 @@ public class ResultFormula extends MolecularFormulaIdentity {
     this.msmsAnnotation = msmsScore1.annotation();
   }
 
-  public static List<ResultFormula> forAllAnnotations(FeatureListRow row) {
-    return row.streamAllFeatureAnnotations().filter(a -> a instanceof FeatureAnnotation)
+  public static List<ResultFormula> forAllAnnotations(FeatureListRow row, boolean dropDuplicates) {
+    var formulae = row.streamAllFeatureAnnotations().filter(a -> a instanceof FeatureAnnotation)
         .map(a -> (FeatureAnnotation) a).filter(a -> a.getFormula() != null)
         .<ResultFormula>mapMulti((a, c) -> {
 
           final IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(
               a.getFormula());
-          if(formula == null) {
+          if (formula == null) {
             return;
           }
 
@@ -130,7 +132,16 @@ public class ResultFormula extends MolecularFormulaIdentity {
           } catch (CloneNotSupportedException e) {
             return;
           }
-        }).toList();
+        }).toList(); // keep only unique formula
+
+    if (dropDuplicates) {
+      return formulae.stream().collect(
+              Collectors.toMap(MolecularFormulaIdentity::getFormulaAsString, rf -> rf, (a, b) -> a))
+          .values().stream().sorted(Comparator.comparing(ResultFormula::getFormulaAsString))
+          .toList();
+    } else {
+      return formulae;
+    }
   }
 
   public Map<DataPoint, String> getMSMSannotation() {
