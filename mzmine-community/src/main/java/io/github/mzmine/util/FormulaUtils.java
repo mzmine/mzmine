@@ -604,6 +604,9 @@ public class FormulaUtils {
    */
   public static IMolecularFormula addFormula(IMolecularFormula result, IMolecularFormula add) {
     result.add(add);
+    final Integer resultCharge = Objects.requireNonNullElse(result.getCharge(), 0);
+    final Integer subtractCharge = Objects.requireNonNullElse(add.getCharge(), 0);
+    result.setCharge(resultCharge + subtractCharge);
     return result;
   }
 
