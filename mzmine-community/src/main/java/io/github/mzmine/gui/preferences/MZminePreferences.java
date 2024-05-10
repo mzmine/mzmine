@@ -51,7 +51,6 @@ import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.mzio.users.gui.fx.UsersController;
-import io.mzio.users.user.CurrentUserService;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Map;
@@ -88,7 +87,7 @@ public class MZminePreferences extends SimpleParameterSet {
       "Intensity format", "Format of intensity values", true, new DecimalFormat("0.0E0"));
 
   public static final NumberFormatParameter ppmFormat = new NumberFormatParameter("PPM format",
-      "Format used for PPM values such as mass errors", true, new DecimalFormat("0.0000"));
+      "Format used for PPM values such as mass errors", true, new DecimalFormat("0.0"));
 
   public static final NumberFormatParameter scoreFormat = new NumberFormatParameter("Score format",
       "Format used for scores, e.g., Pearson correlation, cosine similarity etc.", false,
