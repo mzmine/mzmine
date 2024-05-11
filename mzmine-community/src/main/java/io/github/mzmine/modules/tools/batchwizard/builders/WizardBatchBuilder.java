@@ -123,6 +123,7 @@ public abstract class WizardBatchBuilder {
       }
       case MS1_ONLY -> throw new UnsupportedOperationException(
           "Currently not implemented workflow " + workflowPreset);
+      case DRIED_DROPLET -> new WizardBatchBuilderDriedDroplet(steps);
     };
   }
 

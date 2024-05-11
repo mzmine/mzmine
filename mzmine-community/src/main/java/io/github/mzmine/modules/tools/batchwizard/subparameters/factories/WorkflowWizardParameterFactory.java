@@ -28,6 +28,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDriedDropletWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowImagingWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowLibraryGenerationWizardParameters;
@@ -58,7 +59,11 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
   /**
    * imaging analysis
    */
-  IMAGING;
+  IMAGING,
+  /**
+   * Dried droplet analysis
+   */
+  DRIED_DROPLET;
 
   @Override
   public String toString() {
@@ -68,6 +73,7 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
       case DECONVOLUTION -> "Spectral deconvolution";
       case LIBRARY_GENERATION -> "Library generation";
       case IMAGING -> "Imaging";
+      case DRIED_DROPLET -> "Dried droplet";
     };
   }
 
@@ -89,6 +95,7 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
       case DECONVOLUTION ->
           new WorkflowGcElectronImpactWizardParameters(true, null, true, true, false);
       case DIA -> new WorkflowDiaWizardParameters(0.8, 5, true, null, true, true, false);
+      case DRIED_DROPLET -> new WorkflowDriedDropletWizardParameters(false, null);
     };
   }
 }
