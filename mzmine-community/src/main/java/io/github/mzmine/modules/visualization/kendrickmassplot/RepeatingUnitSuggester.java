@@ -64,6 +64,7 @@ public class RepeatingUnitSuggester {
   private final MZTolerance mzTolerenace;
   private final ListView<String> listView;
   private final ObservableList<String> itemList;
+  private Task<ObservableList<String>> loadTask;
 
   public RepeatingUnitSuggester(FeatureList featureList) {
     this.featureList = featureList;
@@ -76,7 +77,7 @@ public class RepeatingUnitSuggester {
   }
 
   private void loadItems() {
-    Task<ObservableList<String>> task = new Task<>() {
+    loadTask = new Task<>() {
       @Override
       protected ObservableList<String> call() {
         return suggestRepeatingUnit();
@@ -87,9 +88,14 @@ public class RepeatingUnitSuggester {
         super.succeeded();
         itemList.setAll(getValue());
       }
+
     };
 
-    new Thread(task).start();
+    new Thread(loadTask).start();
+  }
+
+  public Task<ObservableList<String>> getLoadItemsTask() {
+    return loadTask;
   }
 
   public ListView<String> getListView() {

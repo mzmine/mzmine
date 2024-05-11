@@ -96,7 +96,8 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
     if ((getParameters() == null) || (getParameters().length == 0)) {
       return ExitCode.OK;
     }
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
+    KendrickMassPlotSetupDialog dialog = new KendrickMassPlotSetupDialog(valueCheckRequired, this,
+        null);
     addSuggestedRepeatingUnits(dialog);
 
     var xAxisValueComponent = dialog.getComponentForParameter(xAxisValues);
