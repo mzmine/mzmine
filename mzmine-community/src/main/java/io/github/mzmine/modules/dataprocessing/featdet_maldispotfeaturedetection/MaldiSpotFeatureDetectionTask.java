@@ -264,18 +264,11 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
             mzTolerance.getToleranceRange(row.getAverageMZ()));
         traceMap.put(mzRange,
             new ExpandingTrace((ModularFeatureListRow) row, mzRange, Range.all()));
-      } else {
-        final Range<Double> mzRange = SpectraMerging.createNewNonOverlappingRange(traceMap,
-            mzTolerance.getToleranceRange(row.getAverageMZ()));
-        if (mzRange.contains(row.getAverageMZ())) {
-          traceMap.put(mzRange,
-              new ExpandingTrace((ModularFeatureListRow) row, mzRange, Range.all()));
-        } else { // does not make sense to add this range.
-          logger.fine(
-              () -> STR."asked to create an ExpandingTrace for m/z \{row.getAverageMZ()} but already covered by range \{traceMap.get(
-                  row.getAverageMZ()).getMzRange()}. Consider lowering the mz tolerance.");
-        }
-      }
+      }// else { // does not make sense to add this range.
+//          logger.finest(
+//              () -> STR."asked to create an ExpandingTrace for m/z \{row.getAverageMZ()} but already covered by range \{traceMap.get(
+//                  row.getAverageMZ()).getMzRange()}. Consider lowering the mz tolerance.");
+//      }
     }
     return traceMap;
   }
