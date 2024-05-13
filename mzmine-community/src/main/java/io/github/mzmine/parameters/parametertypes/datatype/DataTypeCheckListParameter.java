@@ -26,8 +26,8 @@
 package io.github.mzmine.parameters.parametertypes.datatype;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import java.util.HashMap;
@@ -96,10 +96,10 @@ public class DataTypeCheckListParameter implements
     Boolean val = value.get(getKey(dataTypeColumnId));
     if (val == null) {
       val = dataTypeColumnId.getDataType().getDefaultVisibility();
-      if (dataTypeColumnId.getDataType() instanceof ListWithSubsType list
+      if (dataTypeColumnId.getDataType() instanceof SubColumnsFactory list
           && dataTypeColumnId.getSubColIndex() >= 0) {
         final int subColIndex = dataTypeColumnId.getSubColIndex();
-        final DataType<?> subColDataType = (DataType<?>) list.getSubDataTypes().get(subColIndex);
+        final DataType<?> subColDataType = (DataType<?>) list.getType(subColIndex);
         val = subColDataType.getDefaultVisibility();
       }
       addDataType(dataTypeColumnId, val);
