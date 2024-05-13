@@ -26,8 +26,17 @@
 package io.github.mzmine.parameters.parametertypes.datatype;
 
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
+import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import java.util.HashMap;
@@ -59,6 +68,7 @@ public class DataTypeCheckListParameter implements
     this.name = name;
     this.desc = description;
     this.value = new HashMap<>();
+    defaultDisableColumns();
   }
 
   /**
@@ -96,11 +106,20 @@ public class DataTypeCheckListParameter implements
     Boolean val = value.get(getKey(dataTypeColumnId));
     if (val == null) {
       val = dataTypeColumnId.getDataType().getDefaultVisibility();
+
+      // if this is a sub colum (subColIndex >= 0), use the visibility of the sub column type,
+      // but only if the parent column is visible
       if (dataTypeColumnId.getDataType() instanceof SubColumnsFactory list
           && dataTypeColumnId.getSubColIndex() >= 0) {
-        final int subColIndex = dataTypeColumnId.getSubColIndex();
-        final DataType<?> subColDataType = (DataType<?>) list.getType(subColIndex);
-        val = subColDataType.getDefaultVisibility();
+        if (isDataTypeVisible( // is the parent column visible?
+            new ColumnID(dataTypeColumnId.getDataType(), dataTypeColumnId.getType(),
+                dataTypeColumnId.getRaw(), -1))) {
+          final int subColIndex = dataTypeColumnId.getSubColIndex();
+          final DataType<?> subColDataType = (DataType<?>) list.getType(subColIndex);
+          val = subColDataType.getDefaultVisibility();
+        } else {
+          val = false;
+        }
       }
       addDataType(dataTypeColumnId, val);
     }
@@ -114,9 +133,8 @@ public class DataTypeCheckListParameter implements
    * @return combined header key
    */
   public String getKey(ColumnID dataType) {
-    return dataType.getCombinedHeaderString();
+    return dataType.getUniqueIdString();
   }
-
 
   /**
    * Sets data type visibility value
@@ -125,17 +143,17 @@ public class DataTypeCheckListParameter implements
    * @param val  true/false
    */
   public void setDataTypeVisible(ColumnID type, Boolean val) {
-    setDataTypeVisible(type.getCombinedHeaderString(), val);
+    setDataTypeVisible(type.getUniqueIdString(), val);
   }
 
   /**
    * Sets data type visibility value
    *
-   * @param typeHeader Name of the data type
-   * @param val        true/false
+   * @param typeUniqueId Name of the data type
+   * @param val          true/false
    */
-  public void setDataTypeVisible(String typeHeader, Boolean val) {
-    value.put(typeHeader, val);
+  public void setDataTypeVisible(String typeUniqueId, Boolean val) {
+    value.put(typeUniqueId, val);
   }
 
   /**
@@ -231,5 +249,28 @@ public class DataTypeCheckListParameter implements
 
   public void setAll(boolean visible) {
     value.keySet().forEach(key -> value.put(key, visible));
+  }
+
+  /**
+   * disable some types by default that don't make sense to show but would be shown usually. For
+   * example, the mz type in ion identity would be shown by default because
+   * {@link MZType#getDefaultVisibility()} mz itself is always on for a feature or a row.
+   */
+  private void defaultDisableColumns() {
+    value.put(getKey(false, IonIdentityListType.class, MZType.class), false);
+
+    value.put(getKey(false, SpectralLibraryMatchesType.class, FormulaType.class), false);
+    value.put(getKey(false, SpectralLibraryMatchesType.class, CCSType.class), false);
+
+    value.put(getKey(false, CompoundDatabaseMatchesType.class, RTType.class), false);
+    value.put(getKey(false, CompoundDatabaseMatchesType.class, CCSType.class), false);
+
+    value.put(getKey(false, LipidMatchListType.class, FormulaType.class), false);
+  }
+
+  private static @NotNull String getKey(boolean isFeatureType, Class<? extends DataType<?>> parent,
+      Class<? extends DataType<?>> sub) {
+    return ColumnID.buildUniqueIdString(
+        isFeatureType ? ColumnType.FEATURE_TYPE : ColumnType.ROW_TYPE, parent, sub);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
+import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
 import java.util.Comparator;
 import java.util.Map;
@@ -40,7 +41,8 @@ import javafx.scene.control.TreeTableColumn;
  * Helper class to replace default column selection popup for TableView.
  *
  * <p>
- * The original idea credeted to Roland and was found on https://stackoverflow.com/questions/27739833/adapt-tableview-menu-button
+ * The original idea credeted to Roland and was found on
+ * https://stackoverflow.com/questions/27739833/adapt-tableview-menu-button
  * </p>
  * <p>
  * This improved version targets to solve several problems:
@@ -89,46 +91,51 @@ public class FeatureTableColumnMenuHelper extends TableColumnMenuHelper {
     ContextMenu cm = createBaseMenu();
 
     final DataTypeCheckListParameter rowParam = featureTable.getRowTypesParameter();
+    final DataTypeCheckListParameter fParam = featureTable.getFeatureTypesParameter();
     final var colMap = featureTable.getNewColumnMap();
     // menu item for each of the available columns
-    addTypeCheckList(cm, colMap, rowParam);
+    addTypeCheckList(cm, colMap, rowParam, fParam);
 
-    final DataTypeCheckListParameter fParam = featureTable.getFeatureTypesParameter();
-    addTypeCheckList(cm, colMap, fParam);
     return cm;
   }
 
   private void addTypeCheckList(ContextMenu cm,
       Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> colMap,
-      DataTypeCheckListParameter param) {
+      DataTypeCheckListParameter rowParam, DataTypeCheckListParameter featureParam) {
     // do not add range sub columns
-    param.getValue().entrySet().stream()
-        .filter(e -> !e.getKey().contains("range:min") && !e.getKey().contains("range:max"))
-        .sorted(Comparator.comparing(Entry::getKey)).forEach(entry -> {
-      final String combinedHeader = entry.getKey();
 
-      CheckBox cb = new CheckBox(combinedHeader);
-      cb.getStyleClass().add("small-check-box");
-      cb.setSelected(entry.getValue());
+    colMap.values().stream().filter(colId -> !colId.getCombinedHeaderString().contains("range:min")
+            && !colId.getCombinedHeaderString().contains("range:max"))
+        .sorted(Comparator.comparing(ColumnID::getCombinedHeaderString)).forEach(colId -> {
+          final String combinedHeader = colId.getCombinedHeaderString();
 
-      CustomMenuItem cmi = new CustomMenuItem(cb);
-      cmi.setHideOnClick(false);
-      cmi.setOnAction(event -> {
-        cb.setSelected(!cb.isSelected());
-        event.consume();
-      });
-      cb.selectedProperty().addListener((observable, oldValue, newValue) -> {
-        param.setDataTypeVisible(combinedHeader, cb.isSelected());
-        setColsVisible(colMap, combinedHeader, cb.isSelected());
-      });
-      cm.getItems().add(cmi);
+          CheckBox cb = new CheckBox(combinedHeader);
+          cb.getStyleClass().add("small-check-box");
+          cb.setSelected(colId.getType() == ColumnType.ROW_TYPE ? rowParam.isDataTypeVisible(colId)
+              : featureParam.isDataTypeVisible(colId));
 
-    });
+          CustomMenuItem cmi = new CustomMenuItem(cb);
+          cmi.setHideOnClick(false);
+          cmi.setOnAction(event -> {
+            cb.setSelected(!cb.isSelected());
+            event.consume();
+          });
+          cb.selectedProperty().addListener((_, _, _) -> {
+            if (colId.getType() == ColumnType.ROW_TYPE) {
+              rowParam.setDataTypeVisible(colId.getUniqueIdString(), cb.isSelected());
+            } else {
+              featureParam.setDataTypeVisible(colId.getUniqueIdString(), cb.isSelected());
+            }
+            setColsVisible(colMap, colId.getUniqueIdString(), cb.isSelected());
+          });
+          cm.getItems().add(cmi);
+        });
   }
 
   private void setColsVisible(Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> colMap,
-      String combinedColHeader, boolean visible) {
-    colMap.entrySet().stream().filter(mapEntry -> mapEntry.getValue().typesMatch(combinedColHeader))
+      String uniqueIdString, boolean visible) {
+    colMap.entrySet().stream()
+        .filter(mapEntry -> mapEntry.getValue().getUniqueIdString().equals(uniqueIdString))
         .map(Entry::getKey).forEach(col -> col.setVisible(visible));
     featureTable.applyVisibilityParametersToAllColumns();
   }
