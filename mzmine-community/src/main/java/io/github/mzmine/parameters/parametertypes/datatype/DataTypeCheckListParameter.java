@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,8 @@
 
 package io.github.mzmine.parameters.parametertypes.datatype;
 
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
@@ -87,14 +89,20 @@ public class DataTypeCheckListParameter implements
    * Checks if the data type column has been displayed before. If the data type is not present yet,
    * it is added to the list and shown by default.
    *
-   * @param dataType The data type.
+   * @param dataTypeColumnId The data type.
    * @return true/false
    */
-  public boolean isDataTypeVisible(ColumnID dataType) {
-    Boolean val = value.get(getKey(dataType));
+  public boolean isDataTypeVisible(ColumnID dataTypeColumnId) {
+    Boolean val = value.get(getKey(dataTypeColumnId));
     if (val == null) {
-      val = dataType.getDataType().getDefaultVisibility();
-      addDataType(dataType, val);
+      val = dataTypeColumnId.getDataType().getDefaultVisibility();
+      if (dataTypeColumnId.getDataType() instanceof ListWithSubsType list
+          && dataTypeColumnId.getSubColIndex() >= 0) {
+        final int subColIndex = dataTypeColumnId.getSubColIndex();
+        final DataType<?> subColDataType = (DataType<?>) list.getSubDataTypes().get(subColIndex);
+        val = subColDataType.getDefaultVisibility();
+      }
+      addDataType(dataTypeColumnId, val);
     }
     return val;
   }
