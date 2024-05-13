@@ -26,19 +26,24 @@
 package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeComponent;
 import io.github.mzmine.util.ExitCode;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.List;
 import java.util.function.Consumer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -52,6 +57,7 @@ public class ChromatogramPlotControlPane extends VBox {
   protected final ObjectProperty<Range<Double>> mzRange;
   private final Button btnParam;
   private final ParameterSet parameters;
+  private final ComboBox<WizardMsPolarity> polarityCombo;
   protected NumberFormat mzFormat;
   protected Number min;
   protected Number max;
@@ -89,7 +95,15 @@ public class ChromatogramPlotControlPane extends VBox {
       }
     });
 
-    HBox controlsWrap = new HBox(5, cbXIC, btnUpdateXIC, btnParam);
+    polarityCombo = new ComboBox<>(FXCollections.observableList(
+        List.of(WizardMsPolarity.No_filter, WizardMsPolarity.Positive, WizardMsPolarity.Negative)));
+    selectParameterPolarityFilter();
+    polarityCombo.getSelectionModel().selectedItemProperty().subscribe(
+        (_, polarity) -> setScanPolarityFilterToParameters(polarity.toScanPolaritySelection()));
+
+    Tooltip.install(polarityCombo, new Tooltip("Scan polarity filter"));
+
+    HBox controlsWrap = new HBox(5, cbXIC, btnUpdateXIC, btnParam, polarityCombo);
     controlsWrap.setAlignment(Pos.CENTER);
     mzRangeNode.setAlignment(Pos.CENTER);
     getChildren().addAll(controlsWrap, mzRangeNode);
@@ -101,6 +115,25 @@ public class ChromatogramPlotControlPane extends VBox {
     max = null;
   }
 
+  private void setScanPolarityFilterToParameters(final PolarityType newPolarity) {
+    var scanSelection = parameters.getValue(
+        ChromatogramAndSpectraVisualizerParameters.scanSelection);
+    PolarityType currentPolarity = scanSelection.getPolarity();
+    if (newPolarity != currentPolarity) {
+      parameters.setParameter(ChromatogramAndSpectraVisualizerParameters.scanSelection,
+          scanSelection.withPolarity(newPolarity));
+      parametersChanged();
+    }
+  }
+
+  private void selectParameterPolarityFilter() {
+    var scanSel = parameters.getValue(ChromatogramAndSpectraVisualizerParameters.scanSelection);
+
+    var polarity = scanSel == null ? WizardMsPolarity.No_filter
+        : WizardMsPolarity.valueOf(scanSel.getPolarity());
+    polarityCombo.getSelectionModel().select(polarity);
+  }
+
   public void setParameterListener(Consumer<ParameterSet> parameterListener) {
     this.parameterListener = parameterListener;
   }
@@ -108,13 +141,23 @@ public class ChromatogramPlotControlPane extends VBox {
   public void showChromParameterSetup() {
     ExitCode code = parameters.showSetupDialog(true);
     if (code == ExitCode.OK) {
-      // keep last settings
-      MZmineCore.getConfiguration()
-          .setModuleParameters(ChromatogramAndSpectraVisualizerModule.class, parameters);
-      if (parameterListener != null) {
-        parameterListener.accept(parameters);
-      }
+      parametersChanged();
+
+      setQuickControls();
     }
+  }
+
+  private void parametersChanged() {
+    // keep last settings
+    MZmineCore.getConfiguration()
+        .setModuleParameters(ChromatogramAndSpectraVisualizerModule.class, parameters);
+    if (parameterListener != null) {
+      parameterListener.accept(parameters);
+    }
+  }
+
+  private void setQuickControls() {
+    selectParameterPolarityFilter();
   }
 
   public CheckBox getCbXIC() {

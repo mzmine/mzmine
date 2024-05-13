@@ -31,6 +31,15 @@ public enum WizardMsPolarity {
   Positive, Negative, No_filter//, Polarity_switching; // add later
   ;
 
+  public static WizardMsPolarity valueOf(final PolarityType polarity) {
+    return switch (polarity){
+      case NEGATIVE -> Negative;
+      case POSITIVE-> Positive;
+      case ANY, NEUTRAL, UNKNOWN-> No_filter;
+      case null -> No_filter;
+    };
+  }
+
   @Override
   public String toString() {
     return switch (this) {
