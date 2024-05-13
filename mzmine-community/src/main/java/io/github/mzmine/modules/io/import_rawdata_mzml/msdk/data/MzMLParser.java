@@ -80,7 +80,7 @@ public class MzMLParser {
     this.vars = new Vars();
     this.tracker = new TagTracker();
     this.newRawFile = new MzMLRawDataFile(importer.getMzMLFile(), vars.msFunctionsList,
-        vars.spectrumList, vars.chromatogramsList);
+        vars.spectrumList, vars.chromatogramsList, vars.mobilityScanData);
     this.storage = storage;
     this.scanProcessorConfig = scanProcessorConfig;
   }
@@ -509,6 +509,10 @@ public class MzMLParser {
       }
 
     }
+    if (closingTagName.contentEquals(MzMLTags.TAG_SPECTRUM_LIST)) {
+      // finished the last scan
+      vars.memoryMapAndClearFrameMobilityScanData(storage);
+    }
 
 //    else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
 //      if (closingTagName.contentEquals(MzMLTags.TAG_CHROMATOGRAM)) {
@@ -531,7 +535,7 @@ public class MzMLParser {
 //    logger.info(STR."Finalizing scan \{spectrum.getScanNumber()}");
     if (scanProcessorConfig.scanFilter().matches(spectrum)) {
       if (spectrum.loadProcessMemMapData(storage, scanProcessorConfig)) {
-        vars.spectrumList.add(spectrum);
+        vars.addSpectrumToList(storage, spectrum);
       }
     }
     vars.spectrum = null;
@@ -711,9 +715,13 @@ public class MzMLParser {
     MzMLScanWindowList scanWindowList;
     MzMLScanWindow scanWindow;
     ArrayList<MzMLReferenceableParamGroup> referenceableParamGroupList;
-    List<BuildingMzMLMsScan> spectrumList;
+    final List<BuildingMzMLMsScan> spectrumList;
+    List<BuildingMzMLMsScan> mobilityScans;
+    final List<BuildingMobilityScanStorage> mobilityScanData = new ArrayList<>();
     List<Chromatogram> chromatogramsList;
     List<String> msFunctionsList;
+
+    int nextFrameStartScanIndex = 0;
 
     Vars() {
       defaultArrayLength = 0;
@@ -733,9 +741,53 @@ public class MzMLParser {
       scanWindow = null;
       referenceableParamGroupList = new ArrayList<>();
       spectrumList = new ArrayList<>();
+      mobilityScans = new ArrayList<>();
       chromatogramsList = new ArrayList<>();
       msFunctionsList = new ArrayList<>(); // TODO populate this list
     }
+
+    public void addSpectrumToList(final MemoryMapStorage storage, BuildingMzMLMsScan scan) {
+      MzMLMobility mobility = scan.getMobility();
+      if (mobility == null) {
+        // scan or frame spectrum
+        spectrumList.add(scan);
+        return;
+      }
+
+      BuildingMzMLMsScan last = mobilityScans.getLast();
+      if (last != null && Double.compare(last.getRetentionTime(), scan.getRetentionTime()) != 0) {
+        // changed retention time --> finish frame and memory map all mobility scans together as one
+        memoryMapAndClearFrameMobilityScanData(storage);
+      }
+      mobilityScans.add(scan);
+    }
+
+    /**
+     * Memory map all latest mobility scans into one data storage
+     */
+    public void memoryMapAndClearFrameMobilityScanData(final MemoryMapStorage storage) {
+      if(mobilityScans.isEmpty()) {
+        throw new IllegalStateException("Cannot have no mobility scans to memory map");
+      }
+
+      // memory map data now to disk
+      var memoryMapped = new BuildingMobilityScanStorage(storage, mobilityScans);
+      mobilityScanData.add(memoryMapped);
+
+      nextFrameStartScanIndex = mobilityScans.size();
+      // need new arraylist, old one is used internally in memoryMapped
+      mobilityScans = new ArrayList<>(mobilityScans.size());
+    }
+
+  }
+
+  /**
+   * Already memory mapped data of all scans
+   *
+   * @return
+   */
+  public List<BuildingMobilityScanStorage> getMobilityScanData() {
+    return vars.mobilityScanData;
   }
 
   public int getTotalScans() {

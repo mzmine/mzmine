@@ -25,8 +25,11 @@
 
 package io.github.mzmine.util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 public class ArrayUtils {
 
@@ -159,5 +162,24 @@ public class ArrayUtils {
   public static double lastElement(double[] array) {
     assert array.length > 0;
     return array[array.length - 1];
+  }
+
+  public static <T> double[] concat(final List<T> source,
+      final Function<T, double[]> dataSupplier) {
+    List<double[]> sourceData = new ArrayList<>(source.size());
+    for (final T s : source) {
+      sourceData.add(dataSupplier.apply(s));
+    }
+    return concat(sourceData);
+  }
+
+  public static double[] concat(final List<double[]> sourceData) {
+    int numDp = sourceData.stream().mapToInt(a -> a.length).sum();
+    final double[] result = new double[numDp];
+    int offset = 0;
+    for (final double[] data : sourceData) {
+      System.arraycopy(data, 0, result, offset, data.length);
+    }
+    return result;
   }
 }
