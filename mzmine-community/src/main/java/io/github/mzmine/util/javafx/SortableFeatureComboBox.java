@@ -70,7 +70,7 @@ public class SortableFeatureComboBox extends FlowPane {
     data = new ComboBox<>(filtered);
     data.setMinWidth(100);
     // remove intensity to avoid confusion
-    final List<SortingProperty> sortingProperties = List.of(SortingProperty.values());
+    final List<SortingProperty> sortingProperties =new ArrayList<>(List.of(SortingProperty.values()));
     sortingProperties.remove(SortingProperty.Intensity);
     sortBox = new ComboBox<>(FXCollections.observableArrayList(sortingProperties));
     sortBox.setValue(SortingProperty.RT);
