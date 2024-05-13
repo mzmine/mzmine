@@ -192,7 +192,7 @@ public class RawDataFileImpl implements RawDataFile {
     //check for empty scans (absent m/z range or absent intensity)
     if (!containsEmptyScans && newScan.isEmptyScan() && newScan.getMSLevel() == 1) {
       containsEmptyScans = true;
-      logger.warning("Some scans were recognized as empty (no detected peaks).");
+      logger.warning("Some MS1 scans were recognized as empty (no detected peaks).");
     }
 
     // check for zero intensity because this might indicate incorrect conversion by msconvert

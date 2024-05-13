@@ -240,7 +240,7 @@ public class MainWindowController {
               This leads to degraded mass accuracies.""");
         } else if (rawDataFile.isContainsEmptyScans()) {
           tip.setText("""
-              Some scans were recognized as empty (no detected peaks).
+              Some MS1 scans were recognized as empty (no detected peaks).
               The possible reason might be high noise levels influencing mzml conversion.
               Files can be processed anyway, but consider re-converting if you encounter unexpected results.""");
         }
