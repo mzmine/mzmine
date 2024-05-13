@@ -328,11 +328,11 @@ public class FeatureTableContextMenu extends ContextMenu {
     formulaPredictionItem.setOnAction(
         e -> FormulaPredictionModule.showSingleRowIdentificationDialog(selectedRows.get(0)));
 
-    final MenuItem fragmentDashboardItem = new ConditionalMenuItem("Open in fragmentation graph",
+    final MenuItem fragmentDashboardItem = new ConditionalMenuItem(
+        "Open in fragmentation dashboard",
         () -> selectedRow != null && selectedRow.getMostIntenseFragmentScan() != null);
     fragmentDashboardItem.setOnAction(e -> {
-      FragDashboardTab.addNewTab(null, selectedRow,
-          null /*todo ideally use predicted formula, but we dont have the ion type there*/);
+      FragDashboardTab.addNewTab(null, selectedRow, null);
     });
 
     searchMenu.getItems().addAll(spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),

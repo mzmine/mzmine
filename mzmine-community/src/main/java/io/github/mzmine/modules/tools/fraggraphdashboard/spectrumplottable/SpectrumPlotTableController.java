@@ -1,31 +1,44 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable.SpectrumPlotTableViewBuilder.Layout;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
+import org.jfree.chart.plot.IntervalMarker;
+import org.jfree.chart.plot.Marker;
 
 public class SpectrumPlotTableController extends FxController<SpectrumPlotTableModel> {
 
@@ -54,5 +67,25 @@ public class SpectrumPlotTableController extends FxController<SpectrumPlotTableM
 
   public ObjectProperty<MassSpectrum> spectrumProperty() {
     return model.spectrumProperty();
+  }
+
+  public void addDomainMarker(Range<Double> range) {
+    final Color color = ConfigService.getDefaultColorPalette()
+        .getAWT(model.getDomainMarkers().size() + 1);
+    var fillColor = new Color(color.getRed() / 255f, color.getGreen() / 255f,
+        color.getBlue() / 255f, 0.5f);
+    model.domainMarkersProperty().add(
+        new IntervalMarker(range.lowerEndpoint(), range.upperEndpoint(), fillColor,
+            new BasicStroke(1.0f), color, new BasicStroke(1.0f), 0.5f));
+  }
+
+  public void removeDomainMarker(Range<Double> range) {
+    model.getDomainMarkers().removeIf(m -> m instanceof IntervalMarker im
+        && Double.compare(im.getStartValue(), range.lowerEndpoint()) == 0
+        && Double.compare(im.getEndValue(), range.upperEndpoint()) == 0);
+  }
+
+  public ListProperty<Marker> domainMarkerProperty() {
+    return model.domainMarkersProperty();
   }
 }

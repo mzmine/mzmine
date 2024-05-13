@@ -1,28 +1,31 @@
 /*
- * Copyright 2006-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
- * This file is part of MZmine.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable;
 
-import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.ProviderAndRenderer;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.MassSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.gui.preferences.NumberFormats;
@@ -31,23 +34,25 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraItemLabelGenerator;
 import java.awt.Color;
+import java.util.List;
 import java.util.logging.Logger;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
-import org.freehep.graphicsio.emf.gdi.TextA;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.Marker;
 
 public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTableModel> {
 
   private static Logger logger = Logger.getLogger(SpectrumPlotTableViewBuilder.class.getName());
 
   private final Layout layout;
+  private SpectraPlot plot;
 
   SpectrumPlotTableViewBuilder(SpectrumPlotTableModel model, Layout layout) {
     super(model);
@@ -64,7 +69,7 @@ public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTabl
 //    model.signalListProperty().addListener((_, _, t) -> logger.info("trigger signalList"));
 //    model.spectrumProperty().addListener((_, _, t) -> logger.info("trigger spectrum"));
 
-    SpectraPlot plot = new SpectraPlot();
+    plot = new SpectraPlot();
     plot.getXYPlot().getDomainAxis().setLabel("m/z");
     ((NumberAxis) plot.getXYPlot().getDomainAxis()).setNumberFormatOverride(formats.mzFormat());
     plot.getXYPlot().getRangeAxis().setLabel("Intensity");
@@ -83,10 +88,12 @@ public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTabl
         plot.addDataSet(new ColoredXYDataset(new MassSpectrumProvider(spec, "Spectrum",
                 ConfigService.getDefaultColorPalette().getAWT(0))), Color.black, false, renderer, false,
             false);
+        model.getDomainMarkers().forEach(m -> plot.getXYPlot().addDomainMarker(m));
       });
     });
     plot.setMinSize(200, 200);
 
+    initAnnotationListener();
     return initialisePane(plot, peakTable);
   }
 
@@ -111,6 +118,22 @@ public class SpectrumPlotTableViewBuilder extends FxViewBuilder<SpectrumPlotTabl
         yield new TabPane(spectrumTab, textTab);
       }
     };
+  }
+
+  private void initAnnotationListener() {
+    model.getDomainMarkers().addListener(
+        (ListChangeListener<Marker>) change -> plot.applyWithNotifyChanges(false, () -> {
+          while (change.next()) {
+            if (change.wasAdded()) {
+              final List<? extends Marker> added = change.getAddedSubList();
+              added.forEach(a -> plot.getXYPlot().addDomainMarker(a));
+            }
+            if (change.wasRemoved()) {
+              final List<? extends Marker> removed = change.getRemoved();
+              removed.forEach(a -> plot.getXYPlot().removeDomainMarker(a));
+            }
+          }
+        }));
   }
 
   public enum Layout {

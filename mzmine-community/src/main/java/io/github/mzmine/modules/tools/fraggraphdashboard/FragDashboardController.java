@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.tools.fraggraphdashboard;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.javafx.mvci.FxController;
@@ -33,10 +34,12 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable.SpectrumPlotTableController;
 import io.github.mzmine.modules.tools.fraggraphdashboard.spectrumplottable.SpectrumPlotTableViewBuilder.Layout;
+import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
 import io.github.mzmine.modules.tools.id_fraggraph.mvci.FragmentGraphController;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.util.List;
+import javafx.collections.ListChangeListener;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +51,8 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
   private final FragmentGraphController fragmentGraphController;
 
   private final ParameterSet parameters;
+  private SpectrumPlotTableController isotopeController;
+  private SpectrumPlotTableController ms2Controller;
 
   public FragDashboardController() {
     this(ConfigService.getConfiguration().getModuleParameters(FragDashboardModule.class));
@@ -71,9 +76,8 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
     fragmentGraphController.measuredPrecursorMzProperty() // regular binding so we take control of the property with this controller.
         .bind(model.precursorMzProperty().map(Number::doubleValue));
 
-    SpectrumPlotTableController ms2Controller = new SpectrumPlotTableController(Layout.HORIZONTAL);
-    SpectrumPlotTableController isotopeController = new SpectrumPlotTableController(
-        Layout.HORIZONTAL);
+    ms2Controller = new SpectrumPlotTableController(Layout.HORIZONTAL);
+    isotopeController = new SpectrumPlotTableController(Layout.HORIZONTAL);
 
     model.spectrumProperty().bindBidirectional(ms2Controller.spectrumProperty());
     model.isotopePatternProperty().bindBidirectional(isotopeController.spectrumProperty());
@@ -81,6 +85,8 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
     fragDashboardBuilder = new FragDashboardBuilder(model, fragmentGraphController.buildView(),
         ms2Controller.buildView(), isotopeController.buildView(), this::updateFragmentGraph,
         this::startFormulaCalculation, parameters);
+
+    initSelectedEdgeToSpectrumListener();
   }
 
   @Override
@@ -123,5 +129,29 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
     if (formulae != null) {
       model.precursorFormulaeProperty().setAll(formulae);
     }
+  }
+
+  private void initSelectedEdgeToSpectrumListener() {
+    model.selectedEdgesProperty().addListener(new ListChangeListener<SubFormulaEdge>() {
+      @Override
+      public void onChanged(Change<? extends SubFormulaEdge> change) {
+        while (change.next()) {
+          if (change.wasAdded()) {
+            for (SubFormulaEdge edge : change.getAddedSubList()) {
+              ms2Controller.addDomainMarker(
+                  Range.closed(edge.smaller().getPeakWithFormulae().peak().getMZ(),
+                      edge.larger().getPeakWithFormulae().peak().getMZ()));
+            }
+          }
+          if (change.wasRemoved()) {
+            for (SubFormulaEdge edge : change.getRemoved()) {
+              ms2Controller.removeDomainMarker(
+                  Range.closed(edge.smaller().getPeakWithFormulae().peak().getMZ(),
+                      edge.larger().getPeakWithFormulae().peak().getMZ()));
+            }
+          }
+        }
+      }
+    });
   }
 }
