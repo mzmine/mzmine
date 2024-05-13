@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicChecker;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
@@ -41,8 +42,6 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -125,12 +124,12 @@ public class RepeatingUnitSuggester {
   /*This method takes into account the detected charge state of a feature list row.
    If the charge was detected it will be considered when calculating the repeating unit*/
   private double[] extractMzValues() {
-    double[] mzValues = featureList.getRows().stream()
-        .flatMapToDouble(row -> DoubleStream.of(row.getAverageMZ())).toArray();
-    int[] charges = featureList.getRows().stream()
-        .flatMapToInt(row -> IntStream.of(row.getRowCharge())).toArray();
+    double[] mzValues = featureList.getRows().stream().mapToDouble(FeatureListRow::getAverageMZ)
+        .toArray();
+    int[] charges = featureList.getRows().stream().mapToInt(FeatureListRow::getRowCharge).toArray();
 
     if (mzValues.length != charges.length) {
+      logger.log(Level.WARNING, "The length of mzValues and charge arrays must be the same");
       throw new IllegalArgumentException(
           "The length of mzValues and charge arrays must be the same");
     }
@@ -149,7 +148,7 @@ public class RepeatingUnitSuggester {
 
   private Map<Double, Integer> calculateDeltaFrequencies(double[] masses) {
     Map<Double, Integer> frequencyMap = new HashMap<>();
-    for (int i = 0; i < masses.length; i++) {
+    for (int i = 0; i < masses.length - 1; i++) {
       for (int j = i + 1; j < masses.length; j++) {
         double delta = Math.abs(
             Math.round((masses[j] - masses[i]) * 1000) / 1000.0); // Round to 3 decimal places
