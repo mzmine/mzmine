@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.TextUtils;
@@ -72,6 +73,10 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
 
   public ScanSelection(Range<Double> scanRTRange, Integer msLevel) {
     this(null, null, scanRTRange, null, PolarityType.ANY, MassSpectrumType.ANY,
+        MsLevelFilter.of(msLevel), null);
+  }
+  public ScanSelection(Range<Double> scanRTRange, Integer msLevel, PolarityType polarity) {
+    this(null, null, scanRTRange, null, polarity, MassSpectrumType.ANY,
         MsLevelFilter.of(msLevel), null);
   }
 

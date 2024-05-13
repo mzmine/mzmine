@@ -143,7 +143,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     makeAndAddImportTask(q);
     makeAndAddMassDetectionStepForAllScans(q);
     makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
-        minRtDataPoints, cropRtRange);
+        minRtDataPoints, cropRtRange, polarity);
     if (rtSmoothing) {
       makeAndAddSmoothingStep(q, true, minRtDataPoints, false);
     }
