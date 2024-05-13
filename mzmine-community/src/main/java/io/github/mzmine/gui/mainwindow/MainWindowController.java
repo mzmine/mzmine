@@ -241,7 +241,8 @@ public class MainWindowController {
         } else if (rawDataFile.isContainsEmptyScans()) {
           tip.setText("""
               Some scans were recognized as empty (no detected peaks).
-              The possible reason might be the high noise levels influencing mzml conversion.""");
+              The possible reason might be high noise levels influencing mzml conversion.
+              Files can be processed anyway, but consider re-converting if you encounter unexpected results.""");
         }
         Tooltip.install(box, tip);
       }
