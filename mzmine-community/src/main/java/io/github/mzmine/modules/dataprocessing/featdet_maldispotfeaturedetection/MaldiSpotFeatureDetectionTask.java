@@ -227,8 +227,8 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
 
     final List<ExpandedTrace> expandedTraces = task.getExpandedTraces();
 
+    flist.getRows().clear();
     for (ExpandedTrace expandedTrace : expandedTraces) {
-      flist.removeRow(expandedTrace.oldRow());
       final ModularFeatureListRow row = new ModularFeatureListRow(flist, expandedTrace.oldRow(),
           false);
       final ModularFeature f = new ModularFeature(flist, expandedTrace.oldFeature());
