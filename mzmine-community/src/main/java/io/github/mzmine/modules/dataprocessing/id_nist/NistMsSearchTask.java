@@ -278,7 +278,7 @@ public class NistMsSearchTask extends AbstractTask {
           if (locatorFile2 == null) {
 
             throw new IOException("Primary locator file " + locatorFile1
-                + " doesn't contain the name of a valid file.");
+                                  + " doesn't contain the name of a valid file.");
           }
 
           // Is MS Search already running?
@@ -286,7 +286,7 @@ public class NistMsSearchTask extends AbstractTask {
 
             throw new IllegalStateException(
                 "NIST MS Search appears to be busy - please wait until it finishes its current task and then try again.  Alternatively, try manually deleting the file "
-                    + locatorFile2);
+                + locatorFile2);
           }
         }
 
@@ -310,28 +310,28 @@ public class NistMsSearchTask extends AbstractTask {
           DataPoint[] dataPoints = null;
           String comment = null;
 
-            if (!row.hasMs2Fragmentation()) {
-              progress++;
-              continue;
+          if (!row.hasMs2Fragmentation()) {
+            progress++;
+            continue;
+          }
+          // Merge multiple MSn fragment spectra.
+          if (mergeParameters != null) {
+            MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(
+                MsMsSpectraMergeModule.class);
+            assert merger != null;
+            MergedSpectrum spectrum = merger.getBestMergedSpectrum(mergeParameters, row);
+            if (spectrum != null) {
+              dataPoints = spectrum.data;
+              comment = "MERGED_STATS= " + spectrum.getMergeStatsDescription();
             }
-            // Merge multiple MSn fragment spectra.
-            if (mergeParameters != null) {
-              MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(
-                  MsMsSpectraMergeModule.class);
-              assert merger != null;
-              MergedSpectrum spectrum = merger.getBestMergedSpectrum(mergeParameters, row);
-              if (spectrum != null) {
-                dataPoints = spectrum.data;
-                comment = "MERGED_STATS= " + spectrum.getMergeStatsDescription();
-              }
-            } else {
+          } else {
 
-              // Get best fragment scan.
-              Scan scan = row.getMostIntenseFragmentScan();
-              dataPoints = ScanUtils.extractDataPoints(scan);
-              comment =
-                  "DATA_FILE = " + scan.getDataFile().getName() + " SCAN = " + scan.getScanNumber();
-            }
+            // Get best fragment scan.
+            Scan scan = row.getMostIntenseFragmentScan();
+            dataPoints = ScanUtils.extractDataPoints(scan);
+            comment =
+                "DATA_FILE = " + scan.getDataFile().getName() + " SCAN = " + scan.getScanNumber();
+          }
 
           // Round high-res to low-res.
           if (integerMZ != null & dataPoints != null) {
@@ -413,7 +413,7 @@ public class NistMsSearchTask extends AbstractTask {
             // Search results are for the wrong peak.
             throw new IllegalArgumentException(
                 "Search results are for a different peak.  Expected peak: " + rowID + " but found: "
-                    + hitID);
+                + hitID);
           }
         } else if (cmpMatcher.find()) {
 
@@ -469,7 +469,7 @@ public class NistMsSearchTask extends AbstractTask {
               }
               if (libMatcher.find()) {
                 lib = "Library: " + libMatcher.group(1) + "\n"
-                    + "NIST results only viewable in NIST MS Search";
+                      + "NIST results only viewable in NIST MS Search";
               }
 
               // Compound ion_type is combined with name field for LC-MS/MS field.
@@ -528,7 +528,7 @@ public class NistMsSearchTask extends AbstractTask {
     final File srcReady = new File(nistMsSearchDir, SEARCH_POLL_FILE_NAME);
     if (srcReady.exists() && !srcReady.delete()) {
       throw new IOException("Couldn't delete the search results polling file " + srcReady
-          + ".  Please delete it manually.");
+                            + ".  Please delete it manually.");
     }
 
     // Execute NIS MS Search.
@@ -570,7 +570,7 @@ public class NistMsSearchTask extends AbstractTask {
       final FeatureIdentity identity = peakRow.getPreferredFeatureIdentity();
       final String name =
           SPECTRUM_NAME_PREFIX + peakRow.getID() + (identity == null ? "" : " (" + identity + ')')
-              + " of " + peakList.getName();
+          + " of " + peakList.getName();
       writer.write("Name: " + name.substring(0, Math.min(SPECTRUM_NAME_MAX_LENGTH, name.length())));
       writer.newLine();
       writer.write("PrecursorMZ: " + peakRow.getAverageMZ());

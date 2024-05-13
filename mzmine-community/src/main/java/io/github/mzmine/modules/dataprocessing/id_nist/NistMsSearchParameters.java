@@ -54,40 +54,37 @@ public class NistMsSearchParameters extends SimpleParameterSet {
   /**
    * NIST MS Search path.
    */
-  public static final DirectoryParameter NIST_MS_SEARCH_DIR =
-      new DirectoryParameter("NIST MS Search directory",
-          "Full path of the directory containing the NIST MS Search executable (nistms$.exe)");
+  public static final DirectoryParameter NIST_MS_SEARCH_DIR = new DirectoryParameter(
+      "NIST MS Search directory",
+      "Full path of the directory containing the NIST MS Search executable (nistms$.exe)");
 
   /**
    * Match factor cut-off.
    */
   public static final DoubleParameter DOT_PRODUCT = new DoubleParameter("Min cosine similarity",
       "The minimum cosine similarity score (dot product) for identification",
-      MZmineCore.getConfiguration().getScoreFormat(),
-      0.7, 0.0, 1.0);
+      MZmineCore.getConfiguration().getScoreFormat(), 0.7, 0.0, 1.0);
 
   /**
    * Optional MS/MS merging parameters.
    */
-  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER =
-      new OptionalModuleParameter<>("Merge MS/MS (experimental)",
-          "Merge high-quality MS/MS instead of exporting just the most intense one.",
-          new MsMsSpectraMergeParameters(), false);
+  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>(
+      "Merge MS/MS (experimental)",
+      "Merge high-quality MS/MS instead of exporting just the most intense one.",
+      new MsMsSpectraMergeParameters(), false);
 
   /**
    * Optional MZ rounding.
    */
-  public static final OptionalParameter<ComboParameter<IntegerMode>> INTEGER_MZ =
-      new OptionalParameter<>(
-          new ComboParameter<>("Integer m/z", "Merging mode for fractional m/z to unit mass",
-              IntegerMode.values()), false);
+  public static final OptionalParameter<ComboParameter<IntegerMode>> INTEGER_MZ = new OptionalParameter<>(
+      new ComboParameter<>("Integer m/z", "Merging mode for fractional m/z to unit mass",
+          IntegerMode.values()), false);
 
   /**
    * Spectrum import option: Overwrite or Append.
    */
-  public static final ComboParameter<ImportOption> IMPORT_PARAMETER =
-      new ComboParameter<>("Spectrum Import", "Import Options", ImportOption
-          .values(), ImportOption.OVERWRITE);
+  public static final ComboParameter<ImportOption> IMPORT_PARAMETER = new ComboParameter<>(
+      "Spectrum Import", "Import Options", ImportOption.values(), ImportOption.OVERWRITE);
 
   // NIST MS Search executable.
   private static final String NIST_MS_SEARCH_EXE = "nistms$.exe";
@@ -96,8 +93,8 @@ public class NistMsSearchParameters extends SimpleParameterSet {
    * Construct the parameter set.
    */
   public NistMsSearchParameters() {
-    super(new Parameter[]{PEAK_LISTS, NIST_MS_SEARCH_DIR, DOT_PRODUCT,
-        MERGE_PARAMETER, INTEGER_MZ, IMPORT_PARAMETER},
+    super(new Parameter[]{PEAK_LISTS, NIST_MS_SEARCH_DIR, DOT_PRODUCT, MERGE_PARAMETER, INTEGER_MZ,
+            IMPORT_PARAMETER},
         "https://mzmine.github.io/mzmine_documentation/module_docs/id_spectra_NIST/NIST-ms-search.html");
   }
 
@@ -119,7 +116,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
     if (executable == null || !executable.exists()) {
 
       errorMessages.add("NIST MS Search executable (" + NIST_MS_SEARCH_EXE
-          + ") not found.  Please set the to the full path of the directory containing the NIST MS Search executable.");
+                        + ") not found.  Please set the to the full path of the directory containing the NIST MS Search executable.");
       result = false;
     }
 
