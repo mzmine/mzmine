@@ -42,39 +42,39 @@ import org.jetbrains.annotations.Nullable;
 public class FragmentGraphGenerator {
 
   private static final Logger logger = Logger.getLogger(FragmentGraphGenerator.class.getName());
-
-  private final List<SignalWithFormulae> peaksWithFormulae;
+  private static final int MAX_NODE_SIZE = 50;
+  private static final int MIN_NODE_SIZE = 10;
+  private final List<SignalWithFormulae> signalsWithFormulae;
   private final Map<SignalWithFormulae, SignalFormulaeModel> nodeModelMap = new HashMap<>();
-
   private final SignalWithFormulae root;
-
   private final MultiGraph graph;
-
   private final NumberFormat nodeNameFormatter = new DecimalFormat("0.00000");
   private List<SubFormulaEdge> edges;
 
   /**
-   * @param graphId           The id for the built graph.
-   * @param peaksWithFormulae A list of all signals in the ms2 spectrum with their corresponding
-   *                          formulae.
-   * @param root              The root signal = precursor. If none of the {@param peaksWithFormulae}
-   *                          contain the (first) precursor formula (which may happen if the
-   *                          precursor is completely fragmented in the ms2), this will be added and
-   *                          used as a root node.
+   * @param graphId             The id for the built graph.
+   * @param signalsWithFormulae A list of all signals in the ms2 spectrum with their corresponding
+   *                            formulae.
+   * @param root                The root signal = precursor. If none of the
+   *                            {@param signalsWithFormulae} contain the (first) precursor formula
+   *                            (which may happen if the precursor is completely fragmented in the
+   *                            ms2), this will be added and used as a root node.
    */
-  public FragmentGraphGenerator(String graphId, List<SignalWithFormulae> peaksWithFormulae,
+  public FragmentGraphGenerator(String graphId, List<SignalWithFormulae> signalsWithFormulae,
       SignalWithFormulae root) {
-    this.peaksWithFormulae = new ArrayList<>(
-        peaksWithFormulae.stream().filter(pf -> !pf.formulae().isEmpty()).toList());
+    this.signalsWithFormulae = new ArrayList<>(
+        signalsWithFormulae.stream().filter(pf -> !pf.formulae().isEmpty()).toList());
     this.root = root;
-    if (!this.peaksWithFormulae.contains(root)) {
-      this.peaksWithFormulae.add(root);
+    if (!this.signalsWithFormulae.contains(root)) {
+      this.signalsWithFormulae.add(root);
     }
+
+    var nodeSizeMap = calculateNormalizedNodeSizes();
 
     System.setProperty("org.graphstream.ui", "javafx");
     graph = new MultiGraph(graphId);
 
-    generateNodes();
+    generateNodes(nodeSizeMap);
     addEdges();
 
 //    graph.nodes().forEach(node -> {
@@ -83,16 +83,32 @@ public class FragmentGraphGenerator {
 //    });
   }
 
-  private void generateNodes() {
+  private Map<SignalWithFormulae, Double> calculateNormalizedNodeSizes() {
+    Map<SignalWithFormulae, Double> nodeSizes = new HashMap<>();
+    final double minMz = signalsWithFormulae.stream().mapToDouble(swf -> swf.peak().getMZ()).min()
+        .orElse(0);
+    final double maxMz =
+        signalsWithFormulae.stream().mapToDouble(swf -> swf.peak().getMZ()).max().orElse(100)
+            - minMz;
+
+    for (SignalWithFormulae swf : signalsWithFormulae) {
+      final double size = MIN_NODE_SIZE + MAX_NODE_SIZE * (swf.peak().getMZ() - minMz) / maxMz;
+      nodeSizes.put(swf, size);
+    }
+    return nodeSizes;
+  }
+
+  private void generateNodes(Map<SignalWithFormulae, Double> nodeSizeMap) {
     logger.finest(() -> STR."Generating nodes fragment graph of precursor \{root.toString()}");
 
     boolean rootFound = false;
-    for (SignalWithFormulae signalWithFormulae : peaksWithFormulae) {
+    for (SignalWithFormulae signalWithFormulae : signalsWithFormulae) {
       final Node node = getOrCreateNode(signalWithFormulae);
       if (!rootFound && signalWithFormulae.formulae().contains(root.formulae().getFirst())) {
         node.setAttribute("ui.class", "root_fragment");
         rootFound = true;
       }
+      node.setAttribute("ui.size", nodeSizeMap.get(signalWithFormulae));
     }
   }
 

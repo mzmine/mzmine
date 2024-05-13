@@ -33,6 +33,7 @@ import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.GraphStreamUtils;
 import io.github.mzmine.util.MathUtils;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
@@ -90,10 +91,12 @@ public class SignalFormulaeModel {
           \{unfilteredNode.getAttribute(FragNodeAttr.FORMULA.name())}
           \{formats.mz(deltaMzAbs.get())}, \{formats.ppm(deltaMzPpm.get())} ppm
           """);
-
-      // todo: can we even trigger edge updates from here?
     });
-    selectedFormulaWithMz.set(formulae.formulae().getFirst());
+
+    final FormulaWithExactMz formulaWithSmallestMzError = formulae.formulae().stream().min(
+        Comparator.comparingDouble(formulaWithExactMz -> Math.abs(
+            formulaWithExactMz.mz() - signalWithFormulae.peak().getMZ()))).get();
+    selectedFormulaWithMz.set(formulaWithSmallestMzError);
 
     // todo does this work every time? are the listeners above triggered before or after this binding?
     //  should be ok if it is added last?
@@ -125,12 +128,12 @@ public class SignalFormulaeModel {
     return selectedFormulaWithMz.get();
   }
 
-  public ObjectProperty<FormulaWithExactMz> selectedFormulaWithMzProperty() {
-    return selectedFormulaWithMz;
-  }
-
   public void setSelectedFormulaWithMz(FormulaWithExactMz selectedFormulaWithMz) {
     this.selectedFormulaWithMz.set(selectedFormulaWithMz);
+  }
+
+  public ObjectProperty<FormulaWithExactMz> selectedFormulaWithMzProperty() {
+    return selectedFormulaWithMz;
   }
 
   public double getDeltaMzAbs() {
