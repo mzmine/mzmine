@@ -1,0 +1,11 @@
+filename_contains,reaction_name,educt_smarts,reaction_smarts,delta_mz
+cysteine,L-cysteine,"[CH2]=C([C,c,H])[C,c,H]","[CH2]=C([C,c,H])[C,c,H].N[C@@H](CS)C(O)=O>>[#1,#6]C(CSC[C@H](N)C(O)=O)[#1,#6]",121.01975
+cysteine,L-cysteine,O=C1OC([*])C1[*],O=C1OC([*])C1[*].N[C@@H](CS)C(O)=O>>O=C(SC[C@@H](C(O)=O)N)C([*])C([*])O,121.01975
+cysteine,L-cysteine,"[C]C(C([C,H,O])=C([C,H,O])[C,H,O])=O","[C]C(C([C,H,O])=C([C,H,O])[C,H,O])=O.N[C@@H](CS)C(O)=O>>[C]C(C(C([#1,#6,#8])(SC[C@@H](C(O)=O)N)[#1,#6,#8])[#1,#6,#8])=O",121.01975
+cysteine,L-cysteine,"O=C(O[C,H])C([C,H,O])=C([C,H,O])[C,H,O]","O=C(O[C,H])C([C,H,O])=C([C,H,O])[C,H,O].N[C@@H](CS)C(O)=O>>O=C(C(C([#1,#6,#8])(SC[C@@H](C(O)=O)N)[#1,#6,#8])[#1,#6,#8])O[#1,#6]",121.01975
+cysteine,L-cysteine,"O=C-1-C([C,H,O])=C([C,H,O])-C(=[O])-c:2:c([*]):c([*]):c([*]):c([*]):c-1:2","O=C-1-C([C,H,O])=C([C,H,O])-C(=[O])-c:2:c([*]):c([*]):c([*]):c([*]):c-1:2.N[C@@H](CS)C(O)=O>>O=C1C(C(C(c2c1c([*])c([*])c([*])c2[*])=O)[#1,#6,#8])(SC[C@@H](C(O)=O)N)[#1,#6,#8]",121.01975
+cysteine,L-cysteine,c12c([*])c([*])c([*])c([*])c1C(=O)c3c([*])c([*])c([*])c([*])c3C2=O,c12c([*])c([*])c([*])c([*])c1C(=O)c3c([*])c([*])c([*])c([*])c3C2=O.N[C@@H](CS)C(O)=O>>[*]c1c([*])(SC[C@@H](C(O)=O)N)c([*])c([*])c(C(c2c3c([*])c([*])c([*])c2[*])=O)c1C3=O,121.01975
+Hydroxylamine,Hydroxylamine,"O=[CH1]-[CH2]C([C,H])[C,H]","O=[CH1]-[CH2]C([C,H])[C,H].NO>>[#1,#6]C([#1,#6])C/C=N/O.O",15.0109
+AQC,AQC,"[C]N([H])[C,H]","[C]N([H])[C,H].O=C(N1OC(NC2=CC3=C(N=CC=C3)C=C2)=O)CCC1=O>>[C]N(C(NC1=CC2=C(C=C1)N=CC=C2)=O)[#1,#6].O=C(N1O)CCC1=O",170.0481
+AQC,AQC,[C]N(O([H]))C([C])=O,[C]N(O([H]))C([C])=O.O=C(N1OC(NC2=CC3=C(N=CC=C3)C=C2)=O)CCC1=O>>[C]N(C([C])=O)OC(NC1=CC2=C(C=C1)N=CC=C2)=O.O=C(N1O)CCC1=O,170.0481
+AQC,AQC,O([H])n1c([*])c([*])c([*])c1([*]),O([H])n1c([*])c([*])c([*])c1([*]).O=C(N1OC(NC2=CC3=C(N=CC=C3)C=C2)=O)CCC1=O>>O=C(On1c([*])c([*])c([*])c1[*])NC2=CC3=C(C=C2)N=CC=C3.O=C(N1O)CCC1=O,170.0481

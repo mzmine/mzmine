@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<method>
+    <submethods>
+        <submethod program="OtofImpacTEMControl" revision="1">
+            <name>20230601 - Reach inks neg.m</name>
+            <files>
+                <file name="microTOFQImpacTemAcquisition.method"/>
+                <file name="Maldi.method"/>
+                <file name="diaSettings.diasqlite"/>
+                <file name="prmSettings.prmsqlite"/>
+            </files>
+        </submethod>
+    </submethods>
+    <locked>false</locked>
+    <readonly>true</readonly>
+    <comment/>
+</method>
