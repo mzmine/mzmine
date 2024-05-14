@@ -182,13 +182,13 @@ public class RepeatingUnitSuggester {
       IIsotope f = ifac.getMajorIsotope("F");
 
       MolecularFormulaRange mfRange = new MolecularFormulaRange();
-      mfRange.addIsotope(c, 0, 50);
-      mfRange.addIsotope(h, 0, 100);
-      mfRange.addIsotope(n, 0, 50);
-      mfRange.addIsotope(o, 0, 50);
-      mfRange.addIsotope(p, 0, 10);
-      mfRange.addIsotope(s, 0, 10);
-      mfRange.addIsotope(f, 0, 100);
+      mfRange.addIsotope(c, 0, 20);
+      mfRange.addIsotope(h, 0, 50);
+      mfRange.addIsotope(n, 0, 10);
+      mfRange.addIsotope(o, 0, 10);
+      mfRange.addIsotope(p, 0, 5);
+      mfRange.addIsotope(s, 0, 5);
+      mfRange.addIsotope(f, 0, 10);
 
       MolecularFormulaGenerator mfg = new MolecularFormulaGenerator(builder, minMass, maxMass,
           mfRange);
