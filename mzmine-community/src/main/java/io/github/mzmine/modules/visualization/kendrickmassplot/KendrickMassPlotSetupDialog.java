@@ -25,12 +25,14 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
@@ -38,32 +40,37 @@ import javafx.scene.layout.VBox;
 
 public class KendrickMassPlotSetupDialog extends ParameterSetupDialog {
 
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final VBox vbox;
-  private final Button upatedBotton;
 
   public KendrickMassPlotSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
       Region message) {
     super(valueCheckRequired, parameters, message);
-    upatedBotton = new Button("Calculate");
-    //upatedBotton.setOnAction(_ -> addSuggestedRepeatingUnits());
     vbox = new VBox();
     vbox.getChildren()
-        .add(new ListView<>(FXCollections.observableArrayList("Calculating repeating units")));
+        .add(new ListView<>(FXCollections.observableArrayList("Calculating repeating units...")));
     this.getParamsPane().addColumn(2);
     this.getParamsPane().add(new Label("Suggested repeating units:"), 2, 0);
-    this.getParamsPane().add(upatedBotton, 2, 1);
-    this.getParamsPane().add(vbox, 2, 2, 1, 7);
+    this.getParamsPane().add(vbox, 2, 1, 1, 8);
     addSuggestedRepeatingUnits();
   }
 
   private void addSuggestedRepeatingUnits() {
-    RepeatingUnitSuggester repeatingUnitSuggester = new RepeatingUnitSuggester(
-        parameterSet.getParameter(KendrickMassPlotParameters.featureList).getValue()
-            .getMatchingFeatureLists()[0]);
+    ModularFeatureList[] matchingFeatureLists = parameterSet.getParameter(
+        KendrickMassPlotParameters.featureList).getValue().getMatchingFeatureLists();
+    ModularFeatureList matchingFeatureList;
+    if (matchingFeatureLists.length > 0) {
+      matchingFeatureList = parameterSet.getParameter(KendrickMassPlotParameters.featureList)
+          .getValue().getMatchingFeatureLists()[0];
+    } else {
+      logger.log(Level.WARNING, "No feature list selected");
+      return;
+    }
+    RepeatingUnitSuggester repeatingUnitSuggester = new RepeatingUnitSuggester(matchingFeatureList);
     Task<ObservableList<String>> loadTask = repeatingUnitSuggester.getLoadItemsTask();
-    loadTask.setOnSucceeded(e -> {
+    loadTask.setOnSucceeded(_ -> {
       ListView<String> newListView = repeatingUnitSuggester.getListView();
-      if (!vbox.getChildren().isEmpty() && vbox.getChildren().get(0) instanceof ListView) {
+      if (!vbox.getChildren().isEmpty() && vbox.getChildren().getFirst() instanceof ListView) {
         ListView<String> oldListView = (ListView<String>) vbox.getChildren().get(0);
         if (!areListViewsEqual(oldListView, newListView)) {
           vbox.getChildren().setAll(newListView);

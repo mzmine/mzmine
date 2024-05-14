@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -34,8 +33,6 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
-import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -98,7 +95,6 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
     }
     KendrickMassPlotSetupDialog dialog = new KendrickMassPlotSetupDialog(valueCheckRequired, this,
         null);
-    addSuggestedRepeatingUnits(dialog);
 
     var xAxisValueComponent = dialog.getComponentForParameter(xAxisValues);
     var xAxisCustomKendrickMassBaseComponent = dialog.getComponentForParameter(
@@ -168,16 +164,6 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
 
     dialog.showAndWait();
     return dialog.getExitCode();
-  }
-
-  private void addSuggestedRepeatingUnits(ParameterSetupDialog dialog) {
-    VBox vbox = new VBox();
-    RepeatingUnitSuggester repeatingUnitSuggester = new RepeatingUnitSuggester(
-        featureList.getValue().getMatchingFeatureLists()[0]);
-    vbox.getChildren().add(repeatingUnitSuggester.getListView());
-    dialog.getParamsPane().addColumn(2);
-    dialog.getParamsPane().add(new Label("Suggested repeating units:"), 2, 0);
-    dialog.getParamsPane().add(vbox, 2, 1, 1, 8);
   }
 
   @Override
