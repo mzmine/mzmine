@@ -160,11 +160,14 @@ public class RepeatingUnitSuggester {
     if (tolerance == 0) {
       tolerance = mzTolerance.getMzToleranceForMass(200);
     }
-    for (int i = 0; i < masses.length - 1; i++) {
-      for (int j = i + 1; j < masses.length; j++) {
+
+    // set a limit of maximum features to compare
+    int maxFeaturesToCheck = Math.min(30000, masses.length);
+    for (int i = 0; i < maxFeaturesToCheck - 1; i++) {
+      for (int j = i + 1; j < maxFeaturesToCheck; j++) {
         double delta = Math.round(Math.abs(masses[j] - masses[i]) / tolerance) * tolerance;
         if (delta > 0) {
-          deltaMap.computeIfAbsent(delta, k -> new DoubleArrayList()).add(delta);
+          deltaMap.computeIfAbsent(delta, _ -> new DoubleArrayList()).add(delta);
         }
       }
     }
