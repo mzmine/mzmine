@@ -30,7 +30,7 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-Rimport io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
@@ -63,16 +63,15 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
           + " or within all scans in full-width at half maximum range.", ScanRange.values(),
       ScanRange.SINGLE_MOST_INTENSE);
 
-  public static final RTToleranceParameter rtTolerance =
-      new RTToleranceParameter("RT Tolerance",""
-          , null);
+  public static final RTToleranceParameter rtTolerance = new RTToleranceParameter("RT Tolerance",
+      "", null);
 
-  public static final BooleanParameter mergedMobilityScan =
-      new BooleanParameter("Use merged mobility resolved mass spectra",
-          "Use of merged mobility scan.", false);
+  public static final BooleanParameter mergedMobilityScan = new BooleanParameter(
+      "Use merged mobility resolved mass spectra", "Use of merged mobility scan.", false);
 
   public IsotopeFinderParameters() {
-    super(new UserParameter[]{featureLists, elements, isotopeMzTolerance, maxCharge, scanRange, mergedMobilityScan, rtTolerance},
+    super(new UserParameter[]{featureLists, elements, isotopeMzTolerance, maxCharge, scanRange,
+            mergedMobilityScan, rtTolerance},
         "https://mzmine.github.io/mzmine_documentation/module_docs/filter_isotope_finder/isotope_finder.html");
   }
 
