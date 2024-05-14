@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -71,14 +71,14 @@ import io.github.mzmine.datamodel.features.types.numbers.SizeType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CombinedScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.CosineScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.MsMsScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -379,7 +379,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     setVisible(ColumnType.ROW_TYPE, parentHeader, SmilesStructureType.class, toggledState);
     setVisible(ColumnType.ROW_TYPE, parentHeader, PrecursorMZType.class, toggledState);
     setVisible(ColumnType.ROW_TYPE, parentHeader, NeutralMassType.class, toggledState);
-    setVisible(ColumnType.ROW_TYPE, parentHeader, CosineScoreType.class, toggledState);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, SimilarityType.class, toggledState);
     setVisible(ColumnType.ROW_TYPE, parentHeader, MatchingSignalsType.class, toggledState);
 
     // csv compound database

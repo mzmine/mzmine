@@ -30,20 +30,25 @@ import io.github.mzmine.util.maths.similarity.Similarity;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The cosine similarity can be calculated in {@link Similarity#COSINE}
+ * The similarity can be calculated in {@link Similarity#COSINE}
  */
-public class CosineScoreType extends ScoreType {
+public class SimilarityType extends ScoreType {
 
   @NotNull
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "cosine_score";
+    return "similarity_score";
   }
 
   @NotNull
   @Override
   public String getHeaderString() {
-    return "Cosine similarity";
+    return "Score";
+  }
+
+  @Override
+  public boolean getDefaultVisibility() {
+    return true;
   }
 }
