@@ -37,13 +37,12 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
+import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.io.import_rawdata_all.MsDataImportAndMassDetectWrapperTask;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMobilityScanStorage;
@@ -193,17 +192,17 @@ public class MSDKmzMLImportTask extends AbstractTask {
         setErrorMessage("MSDK returned null");
         return null;
       }
-      totalScansAfterFilter = msdkTaskRes.getScans().size();
 
       var startTimeStamp = DateTimeUtils.parseOrElse(msdkTaskRes.getStartTimeStamp(), null);
-      final boolean isIms = msdkTaskRes.getScans().stream() //
-          .limit(50) // first 50 scans should have at least one with mobility
-          .anyMatch(s -> s instanceof BuildingMzMLMsScan scan && scan.getMobility() != null);
+
+      final boolean isIms = !msdkTaskRes.getMobilityScanData().isEmpty();
 
       final RawDataFileImpl newMZmineFile;
       if (isIms) {
+        totalScansAfterFilter = msdkTaskRes.getMobilityScanData().size();
         newMZmineFile = buildIonMobilityFile(msdkTaskRes);
       } else {
+        totalScansAfterFilter = msdkTaskRes.getScans().size();
         newMZmineFile = buildLCMSFile(msdkTaskRes);
       }
       if (isCanceled() || newMZmineFile == null) {
@@ -300,6 +299,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
       buildFrame(newImsFile, frameNumber, frameStorage, mobilities, mappedMobilities, mobilityType);
       frameNumber++;
+      convertedScansAfterFilter++;
+      description = descriptionTemplate + convertedScansAfterFilter;
     }
 
     // apply mass detection to frames NOT to mobility scans
@@ -320,14 +321,20 @@ public class MSDKmzMLImportTask extends AbstractTask {
       final RangeMap<Double, Integer> mappedMobilities, final MobilityType mobilityType)
       throws IOException {
     var scans = frameStorage.getMobilityScans();
-    BuildingMzMLMsScan firstScan = scans.get(0);
+    BuildingMzMLMsScan firstScan = scans.getFirst();
 
-    List<BuildingMobilityScan> mobilityScans = new ArrayList<>(mobilities.length);
     final List<BuildingImsMsMsInfo> buildingImsMsMsInfos = new ArrayList<>();
     Set<PasefMsMsInfo> finishedImsMsMsInfos;
     int mobilityScanNumberCounter = 0;
 
-    for (var mzMLScan : scans) {
+    int[] storageOffsets = new int[mobilities.length];
+    int[] basePeakIndices = new int[mobilities.length];
+
+    for (int scanIndex = 0; scanIndex < scans.size(); scanIndex++) {
+      final BuildingMzMLMsScan mzMLScan = scans.get(scanIndex);
+      int storageOffset = frameStorage.getStorageOffset(scanIndex);
+      int basePeakIndex = frameStorage.getBasePeakIndex(scanIndex);
+
       var mobility = mzMLScan.getMobility();
 
       // fill in missing scans
@@ -336,26 +343,26 @@ public class MSDKmzMLImportTask extends AbstractTask {
       Integer newScanId = mappedMobilities.get(mobility.mobility());
       final int missingScans = newScanId - mobilityScanNumberCounter;
       // might be negative in case of tims, but for now we assume that no scans missing for tims
-//    if (missingScans > 1) { this seems wrong ~Robin if should be removed
       for (int i = 0; i < missingScans; i++) {
         // make up for data saving options leaving out empty scans.
-        mobilityScans.add(
-            new BuildingMobilityScan(mobilityScanNumberCounter, MassDetector.EMPTY_DATA));
+        storageOffsets[mobilityScanNumberCounter] = storageOffset;
+        basePeakIndices[mobilityScanNumberCounter] = -1;
         mobilityScanNumberCounter++;
       }
-//    }
 
-      mobilityScans.add(
-          ConversionUtils.mzmlScanToMobilityScan(mobilityScanNumberCounter, mzMLScan));
       ConversionUtils.extractImsMsMsInfo(mzMLScan, buildingImsMsMsInfos, frameNumber,
           mobilityScanNumberCounter);
+      storageOffsets[mobilityScanNumberCounter] = storageOffset;
+      basePeakIndices[mobilityScanNumberCounter] = basePeakIndex;
       mobilityScanNumberCounter++;
     }
 
     // add trailing missing scans
     for (; mobilityScanNumberCounter < mobilities.length; mobilityScanNumberCounter++) {
-      mobilityScans.add(
-          new BuildingMobilityScan(mobilityScanNumberCounter, MassDetector.EMPTY_DATA));
+//      mobilityScans.add(
+//          new BuildingMobilityScan(mobilityScanNumberCounter, MassDetector.EMPTY_DATA));
+      storageOffsets[mobilityScanNumberCounter] = storageOffsets[mobilityScanNumberCounter - 1];
+      basePeakIndices[mobilityScanNumberCounter] = -1;
     }
 
     var finishedFrame = new SimpleFrame(newImsFile, frameNumber, firstScan.getMSLevel(),
@@ -365,8 +372,15 @@ public class MSDKmzMLImportTask extends AbstractTask {
         firstScan.getScanningMZRange(), mobilityType, null, null);
 
     finishedFrame.setMobilities(mobilities);
-    finishedFrame.setMobilityScanStorage(mobilityScans,
-        scanProcessorConfig.isMassDetectActive(finishedFrame.getMSLevel()));
+
+    //
+    boolean massDetectActive = scanProcessorConfig.isMassDetectActive(finishedFrame.getMSLevel());
+
+    var mobilityScanStorage = new MobilityScanStorage(storage, finishedFrame,
+        frameStorage.getMzValues(), frameStorage.getIntensityValues(),
+        frameStorage.getMaxNumPoints(), storageOffsets, basePeakIndices, massDetectActive);
+
+    finishedFrame.setMobilityScanStorage(mobilityScanStorage);
     newImsFile.addScan(finishedFrame);
 
     if (!buildingImsMsMsInfos.isEmpty()) {

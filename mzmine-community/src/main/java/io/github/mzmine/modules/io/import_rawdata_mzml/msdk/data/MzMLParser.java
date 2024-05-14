@@ -507,7 +507,6 @@ public class MzMLParser {
       if (closingTagName.contentEquals(MzMLTags.TAG_SPECTRUM)) {
         filterProcessFinalizeScan();
       }
-
     }
     if (closingTagName.contentEquals(MzMLTags.TAG_SPECTRUM_LIST)) {
       // finished the last scan
@@ -754,6 +753,11 @@ public class MzMLParser {
         return;
       }
 
+      if (mobilityScans.isEmpty()) {
+        mobilityScans.add(scan);
+        return;
+      }
+
       BuildingMzMLMsScan last = mobilityScans.getLast();
       if (last != null && Double.compare(last.getRetentionTime(), scan.getRetentionTime()) != 0) {
         // changed retention time --> finish frame and memory map all mobility scans together as one
@@ -766,8 +770,8 @@ public class MzMLParser {
      * Memory map all latest mobility scans into one data storage
      */
     public void memoryMapAndClearFrameMobilityScanData(final MemoryMapStorage storage) {
-      if(mobilityScans.isEmpty()) {
-        throw new IllegalStateException("Cannot have no mobility scans to memory map");
+      if (mobilityScans.isEmpty()) {
+        return;
       }
 
       // memory map data now to disk

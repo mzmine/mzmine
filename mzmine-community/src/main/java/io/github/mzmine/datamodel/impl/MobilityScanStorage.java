@@ -126,6 +126,25 @@ public class MobilityScanStorage {
     }
   }
 
+  public MobilityScanStorage(final @Nullable MemoryMapStorage storage, final SimpleFrame frame,
+      final DoubleBuffer mzValues, final DoubleBuffer intensityValues, final int maxNumPoints,
+      final int[] storageOffsets, final int[] basePeakIndices, final boolean useAsMassList) {
+    this.frame = frame;
+    rawBasePeakIndices = StorageUtils.storeValuesToIntBuffer(storage, basePeakIndices);
+    rawStorageOffsets = StorageUtils.storeValuesToIntBuffer(storage, storageOffsets);
+    rawMzValues = mzValues;
+    rawIntensityValues = intensityValues;
+    rawMaxNumPoints = maxNumPoints;
+
+    if (useAsMassList) {
+      massListBasePeakIndices = rawBasePeakIndices;
+      massListMaxNumPoints = rawMaxNumPoints;
+      massListMzValues = rawMzValues;
+      massListIntensityValues = rawIntensityValues;
+      massListStorageOffsets = rawStorageOffsets;
+    }
+  }
+
   /**
    * @param storage      The storage for mobility scans-
    * @param massDetector The mass detector

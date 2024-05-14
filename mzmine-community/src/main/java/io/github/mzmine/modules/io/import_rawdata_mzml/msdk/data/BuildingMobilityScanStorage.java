@@ -48,17 +48,17 @@ import org.jetbrains.annotations.Nullable;
  */
 public class BuildingMobilityScanStorage {
 
-  private final DoubleBuffer rawMzValues;
-  private final DoubleBuffer rawIntensityValues;
+  private final DoubleBuffer mzValues;
+  private final DoubleBuffer intensityValues;
   /**
    * Per scan
    */
-  private final int[] rawStorageOffsets;
+  private final int[] storageOffsets;
   private final List<BuildingMzMLMsScan> mobilityScans;
   /**
    * Per scan
    */
-  private final int[] rawBasePeakIndices;
+  private final int[] basePeakIndices;
   private int rawMaxNumPoints;
 
 
@@ -68,15 +68,15 @@ public class BuildingMobilityScanStorage {
    * @param mobilityScans will be stored internally. Loaded data is memory mapped and then removed from these instances
    */
   public BuildingMobilityScanStorage(@Nullable MemoryMapStorage storage, @NotNull List<BuildingMzMLMsScan> mobilityScans) {
-    rawStorageOffsets = new int[mobilityScans.size()];
+    storageOffsets = new int[mobilityScans.size()];
     this.mobilityScans = mobilityScans;
     int numDp = fillDataOffsetsGetTotalDataPoints(mobilityScans);
 
-    rawMzValues = memoryMap(storage, numDp, mobilityScans, SimpleSpectralArrays::mzs);
-    rawIntensityValues = memoryMap(storage, numDp, mobilityScans,
+    mzValues = memoryMap(storage, numDp, mobilityScans, SimpleSpectralArrays::mzs);
+    intensityValues = memoryMap(storage, numDp, mobilityScans,
         SimpleSpectralArrays::intensities);
 
-    this.rawBasePeakIndices = findBasePeakIndices(mobilityScans, rawStorageOffsets);
+    this.basePeakIndices = findBasePeakIndices(mobilityScans, storageOffsets);
 
     // clear all data from all scans
     mobilityScans.forEach(BuildingMzMLMsScan::clearMobilityData);
@@ -119,6 +119,7 @@ public class BuildingMobilityScanStorage {
     for (final BuildingMzMLMsScan scan : mobilityScans) {
       double[] data = dataSupplier.apply(scan.getMobilityScanSimpleSpectralData());
       System.arraycopy(data, 0, result, offset, data.length);
+      offset += data.length;
     }
     return StorageUtils.storeValuesToDoubleBuffer(storage, result);
   }
@@ -130,21 +131,21 @@ public class BuildingMobilityScanStorage {
       final BuildingMzMLMsScan scan = mobilityScans.get(i);
       SimpleSpectralArrays data = scan.getMobilityScanSimpleSpectralData();
       int numDP = data.getNumberOfDataPoints();
+      storageOffsets[i] = lastOffset;
       lastOffset += numDP;
-      rawStorageOffsets[i] = lastOffset;
       rawMaxNumPoints = Math.max(rawMaxNumPoints, numDP);
     }
     return lastOffset;
   }
 
   public int getNumberOfMobilityScans() {
-    return rawStorageOffsets.length;
+    return storageOffsets.length;
   }
 
   /**
    * @return The maximum number of data points in a single mobility scan.
    */
-  public int getRawMaxNumPoints() {
+  public int getMaxNumPoints() {
     return rawMaxNumPoints;
   }
 
@@ -152,28 +153,33 @@ public class BuildingMobilityScanStorage {
    * @return The total number of points in this {@link  MobilityScanStorage}.
    */
   public int getRawTotalNumPoints() {
-    return rawMzValues.capacity();
+    return mzValues.capacity();
   }
 
-  public int getRawStorageOffset(int mobilityScanIndex) {
-    assert mobilityScanIndex < getNumberOfMobilityScans();
-    return rawStorageOffsets[mobilityScanIndex];
+
+  public DoubleBuffer getMzValues() {
+    return mzValues;
   }
 
-  public DoubleBuffer getRawMzValues() {
-    return rawMzValues;
+  public DoubleBuffer getIntensityValues() {
+    return intensityValues;
   }
 
-  public DoubleBuffer getRawIntensityValues() {
-    return rawIntensityValues;
+  public int getStorageOffset(int i) {
+    return storageOffsets[i];
   }
 
-  public int[] getRawStorageOffsets() {
-    return rawStorageOffsets;
+  public int getBasePeakIndex(int i) {
+    return basePeakIndices[i];
+  }
+  public int[] getStorageOffsets() {
+    return storageOffsets;
   }
 
-  public int[] getRawBasePeakIndices() {
-    return rawBasePeakIndices;
+  public int[] getBasePeakIndices() {
+    return basePeakIndices;
   }
+
+
 
 }
