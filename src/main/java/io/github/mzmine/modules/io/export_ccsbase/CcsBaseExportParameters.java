@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2023 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,36 +23,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.export_features_mztab;
+package io.github.mzmine.modules.io.export_ccsbase;
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.util.List;
-import javafx.stage.FileChooser.ExtensionFilter;
 
-public class MzTabExportParameters extends SimpleParameterSet {
+public class CcsBaseExportParameters extends SimpleParameterSet {
 
-  private static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("mzTab format for feature lists", "*.mzTab") //
-  );
+  public static final FeatureListsParameter flists = new FeatureListsParameter();
 
+  public static final FileNameParameter file = new FileNameParameter("Export file",
+      "The file to export all annoteted compounds to.", FileSelectionType.SAVE);
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
+  public static final ComboParameter<String> fallbackMoleculeInfo = new ComboParameter<>(
+      "Fallback molecule type", """
+      In case no molecular class is specified by the compound database,
+      this type will be used. Valid choices are
+      'small molecule', 'lipid', 'carbohydrate', or 'peptide'
+      """, List.of("small molecule", "lipid", "carbohydrate", "peptide"), "small molecule");
 
-  public static final FileNameParameter filename = new FileNameParameter("Filename",
-      "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.mzTab\" would become \"blahSourcePeakListNameblah.mzTab\"). "
-          + "If the file already exists, it will be overwritten.", extensions,
-      FileSelectionType.SAVE);
+  public static final ComboParameter<String> calibrationMethod = new ComboParameter<>(
+      "Calibration method",
+      "The method you used to calibrate the ion mobility device of the instrument.",
+      List.of("single field, calibrated with Agilent Tune Mix", "single field, calibrated",
+          "stepped field, calibrated with Agilent tune mix", "stepped-field"));
 
-  public static final BooleanParameter exportall = new BooleanParameter("Include all features",
-      "Includes features with unknown identity");
-
-  public MzTabExportParameters() {
-    super(new Parameter[]{featureLists, filename, exportall});
+  public CcsBaseExportParameters() {
+    super(flists, file, fallbackMoleculeInfo, calibrationMethod);
   }
 }
