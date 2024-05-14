@@ -134,16 +134,16 @@ public class RepeatingUnitSuggester {
           "The length of mzValues and charge arrays must be the same");
     }
 
-    double[] products = new double[mzValues.length];
+    double[] neutralMasses = new double[mzValues.length];
 
     for (int i = 0; i < mzValues.length; i++) {
       int charge = 1;
       if (charges[i] != 0) {
         charge = charges[i];
       }
-      products[i] = mzValues[i] * charge;
+      neutralMasses[i] = mzValues[i] * charge;
     }
-    return products;
+    return neutralMasses;
   }
 
   private Map<Double, Integer> calculateDeltaFrequencies(double[] masses) {
