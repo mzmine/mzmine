@@ -189,7 +189,7 @@ public class EnhancedIsotopePeakScannerTask extends AbstractTask {
               calculatedIsotopePattern.get(row.getID()).getDataPointMZRange(), resolvedByMobility);
           IsotopePattern detectedPattern = new SimpleIsotopePattern(detectedPatternDPs, charge,
               IsotopePatternStatus.DETECTED, "");
-          io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePatternScoring scoring = new io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePatternScoring();
+          IsotopePatternScoring scoring = new IsotopePatternScoring();
           double score = scoring.calculateIsotopeScore(detectedPattern,
               calculatedIsotopePattern.get(row.getID()), minPatternIntensity, mzTolerance);
 
