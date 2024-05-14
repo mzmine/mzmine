@@ -29,15 +29,20 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicChecker;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleList;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,7 +65,7 @@ public class RepeatingUnitSuggester {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final FeatureList featureList;
-  private final MZTolerance mzTolerenace;
+  private final MZTolerance mzTolerance;
   private final ListView<String> listView;
   private final ObservableList<String> itemList;
   private Task<ObservableList<String>> loadTask;
@@ -71,7 +76,7 @@ public class RepeatingUnitSuggester {
     itemList = FXCollections.observableArrayList();
     listView.setItems(itemList);
     listView.setPrefHeight(300);
-    mzTolerenace = extractMzToleranceFromPreviousMethods();
+    mzTolerance = extractMzToleranceFromPreviousMethods();
     loadItems();
   }
 
@@ -107,16 +112,19 @@ public class RepeatingUnitSuggester {
     double[] mzValues = extractMzValues();
 
     // Calculate the frequency of all m/z deltas
-    Map<Double, Integer> deltaFrequency = calculateDeltaFrequencies(mzValues);
+    Map<Double, DoubleList> deltaMap = calculateDeltaFrequencies(mzValues);
 
-    List<Double> topFiveDeltas = findTopDeltas(deltaFrequency, 5);
+    List<Double> topFiveDeltas = findTopNDeltaMedians(deltaMap, 5);
     List<Double> filteredDeltas = filterMultimers(topFiveDeltas);
 
     for (Double delta : filteredDeltas) {
-      String predictedFormula = predictFormula(delta);
+      List<String> predictedFormulas = predictFormula(delta);
+      for (String predictedFormula : predictedFormulas) {
       if (!predictedFormula.isBlank() && !list.contains(predictedFormula)) {
-        list.add(predictedFormula + " (m/z Δ " + delta + ")");
+        list.add(delta + ": " + predictedFormula);
       }
+      }
+
     }
     return list;
   }
@@ -146,30 +154,54 @@ public class RepeatingUnitSuggester {
     return neutralMasses;
   }
 
-  private Map<Double, Integer> calculateDeltaFrequencies(double[] masses) {
-    Map<Double, Integer> frequencyMap = new HashMap<>();
+  private Map<Double, DoubleList> calculateDeltaFrequencies(double[] masses) {
+    Map<Double, DoubleList> deltaMap = new HashMap<>();
+    double tolerance = mzTolerance.getMzTolerance();
+    if (tolerance == 0) {
+      tolerance = mzTolerance.getMzToleranceForMass(200);
+    }
     for (int i = 0; i < masses.length - 1; i++) {
       for (int j = i + 1; j < masses.length; j++) {
-        double delta = Math.abs(
-            Math.round((masses[j] - masses[i]) * 1000) / 1000.0); // Round to 3 decimal places
+        double delta = Math.round(Math.abs(masses[j] - masses[i]) / tolerance) * tolerance;
         if (delta > 0) {
-          frequencyMap.merge(delta, 1, Integer::sum);
+          deltaMap.computeIfAbsent(delta, k -> new DoubleArrayList()).add(delta);
         }
       }
     }
-    return frequencyMap;
+    return deltaMap;
   }
 
-  private List<Double> findTopDeltas(Map<Double, Integer> frequencyMap, int topN) {
-    return frequencyMap.entrySet().stream()
-        .sorted(Map.Entry.<Double, Integer>comparingByValue().reversed()).limit(topN)
-        .map(Map.Entry::getKey).collect(Collectors.toList());
+  private List<Double> findTopNDeltaMedians(Map<Double, DoubleList> deltaMap, int topN) {
+    // Get the top N entries based on the size of the DoubleList
+    List<Map.Entry<Double, DoubleList>> topNEntries = deltaMap.entrySet().stream()
+        .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size())).limit(topN)
+        .toList();
+
+    // Calculate the median for the top N entries' DoubleLists and collect them in a new list
+    return topNEntries.stream().map(entry -> calculateMedian(entry.getValue()))
+        .collect(Collectors.toList());
   }
 
-  private String predictFormula(double mass) {
+  private double calculateMedian(DoubleList doubleList) {
+    int size = doubleList.size();
+    if (size == 0) {
+      return 0.0; // Handle empty list case
+    }
+
+    DoubleList sortedList = new DoubleArrayList(doubleList);
+    sortedList.sort(null);
+
+    if (size % 2 == 0) {
+      return (sortedList.getDouble(size / 2 - 1) + sortedList.getDouble(size / 2)) / 2.0;
+    } else {
+      return sortedList.getDouble(size / 2);
+    }
+  }
+
+  private List<String> predictFormula(double mass) {
     IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
-    double minMass = mzTolerenace.getToleranceRange(mass).lowerEndpoint();
-    double maxMass = mzTolerenace.getToleranceRange(mass).upperEndpoint();
+    double minMass = mzTolerance.getToleranceRange(mass).lowerEndpoint();
+    double maxMass = mzTolerance.getToleranceRange(mass).upperEndpoint();
 
     try {
       Isotopes ifac = Isotopes.getInstance();
@@ -192,8 +224,7 @@ public class RepeatingUnitSuggester {
 
       MolecularFormulaGenerator mfg = new MolecularFormulaGenerator(builder, minMass, maxMass,
           mfRange);
-      IMolecularFormula bestFormula = null;
-      double bestMassError = Double.MAX_VALUE;
+      Map<IMolecularFormula, Double> bestFormulas = new HashMap<>();
 
       IMolecularFormula formula;
       while ((formula = mfg.getNextFormula()) != null) {
@@ -204,25 +235,37 @@ public class RepeatingUnitSuggester {
         boolean rdbeValid = rdbeValue != null && RDBERestrictionChecker.checkRDBE(rdbeValue,
             Range.closed(0.0, 20.0), false);
         boolean elementValid = ElementalHeuristicChecker.checkFormula(formula, true, true, true);
+        boolean nitrogenRuleValid = passesSimpleNitrogenHeuristic(formula, ifac);
         if (formula.contains(f)) {
           elementValid = true;
         }
-        if (massError < bestMassError && rdbeValid && elementValid) {
-          bestMassError = massError;
-          bestFormula = formula;
+        if (rdbeValid && elementValid && nitrogenRuleValid) {
+          bestFormulas.put(formula, massError);
         }
       }
 
-      if (bestFormula != null) {
-        return MolecularFormulaManipulator.getString(bestFormula);
+      if (!bestFormulas.isEmpty()) {
+        List<String> bestFormulasStrings = new ArrayList<>();
+        for (Entry<IMolecularFormula, Double> entry : bestFormulas.entrySet()) {
+          bestFormulasStrings.add(MolecularFormulaManipulator.getString(entry.getKey()) + " (Δ "
+              + MZmineCore.getConfiguration().getMZFormat().format(entry.getValue()) + ")");
+        }
+        return bestFormulasStrings;
+
       } else {
         logger.log(Level.WARNING, "No valid formula found for mass: " + mass);
       }
     } catch (Exception e) {
       e.printStackTrace();
     }
-    return "";
+    return new ArrayList<>();
   }
+
+  private boolean passesSimpleNitrogenHeuristic(IMolecularFormula formula, Isotopes ifac) {
+    return MolecularFormulaManipulator.getElementCount(formula, ifac.getMajorIsotope("N"))
+        <= MolecularFormulaManipulator.getElementCount(formula, ifac.getMajorIsotope("C"));
+  }
+
 
   private List<Double> filterMultimers(List<Double> deltas) {
     if (deltas.isEmpty()) {
@@ -248,7 +291,7 @@ public class RepeatingUnitSuggester {
     }
     double ratio = delta / baseDelta;
     return Math.abs(ratio - Math.round(ratio))
-        < mzTolerenace.getMzTolerance(); // Check if delta is an approximate integer multiple of baseDelta
+        < mzTolerance.getMzTolerance(); // Check if delta is an approximate integer multiple of baseDelta
   }
 
   /*
