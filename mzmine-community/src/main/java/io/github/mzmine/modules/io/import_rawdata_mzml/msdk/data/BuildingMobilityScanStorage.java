@@ -25,12 +25,19 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.MobilityScanStorage;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.StoredMobilityScan;
 import io.github.mzmine.datamodel.impl.masslist.StoredMobilityScanMassList;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
 import java.util.List;
@@ -54,35 +61,53 @@ public class BuildingMobilityScanStorage {
    * Per scan
    */
   private final int[] storageOffsets;
-  private final List<BuildingMzMLMsScan> mobilityScans;
+  private final List<BuildingMzMLMobilityScan> mobilityScans;
   /**
    * Per scan
    */
   private final int[] basePeakIndices;
-  private int rawMaxNumPoints;
+  private int maxNumPoints;
+
+  // frame information
+  private final int msLevel;
+  private final float retentionTime;
+  private final @NotNull MassSpectrumType spectrumType;
+  private final @NotNull PolarityType polarity;
+  private final String scanDefinition;
+  private final @NotNull Range<Double> scanningMZRange;
 
 
   /**
-   *
    * @param storage
-   * @param mobilityScans will be stored internally. Loaded data is memory mapped and then removed from these instances
+   * @param mobilityScans will be stored internally. Loaded data is memory mapped and then removed
+   *                      from these instances
    */
-  public BuildingMobilityScanStorage(@Nullable MemoryMapStorage storage, @NotNull List<BuildingMzMLMsScan> mobilityScans) {
+  public BuildingMobilityScanStorage(@Nullable MemoryMapStorage storage,
+      @NotNull List<BuildingMzMLMsScan> mobilityScans) {
+    this.mobilityScans = mobilityScans.stream().map(BuildingMzMLMobilityScan::create).toList();
     storageOffsets = new int[mobilityScans.size()];
-    this.mobilityScans = mobilityScans;
     int numDp = fillDataOffsetsGetTotalDataPoints(mobilityScans);
 
     mzValues = memoryMap(storage, numDp, mobilityScans, SimpleSpectralArrays::mzs);
-    intensityValues = memoryMap(storage, numDp, mobilityScans,
-        SimpleSpectralArrays::intensities);
+    intensityValues = memoryMap(storage, numDp, mobilityScans, SimpleSpectralArrays::intensities);
 
     this.basePeakIndices = findBasePeakIndices(mobilityScans, storageOffsets);
+
+    // extract some values for the frame from the first mob scan
+    var firstScan = mobilityScans.getFirst();
+    msLevel = firstScan.getMSLevel();
+    retentionTime = firstScan.getRetentionTime();
+    // maybe always centroid? the frame will always be calculated
+    spectrumType = firstScan.getSpectrumType();
+    polarity = firstScan.getPolarity();
+    scanDefinition = firstScan.getScanDefinition();
+    scanningMZRange = firstScan.getScanningMZRange();
 
     // clear all data from all scans
     mobilityScans.forEach(BuildingMzMLMsScan::clearMobilityData);
   }
 
-  public List<BuildingMzMLMsScan> getMobilityScans() {
+  public List<BuildingMzMLMobilityScan> getMobilityScans() {
     return mobilityScans;
   }
 
@@ -133,7 +158,7 @@ public class BuildingMobilityScanStorage {
       int numDP = data.getNumberOfDataPoints();
       storageOffsets[i] = lastOffset;
       lastOffset += numDP;
-      rawMaxNumPoints = Math.max(rawMaxNumPoints, numDP);
+      maxNumPoints = Math.max(maxNumPoints, numDP);
     }
     return lastOffset;
   }
@@ -146,7 +171,7 @@ public class BuildingMobilityScanStorage {
    * @return The maximum number of data points in a single mobility scan.
    */
   public int getMaxNumPoints() {
-    return rawMaxNumPoints;
+    return maxNumPoints;
   }
 
   /**
@@ -172,6 +197,7 @@ public class BuildingMobilityScanStorage {
   public int getBasePeakIndex(int i) {
     return basePeakIndices[i];
   }
+
   public int[] getStorageOffsets() {
     return storageOffsets;
   }
@@ -180,6 +206,34 @@ public class BuildingMobilityScanStorage {
     return basePeakIndices;
   }
 
+  public int getMsLevel() {
+    return msLevel;
+  }
 
+  public float getRetentionTime() {
+    return retentionTime;
+  }
 
+  public MassSpectrumType getSpectrumType() {
+    return spectrumType;
+  }
+
+  public PolarityType getPolarity() {
+    return polarity;
+  }
+
+  public String getScanDefinition() {
+    return scanDefinition;
+  }
+
+  public Range<Double> getScanningMZRange() {
+    return scanningMZRange;
+  }
+
+  public SimpleFrame createFrame(final IMSRawDataFileImpl newImsFile, final int frameNumber) {
+    MobilityType mobilityType = mobilityScans.getFirst().mobilityType();
+    return new SimpleFrame(newImsFile, frameNumber, getMsLevel(), getRetentionTime(), null, null,
+        getSpectrumType(), getPolarity(), getScanDefinition(), getScanningMZRange(), mobilityType,
+        null, null);
+  }
 }

@@ -779,8 +779,8 @@ public class MzMLParser {
       mobilityScanData.add(memoryMapped);
 
       nextFrameStartScanIndex = mobilityScans.size();
-      // need new arraylist, old one is used internally in memoryMapped
-      mobilityScans = new ArrayList<>(mobilityScans.size());
+      // all scans were already converted
+      mobilityScans.clear();
     }
 
   }

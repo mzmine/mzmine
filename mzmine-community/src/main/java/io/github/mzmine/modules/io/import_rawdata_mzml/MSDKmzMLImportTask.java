@@ -46,6 +46,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.MsDataImportAndMassDetectWrapperTask;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMobilityScanStorage;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMobilityScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLParser;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
@@ -284,8 +285,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
     // reverse mobilities for TIMS
     // all this is checked before when building the BuildingMobilityScanStorage
-    var mobilityType = framesMobilityScans.get(0).getMobilityScans().get(0).getMobility()
-        .mobilityType();
+    var mobilityType = framesMobilityScans.getFirst().getMobilityScans().getFirst().mobilityType();
+
     if (mobilityType == MobilityType.TIMS && mobilities[0] - mobilities[1] < 0) {
       // for tims, mobilities must be sorted in descending order, so if [0]-[1] < 0, we must reverse
       ArrayUtils.reverse(mobilities);
@@ -321,7 +322,6 @@ public class MSDKmzMLImportTask extends AbstractTask {
       final RangeMap<Double, Integer> mappedMobilities, final MobilityType mobilityType)
       throws IOException {
     var scans = frameStorage.getMobilityScans();
-    BuildingMzMLMsScan firstScan = scans.getFirst();
 
     final List<BuildingImsMsMsInfo> buildingImsMsMsInfos = new ArrayList<>();
     Set<PasefMsMsInfo> finishedImsMsMsInfos;
@@ -331,16 +331,15 @@ public class MSDKmzMLImportTask extends AbstractTask {
     int[] basePeakIndices = new int[mobilities.length];
 
     for (int scanIndex = 0; scanIndex < scans.size(); scanIndex++) {
-      final BuildingMzMLMsScan mzMLScan = scans.get(scanIndex);
+      final BuildingMzMLMobilityScan mzMLScan = scans.get(scanIndex);
       int storageOffset = frameStorage.getStorageOffset(scanIndex);
       int basePeakIndex = frameStorage.getBasePeakIndex(scanIndex);
 
-      var mobility = mzMLScan.getMobility();
 
       // fill in missing scans
       // I'm not proud of this piece of code, but some manufactures or conversion tools leave out
       // empty scans. Looking at you, Agilent. however, we need that info for proper processing ~SteffenHeu
-      Integer newScanId = mappedMobilities.get(mobility.mobility());
+      Integer newScanId = mappedMobilities.get( mzMLScan.mobility());
       final int missingScans = newScanId - mobilityScanNumberCounter;
       // might be negative in case of tims, but for now we assume that no scans missing for tims
       for (int i = 0; i < missingScans; i++) {
@@ -350,7 +349,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
         mobilityScanNumberCounter++;
       }
 
-      ConversionUtils.extractImsMsMsInfo(mzMLScan, buildingImsMsMsInfos, frameNumber,
+      ConversionUtils.extractImsMsMsInfo(mzMLScan.precursorList(), buildingImsMsMsInfos, frameNumber,
           mobilityScanNumberCounter);
       storageOffsets[mobilityScanNumberCounter] = storageOffset;
       basePeakIndices[mobilityScanNumberCounter] = basePeakIndex;
@@ -365,12 +364,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       basePeakIndices[mobilityScanNumberCounter] = -1;
     }
 
-    var finishedFrame = new SimpleFrame(newImsFile, frameNumber, firstScan.getMSLevel(),
-        firstScan.getRetentionTime(), null, null,
-        // maybe always centroid? the frame will always be calculated
-        firstScan.getSpectrumType(), firstScan.getPolarity(), firstScan.getScanDefinition(),
-        firstScan.getScanningMZRange(), mobilityType, null, null);
-
+    SimpleFrame finishedFrame = frameStorage.createFrame(newImsFile, frameNumber);
     finishedFrame.setMobilities(mobilities);
 
     //
@@ -409,10 +403,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
         .flatMap(Collection::stream).filter(scan -> !isExcludedWatersScan(scan))
         .forEach(mzMLScan -> {
 
-          boolean isTims = mzMLScan.getMobility().mobilityType() == MobilityType.TIMS;
+          boolean isTims = mzMLScan.mobilityType() == MobilityType.TIMS;
           isTimsEx.set(isTims);
 
-          final double mobility = mzMLScan.getMobility().mobility();
+          final double mobility = mzMLScan.mobility();
           final Entry<Range<Double>, Integer> entry = mobilityCounts.getEntry(mobility);
           if (entry == null) {
             final double delta = isTims ? 0.000002 : 0.00002;
@@ -442,8 +436,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
     return realMobilities;
   }
 
-  private static boolean isExcludedWatersScan(final BuildingMzMLMsScan mzMLScan) {
-    final Matcher matcher = watersPattern.matcher(mzMLScan.getId());
+  private static boolean isExcludedWatersScan(final BuildingMzMLMobilityScan mzMLScan) {
+    final Matcher matcher = watersPattern.matcher(mzMLScan.id());
     if (matcher.matches() && !matcher.group(1).equals("1")) {
       return true;
     }
