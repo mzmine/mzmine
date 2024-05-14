@@ -44,6 +44,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.regex.Matcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.ac.ebi.pride.jmztab2.model.IOptColumnMappingBuilder;
@@ -102,7 +103,7 @@ public class MZTabmExportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to MzTab-m file(s)";
+    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to mzTab-m file(s)";
   }
 
   @Override
@@ -159,10 +160,6 @@ public class MZTabmExportTask extends AbstractTask {
           MsRun msRun = getMsRunData(fileCounter, file);
           mtd.addMsRunItem(msRun);
 
-//          if (msRun == null) {
-//            return;
-//          }
-
           // Add Assay
           Assay assay = new Assay();
           rawDataFileToAssay.put(file, assay);
@@ -196,20 +193,12 @@ public class MZTabmExportTask extends AbstractTask {
           sme.setSmeId(i + 1);
 
           sme.setMsLevel(
-              new Parameter().cvLabel("MS").cvAccession("MS:1000511").name("ms level").value("1"));
+              new Parameter().cvLabel("MS").cvAccession("MS:1000511").name("ms level").value(
+                  String.valueOf(featureListRow.getBestFeature().getRepresentativeScan().getMSLevel())));
           sme.setEvidenceInputId(String.valueOf(i + 1));
-          List<Double> confidences = new ArrayList<>();
-          confidences.add(0.0);
-          sme.setIdConfidenceMeasure(confidences);
-
-          //Cancelled?
-          if (isCanceled()) {
-            return;
-          }
-          sm.setReliability("2");
+          sme.setRank(1);
 
           final Collection<DataType> dataTypes = featureListRow.getTypes();
-//              .values(); //values() returns raw data type
 
           List<GlobalOptColumnMappingBuilder> globalOptColumns = new ArrayList<>();
 
@@ -223,12 +212,18 @@ public class MZTabmExportTask extends AbstractTask {
 
             for (DataType type : listType) {
 
-              // get the actual value of the ListWithSubsType stored in the feature list, we know it's a list
+              // get the actual value of the ListWithSubsType stored in the feature list
               final List annotationList = (List) featureListRow.get(type);
+              setDefaultConfidences(sme);
 
               if (annotationList == null || annotationList.isEmpty()) {
+                sm.setReliability("4"); //unknown compoun
                 continue;
+              } else {
+                //todo can there be a case (i.e. with lipids where there is only a class?
+                sm.setReliability("2"); //putatively annotated compound (2)
               }
+
               ListWithSubsType<?> listWithSubsType = (ListWithSubsType) type;
 
               //get the list of subTypes
@@ -244,8 +239,6 @@ public class MZTabmExportTask extends AbstractTask {
                 final String subtypeValue = listWithSubsType.getFormattedSubColValue(j,
                     annotationList);
                 if (subtypeValue != null) {
-                  //todo the strings could be assigned to a final field in the task class once, so we dont have to deal with strings everywhere. like
-                  //(new LipidAnnotationType()).getUniqueId()
                   if (typeUniqueID == "lipid_annotations") {
                     preferredAnnotation = "lipid_annotations";
                   } else {
@@ -263,17 +256,18 @@ public class MZTabmExportTask extends AbstractTask {
                 final String uniqueID = subDataTypeList.get(j).getUniqueID();
                 final String subtypeValue = listWithSubsType.getFormattedSubColValue(j,
                     annotationList);
-//                System.out.println(listWithSubsType.getUniqueID() + "\t" + uniqueID + "\t" + subtypeValue);
+
+                if (uniqueID.equals("structure_2d")) {
+                  continue;
+                }
                 globalOptColumns.add(OptColumnMappingBuilder.forGlobal()
                     .withName(type.getUniqueID() + "_" + uniqueID));
-                if (subtypeValue != "") {
+                if (!subtypeValue.equals("")) {
                   sme.addOptItem(globalOptColumns.get(columnCount).build(subtypeValue));
                 } else {
                   sme.addOptItem(globalOptColumns.get(columnCount).build("null"));
                 }
-                if (type.getUniqueID() == preferredAnnotation) {
-                  //todo personally i don't like methods that alter class-wide variables, because it obfuscates the code a bit. can you make sme local and pass it here?
-                  //todo check if sme for feature are exported correctly
+                if (type.getUniqueID().equals(preferredAnnotation)) {
                   updateWithPreferredAnnotation(sme, preferredAnnotation, uniqueID, subtypeValue);
                 }
                 columnCount++;
@@ -313,7 +307,6 @@ public class MZTabmExportTask extends AbstractTask {
               smf.setRetentionTimeInSeconds(rowRT.doubleValue() * 60f);
             }
             if (rowRTRange != null) {
-              //todo re-check conversion
               smf.setRetentionTimeInSecondsStart(rowRTRange.lowerEndpoint().doubleValue() * 60f);
               smf.setRetentionTimeInSecondsEnd(rowRTRange.upperEndpoint().doubleValue() * 60f);
             }
@@ -329,12 +322,12 @@ public class MZTabmExportTask extends AbstractTask {
                 List<SpectraRef> sr = new ArrayList<>();
                 for (Scan scan : feature.getScanNumbers()) {
                   sr.add(new SpectraRef().msRun(
-                          rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().get(0))
+                          rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().getFirst())
                       .reference("index=" + scan.getScanNumber()));
                 }
-                if (sr.size() == 0) {
+                if (sr.isEmpty()) {
                   sr.add(new SpectraRef().msRun(
-                          rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().get(0))
+                          rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().getFirst())
                       .reference("index=0"));
                 }
                 sme.setSpectraRef(sr);
@@ -350,14 +343,15 @@ public class MZTabmExportTask extends AbstractTask {
                     .build(featureHeight.formatted(formatter)));
 
                 Integer featureCharge = feature.getCharge();
-                if (featureCharge != 0) {
-                  smf.setCharge(featureCharge);
-                  sme.setCharge(featureCharge);
-                } else {
-//                  smf.setCharge(null);
-//                  sme.setCharge(null);
-                  smf.setCharge(DEFAULT_INTEGER_VALUE);
-                  sme.setCharge(DEFAULT_INTEGER_VALUE);
+                if (smf.getCharge() == null) {
+                  if (featureCharge != 0) {
+                    smf.setCharge(featureCharge);
+                  } else {
+                    smf.setCharge(DEFAULT_INTEGER_VALUE);
+                    if (sme.getCharge() == null) {
+                      sme.setCharge(DEFAULT_INTEGER_VALUE);
+                    }
+                  }
                 }
 
                 sm.addAbundanceAssayItem(featureArea.doubleValue());
@@ -379,7 +373,7 @@ public class MZTabmExportTask extends AbstractTask {
               smf.setCharge(rowCharge);
               sme.setCharge(rowCharge);
             }
-            if (sampleVariableAbundancehash.keySet().size() != 0) {
+            if (!sampleVariableAbundancehash.keySet().isEmpty()) {
               for (String studyVariable : sampleVariableAbundancehash.keySet()) {
                 addSVAbundance(sampleVariableAbundancehash, studyVariable);
               }
@@ -395,15 +389,16 @@ public class MZTabmExportTask extends AbstractTask {
             mzTabFile.addSmallMoleculeEvidenceItem(sme);
           }
         }
+
         //cv term
         int dbId = 1;
+
         //set ids sequentially, starting from 1
         for (Entry<Parameter, Database> entry : databases.entrySet()) {
           mtd.addDatabaseItem(entry.getValue().id(dbId++));
         }
 
         //add nulls in empty annotation cells
-        //todo refactor into a method
         ArrayList<String> optColNames = new ArrayList<>();
         for (SmallMoleculeEvidence sme : mzTabFile.getSmallMoleculeEvidence().stream().toList()) {
           if (sme != null & sme.getOpt() != null) {
@@ -463,8 +458,9 @@ public class MZTabmExportTask extends AbstractTask {
     if (uniqueID == "mol_formula") {
       sme.setChemicalFormula(returnValue);
     }
-    if (uniqueID == "ion_adduct") {
+    if (uniqueID.contains("adduct")) {
       sme.setAdductIon(returnValue);
+      sme.setCharge(getChargeParameterFromAdduct(returnValue));
     }
     if (uniqueID == "compound_name") {
       sme.setChemicalName(returnValue);
@@ -478,14 +474,29 @@ public class MZTabmExportTask extends AbstractTask {
     if (uniqueID == "precursor_mz") {
       sme.setTheoreticalMassToCharge(DEFAULT_DOUBLE_VALUE);
     }
-    if (uniqueID.contains("score") & returnValue != null) {
+    if (uniqueID.contains("score") & !uniqueID.contains("isotope") & returnValue != null) {
       Parameter parameter = new Parameter();
       parameter.setName(uniqueID);
       sm.setBestIdConfidenceMeasure(parameter);
       sm.setBestIdConfidenceValue(Double.valueOf(returnValue));
+
+      //at the moment, only a single confidence value is added
+      //can be modified based on "matches" data types if needed
+      List<Double> confidences = new ArrayList<>();
+      confidences.add(Double.valueOf(returnValue));
+      sme.setIdConfidenceMeasure(confidences);
     }
   }
 
+  private void setDefaultConfidences(SmallMoleculeEvidence sme) {
+    List<Double> confidences = new ArrayList<>();
+    confidences.add(DEFAULT_DOUBLE_VALUE);
+    setConfidences(sme, confidences);
+  }
+
+  private void setConfidences(SmallMoleculeEvidence sme, List<Double> confidences) {
+    sme.setIdConfidenceMeasure(confidences);
+  }
   private void addSVAbundance(Hashtable<String, List<Double>> sampleVariableAbundancehash,
       String studyVariable) {
     //Using mean as average function for abundance of Study Variable
@@ -550,8 +561,7 @@ public class MZTabmExportTask extends AbstractTask {
   private MsRun getMsRunData(int fileCounter, RawDataFile file) {
     MsRun msRun = new MsRun();
     msRun.id(fileCounter);
-//    msRun.setLocation("file://" + file.getName());
-    msRun.setLocation("file://"  + file.getAbsolutePath());
+    msRun.setLocation("file:///"  + file.getAbsolutePath().replaceAll("\\\\", "/"));
     int dotIn = file.getName().indexOf(".");
     String fileFormat = "";
     if (dotIn != -1) {
@@ -595,6 +605,24 @@ public class MZTabmExportTask extends AbstractTask {
       polPara.add(p);
     }
     return polPara;
+  }
+
+  private Integer getChargeParameterFromAdduct(String adduct) {
+
+    Pattern pattern = Pattern.compile("(\\])(\\+)([0-9]?)");
+    Matcher matcher = pattern.matcher(adduct);
+
+    if (matcher.find()) {
+      String match = matcher.group(3);
+
+      if (!match.equals("")) {
+        return Integer.parseInt(match); //return absolute value
+      } else if (matcher.group(2).equals("+") | matcher.group(2).equals("-")) {
+        return 1;
+      }
+    }
+
+    return DEFAULT_INTEGER_VALUE;
   }
 
   @NotNull
@@ -645,19 +673,6 @@ public class MZTabmExportTask extends AbstractTask {
     mtd.addDatabaseItem(
         new Database().id(1).prefix("mzmdb").version(MZmineCore.getMZmineVersion().toString())
             .uri("https://mzmine.github.io/").param(new Parameter().name("MZmine database")));
-    //todo set study variable
     return mtd;
   }
-
-  private String escapeString(final String inputString) {
-
-    if (inputString == null) {
-      return "";
-    }
-
-    // Remove all special characters e.g. \n \t
-    return inputString.replaceAll("[\\p{Cntrl}]", " ");
-  }
-
-
 }
