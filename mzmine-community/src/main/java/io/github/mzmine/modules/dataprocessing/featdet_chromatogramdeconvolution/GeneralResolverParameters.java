@@ -79,13 +79,8 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
     return nameParameterMap;
   }
 
-  @Deprecated
-  public abstract FeatureResolver getResolver();
-
   @Nullable
-  public Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist) {
-    return null;
-  }
+  public abstract Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist);
 
   @Override
   public int getVersion() {
