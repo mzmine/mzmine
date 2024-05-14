@@ -44,6 +44,7 @@ import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
@@ -103,7 +104,10 @@ public interface SpectralLibraryEntry extends MassList {
     SpectralLibraryEntry entry = create(storage,
         Objects.requireNonNullElse(match.getPrecursorMZ(), scan.getPrecursorMz()), dataPoints);
     // scan details
-    entry.putIfNotNull(DBEntryField.CHARGE, scan.getPrecursorCharge());
+    IonType adduct = match.getAdductType();
+    if (adduct != null) {
+      entry.putIfNotNull(DBEntryField.CHARGE, adduct.getCharge());
+    }
     entry.putIfNotNull(DBEntryField.POLARITY, scan.getPolarity());
 
     if (scan instanceof MergedMassSpectrum merged) {
