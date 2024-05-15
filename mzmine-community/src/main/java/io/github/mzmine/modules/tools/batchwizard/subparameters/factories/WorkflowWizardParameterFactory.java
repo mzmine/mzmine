@@ -28,10 +28,10 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters.factories;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizardParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDriedDropletWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowGcElectronImpactWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowImagingWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowLibraryGenerationWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowTargetPlateWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowWizardParameters;
 
 /**
@@ -61,9 +61,9 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
    */
   IMAGING,
   /**
-   * Dried droplet analysis
+   * Target plate analysis
    */
-  DRIED_DROPLET;
+  TARGET_PLATE;
 
   @Override
   public String toString() {
@@ -73,7 +73,7 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
       case DECONVOLUTION -> "Spectral deconvolution";
       case LIBRARY_GENERATION -> "Library generation";
       case IMAGING -> "Imaging";
-      case DRIED_DROPLET -> "Dried droplet";
+      case TARGET_PLATE -> "Target plate";
     };
   }
 
@@ -95,7 +95,7 @@ public enum WorkflowWizardParameterFactory implements WizardParameterFactory {
       case DECONVOLUTION ->
           new WorkflowGcElectronImpactWizardParameters(true, null, true, true, false);
       case DIA -> new WorkflowDiaWizardParameters(0.8, 5, true, null, true, true, false);
-      case DRIED_DROPLET -> new WorkflowDriedDropletWizardParameters(false, null);
+      case TARGET_PLATE -> new WorkflowTargetPlateWizardParameters(false, null);
     };
   }
 }

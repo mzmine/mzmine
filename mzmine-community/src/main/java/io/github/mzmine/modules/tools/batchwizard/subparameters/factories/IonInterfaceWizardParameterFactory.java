@@ -163,7 +163,7 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
           new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DECONVOLUTION};
       case MALDI, LDI, DESI, SIMS ->
           new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.IMAGING,
-              WorkflowWizardParameterFactory.DRIED_DROPLET};
+              WorkflowWizardParameterFactory.TARGET_PLATE};
     };
   }
 }

@@ -35,7 +35,7 @@ import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.IonInterfaceImagingWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
-import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDriedDropletWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowTargetPlateWizardParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -45,17 +45,17 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import java.io.File;
 import java.util.Optional;
 
-public class WizardBatchBuilderDriedDroplet extends BaseWizardBatchBuilder {
+public class WizardBatchBuilderTargetPlate extends BaseWizardBatchBuilder {
 
   private final OptionalValue<File> spotNamesFile;
   private final Boolean enableDeisotoping;
 
-  public WizardBatchBuilderDriedDroplet(WizardSequence steps) {
+  public WizardBatchBuilderTargetPlate(WizardSequence steps) {
     super(steps);
 
     final Optional<WizardStepParameters> driedDropletParam = steps.get(WizardPart.WORKFLOW);
     spotNamesFile = getOptional(driedDropletParam,
-        WorkflowDriedDropletWizardParameters.spotNamesFile);
+        WorkflowTargetPlateWizardParameters.spotNamesFile);
     final Optional<WizardStepParameters> maldiParam = steps.get(WizardPart.ION_INTERFACE);
     enableDeisotoping = getValue(maldiParam, IonInterfaceImagingWizardParameters.enableDeisotoping);
   }

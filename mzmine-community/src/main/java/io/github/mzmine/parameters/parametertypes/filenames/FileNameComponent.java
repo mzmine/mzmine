@@ -27,7 +27,6 @@ package io.github.mzmine.parameters.parametertypes.filenames;
 
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.geometry.Pos;
@@ -184,11 +183,8 @@ public class FileNameComponent extends HBox implements LastFilesComponent {
     txtFilename.setOnDragDropped(e -> {
       if (e.getDragboard().hasFiles()) {
         final List<File> files = e.getDragboard().getFiles();
-        final List<String> patterns = new ArrayList<>();
-
-
-        filters.stream().flatMap(f -> f.getExtensions().stream()).forEach(
-            extension -> patterns.add(extension.toLowerCase().replace("*", "").toLowerCase()));
+        final List<String> patterns = filters.stream().flatMap(f -> f.getExtensions().stream())
+            .map(extension -> extension.toLowerCase().replace("*", "").toLowerCase()).toList();
 
         // use the first match of the dropped file
         for (File file : files) {

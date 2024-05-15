@@ -33,7 +33,7 @@ import io.github.mzmine.util.files.ExtensionFilters;
 import java.io.File;
 import java.util.List;
 
-public final class WorkflowDriedDropletWizardParameters extends WorkflowWizardParameters {
+public final class WorkflowTargetPlateWizardParameters extends WorkflowWizardParameters {
 
   public static OptionalParameter<FileNameParameter> spotNamesFile = new OptionalParameter<>(
       new FileNameParameter("Spot-to-Sample name file (csv)", """
@@ -41,11 +41,11 @@ public final class WorkflowDriedDropletWizardParameters extends WorkflowWizardPa
           The file must contain labelled columns ('spot' and 'name') and be separated by ';'
           """, List.of(ExtensionFilters.CSV), FileSelectionType.OPEN), false);
 
-  public WorkflowDriedDropletWizardParameters() {
-    super(WorkflowWizardParameterFactory.DRIED_DROPLET, spotNamesFile);
+  public WorkflowTargetPlateWizardParameters() {
+    super(WorkflowWizardParameterFactory.TARGET_PLATE, spotNamesFile);
   }
 
-  public WorkflowDriedDropletWizardParameters(boolean enableSpotFileName, File spotFileName) {
+  public WorkflowTargetPlateWizardParameters(boolean enableSpotFileName, File spotFileName) {
     this();
     setParameter(spotNamesFile, enableSpotFileName, spotFileName);
   }
