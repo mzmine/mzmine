@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
@@ -50,6 +51,7 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import java.util.HashMap;
@@ -99,14 +101,14 @@ public interface SpectralLibraryEntry extends MassList {
     return new SpectralDBEntry(storage, data[0], data[1], fields);
   }
 
-  static SpectralLibraryEntry create(@Nullable MemoryMapStorage storage, final Scan scan,
-      final CompoundDBAnnotation match, final DataPoint[] dataPoints) {
-    SpectralLibraryEntry entry = create(storage,
-        Objects.requireNonNullElse(match.getPrecursorMZ(), scan.getPrecursorMz()), dataPoints);
+  static SpectralLibraryEntry create(final FeatureListRow row, @Nullable MemoryMapStorage storage,
+      final Scan scan, final CompoundDBAnnotation match, final DataPoint[] dataPoints) {
+    Double precursorMZ = Objects.requireNonNullElse(match.getPrecursorMZ(), scan.getPrecursorMz());
+    SpectralLibraryEntry entry = create(storage, precursorMZ, dataPoints);
     // scan details
-    IonType adduct = match.getAdductType();
-    if (adduct != null) {
-      entry.putIfNotNull(DBEntryField.CHARGE, adduct.getCharge());
+    Integer charge = getCharge(match, row, scan);
+    if (charge != null) {
+      entry.putIfNotNull(DBEntryField.CHARGE, charge);
     }
     entry.putIfNotNull(DBEntryField.POLARITY, scan.getPolarity());
 
@@ -164,6 +166,14 @@ public interface SpectralLibraryEntry extends MassList {
       }
     }
     return entry;
+  }
+
+  static Integer getCharge(CompoundDBAnnotation match, FeatureListRow row, Scan scan) {
+    IonType adduct = match.getAdductType();
+    if (adduct != null) {
+      return adduct.getCharge();
+    }
+    return FeatureUtils.extractBestSignedChargeState(row, scan);
   }
 
   private static List<?> extractJsonList(final List<DDAMsMsInfo> precursors,
@@ -287,11 +297,13 @@ public interface SpectralLibraryEntry extends MassList {
     };
   }
 
-  @Nullable SpectralLibrary getLibrary();
+  @Nullable
+  SpectralLibrary getLibrary();
 
   void setLibrary(@Nullable SpectralLibrary library);
 
-  @Nullable String getLibraryName();
+  @Nullable
+  String getLibraryName();
 
   /**
    * @return the structure parsed from smiles or inchi

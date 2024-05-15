@@ -309,7 +309,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       final Scan msmsScan, final MSMSScore score, final DataPoint[] dps,
       final List<CompoundDBAnnotation> allMatchedCompounds) {
     // add instrument type etc by parameter
-    SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), msmsScan, match,
+    SpectralLibraryEntry entry = SpectralLibraryEntry.create(row, library.getStorage(), msmsScan, match,
         dps);
     entry.putAll(metadataMap);
 
