@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListPara
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
@@ -102,11 +103,11 @@ public class FeatureTableColumnMenuHelper extends TableColumnMenuHelper {
   private void addTypeCheckList(ContextMenu cm,
       Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> colMap,
       DataTypeCheckListParameter rowParam, DataTypeCheckListParameter featureParam) {
-    // do not add range sub columns
-
+    // do not add range sub columns, only add feature types once (wrapper)
     colMap.values().stream().filter(colId -> !colId.getCombinedHeaderString().contains("range:min")
-            && !colId.getCombinedHeaderString().contains("range:max"))
-        .sorted(Comparator.comparing(ColumnID::getCombinedHeaderString)).forEach(colId -> {
+            && !colId.getCombinedHeaderString().contains("range:max")).map(ColIdWrapper::new).distinct()
+        .map(ColIdWrapper::unwrap).sorted(Comparator.comparing(ColumnID::getCombinedHeaderString))
+        .forEach(colId -> {
           final String combinedHeader = colId.getCombinedHeaderString();
 
           CheckBox cb = new CheckBox(combinedHeader);
@@ -140,4 +141,24 @@ public class FeatureTableColumnMenuHelper extends TableColumnMenuHelper {
     featureTable.applyVisibilityParametersToAllColumns();
   }
 
+  private record ColIdWrapper(ColumnID id) {
+
+    public ColumnID unwrap() {
+      return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (!(obj instanceof ColIdWrapper w)) {
+        return false;
+      }
+      return Objects.equals(w.id.getType(), id.getType()) && Objects.equals(
+          w.id.getUniqueIdString(), id.getUniqueIdString());
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(id.getType(), id.getUniqueIdString());
+    }
+  }
 }
