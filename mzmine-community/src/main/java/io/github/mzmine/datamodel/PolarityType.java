@@ -104,7 +104,7 @@ public enum PolarityType {
     if (this == ANY) {
       return "Any polarity";
     }
-    return StringUtils.capitalize(name());
+    return StringUtils.capitalize(name().toLowerCase());
   }
 
   @Override
