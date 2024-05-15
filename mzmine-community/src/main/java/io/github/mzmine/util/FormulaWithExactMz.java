@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.main.ConfigService;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -37,9 +39,19 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  */
 public record FormulaWithExactMz(IMolecularFormula formula, double mz) {
 
+  public FormulaWithExactMz(final IMolecularFormula formula) {
+    this(formula, FormulaUtils.calculateMzRatio(formula));
+  }
+
   @Override
   public String toString() {
-    return MolecularFormulaManipulator.getString(formula) + ", mz=" + mz;
+    var formats = ConfigService.getGuiFormats();
+    String mass = getCharge() == 0 ? "mass" : "m/z";
+    return STR."\{formulaString()}: \{mass}=\{formats.mz(mz)}";
+  }
+
+  public @NotNull String formulaString() {
+    return MolecularFormulaManipulator.getString(formula);
   }
 
   public int getCharge() {
