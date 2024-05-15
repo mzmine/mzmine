@@ -165,24 +165,31 @@ public class ColumnID {
   }
 
   public static String buildUniqueIdString(ColumnType type, DataType<?> dt, int subcolumnIndex) {
-    String featPre = type == ColumnType.FEATURE_TYPE ? "Feature:" : "";
     if (subcolumnIndex >= 0 && dt instanceof SubColumnsFactory sub) {
-      return STR."\{featPre}\{dt.getUniqueID()}:\{sub.getUniqueID(subcolumnIndex)}";
+      return buildUniqueIdString(type, dt.getUniqueID(), sub.getUniqueID(subcolumnIndex));
     } else {
-      return featPre + dt.getUniqueID();
+      return buildUniqueIdString(type, dt.getUniqueID(), null);
     }
   }
 
   public static String buildUniqueIdString(ColumnType type, Class<? extends DataType<?>> parent,
       Class<? extends DataType<?>> child) {
     final DataType<?> p = DataTypes.get(parent);
-    String featPre = type == ColumnType.FEATURE_TYPE ? "Feature:" : "";
     if (child != null && p instanceof SubColumnsFactory scf) {
       // scf does not have a list of all the sub-columns. we would have to iterate over all sub
       // columns to find the index, so its better to simply trust the child type actually exists.
       final DataType<?> c = DataTypes.get(child);
-      return STR."\{featPre}\{p.getUniqueID()}:\{c.getUniqueID()}";
+      return buildUniqueIdString(type, p.getUniqueID(), c.getUniqueID());
     }
-    return featPre + p.getUniqueID();
+    return buildUniqueIdString(type, p.getUniqueID(), null);
+  }
+
+  public static String buildUniqueIdString(ColumnType type, @NotNull String parentUniqueId,
+      @Nullable String childUniqueId) {
+    String featPre = type == ColumnType.FEATURE_TYPE ? "Feature:" : "";
+    if (childUniqueId != null && !childUniqueId.isBlank()) {
+      return STR."\{featPre}\{parentUniqueId}:\{childUniqueId}";
+    }
+    return featPre + parentUniqueId;
   }
 }
