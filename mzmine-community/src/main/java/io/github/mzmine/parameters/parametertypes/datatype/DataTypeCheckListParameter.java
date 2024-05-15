@@ -109,13 +109,13 @@ public class DataTypeCheckListParameter implements
 
       // if this is a sub colum (subColIndex >= 0), use the visibility of the sub column type,
       // but only if the parent column is visible
-      if (dataTypeColumnId.getDataType() instanceof SubColumnsFactory list
+      if (dataTypeColumnId.getDataType() instanceof SubColumnsFactory scf
           && dataTypeColumnId.getSubColIndex() >= 0) {
         if (isDataTypeVisible( // is the parent column visible?
             new ColumnID(dataTypeColumnId.getDataType(), dataTypeColumnId.getType(),
                 dataTypeColumnId.getRaw(), -1))) {
           final int subColIndex = dataTypeColumnId.getSubColIndex();
-          final DataType<?> subColDataType = (DataType<?>) list.getType(subColIndex);
+          final DataType<?> subColDataType = (DataType<?>) scf.getType(subColIndex);
           val = subColDataType.getDefaultVisibility();
         } else {
           val = false;
