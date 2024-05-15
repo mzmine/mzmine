@@ -93,7 +93,7 @@ public class GNPSUtils {
    * @return library spectrum or null
    */
   public static SpectralLibraryEntry accessLibraryOrUSISpectrum(String libIDorUSI)
-      throws IOException {
+      throws IOException, IllegalArgumentException {
     if (isGnpsLibID(libIDorUSI)) {
       return accessLibrarySpectrum(libIDorUSI);
     } else {
@@ -109,7 +109,7 @@ public class GNPSUtils {
    * @param libraryID GNPS library ID
    * @return library spectrum or null
    */
-  public static SpectralLibraryEntry accessLibrarySpectrum(String libraryID) throws IOException {
+  public static SpectralLibraryEntry accessLibrarySpectrum(String libraryID) throws IOException, IllegalArgumentException {
     try (CloseableHttpClient client = HttpClients.createDefault()) {
       HttpGet httpGet = new HttpGet(ACCESS_LIBRARY_SPECTRUM + libraryID);
       logger.info("Retrieving library spectrum " + httpGet.getRequestLine());
@@ -139,7 +139,7 @@ public class GNPSUtils {
    * @param usi universal spectrum identifier
    * @return library spectrum or null
    */
-  public static SpectralLibraryEntry accessUSISpectrum(String usi) throws IOException {
+  public static SpectralLibraryEntry accessUSISpectrum(String usi) throws IOException, IllegalArgumentException {
     try (CloseableHttpClient client = HttpClients.createDefault()) {
       HttpGet httpGet = new HttpGet(ACCESS_USI_SPECTRUM + usi);
       logger.info("Retrieving USI spectrum " + httpGet.getRequestLine());

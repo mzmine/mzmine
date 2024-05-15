@@ -25,7 +25,10 @@
 
 package io.github.mzmine.modules.io.export_features_gnps;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
@@ -50,6 +53,12 @@ class GNPSUtilsTest {
     assertEquals(516.297, data.getAsDouble(DBEntryField.PRECURSOR_MZ).orElse(null));
     assertEquals(542, data.getNumberOfDataPoints());
     assertNotNull(data);
+
+    // wrong usi
+    data = GNPSUtils.accessLibraryOrUSISpectrum(input.substring(2));
+    assertNull(data);
+
+    assertThrows(IllegalArgumentException.class, () -> GNPSUtils.accessUSISpectrum("should fail"));
   }
 
   @Test
@@ -58,7 +67,11 @@ class GNPSUtilsTest {
     String input = "CCMSLIB00005435561";
     SpectralLibraryEntry data = GNPSUtils.accessLibrarySpectrum(input);
     assertNotNull(data);
+    // wrong libid
+    data = GNPSUtils.accessLibraryOrUSISpectrum(input.substring(2));
+    assertNull(data);
 
+    assertThrows(IllegalArgumentException.class, () -> GNPSUtils.accessUSISpectrum("should fail"));
   }
 
   @Test
@@ -70,5 +83,10 @@ class GNPSUtilsTest {
     assertEquals(155, data.getNumberOfDataPoints());
     assertEquals(1, data.getAsInteger(DBEntryField.CHARGE).orElse(null));
     assertEquals(540.368, data.getAsDouble(DBEntryField.PRECURSOR_MZ).orElse(null));
+    // wrong usi
+    data = GNPSUtils.accessLibraryOrUSISpectrum(input.substring(2));
+    assertNull(data);
+
+    assertThrows(IllegalArgumentException.class, () -> GNPSUtils.accessUSISpectrum("should fail"));
   }
 }
