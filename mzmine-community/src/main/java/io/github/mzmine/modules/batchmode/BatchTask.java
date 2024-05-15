@@ -28,7 +28,6 @@ package io.github.mzmine.modules.batchmode;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -44,13 +43,16 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.taskcontrol.threadpools.ThreadPoolTask;
+import io.github.mzmine.taskcontrol.utils.TaskUtils;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -62,7 +64,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -148,6 +149,10 @@ public class BatchTask extends AbstractTask {
     // Submit the tasks to the task controller for processing
     // this runs the ThreadPoolTask on this thread (blocking) and calls all sub tasks in the default executor
     WrappedTask finishedTask = taskController.runTaskOnThisThreadBlocking(threadPoolTask);
+    if (finishedTask == null) {
+      return TaskStatus.ERROR;
+    }
+
     return finishedTask.getActualTask().getStatus();
   }
 
@@ -166,7 +171,7 @@ public class BatchTask extends AbstractTask {
       // at the end of one dataset, clear the project and start over again
       if (useAdvanced && currentStep() == 0) {
         // clear the old project
-        MZmineCore.getProjectManager().clearProject();
+        ProjectService.getProjectManager().clearProject();
         currentDataset++;
 
         // print step times
@@ -361,9 +366,6 @@ public class BatchTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Could not start batch step " + method.getName());
       return;
-    } else {
-      // track step by module
-      GoogleAnalyticsTracker.trackModule(method);
     }
 
     // If current step didn't produce any tasks, continue with next step
@@ -426,83 +428,17 @@ public class BatchTask extends AbstractTask {
    * the rest of the threads
    */
   private TaskStatus runTasksIndividually(List<Task> tasksToRun) {
-    final WrappedTask[] wrappedTasks = MZmineCore.getTaskController()
+    final WrappedTask[] wrappedTasks = TaskService.getController()
         .addTasks(tasksToRun.toArray(new Task[0]));
     tasksToRun.clear(); // do not keep the instance alive during long-running tasks
 
-    // TODO check if this performs better
-    for (final WrappedTask task : wrappedTasks) {
-      // wait for all to finish
-      try {
-        task.getFuture().get();
-      } catch (InterruptedException | ExecutionException e) {
-        return TaskStatus.ERROR;
-      }
-    }
-    if (true) {
-      return TaskStatus.FINISHED;
-    }
-
-    boolean allTasksFinished = false;
-    while (true) {
-
-      // If we canceled the batch, cancel all running tasks
-      if (isCanceled()) {
-        for (WrappedTask stepTask : wrappedTasks) {
-          stepTask.getActualTask().cancel();
-        }
-        return TaskStatus.CANCELED;
-      }
-
-      // First set to true, then check all tasks
-      allTasksFinished = true;
-
-      for (WrappedTask stepTask : wrappedTasks) {
-        Task actualTask = stepTask.getActualTask();
-        TaskStatus stepStatus = actualTask.getStatus();
-
-        // If any of them is not finished, keep checking
-        if (stepStatus != TaskStatus.FINISHED) {
-          allTasksFinished = false;
-        }
-
-        // If there was an error, we have to stop the whole batch
-        if (stepStatus == TaskStatus.ERROR) {
-          setStatus(TaskStatus.ERROR);
-          setErrorMessage(actualTask.getTaskDescription() + ": " + actualTask.getErrorMessage());
-          return TaskStatus.ERROR;
-        }
-
-        // If user canceled any of the tasks, we have to cancel the
-        // whole batch
-        if (stepStatus == TaskStatus.CANCELED) {
-          setStatus(TaskStatus.CANCELED);
-          for (WrappedTask t : wrappedTasks) {
-            t.getActualTask().cancel();
-          }
-          return TaskStatus.CANCELED;
-        }
-      }
-
-      // Wait 1s before checking the tasks again
-      if (allTasksFinished) {
-        break;
-      }
-      synchronized (this) {
-        try {
-          this.wait(1000);
-        } catch (InterruptedException e) {
-          // ignore
-        }
-      }
-    }
-    return TaskStatus.FINISHED;
+    return TaskUtils.waitForTasksToFinish(this, wrappedTasks);
   }
 
   private void setLastFilesIfAllDataImportStep(final ParameterSet batchStepParameters) {
     if (AllSpectralDataImportParameters.isParameterSetClass(batchStepParameters)) {
       var loadedRawDataFiles = AllSpectralDataImportParameters.getLoadedRawDataFiles(
-          MZmineCore.getProject(), batchStepParameters);
+          ProjectService.getProject(), batchStepParameters);
 
       // loaded should always be >= created as we are at most skipping files
       if (loadedRawDataFiles.size() >= createdDataFiles.size()) {

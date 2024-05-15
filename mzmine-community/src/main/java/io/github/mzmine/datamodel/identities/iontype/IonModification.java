@@ -31,11 +31,13 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.NeutralMolecule;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.StringMapParser;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -65,6 +67,9 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
       IonModificationType.ADDUCT, "e", 0, 1);
   public static final IonModification H = new IonModification(IonModificationType.ADDUCT, "H", "H",
       1.007276, 1);
+  // water loss
+  public static final IonModification H2O = new IonModification(IonModificationType.NEUTRAL_LOSS,
+      "H2O", "H2O", -18.010565, 0);
   //
   public static final IonModification NA = new IonModification(IonModificationType.ADDUCT, "Na",
       "Na", 22.989218, 1);
@@ -79,6 +84,10 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
   public static final IonModification MG = new IonModification(IonModificationType.ADDUCT, "Mg",
       "Mg", 47.96953482, 2);
   // combined
+  public static final IonModification M_PLUS_H2O = CombinedIonModification.create(M_PLUS, H2O);
+  public static final IonModification H_H2O_1 = CombinedIonModification.create(H, H2O);
+  public static final IonModification H_H2O_2 = CombinedIonModification.create(H, H2O, H2O);
+  public static final IonModification H_H2O_3 = CombinedIonModification.create(H, H2O, H2O, H2O);
   public static final IonModification H2plus = CombinedIonModification.create(H, H);
   public static final IonModification M2plus = CombinedIonModification.create(M_PLUS, M_PLUS);
   public static final IonModification NA_H = CombinedIonModification.create(NA, H);
@@ -107,8 +116,6 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
       "H2", "H2", -2.015650, 0);
   public static final IonModification C2H4 = new IonModification(IonModificationType.NEUTRAL_LOSS,
       "C2H4", "C2H4", -28.031301, 0);
-  public static final IonModification H2O = new IonModification(IonModificationType.NEUTRAL_LOSS,
-      "H2O", "H2O", -18.010565, 0);
   public static final IonModification H2O_2 = CombinedIonModification.create(H2O, H2O);
   public static final IonModification H2O_3 = CombinedIonModification.create(H2O, H2O, H2O);
   public static final IonModification H2O_4 = CombinedIonModification.create(H2O, H2O, H2O, H2O);
@@ -139,11 +146,11 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
       "(13C)", 1.003354838, 0);
 
   // default values
-  public static final IonModification[] DEFAULT_VALUES_POSITIVE = {H_NEG, M_PLUS, H, NA, K, NH4,
-      M2plus, H2plus, CA, FE, MG, NA_H, NH4_H, K_H, Hneg_NA2, Hneg_CA, Hneg_FE,
-      M_PLUS_ALREADY_CHARGED, Hneg_MG};
-  public static final IonModification[] DEFAULT_VALUES_NEGATIVE = {M_MINUS, H_NEG, NA_2H, NA, CL,
-      BR, FA, ACETATE, M_MINUS_ALREADY_CHARGED};
+  public static final IonModification[] DEFAULT_VALUES_POSITIVE = {M_PLUS, M_PLUS_H2O, H, H_H2O_1,
+      H_H2O_2, H_H2O_3, NA, K, NH4, M2plus, H2plus, CA, FE, MG, NA_H, NH4_H, K_H, Hneg_NA2, Hneg_CA,
+      Hneg_FE, Hneg_MG, M_PLUS_ALREADY_CHARGED, H2O, H_NEG};
+  public static final IonModification[] DEFAULT_VALUES_NEGATIVE = {M_MINUS, H_NEG, NA_2H, CL, BR,
+      FA, ACETATE, M_MINUS_ALREADY_CHARGED, H2O, NA};
   // default modifications
   public static final IonModification[] DEFAULT_VALUES_MODIFICATIONS = {H2O, H2O_2, H2O_3, H2O_4,
       H2O_5, NH3, O, CO, CO2, C2H4, HFA, HAc, MEOH, ACN, ISOPROP};
@@ -308,8 +315,8 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
         .flatMap(Arrays::stream).filter(m -> {
           String sign = m.getAddRemovePartSign();
           return part.equals(sign + m.getName()) || part.equals(sign + m.getMolFormula()) ||
-                 // positive part can also be without sign
-                 (sign.equals("+") && (part.equals(m.getName()) || part.equals(m.getMolFormula())));
+              // positive part can also be without sign
+              (sign.equals("+") && (part.equals(m.getName()) || part.equals(m.getMolFormula())));
         }).findFirst().orElseGet(() -> {
           // if formula fails - cannot know the charge and massDiff - so just default to zero
           // parser will add charges later
@@ -679,5 +686,32 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
    */
   public IonModification withCharge(final int newCharge) {
     return new IonModification(type, name, molFormula, mass, newCharge);
+  }
+
+  /**
+   * Attempts to find the best fitting ion modification for the differnce of the neutral mass and
+   * the mz within the given tolerance.
+   *
+   * @param tol The mz tolerance to look for. The tolerance is applied to (neutralMass + adduct) vs
+   *            mz, not the (mz - neutralMass) vs adduct.
+   * @return The best fitting modification or null.
+   */
+  public static @Nullable IonModification getBestIonModification(double neutralMass, double mz,
+      @NotNull MZTolerance tol, @Nullable PolarityType polarity) {
+
+    // select the appropriate modifications to search
+    final Stream<IonModification> modifications = switch (polarity) {
+      case POSITIVE -> Stream.of(IonModification.DEFAULT_VALUES_POSITIVE);
+      case NEGATIVE -> Stream.of(IonModification.DEFAULT_VALUES_NEGATIVE);
+      case NEUTRAL -> Stream.of();
+      case ANY, UNKNOWN ->
+          Stream.of(DEFAULT_VALUES_POSITIVE, DEFAULT_VALUES_NEGATIVE).flatMap(Arrays::stream);
+      case null ->
+          Stream.of(DEFAULT_VALUES_POSITIVE, DEFAULT_VALUES_NEGATIVE).flatMap(Arrays::stream);
+    };
+
+    return modifications.filter(m -> m.getCharge() != 0)
+        .filter(m -> tol.checkWithinTolerance(m.getMZ(neutralMass), mz))
+        .min(Comparator.comparingDouble(m -> Math.abs(m.getMZ(neutralMass) - mz))).orElse(null);
   }
 }

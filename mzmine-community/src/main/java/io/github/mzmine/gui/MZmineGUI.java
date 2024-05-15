@@ -28,20 +28,25 @@ package io.github.mzmine.gui;
 
 import static io.github.mzmine.gui.WindowLocation.TAB;
 import static io.github.mzmine.modules.io.projectload.ProjectLoaderParameters.projectFile;
+import static io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils.copyToUserDirectory;
 
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.NewVersionCheck.CheckType;
-import io.github.mzmine.gui.helpwindow.HelpWindow;
+import io.github.mzmine.gui.mainwindow.AboutTab;
 import io.github.mzmine.gui.mainwindow.GlobalKeyHandler;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.mainwindow.MainWindowController;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.main.GoogleAnalyticsTracker;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -49,18 +54,23 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModul
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
+import io.github.mzmine.modules.tools.batchwizard.io.WizardSequenceIOUtils;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.javafx.FxColorUtil;
-import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
+import io.mzio.users.client.UserAuthStore;
+import io.mzio.users.gui.fx.UsersViewState;
+import io.mzio.users.user.CurrentUserService;
+import io.mzio.users.user.MZmineUser;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -118,10 +128,10 @@ import org.kordamp.ikonli.javafx.FontIcon;
 /**
  * MZmine JavaFX Application class
  */
-public class MZmineGUI extends Application implements Desktop {
+public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDesktop {
 
   public static final int MAX_TABS = 30;
-  private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
+  private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("mzmineIcon.png");
   private static final String mzMineFXML = "mainwindow/MainWindow.fxml";
   private static final Logger logger = Logger.getLogger(MZmineGUI.class.getName());
   private static MainWindowController mainWindowController;
@@ -132,14 +142,14 @@ public class MZmineGUI extends Application implements Desktop {
   private Label statusLabel;
 
   public static void requestQuit() {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION);
       Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
       stage.getScene().getStylesheets()
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       alert.setTitle("Confirmation");
-      alert.setHeaderText("Exit MZmine");
+      alert.setHeaderText("Exit mzmine");
       String s = "Are you sure you want to exit?";
       alert.setContentText(s);
       Optional<ButtonType> result = alert.showAndWait();
@@ -155,7 +165,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   public static void requestCloseProject() {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       Alert alert = new Alert(AlertType.CONFIRMATION);
       Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
       stage.getScene().getStylesheets()
@@ -172,9 +182,9 @@ public class MZmineGUI extends Application implements Desktop {
         GUIUtils.closeAllWindows();
 
         // Set a new project clears the old
-        MZmineCore.getProjectManager().clearProject();
+        ProjectService.getProjectManager().clearProject();
 
-        MZmineCore.getDesktop().setStatusBarText("Project space cleaned");
+        DesktopService.getDesktop().setStatusBarText("Project space cleaned");
 
         // Ask the garbage collector to free the previously used memory
         System.gc();
@@ -201,9 +211,9 @@ public class MZmineGUI extends Application implements Desktop {
 
   public static void activateProject(@NotNull MZmineProject project) {
 
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
 
-      MZmineCore.getProjectManager().setCurrentProject(project);
+      ProjectService.getProjectManager().setCurrentProject(project);
       if (mainWindowController != null) {
         GroupableListView<RawDataFile> rawDataList = mainWindowController.getRawDataList();
         rawDataList.setValues(project.getCurrentRawDataFiles());
@@ -237,7 +247,7 @@ public class MZmineGUI extends Application implements Desktop {
 
           @Override
           public void librariesChanged(ProjectChangeEvent<SpectralLibrary> event) {
-            MZmineCore.runLater(() -> fxLibs.setAll(project.getCurrentSpectralLibraries()));
+            FxThread.runLater(() -> fxLibs.setAll(project.getCurrentSpectralLibraries()));
           }
         });
       }
@@ -265,13 +275,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   public static void showAboutWindow() {
-    // Show the about window
-    MZmineCore.runLater(() -> {
-      final URL aboutPage = MZmineGUI.class.getClassLoader()
-          .getResource("aboutpage/AboutMZmine.html");
-      HelpWindow aboutWindow = new HelpWindow(aboutPage.toString());
-      aboutWindow.show();
-    });
+    MZmineCore.getDesktop().addTab(new AboutTab());
   }
 
   /**
@@ -298,6 +302,8 @@ public class MZmineGUI extends Application implements Desktop {
    */
 
   public static void activateSetOnDragDropped(DragEvent event) {
+    List<String> messages = new ArrayList<>();
+
     Dragboard dragboard = event.getDragboard();
     boolean hasFileDropped = false;
     if (dragboard.hasFiles()) {
@@ -335,7 +341,30 @@ public class MZmineGUI extends Application implements Desktop {
         if (isLibraryFile) {
           libraryFiles.add(selectedFile);
         }
+
+        if (WizardSequenceIOUtils.isWizardFile(extension)) {
+          boolean result = copyToUserDirectory(selectedFile);
+          String resultStr = result ? "succeeded" : "failed";
+          messages.add(STR."Adding wizard file \{selectedFile.getName()} \{resultStr}");
+        }
+        if (UserAuthStore.isUserFile(extension)) {
+          var result = UserAuthStore.copyAddUserFile(selectedFile);
+          String resultStr = result ? "succeeded" : "failed";
+          messages.add(STR."Adding user \{selectedFile.getName()} \{resultStr}");
+          if (result) {
+            askChangeUser(selectedFile.getName());
+          }
+        }
+
+//        if(selectedFile.getName().strip().toLowerCase().endsWith("mzbatch")) {
+//          lastBatchFile = selectedFile;
+//        }
       }
+
+//      if (lastBatchFile != null) {
+      // TODO not sure yet how to open the dialog and open the load batch dialog
+//        MZmineCore.setupAndRunModule(BatchModeModule.class);
+//      }
 
       if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
         if (!rawDataFiles.isEmpty()) {
@@ -363,7 +392,7 @@ public class MZmineGUI extends Application implements Desktop {
             AllSpectralDataImportModule.class);
         if (module != null) {
           List<Task> tasks = new ArrayList<>();
-          module.runModule(MZmineCore.getProjectManager().getCurrentProject(), param, tasks,
+          module.runModule(ProjectService.getProjectManager().getCurrentProject(), param, tasks,
               Instant.now());
           MZmineCore.getTaskController().addTasks(tasks.toArray(Task[]::new));
         }
@@ -371,6 +400,25 @@ public class MZmineGUI extends Application implements Desktop {
     }
     event.setDropCompleted(hasFileDropped);
     event.consume();
+  }
+
+  private static void askChangeUser(final String fileName) {
+    try {
+      MZmineUser user = UserAuthStore.readUserByFileName(fileName);
+      if (user == null) {
+        return;
+      }
+
+      boolean changeUserResult = DialogLoggerUtil.showDialogYesNo("Changing active user",
+          STR."Switch to user \{user.getNickname()}?");
+
+      if (changeUserResult) {
+        CurrentUserService.setUser(user);
+      }
+    } catch (IOException e) {
+      logger.warning("Cannot find local user after copying user file by drag and drop");
+    }
+    UsersTab.showTab(UsersViewState.LOCAL_USERS);
   }
 
   public static void handleTaskManagerLocationChange(WindowLocation loc) {
@@ -447,9 +495,10 @@ public class MZmineGUI extends Application implements Desktop {
   public void start(Stage stage) {
 
     MZmineGUI.mainStage = stage;
-    MZmineCore.setDesktop(this);
 
-    logger.finest("Initializing MZmine main window");
+    DesktopService.setDesktop(this);
+
+    logger.finest("Initializing mzmine main window");
 
     MZminePreferences preferences = MZmineCore.getConfiguration().getPreferences();
     try {
@@ -467,7 +516,7 @@ public class MZmineGUI extends Application implements Desktop {
       Platform.exit();
     }
 
-    stage.setTitle("MZmine " + MZmineCore.getMZmineVersion());
+    stage.setTitle("mzmine " + MZmineCore.getMZmineVersion());
     stage.setMinWidth(600);
     stage.setMinHeight(400);
 
@@ -492,7 +541,7 @@ public class MZmineGUI extends Application implements Desktop {
     desktopSetupThread.setPriority(Thread.MIN_PRIORITY);
     desktopSetupThread.start();
 
-    setStatusBarText("Welcome to MZmine " + MZmineCore.getMZmineVersion());
+    setStatusBarText("Welcome to mzmine " + MZmineCore.getMZmineVersion());
 
     stage.show();
 
@@ -502,9 +551,9 @@ public class MZmineGUI extends Application implements Desktop {
       File userDir = FileUtils.getUserDirectory();
       if (tmpPath == null || !tmpPath.exists() || tmpPath.getAbsolutePath().toLowerCase()
           .contains("users") || tmpPath.equals(userDir)) {
-        MZmineCore.runLater(() -> displayNotification("""
+        FxThread.runLater(() -> displayNotification("""
                 Set temp folder to a fast local drive (prefer a public folder over a user folder).
-                MZmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
+                mzmine stores data on disk. Ensure enough free space. Otherwise change the memory options.
                 """, "Change", MZmineCore::openTempPreferences,
             () -> preferences.setParameter(MZminePreferences.showTempFolderAlert, false)));
       }
@@ -525,16 +574,13 @@ public class MZmineGUI extends Application implements Desktop {
      */
 
     // Activate project - bind it to the desktop's project tree
-    MZmineGUI.activateProject(MZmineCore.getProject());
+    MZmineGUI.activateProject(ProjectService.getProject());
 
     // Check for updated version
     NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);
     Thread nvcThread = new Thread(NVC);
     nvcThread.setPriority(Thread.MIN_PRIORITY);
     nvcThread.start();
-
-    // Tracker
-    GoogleAnalyticsTracker.track("MZmine Loaded (GUI mode)", "/JAVA/Main/GUI");
 
     // add global keys that may be added to other dialogs to receive the same key event handling
     rootScene.addEventFilter(KeyEvent.KEY_PRESSED, GlobalKeyHandler.getInstance());
@@ -547,13 +593,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public @NotNull String getName() {
-    return "MZmine desktop";
-  }
-
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    // TODO Auto-generated method stub
-    return null;
+    return "mzmine desktop";
   }
 
   @Override
@@ -580,23 +620,23 @@ public class MZmineGUI extends Application implements Desktop {
   @Override
   public void addTab(MZmineTab tab) {
     if (mainWindowController.getTabs().size() < MAX_TABS) {
-      MZmineCore.runLater(() -> mainWindowController.addTab(tab));
+      FxThread.runLater(() -> mainWindowController.addTab(tab));
       return;
     } else if (mainWindowController.getTabs().size() < MAX_TABS && !getWindows().isEmpty()) {
       for (MZmineWindow window : getWindows()) {
         if (window.getNumberOfTabs() < MAX_TABS && !window.isExclusive()) {
-          MZmineCore.runLater(() -> window.addTab(tab));
+          FxThread.runLater(() -> window.addTab(tab));
           return;
         }
       }
     }
-    MZmineCore.runLater(() -> new MZmineWindow().addTab(tab));
+    FxThread.runLater(() -> new MZmineWindow().addTab(tab));
   }
 
   @Override
   public void setStatusBarText(@Nullable String message, @Nullable Color textColor,
       @Nullable String url) {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       if (mainWindowController == null) {
         return;
       }
@@ -634,9 +674,9 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public void displayMessage(String title, String msg, @Nullable String url) {
-    logger.finest(() -> String.format("%s - %s - %s", title, msg, url));
+    logger.info(() -> String.format("%s - %s - %s", title, msg, url));
 
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
 
       Dialog<ButtonType> dialog = new Dialog<>();
       Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
@@ -644,30 +684,25 @@ public class MZmineGUI extends Application implements Desktop {
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       dialog.setTitle(title);
-      dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
 
       TextFlow flow = new TextFlow(new Text(msg));
       if (url != null) {
         Hyperlink href = new Hyperlink(url);
         flow.getChildren().add(href);
-        href.setOnAction(event -> WebUtils.openURL(url));
+        href.setOnAction(_ -> DesktopService.getDesktop().openWebPage(url));
       }
 
-      final StackPane pane = new StackPane(flow);
-      pane.setPadding(new Insets(5));
-
-      var scroll = new ScrollPane(pane);
+      var scroll = new ScrollPane(flow);
       scroll.setFitToWidth(true);
       scroll.setFitToHeight(true);
       var parent = new BorderPane(scroll);
+      flow.setMaxWidth(720);
       stage.setMaxWidth(750);
-      stage.setMaxHeight(750);
-      pane.setMaxSize(800, 750);
-      scroll.setMaxSize(800, 750);
-      parent.setMaxSize(800, 750);
+      stage.setMaxHeight(500);
+      dialog.getDialogPane().setMaxWidth(730);
       dialog.getDialogPane().setContent(parent);
+      dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
       dialog.setResizable(true);
-
       dialog.showAndWait();
     });
   }
@@ -690,7 +725,7 @@ public class MZmineGUI extends Application implements Desktop {
       alert.getDialogPane().getScene().getStylesheets()
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       Text text = new Text(msg);
-      text.setWrappingWidth(400);
+      text.setWrappingWidth(370);
       final FlowPane pane = new FlowPane(text);
       pane.setPadding(new Insets(5));
       alert.getDialogPane().setContent(pane);
@@ -704,7 +739,7 @@ public class MZmineGUI extends Application implements Desktop {
       if (Platform.isFxApplicationThread()) {
         alertTask.run();
       } else {
-        MZmineCore.runLater(alertTask);
+        FxThread.runLater(alertTask);
       }
       return alertTask.get();
     } catch (Exception e) {
@@ -756,7 +791,7 @@ public class MZmineGUI extends Application implements Desktop {
   }
 
   @Override
-  public @NotNull ExitCode exitMZmine() {
+  public @NotNull ExitCode exit() {
 
     requestQuit();
     return ExitCode.UNKNOWN;
@@ -839,7 +874,7 @@ public class MZmineGUI extends Application implements Desktop {
       alert.getDialogPane().getButtonTypes().addAll(ButtonType.YES, ButtonType.NO);
 
       Text text = new Text(message);
-      text.setWrappingWidth(400);
+      text.setWrappingWidth(370);
       final FlowPane pane = new FlowPane(text);
       pane.setPadding(new Insets(5));
       alert.getDialogPane().setContent(pane);
@@ -858,7 +893,7 @@ public class MZmineGUI extends Application implements Desktop {
     if (Platform.isFxApplicationThread()) {
       task.run();
     } else {
-      MZmineCore.runLater(task);
+      FxThread.runLater(task);
     }
 
     try {

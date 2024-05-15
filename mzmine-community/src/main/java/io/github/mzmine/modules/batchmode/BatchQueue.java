@@ -37,7 +37,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModul
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.CollectionUtils;
+import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.javafx.ArrayObservableList;
 import java.io.File;
 import java.util.Collection;
@@ -97,7 +97,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
         mzmineVersionError = null;
       }
     } else {
-      mzmineVersionError = "Batch was created with an older version of MZmine prior to MZmine 3.4.0 (this version is %s).".formatted(
+      mzmineVersionError = "Batch was created with an older version of mzmine prior to MZmine 3.4.0 (this version is %s).".formatted(
           mzmineVersion);
       logger.warning(mzmineVersionError);
     }

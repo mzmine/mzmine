@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
@@ -62,7 +63,7 @@ public class LipidAnnotationMatchTabOld extends SimpleTab implements FeatureRowI
   }
 
   public static void addNewTab(final FeatureTableFX table) {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       final LipidAnnotationMatchTabOld tab = new LipidAnnotationMatchTabOld(table);
       tab.selectionChanged();
       MZmineCore.getDesktop().addTab(tab);

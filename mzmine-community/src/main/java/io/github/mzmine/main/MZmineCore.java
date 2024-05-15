@@ -31,29 +31,34 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.gui.HeadLessDesktop;
+import io.github.mzmine.gui.MZmineDesktop;
 import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.mainwindow.UsersTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.main.impl.MZmineConfigurationImpl;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.ProjectManager;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
-import io.github.mzmine.project.impl.ProjectManagerImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskController;
-import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
+import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import io.github.mzmine.util.javafx.FxThreadUtil;
+import io.mzio.events.AuthRequiredEvent;
+import io.mzio.events.EventService;
+import io.mzio.users.gui.fx.UsersController;
+import io.mzio.users.user.CurrentUserService;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,7 +67,6 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -84,19 +88,10 @@ public final class MZmineCore {
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
   private static final MZmineCore instance = new MZmineCore();
-  private static boolean isFxInitialized = false;
 
   // the default headless desktop is returned if no other desktop is set (e.g., during start up)
   // it is also used in headless mode
-  private final Desktop defaultHeadlessDesktop = new HeadLessDesktop();
-  private final List<MemoryMapStorage> storageList = Collections.synchronizedList(
-      new ArrayList<>());
   private final Map<String, MZmineModule> initializedModules = new HashMap<>();
-  private TaskControllerImpl taskController;
-  private MZmineConfiguration configuration;
-  private Desktop desktop;
-  private ProjectManagerImpl projectManager;
-  private boolean headLessMode = true;
   private boolean tdfPseudoProfile = false;
   private boolean tsfProfile = false;
 
@@ -110,7 +105,7 @@ public final class MZmineCore {
   public static void main(final String[] args) {
     try {
       Semver version = getMZmineVersion();
-      logger.info("Starting MZmine " + version);
+      logger.info("Starting mzmine " + version);
       /*
        * Dump the MZmine and JVM arguments for debugging purposes
        */
@@ -118,7 +113,7 @@ public final class MZmineCore {
       final List<String> jvmArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();
       final String jvmArgsString = String.join(" ", jvmArgs);
       final String classPathString = System.getProperty("java.class.path");
-      logger.finest("MZmine arguments: " + mzmineArgsString);
+      logger.finest("mzmine arguments: " + mzmineArgsString);
       logger.finest("Java VM arguments: " + jvmArgsString);
       logger.finest("Java class path: " + classPathString);
 
@@ -147,7 +142,7 @@ public final class MZmineCore {
       // Load configuration
       if (prefFile.exists() && prefFile.canRead()) {
         try {
-          getInstance().configuration.loadConfiguration(prefFile, true);
+          ConfigService.getConfiguration().loadConfiguration(prefFile, true);
           updateTempDir = true;
         } catch (Exception e) {
           logger.log(Level.WARNING,
@@ -157,13 +152,13 @@ public final class MZmineCore {
         logger.log(Level.WARNING, "Cannot read configuration " + prefFile.getAbsolutePath());
       }
 
+      MZminePreferences preferences = ConfigService.getPreferences();
       // override temp directory
       final File tempDirectory = argsParser.getTempDirectory();
       if (tempDirectory != null) {
         // needs to be accessible
         if (FileAndPathUtil.createDirectory(tempDirectory)) {
-          getInstance().configuration.getPreferences()
-              .setParameter(MZminePreferences.tempDirectory, tempDirectory);
+          preferences.setParameter(MZminePreferences.tempDirectory, tempDirectory);
           updateTempDir = true;
         } else {
           logger.log(Level.WARNING,
@@ -171,6 +166,30 @@ public final class MZmineCore {
               + tempDirectory.getAbsolutePath());
         }
       }
+
+      // listen for user changes so that the latest user is saved
+      String username = ConfigService.getPreference(MZminePreferences.username);
+      // this will set the current user to CurrentUserService
+      // loads all users already logged in from the user folder
+      if (StringUtils.hasValue(username)) {
+        new UsersController().setCurrentUserByName(username);
+      }
+
+      CurrentUserService.subscribe(user -> {
+        var nickname = user == null ? null : user.getNickname();
+        ConfigService.getPreferences().setParameter(MZminePreferences.username, nickname);
+      });
+
+      // add event listener
+      EventService.subscribe(mzEvent -> {
+        if (mzEvent instanceof AuthRequiredEvent) {
+          if (DesktopService.isGUI()) {
+            getDesktop().addTab(UsersTab.showTab());
+          } else {
+            getDesktop().displayMessage("Requires user login. Open mzmine and login to a user");
+          }
+        }
+      });
 
       // set temp directory
       if (updateTempDir) {
@@ -180,18 +199,16 @@ public final class MZmineCore {
       KeepInMemory keepInMemory = argsParser.isKeepInMemory();
       if (keepInMemory != null) {
         // set to preferences
-        getInstance().configuration.getPreferences()
-            .setParameter(MZminePreferences.memoryOption, keepInMemory);
+        preferences.setParameter(MZminePreferences.memoryOption, keepInMemory);
       } else {
-        keepInMemory = getInstance().configuration.getPreferences()
-            .getParameter(MZminePreferences.memoryOption).getValue();
+        keepInMemory = preferences.getParameter(MZminePreferences.memoryOption).getValue();
       }
 
       String numCores = argsParser.getNumCores();
       setNumThreadsOverride(numCores);
 
       // after loading the config and numCores
-      getInstance().taskController = TaskControllerImpl.getInstance();
+      TaskService.init(ConfigService.getConfiguration().getNumOfThreads());
 
       // apply memory management option
       keepInMemory.enforceToMemoryMapping();
@@ -202,27 +219,20 @@ public final class MZmineCore {
       File[] overrideSpectralLibraryFiles = argsParser.getOverrideSpectralLibrariesFiles();
       boolean keepRunningInHeadless = argsParser.isKeepRunningAfterBatch();
 
-      // track version use
-      String versionString = "MZmine version " + version;
-      GoogleAnalyticsTracker.track(versionString, versionString);
-      GoogleAnalyticsTracker.track("MZmine3_start", "MZmine3_start");
-
-      getInstance().headLessMode = (batchFile != null || keepRunningInHeadless);
+      boolean headLessMode = (batchFile != null || keepRunningInHeadless);
       // If we have no arguments, run in GUI mode, otherwise run in batch mode
-      if (!getInstance().headLessMode) {
+      if (!headLessMode) {
         try {
-          logger.info("Starting MZmine GUI");
-          isFxInitialized = true;
+          logger.info("Starting mzmine GUI");
+          FxThread.setIsFxInitialized(true);
           Application.launch(MZmineGUI.class, args);
         } catch (Throwable e) {
           logger.log(Level.SEVERE, "Could not initialize GUI", e);
           System.exit(1);
         }
       } else {
-        getInstance().desktop = getInstance().defaultHeadlessDesktop;
-
-        // Tracker
-        GoogleAnalyticsTracker.track("MZmine Loaded (Headless mode)", "/JAVA/Main/HEADLESS");
+        // set headless desktop globally
+        DesktopService.setDesktop(new HeadLessDesktop());
 
         Task batchTask = null;
         if (batchFile != null) {
@@ -233,9 +243,8 @@ public final class MZmineCore {
           }
 
           // run batch file
-          batchTask = BatchModeModule.runBatch(
-              getInstance().projectManager.getCurrentProject(), batchFile, overrideDataFiles,
-              overrideSpectralLibraryFiles, Instant.now());
+          batchTask = BatchModeModule.runBatch(ProjectService.getProject(), batchFile,
+              overrideDataFiles, overrideSpectralLibraryFiles, Instant.now());
         }
 
         // option to keep MZmine running after the batch is finished
@@ -245,7 +254,7 @@ public final class MZmineCore {
         }
       }
     } catch (Exception ex) {
-      logger.log(Level.SEVERE, "Error during MZmine start up", ex);
+      logger.log(Level.SEVERE, "Error during mzmine start up", ex);
       exit(null);
     }
   }
@@ -258,8 +267,7 @@ public final class MZmineCore {
   public static void setNumThreadsOverride(@Nullable final String numCores) {
     if (numCores != null) {
       // set to preferences
-      var parameter = getInstance().configuration.getPreferences()
-          .getParameter(MZminePreferences.numOfThreads);
+      var parameter = ConfigService.getPreferences().getParameter(MZminePreferences.numOfThreads);
       if (numCores.equalsIgnoreCase("auto") || numCores.equalsIgnoreCase("automatic")) {
         parameter.setAutomatic(true);
       } else {
@@ -287,7 +295,7 @@ public final class MZmineCore {
    * Exit MZmine (usually used in headless mode)
    */
   public static void exit(final @Nullable Task batchTask) {
-    if(isHeadLessMode() && isFxInitialized) {
+    if (isHeadLessMode() && FxThread.isFxInitialized()) {
       // fx might be initialized for graphics export in headless mode - shut it down
       // in GUI mode it is shut down automatically
       Platform.exit();
@@ -301,7 +309,7 @@ public final class MZmineCore {
 
   @NotNull
   public static TaskController getTaskController() {
-    return instance.taskController;
+    return TaskService.getController();
   }
 
   /**
@@ -310,25 +318,16 @@ public final class MZmineCore {
    * @return the current desktop or the default headless desktop if still during app startup
    */
   @NotNull
-  public static Desktop getDesktop() {
-    return instance.desktop == null ? instance.defaultHeadlessDesktop : instance.desktop;
-  }
-
-  public static void setDesktop(Desktop desktop) {
-    assert desktop != null;
-    getInstance().desktop = desktop;
-  }
-
-  @NotNull
-  public static ProjectManager getProjectManager() {
-    assert getInstance().projectManager != null;
-    return getInstance().projectManager;
+  public static MZmineDesktop getDesktop() {
+    if (DesktopService.getDesktop() instanceof MZmineDesktop mZmineDesktop) {
+      return mZmineDesktop;
+    }
+    throw new IllegalStateException("Desktop was not initialized. Requires mzmineDesktop");
   }
 
   @NotNull
   public static MZmineConfiguration getConfiguration() {
-    assert getInstance().configuration != null;
-    return getInstance().configuration;
+    return ConfigService.getConfiguration();
   }
 
   /**
@@ -413,7 +412,8 @@ public final class MZmineCore {
       return ExitCode.ERROR;
     }
 
-    ParameterSet moduleParameters = MZmineCore.getConfiguration().getModuleParameters(moduleClass);
+    ParameterSet moduleParameters = ConfigService.getConfiguration()
+        .getModuleParameters(moduleClass);
 
     logger.info("Setting parameters for module " + module.getName());
     moduleParameters.setModuleNameAttribute(module.getName());
@@ -507,16 +507,13 @@ public final class MZmineCore {
 
     MZmineRunnableModule module = getModuleInstance(moduleClass);
 
-    // Usage Tracker
-    GoogleAnalyticsTracker.trackModule(module);
-
     // Run the module
     final List<Task> newTasks = new ArrayList<>();
-    final MZmineProject currentProject = getInstance().projectManager.getCurrentProject();
+    final MZmineProject currentProject = ProjectService.getProject();
     final Instant date = Instant.now();
     logger.finest(() -> "Module " + module.getName() + " called at " + date.toString());
     module.runModule(currentProject, parameters, newTasks, date);
-    getInstance().taskController.addTasks(newTasks.toArray(new Task[0]));
+    TaskService.getController().addTasks(newTasks.toArray(new Task[0]));
 
     return newTasks;
     // Log module run in audit log
@@ -556,7 +553,7 @@ public final class MZmineCore {
    * @return headless mode or JavaFX GUI
    */
   public static boolean isHeadLessMode() {
-    return getInstance().headLessMode;
+    return DesktopService.isHeadLess();
   }
 
   /**
@@ -566,71 +563,8 @@ public final class MZmineCore {
     return !isHeadLessMode();
   }
 
-  /**
-   * @param r runnable to either run directly or on the JavaFX thread
-   */
-  public static void runLater(Runnable r) {
-    if (isHeadLessMode() || Platform.isFxApplicationThread()) {
-      r.run();
-    } else {
-      Platform.runLater(r);
-    }
-  }
-
-  /**
-   * @param r runnable to either run directly or on the JavaFX thread
-   */
-  public static void runLaterEnsureFxInitialized(Runnable r) {
-    if (Platform.isFxApplicationThread()) {
-      r.run();
-    } else {
-      if (!isFxInitialized) {
-        initJavaFxInHeadlessMode();
-      }
-      Platform.runLater(r);
-    }
-  }
-
-  /**
-   * Simulates Swing's invokeAndWait(). Based on
-   * https://news.kynosarges.org/2014/05/01/simulating-platform-runandwait/
-   */
-  public static void runOnFxThreadAndWait(Runnable r) {
-    if (!isFxInitialized) {
-      initJavaFxInHeadlessMode();
-    }
-    FxThreadUtil.runOnFxThreadAndWait(r);
-  }
-
-  public static void registerStorage(MemoryMapStorage storage) {
-    getInstance().storageList.add(storage);
-  }
-
-  public static List<MemoryMapStorage> getStorageList() {
-    return getInstance().storageList;
-  }
-
   public static @NotNull MetadataTable getProjectMetadata() {
-    return getProject().getProjectMetadata();
-  }
-
-  /**
-   * @return the current project
-   */
-  public static @NotNull MZmineProject getProject() {
-    return getProjectManager().getCurrentProject();
-  }
-
-  /**
-   * Might be needed for graphics export in headless batch mode
-   */
-  public static void initJavaFxInHeadlessMode() {
-    if (isFxInitialized) {
-      return;
-    }
-    Platform.startup(() -> {
-    });
-    isFxInitialized = true;
+    return ProjectService.getProject().getProjectMetadata();
   }
 
   private void init() {
@@ -640,13 +574,6 @@ public final class MZmineCore {
     Locale.setDefault(new Locale("en", "US"));
     // initialize by default with all in memory
     MemoryMapStorage.setStoreAllInRam(true);
-
-    logger.fine("Loading core classes..");
-    // Create instance of configuration
-    configuration = new MZmineConfigurationImpl();
-
-    // Create instances of core modules
-    projectManager = ProjectManagerImpl.getInstance();
 
     logger.fine("Initializing core classes..");
   }

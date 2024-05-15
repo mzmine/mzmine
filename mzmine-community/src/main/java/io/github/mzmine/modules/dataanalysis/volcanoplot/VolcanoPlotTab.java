@@ -56,7 +56,7 @@ public class VolcanoPlotTab extends MZmineTab {
 
   @Override
   public @NotNull Collection<? extends FeatureList> getFeatureLists() {
-    return controller.featureListsProperty().get();
+    return controller.selectedFeatureListsProperty().get();
   }
 
   @Override
@@ -75,7 +75,7 @@ public class VolcanoPlotTab extends MZmineTab {
       return;
     }
 
-    controller.featureListsProperty().set((List<FeatureList>) featureLists.stream()
+    controller.selectedFeatureListsProperty().set((List<FeatureList>) featureLists.stream()
         .filter(flist -> flist.getNumberOfRawDataFiles() > 1).findFirst().stream().toList());
   }
 
@@ -85,6 +85,6 @@ public class VolcanoPlotTab extends MZmineTab {
       return;
     }
 
-    controller.featureListsProperty().set(List.of(featureLists.stream().findFirst().get()));
+    controller.selectedFeatureListsProperty().set(List.of(featureLists.stream().findFirst().get()));
   }
 }

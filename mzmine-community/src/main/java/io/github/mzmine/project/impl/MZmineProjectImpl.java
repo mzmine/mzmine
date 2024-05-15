@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
@@ -311,7 +312,8 @@ public class MZmineProjectImpl implements MZmineProject {
     try {
       rawLock.readLock().lock();
       for (final RawDataFile raw : rawDataFiles) {
-        if (name.equalsIgnoreCase(raw.getName())) {
+        if (name.equalsIgnoreCase(raw.getName()) || name.equalsIgnoreCase(
+            FileAndPathUtil.eraseFormat(raw.getName()))) {
           return raw;
         }
       }
@@ -319,6 +321,7 @@ public class MZmineProjectImpl implements MZmineProject {
     } finally {
       rawLock.readLock().unlock();
     }
+
   }
 
 
@@ -396,7 +399,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
   @Override
   public void setProjectLoadImsImportCaching(boolean enabled) {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       for (int i = 0; i < getCurrentRawDataFiles().size(); i++) {
         RawDataFile file = rawDataFiles.get(i);
         if (file instanceof IMSRawDataFile imsfile) {

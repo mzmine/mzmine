@@ -27,7 +27,7 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers.impl;
 
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import java.awt.Color;
 import java.util.function.IntFunction;
 import javafx.beans.property.Property;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MathUtils;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -41,7 +42,6 @@ import java.util.List;
 import javafx.beans.property.Property;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
-import smile.math.DoubleArrayList;
 
 /**
  * Used to plot a Frame in a
@@ -132,7 +132,7 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
       finishedPercentage = finishedScans / numScans;
     }
 
-    final double[] quantiles = MathUtils.calcQuantile(zValues.toArray(), new double[]{0.50, 0.98});
+    final double[] quantiles = MathUtils.calcQuantile(zValues.toDoubleArray(), new double[]{0.50, 0.98});
     paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
         .toPaintScale(PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
   }

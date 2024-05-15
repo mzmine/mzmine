@@ -31,16 +31,17 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries;
+import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries.IntensityMode;
+import io.github.mzmine.datamodel.featuredata.impl.BuildingIonSeries.MzMode;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.dataprocessing.featdet_extract_mz_ranges.ExtractMzRangesIonSeriesFunction;
 import io.github.mzmine.modules.visualization.chromatogram.MzRangeEicDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.RangeUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,14 +63,28 @@ public class FeatureDataSetCalc extends AbstractTask {
   private final AtomicInteger doneFiles = new AtomicInteger(0);
   private final TICPlot chromPlot;
   private final ScanSelection scanSelection;
+  private final MzMode mzMode;
+  private final IntensityMode intensityMode;
+  private final ScanDataType scanDataType;
+
 
   public FeatureDataSetCalc(final Collection<RawDataFile> rawDataFiles, final Range<Double> mzRange,
-      ScanSelection scanSelection, TICPlot chromPlot) {
+      ScanSelection scanSelection, TICPlot chromPlot, ScanDataType scanDataType) {
+    this(rawDataFiles, mzRange, scanSelection, chromPlot, scanDataType, MzMode.DEFAULT,
+        IntensityMode.DEFAULT);
+  }
+
+  public FeatureDataSetCalc(final Collection<RawDataFile> rawDataFiles, final Range<Double> mzRange,
+      ScanSelection scanSelection, TICPlot chromPlot, ScanDataType scanDataType, MzMode mzMode,
+      IntensityMode intensityMode) {
     super(null, Instant.now()); // no new data stored -> null, date irrelevant (not used in batch)
     this.rawDataFiles = rawDataFiles;
     this.mzRangesSorted = List.of(mzRange);
     this.chromPlot = chromPlot;
     this.scanSelection = scanSelection;
+    this.mzMode = mzMode;
+    this.intensityMode = intensityMode;
+    this.scanDataType = scanDataType;
   }
 
   @Override
@@ -98,7 +113,7 @@ public class FeatureDataSetCalc extends AbstractTask {
     }
 
     // set datasets to plot
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       if (isCanceled()) {
         return;
       }
@@ -116,7 +131,7 @@ public class FeatureDataSetCalc extends AbstractTask {
    * @return list of datasets for each mzRange or empty if interrupted or empty
    */
   @NotNull
-  private List<ColoredXYDataset> extractDataset(final RawDataFile dataFile) {
+  public List<ColoredXYDataset> extractDataset(final RawDataFile dataFile) {
     if (isCanceled()) {
       doneFiles.incrementAndGet();
       return List.of();
@@ -125,7 +140,9 @@ public class FeatureDataSetCalc extends AbstractTask {
     List<Scan> scans = scanSelection.getMatchingScans(dataFile.getScans());
 
     var extractFunction = new ExtractMzRangesIonSeriesFunction(dataFile, scans, mzRangesSorted,
-        ScanDataType.RAW, this);
+        scanDataType, this);
+    extractFunction.setMzMode(mzMode);
+    extractFunction.setIntensityMode(intensityMode);
 
     BuildingIonSeries[] ionSeries = extractFunction.get();
 
@@ -134,12 +151,10 @@ public class FeatureDataSetCalc extends AbstractTask {
     for (int i = 0; i < ionSeries.length; i++) {
       var builder = ionSeries[i];
       Range<Double> mzRange = mzRangesSorted.get(i);
-      double mz = RangeUtils.rangeCenter(mzRange);
-
       IonTimeSeries<? extends Scan> series = builder.toIonTimeSeriesWithLeadingAndTrailingZero(null,
           scans);
       datasets.add(
-          new MzRangeEicDataSet(series, mzRange, dataFile.getColor(), RunOption.THIS_THREAD));
+          new MzRangeEicDataSet(series, mzRange, dataFile.getColor()));
     }
     doneFiles.incrementAndGet();
     return datasets;

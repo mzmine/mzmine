@@ -25,9 +25,9 @@
 
 package io.github.mzmine.gui.mainwindow.tasksview;
 
-import io.github.mzmine.gui.framework.fx.mvci.FxController;
-import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
-import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
+import io.github.mzmine.javafx.mvci.FxController;
+import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.taskcontrol.TaskService;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import javafx.collections.ObservableList;
 import javafx.scene.layout.Region;
@@ -56,7 +56,7 @@ public class TasksViewController extends FxController<TasksViewModel> {
     model.setOnCancelBatchTask(interactor::cancelBatchTasks);
     model.setOnShowTasksView(interactor::showTasksView);
 
-    readOnlyTasks = TaskControllerImpl.getInstance().getReadOnlyTasks();
+    readOnlyTasks = TaskService.getController().getReadOnlyTasks();
     readOnlyTasks.addListener(interactor::onSubmittedTasksChanged);
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,7 +29,6 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
@@ -41,9 +40,9 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.data.Range;
 
@@ -59,16 +58,16 @@ public class FeatureShapeChart extends BufferedChartNode {
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
     chart.setLegendItemsVisible(false);
 
-    Set<ColoredXYDataset> datasets = new LinkedHashSet<>();
+    List<ColoredXYDataset> datasets = new ArrayList<>();
     int size = row.getFilesFeatures().size();
-    for (Feature f : row.getFeatures()) {
+    for (ModularFeature f : row.getFeatures()) {
       if (f.getRawDataFile() instanceof ImagingRawDataFile) {
         continue;
       }
-      IonTimeSeries<? extends Scan> dpSeries = ((ModularFeature) f).getFeatureData();
+      IonTimeSeries<? extends Scan> dpSeries = f.getFeatureData();
       if (dpSeries != null) {
         ColoredXYDataset dataset = new ColoredXYDataset(
-            new IonTimeSeriesToXYProvider((ModularFeature) f), RunOption.THIS_THREAD);
+            new IonTimeSeriesToXYProvider(f), RunOption.THIS_THREAD);
         datasets.add(dataset);
       }
       if (progress != null) {

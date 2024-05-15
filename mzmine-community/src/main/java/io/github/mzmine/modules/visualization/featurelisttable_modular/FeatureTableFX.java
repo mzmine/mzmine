@@ -74,10 +74,11 @@ import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotati
 import io.github.mzmine.datamodel.features.types.numbers.scores.CosineScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.MsMsScoreType;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
-import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -470,7 +471,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       return;
     }
 
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       getRoot().getChildren().clear();
       rowItems.clear();
       // add rows
@@ -830,7 +831,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
             id.getDataType().equals(dataType) ? null : id.getDataType();
 
         final ModularFeatureListRow row = getSelectionModel().getSelectedItem().getValue();
-        final Runnable runnable = (dataType.getDoubleClickAction(row, files, superDataType,
+        final Runnable runnable = (dataType.getDoubleClickAction(this, row, files, superDataType,
             cellValue));
         if (runnable != null) {
           MZmineCore.getTaskController().addTask(
@@ -945,7 +946,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    */
   private void initFeatureListListener() {
     featureListProperty().addListener((observable, oldValue, newValue) -> {
-      MZmineCore.runLater(() -> {
+      FxThread.runLater(() -> {
         // Clear old rows and old columns
         getRoot().getChildren().clear();
         getColumns().clear();

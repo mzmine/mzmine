@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,9 @@ package io.github.mzmine.util.dialogs;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.gui.MZmineDesktop;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.ExitCode;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -41,9 +44,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.ExitCode;
 
 public class FeatureIdentitySetupDialog extends JDialog implements ActionListener {
 
@@ -69,7 +69,7 @@ public class FeatureIdentitySetupDialog extends JDialog implements ActionListene
   private ExitCode exitCode = ExitCode.UNKNOWN;
 
   // Desktop
-  private Desktop desktop = MZmineCore.getDesktop();
+  private MZmineDesktop desktop = MZmineCore.getDesktop();
 
   public FeatureIdentitySetupDialog(JFrame parent, FeatureListRow featureListRow) {
     this(parent, featureListRow, null);

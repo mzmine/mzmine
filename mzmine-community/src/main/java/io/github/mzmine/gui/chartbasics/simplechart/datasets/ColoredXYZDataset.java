@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -79,7 +79,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     this(dataProvider, useAlphaInPaintscale, RunOption.NEW_THREAD);
   }
 
-  ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider, final boolean useAlphaInPaintscale,
+  public ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider, final boolean useAlphaInPaintscale,
       @NotNull final RunOption runOption) {
     // do not run from super constructor! we need to do some other stuff first
     super(dataProvider, RunOption.DO_NOT_RUN);
@@ -274,4 +274,5 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   protected RunOption getRunOption() {
     return runOption;
   }
+
 }

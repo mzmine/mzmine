@@ -36,6 +36,9 @@ import io.github.mzmine.gui.MZmineGUI;
 import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.gui.mainwindow.tasksview.TasksViewController;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -62,9 +65,9 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelection;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureTableFXUtil;
-import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupEntity;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewCell;
@@ -223,7 +226,7 @@ public class MainWindowController {
       HBox box = new HBox(3, rawIcon);
       if ((rawDataFile.isContainsZeroIntensity() && MassSpectrumType.isCentroided(
           rawDataFile.getSpectraType())) || rawDataFile.isContainsEmptyScans()) {
-        FontIcon fontIcon = FxIconUtil.getFontIcon("bi-exclamation-triangle", 15,
+        FontIcon fontIcon = FxIconUtil.getFontIcon(FxIcons.EXCLAMATION_TRIANGLE, 15,
             MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor());
         box.getChildren().add(fontIcon);
 
@@ -250,7 +253,6 @@ public class MainWindowController {
 
   @FXML
   public void initialize() {
-
     // do not switch panes by arrows
     mainTabPane.addEventFilter(KeyEvent.ANY, event -> {
       if (event.getCode().isArrowKey() && event.getTarget() == mainTabPane) {
@@ -345,7 +347,7 @@ public class MainWindowController {
     });
 
     featureListsList.getSelectedValues().addListener((ListChangeListener<FeatureList>) change -> {
-      MZmineCore.runLater(() -> {
+      FxThread.runLater(() -> {
         change.next();
         for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
           if (tab instanceof MZmineTab && tab.isSelected()
@@ -435,8 +437,8 @@ public class MainWindowController {
           if (clickedFile instanceof ImagingRawDataFile) {
             if (MZmineCore.getDesktop().displayConfirmation(
                 "Warning!\n" + "You are trying to open an IMS MS imaging file.\n"
-                    + "The amount of information may crash MZmine.\n"
-                    + "Would you like to open the overview anyway?", ButtonType.YES, ButtonType.NO)
+                + "The amount of information may crash MZmine.\n"
+                + "Would you like to open the overview anyway?", ButtonType.YES, ButtonType.NO)
                 == ButtonType.NO) {
               return;
             }
@@ -474,7 +476,7 @@ public class MainWindowController {
       // Add listener body to the event queue to run it after all selected items are added to
       // the observable list, so the collections' elements equality test in the if statement will
       // compare final result of the multiple selection
-      MZmineCore.runLater(() -> {
+      FxThread.runLater(() -> {
         change.next();
 
         for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
@@ -781,7 +783,7 @@ public class MainWindowController {
         "Are you sure you want to remove selected files?", ButtonType.YES, ButtonType.NO,
         ButtonType.CANCEL);
     Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-    stage.getIcons().add(new Image("MZmineIcon.png"));
+    stage.getIcons().add(new Image("mzmineIcon.png"));
     alert.setHeaderText("Remove file");
     alert.showAndWait();
 
@@ -790,7 +792,7 @@ public class MainWindowController {
     }
 
     for (RawDataFile selectedItem : ImmutableList.copyOf(rawDataList.getSelectedValues())) {
-      MZmineCore.getProjectManager().getCurrentProject().removeFile(selectedItem);
+      ProjectService.getProjectManager().getCurrentProject().removeFile(selectedItem);
     }
 
     for (GroupEntity group : ImmutableList.copyOf(rawDataList.getSelectedGroups())) {
@@ -802,7 +804,7 @@ public class MainWindowController {
     List<FeatureList> selectedFeatureLists = MZmineGUI.getSelectedFeatureLists();
     for (FeatureList fl : selectedFeatureLists) {
       // PeakListTableModule.showNewPeakListVisualizerWindow(fl);
-      MZmineCore.runLater(() -> {
+      FxThread.runLater(() -> {
         FeatureTableFXUtil.addFeatureTableTab(fl);
       });
     }
@@ -817,7 +819,7 @@ public class MainWindowController {
         AnchorPane pane = loader.load();
         Stage stage = new Stage();
         stage.setTitle("Feature list summary - " + selectedValue.getName());
-        stage.getIcons().add(FxIconUtil.loadImageFromResources("MZmineIcon.png"));
+        stage.getIcons().add(FxIconUtil.loadImageFromResources("mzmineIcon.png"));
         stage.setScene(new Scene(pane));
         stage.getScene().getStylesheets()
             .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
@@ -839,7 +841,7 @@ public class MainWindowController {
         AnchorPane pane = loader.load();
         Stage stage = new Stage();
         stage.setTitle("MS data file list summary - " + selectedValue.getName());
-        stage.getIcons().add(FxIconUtil.loadImageFromResources("MZmineIcon.png"));
+        stage.getIcons().add(FxIconUtil.loadImageFromResources("mzmineIcon.png"));
         stage.setScene(new Scene(pane));
         stage.getScene().getStylesheets()
             .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
@@ -874,7 +876,7 @@ public class MainWindowController {
   public void handleRemoveFeatureList(Event event) {
     FeatureList[] selectedFeatureLists = MZmineCore.getDesktop().getSelectedPeakLists();
     for (FeatureList fl : selectedFeatureLists) {
-      MZmineCore.getProjectManager().getCurrentProject().removeFeatureList(fl);
+      ProjectService.getProjectManager().getCurrentProject().removeFeatureList(fl);
     }
   }
 
@@ -894,7 +896,7 @@ public class MainWindowController {
   public void handleSpectralLibraryRemove(ActionEvent event) {
     SpectralLibrary[] libs = MZmineCore.getDesktop().getSelectedSpectralLibraries();
     if (libs != null && libs.length > 0) {
-      MZmineCore.getProjectManager().getCurrentProject().removeSpectralLibrary(libs);
+      ProjectService.getProjectManager().getCurrentProject().removeSpectralLibrary(libs);
     }
   }
 
@@ -987,7 +989,7 @@ public class MainWindowController {
     popup.setTitle("Set color");
     popup.setResizable(false);
     popup.initModality(Modality.APPLICATION_MODAL);
-    popup.getIcons().add(new Image("MZmineIcon.png"));
+    popup.getIcons().add(new Image("mzmineIcon.png"));
     popup.show();
 
     popup.setOnHiding(e -> {

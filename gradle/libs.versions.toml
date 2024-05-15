@@ -1,19 +1,20 @@
 [versions]
-jdk = {strictly = "21"}
-javafx = {strictly = "21.0.1"}
+jdk = { strictly = "21" }
+javafx = { strictly = "21.0.1" }
 javafx-plugin = "0.0.13"
 log4j-core = { strictly = "[2.23.0, 2.23.0[", prefer = "2.23.0" }
 
+licenseplugin = "2.6"
 beryx-runtime = "1.12.7"
 semver = "1.0.4"
 msdk = "0.0.27"
-cdk = "2.5"
+# update to 2.9? from 2.5
+cdk = "2.9"
 swagger = "1.5.22"
 okhttp = "2.7.5"
-guava = "30.1-jre"
 slf4j = '1.7.32'
 poi = '5.0.0'
-batik = '1.14'
+batik = '1.17'
 controlsfx = '11.1.1'
 jmzTabm = "1.0.6"
 jna = '5.12.1'
@@ -22,38 +23,46 @@ mockito = '5.8.0'
 jackson = '2.16.1'
 ikonli = "12.3.1"
 graphstream = "2.0"
+mzio = "1.0.0"
 
 [libraries]
+# mzio
+mzio-taskcontroller = { module = "io.mzio:taskcontroller", version.ref = "mzio" }
+mzio-user-management = { module = "io.mzio:user-management", version.ref = "mzio" }
+mzio-user-management-fx = { module = "io.mzio:user-management-fx", version.ref = "mzio" }
+mzio-user-client = { module = "io.mzio:user-client", version.ref = "mzio" }
+mzio-memory-management = { module = "io.mzio:memory-management", version.ref = "mzio" }
+mzio-global-events = { module = "io.mzio:global-events", version.ref = "mzio" }
 #
-javafx-plugin = { module = "org.openjfx.javafxplugin:org.openjfx.javafxplugin.gradle.plugin", version.ref = "javafx-plugin"}
+javafx-plugin = { module = "org.openjfx.javafxplugin:org.openjfx.javafxplugin.gradle.plugin", version.ref = "javafx-plugin" }
 # productivity
-commons-cli = { group = "commons-cli", name = "commons-cli", version = "1.6.0" }
 jetbrains-annotations = 'org.jetbrains:annotations:22.0.0'
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-jdk14 = { module = "org.slf4j:slf4j-jdk14", version.ref = "slf4j" }
+
+fastutil = { group = "it.unimi.dsi", name = "fastutil", version = "8.5.6" }
 # UI dependent
 controlsfx = { module = "org.controlsfx:controlsfx", version.ref = "controlsfx" }
 ikonli-javafx = { module = "org.kordamp.ikonli:ikonli-javafx", version.ref = "ikonli" }
 ikonli-bootstrap = { module = "org.kordamp.ikonli:ikonli-bootstrapicons-pack", version.ref = "ikonli" }
+ikonli-lineawesome = { group = "org.kordamp.ikonli", name = "ikonli-lineawesome-pack", version.ref = "ikonli" }
 graphstream-javafx = { module = "org.graphstream:gs-ui-javafx", version.ref = "graphstream" }
 graphstream-algo = { module = "org.graphstream:gs-algo", version.ref = "graphstream" }
 graphstream-core = "com.github.robinschmid:gs-core:45504f632f"
 jfree-core = "org.jfree:jfreechart:1.5.3"
 jfree-fx = "org.jfree:org.jfree.chart.fx:2.0.1"
 jfree-fxgraphics = "org.jfree:org.jfree.fxgraphics2d:2.1.1"
-jfree-svg = "org.jfree:org.jfree.svg:4.1"
-jfree-pdf = "org.jfree:org.jfree.pdf:2.0"
 fxcharts = "eu.hansolo.fx:charts:21.0.7"
 # web, rest
 okhttp = { module = "com.squareup.okhttp:okhttp", version.ref = "okhttp" }
 okhttp-logging-interceptor = { module = "com.squareup.okhttp:logging-interceptor", version.ref = "okhttp" }
 # formats, io, json
-commons-io = { group = "commons-io", name = "commons-io", version = "2.15.1" }
 poi = { module = "org.apache.poi:poi", version.ref = "poi" }
 poi-ooxml = { module = "org.apache.poi:poi-ooxml", version.ref = "poi" }
 jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
+jackson-dataformat-csv = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-csv", version = "jackson" }
 woodstox-core = "com.fasterxml.woodstox:woodstox-core:6.6.0"
 aalto-xml = "com.fasterxml:aalto-xml:1.3.2"
 # chemistry
@@ -68,37 +77,56 @@ cdk-renderawt = { module = "org.openscience.cdk:cdk-renderawt", version.ref = "c
 cdk-data = { module = "org.openscience.cdk:cdk-data", version.ref = "cdk" }
 cdk-interfaces = { module = "org.openscience.cdk:cdk-interfaces", version.ref = "cdk" }
 cdk-smiles = { module = "org.openscience.cdk:cdk-smiles", version.ref = "cdk" }
+cdk-inchi = { module = "org.openscience.cdk:cdk-inchi", version.ref = "cdk" }
+cdk-fingerprint = { module = "org.openscience.cdk:cdk-fingerprint", version.ref = "cdk" }
+
 msdk-mzml = { module = "io.github.msdk:msdk-io-mzml", version.ref = "msdk" }
 msdk-adap3d = { module = "io.github.msdk:msdk-featuredetection-adap3d", version.ref = "msdk" }
 msdk-netcdf = { module = "io.github.msdk:msdk-io-netcdf", version.ref = "msdk" }
+
+batik-anim = { group = "org.apache.xmlgraphics", name = "batik-anim", version = "batik" }
+batik-swing = { group = "org.apache.xmlgraphics", name = "batik-swing", version = "batik" }
+batik-svggen = { group = "org.apache.xmlgraphics", name = "batik-svggen", version = "batik" }
+guava = { group = "com.google.guava", name = "guava", version = "33.0.0-jre" }
+
+commons-io = { group = "commons-io", name = "commons-io", version = "2.15.1" }
+commons-cli = { group = "commons-cli", name = "commons-cli", version = "1.6.0" }
+commons-math = { group = "org.apache.commons", name = "commons-math", version = "2.2" }
+commons-math3 = { group = "org.apache.commons", name = "commons-math3", version = "3.6.1" }
+commons-lang3 = "org.apache.commons:commons-lang3:3.0"
+opencsv = { group = "com.opencsv", name = "opencsv", version = "5.8" }
+
 # testing
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 junit-platform = { module = "org.junit.platform:junit-platform-launcher" }
 mockito = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 
-
 [bundles]
 # convention plugins
 default-convention = ["jetbrains-annotations"]
-javafx-convention = ["controlsfx", "ikonli-javafx", "ikonli-bootstrap"]
+javafx-convention = ["controlsfx", "ikonli-javafx", "ikonli-bootstrap", "ikonli-lineawesome"]
 # default productivity
 productivity = ["jetbrains-annotations"]
+
+mzio = ["mzio-memory-management", "mzio-taskcontroller", "mzio-user-client", "mzio-user-management", "mzio-user-management-fx", "mzio-global-events"]
 # UI
-ikonli = ["ikonli-bootstrap", "ikonli-javafx"]
-jfreechart = ["jfree-core", "jfree-fx", "jfree-fxgraphics", "jfree-pdf", "jfree-svg"]
+ikonli = ["ikonli-bootstrap", "ikonli-javafx", "ikonli-lineawesome"]
+jfreechart = ["jfree-core", "jfree-fx", "jfree-fxgraphics"]
 graphstream = ["graphstream-algo", "graphstream-core", "graphstream-javafx"]
 # chemistry
-cdk = ["cdk-core", "cdk-data", "cdk-formula", "cdk-interfaces", "cdk-io", "cdk-renderawt", "cdk-renderbasic", "cdk-sdg", "cdk-silent", "cdk-smiles", "cdk-standard"]
+cdk = ["cdk-core", "cdk-data", "cdk-formula", "cdk-interfaces", "cdk-io", "cdk-renderawt", "cdk-renderbasic", "cdk-fingerprint", "cdk-sdg", "cdk-silent", "cdk-smiles", "cdk-standard", "cdk-inchi"]
 msdk = ["msdk-adap3d", "msdk-mzml", "msdk-netcdf"]
 # logging and other utils
 slf4j = ["slf4j-api", "slf4j-jdk14"]
 poi = ["poi", "poi-ooxml"]
 okhttp = ["okhttp", "okhttp-logging-interceptor"]
 junit-mockito = ["junit-jupiter", "junit-platform", "mockito"]
-jackson = ["jackson-annotations", "jackson-core", "jackson-databind"]
+jackson = ["jackson-annotations", "jackson-core", "jackson-databind", "jackson-dataformat-csv"]
+batik = ["batik-anim", "batik-svggen", "batik-swing"]
 
 
 [plugins]
 semver = { id = "net.thauvin.erik.gradle.semver", version.ref = "semver" }
 beryx-runtime = { id = "org.beryx.runtime", version.ref = "beryx-runtime" }
 javafx = { id = "org.openjfx.javafxplugin", version.ref = "javafx-plugin" }
+licensereport = { id = "com.github.jk1.dependency-license-report", version.ref = "licenseplugin" }

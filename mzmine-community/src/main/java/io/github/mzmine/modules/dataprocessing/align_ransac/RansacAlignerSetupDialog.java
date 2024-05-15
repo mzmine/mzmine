@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@ package io.github.mzmine.modules.dataprocessing.align_ransac;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
+import io.github.mzmine.project.ProjectService;
 import java.util.ArrayList;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -61,7 +62,7 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialogWithPreview {
     super(valueCheckRequired, parameters);
 
     featureLists = FXCollections.observableArrayList(
-        MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
+        ProjectService.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
     featureListsPanel = new FlowPane();
 

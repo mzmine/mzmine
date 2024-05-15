@@ -25,7 +25,7 @@
 
 package io.github.mzmine.gui;
 
-import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import java.util.logging.Logger;
 import javafx.scene.image.Image;
 
@@ -36,7 +36,7 @@ public class DesktopSetup implements Runnable {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
+  private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("mzmineIcon.png");
 
   @Override
   public void run() {
@@ -57,7 +57,7 @@ public class DesktopSetup implements Runnable {
 //      // Setup Quit handler
 //      if (awtDesktop.isSupported(Desktop.Action.APP_QUIT_HANDLER)) {
 //        awtDesktop.setQuitHandler((e, response) -> {
-//          ExitCode exitCode = MZmineCore.getDesktop().exitMZmine();
+//          ExitCode exitCode = DesktopService.getDesktop().exitMZmine();
 //          if (exitCode == ExitCode.OK)
 //            response.performQuit();
 //          else
@@ -93,14 +93,14 @@ public class DesktopSetup implements Runnable {
 //            taskBar.setIconBadge(null);
 //          /*
 //           * if (taskBar.isSupported( Taskbar.FeatureOld.PROGRESS_STATE_WINDOW))
-//           * taskBar.setWindowProgressState( MZmineCore.getDesktop().getMainWindow(),
+//           * taskBar.setWindowProgressState( DesktopService.getDesktop().getMainWindow(),
 //           * Taskbar.State.OFF);
 //           */
 //          if (taskBar.isSupported(Taskbar.Feature.PROGRESS_VALUE))
 //            taskBar.setProgressValue(-1);
 //          /*
 //           * if (taskBar.isSupported( Taskbar.FeatureOld.PROGRESS_VALUE_WINDOW))
-//           * taskBar.setWindowProgressValue( MZmineCore.getDesktop().getMainWindow(), -1);
+//           * taskBar.setWindowProgressValue( DesktopService.getDesktop().getMainWindow(), -1);
 //           */
 //        }
 //      });

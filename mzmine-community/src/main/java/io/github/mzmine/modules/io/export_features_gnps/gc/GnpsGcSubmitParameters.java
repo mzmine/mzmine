@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -54,7 +54,8 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.util.DialogLoggerUtil;
+import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
 import javafx.scene.control.Button;
@@ -124,7 +125,7 @@ public class GnpsGcSubmitParameters extends SimpleParameterSet {
    */
   private void openKovatsDialog(FileNameComponent pn) {
     // at least one raw data file in project
-    RawDataFile[] raw = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    RawDataFile[] raw = ProjectService.getProjectManager().getCurrentProject().getDataFiles();
     if (raw == null || raw.length <= 0) {
       DialogLoggerUtil.showMessageDialogForTime("No RAW data files",
           "Cannot use Kovats extraction without raw data files in this project", 3500);

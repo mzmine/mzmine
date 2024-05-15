@@ -30,8 +30,9 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeChart;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.scene.Node;
@@ -80,12 +81,12 @@ public class FeatureShapeType extends LinkedGraphicalType {
 
   @Nullable
   @Override
-  public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
+  public Runnable getDoubleClickAction(final @Nullable FeatureTableFX table, @NotNull ModularFeatureListRow row,
       @NotNull List<RawDataFile> rawDataFiles, DataType<?> superType,
       @Nullable final Object value) {
 
     return () -> {
-      MZmineCore.runLater(
+      FxThread.runLater(
           () -> ChromatogramVisualizerModule.visualizeFeatureListRows(List.of(row)));
     };
   }

@@ -52,9 +52,6 @@ import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.R.REngineType;
-import io.github.mzmine.util.R.RSessionWrapper;
-import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.maths.CenterFunction;
 import java.time.Instant;
 import java.util.List;
@@ -78,7 +75,6 @@ public class FeatureResolverTask extends AbstractTask {
   // Counters.
   private int processedRows;
   private int totalRows;
-  private RSessionWrapper rSession;
   private String errorMsg;
   private boolean setMSMSRange, setMSMSRT;
   private double msmsRange;
@@ -143,8 +139,6 @@ public class FeatureResolverTask extends AbstractTask {
           if (((GeneralResolverParameters) parameters).getResolver(parameters,
               (ModularFeatureList) originalPeakList) != null) {
             dimensionIndependentResolve((ModularFeatureList) originalPeakList);
-          } else {
-            legacyResolve();
           }
           // resolving finished
 
@@ -172,34 +166,10 @@ public class FeatureResolverTask extends AbstractTask {
             setStatus(TaskStatus.FINISHED);
             logger.info("Finished feature resolving on " + originalPeakList);
           }
-          // Turn off R instance.
-          if (this.rSession != null) {
-            this.rSession.close(false);
-          }
-
-        } catch (RSessionWrapperException e) {
-          e.printStackTrace();
-          errorMsg = "'R computing error' during CentWave detection. \n" + e.getMessage();
         } catch (Exception e) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage(e.getMessage());
           logger.log(Level.SEVERE, "Feature resolving error: " + e.getMessage(), e);
-        }
-
-        // Turn off R instance, once task ended UNgracefully.
-        try {
-          if (this.rSession != null && !isCanceled()) {
-            rSession.close(isCanceled());
-          }
-        } catch (RSessionWrapperException e) {
-          if (!isCanceled()) {
-            // Do not override potential previous error message.
-            if (errorMsg == null) {
-              errorMsg = e.getMessage();
-            }
-          } else {
-            // User canceled: Silent.
-          }
         }
 
         // Report error.
@@ -209,38 +179,6 @@ public class FeatureResolverTask extends AbstractTask {
         }
       }
     }
-  }
-
-  /**
-   * Used for compatibility with old {@link FeatureResolver}s. New methods should implement
-   * {@link Resolver}. See
-   * {@link
-   * io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver}
-   * as an example implementation.
-   *
-   * @throws RSessionWrapperException
-   */
-  @Deprecated
-  private void legacyResolve() throws RSessionWrapperException {
-    final FeatureResolver resolver = ((GeneralResolverParameters) parameters).getResolver();
-
-    if (resolver.getRequiresR()) {
-      // Check R availability, by trying to open the
-      // connection.
-      String[] reqPackages = resolver.getRequiredRPackages();
-      String[] reqPackagesVersions = resolver.getRequiredRPackagesVersions();
-      String callerFeatureName = resolver.getName();
-
-      REngineType rEngineType = resolver.getREngineType(parameters);
-      this.rSession = new RSessionWrapper(rEngineType, callerFeatureName, reqPackages,
-          reqPackagesVersions);
-      this.rSession.open();
-    } else {
-      this.rSession = null;
-    }
-
-    // Resolve features.
-    newPeakList = resolvePeaks((ModularFeatureList) originalPeakList, this.rSession);
   }
 
   private void dimensionIndependentResolve(ModularFeatureList originalFeatureList) {
@@ -306,70 +244,8 @@ public class FeatureResolverTask extends AbstractTask {
   @Override
   public void cancel() {
     super.cancel();
-    // Turn off R instance, if already existing.
-    try {
-      if (this.rSession != null) {
-        this.rSession.close(true);
-      }
-    } catch (RSessionWrapperException e) {
-      // Silent, always...
-    }
   }
 
-  /**
-   * This method is kept around to keep compatibility with resolvers implementing the legacy
-   * interface {@link FeatureResolver}. All new resolvers should implement {@link Resolver} or
-   * {@link AbstractResolver} instead.
-   */
-  @Deprecated
-  private FeatureList resolvePeaks(final ModularFeatureList originalFeatureList,
-      RSessionWrapper rSession) throws RSessionWrapperException {
-
-    final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
-    final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
-
-    final FeatureResolver resolver = ((GeneralResolverParameters) parameters).getResolver();
-
-    processedRows = 0;
-    totalRows = originalFeatureList.getNumberOfRows();
-    int peakId = 1;
-    final Integer minNumDp = parameters.getValue(
-        GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
-
-    for (int i = 0; i < totalRows; i++) {
-      final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList.getRow(
-          i);
-      final ModularFeature originalFeature = originalRow.getFeature(dataFile);
-
-      final ResolvedPeak[] peaks = resolver.resolvePeaks(originalFeature, parameters, rSession,
-          mzCenterFunction, msmsRange, RTRangeMSMS);
-
-      for (final ResolvedPeak peak : peaks) {
-        if (peak.getScanNumbers().length < minNumDp) {
-          continue;
-        }
-        peak.setParentChromatogramRowID(originalRow.getID());
-        final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
-            peakId++);
-        final ModularFeature newFeature = FeatureConvertors.ResolvedPeakToMoularFeature(
-            resolvedFeatureList, peak, originalFeature.getFeatureData());
-        if (originalFeature.getMobilityUnit() != null) {
-          newFeature.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
-        }
-
-        newRow.addFeature(dataFile, newFeature);
-        newRow.setFeatureInformation(peak.getPeakInformation());
-        resolvedFeatureList.addRow(newRow);
-      }
-      processedRows++;
-    }
-
-    resolvedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters,
-            getModuleCallDate()));
-
-    return resolvedFeatureList;
-  }
 
   private ModularFeatureList createNewFeatureList(ModularFeatureList originalFeatureList) {
     if (originalFeatureList.getRawDataFiles().size() > 1) {

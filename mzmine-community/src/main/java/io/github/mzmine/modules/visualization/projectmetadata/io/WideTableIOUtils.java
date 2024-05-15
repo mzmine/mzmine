@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,11 +30,11 @@ import static io.github.mzmine.modules.visualization.projectmetadata.table.colum
 import com.opencsv.ICSVWriter;
 import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.StringMetadataColumn;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.CSVParsingUtils;
 import io.github.mzmine.util.io.WriterOptions;
 import java.io.File;
@@ -116,7 +116,7 @@ public class WideTableIOUtils implements TableIOUtils {
       logger.info("Header was successfully written down");
 
       // write the parameters value down
-      RawDataFile[] files = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+      RawDataFile[] files = ProjectService.getProject().getDataFiles();
       for (var rawDataFile : files) {
         List<String> lineFieldsValues = new ArrayList<>(List.of(rawDataFile.getName()));
         for (var column : data.entrySet()) {
@@ -178,6 +178,7 @@ public class WideTableIOUtils implements TableIOUtils {
 
       // found header?
       if (titles == null) {
+        logger.warning(() -> "Did not find column headers.");
         return false;
       }
 
@@ -236,7 +237,7 @@ public class WideTableIOUtils implements TableIOUtils {
       String[] fileNames = columnData[0];
       Map<String, RawDataFile> raws = new HashMap<>(fileNames.length);
       for (String name : fileNames) {
-        raws.put(name, MZmineCore.getProject().getDataFileByName(name));
+        raws.put(name, ProjectService.getProject().getDataFileByName(name));
       }
 
       // finally add data to the columns: start at 1 after data files column

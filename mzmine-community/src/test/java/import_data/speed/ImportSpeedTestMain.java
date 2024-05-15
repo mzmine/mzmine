@@ -26,14 +26,23 @@
 package import_data.speed;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilter;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWizardOptions;
+import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.project.ProjectService;
+import io.github.mzmine.util.io.WriterOptions;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -51,12 +60,13 @@ import testutils.TaskResult.FINISHED;
 public class ImportSpeedTestMain {
 
   static final List<String> thermo = List.of("rawdatafiles/additional/astral.raw");
+  static final List<String> gc = List.of("D:\\Data\\convert_test\\speedtest\\gc_orbi_profle\\64_zlib_lin_int\\gc_orbi_profile_a.mzML");
   static final List<String> dom = List.of("""
       rawdatafiles/DOM_a.mzML
       rawdatafiles/DOM_a_invalid_chars.mzML
       rawdatafiles/DOM_a_invalid_header.mzML
           """.split("\n"));
-  public static String speedTestFile = "D:\\git\\mzmine3\\src\\test\\java\\import_data\\speed\\speed.jsonlines";
+  public static String speedTestFile = "D:\\git\\mzmine3\\mzmine-community\\src\\test\\java\\import_data\\speed\\speed.jsonlines";
 
 
   private static final Logger logger = Logger.getLogger(ImportSpeedTestMain.class.getName());
@@ -67,12 +77,13 @@ public class ImportSpeedTestMain {
     MZmineCore.main(new String[]{"-r", "-m", "all"});
 
     try {
-      var description = "mzml parser, first review, aalto stream reader";
+      var description = "mzml parser, advanced, RT filter 5min";
 
 
       for (int i = 0; i < 3; i++) {
-        testImportSpeed("Robin, Import, Astral", description, thermo, speedTestFile);
-        testImportSpeed("Robin, import, dom", description, dom, speedTestFile);
+        testImportSpeed("Robin, Import, Astral", description, gc, speedTestFile);
+//        testImportSpeed("Robin, Import, Astral", description, thermo, speedTestFile);
+//        testImportSpeed("Robin, import, dom", description, dom, speedTestFile);
       }
 
       System.exit(0);
@@ -88,20 +99,27 @@ public class ImportSpeedTestMain {
   private static void testImportSpeed(final String name, final String description,
       final List<String> files, final String speedTestFile)
       throws InterruptedException, IOException {
-    TaskResult finished = importFiles(files, 5 * 60, null);
+
+    var selection = new ScanSelection(1, Range.closed(30f, 35f));
+    var advanced = AdvancedSpectraImportParameters.create(
+        MassDetectorWizardOptions.FACTOR_OF_LOWEST_SIGNAL, 1E5, 1E3, Range.closed(100d, 1000d),
+        selection, true);
+    TaskResult finished = importFiles(files, 5 * 60, advanced);
 
     if (finished instanceof FINISHED f) {
       var sm = new SpeedMeasurement(name, null, description, files.size(), f.getSeconds());
       appendToFile(speedTestFile, sm);
     }
 
-    MZmineCore.getProjectManager().clearProject();
+    ProjectService.getProjectManager().clearProject();
   }
 
   private static void appendToFile(final String speedTestFile, final SpeedMeasurement sm)
       throws IOException {
     var file = new File(speedTestFile);
-    try (var fileWriter = new FileWriter(file, true)) {
+
+    try (var fileWriter = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8,
+        WriterOptions.APPEND.toOpenOption())) {
       var jsonWriter = new ObjectMapper();
       String str = jsonWriter.writeValueAsString(sm);
       fileWriter.append(str).append('\n');

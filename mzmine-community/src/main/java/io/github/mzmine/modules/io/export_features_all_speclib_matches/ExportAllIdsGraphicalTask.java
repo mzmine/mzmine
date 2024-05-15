@@ -46,6 +46,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.SimpleChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -142,7 +143,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
     totalIds = Arrays.stream(flists).mapToInt(FeatureList::getNumberOfRows).sum();
 
     if (MZmineCore.isHeadLessMode()) {
-      MZmineCore.initJavaFxInHeadlessMode();
+      FxThread.initJavaFxInHeadlessMode();
     }
 
     try {
@@ -256,7 +257,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
   }
 
   private void exportPdfAndPng(File exportFile, ParameterSet exportClone, JFreeChart chart) {
-    MZmineCore.runOnFxThreadAndWait(() -> {
+    FxThread.runOnFxThreadAndWait(() -> {
       final GraphicsExportDialogFX dialog = new GraphicsExportDialogFX(true, exportClone, chart);
       if (exportPdf) {
         File export = FileAndPathUtil.getRealFilePath(exportFile, "pdf");
@@ -323,7 +324,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
       return;
     }
 
-    MZmineCore.runLaterEnsureFxInitialized(() -> {
+    FxThread.runLaterEnsureFxInitialized(() -> {
       int width = 800;
       int height = 400;
 
@@ -399,7 +400,7 @@ public class ExportAllIdsGraphicalTask extends AbstractTask {
       spectraPlot.setTitle(lipid.getLipidAnnotation().getAnnotation(),
           form.mz(lipid.getAccurateMz()) + " " + Objects.requireNonNullElse(lipid.getComment(),
               ""));
-      MZmineCore.runOnFxThreadAndWait(() -> {
+      FxThread.runOnFxThreadAndWait(() -> {
         GraphicsExportDialogFX dialog = new GraphicsExportDialogFX(false, exportParameters,
             spectraPlot.getChart());
         if (exportPdf) {

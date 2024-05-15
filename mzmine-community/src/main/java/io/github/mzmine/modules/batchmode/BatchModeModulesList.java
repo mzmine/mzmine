@@ -28,19 +28,16 @@ package io.github.mzmine.modules.batchmode;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.dataanalysis.feat_ms2_similarity_intra.IntraFeatureRowMs2SimilarityModule;
+import io.github.mzmine.modules.dataanalysis.pca_new.PCAModule;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.PrecursorPurityCheckerModule;
-import io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule;
-import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule;
-import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule;
-import io.github.mzmine.modules.dataprocessing.align_hierarchical.HierarAlignerGcModule;
+import io.github.mzmine.modules.dataanalysis.statsdashboard.StatsDasboardModule;
+import io.github.mzmine.modules.dataanalysis.volcanoplot.VolcanoPlotModule;
+import io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_path.PathAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_ransac.RansacAlignerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adap3d.ADAP3DModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselineFeatureResolverModule;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule;
@@ -58,9 +55,9 @@ import io.github.mzmine.modules.dataprocessing.featdet_msn_tree.MsnTreeFeatureDe
 import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter.ShoulderPeaksFilterModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
+import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
 import io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule;
 import io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule;
-import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule;
 import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule;
 import io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule;
@@ -91,7 +88,6 @@ import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrela
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingModule;
-import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.ExternalCCSCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule;
@@ -118,7 +114,6 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
-import io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule;
@@ -150,7 +145,6 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportModule;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportModule;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportModule;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportModule;
-import io.github.mzmine.modules.io.import_rawdata_waters_raw.WatersRawImportModule;
 import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportModule;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
@@ -205,14 +199,13 @@ public class BatchModeModulesList {
        */
       AllSpectralDataImportModule.class, //
       TDFImportModule.class, //
-      MzMLImportModule.class, //
       ImzMLImportModule.class, //
       MzDataImportModule.class, //
       MSDKmzMLImportModule.class, //
       MzXMLImportModule.class, //
       NetCDFImportModule.class, //
       ThermoRawImportModule.class, //
-      WatersRawImportModule.class, //
+//      WatersRawImportModule.class, //
       ZipImportModule.class, //
       SpectralLibraryImportModule.class, //
       SpectralLibraryToFeatureListModule.class, //
@@ -237,7 +230,6 @@ public class BatchModeModulesList {
        * {@link io.github.mzmine.modules.MZmineModuleCategory#RAWDATAFILTERING}
        */
       AlignScansModule.class, //
-      BaselineCorrectionModule.class, //
       CropFilterModule.class, //
       ShoulderPeaksFilterModule.class, //
       ScanSignalRemovalModule.class, //
@@ -267,8 +259,9 @@ public class BatchModeModulesList {
       ImageBuilderModule.class, //
       MsnFeatureDetectionModule.class, //
       TargetedFeatureDetectionModule.class, //
-      ADAPHierarchicalClusteringModule.class, //
-      ADAPMultivariateCurveResolutionModule.class, //
+//      ADAPHierarchicalClusteringModule.class, //
+//      ADAPMultivariateCurveResolutionModule.class, //
+      SpectralDeconvolutionGCModule.class, //
       ADAP3DModule.class, //
       ImsExpanderModule.class, //
       MaldiSpotFeatureDetectionModule.class, //
@@ -278,9 +271,7 @@ public class BatchModeModulesList {
        * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_RESOLVING}
        */
       SmoothingModule.class, //
-      AdapResolverModule.class, //
-      BaselineFeatureResolverModule.class, //
-      CentWaveResolverModule.class, //
+//      AdapResolverModule.class, //
       MinimumSearchFeatureResolverModule.class, //
       NoiseAmplitudeResolverModule.class, //
       SavitzkyGolayResolverModule.class, //
@@ -290,8 +281,9 @@ public class BatchModeModulesList {
        * {@link io.github.mzmine.modules.MZmineModuleCategory#ALIGNMENT}
        */
       JoinAlignerModule.class, //
-      ADAP3AlignerModule.class, //
-      HierarAlignerGcModule.class, //
+      GCAlignerModule.class, //
+//      ADAP3AlignerModule.class, //
+//      HierarAlignerGcModule.class, // not MIT compatible license
       PathAlignerModule.class, //
       RansacAlignerModule.class, //
 
@@ -348,7 +340,6 @@ public class BatchModeModulesList {
       /*
         {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_ANNOTATION}
        */
-      CameraSearchModule.class, //
       CCSCalcModule.class, //
       ExternalCCSCalibrationModule.class, //
       ReferenceCCSCalibrationModule.class, //
@@ -444,7 +435,12 @@ public class BatchModeModulesList {
       KendrickMassPlotModule.class, //
       VanKrevelenDiagramModule.class, //
       EquivalentCarbonNumberModule.class, //
-      LipidAnnotationSummaryModule.class //
+      LipidAnnotationSummaryModule.class, //
+
+      // stats
+      StatsDasboardModule.class, //
+      PCAModule.class, //
+      VolcanoPlotModule.class //
 
   );
 

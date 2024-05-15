@@ -26,6 +26,7 @@
 package io.github.mzmine.gui.chartbasics.gui.javafx;
 
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportModule;
@@ -37,15 +38,13 @@ import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxesRangeChangedListener;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.SaveImage;
-import io.github.mzmine.util.SaveImage.FileType;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.io.XSSFExcelWriterReader;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,8 +61,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -93,12 +90,11 @@ import org.jfree.data.xy.XYZDataset;
 public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
   private static final Logger logger = Logger.getLogger(EChartViewer.class.getName());
-  private final Menu exportMenu;
   // one history for each plot/subplot
   protected ZoomHistory zoomHistory;
   protected List<AxesRangeChangedListener> axesRangeListener;
   protected boolean isMouseZoomable = true;
-  protected boolean stickyZeroForRangeAxis = false;
+  protected boolean stickyZeroForRangeAxis = true;
   protected boolean standardGestures = true;
   // only for XYData (not for categoryPlots)
   protected boolean addZoomHistory = true;
@@ -109,7 +105,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
    * stickyZeroForRangeAxis = false <br> Graphics and data export menu are added
    */
   public EChartViewer() {
-    this(null, true, true, true, true, false);
+    this(null, true, true, true, true, true);
   }
 
   /**
@@ -119,7 +115,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
    * @param chart
    */
   public EChartViewer(JFreeChart chart) {
-    this(chart, true, true, true, true, false);
+    this(chart, true, true, true, true, true);
   }
 
   /**
@@ -133,7 +129,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
    */
   public EChartViewer(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
       boolean standardGestures) {
-    this(chart, graphicsExportMenu, dataExportMenu, standardGestures, false);
+    this(chart, graphicsExportMenu, dataExportMenu, standardGestures, true);
   }
 
   /**
@@ -172,7 +168,8 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       ChartLogicsFX.setAxesMargins(getChart(), 0.05);
     }
 
-    exportMenu = (Menu) getContextMenu().getItems().get(0);
+    // remove the standard export
+    getContextMenu().getItems().remove(0);
 
     // Add Export to Excel and graphics export menu
     if (graphicsExportMenu || dataExportMenu) {
@@ -190,10 +187,6 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       AxesSetupDialog dialog = new AxesSetupDialog(this.getScene().getWindow(), chart.getXYPlot());
       dialog.show();
     });
-
-    addMenuItem(exportMenu, "EPS..", event -> handleSave("EMF Image", "EMF", ".emf", FileType.EMF));
-
-    addMenuItem(exportMenu, "EMF..", event -> handleSave("EPS Image", "EPS", ".eps", FileType.EPS));
 
     addMenuItem(getContextMenu(), "Copy chart to clipboard", event -> {
       BufferedImage bufferedImage = getChart().createBufferedImage((int) this.getWidth(),
@@ -221,27 +214,6 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       }
     });
 
-  }
-
-  private void handleSave(String description, String extensions, String extension,
-      FileType filetype) {
-    FileChooser chooser = new FileChooser();
-    chooser.getExtensionFilters().add(new ExtensionFilter(description, extensions));
-    File file = chooser.showSaveDialog(null);
-
-    if (file != null) {
-      String filepath = file.getPath();
-      if (!filepath.toLowerCase().endsWith(extension)) {
-        filepath += extension;
-      }
-
-      int width = (int) this.getWidth();
-      int height = (int) this.getHeight();
-
-      // Save image
-      SaveImage SI = new SaveImage(getChart(), filepath, width, height, filetype);
-      new Thread(SI).start();
-    }
   }
 
   protected void addMenuItem(Menu parent, String title, EventHandler<ActionEvent> al) {
@@ -278,19 +250,11 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
     if (chartPanel.getChart().getPlot() instanceof XYPlot) {
       // set sticky zero
-      if (stickyZeroForRangeAxis) {
-        ValueAxis rangeAxis = chartPanel.getChart().getXYPlot().getRangeAxis();
-        if (rangeAxis instanceof NumberAxis axis) {
-          axis.setAutoRangeIncludesZero(true);
-          axis.setAutoRange(true);
-          axis.setAutoRangeStickyZero(true);
-          axis.setRangeType(RangeType.POSITIVE);
-        }
-      }
+      setStickyZeroRangeAxis(this.stickyZeroForRangeAxis);
 
       Plot p = getChart().getPlot();
       if (addZoomHistory && p instanceof XYPlot && !(p instanceof CombinedDomainXYPlot
-                                                     || p instanceof CombinedRangeXYPlot)) {
+          || p instanceof CombinedRangeXYPlot)) {
         // zoom history
         zoomHistory = new ZoomHistory(this, 20);
 
@@ -337,6 +301,16 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
         }
       }
       //      mouseAdapter.addDebugHandler();
+    }
+  }
+
+  public void setStickyZeroRangeAxis(boolean stickyZeroForRangeAxis) {
+    ValueAxis rangeAxis = this.getChart().getXYPlot().getRangeAxis();
+    if (rangeAxis instanceof NumberAxis axis) {
+      axis.setAutoRangeIncludesZero(stickyZeroForRangeAxis);
+      axis.setAutoRangeStickyZero(stickyZeroForRangeAxis);
+      axis.setRangeType(stickyZeroForRangeAxis ? RangeType.POSITIVE : RangeType.FULL);
+      axis.setAutoRange(true);
     }
   }
 
@@ -402,77 +376,80 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
    * @return Data array[columns][rows]
    */
   public Object[][] getDataArrayForExport() {
-    if (getChart().getPlot() instanceof XYPlot && getChart().getXYPlot() != null
-      /*&& getChart().getXYPlot().getDataset() != null*/) { // getDataset() may be null if the
-      // first dataset was removed, but the plot may still hold other datasets
-      try {
-        List<Object[]> modelList = new ArrayList<>();
-
-        for (int d = 0; d < getChart().getXYPlot().getDatasetCount(); d++) {
-          XYDataset data = getChart().getXYPlot().getDataset(d);
-          if (data instanceof XYZDataset xyz) {
-            int series = data.getSeriesCount();
-            Object[][] model = new Object[series * 3][];
-            for (int s = 0; s < series; s++) {
-              int size = 2 + xyz.getItemCount(s);
-              Object[] x = new Object[size];
-              Object[] y = new Object[size];
-              Object[] z = new Object[size];
-              // create new Array model[row][col]
-              // Write header
-              Comparable title = data.getSeriesKey(series);
-              x[0] = title;
-              y[0] = "";
-              z[0] = "";
-              x[1] = getChart().getXYPlot().getDomainAxis().getLabel();
-              y[1] = getChart().getXYPlot().getRangeAxis().getLabel();
-              z[1] = "z-axis";
-              // write data
-              for (int i = 0; i < xyz.getItemCount(s); i++) {
-                x[i + 2] = xyz.getX(s, i);
-                y[i + 2] = xyz.getY(s, i);
-                z[i + 2] = xyz.getZ(s, i);
-              }
-              model[s * 3] = x;
-              model[s * 3 + 1] = y;
-              model[s * 3 + 2] = z;
-            }
-
-            Collections.addAll(modelList, model);
-          } else if (data != null) {
-            int series = data.getSeriesCount();
-            Object[][] model = new Object[series * 2][];
-            for (int s = 0; s < series; s++) {
-              int size = 2 + data.getItemCount(s);
-              Object[] x = new Object[size];
-              Object[] y = new Object[size];
-              // create new Array model[row][col]
-              // Write header
-              Comparable title = data.getSeriesKey(s);
-              x[0] = title;
-              y[0] = "";
-              x[1] = getChart().getXYPlot().getDomainAxis().getLabel();
-              y[1] = getChart().getXYPlot().getRangeAxis().getLabel();
-              // write data
-              for (int i = 0; i < data.getItemCount(s); i++) {
-                x[i + 2] = data.getX(s, i);
-                y[i + 2] = data.getY(s, i);
-              }
-              model[s * 2] = x;
-              model[s * 2 + 1] = y;
-            }
-
-            Collections.addAll(modelList, model);
-          }
-        }
-
-        return modelList.toArray(new Object[modelList.size()][]);
-      } catch (Exception ex) {
-        logger.log(Level.WARNING, "Cannot retrieve data for export", ex);
-        return null;
-      }
+    if (!(getChart().getPlot() instanceof XYPlot plot)) {
+      return null;
     }
-    return null;
+    // getDataset() may be null if the
+    // first dataset was removed, but the plot may still hold other datasets
+    try {
+      List<Object[]> modelList = new ArrayList<>();
+
+      int numDatasets = JFreeChartUtils.getDatasetCountNullable(plot);
+      for (int d = 0; d < numDatasets; d++) {
+        XYDataset data = plot.getDataset(d);
+        if (data == null) {
+          continue;
+        } else if (data instanceof XYZDataset xyz) {
+          int series = data.getSeriesCount();
+          Object[][] model = new Object[series * 3][];
+          for (int s = 0; s < series; s++) {
+            int size = 2 + xyz.getItemCount(s);
+            Object[] x = new Object[size];
+            Object[] y = new Object[size];
+            Object[] z = new Object[size];
+            // create new Array model[row][col]
+            // Write header
+            Comparable title = data.getSeriesKey(series);
+            x[0] = title;
+            y[0] = "";
+            z[0] = "";
+            x[1] = plot.getDomainAxis().getLabel();
+            y[1] = plot.getRangeAxis().getLabel();
+            z[1] = "z-axis";
+            // write data
+            for (int i = 0; i < xyz.getItemCount(s); i++) {
+              x[i + 2] = xyz.getX(s, i);
+              y[i + 2] = xyz.getY(s, i);
+              z[i + 2] = xyz.getZ(s, i);
+            }
+            model[s * 3] = x;
+            model[s * 3 + 1] = y;
+            model[s * 3 + 2] = z;
+          }
+
+          Collections.addAll(modelList, model);
+        } else if (data != null) {
+          int series = data.getSeriesCount();
+          Object[][] model = new Object[series * 2][];
+          for (int s = 0; s < series; s++) {
+            int size = 2 + data.getItemCount(s);
+            Object[] x = new Object[size];
+            Object[] y = new Object[size];
+            // create new Array model[row][col]
+            // Write header
+            Comparable title = data.getSeriesKey(s);
+            x[0] = title;
+            y[0] = "";
+            x[1] = plot.getDomainAxis().getLabel();
+            y[1] = plot.getRangeAxis().getLabel();
+            // write data
+            for (int i = 0; i < data.getItemCount(s); i++) {
+              x[i + 2] = data.getX(s, i);
+              y[i + 2] = data.getY(s, i);
+            }
+            model[s * 2] = x;
+            model[s * 2 + 1] = y;
+          }
+
+          Collections.addAll(modelList, model);
+        }
+      }
+
+      return modelList.toArray(new Object[modelList.size()][]);
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Cannot retrieve data for export", ex);
+      return null;
+    }
   }
 
   public void addAxesRangeChangedListener(AxesRangeChangedListener l) {
@@ -613,7 +590,7 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       // reset to old state and run changes if true
       setNotifyChange(afterRunState);
       if (afterRunState) {
-        MZmineCore.runLater(() -> fireChangeEvent());
+        FxThread.runLater(() -> fireChangeEvent());
       }
     }
   }
@@ -630,6 +607,16 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
     marker.setPaint(color);
     marker.setAlpha(alpha);
     getChart().getXYPlot().addDomainMarker(marker, Layer.BACKGROUND);
+    return marker;
+  }
+
+  public Marker addRangeMarker(double value, Color color, float alpha) {
+    final ValueMarker marker = new ValueMarker(value);
+    marker.setStroke(
+        new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{7}, 0f));
+    marker.setPaint(color);
+    marker.setAlpha(alpha);
+    getChart().getXYPlot().addRangeMarker(marker, Layer.BACKGROUND);
     return marker;
   }
 

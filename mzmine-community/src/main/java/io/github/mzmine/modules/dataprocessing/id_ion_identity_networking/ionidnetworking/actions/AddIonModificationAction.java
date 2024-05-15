@@ -28,7 +28,6 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionid
 
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonModificationType;
-import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -41,9 +40,7 @@ import javafx.event.EventHandler;
 
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
-import javax.swing.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 
 /**

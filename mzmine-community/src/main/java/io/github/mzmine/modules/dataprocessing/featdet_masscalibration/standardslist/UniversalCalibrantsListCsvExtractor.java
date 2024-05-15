@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,13 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist;
 
-import com.Ostermiller.util.CSVParser;
-import com.Ostermiller.util.LabeledCSVParser;
-import java.io.FileInputStream;
+import com.opencsv.exceptions.CsvException;
+import io.github.mzmine.util.CSVParsingUtils;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 
@@ -48,8 +49,6 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
 
   protected String filename;
 
-  protected LabeledCSVParser csvReader;
-
   protected ArrayList<StandardsListItem> extractedData;
 
   /**
@@ -60,7 +59,6 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
    */
   public UniversalCalibrantsListCsvExtractor(String filename) throws IOException {
     this.filename = filename;
-    this.csvReader = new LabeledCSVParser(new CSVParser(new FileInputStream(filename)));
   }
 
   /**
@@ -73,7 +71,6 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
   public UniversalCalibrantsListCsvExtractor(String filename, InputStream inputStream)
       throws IOException {
     this.filename = filename;
-    this.csvReader = new LabeledCSVParser(new CSVParser(inputStream));
   }
 
   /**
@@ -82,7 +79,7 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
    * @return new standards list object
    * @throws IOException thrown when issues extracting from the file occur
    */
-  public StandardsList extractStandardsList() throws IOException {
+  public StandardsList extractStandardsList() throws IOException, CsvException {
     logger.fine("Extracting universal calibrants list " + filename);
 
     if (this.extractedData != null) {
@@ -91,8 +88,8 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
     }
     this.extractedData = new ArrayList<>();
 
-    String[] lineValues;
-    while ((lineValues = csvReader.getLine()) != null) {
+    List<String[]> lines = CSVParsingUtils.readData(new File(filename), ",");
+    for (String[] lineValues : lines) {
       try {
         String mzRatioString = lineValues[mzRatioColumn];
         String name = nameColumn < lineValues.length ? lineValues[nameColumn] : null;
@@ -103,27 +100,18 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
         }
         extractedData.add(calibrant);
       } catch (Exception e) {
-        logger.fine("Exception occurred when reading row index " + csvReader.getLastLineNumber());
+        logger.fine(STR."Exception occurred when reading row index \{lines.indexOf(lineValues)}");
         logger.fine(e.toString());
       }
     }
 
-    logger.info("Extracted " + extractedData.size() + " universal calibrants from "
-        + csvReader.getLastLineNumber() + " rows");
-    if (extractedData.size() < csvReader.getLastLineNumber()) {
-      logger.warning("Skipped " + (csvReader.getLastLineNumber() - extractedData.size())
-          + " rows when reading universal calibrants in csv file " + filename);
+    logger.info(
+        STR."Extracted \{extractedData.size()} standard molecules from \{lines.size()} rows");
+    if (extractedData.size() < lines.size()) {
+      logger.warning(STR."Skipped \{lines.size()
+          - extractedData.size()} rows when reading standards list in csv file \{filename}");
     }
 
     return new StandardsList(extractedData);
-  }
-
-  @Override
-  public void closeInputStreams() {
-    try {
-      csvReader.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
   }
 }

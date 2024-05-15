@@ -38,7 +38,6 @@ import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
@@ -54,11 +53,18 @@ import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import testutils.MZmineTestUtil;
 
 public class MobilityScanTest {
 
   private static final Logger logger = Logger.getLogger(MobilityScanTest.class.getName());
+
+  @BeforeAll
+  public static void initialize() {
+    MZmineTestUtil.startMzmineCore();
+  }
 
   @Test
   public void doubleBufferTest() {
@@ -240,9 +246,6 @@ public class MobilityScanTest {
 
   @Test
   void testMobilityScanDataAccessMassList() throws IOException, MissingMassListException {
-
-    MZmineCore.main(new String[]{"-r", "-m", "all"});
-
     IMSRawDataFile file = createRawDataFile();
 
     MassDetector centroidMassDetector = new CentroidMassDetector(0.45d);

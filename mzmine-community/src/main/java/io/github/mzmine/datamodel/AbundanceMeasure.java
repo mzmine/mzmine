@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Used to define the abundance of features
@@ -46,9 +47,20 @@ public enum AbundanceMeasure {
     return type;
   }
 
-  public Float get(ModularDataModel featureOrRow) {
-    if(featureOrRow == null) {
+  /**
+   * @param featureOrRow The feature or row
+   * @return The abundance or null if the feature/row is null or no abundance is set.
+   */
+  public Float get(@Nullable ModularDataModel featureOrRow) {
+    if (featureOrRow == null) {
       return null;
+    }
+    return featureOrRow.get(type);
+  }
+
+  public Float getOrNaN(@Nullable ModularDataModel featureOrRow) {
+    if (featureOrRow == null) {
+      return Float.NaN;
     }
     return featureOrRow.get(type);
   }

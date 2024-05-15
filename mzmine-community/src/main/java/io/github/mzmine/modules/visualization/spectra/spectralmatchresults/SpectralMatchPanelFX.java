@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,20 +25,21 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
+import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
+import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.color.ColorScaleUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.util.MirrorChartFactory;
-import io.github.mzmine.util.color.ColorScaleUtil;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.io.ClipboardWriter;
-import io.github.mzmine.util.javafx.FxColorUtil;
-import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
@@ -82,13 +83,6 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.Range;
-import org.openscience.cdk.DefaultChemObjectBuilder;
-import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.exception.InvalidSmilesException;
-import org.openscience.cdk.inchi.InChIGeneratorFactory;
-import org.openscience.cdk.inchi.InChIToStructure;
-import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.smiles.SmilesParser;
 
 public class SpectralMatchPanelFX extends GridPane {
 
@@ -101,8 +95,6 @@ public class SpectralMatchPanelFX extends GridPane {
       "icons/exp_graph_all.png");
   protected static final Image iconPdf = FxIconUtil.loadImageFromResources(
       "icons/exp_graph_pdf.png");
-  protected static final Image iconEps = FxIconUtil.loadImageFromResources(
-      "icons/exp_graph_eps.png");
   protected static final Image iconEmf = FxIconUtil.loadImageFromResources(
       "icons/exp_graph_emf.png");
   protected static final Image iconSvg = FxIconUtil.loadImageFromResources(
@@ -256,12 +248,12 @@ public class SpectralMatchPanelFX extends GridPane {
     Node newComponent = null;
 
     // check for INCHI
-    IAtomContainer molecule = parseStructure(hit);
+    MolecularStructure molecule = hit.getStructure();
 
     // try to draw the component
     if (molecule != null) {
       try {
-        newComponent = new Structure2DComponent(molecule, theme.getRegularFont());
+        newComponent = new Structure2DComponent(molecule.structure());
       } catch (Exception e) {
         String errorMessage = "Could not load 2D structure\n" + "Exception: ";
         logger.log(Level.WARNING, errorMessage, e);
@@ -325,25 +317,6 @@ public class SpectralMatchPanelFX extends GridPane {
     return new BorderPane(library);
   }
 
-  private IAtomContainer parseStructure(final SpectralDBAnnotation hit) {
-    String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("n/a").toString();
-    String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("n/a").toString();
-    if (!inchiString.equalsIgnoreCase("n/a") && !inchiString.isBlank()) {
-      var molecule = parseInChi(hit);
-      if (molecule != null) {
-        return molecule;
-      }
-    }
-    // check for smiles
-    if (!smilesString.equalsIgnoreCase("n/a") && !smilesString.isBlank()) {
-      var molecule = parseSmiles(hit);
-      if (molecule != null) {
-        return molecule;
-      }
-    }
-    return null;
-  }
-
   private void coupleZoomYListener() {
     CombinedDomainXYPlot domainPlot = (CombinedDomainXYPlot) mirrorChart.getChart().getXYPlot();
     NumberAxis axis = (NumberAxis) domainPlot.getDomainAxis();
@@ -396,45 +369,6 @@ public class SpectralMatchPanelFX extends GridPane {
   public void setCoupleZoomY(boolean selected) {
     setCoupleZoomY = selected;
   }
-
-  private IAtomContainer parseInChi(SpectralDBAnnotation hit) {
-    String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("n/a").toString();
-    InChIGeneratorFactory factory;
-    IAtomContainer molecule;
-    if (inchiString.equalsIgnoreCase("n/a") || inchiString.isBlank()) {
-      return null;
-    }
-    try {
-      factory = InChIGeneratorFactory.getInstance();
-      // Get InChIToStructure
-      InChIToStructure inchiToStructure = factory.getInChIToStructure(inchiString,
-          DefaultChemObjectBuilder.getInstance());
-      molecule = inchiToStructure.getAtomContainer();
-      return molecule;
-    } catch (CDKException e) {
-      String errorMessage = "Could not load 2D structure\n" + "Exception: ";
-      logger.log(Level.WARNING, errorMessage, e);
-      return null;
-    }
-  }
-
-  private IAtomContainer parseSmiles(SpectralDBAnnotation hit) {
-    SmilesParser smilesParser = new SmilesParser(DefaultChemObjectBuilder.getInstance());
-    String smilesString = hit.getEntry().getField(DBEntryField.SMILES).orElse("n/a").toString();
-    IAtomContainer molecule;
-    if (smilesString.equalsIgnoreCase("n/a") || smilesString.isBlank()) {
-      return null;
-    }
-    try {
-      molecule = smilesParser.parseSmiles(smilesString);
-      return molecule;
-    } catch (InvalidSmilesException e1) {
-      String errorMessage = "Could not load 2D structure\n" + "Exception: ";
-      logger.log(Level.WARNING, errorMessage, e1);
-      return null;
-    }
-  }
-
 
   private BorderPane extractMetaData(String title, SpectralLibraryEntry entry,
       DBEntryField[] other) {
@@ -530,16 +464,6 @@ public class SpectralMatchPanelFX extends GridPane {
       btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
       btnExport.setOnAction(e -> exportToGraphics("emf"));
       pnExport.add(btnExport, 0, 2);
-    }
-
-    if (param.getParameter(SpectraIdentificationResultsParameters.eps).getValue()) {
-      ImageView img = new ImageView(iconEps);
-      img.setPreserveRatio(true);
-      img.setFitWidth(ICON_WIDTH);
-      btnExport = new Button(null, img);
-      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
-      btnExport.setOnAction(e -> exportToGraphics("eps"));
-      pnExport.add(btnExport, 0, 3);
     }
 
     //TODO SVG broken somehow

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,12 +28,13 @@ package io.github.mzmine.modules.visualization.spectra.msn_tree;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
@@ -51,11 +52,11 @@ public class MSnTreeVisualizerModule implements MZmineRunnableModule {
     FeatureList[] flists = MZmineCore.getDesktop().getSelectedPeakLists();
     if ((raw == null || raw.length == 0) && (flists == null || flists.length == 0)) {
       DialogLoggerUtil.showMessageDialogForTime("Selection needed",
-          "Select a data file or feature to open the MSn tree", 5000);
+          "Select a data file or feature list in the main window to open the MSn tree", 5000);
       return;
     }
 
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       MSnTreeTab tab = new MSnTreeTab();
       MZmineCore.getDesktop().addTab(tab);
       if (raw != null && raw.length > 0) {

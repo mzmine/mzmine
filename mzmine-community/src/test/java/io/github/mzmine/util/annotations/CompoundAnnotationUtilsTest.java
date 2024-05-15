@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,10 +30,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.util.collections.SortOrder;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,5 +104,24 @@ class CompoundAnnotationUtilsTest {
 
     assertTrue(compoundB.getScore() <= compoundA.getScore(),
         "Score sorting descending did not work");
+  }
+
+  @Test
+  void rankUniqueAnnotationTypes() {
+    List<DataType> types = DataTypes.getAll(FormulaType.class, MZType.class, SmilesStructureType.class,
+        LipidMatchListType.class, SpectralLibraryMatchesType.class, MissingValueType.class,
+        MissingValueType.class);
+    var map = CompoundAnnotationUtils.rankUniqueAnnotationTypes((Collection) types,
+        SortOrder.DESCENDING);
+    assertEquals(3, map.size());
+    assertEquals(0, map.get(DataTypes.get(SpectralLibraryMatchesType.class)));
+    assertEquals(1, map.get(DataTypes.get(LipidMatchListType.class)));
+    assertEquals(2, map.get(DataTypes.get(MissingValueType.class)));
+    map = CompoundAnnotationUtils.rankUniqueAnnotationTypes((Collection) types,
+        SortOrder.ASCENDING);
+    assertEquals(3, map.size());
+    assertEquals(0, map.get(DataTypes.get(MissingValueType.class)));
+    assertEquals(1, map.get(DataTypes.get(LipidMatchListType.class)));
+    assertEquals(2, map.get(DataTypes.get(SpectralLibraryMatchesType.class)));
   }
 }

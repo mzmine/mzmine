@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.AbstractTaskXYZDataset;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -59,10 +60,6 @@ public class TICDataSet extends AbstractTaskXYZDataset {
   private static final long serialVersionUID = 1L;
   // For comparing small differences.
   private static final double EPSILON = 0.0000001;
-  // Refresh interval (in milliseconds).
-  private static final long REDRAW_INTERVAL = 100L;
-  // Last time the data set was redrawn.
-  private static long lastRedrawTime = System.currentTimeMillis();
   // Logger.
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final RawDataFile dataFile;
@@ -190,7 +187,6 @@ public class TICDataSet extends AbstractTaskXYZDataset {
         status = TaskStatus.FINISHED;
       }
     } catch (Throwable t) {
-      t.printStackTrace();
       logger.log(Level.SEVERE, "Problem calculating data set values for " + dataFile, t);
       status = TaskStatus.ERROR;
       errorMessage = t.getMessage();
@@ -347,6 +343,12 @@ public class TICDataSet extends AbstractTaskXYZDataset {
     // Determine plot type (now done from constructor).
     final TICPlotType plotType = this.plotType;
 
+    // should be changed to something like this in the future, rather redo whole plot
+//    ExtractMzRangesIonSeriesFunction extractor = new ExtractMzRangesIonSeriesFunction(dataFile, scans,
+//        List.of(mzRange), ScanDataType.RAW, this);
+//    extractor.setIntensityMode(IntensityMode.from(plotType));
+//    var series = Arrays.stream(extractor.get()).findFirst();
+
     if (scans.isEmpty()) {
       return;
     }
@@ -355,7 +357,7 @@ public class TICDataSet extends AbstractTaskXYZDataset {
         scans.get(scans.size() - 1).getRetentionTime()) == 0;
     if (useScanNumberAsRt && window != null) {
       final NumberAxis axis = (NumberAxis) window.getTICPlot().getXYPlot().getDomainAxis();
-      MZmineCore.runLater(() -> axis.setLabel("Scan number"));
+      FxThread.runLater(() -> axis.setLabel("Scan number"));
     }
 
     // Process each scan.
@@ -403,16 +405,6 @@ public class TICDataSet extends AbstractTaskXYZDataset {
       }
 
       processedScans++;
-
-      // Refresh every REDRAW_INTERVAL ms.
-      synchronized (TICDataSet.class) {
-
-        if (System.currentTimeMillis() - lastRedrawTime > REDRAW_INTERVAL) {
-
-          refresh();
-          lastRedrawTime = System.currentTimeMillis();
-        }
-      }
     }
   }
 

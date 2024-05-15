@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,14 +25,19 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.boldText;
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -44,6 +49,7 @@ import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.layout.Region;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ProjectSaveAsParameters extends SimpleParameterSet {
@@ -55,8 +61,8 @@ public class ProjectSaveAsParameters extends SimpleParameterSet {
   public static final ComboParameter<ProjectSaveOption> option = new ComboParameter<>(
       "Project type",
       "Referencing projects point to the original directory of raw data files (with those projects "
-      + "files should not be moved or renamed). Standalone copies the raw data files into the project, "
-      + "creating a large but flexible project that can be shared.", ProjectSaveOption.values(),
+          + "files should not be moved or renamed). Standalone copies the raw data files into the project, "
+          + "creating a large but flexible project that can be shared.", ProjectSaveOption.values(),
       ProjectSaveOption.REFERENCING);
   public static final FileNameParameter projectFile = new FileNameParameter("Project file",
       "File name of project to be saved", extensions, FileSelectionType.SAVE);
@@ -70,15 +76,17 @@ public class ProjectSaveAsParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     assert Platform.isFxApplicationThread();
 
-    final String message = """
-        There are currently two project formats supported:</br>
-        <b>Standalone</b>: Adds the raw data files into a project (large but flexible)</br>
-        <b>Referencing</b>: The project will point to the current files used. Any rename, move, or 
-        remove of a file from their current directory might lead to incompatibility of the project.</br>
-        <b>WARNING:</b> If this is an existing project, it is recommended to save it in the same way.""";
+    final Region message = FxTextFlows.newTextFlowInAccordion("Important note", true,
+        text("There are currently two project formats supported:"), linebreak(),
+        boldText("Standalone: "),
+        text("Adds the raw data files into a project (large but flexible)"), linebreak(),
+        boldText("Referencing: "), text(
+            "The project will point to the current files used. Any rename, move, or remove of a file from their current directory might lead to incompatibility of the project."),
+        linebreak(), boldText("WARNING: "),
+        text("If this is an existing project, it is recommended to save it in the same way."));
 
     // set parameters to current project if already saved to file
-    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    final MZmineProject project = ProjectService.getProjectManager().getCurrentProject();
     final File currentProjectFile = project.getProjectFile();
 
     if ((currentProjectFile != null) && (currentProjectFile.canWrite())) {

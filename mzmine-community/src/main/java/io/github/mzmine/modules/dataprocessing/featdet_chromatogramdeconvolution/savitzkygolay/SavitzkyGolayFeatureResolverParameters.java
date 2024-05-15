@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,15 +26,18 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
+import org.jetbrains.annotations.Nullable;
 
 public class SavitzkyGolayFeatureResolverParameters extends GeneralResolverParameters {
 
@@ -51,8 +54,8 @@ public class SavitzkyGolayFeatureResolverParameters extends GeneralResolverParam
       "Minimum acceptable intensity in the 2nd derivative for peak recognition");
 
   public SavitzkyGolayFeatureResolverParameters() {
-    super(new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, MIN_PEAK_HEIGHT,
-        PEAK_DURATION, DERIVATIVE_THRESHOLD_LEVEL, RENGINE_TYPE, MIN_NUMBER_OF_DATAPOINTS},
+    super(new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, dimension, MIN_PEAK_HEIGHT,
+        PEAK_DURATION, DERIVATIVE_THRESHOLD_LEVEL, MIN_NUMBER_OF_DATAPOINTS},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_savitzky-golay/savitzky-golay-resolver.html");
   }
 
@@ -65,7 +68,7 @@ public class SavitzkyGolayFeatureResolverParameters extends GeneralResolverParam
   }
 
   @Override
-  public FeatureResolver getResolver() {
-    return new SavitzkyGolayFeatureResolver();
+  public @Nullable Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist) {
+    return new SavitzkyGolayFeatureResolver(parameterSet, flist);
   }
 }

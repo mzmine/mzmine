@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,7 +44,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ExportScansFromRawFilesModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Export scans into one file";
+  private static final String MODULE_NAME = "Export scans";
   private static final String MODULE_DESCRIPTION = "Export scans or mass lists into one file ";
 
   @Override

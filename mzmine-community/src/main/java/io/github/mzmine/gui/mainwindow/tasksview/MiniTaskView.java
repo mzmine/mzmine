@@ -25,9 +25,9 @@
 
 package io.github.mzmine.gui.mainwindow.tasksview;
 
-import io.github.mzmine.gui.framework.fx.components.LabeledProgressBar;
-import io.github.mzmine.gui.framework.fx.components.MenuItems;
-import io.github.mzmine.gui.framework.fx.mvci.FxViewBuilder;
+import io.github.mzmine.javafx.components.LabeledProgressBar;
+import io.github.mzmine.javafx.components.factories.MenuItems;
+import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import javafx.beans.binding.Bindings;
 import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
@@ -63,7 +63,7 @@ public class MiniTaskView extends FxViewBuilder<TasksViewModel> {
   private LabeledProgressBar createTaskPane() {
     return new LabeledProgressBar( //
         model.allTasksProgressProperty(),
-        Bindings.createStringBinding(this::computeTasksText, model.getTasks()));
+        Bindings.createStringBinding(this::computeTasksText, model.allTasksProgressProperty()));
   }
 
   private LabeledProgressBar createBatchPane() {

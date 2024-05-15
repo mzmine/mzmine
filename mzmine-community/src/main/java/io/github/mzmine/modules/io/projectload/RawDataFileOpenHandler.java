@@ -30,7 +30,6 @@ import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandle
 import io.github.mzmine.taskcontrol.Task;
 import java.io.InputStream;
 import java.time.Instant;
-import java.util.Date;
 import java.util.zip.ZipFile;
 import org.jetbrains.annotations.NotNull;
 

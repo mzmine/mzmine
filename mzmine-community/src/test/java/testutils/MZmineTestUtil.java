@@ -58,11 +58,15 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModul
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.FeatureListRowSorter;
+import io.mzio.users.client.UserAuthStore;
+import io.mzio.users.user.CurrentUserService;
+import io.mzio.users.user.UserFileReader;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,6 +74,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -169,7 +174,7 @@ public class MZmineTestUtil {
   }
 
   public static void cleanProject() {
-    MZmineCore.getProjectManager().setCurrentProject(new MZmineProjectImpl());
+    ProjectService.getProjectManager().setCurrentProject(new MZmineProjectImpl());
   }
 
 
@@ -208,7 +213,7 @@ public class MZmineTestUtil {
 
   @Nullable
   public static RawDataFile getRawFromProject(final String name) {
-    return MZmineCore.getProject().getCurrentRawDataFiles().stream()
+    return ProjectService.getProject().getCurrentRawDataFiles().stream()
         .filter(r -> r.getName().equals(name)).findFirst().orElse(null);
   }
 
@@ -219,6 +224,58 @@ public class MZmineTestUtil {
   }
 
   public static void startMzmineCore() {
-    MZmineCore.main(new String[]{"-r", "-m", "all"});
+    try {
+      // for debugging purpose of github actions
+//      for (final String s : List.of("TESTRUNNER_USER_GIT_ENV", "TESTRUNNER_USER", "USER_BASE64")) {
+//        String testRunner = System.getenv(s);
+//        if (testRunner != null) {
+//          logger.info(
+//              STR."Found testrunner env variable \{s} length \{testRunner.length()}\n\{testRunner}");
+//        }
+//      }
+//      var userFiles = List.of("testrunner", "user_base64");
+//      for (final String uf : userFiles) {
+//        var file = UserFileReader.resolveInUsersPath(STR."\{uf}.mzuserstr");
+//        try {
+//          if (!file.exists()) {
+//            logger.info("Cannot find file "+file.getAbsolutePath());
+//          }
+//          var user = UserFileReader.readUserFile(file);
+//          if (user.isValid()) {
+//            logger.info("Valid testrunner user for "+uf);
+//          }
+//        } catch (Exception e) {
+//          logger.info("Error parsing userfile "+file.getAbsolutePath());
+//        }
+//      }
+
+      MZmineCore.main(new String[]{"-r", "-m", "all"});
+      try {
+        logger.fine("Trying to find TESTRUNNER_USER env");
+        String testRunner = System.getenv("TESTRUNNER_USER");
+        if (testRunner != null && !testRunner.isBlank()) {
+          logger.info("Loaded TESTRUNNER_USER from env var");
+        }
+        var user = UserFileReader.parseUser(testRunner);
+        if (user != null) {
+          logger.info("Test user TESTRUNNER_USER loaded successfully");
+          CurrentUserService.setUser(user);
+        }
+      } catch (Exception ex) {
+        logger.fine("Cannot find testrunner user, set environment variable with license code");
+      }
+      if (!CurrentUserService.isValid()) {
+        // load testrunner user from users dir / e.g. on github actions
+        var file = UserAuthStore.resolveInUsersPath("testrunner.mzuserstr");
+        var user = UserFileReader.readUserFile(file);
+        if (user != null) {
+          CurrentUserService.setUser(user);
+        }
+      }
+    } catch (Exception ex) {
+      // might be already initialized
+      logger.log(Level.INFO,
+          "Expected error during initialization of mzmine core in tests. MZmine core was already initialized. Best is to reduce the dependence on mzmine core and other core classes");
+    }
   }
 }

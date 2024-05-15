@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]
     paths-ignore:
-      - 'src/main/resources/mzmineversion.properties'
+      - 'mzmine-community/src/main/resources/mzmineversion.properties'
 
 jobs:
   gradle_dev_build:
@@ -28,57 +28,59 @@ jobs:
       - name: Execute Gradle build (unsigned)
         if: runner.os != 'macOS'
         run: ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
+        env:
+          TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
 
       # ZIP PORTABLE VERSIONS
       - name: Zip portable windows
         if: runner.os == 'Windows'
         uses: papeloto/action-zip@v1
         with:
-          files: mzmine-community/build/jpackage/MZmine/
-          dest: mzmine-community/build/jpackage/MZmine_Windows_portable.zip
+          files: mzmine-community/build/jpackage/mzmine/
+          dest: mzmine-community/build/jpackage/mzmine_Windows_portable.zip
       - name: Zip portable linux
         if: runner.os == 'Linux'
         uses: papeloto/action-zip@v1
         with:
-          files: mzmine-community/build/jpackage/MZmine/
-          dest: mzmine-community/build/jpackage/MZmine_Linux_portable.zip
+          files: mzmine-community/build/jpackage/mzmine/
+          dest: mzmine-community/build/jpackage/mzmine_Linux_portable.zip
 
       # UPLOAD ALL FILES
       - name: Upload windows builds
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v2
         with:
-          name: MZmine_windows_msi_installer
+          name: mzmine_windows_msi_installer
           path: mzmine-community/build/jpackage/*.msi
           retention-days: 7  # store for 7 days
       - name: Upload windows portable builds
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v2
         with:
-          name: MZmine_windows_portable
-          path: mzmine-community/build/jpackage/MZmine_Windows_portable.zip
+          name: mzmine_windows_portable
+          path: mzmine-community/build/jpackage/mzmine_Windows_portable.zip
           retention-days: 7  # store for 7 days
 
       - name: Upload builds ubuntu deb
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v2
         with:
-          name: MZmine_linux_deb_package
+          name: mzmine_linux_deb_package
           path: mzmine-community/build/jpackage/*.deb
           retention-days: 7  # store for 7 days
       - name: Upload builds ubuntu rpm
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v2
         with:
-          name: MZmine_linux_rpm_package
+          name: mzmine_linux_rpm_package
           path: mzmine-community/build/jpackage/*.rpm
           retention-days: 7  # store for 7 days
       - name: Upload linux portable builds
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v2
         with:
-          name: MZmine_linux_portable
-          path: mzmine-community/build/jpackage/MZmine_Linux_portable.zip
+          name: mzmine_linux_portable
+          path: mzmine-community/build/jpackage/mzmine_Linux_portable.zip
           retention-days: 7  # store for 7 days
 
 
@@ -87,7 +89,7 @@ jobs:
       # 1. upload the dmg installer
       # 2. remove the dmg isntaller from path
       # 3. zip and upload the jpackage directory
-      # This is needed because zipping of the /jpackage/MZmine.app portable version zips the content
+      # This is needed because zipping of the /jpackage/mzmine.app portable version zips the content
       # of the folder not the folder itself
       - name: Setup node for macOS packaging
         if: runner.os == 'macOS'
@@ -102,45 +104,46 @@ jobs:
           security unlock-keychain -p abc123 build.keychain
           security import certificate.p12 -k build.keychain -P "$MACOS_DEVELOPER_CERTIFICATE_PWD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k abc123 build.keychain
-          ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
+          ./gradlew -p mzmine-community --info --warning-mode all --stacktrace
         env:
           MACOS_DEVELOPER_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERTIFICATE }}
           MACOS_DEVELOPER_CERTIFICATE_PWD: ${{ secrets.MACOS_DEVELOPER_CERTIFICATE_PWD }}
           MACOS_APPLE_ID_PWD: ${{ secrets.MACOS_APPLE_ID_PWD }}
           MACOS_APP_IDENTITY_ID: ${{ secrets.MACOS_APP_IDENTITY_ID }}
           MACOS_APP_IDENTITY_TEAM_ID: ${{ secrets.MACOS_APP_IDENTITY_TEAM_ID }}
+          TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
 
       - name: Pack macOS .app to .dmg
         if: runner.os == 'macOS'
         run: |
           npm install --python=python3.11 -g appdmg
-          appdmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/MZmine_macOS_installer.dmg
+          appdmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
 
       - name: Upload macOS installer
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v2
         with:
-          name: MZmine_macOS_installer
-          path: mzmine-community/build/jpackage/MZmine_macOS_installer.dmg
+          name: mzmine_macOS_installer
+          path: mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
           retention-days: 7  # store for 7 days
 
 #      - name: Remove dmg File and Make .app executable
 #        if: runner.os == 'macOS'
 #        run: |
 #          find ./build/jpackage/ -name '*.dmg' -delete
-#          chmod a+x build/jpackage/MZmine.app/Contents/MacOS/MZmine
+#          chmod a+x build/jpackage/mzmine.app/Contents/MacOS/mzmine
 #      - name: Zip portable macos
 #        if: runner.os == 'macOS'
 #        uses: papeloto/action-zip@v1
 #        with:
 #          files: build/jpackage/
-#          dest: build/jpackage/MZmine_macOS_portable.zip
+#          dest: build/jpackage/mzmine_macOS_portable.zip
       - name: Upload macOS portable builds
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v2
         with:
-          name: MZmine_macos_portable
-          path: mzmine-community/build/jpackage/MZmine_macOS_portable.zip
+          name: mzmine_macos_portable
+          path: mzmine-community/build/jpackage/mzmine_macOS_portable.zip
           retention-days: 7  # store for 7 days
 
 

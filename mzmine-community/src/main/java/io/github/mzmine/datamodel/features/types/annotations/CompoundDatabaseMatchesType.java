@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,10 +63,10 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
 
   public static final List<DataType> subTypes = List.of(new CompoundDatabaseMatchesType(),
       new CompoundNameType(), new CompoundAnnotationScoreType(), new FormulaType(),
-      new IonTypeType(), new SmilesStructureType(), new InChIStructureType(), new PrecursorMZType(),
-      new MzPpmDifferenceType(), new NeutralMassType(), new RTType(), new CCSType(),
-      new CCSRelativeErrorType(), new DatabaseMatchInfoType(), new IsotopePatternScoreType(),
-      new CommentType());
+      new IonTypeType(), new MolecularStructureType(), new SmilesStructureType(),
+      new InChIStructureType(), new PrecursorMZType(), new MzPpmDifferenceType(),
+      new NeutralMassType(), new RTType(), new CCSType(), new CCSRelativeErrorType(),
+      new DatabaseMatchInfoType(), new IsotopePatternScoreType(), new CommentType());
 
   private static final Logger logger = Logger.getLogger(
       CompoundDatabaseMatchesType.class.getName());
@@ -166,5 +166,10 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
   @Override
   public boolean getDefaultVisibility() {
     return true;
+  }
+
+  @Override
+  public int getPrefColumnWidth() {
+    return 350;
   }
 }

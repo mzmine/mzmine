@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -46,6 +46,7 @@ import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import org.jetbrains.annotations.NotNull;
 
@@ -158,7 +159,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
     // Update the parameter choices
-    UserParameter<?, ?>[] newChoices = MZmineCore.getProjectManager().getCurrentProject()
+    UserParameter<?, ?>[] newChoices = ProjectService.getProjectManager().getCurrentProject()
         .getParameters();
     String[] choices;
     if (newChoices == null || newChoices.length == 0) {

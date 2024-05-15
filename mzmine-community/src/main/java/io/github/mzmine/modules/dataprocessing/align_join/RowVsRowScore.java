@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,6 +57,21 @@ public record RowVsRowScore(double score, FeatureListRow rowToAdd,
         mzWeight, rtWeight, mobilityWeight, ccsWeight), rowToAddProviderOfRanges, alignedRow);
   }
 
+  /**
+   * @param rowToAddProviderOfRanges row to add/compare to aligned row, all ranges were provided
+   *                                 from here are
+   * @param alignedRow               the alignedRow, where all ranges were extracted from
+   * @param rtRange                  range based on alignedRow or null if deactivated for scoring
+   * @param similarity               spectral similarity based on alignedRow
+   * @param rtWeight                 factors for contribution
+   * @param similarityWeight         factors for contribution
+   */
+  public RowVsRowScore(final FeatureListRow rowToAddProviderOfRanges,
+      final FeatureListRow alignedRow, @Nullable Range<Float> rtRange, final double rtWeight,
+      double similarity, final double similarityWeight) {
+    this(FeatureListUtils.getAlignmentScore(alignedRow, rtRange, similarity, rtWeight,
+        similarityWeight), rowToAddProviderOfRanges, alignedRow);
+  }
 
   /**
    * This method returns the feature list row which is being aligned

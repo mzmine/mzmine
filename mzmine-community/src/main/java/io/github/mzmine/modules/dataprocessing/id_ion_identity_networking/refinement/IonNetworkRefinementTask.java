@@ -35,7 +35,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -287,7 +287,7 @@ public class IonNetworkRefinementTask extends AbstractTask {
 
     // remove all rows without ion identity?
     if (deleteRowsWithoutIon)
-      MZmineCore.runLater(() -> {
+      FxThread.runLater(() -> {
         for (int i = 0; i < pkl.getNumberOfRows();)
           if (pkl.getRow(i).hasIonIdentity())
             i++;

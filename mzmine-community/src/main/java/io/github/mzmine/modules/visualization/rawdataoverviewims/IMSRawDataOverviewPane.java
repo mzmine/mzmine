@@ -49,6 +49,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.Frame
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.SingleMobilityScanProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
@@ -62,7 +63,7 @@ import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.O
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.javafx.MZmineIconUtils;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Stroke;
@@ -237,14 +238,14 @@ public class IMSRawDataOverviewPane extends BorderPane {
     // ticChart.removeDatasets(mzRangeTicDatasetIndices);
 
     massDetectionPane.getChildren().remove(massDetectionFrameIcon);
-    massDetectionFrameIcon = selectedFrame.get().getMassList() != null ? FxIconUtil.getCheckedIcon()
-        : FxIconUtil.getUncheckedIcon();
+    massDetectionFrameIcon = selectedFrame.get().getMassList() != null ? MZmineIconUtils.getCheckedIcon()
+        : MZmineIconUtils.getUncheckedIcon();
     massDetectionPane.add(massDetectionFrameIcon, 1, 2);
 
     massDetectionPane.getChildren().remove(massDetectionScanIcon);
     massDetectionScanIcon =
         selectedFrame.get().getMobilityScans().stream().anyMatch(s -> s.getMassList() != null)
-            ? FxIconUtil.getCheckedIcon() : FxIconUtil.getUncheckedIcon();
+            ? MZmineIconUtils.getCheckedIcon() : MZmineIconUtils.getUncheckedIcon();
     massDetectionPane.add(massDetectionScanIcon, 1, 1);
 
     mzRangeTicDatasetIndices.clear();
@@ -433,7 +434,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
       final ScanSelection selection = new ScanSelection(msLevelFilter).cloneWithNewRtRange(rtRange);
       MZmineCore.getTaskController().addTask(
           new MergeFrameThread(rawDataFile, selection, binWidth, mobilityScanNoiseLevel,
-              f -> MZmineCore.runLater(() -> setSelectedFrame(f))));
+              f -> FxThread.runLater(() -> setSelectedFrame(f))));
     }));
 
     ionTraceChart.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
@@ -508,7 +509,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   }
 
   public void setSelectedMobilogram(ColoredXYDataset mobilogram) {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       if (selectedMobilogramDatasetIndex != -1) {
         mobilogramChart.removeDataSet(selectedMobilogramDatasetIndex, false);
       }
@@ -517,7 +518,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
   }
 
   public void setSelectedChromatogram(TICDataSet dataset, Color color) {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       if (selectedChromatogramDatasetIndex != -1) {
         ticChart.removeDataSet(selectedChromatogramDatasetIndex);
       }

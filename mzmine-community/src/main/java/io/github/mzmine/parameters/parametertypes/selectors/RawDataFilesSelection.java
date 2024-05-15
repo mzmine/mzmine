@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.TextUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -86,7 +87,7 @@ public class RawDataFilesSelection implements Cloneable {
     final RawDataFile[] matchingFiles;
     switch (selectionType) {
       case GUI_SELECTED_FILES -> matchingFiles = MZmineCore.getDesktop().getSelectedDataFiles();
-      case ALL_FILES -> matchingFiles = MZmineCore.getProjectManager().getCurrentProject()
+      case ALL_FILES -> matchingFiles = ProjectService.getProjectManager().getCurrentProject()
           .getDataFiles();
       case SPECIFIC_FILES -> matchingFiles = getSpecificFiles();
       case NAME_PATTERN -> {
@@ -94,7 +95,7 @@ public class RawDataFilesSelection implements Cloneable {
           return new RawDataFile[0];
         }
         ArrayList<RawDataFile> matchingDataFiles = new ArrayList<>();
-        RawDataFile[] allDataFiles = MZmineCore.getProjectManager().getCurrentProject()
+        RawDataFile[] allDataFiles = ProjectService.getProjectManager().getCurrentProject()
             .getDataFiles();
 
         fileCheck:
@@ -147,7 +148,7 @@ public class RawDataFilesSelection implements Cloneable {
   }
 
   RawDataFile[] getSpecificFiles() {
-    MZmineProject currentProject = MZmineCore.getProjectManager().getCurrentProject();
+    MZmineProject currentProject = ProjectService.getProjectManager().getCurrentProject();
     if (currentProject == null) {
       return new RawDataFile[0];
     }
@@ -157,7 +158,7 @@ public class RawDataFilesSelection implements Cloneable {
     }
 
     return Arrays.stream(specificFiles).<RawDataFile>mapMulti((specificFile, c) -> {
-      for (RawDataFile file : MZmineCore.getProjectManager().getCurrentProject()
+      for (RawDataFile file : ProjectService.getProjectManager().getCurrentProject()
           .getCurrentRawDataFiles()) {
         if (file.getName().equals(specificFile.getName()) && (file.getAbsolutePath() == null
                                                               || specificFile.getAbsolutePath()

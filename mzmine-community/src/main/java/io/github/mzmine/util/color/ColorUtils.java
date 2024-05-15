@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,7 @@
 
 package io.github.mzmine.util.color;
 
-import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 
@@ -38,6 +38,9 @@ public class ColorUtils {
    * future.
    */
   public static double MIN_REDMEAN_COLOR_DIFF = 65;
+
+  public static final java.awt.Color TRANSPARENT_AWT = new java.awt.Color(0, 0, 0, 0);
+  public static final Color TRANSPARENT_FX = new Color(0, 0, 0, 0);
 
   /**
    * Returns tinted version of the given color.

@@ -33,8 +33,10 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.visualization.MultiImsTraceVisualizerTab;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,7 +67,7 @@ public class PossibleIsomerType extends ListDataType<Integer> implements Annotat
   }
 
   @Override
-  public @Nullable Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
+  public @Nullable Runnable getDoubleClickAction(final @Nullable FeatureTableFX table, @NotNull ModularFeatureListRow row,
       @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
 
     return () -> {
@@ -119,7 +121,7 @@ public class PossibleIsomerType extends ListDataType<Integer> implements Annotat
         }
       }
 
-      MZmineCore.runLater(() -> {
+      FxThread.runLater(() -> {
         tab.setFeatures(features);
         MZmineCore.getDesktop().addTab(tab);
       });

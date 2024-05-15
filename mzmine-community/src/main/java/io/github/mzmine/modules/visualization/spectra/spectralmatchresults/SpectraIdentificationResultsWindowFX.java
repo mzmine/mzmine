@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,11 +28,12 @@ package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.javafx.components.factories.TableColumns;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureUtils;
-import io.github.mzmine.util.javafx.TableViewUtils;
 import io.github.mzmine.util.javafx.WeakAdapter;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
@@ -161,7 +162,7 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab implements
     // set font size of chart
     Button btnSetup = new Button("Setup");
     btnSetup.setOnAction(e -> {
-      MZmineCore.runLater(() -> {
+      FxThread.runLater(() -> {
         if (MZmineCore.getConfiguration()
                 .getModuleParameters(SpectraIdentificationResultsModule.class).showSetupDialog(true)
             == ExitCode.OK) {
@@ -229,7 +230,7 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab implements
     });
 
     tableView.getColumns().add(column);
-    TableViewUtils.autoFitLastColumn(tableView);
+    TableColumns.autoFitLastColumn(tableView);
     return tableView;
   }
 
@@ -338,7 +339,7 @@ public class SpectraIdentificationResultsWindowFX extends SimpleTab implements
   }
 
   private void handleLayoutChangeIndex() {
-    MZmineCore.runLater(() -> {
+    FxThread.runLater(() -> {
       // add all panel in order
       synchronized (totalMatches) {
         // select first 15 matches

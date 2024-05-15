@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,6 +53,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -235,7 +236,7 @@ public class MzTabmImportTask extends AbstractTask {
       }
 
       // import files
-      RawDataFileUtils.createRawDataImportTasks(MZmineCore.getProjectManager().getCurrentProject(),
+      RawDataFileUtils.createRawDataImportTasks(ProjectService.getProjectManager().getCurrentProject(),
           underlyingTasks, MZTabmImportModule.class, parameters, moduleCallDate,
           filesToImport.toArray(new File[0]));
       if (underlyingTasks.size() > 0) {

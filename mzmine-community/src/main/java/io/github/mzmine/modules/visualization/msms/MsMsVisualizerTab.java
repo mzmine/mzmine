@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -278,7 +278,7 @@ public class MsMsVisualizerTab extends MZmineTab {
     highlightDialog.setTitle("Values ranges to highlight");
     highlightDialog.setResizable(false);
     highlightDialog.initModality(Modality.APPLICATION_MODAL);
-    highlightDialog.getIcons().add(new Image("MZmineIcon.png"));
+    highlightDialog.getIcons().add(new Image("mzmineIcon.png"));
     highlightDialog.show();
 
     minField1.requestFocus();

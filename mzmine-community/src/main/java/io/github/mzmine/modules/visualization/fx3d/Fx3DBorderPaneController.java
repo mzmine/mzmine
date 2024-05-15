@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.components.ButtonCell;
 import io.github.mzmine.util.components.ColorPickerTableCell;
@@ -206,8 +207,8 @@ public class Fx3DBorderPaneController {
     tableView.setItems(visualizedMeshPlots);
     plot.getChildren().add(meshViews);
     plot.getChildren().add(lights);
-    allDataFiles = Arrays.asList(MZmineCore.getProjectManager().getCurrentProject().getDataFiles());
-    allFeatureLists = MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists()
+    allDataFiles = Arrays.asList(ProjectService.getProjectManager().getCurrentProject().getDataFiles());
+    allFeatureLists = ProjectService.getProjectManager().getCurrentProject().getCurrentFeatureLists()
         .toArray(new FeatureList[0]);
     scene3D.widthProperty().bind(root.widthProperty());
     scene3D.heightProperty().bind(root.heightProperty());

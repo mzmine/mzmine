@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,14 +32,15 @@ import io.github.mzmine.modules.io.projectsave.ProjectSavingTask;
 import io.github.mzmine.modules.io.projectsave.RawDataFileSaveHandler;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.StreamCopy;
+import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.BufferedReader;
 import java.io.File;
@@ -131,7 +132,7 @@ public class ProjectOpeningTask extends AbstractTask {
 
     try {
       // Check if existing raw data files are present
-      ProjectManager projectManager = MZmineCore.getProjectManager();
+      ProjectManager projectManager = ProjectService.getProjectManager();
       if (projectManager.getCurrentProject().getDataFiles().length > 0) {
         ButtonType confirm = MZmineCore.getDesktop().displayConfirmation(
             "Loading the project will replace the existing raw data files and feature lists. Do you want to proceed?",

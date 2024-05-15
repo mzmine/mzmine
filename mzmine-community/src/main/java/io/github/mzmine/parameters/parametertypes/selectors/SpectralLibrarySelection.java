@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.selectors;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.util.List;
@@ -54,7 +54,7 @@ public class SpectralLibrarySelection {
 
   public List<SpectralLibrary> getMatchingLibraries() {
     return switch (selectionType) {
-      case ALL_IMPORTED -> MZmineCore.getProjectManager().getCurrentProject()
+      case ALL_IMPORTED -> ProjectService.getProjectManager().getCurrentProject()
           .getCurrentSpectralLibraries().stream().toList();
       case SPECIFIC -> getMatchingSpecificFiles();
     };
@@ -65,7 +65,7 @@ public class SpectralLibrarySelection {
   }
 
   private List<SpectralLibrary> getMatchingSpecificFiles() {
-    MZmineProject currentProject = MZmineCore.getProjectManager().getCurrentProject();
+    MZmineProject currentProject = ProjectService.getProjectManager().getCurrentProject();
     if (currentProject == null || specificLibraryNames == null || specificLibraryNames.isEmpty()) {
       return List.of();
     }

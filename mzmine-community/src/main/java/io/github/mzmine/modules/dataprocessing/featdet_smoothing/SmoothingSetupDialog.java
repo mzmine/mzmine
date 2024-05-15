@@ -41,6 +41,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingTask.SmoothingDimension;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.SortableFeatureComboBox;
 import java.lang.reflect.InvocationTargetException;
@@ -85,21 +86,21 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     previewChart.setDomainAxisNumberFormatOverride(rtFormat);
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
     ObservableList<FeatureList> flists = FXCollections.observableArrayList(
-        MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
+        ProjectService.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
     fBox = new SortableFeatureComboBox();
     flistBox = new ComboBox<>(flists);
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
-            fBox.getFeatureBox().setItems(FXCollections.observableArrayList(
+            fBox.setItems(FXCollections.observableArrayList(
                 newValue.getFeatures(newValue.getRawDataFile(0))));
           } else {
-            fBox.getFeatureBox().setItems(FXCollections.emptyObservableList());
+            fBox.setItems(FXCollections.emptyObservableList());
           }
         }));
 
-    fBox.getFeatureBox().setConverter(new StringConverter<>() {
+    fBox.setConverter(new StringConverter<>() {
       @Override
       public String toString(Feature object) {
         if (object == null) {
@@ -114,8 +115,8 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
       }
     });
 
-    fBox.getFeatureBox().getSelectionModel().selectedItemProperty()
-        .addListener(((observable, oldValue, newValue) -> onSelectedFeatureChanged(newValue)));
+    fBox.selectedFeatureProperty()
+        .addListener(((_, _, newValue) -> onSelectedFeatureChanged(newValue)));
 
     ComboBox<SmoothingDimension> previewDimensionBox = new ComboBox<>(
         FXCollections.observableArrayList(SmoothingDimension.values()));
@@ -191,7 +192,7 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
   protected void parametersChanged() {
     super.parametersChanged();
     updateParameterSetFromComponents();
-    onSelectedFeatureChanged(fBox.getFeatureBox().getValue());
+    onSelectedFeatureChanged(fBox.getSelectedFeature());
   }
 
   @Nullable

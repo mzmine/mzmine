@@ -56,6 +56,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityList
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
@@ -93,6 +94,7 @@ import io.github.mzmine.modules.visualization.spectra.spectra_stack.SpectraStack
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectralIdentificationResultsTab;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -275,7 +277,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem exportMS1Library = new ConditionalMenuItem("Export to MS1 library",
         () -> !selectedRows.isEmpty());
-    exportMS1Library.setOnAction(e -> MZmineCore.runLater(() -> {
+    exportMS1Library.setOnAction(e -> FxThread.runLater(() -> {
       MSMSLibrarySubmissionWindow window = new MSMSLibrarySubmissionWindow();
       window.setData(selectedRows.toArray(new ModularFeatureListRow[0]), SortingProperty.MZ,
           SortingDirection.Ascending, false);
@@ -284,7 +286,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem exportMSMSLibrary = new ConditionalMenuItem("Export to MS/MS library",
         () -> !selectedRows.isEmpty());
-    exportMSMSLibrary.setOnAction(e -> MZmineCore.runLater(() -> {
+    exportMSMSLibrary.setOnAction(e -> FxThread.runLater(() -> {
       MSMSLibrarySubmissionWindow window = new MSMSLibrarySubmissionWindow();
       window.setData(selectedRows.toArray(new ModularFeatureListRow[0]), SortingProperty.MZ,
           SortingDirection.Ascending, true);
@@ -332,13 +334,8 @@ public class FeatureTableContextMenu extends ContextMenu {
   private void initShowMenu() {
 
     final MenuItem showNetworkVisualizerItem = new ConditionalMenuItem(
-        "Feature overview (IIMN network)", () -> !selectedRows.isEmpty());
-    showNetworkVisualizerItem.setOnAction(e -> showNetworkVisualizer(NetworkOverviewFlavor.IIMN));
-
-    final MenuItem showNetworkVisualizerItemFull = new ConditionalMenuItem(
-        "Feature overview (full network)", () -> !selectedRows.isEmpty());
-    showNetworkVisualizerItemFull.setOnAction(
-        e -> showNetworkVisualizer(NetworkOverviewFlavor.FULL_NETWORKS));
+        "Feature overview & IIMN networks", () -> !selectedRows.isEmpty());
+    showNetworkVisualizerItem.setOnAction(_ -> showNetworkVisualizer(NetworkOverviewFlavor.IIMN));
 
     //final MenuItem showLipidAnnotationSummary = new ConditionalMenuItem("Lipid Annotation summary",
     //    () -> !selectedRows.isEmpty() && rowHasMatchedLipidSignals(selectedRows.get(0)));
@@ -403,7 +400,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         "Plot using Intensity plot module",
         () -> !selectedRows.isEmpty() && selectedFeature != null);
     showIntensityPlotItem.setOnAction(e -> IntensityPlotModule.showIntensityPlot(
-        MZmineCore.getProjectManager().getCurrentProject(), selectedFeature.getFeatureList(),
+        ProjectService.getProjectManager().getCurrentProject(), selectedFeature.getFeatureList(),
         selectedRows.toArray(new ModularFeatureListRow[0])));
 
     final MenuItem showInIMSRawDataOverviewItem = new ConditionalMenuItem(
@@ -536,7 +533,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,
-            new SeparatorMenuItem(), showNetworkVisualizerItemFull, showNetworkVisualizerItem,
+            new SeparatorMenuItem(), showNetworkVisualizerItem,
             show2DItem, show3DItem, showIntensityPlotItem, showInIMSRawDataOverviewItem,
             showInMobilityMzVisualizerItem, new SeparatorMenuItem(), showSpectrumItem,
             showFeatureFWHMMs1Item, showBestMobilityScanItem, extractSumSpectrumFromMobScans,

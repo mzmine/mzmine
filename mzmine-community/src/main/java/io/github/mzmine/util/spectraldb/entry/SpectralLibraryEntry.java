@@ -47,6 +47,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
@@ -287,4 +288,9 @@ public interface SpectralLibraryEntry extends MassList {
   void setLibrary(@Nullable SpectralLibrary library);
 
   @Nullable String getLibraryName();
+
+  /**
+   * @return the structure parsed from smiles or inchi
+   */
+  MolecularStructure getStructure();
 }

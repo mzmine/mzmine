@@ -41,9 +41,9 @@ import javafx.scene.paint.Color;
 public class MzRangeEicDataSet extends ColoredXYDataset {
 
   public MzRangeEicDataSet(final IonTimeSeries<? extends Scan> series, final Range<Double> mzRange,
-      final Color color, final RunOption runOption) {
+      final Color color) {
     super(new IonTimeSeriesToXYProvider(series,
             MZmineCore.getConfiguration().getGuiFormats().mz(RangeUtils.rangeCenter(mzRange)), color),
-        runOption);
+        RunOption.THIS_THREAD);
   }
 }

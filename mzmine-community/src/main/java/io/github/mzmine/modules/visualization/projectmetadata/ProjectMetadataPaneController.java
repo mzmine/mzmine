@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@ package io.github.mzmine.modules.visualization.projectmetadata;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.ProjectMetadataColumnParameters.AvailableTypes;
 import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataExporter;
@@ -41,6 +42,7 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Stri
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.TextParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.ExitCode;
 import java.net.URL;
 import java.util.Optional;
@@ -63,7 +65,8 @@ import javafx.stage.Stage;
 public class ProjectMetadataPaneController {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
-  private final MZmineProject currentProject = MZmineCore.getProjectManager().getCurrentProject();
+  private final MZmineProject currentProject = ProjectService.getProjectManager()
+      .getCurrentProject();
   private final MetadataTable metadataTable = currentProject.getProjectMetadata();
   private Stage currentStage;
   private RawDataFile[] fileList;
@@ -101,7 +104,8 @@ public class ProjectMetadataPaneController {
 
     // display the columns
     TableColumn[] tableColumns = new TableColumn[columnsNumber + 1];
-    tableColumns[0] = createColumn(0, "Data File", "These are the names of the RawDataFiles");
+    tableColumns[0] = createColumn(0, MetadataColumn.FILENAME_HEADER,
+        "These are the names of the RawDataFiles");
     var columns = metadataTable.getColumns();
     int columnId = 1;
     for (var col : columns) {
@@ -244,7 +248,7 @@ public class ProjectMetadataPaneController {
     final ExitCode exitCode = MZmineCore.setupAndRunModule(ProjectMetadataImportModule.class,
         () -> {
           logger.info("Successfully imported parameters from file");
-          MZmineCore.runLater(() -> updateParametersToTable());
+          FxThread.runLater(() -> updateParametersToTable());
         }, () -> logger.warning("Importing parameters from file failed"));
     if (exitCode == ExitCode.ERROR) {
       logger.warning("Setup of metadata import failes");
@@ -274,7 +278,7 @@ public class ProjectMetadataPaneController {
       return;
     }
     String parameterName = ((Label) column.getGraphic()).getText();
-    if (parameterName.equals("Data File")) {
+    if (parameterName.equals(MetadataColumn.FILENAME_HEADER)) {
       Alert alert = new Alert(Alert.AlertType.INFORMATION);
       alert.setTitle("Cannot remove Raw Data File Column");
       alert.setHeaderText(null);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -59,7 +59,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
       "dots per inch resolution (for print usually 300 up to 600 dpi)", DecimalFormat.getInstance(),
       300.0);
   public static final ComboParameter<String> exportFormat = new ComboParameter<String>("Format",
-      "The image export format", new String[]{"PDF", "EMF", "EPS", "SVG", "JPG", "PNG"}, "PNG");
+      "The image export format", new String[]{"PDF", "EMF", "SVG", "JPG", "PNG"}, "PNG");
   public static final ComboParameter<FixedSize> fixedSize = new ComboParameter<FixedSize>(
       "Fixed size for",
       "Fixed size for the plot (the data space without axes and titles) or the whole chart.",

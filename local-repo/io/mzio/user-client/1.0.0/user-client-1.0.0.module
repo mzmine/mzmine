@@ -1,0 +1,97 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "io.mzio",
+    "module": "user-client",
+    "version": "1.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "user-client-1.0.0.jar",
+          "url": "user-client-1.0.0.jar",
+          "size": 31481,
+          "sha512": "6bd383391b6bf4583d10b845ff5be71802b6761b4fc3cfc61c64a374a0ad0bc0151802c0510bee5ecd5a90af796f343d58a48e86e26a23b82151166b387fe705",
+          "sha256": "1c1e303f3fe476f3d91f526217c5caf739f75fa4e470323067c3047fef3144e0",
+          "sha1": "89ea2662a94005b0cc9d5c4dcd6c6a598eda7451",
+          "md5": "0320aaaed5c28921426509a81d904c76"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains",
+          "module": "annotations",
+          "version": {
+            "requires": "22.0.0"
+          }
+        },
+        {
+          "group": "io.mzio",
+          "module": "user-management",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
+          "group": "com.javax0.license3j",
+          "module": "license3j",
+          "version": {
+            "requires": "3.2.0"
+          }
+        },
+        {
+          "group": "commons-io",
+          "module": "commons-io",
+          "version": {
+            "requires": "2.15.1"
+          }
+        },
+        {
+          "group": "org.keycloak",
+          "module": "keycloak-installed-adapter",
+          "version": {
+            "requires": "24.0.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "user-client-1.0.0.jar",
+          "url": "user-client-1.0.0.jar",
+          "size": 31481,
+          "sha512": "6bd383391b6bf4583d10b845ff5be71802b6761b4fc3cfc61c64a374a0ad0bc0151802c0510bee5ecd5a90af796f343d58a48e86e26a23b82151166b387fe705",
+          "sha256": "1c1e303f3fe476f3d91f526217c5caf739f75fa4e470323067c3047fef3144e0",
+          "sha1": "89ea2662a94005b0cc9d5c4dcd6c6a598eda7451",
+          "md5": "0320aaaed5c28921426509a81d904c76"
+        }
+      ]
+    }
+  ]
+}

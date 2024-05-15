@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.visualization.projectmetadata.io;
 
+import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.ParameterSet;
@@ -43,7 +44,7 @@ public class ProjectMetadataImportTask extends AbstractTask {
   private final Boolean skipColOnError;
   private int doneFiles = 0;
 
-  protected ProjectMetadataImportTask(@NotNull ParameterSet parameters,
+  public ProjectMetadataImportTask(@NotNull ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     File file = parameters.getValue(ProjectMetadataImportParameters.fileName);
@@ -72,8 +73,10 @@ public class ProjectMetadataImportTask extends AbstractTask {
     for (File fileName : files) {
       if (!(fileName.exists() && fileName.canRead())) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Cannot read file " + fileName);
-        logger.warning("Cannot read file " + fileName);
+        final String msg = STR."Cannot read metadata file \{fileName}. The file/path may not exist.";
+        setErrorMessage(msg );
+        logger.warning(msg);
+        DesktopService.getDesktop().displayErrorMessage(msg);
         return;
       }
 
@@ -81,8 +84,10 @@ public class ProjectMetadataImportTask extends AbstractTask {
         logger.info("Successfully imported parameters from " + fileName);
       } else {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Couldn't import metadata from " + fileName);
-        logger.warning("Error while processing " + fileName);
+        final String msg = STR."Couldn't import metadata from \{fileName}. Error importing columns.";
+        setErrorMessage(msg);
+        logger.warning(msg);
+        DesktopService.getDesktop().displayErrorMessage(msg);
         return;
       }
 

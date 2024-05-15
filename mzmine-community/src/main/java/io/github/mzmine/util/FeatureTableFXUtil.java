@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,12 +26,17 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXMLTabAnchorPaneController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.scene.control.IndexedCell;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.skin.VirtualFlow;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureTableFXUtil {
@@ -39,18 +44,41 @@ public class FeatureTableFXUtil {
   private static final Logger logger = Logger.getLogger(FeatureTableFX.class.getName());
 
   /**
-   * Creates and shows a new FeatureTable. Should be called via {@link
-   * Platform#runLater(Runnable)}.
+   * Creates and shows a new FeatureTable. Should be called via
+   * {@link Platform#runLater(Runnable)}.
    *
    * @param flist The feature list.
    * @return The {@link FeatureTableFXMLTabAnchorPaneController} of the window or null if failed to
    * initialise.
    */
   @Nullable
-  public static void /*FeatureTableFXMLTabAnchorPaneController*/ addFeatureTableTab(
-      FeatureList flist) {
+  public static void addFeatureTableTab(FeatureList flist) {
     FeatureTableTab newTab = new FeatureTableTab(flist);
     MZmineCore.getDesktop().addTab(newTab);
-    //return newTab.getController();
+  }
+
+
+  /**
+   * Scrolls to the selected row item if it is not visible and selects the row.
+   */
+  public static void selectAndScrollTo(@Nullable TreeItem<ModularFeatureListRow> rowItem,
+      @NotNull FeatureTableFX table) {
+    if (rowItem == null) {
+      return;
+    }
+    final int itemIndex = table.getRow(rowItem);
+    if (itemIndex < 0) {
+      // not expanded
+      return;
+    }
+    VirtualFlow<?> flow = (VirtualFlow<?>) table.lookup(".virtual-flow");
+    if (flow != null) {
+      final IndexedCell<?> firstCell = flow.getFirstVisibleCell();
+      final IndexedCell<?> lastCell = flow.getLastVisibleCell();
+      if (!(itemIndex >= firstCell.getIndex() && itemIndex <= lastCell.getIndex())) {
+        table.scrollTo(table.getRoot().getChildren().indexOf(rowItem));
+      }
+    }
+    table.getSelectionModel().clearAndSelect(table.getRoot().getChildren().indexOf(rowItem));
   }
 }

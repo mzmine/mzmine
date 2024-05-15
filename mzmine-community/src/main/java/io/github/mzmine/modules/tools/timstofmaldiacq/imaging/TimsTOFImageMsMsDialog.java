@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ import io.github.mzmine.modules.visualization.image.ImagingPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ImagingUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -56,6 +57,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextFlow;
 import javafx.util.Duration;
 import org.jfree.chart.annotations.XYPointerAnnotation;
 
@@ -73,21 +75,21 @@ public class TimsTOFImageMsMsDialog extends ParameterSetupDialogWithPreview {
   }
 
   public TimsTOFImageMsMsDialog(boolean valueCheckRequired, ParameterSet parameters,
-      String message) {
+      TextFlow message) {
     super(valueCheckRequired, parameters, message);
 
     SortableFeatureComboBox fBox = new SortableFeatureComboBox();
 
     ComboBox<FeatureList> cmbFlist = new ComboBox<>();
     final ObservableList<FeatureList> flists = FXCollections.observableArrayList(
-        MZmineCore.getProject().getCurrentFeatureLists().stream().filter(
+        ProjectService.getProject().getCurrentFeatureLists().stream().filter(
             fl -> fl.getNumberOfRawDataFiles() == 1 && fl.getRawDataFile(
                 0) instanceof IMSImagingRawDataFile).toList());
 
     cmbFlist.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
-            fBox.getFeatureBox().setItems(FXCollections.observableArrayList(
+            fBox.setItems(FXCollections.observableArrayList(
                 newValue.getFeatures(newValue.getRawDataFile(0))));
           }
         }));
@@ -97,8 +99,8 @@ public class TimsTOFImageMsMsDialog extends ParameterSetupDialogWithPreview {
       cmbFlist.getSelectionModel().selectFirst();
     }
 
-    fBox.getFeatureBox().getSelectionModel().selectedItemProperty()
-        .addListener(((observable, oldValue, newValue) -> {
+    fBox.selectedFeatureProperty()
+        .addListener(((_, _, newValue) -> {
           if (newValue != null) {
             featureChanged(newValue);
           }
@@ -123,14 +125,14 @@ public class TimsTOFImageMsMsDialog extends ParameterSetupDialogWithPreview {
           new FeatureListsSelection((ModularFeatureList) cmbFlist.getValue()));
 
       currentTask = new SimsefImagingSchedulerTask(null, Instant.now(), param,
-          MZmineCore.getProject(), true, true);
+          ProjectService.getProject(), true, true);
       MZmineCore.getTaskController().addTask(currentTask);
 
-      currentTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      currentTask.addTaskStatusListener((task, newStatus, _) -> {
         logger.finest("Preview task status changed: " + newStatus);
         if (newStatus == TaskStatus.FINISHED && task == currentTask) {
           imageChart.getChart()
-              .applyWithNotifyChanges(false, () -> updateMarkers(fBox.getFeatureBox().getValue()));
+              .applyWithNotifyChanges(false, () -> updateMarkers(fBox.getSelectedFeature()));
         }
       });
     });

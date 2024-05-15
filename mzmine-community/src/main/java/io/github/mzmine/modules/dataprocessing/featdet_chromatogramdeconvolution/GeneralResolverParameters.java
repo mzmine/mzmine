@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,7 +36,6 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.util.R.REngineType;
 import java.util.Map;
 import javafx.collections.FXCollections;
 import org.jetbrains.annotations.Nullable;
@@ -60,14 +59,6 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
       FXCollections.observableArrayList(ResolvingDimension.values()),
       ResolvingDimension.RETENTION_TIME);
 
-  /**
-   * R engine type. Only added in parameter sets that need R.
-   */
-  public static final ComboParameter<REngineType> RENGINE_TYPE = new ComboParameter<REngineType>(
-      "R engine", "The R engine to be used for communicating with R. "
-      + "RServe might provide you with better performance.", REngineType.values(),
-      REngineType.RCALLER);
-
   public static final IntegerParameter MIN_NUMBER_OF_DATAPOINTS = new IntegerParameter(
       "Minimum scans (data points)", "Minimum number of data points on a feature", 3, true);
 
@@ -88,13 +79,8 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
     return nameParameterMap;
   }
 
-  @Deprecated
-  public abstract FeatureResolver getResolver();
-
   @Nullable
-  public Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist) {
-    return null;
-  }
+  public abstract Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist);
 
   @Override
   public int getVersion() {

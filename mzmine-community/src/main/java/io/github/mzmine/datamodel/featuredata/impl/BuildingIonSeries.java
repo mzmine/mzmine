@@ -28,6 +28,7 @@ package io.github.mzmine.datamodel.featuredata.impl;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.util.MemoryMapStorage;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.nio.DoubleBuffer;
@@ -44,6 +45,7 @@ public class BuildingIonSeries implements IonSeries {
 
   private final double[] mzs;
   private final double[] intensities;
+  private final MzMode mzMode;
   private final IntensityMode mode;
   private final int[] dataPoints;
 
@@ -51,11 +53,12 @@ public class BuildingIonSeries implements IonSeries {
    * @param numberOfScans all scans that this chromatogram spans (e.g., all MS1 positive mode)
    * @param mode          defines how to merge intensity values
    */
-  public BuildingIonSeries(int numberOfScans, IntensityMode mode) {
+  public BuildingIonSeries(int numberOfScans, MzMode mzMode, IntensityMode mode) {
     mzs = new double[numberOfScans];
     intensities = new double[numberOfScans];
     dataPoints = new int[numberOfScans];
     this.mode = mode;
+    this.mzMode = mzMode;
   }
 
   public double[] getIntensities() {
@@ -152,31 +155,39 @@ public class BuildingIonSeries implements IonSeries {
    * already existing value
    */
   public boolean addValue(int scanIndex, double mz, double intensity) {
-    return switch (mode) {
+    boolean added = switch (mode) {
       case HIGHEST -> {
         if (intensity > intensities[scanIndex]) {
           intensities[scanIndex] = intensity;
-          mzs[scanIndex] = mz;
           yield true;
         } else {
           yield false;
         }
       }
       case SUM -> {
-        int n = dataPoints[scanIndex];
         intensities[scanIndex] += intensity;
-        mzs[scanIndex] = (mzs[scanIndex] * n + mz) / (n + 1);
         dataPoints[scanIndex] += 1;
         yield true;
       }
       case MEAN -> {
         int n = dataPoints[scanIndex];
         intensities[scanIndex] = (intensities[scanIndex] * n + intensity) / (n + 1);
-        mzs[scanIndex] = (mzs[scanIndex] * n + mz) / (n + 1);
         dataPoints[scanIndex] += 1;
         yield true;
       }
     };
+    if (!added) {
+      return false;
+    }
+
+    switch (mzMode) {
+      case HIGHEST_INTENSITY -> mzs[scanIndex] = mz;
+      case MEAN -> {
+        int n = dataPoints[scanIndex];
+        mzs[scanIndex] = (mzs[scanIndex] * n + mz) / (n + 1);
+      }
+    }
+    return true;
   }
 
   @Override
@@ -207,7 +218,30 @@ public class BuildingIonSeries implements IonSeries {
   }
 
   public enum IntensityMode {
-    HIGHEST, SUM, MEAN
+    HIGHEST, SUM, MEAN;
+
+    public static IntensityMode DEFAULT = HIGHEST;
+
+    public static IntensityMode from(TICPlotType type) {
+      return switch (type) {
+        case TIC -> SUM;
+        case BASEPEAK -> HIGHEST;
+      };
+    }
+
+    public TICPlotType toPlotType() {
+      return switch (this) {
+        case SUM, MEAN -> TICPlotType.TIC;
+        case HIGHEST -> TICPlotType.BASEPEAK;
+      };
+    }
+
   }
 
+  public enum MzMode {
+    HIGHEST_INTENSITY, MEAN;
+
+    public static MzMode DEFAULT = HIGHEST_INTENSITY;
+
+  }
 }

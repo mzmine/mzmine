@@ -39,7 +39,7 @@ import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.IonMobilityUtils.MobilogramType;
-import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;

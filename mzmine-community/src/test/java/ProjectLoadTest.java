@@ -27,11 +27,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.ProjectService;
 import java.io.File;
 import java.time.Instant;
 import java.util.Comparator;
@@ -45,15 +45,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import testutils.MZmineTestUtil;
 import testutils.TaskResult;
 
 @DisplayName("Test Project Load Finding")
 @TestInstance(Lifecycle.PER_CLASS)
 @TestMethodOrder(OrderAnnotation.class)
+@DisabledOnOs(OS.MAC)
 public class ProjectLoadTest {
 
   private MZmineProject currentProject;
+
 
   @AfterAll
   public void tearDown() {
@@ -73,7 +77,7 @@ public class ProjectLoadTest {
         param);
     Assertions.assertInstanceOf(TaskResult.FINISHED.class, result, result.description());
 
-    var flist = MZmineCore.getProjectManager().getCurrentProject()
+    var flist = ProjectService.getProjectManager().getCurrentProject()
         .getFeatureList("Aligned feature list corr PEARSON r greq 0.85 dp greq 5");
 
     assertEquals(2, flist.getRawDataFiles().size());

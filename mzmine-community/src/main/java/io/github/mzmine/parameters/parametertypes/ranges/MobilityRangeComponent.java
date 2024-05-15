@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,12 +25,13 @@
 
 package io.github.mzmine.parameters.parametertypes.ranges;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.project.ProjectService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.scene.control.Button;
 
 public class MobilityRangeComponent extends DoubleRangeComponent {
@@ -45,7 +46,7 @@ public class MobilityRangeComponent extends DoubleRangeComponent {
     setAutoButton = new Button("Auto range");
     setAutoButton.setOnAction(e -> {
       RawDataFile currentFiles[] =
-          MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+          ProjectService.getProjectManager().getCurrentProject().getDataFiles();
 
       Range<Double> mobilityRange = null;
       for (RawDataFile file : currentFiles) {
@@ -63,7 +64,7 @@ public class MobilityRangeComponent extends DoubleRangeComponent {
       }
       setValue(mobilityRange);
     });
-    RawDataFile currentFiles[] = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    RawDataFile currentFiles[] = ProjectService.getProjectManager().getCurrentProject().getDataFiles();
     setAutoButton.setDisable(currentFiles.length == 0);
 
     getChildren().add(setAutoButton);

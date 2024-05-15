@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.scan_histogram.chart;
 
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.HistogramChartFactory;
+import io.github.mzmine.gui.chartbasics.JFreeChartUtils;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.util.maths.Precision;
 import java.awt.event.ActionEvent;
@@ -84,16 +85,15 @@ public class HistogramPanel extends BorderPane {
   private final TextField txtPrecision;
   private final CheckBox cbGaussianFit;
   private final CheckBox cbKeepSameXaxis;
-
-  private EChartViewer pnHisto;
-  private String xLabel;
-  private HistogramData data;
   private final VBox boxSettings;
   private final VBox secondGaussian;
   private final HBox pnHistoSett;
   private final HBox xRanges;
   private final HBox yRanges;
   private final Executor exec;
+  private EChartViewer pnHisto;
+  private String xLabel;
+  private HistogramData data;
 
   /**
    * Create the dialog.
@@ -521,9 +521,9 @@ public class HistogramPanel extends BorderPane {
   }
 
   protected void hideGaussianCurve(XYPlot p) {
-    if (p.getDatasetCount() > 1) {
-      p.setRenderer(p.getDatasetCount() - 1, null);
-      p.setDataset(p.getDatasetCount() - 1, null);
+    if (JFreeChartUtils.getDatasetCountNullable(p) > 1) {
+      p.setRenderer(JFreeChartUtils.getDatasetCountNullable(p) - 1, null);
+      p.setDataset(JFreeChartUtils.getDatasetCountNullable(p) - 1, null);
     }
   }
 

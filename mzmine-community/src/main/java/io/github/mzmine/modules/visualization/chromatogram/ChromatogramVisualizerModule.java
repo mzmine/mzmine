@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -39,6 +39,7 @@ import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
@@ -68,7 +69,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
   }
 
   public static void setupNewTICVisualizer(final RawDataFile[] dataFiles) {
-    setupNewTICVisualizer(MZmineCore.getProjectManager().getCurrentProject().getDataFiles(),
+    setupNewTICVisualizer(ProjectService.getProjectManager().getCurrentProject().getDataFiles(),
         dataFiles, new Feature[0], new Feature[0], null, null, null);
   }
 
@@ -102,7 +103,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
         p.setPeakLabelMap(peakLabels);
       }
 
-      myInstance.runModule(MZmineCore.getProjectManager().getCurrentProject(), p,
+      myInstance.runModule(ProjectService.getProjectManager().getCurrentProject(), p,
           new ArrayList<Task>(), Instant.now()); // date is irrelevant
     }
 
@@ -212,7 +213,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
     ScanSelection scanSelection = new ScanSelection(1);
 
     setupNewTICVisualizer(
-        MZmineCore.getProjectManager().getCurrentProject().getDataFiles(),
+        ProjectService.getProjectManager().getCurrentProject().getDataFiles(),
         allFiles.toArray(new RawDataFile[0]), allFeatures.toArray(new Feature[allFeatures.size()]),
         selectedFeatures.toArray(new Feature[selectedFeatures.size()]), labelsMap,
         scanSelection, mzRange);

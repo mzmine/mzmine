@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,10 +31,10 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.MathUtils;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -80,7 +80,7 @@ class IntensityPlotDataset extends AbstractDataset implements StatisticalCategor
         .getMatchingRows(featureList);
 
     if (xAxisValueSource instanceof ParameterWrapper) {
-      MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+      MZmineProject project = ProjectService.getProjectManager().getCurrentProject();
       UserParameter xAxisParameter = ((ParameterWrapper) xAxisValueSource).getParameter();
       LinkedHashSet<Comparable> parameterValues = new LinkedHashSet<>();
       for (RawDataFile file : selectedFiles) {
@@ -129,7 +129,7 @@ class IntensityPlotDataset extends AbstractDataset implements StatisticalCategor
     if (xAxisValueSource instanceof ParameterWrapper) {
       HashSet<RawDataFile> files = new HashSet<>();
       UserParameter<?, ?> xAxisParameter = ((ParameterWrapper) xAxisValueSource).getParameter();
-      MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+      MZmineProject project = ProjectService.getProjectManager().getCurrentProject();
       for (RawDataFile file : selectedFiles) {
         Object fileValue = project.getParameterValue(xAxisParameter, file);
         if (fileValue == null) {

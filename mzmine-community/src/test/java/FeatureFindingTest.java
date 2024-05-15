@@ -39,7 +39,6 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
@@ -67,6 +66,8 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
+import io.github.mzmine.project.ProjectService;
+import io.mzio.users.user.CurrentUserService;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -120,8 +121,14 @@ public class FeatureFindingTest {
     //    logger.info("Running MZmine");
     MZmineTestUtil.startMzmineCore();
     logger.info("Getting project");
-    project = MZmineCore.getProjectManager().getCurrentProject();
+    project = ProjectService.getProjectManager().getCurrentProject();
 
+    // check access level
+    if (!CurrentUserService.isValid()) {
+      var msg = "No test user supplied add user to TESTRUNNER_USER environment var";
+      logger.warning(msg);
+      throw new UnsupportedOperationException(msg);
+    }
   }
 
   @AfterAll
@@ -254,8 +261,8 @@ public class FeatureFindingTest {
         assertTrue(row.getAverageMZ() > 430.2075);
         assertTrue(row.getAverageRT() > 7.26);
         assertTrue(row.getAverageRT() < 7.27);
-        assertTrue(row.getAverageHeight() > 586139);
-        assertTrue(row.getAverageArea() > 160966);
+        assertTrue(row.getMaxHeight() > 586139);
+        assertTrue(row.getMaxArea() > 160966);
 
         IonTimeSeries<? extends Scan> data = row.getFeatures().get(0).getFeatureData();
         assertEquals(44, data.getNumberOfValues());

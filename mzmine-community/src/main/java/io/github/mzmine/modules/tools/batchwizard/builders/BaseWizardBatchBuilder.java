@@ -85,12 +85,12 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.Spectra
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClassesProvider;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.AdvancedLipidAnnotationParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationChainParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationMSMSParameters;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.annotation_modules.LipidAnnotationParameters;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidClassesProvider;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
@@ -190,6 +190,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   // only parameters that are used in all workflows
   // input
   protected final File[] dataFiles;
+  protected final OptionalValue<File> metadataFile;
   // annotation
   protected final File[] libraries;
   //filter
@@ -225,6 +226,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     // input
     Optional<? extends WizardStepParameters> params = steps.get(WizardPart.DATA_IMPORT);
     dataFiles = getValue(params, AllSpectralDataImportParameters.fileNames);
+    metadataFile = getOptional(params, AllSpectralDataImportParameters.metadataFile);
 
     // annotation
     params = steps.get(WizardPart.ANNOTATION);
@@ -680,16 +682,16 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     IonModification[] adducts;
     IonModification[] adductChoices;
     if (polarity == Polarity.Positive) {
-      adducts = new IonModification[]{IonModification.H, IonModification.NA,
-          IonModification.Hneg_NA2, IonModification.K, IonModification.NH4, IonModification.H2plus};
+      adducts = new IonModification[]{IonModification.H, IonModification.H_H2O_1,
+          IonModification.NA, IonModification.Hneg_NA2, IonModification.K, IonModification.NH4,
+          IonModification.H2plus};
       adductChoices = IonModification.getDefaultValuesPos();
     } else {
       adducts = new IonModification[]{IonModification.H_NEG, IonModification.FA,
           IonModification.NA_2H, IonModification.CL};
       adductChoices = IonModification.getDefaultValuesNeg();
     }
-    IonModification[] modifications = new IonModification[]{IonModification.H2O,
-        IonModification.H2O_2};
+    IonModification[] modifications = new IonModification[]{};
     var ionLib = ionLibraryParam.getParameter(IonLibraryParameterSet.ADDUCTS);
     // set choices first then values
     ionLib.setChoices(adductChoices, IonModification.getDefaultModifications());
@@ -854,6 +856,8 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
     param.getParameter(AllSpectralDataImportParameters.fileNames).setValue(dataFiles);
+    param.setParameter(AllSpectralDataImportParameters.metadataFile, metadataFile.active(),
+        metadataFile.value());
     param.getParameter(SpectralLibraryImportParameters.dataBaseFiles).setValue(libraries);
     // turn advanced off but still set the noise levels etc
     param.getParameter(AllSpectralDataImportParameters.advancedImport).setValue(false);
@@ -934,7 +938,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         .getModuleParameters(MobilityScanMergerModule.class).cloneParameterSet();
 
     param.setParameter(MobilityScanMergerParameters.mzTolerance, mzTolScans);
-    param.setParameter(MobilityScanMergerParameters.scanSelection, new ScanSelection());
+    param.setParameter(MobilityScanMergerParameters.scanSelection, new ScanSelection(1));
     param.setParameter(MobilityScanMergerParameters.noiseLevel,
         0d); // the noise level of the mass detector already did all the filtering we want (at least in the wizard)
     param.setParameter(MobilityScanMergerParameters.mergingType, IntensityMergingType.SUMMED);
@@ -1096,8 +1100,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(MinimumSearchFeatureResolverParameters.MIN_ABSOLUTE_HEIGHT,
         minFeatureHeight);
     param.setParameter(MinimumSearchFeatureResolverParameters.MIN_RATIO, 1.8d);
-    param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_DURATION, Range.closed(0d, 10d));
-    param.setParameter(MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS, 5);
+    param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_DURATION, Range.closed(0d, 20d));
+    param.setParameter(MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS,
+        minImsDataPoints);
 
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(MinimumSearchFeatureResolverModule.class), param));

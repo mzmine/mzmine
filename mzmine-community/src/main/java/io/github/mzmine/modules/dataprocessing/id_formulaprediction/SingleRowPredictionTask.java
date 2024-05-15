@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicChecker;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
@@ -216,7 +217,7 @@ public class SingleRowPredictionTask extends AbstractTask {
       logger.finest("Finished formula search for " + massRange + " m/z, found " + foundFormulas
           + " formulas");
 
-      MZmineCore.runLater(() -> resultWindowFX.setTitle(
+      FxThread.runLater(() -> resultWindowFX.setTitle(
           "Finished searching for " + MZmineCore.getConfiguration().getMZFormat()
               .format(searchedMass) + " amu, " + foundFormulas + " formulas found"));
     } catch (Exception e) {
@@ -316,7 +317,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 
     // Add the new formula entry
     // Need to execute in runLater because result window might not have been created due to earlier runLater.
-    MZmineCore.runLater(() -> resultWindowFX.addNewListItem(resultEntry));
+    FxThread.runLater(() -> resultWindowFX.addNewListItem(resultEntry));
 
     foundFormulas++;
 

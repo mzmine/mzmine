@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,8 +29,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.project.ProjectService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -77,7 +77,7 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
   @Override
   public void loadValueFromXML(Element xmlElement) {
 
-    FeatureList[] allPeakLists = MZmineCore.getProjectManager().getCurrentProject()
+    FeatureList[] allPeakLists = ProjectService.getProjectManager().getCurrentProject()
         .getCurrentFeatureLists().toArray(FeatureList[]::new);
 
     List<Feature> newValues = new ArrayList<>();

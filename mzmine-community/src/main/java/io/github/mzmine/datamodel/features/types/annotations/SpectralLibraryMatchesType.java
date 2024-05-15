@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -77,6 +77,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       new ExplainedIntensityPercentType(),//
       new IonAdductType(), //
       new FormulaType(),//
+      new MolecularStructureType(),//
       new SmilesStructureType(),//
       new InChIStructureType(),//
       new NeutralMassType(),//
@@ -110,6 +111,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       case CompoundNameType __ -> entry.getField(DBEntryField.NAME).orElse("").toString();
       case FormulaType __ -> entry.getField(DBEntryField.FORMULA).orElse("").toString();
       case IonAdductType __ -> entry.getField(DBEntryField.ION_TYPE).orElse("").toString();
+      case MolecularStructureType __ -> entry.getStructure();
       case SmilesStructureType __ -> entry.getField(DBEntryField.SMILES).orElse("").toString();
       case InChIStructureType __ -> entry.getField(DBEntryField.INCHI).orElse("").toString();
       case CosineScoreType __ -> (float) match.getSimilarity().getScore();
@@ -144,7 +146,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
     if (!(value instanceof List<?> list)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-              + value.getClass());
+          + value.getClass());
     }
 
     for (Object o : list) {
@@ -162,7 +164,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
 
     if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
-        && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
+          && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
       throw new IllegalStateException("Wrong element");
     }
 
@@ -178,13 +180,13 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       // todo remove first branch in a few versions so we can delete SpectralDBFeatureIdentity
       if (reader.getLocalName().equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT)
           && reader.getAttributeValue(null, FeatureIdentity.XML_IDENTITY_TYPE_ATTR)
-          .equals(SpectralDBFeatureIdentity.XML_IDENTITY_TYPE)) {
+              .equals(SpectralDBFeatureIdentity.XML_IDENTITY_TYPE)) {
         FeatureIdentity id = FeatureIdentity.loadFromXML(reader, project,
             project.getCurrentRawDataFiles());
         ids.add(new SpectralDBAnnotation((SpectralDBFeatureIdentity) id));
       } else if (reader.getLocalName().equals(FeatureAnnotation.XML_ELEMENT)
-          && reader.getAttributeValue(null, FeatureAnnotation.XML_TYPE_ATTR)
-          .equals(SpectralDBAnnotation.XML_ATTR)) {
+                 && reader.getAttributeValue(null, FeatureAnnotation.XML_TYPE_ATTR)
+                     .equals(SpectralDBAnnotation.XML_ATTR)) {
         ids.add(
             SpectralDBAnnotation.loadFromXML(reader, project, project.getCurrentRawDataFiles()));
       }
@@ -197,5 +199,11 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
   @Override
   public boolean getDefaultVisibility() {
     return true;
+  }
+
+
+  @Override
+  public int getPrefColumnWidth() {
+    return 350;
   }
 }

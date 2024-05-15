@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.modules.visualization.chromatogram.TICPlot;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeComponent;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.RangeUtils;
 import java.text.NumberFormat;
 import javafx.collections.FXCollections;
@@ -70,9 +71,9 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
       ParameterSet parameters) {
     super(valueCheckRequired, parameters);
     comboDataFileName = new ComboBox<>(FXCollections.observableList(
-        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
+        ProjectService.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
 
-    dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    dataFiles = ProjectService.getProjectManager().getCurrentProject().getDataFiles();
 
     if (dataFiles.length > 0) {
 

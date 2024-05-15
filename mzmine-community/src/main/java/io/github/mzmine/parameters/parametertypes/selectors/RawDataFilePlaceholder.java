@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.awt.Color;
 import java.io.IOException;
@@ -85,7 +85,7 @@ public class RawDataFilePlaceholder implements RawDataFile {
    */
   @Nullable
   public RawDataFile getMatchingFile() {
-    final MZmineProject proj = MZmineCore.getProjectManager().getCurrentProject();
+    final MZmineProject proj = ProjectService.getProjectManager().getCurrentProject();
     if (proj == null) {
       return null;
     }

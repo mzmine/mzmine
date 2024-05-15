@@ -66,4 +66,9 @@ public class InChIStructureType extends StringType implements EditableColumnType
     // Never change the ID for compatibility during saving/loading of type
     return "inchi";
   }
+
+  @Override
+  public int getPrefColumnWidth() {
+    return 100;
+  }
 }
