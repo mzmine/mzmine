@@ -25,18 +25,28 @@
 
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
-import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
-import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.util.files.ExtensionFilters;
+import java.io.File;
+import java.util.List;
 
-public sealed class WorkflowWizardParameters extends WizardStepParameters permits
-    WorkflowDdaWizardParameters, WorkflowGcElectronImpactWizardParameters,
-    WorkflowImagingWizardParameters, WorkflowLibraryGenerationWizardParameters,
-    WorkflowDiaWizardParameters, WorkflowTargetPlateWizardParameters {
+public final class WorkflowTargetPlateWizardParameters extends WorkflowWizardParameters {
 
-  public WorkflowWizardParameters(final WorkflowWizardParameterFactory preset,
-      final Parameter<?>... parameters) {
-    super(WizardPart.WORKFLOW, preset, parameters);
+  public static OptionalParameter<FileNameParameter> spotNamesFile = new OptionalParameter<>(
+      new FileNameParameter("Spot-to-Sample name file (csv)", """
+          A file containing spot names and the corresponding sample name.
+          The file must contain labelled columns ('spot' and 'name') and be separated by ';'
+          """, List.of(ExtensionFilters.CSV), FileSelectionType.OPEN), false);
+
+  public WorkflowTargetPlateWizardParameters() {
+    super(WorkflowWizardParameterFactory.TARGET_PLATE, spotNamesFile);
   }
 
+  public WorkflowTargetPlateWizardParameters(boolean enableSpotFileName, File spotFileName) {
+    this();
+    setParameter(spotNamesFile, enableSpotFileName, spotFileName);
+  }
 }
