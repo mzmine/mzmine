@@ -44,7 +44,7 @@ public class SimilarityType extends ScoreType {
   @NotNull
   @Override
   public String getHeaderString() {
-    return "Score";
+    return "Similarity";
   }
 
   @Override

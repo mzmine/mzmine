@@ -71,6 +71,12 @@ public class DataTypeCheckListParameter implements
     defaultDisableColumns();
   }
 
+  private static @NotNull String getKey(boolean isFeatureType, Class<? extends DataType<?>> parent,
+      Class<? extends DataType<?>> sub) {
+    return ColumnID.buildUniqueIdString(
+        isFeatureType ? ColumnType.FEATURE_TYPE : ColumnType.ROW_TYPE, parent, sub);
+  }
+
   /**
    * Adds a data type to the list. The datatype is activated by default.
    *
@@ -257,20 +263,20 @@ public class DataTypeCheckListParameter implements
    * {@link MZType#getDefaultVisibility()} mz itself is always on for a feature or a row.
    */
   private void defaultDisableColumns() {
-    value.put(getKey(false, IonIdentityListType.class, MZType.class), false);
+    if (getName().toLowerCase().contains("row")) {
+      value.put(getKey(false, IonIdentityListType.class, MZType.class), false);
 
-    value.put(getKey(false, SpectralLibraryMatchesType.class, FormulaType.class), false);
-    value.put(getKey(false, SpectralLibraryMatchesType.class, CCSType.class), false);
+      value.put(getKey(false, SpectralLibraryMatchesType.class, FormulaType.class), false);
+      value.put(getKey(false, SpectralLibraryMatchesType.class, CCSType.class), false);
 
-    value.put(getKey(false, CompoundDatabaseMatchesType.class, RTType.class), false);
-    value.put(getKey(false, CompoundDatabaseMatchesType.class, CCSType.class), false);
+      value.put(getKey(false, CompoundDatabaseMatchesType.class, RTType.class), false);
+      value.put(getKey(false, CompoundDatabaseMatchesType.class, CCSType.class), false);
 
-    value.put(getKey(false, LipidMatchListType.class, FormulaType.class), false);
-  }
+      value.put(getKey(false, LipidMatchListType.class, FormulaType.class), false);
+    }
 
-  private static @NotNull String getKey(boolean isFeatureType, Class<? extends DataType<?>> parent,
-      Class<? extends DataType<?>> sub) {
-    return ColumnID.buildUniqueIdString(
-        isFeatureType ? ColumnType.FEATURE_TYPE : ColumnType.ROW_TYPE, parent, sub);
+    if (getName().toLowerCase().contains("feature")) {
+      // add types here in the future
+    }
   }
 }

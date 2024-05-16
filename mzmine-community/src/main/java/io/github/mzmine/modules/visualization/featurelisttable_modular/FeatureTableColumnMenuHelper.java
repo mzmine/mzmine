@@ -33,6 +33,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.stream.Stream;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
@@ -141,6 +142,15 @@ public class FeatureTableColumnMenuHelper extends TableColumnMenuHelper {
     featureTable.applyVisibilityParametersToAllColumns();
   }
 
+  /**
+   * Wrapper for {@link ColumnID} to make use of {@link Stream#distinct()} method to narrow the
+   * feature type columns to a single entry per data type. For example, without this wrapper, the
+   * Feature:mz type would be added to the menu as many times as there are raw data files. This
+   * class does not take the different data files into account in the {@link #equals(Object)}
+   * method, but only if it is a row/feature column and the types itself.
+   *
+   * @param id The {@link ColumnID} to wrap
+   */
   private record ColIdWrapper(ColumnID id) {
 
     public ColumnID unwrap() {
