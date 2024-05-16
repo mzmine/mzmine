@@ -58,7 +58,7 @@ public class OnlineLcReactionMatchType extends ListWithSubsType<OnlineReactionMa
   }
 
   @Override
-  protected <K> @Nullable K map(@NotNull final DataType<K> subType,
+  public <K> @Nullable K map(@NotNull final DataType<K> subType,
       final OnlineReactionMatch match) {
     OnlineReaction reaction = match.getReaction();
     return (K) switch (subType) {

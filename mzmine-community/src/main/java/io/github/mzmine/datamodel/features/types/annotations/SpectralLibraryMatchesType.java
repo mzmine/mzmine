@@ -103,7 +103,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
   }
 
   @Override
-  protected <K> @Nullable K map(@NotNull final DataType<K> subType,
+  public <K> @Nullable K map(@NotNull final DataType<K> subType,
       final SpectralDBAnnotation match) {
     final SpectralLibraryEntry entry = match.getEntry();
     return (K) switch (subType) {
