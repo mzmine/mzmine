@@ -80,7 +80,7 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
   }
 
   @Override
-  protected <K> @Nullable K map(@NotNull final DataType<K> subType,
+  public <K> @Nullable K map(@NotNull final DataType<K> subType,
       final CompoundDBAnnotation item) {
     return item.get(subType);
   }
