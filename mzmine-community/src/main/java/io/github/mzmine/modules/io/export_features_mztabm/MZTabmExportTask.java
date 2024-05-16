@@ -37,13 +37,15 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
-import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import java.util.regex.Matcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,12 +70,12 @@ public class MZTabmExportTask extends AbstractTask {
   private final MZmineProject project;
   private final File fileName;
   private String plNamePattern = "{}";
-  private FeatureList[] featureLists;
+
+  private FeatureList featureList;
   private final boolean exportAll;
   private Metadata mtd;
   private SmallMoleculeSummary sm;
   private SmallMoleculeFeature smf;
-//  private SmallMoleculeEvidence sme;
 
   //atm default values are used in case charges, theoretical masses, and best_confidence_value
   //in case if value is null
@@ -83,12 +85,11 @@ public class MZTabmExportTask extends AbstractTask {
   private final Double DEFAULT_DOUBLE_VALUE = 1000.00;
 
 
-  MZTabmExportTask(MZmineProject project, ParameterSet parameters,
+  MZTabmExportTask(MZmineProject project, FeatureList featureList, ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.project = project;
-    this.featureLists = parameters.getParameter(MZTabmExportParameters.featureLists).getValue()
-        .getMatchingFeatureLists();
+    this.featureList = featureList;
     this.fileName = parameters.getParameter(MZTabmExportParameters.filename).getValue();
     this.exportAll = parameters.getParameter(MZTabmExportParameters.exportAll).getValue();
   }
@@ -103,7 +104,7 @@ public class MZTabmExportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to mzTab-m file(s)";
+    return "Exporting feature list(s) " + this.featureList.getName() + " to mzTab-m file(s)";
   }
 
   @Override
@@ -112,11 +113,6 @@ public class MZTabmExportTask extends AbstractTask {
 
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
-    // Total Number of rows
-    for (FeatureList featureList : featureLists) {
-      totalRows += featureList.getNumberOfRows();
-    }
-
     //Optional Columns
     List<IOptColumnMappingBuilder> feature_mzList = new ArrayList<>();
     List<IOptColumnMappingBuilder> feature_rtList = new ArrayList<>();
@@ -124,330 +120,310 @@ public class MZTabmExportTask extends AbstractTask {
 
     File curFile = fileName;
 
-    //Process feature Lists
-    for (FeatureList featureList : featureLists) {
+    try {
+      //Filename cleanup
+      if (substitute) {
+        // Cleanup from illegal filename characters
+        //not small alphabets, large alphabets, numbers, dots or dashes
+        String newFilename = generateNewFilename(featureList);
+        curFile = new File(newFilename);
+      }
 
-      try {
-        //Filename cleanup
-        if (substitute) {
-          // Cleanup from illegal filename characters
-          //not small alphabets, large alphabets, numbers, dots or dashes
-          String newFilename = generateNewFilename(featureList);
-          curFile = new File(newFilename);
-        }
+      MzTab mzTabFile = new MzTab();
 
-        MzTab mzTabFile = new MzTab();
+      //Set up US decimal number formatting
+      NumberFormat formatter;
+      formatter = new DecimalFormat("#.######");
 
-        //Set up US decimal number formatting
-        NumberFormat formatter;
-        formatter = new DecimalFormat("#.######");
+      //Metadata
+      mtd = generateMetadata(featureList);
 
-        //Metadata
-        mtd = generateMetadata(featureList);
+      final RawDataFile[] rawDataFiles = featureList.getRawDataFiles().toArray(RawDataFile[]::new);
+      int fileCounter = 0;
 
-        final RawDataFile[] rawDataFiles = featureList.getRawDataFiles()
-            .toArray(RawDataFile[]::new);
-        int fileCounter = 0;
+      // Study Variable name and descriptions
+      Hashtable<String, List<RawDataFile>> svhash = new Hashtable<>();
+      Hashtable<RawDataFile, Assay> rawDataFileToAssay = new Hashtable<>();
 
-        // Study Variable name and descriptions
-        Hashtable<String, List<RawDataFile>> svhash = new Hashtable<>();
-        Hashtable<RawDataFile, Assay> rawDataFileToAssay = new Hashtable<>();
+      for (RawDataFile file : rawDataFiles) {
+        fileCounter++;
 
-        for (RawDataFile file : rawDataFiles) {
-          fileCounter++;
+        // MS run location
+        MsRun msRun = getMsRunData(fileCounter, file);
+        mtd.addMsRunItem(msRun);
 
-          // MS run location
-          MsRun msRun = getMsRunData(fileCounter, file);
-          mtd.addMsRunItem(msRun);
+        // Add Assay
+        Assay assay = new Assay();
+        rawDataFileToAssay.put(file, assay);
+        assay.id(fileCounter);
+        assay.addMsRunRefItem(msRun);
 
-          // Add Assay
-          Assay assay = new Assay();
-          rawDataFileToAssay.put(file, assay);
-          assay.id(fileCounter);
-          assay.addMsRunRefItem(msRun);
+        mtd.addAssayItem(assay);
 
-          mtd.addAssayItem(assay);
+        feature_mzList.add(OptColumnMappingBuilder.forIndexedElement(assay).withName("feature_mz"));
+        feature_rtList.add(OptColumnMappingBuilder.forIndexedElement(assay).withName("feature_rt"));
+        feature_heightList.add(
+            OptColumnMappingBuilder.forIndexedElement(assay).withName("feature_height"));
 
-          feature_mzList.add(
-              OptColumnMappingBuilder.forIndexedElement(assay).withName("feature_mz"));
-          feature_rtList.add(
-              OptColumnMappingBuilder.forIndexedElement(assay).withName("feature_rt"));
-          feature_heightList.add(
-              OptColumnMappingBuilder.forIndexedElement(assay).withName("feature_height"));
+        createSVHash(svhash, file);
+      }
 
-          createSVHash(svhash, file);
-        }
+      getStudyVariables(svhash, rawDataFileToAssay);
 
-        getStudyVariables(svhash, rawDataFileToAssay);
+      //Write data rows
+      Map<Parameter, Database> databases = new LinkedHashMap<>();
 
-        //Write data rows
-        Map<Parameter, Database> databases = new LinkedHashMap<>();
+      Map<FeatureListRow, DataType<?>> annotationPriorityMap = CompoundAnnotationUtils.mapBestAnnotationTypesByPriority(
+          featureList.getRows(), false);
 
-        for (int i = 0; i < featureList.getRows().size(); ++i) {
-          FeatureListRow featureListRow = featureList.getRows().get(i);
-          sm = new SmallMoleculeSummary();
-          sm.setSmlId(i + 1);
-          smf = new SmallMoleculeFeature();
-          smf.setSmfId(i + 1);
-          SmallMoleculeEvidence sme = new SmallMoleculeEvidence();
-          sme.setSmeId(i + 1);
+      for (int i = 0; i < featureList.getRows().size(); ++i) {
+        FeatureListRow featureListRow = featureList.getRows().get(i);
 
-          sme.setMsLevel(
-              new Parameter().cvLabel("MS").cvAccession("MS:1000511").name("ms level").value(
-                  String.valueOf(featureListRow.getBestFeature().getRepresentativeScan().getMSLevel())));
-          sme.setEvidenceInputId(String.valueOf(i + 1));
-          sme.setRank(1);
+        DataType<?> annotationType = annotationPriorityMap.get(featureListRow);
 
-          final Collection<DataType> dataTypes = featureListRow.getTypes();
+        sm = new SmallMoleculeSummary();
+        sm.setSmlId(i + 1);
+        smf = new SmallMoleculeFeature();
+        smf.setSmfId(i + 1);
+        SmallMoleculeEvidence sme = new SmallMoleculeEvidence();
+        sme.setSmeId(i + 1);
 
-          List<GlobalOptColumnMappingBuilder> globalOptColumns = new ArrayList<>();
+        sme.setMsLevel(new Parameter().cvLabel("MS").cvAccession("MS:1000511").name("ms level")
+            .value(String.valueOf(
+                featureListRow.getBestFeature().getRepresentativeScan().getMSLevel())));
+        sme.setEvidenceInputId(String.valueOf(i + 1));
+        sme.setRank(1);
 
-          //introduce column count for optional column placement
-          int columnCount = 0;
+        final Collection<DataType> dataTypes = featureListRow.getTypes();
 
-          //Get available annotations
-          if (exportAll || !dataTypes.isEmpty()) {
+        List<GlobalOptColumnMappingBuilder> globalOptColumns = new ArrayList<>();
 
-            Collection<DataType> listType = filterForTypesWithAnnotation(dataTypes);
+        //introduce column count for optional column placement
+        int columnCount = 0;
 
-            for (DataType type : listType) {
+        //Get available annotations
+        if (exportAll || !dataTypes.isEmpty()) {
 
-              // get the actual value of the ListWithSubsType stored in the feature list
-              final List annotationList = (List) featureListRow.get(type);
-              setDefaultConfidences(sme);
+          List<DataType> listType = filterForTypesWithAnnotation(dataTypes);
 
-              if (annotationList == null || annotationList.isEmpty()) {
-                sm.setReliability("4"); //unknown compoun
+          for (DataType type : listType) {
+
+            // get the actual value of the ListWithSubsType stored in the feature list
+            final List annotationList = (List) featureListRow.get(type);
+            setDefaultConfidences(sme);
+
+            if (annotationList == null || annotationList.isEmpty()) {
+              sm.setReliability("4"); //unknown compoun
+              continue;
+            } else if (type.getUniqueID().equals(LipidMatchListType.class)) {
+              //todo add a case (i.e. with lipids where there is only a class?
+              sm.setReliability("2"); //putatively annotated compound (2)
+            }
+
+            ListWithSubsType<Object> listWithSubsType = (ListWithSubsType) type;
+
+            //get the list of subTypes
+            final List<DataType> subDataTypeList = ((ListWithSubsType) type).getSubDataTypes();
+
+            // export annotations
+            for (int j = 0; j < subDataTypeList.size(); j++) {
+              final String uniqueID = subDataTypeList.get(j).getUniqueID();
+              final String subtypeValue = listWithSubsType.getFormattedSubColValue(j,
+                  annotationList);
+
+              //todo map a value of any type and the data type to the correct string
+//              listWithSubsType.map(subDataTypeList.get(j), annotationList);
+
+              if (type instanceof NoTextColumn || uniqueID.equals("structure_2d")) {
                 continue;
+              }
+              globalOptColumns.add(OptColumnMappingBuilder.forGlobal()
+                  .withName(type.getUniqueID() + "_" + uniqueID));
+              if (!subtypeValue.equals("")) {
+                sme.addOptItem(globalOptColumns.get(columnCount).build(subtypeValue));
               } else {
-                //todo can there be a case (i.e. with lipids where there is only a class?
-                sm.setReliability("2"); //putatively annotated compound (2)
+                sme.addOptItem(globalOptColumns.get(columnCount).build("null"));
               }
-
-              ListWithSubsType<?> listWithSubsType = (ListWithSubsType) type;
-
-              //get the list of subTypes
-              final List<DataType> subDataTypeList = ((ListWithSubsType) type).getSubDataTypes();
-
-              //detect which preferred type of annotation is present
-              //order of priority goes as follows from more specific
-              // [lipid annotations] > [spectral databases] > [compound databases]
-              //preferred annotation might differ for each feature
-              String preferredAnnotation = "";
-              for (int j = 0; j < subDataTypeList.size(); j++) {
-                final String typeUniqueID = type.getUniqueID();
-                final String subtypeValue = listWithSubsType.getFormattedSubColValue(j,
-                    annotationList);
-                if (subtypeValue != null) {
-                  if (typeUniqueID == "lipid_annotations") {
-                    preferredAnnotation = "lipid_annotations";
-                  } else {
-                    if (typeUniqueID == "spectral_db_matches") {
-                      preferredAnnotation = "spectral_db_matches";
-                    } else if (typeUniqueID == "compound_db_identity") {
-                      preferredAnnotation = "compound_db_identity";
-                    }
-                  }
-                }
+              if (type.getUniqueID().equals(annotationType.getUniqueID())) {
+                updateWithPreferredAnnotation(sme, annotationType.getUniqueID(), uniqueID, subtypeValue);
               }
+              columnCount++;
+            }
+          }
 
-              // export annotations
-              for (int j = 0; j < subDataTypeList.size(); j++) {
-                final String uniqueID = subDataTypeList.get(j).getUniqueID();
-                final String subtypeValue = listWithSubsType.getFormattedSubColValue(j,
-                    annotationList);
+          //check if there is best id confidence measure present
+          if (sm.getBestIdConfidenceMeasure() == null) {
+            Parameter parameter = new Parameter();
+            parameter.setName("NaN");
+            sm.setBestIdConfidenceMeasure(parameter);
+            sm.setBestIdConfidenceValue(DEFAULT_DOUBLE_VALUE);
+          }
 
-                if (uniqueID.equals("structure_2d")) {
-                  continue;
-                }
-                globalOptColumns.add(OptColumnMappingBuilder.forGlobal()
-                    .withName(type.getUniqueID() + "_" + uniqueID));
-                if (!subtypeValue.equals("")) {
-                  sme.addOptItem(globalOptColumns.get(columnCount).build(subtypeValue));
+          Double rowMZ = featureListRow.getAverageMZ();
+          Float rowRT = featureListRow.getAverageRT();
+          Range<Float> rowRTRange = featureListRow.get(RTRangeType.class);
+          Integer rowCharge = featureListRow.getRowCharge().intValue();
+
+          //check if the fields that shouldn't be empty do not contain nulls
+          if (sme.getIdentificationMethod() == null) {
+            Parameter identificationMethod = new Parameter();
+            identificationMethod.setName("Identification method");
+            identificationMethod.setValue("Identification method");
+            sme.setIdentificationMethod(identificationMethod);
+          }
+
+          if (sme.getTheoreticalMassToCharge() == null) {
+            sme.setTheoreticalMassToCharge(DEFAULT_DOUBLE_VALUE);
+          }
+
+          if (rowMZ != null) {
+            smf.setExpMassToCharge(rowMZ.doubleValue());
+            sme.setExpMassToCharge(rowMZ.doubleValue());
+          }
+          if (rowRT != null) {
+            smf.setRetentionTimeInSeconds(rowRT.doubleValue() * 60f);
+          }
+          if (rowRTRange != null) {
+            smf.setRetentionTimeInSecondsStart(rowRTRange.lowerEndpoint().doubleValue() * 60f);
+            smf.setRetentionTimeInSecondsEnd(rowRTRange.upperEndpoint().doubleValue() * 60f);
+          }
+
+          int dataFileCount = 0;
+          Hashtable<String, List<Double>> sampleVariableAbundancehash = new Hashtable<>();
+          for (RawDataFile dataFile : rawDataFiles) {
+            dataFileCount++;
+            Feature feature = featureListRow.getFeature(dataFile);
+            if (feature != null) {
+              //Spectra ref
+              //modify if better alternative representation of spectra ref is suggested
+              List<SpectraRef> sr = new ArrayList<>();
+              for (Scan scan : feature.getScanNumbers()) {
+                sr.add(new SpectraRef().msRun(
+                        rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().getFirst())
+                    .reference("index=" + scan.getScanNumber()));
+              }
+              if (sr.isEmpty()) {
+                sr.add(new SpectraRef().msRun(
+                        rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().getFirst())
+                    .reference("index=0"));
+              }
+              sme.setSpectraRef(sr);
+
+              String featureMZ = formatter.format(feature.getMZ());
+              String featureRT = formatter.format(feature.getRT() * 60f);
+              String featureHeight = formatter.format(feature.getHeight());
+              Double featureArea = feature.getArea().doubleValue();
+
+              sm.addOptItem(feature_mzList.get(dataFileCount - 1).build(featureMZ));
+              sm.addOptItem(feature_rtList.get(dataFileCount - 1).build(featureRT));
+              sm.addOptItem(feature_heightList.get(dataFileCount - 1)
+                  .build(featureHeight.formatted(formatter)));
+
+              Integer featureCharge = feature.getCharge();
+              if (smf.getCharge() == null) {
+                if (featureCharge != 0) {
+                  smf.setCharge(featureCharge);
                 } else {
-                  sme.addOptItem(globalOptColumns.get(columnCount).build("null"));
+                  smf.setCharge(DEFAULT_INTEGER_VALUE);
+                  if (sme.getCharge() == null) {
+                    sme.setCharge(DEFAULT_INTEGER_VALUE);
+                  }
                 }
-                if (type.getUniqueID().equals(preferredAnnotation)) {
-                  updateWithPreferredAnnotation(sme, preferredAnnotation, uniqueID, subtypeValue);
-                }
-                columnCount++;
               }
-            }
 
-            //check if there is best id confidence measure present
-            if (sm.getBestIdConfidenceMeasure() == null) {
-              Parameter parameter = new Parameter();
-              parameter.setName("NaN");
-              sm.setBestIdConfidenceMeasure(parameter);
-              sm.setBestIdConfidenceValue(DEFAULT_DOUBLE_VALUE);
-            }
-
-            Double rowMZ = featureListRow.getAverageMZ();
-            Float rowRT = featureListRow.getAverageRT();
-            Range<Float> rowRTRange = featureListRow.get(RTRangeType.class);
-            Integer rowCharge = featureListRow.getRowCharge().intValue();
-
-            //check if the fields that shouldn't be empty do not contain nulls
-            if (sme.getIdentificationMethod() == null) {
-              Parameter identificationMethod = new Parameter();
-              identificationMethod.setName("Identification method");
-              identificationMethod.setValue("Identification method");
-              sme.setIdentificationMethod(identificationMethod);
-            }
-
-            if (sme.getTheoreticalMassToCharge() == null) {
-              sme.setTheoreticalMassToCharge(DEFAULT_DOUBLE_VALUE);
-            }
-
-            if (rowMZ != null) {
-              smf.setExpMassToCharge(rowMZ.doubleValue());
-              sme.setExpMassToCharge(rowMZ.doubleValue());
-            }
-            if (rowRT != null) {
-              smf.setRetentionTimeInSeconds(rowRT.doubleValue() * 60f);
-            }
-            if (rowRTRange != null) {
-              smf.setRetentionTimeInSecondsStart(rowRTRange.lowerEndpoint().doubleValue() * 60f);
-              smf.setRetentionTimeInSecondsEnd(rowRTRange.upperEndpoint().doubleValue() * 60f);
-            }
-
-            int dataFileCount = 0;
-            Hashtable<String, List<Double>> sampleVariableAbundancehash = new Hashtable<>();
-            for (RawDataFile dataFile : rawDataFiles) {
-              dataFileCount++;
-              Feature feature = featureListRow.getFeature(dataFile);
-              if (feature != null) {
-                //Spectra ref
-                //modify if better alternative representation of spectra ref is suggested
-                List<SpectraRef> sr = new ArrayList<>();
-                for (Scan scan : feature.getScanNumbers()) {
-                  sr.add(new SpectraRef().msRun(
-                          rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().getFirst())
-                      .reference("index=" + scan.getScanNumber()));
-                }
-                if (sr.isEmpty()) {
-                  sr.add(new SpectraRef().msRun(
-                          rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().getFirst())
-                      .reference("index=0"));
-                }
-                sme.setSpectraRef(sr);
-
-                String featureMZ = formatter.format(feature.getMZ());
-                String featureRT = formatter.format(feature.getRT() * 60f);
-                String featureHeight = formatter.format(feature.getHeight());
-                Double featureArea = feature.getArea().doubleValue();
-
-                sm.addOptItem(feature_mzList.get(dataFileCount - 1).build(featureMZ));
-                sm.addOptItem(feature_rtList.get(dataFileCount - 1).build(featureRT));
-                sm.addOptItem(feature_heightList.get(dataFileCount - 1)
-                    .build(featureHeight.formatted(formatter)));
-
-                Integer featureCharge = feature.getCharge();
-                if (smf.getCharge() == null) {
-                  if (featureCharge != 0) {
-                    smf.setCharge(featureCharge);
+              sm.addAbundanceAssayItem(featureArea.doubleValue());
+              smf.addAbundanceAssayItem(featureArea.doubleValue());
+              for (String sampleVariable : svhash.keySet()) {
+                if (svhash.get(sampleVariable).contains(dataFile)) {
+                  if (sampleVariableAbundancehash.containsKey(sampleVariable)) {
+                    sampleVariableAbundancehash.get(sampleVariable).add(featureArea);
                   } else {
-                    smf.setCharge(DEFAULT_INTEGER_VALUE);
-                    if (sme.getCharge() == null) {
-                      sme.setCharge(DEFAULT_INTEGER_VALUE);
-                    }
-                  }
-                }
-
-                sm.addAbundanceAssayItem(featureArea.doubleValue());
-                smf.addAbundanceAssayItem(featureArea.doubleValue());
-                for (String sampleVariable : svhash.keySet()) {
-                  if (svhash.get(sampleVariable).contains(dataFile)) {
-                    if (sampleVariableAbundancehash.containsKey(sampleVariable)) {
-                      sampleVariableAbundancehash.get(sampleVariable).add(featureArea);
-                    } else {
-                      List<Double> l = new ArrayList<>();
-                      l.add(featureArea);
-                      sampleVariableAbundancehash.put(sampleVariable, l);
-                    }
+                    List<Double> l = new ArrayList<>();
+                    l.add(featureArea);
+                    sampleVariableAbundancehash.put(sampleVariable, l);
                   }
                 }
               }
             }
-            if (rowCharge > 0) {
-              smf.setCharge(rowCharge);
-              sme.setCharge(rowCharge);
-            }
-            if (!sampleVariableAbundancehash.keySet().isEmpty()) {
-              for (String studyVariable : sampleVariableAbundancehash.keySet()) {
-                addSVAbundance(sampleVariableAbundancehash, studyVariable);
-              }
-            } else {
-              sm.addAbundanceStudyVariableItem(null);
-              sm.addAbundanceVariationStudyVariableItem(null);
-            }
-
-            sm.addSmfIdRefsItem(smf.getSmfId());
-            smf.addSmeIdRefsItem(sme.getSmeId());
-            mzTabFile.addSmallMoleculeSummaryItem(sm);
-            mzTabFile.addSmallMoleculeFeatureItem(smf);
-            mzTabFile.addSmallMoleculeEvidenceItem(sme);
           }
-        }
-
-        //cv term
-        int dbId = 1;
-
-        //set ids sequentially, starting from 1
-        for (Entry<Parameter, Database> entry : databases.entrySet()) {
-          mtd.addDatabaseItem(entry.getValue().id(dbId++));
-        }
-
-        //add nulls in empty annotation cells
-        ArrayList<String> optColNames = new ArrayList<>();
-        for (SmallMoleculeEvidence sme : mzTabFile.getSmallMoleculeEvidence().stream().toList()) {
-          if (sme != null & sme.getOpt() != null) {
-            for (int i = 0; i < sme.getOpt().size(); i++) {
-              OptColumnMapping entry = sme.getOpt().get(i);
-              if (!optColNames.contains(entry.getIdentifier())) {
-                optColNames.add(entry.getIdentifier());
-              }
-            }
+          if (rowCharge > 0) {
+            smf.setCharge(rowCharge);
+            sme.setCharge(rowCharge);
           }
-        }
-
-        for (SmallMoleculeEvidence sme : mzTabFile.getSmallMoleculeEvidence().stream().toList()) {
-          if (sme != null & sme.getOpt() != null) {
-            List<String> existingCols = sme.getOpt().stream().map(OptColumnMapping::getIdentifier)
-                .toList();
-            for (String colName : optColNames) {
-              if (!existingCols.contains(colName)) {
-                sme.addOptItem(
-                    OptColumnMappingBuilder.forGlobal().withName(colName.split("_global_")[1])
-                        .build("null"));
-              }
+          if (!sampleVariableAbundancehash.keySet().isEmpty()) {
+            for (String studyVariable : sampleVariableAbundancehash.keySet()) {
+              addSVAbundance(sampleVariableAbundancehash, studyVariable);
             }
           } else {
-            for (String colName : optColNames) {
+            sm.addAbundanceStudyVariableItem(null);
+            sm.addAbundanceVariationStudyVariableItem(null);
+          }
+
+          sm.addSmfIdRefsItem(smf.getSmfId());
+          smf.addSmeIdRefsItem(sme.getSmeId());
+          mzTabFile.addSmallMoleculeSummaryItem(sm);
+          mzTabFile.addSmallMoleculeFeatureItem(smf);
+          mzTabFile.addSmallMoleculeEvidenceItem(sme);
+        }
+      }
+
+      //cv term
+      int dbId = 1;
+
+      //set ids sequentially, starting from 1
+      for (Entry<Parameter, Database> entry : databases.entrySet()) {
+        mtd.addDatabaseItem(entry.getValue().id(dbId++));
+      }
+
+      //add nulls in empty annotation cells
+      ArrayList<String> optColNames = new ArrayList<>();
+      for (SmallMoleculeEvidence sme : mzTabFile.getSmallMoleculeEvidence().stream().toList()) {
+        if (sme != null & sme.getOpt() != null) {
+          for (int i = 0; i < sme.getOpt().size(); i++) {
+            OptColumnMapping entry = sme.getOpt().get(i);
+            if (!optColNames.contains(entry.getIdentifier())) {
+              optColNames.add(entry.getIdentifier());
+            }
+          }
+        }
+      }
+
+      for (SmallMoleculeEvidence sme : mzTabFile.getSmallMoleculeEvidence().stream().toList()) {
+        if (sme != null & sme.getOpt() != null) {
+          List<String> existingCols = sme.getOpt().stream().map(OptColumnMapping::getIdentifier)
+              .toList();
+          for (String colName : optColNames) {
+            if (!existingCols.contains(colName)) {
               sme.addOptItem(
                   OptColumnMappingBuilder.forGlobal().withName(colName.split("_global_")[1])
                       .build("null"));
             }
           }
+        } else {
+          for (String colName : optColNames) {
+            sme.addOptItem(
+                OptColumnMappingBuilder.forGlobal().withName(colName.split("_global_")[1])
+                    .build("null"));
+          }
         }
-
-        mzTabFile.metadata(mtd);
-        MzTabValidatingWriter validatingWriter = new MzTabValidatingWriter();
-        validatingWriter.write(curFile.toPath(), mzTabFile);
-      } catch (Exception e) {
-        e.printStackTrace();
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Could not export feature list to file " + curFile + ": " + e.getMessage());
-        return;
       }
+
+      mzTabFile.metadata(mtd);
+      MzTabValidatingWriter validatingWriter = new MzTabValidatingWriter();
+      validatingWriter.write(curFile.toPath(), mzTabFile);
+    } catch (Exception e) {
+      e.printStackTrace();
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("Could not export feature list to file " + curFile + ": " + e.getMessage());
+      return;
     }
     if (getStatus() == TaskStatus.PROCESSING) {
       setStatus(TaskStatus.FINISHED);
     }
   }
 
-  private void updateWithPreferredAnnotation(SmallMoleculeEvidence sme, String preferredAnnotation, String uniqueID,
-      String subtypeValue) {
+  private void updateWithPreferredAnnotation(SmallMoleculeEvidence sme, String preferredAnnotation,
+      String uniqueID, String subtypeValue) {
     sme.setDatabaseIdentifier(preferredAnnotation);
     String returnValue;
     if (subtypeValue == "") {
@@ -497,6 +473,7 @@ public class MZTabmExportTask extends AbstractTask {
   private void setConfidences(SmallMoleculeEvidence sme, List<Double> confidences) {
     sme.setIdConfidenceMeasure(confidences);
   }
+
   private void addSVAbundance(Hashtable<String, List<Double>> sampleVariableAbundancehash,
       String studyVariable) {
     //Using mean as average function for abundance of Study Variable
@@ -561,7 +538,7 @@ public class MZTabmExportTask extends AbstractTask {
   private MsRun getMsRunData(int fileCounter, RawDataFile file) {
     MsRun msRun = new MsRun();
     msRun.id(fileCounter);
-    msRun.setLocation("file:///"  + file.getAbsolutePath().replaceAll("\\\\", "/"));
+    msRun.setLocation("file:///" + file.getAbsolutePath().replaceAll("\\\\", "/"));
     int dotIn = file.getName().indexOf(".");
     String fileFormat = "";
     if (dotIn != -1) {
@@ -634,11 +611,11 @@ public class MZTabmExportTask extends AbstractTask {
   }
 
   private static boolean isMatchesType(DataType dataType) {
-    return (dataType instanceof ListWithSubsType<?>) || (dataType instanceof AnnotationType);
+    return (CompoundAnnotationUtils.isAnnotationOrMissingType(dataType));
   }
 
   @Nullable
-  private static Collection<DataType> filterForTypesWithAnnotation(Collection<DataType> types) {
+  private static List<DataType> filterForTypesWithAnnotation(Collection<DataType> types) {
     return types.stream().filter(Objects::nonNull).filter(MZTabmExportTask::isMatchesType).toList();
   }
 
