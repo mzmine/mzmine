@@ -123,6 +123,7 @@ public abstract class WizardBatchBuilder {
       }
       case MS1_ONLY -> throw new UnsupportedOperationException(
           "Currently not implemented workflow " + workflowPreset);
+      case TARGET_PLATE -> new WizardBatchBuilderTargetPlate(steps);
     };
   }
 

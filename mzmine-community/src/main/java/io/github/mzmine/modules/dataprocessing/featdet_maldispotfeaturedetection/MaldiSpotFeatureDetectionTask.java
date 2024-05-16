@@ -26,30 +26,29 @@
 package io.github.mzmine.modules.dataprocessing.featdet_maldispotfeaturedetection;
 
 import com.google.common.collect.Range;
-import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import com.opencsv.exceptions.CsvException;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSImagingRawDataFile;
-import io.github.mzmine.datamodel.ImagingFrame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
-import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
-import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.MaldiSpotType;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ExpandedTrace;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ExpandingTrace;
 import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
@@ -84,7 +83,7 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(
       MaldiSpotFeatureDetectionTask.class.getName());
 
-  private final IMSImagingRawDataFile file;
+  private final ImagingRawDataFile file;
   private final double minSummedIntensity;
   private final MZTolerance mzTolerance;
   private final ScanSelection selection = new ScanSelection(1);
@@ -96,7 +95,7 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
 
   protected MaldiSpotFeatureDetectionTask(@Nullable MemoryMapStorage storage,
       @NotNull Instant moduleCallDate, final ParameterSet parameters,
-      @Nullable final MZmineProject project, IMSImagingRawDataFile file) {
+      @Nullable final MZmineProject project, ImagingRawDataFile file) {
     super(storage, moduleCallDate);
     this.parameters = parameters;
     this.project = project;
@@ -127,31 +126,28 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
     final List<Frame> scans = selection.getMatchingScans(
         (List<Frame>) (List<? extends Scan>) file.getScans());
 
-    final MobilityScanDataAccess mobilityAccess = new MobilityScanDataAccess(file,
-        MobilityScanDataType.MASS_LIST, scans);
-    final ScanDataAccess frameAccess = EfficientDataAccess.of(file, ScanDataType.MASS_LIST,
+    final ScanDataAccess scanAccess = EfficientDataAccess.of(file, ScanDataType.MASS_LIST,
         selection);
 
-    final Map<String, RangeMap<Double, ExpandingTrace>> spotTracesMap = new HashMap<>();
     final AtomicInteger rowId = new AtomicInteger(1);
     final Map<String, ModularFeatureList> spotFlistMap = new HashMap<>();
 
-    final int totalFrames = frameAccess.getNumberOfScans();
+    final int totalFrames = scanAccess.getNumberOfScans();
     int processedFrames = 0;
 
     // create traces for every spot
-    while (frameAccess.hasNextScan()) {
+    while (scanAccess.hasNextScan()) {
 
       progress = 0.2 * processedFrames / (double) totalFrames;
 
-      final ImagingFrame frame = (ImagingFrame) frameAccess.nextScan();
-      final String spot = frame.getMaldiSpotInfo().spotName();
+      final ImagingScan scan = (ImagingScan) scanAccess.nextScan();
+      final String spot = scan.getMaldiSpotInfo().spotName();
 
       currentDesc = "Detecting traces in spot " + spot;
 
       final Map<String, String> spotSampleNameMap = parseSpotSampleName(spotNameFile);
 
-      var traceMap = spotTracesMap.computeIfAbsent(spot, k -> TreeRangeMap.create());
+      // is it possible to have multiple scans per spot? i guess so.
       final ModularFeatureList flist = spotFlistMap.computeIfAbsent(spot,
           s -> new ModularFeatureList(
               spotSampleNameMap.getOrDefault(s.toUpperCase(), file.getName()) + " - " + s,
@@ -160,78 +156,30 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
       final List<Scan> selectedScans =
           flist.getSeletedScans(file) != null ? (List<Scan>) flist.getSeletedScans(file)
               : new ArrayList<>();
-      if (!selectedScans.contains(frame)) {
-        selectedScans.add(frame);
+      if (!selectedScans.contains(scan)) {
+        selectedScans.add(scan);
         selectedScans.sort(Scan::compareTo);
         flist.setSelectedScans(file, selectedScans);
       }
 
-      for (int i = 0; i < frameAccess.getNumberOfDataPoints(); i++) {
-        if (frameAccess.getIntensityValue(i) < minSummedIntensity) {
+      for (int i = 0; i < scanAccess.getNumberOfDataPoints(); i++) {
+        if (scanAccess.getIntensityValue(i) < minSummedIntensity) {
           continue;
         }
-
-        final double mz = frameAccess.getMzValue(i);
-        ExpandingTrace trace = traceMap.get(mz);
-        if (trace == null) {
-          final Range<Double> mzRange = SpectraMerging.createNewNonOverlappingRange(traceMap,
-              mzTolerance.getToleranceRange(mz));
-          final SimpleIonTimeSeries series = new SimpleIonTimeSeries(getMemoryMapStorage(),
-              new double[]{mz}, new double[]{frameAccess.getIntensityValue(i)}, List.of(frame));
-          final ModularFeature feature = new ModularFeature(flist, file, series,
-              FeatureStatus.DETECTED);
-          feature.set(MaldiSpotType.class, frame.getMaldiSpotInfo().spotName());
-          trace = new ExpandingTrace(
-              new ModularFeatureListRow(flist, rowId.getAndIncrement(), feature), mzRange,
-              Range.all());
-          traceMap.put(mzRange, trace);
-        }
+        final double mz = scanAccess.getMzValue(i);
+        final SimpleIonTimeSeries series = new SimpleIonTimeSeries(getMemoryMapStorage(),
+            new double[]{mz}, new double[]{scanAccess.getIntensityValue(i)}, List.of(scan));
+        final ModularFeature feature = new ModularFeature(flist, file, series,
+            FeatureStatus.DETECTED);
+        feature.set(MaldiSpotType.class, scan.getMaldiSpotInfo().spotName());
+        flist.addRow(new ModularFeatureListRow(flist, rowId.getAndIncrement(), feature));
       }
       processedFrames++;
     }
 
-    final int totalSpots = spotFlistMap.size();
-    int processedSpots = 0;
-    // expand the traces
-    for (Entry<String, ModularFeatureList> spotFlistEntry : spotFlistMap.entrySet()) {
-      progress = 0.2 + 0.8 * processedSpots / (double) totalSpots;
-
-      final String spot = spotFlistEntry.getKey();
-      final ModularFeatureList flist = spotFlistEntry.getValue();
-      currentDesc = "Expanding traces in spot " + spot;
-      final BinningMobilogramDataAccess mobilogramDataAccess = new BinningMobilogramDataAccess(file,
-          BinningMobilogramDataAccess.getRecommendedBinWidth(file));
-
-      final List<Frame> selectedScans = (List<Frame>) flist.getSeletedScans(file);
-
-      final ParameterSet expanderParameters = MZmineCore.getConfiguration()
-          .getModuleParameters(ImsExpanderModule.class).cloneParameterSet();
-      expanderParameters.setParameter(ImsExpanderParameters.useRawData, false);
-      expanderParameters.getParameter(ImsExpanderParameters.mzTolerance).setValue(true);
-      expanderParameters.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
-          .setValue(mzTolerance);
-
-      final List<ExpandingTrace> traces = spotTracesMap.get(spot).asMapOfRanges().values().stream()
-          .sorted(Comparator.comparingDouble(trace -> RangeUtils.rangeCenter(trace.getMzRange())))
-          .toList();
-
-      final ImsExpanderSubTask task = new ImsExpanderSubTask(getMemoryMapStorage(),
-          expanderParameters, selectedScans, flist, traces, mobilogramDataAccess, file);
-      task.run();
-
-      final List<ExpandedTrace> expandedTraces = task.getExpandedTraces();
-
-      for (ExpandedTrace expandedTrace : expandedTraces) {
-        final ModularFeatureListRow row = new ModularFeatureListRow(flist, expandedTrace.oldRow(),
-            false);
-        final ModularFeature f = new ModularFeature(flist, expandedTrace.oldFeature());
-        f.set(FeatureDataType.class, expandedTrace.series());
-        FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
-        row.addFeature(file, f);
-        flist.addRow(row);
-      }
-
-      processedSpots++;
+    // create the ExpandingTraces
+    if (file instanceof IMSRawDataFile) {
+      expandImsFeatureLists(spotFlistMap);
     }
 
     spotFlistMap.values().forEach(flist -> {
@@ -243,6 +191,86 @@ public class MaldiSpotFeatureDetectionTask extends AbstractTask {
     });
 
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private void expandImsFeatureLists(Map<String, ModularFeatureList> spotFlistMap) {
+    final int totalSpots = spotFlistMap.size();
+    int processedSpots = 0;
+    for (Entry<String, ModularFeatureList> spotFlistEntry : spotFlistMap.entrySet()) {
+      final String spot = spotFlistEntry.getKey();
+      final ModularFeatureList flist = spotFlistEntry.getValue();
+      expandSingleFeatureList(spot, flist, processedSpots, totalSpots);
+      processedSpots++;
+    }
+  }
+
+  private void expandSingleFeatureList(String spot, ModularFeatureList flist, int processedSpots,
+      double totalSpots) {
+    progress = 0.2 + 0.8 * processedSpots / totalSpots;
+    currentDesc = STR."Expanding traces in spot \{spot}";
+    logger.finest(() -> currentDesc);
+
+    final BinningMobilogramDataAccess mobilogramDataAccess = new BinningMobilogramDataAccess(
+        (IMSRawDataFile) file,
+        BinningMobilogramDataAccess.getRecommendedBinWidth((IMSRawDataFile) file));
+
+    final List<Frame> selectedScans = (List<Frame>) flist.getSeletedScans(file);
+    final var traces = createTracesMapForFeatureList(flist).asMapOfRanges().values().stream()
+        .sorted(Comparator.comparingDouble(trace -> RangeUtils.rangeCenter(trace.getMzRange())))
+        .toList();
+    final ParameterSet expanderParameters = createExpanderParameters();
+
+    final ImsExpanderSubTask task = new ImsExpanderSubTask(getMemoryMapStorage(),
+        expanderParameters, selectedScans, flist, traces, mobilogramDataAccess,
+        (IMSRawDataFile) file);
+    task.run();
+
+    final List<ExpandedTrace> expandedTraces = task.getExpandedTraces();
+
+    flist.getRows().clear();
+    for (ExpandedTrace expandedTrace : expandedTraces) {
+      final ModularFeatureListRow row = new ModularFeatureListRow(flist, expandedTrace.oldRow(),
+          false);
+      final ModularFeature f = new ModularFeature(flist, expandedTrace.oldFeature());
+      f.set(FeatureDataType.class, expandedTrace.series());
+      FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
+      row.addFeature(file, f);
+      flist.addRow(row);
+    }
+  }
+
+  @NotNull
+  private ParameterSet createExpanderParameters() {
+    final ParameterSet expanderParameters = ConfigService.getConfiguration()
+        .getModuleParameters(ImsExpanderModule.class).cloneParameterSet();
+    expanderParameters.setParameter(ImsExpanderParameters.useRawData, false);
+    expanderParameters.getParameter(ImsExpanderParameters.mzTolerance).setValue(true);
+    expanderParameters.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
+        .setValue(mzTolerance);
+    return expanderParameters;
+  }
+
+  /**
+   * Set up a range map of the expanding traces for the respective modular feature list.
+   */
+  private TreeRangeMap<Double, ExpandingTrace> createTracesMapForFeatureList(
+      ModularFeatureList flist) {
+    final TreeRangeMap<Double, ExpandingTrace> traceMap = TreeRangeMap.create();
+    final List<FeatureListRow> sortedRows = flist.getRows().stream()
+        .sorted(Comparator.comparingDouble(FeatureListRow::getMaxHeight).reversed()).toList();
+    for (FeatureListRow row : sortedRows) {
+      if (traceMap.get(row.getAverageMZ()) == null) {
+        final Range<Double> mzRange = SpectraMerging.createNewNonOverlappingRange(traceMap,
+            mzTolerance.getToleranceRange(row.getAverageMZ()));
+        traceMap.put(mzRange,
+            new ExpandingTrace((ModularFeatureListRow) row, mzRange, Range.all()));
+      }// else { // does not make sense to add this range.
+//          logger.finest(
+//              () -> STR."asked to create an ExpandingTrace for m/z \{row.getAverageMZ()} but already covered by range \{traceMap.get(
+//                  row.getAverageMZ()).getMzRange()}. Consider lowering the mz tolerance.");
+//      }
+    }
+    return traceMap;
   }
 
   private Map<String, String> parseSpotSampleName(@Nullable final File file) {
