@@ -77,6 +77,10 @@ public class MZTabmExportTask extends AbstractTask {
   private SmallMoleculeSummary sm;
   private SmallMoleculeFeature smf;
 
+  private List<GlobalOptColumnMappingBuilder> globalOptColumns;
+
+  private int columnCount;
+
   //atm default values are used in case charges, theoretical masses, and best_confidence_value
   //in case if value is null
   //modify in case mzTab-M specification is updated
@@ -196,10 +200,10 @@ public class MZTabmExportTask extends AbstractTask {
 
         final Collection<DataType> dataTypes = featureListRow.getTypes();
 
-        List<GlobalOptColumnMappingBuilder> globalOptColumns = new ArrayList<>();
+        this.globalOptColumns = new ArrayList<>();
 
         //introduce column count for optional column placement
-        int columnCount = 0;
+        this.columnCount = 0;
 
         //Get available annotations
         if (exportAll || !dataTypes.isEmpty()) {
@@ -209,10 +213,10 @@ public class MZTabmExportTask extends AbstractTask {
           for (DataType type : listType) {
 
             // get the actual value of the ListWithSubsType stored in the feature list
-            final List annotationList = (List) featureListRow.get(type);
+            final List featureAnnotationList = (List) featureListRow.get(type);
             setDefaultConfidences(sme);
 
-            if (annotationList == null || annotationList.isEmpty()) {
+            if (featureAnnotationList == null || featureAnnotationList.isEmpty()) {
               sm.setReliability("4"); //unknown compoun
               continue;
             } else if (type.getUniqueID().equals(LipidMatchListType.class)) {
@@ -220,61 +224,14 @@ public class MZTabmExportTask extends AbstractTask {
               sm.setReliability("2"); //putatively annotated compound (2)
             }
 
-            ListWithSubsType<Object> listWithSubsType = (ListWithSubsType) type;
-
-            //get the list of subTypes
-            final List<DataType> subDataTypeList = ((ListWithSubsType) type).getSubDataTypes();
-
             // export annotations
-            for (int j = 0; j < subDataTypeList.size(); j++) {
-              final String uniqueID = subDataTypeList.get(j).getUniqueID();
-              final String subtypeValue = listWithSubsType.getFormattedSubColValue(j,
-                  annotationList);
-
-              //todo map a value of any type and the data type to the correct string
-//              listWithSubsType.map(subDataTypeList.get(j), annotationList);
-
-              if (type instanceof NoTextColumn || uniqueID.equals("structure_2d")) {
-                continue;
-              }
-              globalOptColumns.add(OptColumnMappingBuilder.forGlobal()
-                  .withName(type.getUniqueID() + "_" + uniqueID));
-              if (!subtypeValue.equals("")) {
-                sme.addOptItem(globalOptColumns.get(columnCount).build(subtypeValue));
-              } else {
-                sme.addOptItem(globalOptColumns.get(columnCount).build("null"));
-              }
-              if (type.getUniqueID().equals(annotationType.getUniqueID())) {
-                updateWithPreferredAnnotation(sme, annotationType.getUniqueID(), uniqueID, subtypeValue);
-              }
-              columnCount++;
-            }
-          }
-
-          //check if there is best id confidence measure present
-          if (sm.getBestIdConfidenceMeasure() == null) {
-            Parameter parameter = new Parameter();
-            parameter.setName("NaN");
-            sm.setBestIdConfidenceMeasure(parameter);
-            sm.setBestIdConfidenceValue(DEFAULT_DOUBLE_VALUE);
+            exportAnnotations(type, featureAnnotationList, sme, annotationType);
           }
 
           Double rowMZ = featureListRow.getAverageMZ();
           Float rowRT = featureListRow.getAverageRT();
           Range<Float> rowRTRange = featureListRow.get(RTRangeType.class);
           Integer rowCharge = featureListRow.getRowCharge().intValue();
-
-          //check if the fields that shouldn't be empty do not contain nulls
-          if (sme.getIdentificationMethod() == null) {
-            Parameter identificationMethod = new Parameter();
-            identificationMethod.setName("Identification method");
-            identificationMethod.setValue("Identification method");
-            sme.setIdentificationMethod(identificationMethod);
-          }
-
-          if (sme.getTheoreticalMassToCharge() == null) {
-            sme.setTheoreticalMassToCharge(DEFAULT_DOUBLE_VALUE);
-          }
 
           if (rowMZ != null) {
             smf.setExpMassToCharge(rowMZ.doubleValue());
@@ -288,6 +245,8 @@ public class MZTabmExportTask extends AbstractTask {
             smf.setRetentionTimeInSecondsEnd(rowRTRange.upperEndpoint().doubleValue() * 60f);
           }
 
+          assignMissingMandatoryFields(sme);
+
           int dataFileCount = 0;
           Hashtable<String, List<Double>> sampleVariableAbundancehash = new Hashtable<>();
           for (RawDataFile dataFile : rawDataFiles) {
@@ -296,17 +255,7 @@ public class MZTabmExportTask extends AbstractTask {
             if (feature != null) {
               //Spectra ref
               //modify if better alternative representation of spectra ref is suggested
-              List<SpectraRef> sr = new ArrayList<>();
-              for (Scan scan : feature.getScanNumbers()) {
-                sr.add(new SpectraRef().msRun(
-                        rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().getFirst())
-                    .reference("index=" + scan.getScanNumber()));
-              }
-              if (sr.isEmpty()) {
-                sr.add(new SpectraRef().msRun(
-                        rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().getFirst())
-                    .reference("index=0"));
-              }
+              List<SpectraRef> sr = generateSpectraRef(feature, rawDataFileToAssay);
               sme.setSpectraRef(sr);
 
               String featureMZ = formatter.format(feature.getMZ());
@@ -422,6 +371,87 @@ public class MZTabmExportTask extends AbstractTask {
     }
   }
 
+  @NotNull
+  private static List<SpectraRef> generateSpectraRef(Feature feature,
+      Hashtable<RawDataFile, Assay> rawDataFileToAssay) {
+    List<SpectraRef> sr = new ArrayList<>();
+    for (Scan scan : feature.getScanNumbers()) {
+      sr.add(new SpectraRef().msRun(
+              rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().getFirst())
+          .reference("index=" + scan.getScanNumber()));
+    }
+    if (sr.isEmpty()) {
+      sr.add(new SpectraRef().msRun(
+              rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().getFirst())
+          .reference("index=0"));
+    }
+    return sr;
+  }
+
+  private void assignMissingMandatoryFields(SmallMoleculeEvidence sme) {
+    if (sme.getIdentificationMethod() == null) {
+      Parameter identificationMethod = new Parameter();
+      identificationMethod.setName("Identification method");
+      identificationMethod.setValue("Identification method");
+      sme.setIdentificationMethod(identificationMethod);
+    }
+
+    if (sme.getTheoreticalMassToCharge() == null) {
+      sme.setTheoreticalMassToCharge(DEFAULT_DOUBLE_VALUE);
+    }
+    //check if there is best id confidence measure present
+    if (sm.getBestIdConfidenceMeasure() == null) {
+      Parameter parameter = new Parameter();
+      parameter.setName("NaN");
+      sm.setBestIdConfidenceMeasure(parameter);
+      sm.setBestIdConfidenceValue(DEFAULT_DOUBLE_VALUE);
+    }
+  }
+
+  private void exportAnnotations(DataType type, List annotationList, SmallMoleculeEvidence sme,
+      DataType<?> annotationType) {
+    ListWithSubsType<Object> listWithSubsType = (ListWithSubsType) type;
+
+    //get the list of subTypes
+    final List<DataType> subDataTypeList = ((ListWithSubsType) type).getSubDataTypes();
+
+    for (int j = 0; j < subDataTypeList.size(); j++) {
+      final String uniqueID = subDataTypeList.get(j).getUniqueID();
+
+      for (int k = 0; k < annotationList.size(); k++) {
+        Object mappedVal = listWithSubsType.map(subDataTypeList.get(j),
+            annotationList.get(k));
+
+        if (mappedVal != null) {
+          String subtypeValue = mappedVal.toString();
+
+          if (type instanceof NoTextColumn || uniqueID.equals("structure_2d")) {
+            continue;
+          }
+
+          String colName = type.getUniqueID() + "_" + uniqueID + "_" + k+1;
+          createSMEOptCols(sme, type, colName, subtypeValue);
+
+          if (type.getUniqueID().equals(annotationType.getUniqueID())) {
+            updateWithPreferredAnnotation(sme, annotationType.getUniqueID(), uniqueID,
+                subtypeValue);
+          }
+          columnCount++;
+        }
+      }
+    }
+  }
+
+  private void createSMEOptCols(SmallMoleculeEvidence sme, DataType type, String name, String value) {
+    globalOptColumns.add(OptColumnMappingBuilder.forGlobal()
+        .withName(name));
+    if (!value.equals("")) {
+      sme.addOptItem(globalOptColumns.get(columnCount).build(value));
+    } else {
+      sme.addOptItem(globalOptColumns.get(columnCount).build("null"));
+    }
+  }
+
   private void updateWithPreferredAnnotation(SmallMoleculeEvidence sme, String preferredAnnotation,
       String uniqueID, String subtypeValue) {
     sme.setDatabaseIdentifier(preferredAnnotation);
@@ -504,8 +534,6 @@ public class MZTabmExportTask extends AbstractTask {
     if (svhash.keySet().size() == 0) {
       StudyVariable studyVariable = new StudyVariable().id(1).name("undefined");
       studyVariable.setAssayRefs(mtd.getAssay());
-//          .description("undefined")
-//          .averageFunction(new Parameter().cvLabel("MS").cvAccession("MS:1002883").name("mean"));
       mtd.addStudyVariableItem(studyVariable);
     }
     for (String key : svhash.keySet()) {
