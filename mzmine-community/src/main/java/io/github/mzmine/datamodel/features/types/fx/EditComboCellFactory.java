@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.AddElementDialog;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberFormatType;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.geometry.Pos;
@@ -137,7 +137,7 @@ public class EditComboCellFactory implements
             setGraphic(null);
           }
         }
-        if (type instanceof NumberType) {
+        if (type instanceof NumberFormatType) {
           setAlignment(Pos.CENTER_RIGHT);
         } else {
           setAlignment(Pos.CENTER);

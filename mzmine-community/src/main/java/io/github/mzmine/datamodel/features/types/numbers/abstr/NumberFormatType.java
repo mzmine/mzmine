@@ -25,29 +25,29 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
-import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
-import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.control.TreeTableColumn;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public abstract class NumberType<T extends Number & Comparable<?>> extends
-    NumberFormatType<T> {
+public abstract class NumberFormatType<T> extends DataType<T> {
 
-  protected NumberType(NumberFormat defaultFormat) {
-    super(defaultFormat);
+  protected final NumberFormat DEFAULT_FORMAT;
+
+  protected NumberFormatType(NumberFormat defaultFormat) {
+    DEFAULT_FORMAT = defaultFormat;
   }
 
+  public abstract NumberFormat getFormat();
+
+  public abstract NumberFormat getExportFormat();
+
+  public NumberFormat getFormat(boolean export) {
+    return export ? getExportFormat() : getFormat();
+  }
+
+  @Override
+  public @NotNull String getFormattedString(final T value, final boolean export) {
+    return value != null ? getFormat(export).format(value) : "";
+  }
 
 }
