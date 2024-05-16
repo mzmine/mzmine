@@ -126,6 +126,17 @@ public class MobilityScanStorage {
     }
   }
 
+  /**
+   * Costructor with preloaded already memory mapped data. This is used in the mzML
+   * @param storage for memory mapping
+   * @param frame the actual frame
+   * @param mzValues already memory mapped mz values
+   * @param intensityValues already memory mapped intensity values
+   * @param maxNumPoints the maximum number of signals in the largest scan
+   * @param storageOffsets the offsets to find the start of each mobility scan in the memory mapped mz and intensity buffers
+   * @param basePeakIndices the
+   * @param useAsMassList
+   */
   public MobilityScanStorage(final @Nullable MemoryMapStorage storage, final SimpleFrame frame,
       final DoubleBuffer mzValues, final DoubleBuffer intensityValues, final int maxNumPoints,
       final int[] storageOffsets, final int[] basePeakIndices, final boolean useAsMassList) {
