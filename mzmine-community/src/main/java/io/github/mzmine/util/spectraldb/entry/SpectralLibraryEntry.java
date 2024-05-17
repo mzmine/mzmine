@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
@@ -101,10 +102,22 @@ public interface SpectralLibraryEntry extends MassList {
     return new SpectralDBEntry(storage, data[0], data[1], fields);
   }
 
+  /**
+   * Create a new spectral library entry from any {@link FeatureAnnotation} but new spectral data
+   * @param scan only used for scan metadata - data is provided through dataPoints
+   * @param match the annotation for additional metadata
+   * @param dataPoints the actual data
+   * @return spectral library entry
+   */
   static SpectralLibraryEntry create(final FeatureListRow row, @Nullable MemoryMapStorage storage,
-      final Scan scan, final CompoundDBAnnotation match, final DataPoint[] dataPoints) {
+      final Scan scan, final FeatureAnnotation match, final DataPoint[] dataPoints) {
+
     Double precursorMZ = Objects.requireNonNullElse(match.getPrecursorMZ(), scan.getPrecursorMz());
     SpectralLibraryEntry entry = create(storage, precursorMZ, dataPoints);
+
+    // transfer match to fields
+    entry.addFeatureAnnotationFields(match);
+
     // scan details
     Integer charge = getCharge(match, row, scan);
     if (charge != null) {
@@ -141,34 +154,65 @@ public interface SpectralLibraryEntry extends MassList {
       entry.putIfNotNull(DBEntryField.MS_LEVEL, msMsInfo.getMsLevel());
     }
 
-    // transfer match to fields
+    return entry;
+  }
+
+  /**
+   * Add metadata to spectral library entry from feature annotation.
+   * @param match
+   */
+  default void addFeatureAnnotationFields(FeatureAnnotation match) {
+    switch (match) {
+      case CompoundDBAnnotation dbmatch -> addAnnotationFields(dbmatch);
+      case SpectralLibraryEntry dbmatch -> addAnnotationFields(dbmatch);
+      case FeatureAnnotation _ -> {
+        putIfNotNull(DBEntryField.ION_TYPE, match.getAdductType());
+        putIfNotNull(DBEntryField.CCS, match.getCCS());
+        putIfNotNull(DBEntryField.NAME, match.getCompoundName());
+        putIfNotNull(DBEntryField.FORMULA, match.getFormula());
+        putIfNotNull(DBEntryField.INCHI, match.getInChI());
+        putIfNotNull(DBEntryField.INCHIKEY, match.getInChIKey());
+        putIfNotNull(DBEntryField.SMILES, match.getSmiles());
+      }
+    }
+  }
+
+  default void addAnnotationFields(CompoundDBAnnotation match) {
     for (var dbentry : match.getReadOnlyMap().entrySet()) {
       DBEntryField field = switch (dbentry.getKey()) {
-        case RTType ignored -> DBEntryField.RT;
-        case CompoundNameType ignored -> DBEntryField.NAME;
-        case FormulaType ignored -> DBEntryField.FORMULA;
-        case SmilesStructureType ignored -> DBEntryField.SMILES;
-        case InChIStructureType ignored -> DBEntryField.INCHI;
-        case InChIKeyStructureType ignored -> DBEntryField.INCHIKEY;
-        case CCSType ignored -> DBEntryField.CCS;
-        case ChargeType ignored -> DBEntryField.CHARGE;
-        case NeutralMassType ignored -> DBEntryField.EXACT_MASS;
-        case CommentType ignored -> DBEntryField.COMMENT;
-        case IonTypeType ignored -> DBEntryField.ION_TYPE;
-//        case SynonymType ignored -> DBEntryField.SYNONYM;
+        case RTType _ -> DBEntryField.RT;
+        case CompoundNameType _ -> DBEntryField.NAME;
+        case FormulaType _ -> DBEntryField.FORMULA;
+        case SmilesStructureType _ -> DBEntryField.SMILES;
+        case InChIStructureType _ -> DBEntryField.INCHI;
+        case InChIKeyStructureType _ -> DBEntryField.INCHIKEY;
+        case CCSType _ -> DBEntryField.CCS;
+        case ChargeType _ -> DBEntryField.CHARGE;
+        case NeutralMassType _ -> DBEntryField.EXACT_MASS;
+        case CommentType _ -> DBEntryField.COMMENT;
+        case IonTypeType _ -> DBEntryField.ION_TYPE;
+//        case SynonymType _ -> DBEntryField.SYNONYM;
         default -> null;
       };
       try {
-        entry.putIfNotNull(field, dbentry.getValue());
+        putIfNotNull(field, dbentry.getValue());
       } catch (Exception ex) {
         logger.log(Level.WARNING,
             "Types were not converted from DB match to DB entry " + ex.getMessage(), ex);
       }
     }
-    return entry;
   }
 
-  static Integer getCharge(CompoundDBAnnotation match, FeatureListRow row, Scan scan) {
+  default void addAnnotationFields(SpectralLibraryEntry match) {
+    for (var dbentry : match.getFields().entrySet()) {
+      switch (dbentry.getKey()) {
+        case RT, NAME, FORMULA, SMILES, INCHI, INCHIKEY, EXACT_MASS, ION_TYPE, SYNONYMS, CAS,
+             PUBCHEM, PUBMED, MOLWEIGHT -> putIfNotNull(dbentry.getKey(), dbentry.getValue());
+      }
+    }
+  }
+
+  static Integer getCharge(FeatureAnnotation match, FeatureListRow row, Scan scan) {
     IonType adduct = match.getAdductType();
     if (adduct != null) {
       return adduct.getCharge();
