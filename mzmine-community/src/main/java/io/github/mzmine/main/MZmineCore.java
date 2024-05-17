@@ -165,7 +165,7 @@ public final class MZmineCore {
         } else {
           logger.log(Level.WARNING,
               "Cannot create or access temp file directory that was set via program argument: "
-                  + tempDirectory.getAbsolutePath());
+              + tempDirectory.getAbsolutePath());
         }
       }
 
@@ -195,7 +195,7 @@ public final class MZmineCore {
           FxThread.runLater(() -> {
             if (DesktopService.isGUI()) {
               final ButtonType btn = getDesktop().displayConfirmation("""
-                  Unable to reach auth server. Try setting a proxy in the preferences.
+                  Unable to reach mzmine user server. Try setting a proxy in the preferences.
                   Open preferences dialog?
                   """, ButtonType.YES, ButtonType.NO);
               if (btn == ButtonType.YES) {
