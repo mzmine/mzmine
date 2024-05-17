@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,21 +30,21 @@ import io.github.mzmine.util.maths.similarity.Similarity;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The cosine similarity can be calculated in {@link Similarity#COSINE}
+ * The similarity can be calculated in {@link Similarity#COSINE}
  */
-public class CosineScoreType extends ScoreType {
+public class SimilarityType extends ScoreType {
 
   @NotNull
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "cosine_score";
+    return "similarity_score";
   }
 
   @NotNull
   @Override
   public String getHeaderString() {
-    return "Cosine similarity";
+    return "Similarity";
   }
 
   @Override

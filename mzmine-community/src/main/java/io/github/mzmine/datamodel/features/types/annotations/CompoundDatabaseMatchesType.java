@@ -170,6 +170,6 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
 
   @Override
   public int getPrefColumnWidth() {
-    return 350;
+    return 150;
   }
 }

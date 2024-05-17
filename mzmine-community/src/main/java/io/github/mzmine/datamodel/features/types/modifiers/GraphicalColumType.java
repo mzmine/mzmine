@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -74,7 +74,12 @@ public interface GraphicalColumType<T> {
    *
    * @return width of the column
    */
-  public double getColumnWidth();
+  public default double getColumnWidth() {
+    return switch (this) {
+      case DataType dt -> dt.getPrefColumnWidth();
+      default -> DEFAULT_GRAPHICAL_CELL_WIDTH;
+    };
+  }
 
   default double getCellHeight() {
     return DEFAULT_GRAPHICAL_CELL_HEIGHT;

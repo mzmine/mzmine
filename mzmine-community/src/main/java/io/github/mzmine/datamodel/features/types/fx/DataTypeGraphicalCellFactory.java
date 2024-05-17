@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,6 @@ package io.github.mzmine.datamodel.features.types.fx;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import java.util.logging.Level;
@@ -36,7 +35,6 @@ import java.util.logging.Logger;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
-import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,7 +91,7 @@ public class DataTypeGraphicalCellFactory<S, T extends DataType<S> & GraphicalCo
 
           if (type instanceof GraphicalColumType graphicalColumType) {
             Node node = graphicalColumType.getCellNode(this, param, type, item, raw);
-            getTableColumn().setMinWidth(graphicalColumType.getColumnWidth());
+            getTableColumn().setPrefWidth(graphicalColumType.getColumnWidth());
             setGraphic(node);
           }
 
