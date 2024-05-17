@@ -71,9 +71,4 @@ public class ScoreType extends FloatType {
       return DEFAULT_FORMAT;
     }
   }
-
-  @Override
-  public boolean getDefaultVisibility() {
-    return true;
-  }
 }
