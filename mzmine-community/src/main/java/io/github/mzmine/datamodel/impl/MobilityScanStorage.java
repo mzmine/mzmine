@@ -56,14 +56,26 @@ public class MobilityScanStorage {
   private final Frame frame;
   private final DoubleBuffer rawMzValues;
   private final DoubleBuffer rawIntensityValues;
+  /**
+   * Per scan
+   */
   private final IntBuffer rawStorageOffsets;
+  /**
+   * Per scan
+   */
   private final IntBuffer rawBasePeakIndices;
   private final int rawMaxNumPoints;
 
   // mass list
   private DoubleBuffer massListMzValues = null;
   private DoubleBuffer massListIntensityValues = null;
+  /**
+   * Per scan
+   */
   private IntBuffer massListStorageOffsets = null;
+  /**
+   * Per scan
+   */
   private IntBuffer massListBasePeakIndices = null;
   private int massListMaxNumPoints = -1;
 
@@ -104,6 +116,36 @@ public class MobilityScanStorage {
   public MobilityScanStorage(@Nullable MemoryMapStorage storage, @NotNull final Frame frame,
       @NotNull final List<BuildingMobilityScan> mobilityScans, boolean useAsMassList) {
     this(storage, frame, mobilityScans);
+
+    if (useAsMassList) {
+      massListBasePeakIndices = rawBasePeakIndices;
+      massListMaxNumPoints = rawMaxNumPoints;
+      massListMzValues = rawMzValues;
+      massListIntensityValues = rawIntensityValues;
+      massListStorageOffsets = rawStorageOffsets;
+    }
+  }
+
+  /**
+   * Costructor with preloaded already memory mapped data. This is used in the mzML
+   * @param storage for memory mapping
+   * @param frame the actual frame
+   * @param mzValues already memory mapped mz values
+   * @param intensityValues already memory mapped intensity values
+   * @param maxNumPoints the maximum number of signals in the largest scan
+   * @param storageOffsets the offsets to find the start of each mobility scan in the memory mapped mz and intensity buffers
+   * @param basePeakIndices the
+   * @param useAsMassList
+   */
+  public MobilityScanStorage(final @Nullable MemoryMapStorage storage, final SimpleFrame frame,
+      final DoubleBuffer mzValues, final DoubleBuffer intensityValues, final int maxNumPoints,
+      final int[] storageOffsets, final int[] basePeakIndices, final boolean useAsMassList) {
+    this.frame = frame;
+    rawBasePeakIndices = StorageUtils.storeValuesToIntBuffer(storage, basePeakIndices);
+    rawStorageOffsets = StorageUtils.storeValuesToIntBuffer(storage, storageOffsets);
+    rawMzValues = mzValues;
+    rawIntensityValues = intensityValues;
+    rawMaxNumPoints = maxNumPoints;
 
     if (useAsMassList) {
       massListBasePeakIndices = rawBasePeakIndices;
