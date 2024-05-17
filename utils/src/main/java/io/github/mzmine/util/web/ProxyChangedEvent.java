@@ -23,14 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-plugins {
-    id("io.github.mzmine.java-library-conv")
-    id("io.github.mzmine.javafx-conv")
-}
+package io.github.mzmine.util.web;
 
-dependencies {
-    implementation(libs.commons.io)
-    implementation(libs.guava)
-    implementation(libs.fastutil)
-    implementation(libs.mzio.global.events)
+import io.mzio.events.MzEvent;
+
+public record ProxyChangedEvent(Proxy proxy) implements MzEvent {
+
 }

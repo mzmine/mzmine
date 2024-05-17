@@ -55,8 +55,8 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.web.ProxyChangedEvent;
 import io.mzio.events.AuthRequiredEvent;
-import io.mzio.events.AuthServerNotReachedEvent;
 import io.mzio.events.EventService;
 import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.user.CurrentUserService;
@@ -78,7 +78,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.scene.control.ButtonType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -191,19 +190,25 @@ public final class MZmineCore {
             getDesktop().displayMessage("Requires user login. Open mzmine and login to a user");
           }
         }
-        if (mzEvent instanceof AuthServerNotReachedEvent) {
-          FxThread.runLater(() -> {
-            if (DesktopService.isGUI()) {
-              final ButtonType btn = getDesktop().displayConfirmation("""
-                  Unable to reach mzmine user server. Try setting a proxy in the preferences.
-                  Open preferences dialog?
-                  """, ButtonType.YES, ButtonType.NO);
-              if (btn == ButtonType.YES) {
-                ConfigService.getConfiguration().getPreferences().showSetupDialog(true, "Proxy");
-              }
-            }
-          });
+        if (mzEvent instanceof ProxyChangedEvent pevent) {
+          ConfigService.getPreferences().setProxy(pevent.proxy());
         }
+//        if (mzEvent instanceof AuthServerNotReachedEvent) {
+//          FxThread.runLater(() -> {
+//            if (DesktopService.isGUI()) {
+        // show settings tab
+//              getDesktop().addTab(UsersTab.showTab(UsersViewState.SETTINGS));
+
+//              final ButtonType btn = getDesktop().displayConfirmation("""
+//                  Unable to reach mzmine user server. Try setting a proxy in the preferences.
+//                  Open preferences dialog?
+//                  """, ButtonType.YES, ButtonType.NO);
+//              if (btn == ButtonType.YES) {
+//                ConfigService.getConfiguration().getPreferences().showSetupDialog(true, "Proxy");
+//              }
+//            }
+//          });
+//        }
       });
 
       // set temp directory

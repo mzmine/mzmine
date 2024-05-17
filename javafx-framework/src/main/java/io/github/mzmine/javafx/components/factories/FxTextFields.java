@@ -23,14 +23,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-plugins {
-    id("io.github.mzmine.java-library-conv")
-    id("io.github.mzmine.javafx-conv")
-}
+package io.github.mzmine.javafx.components.factories;
 
-dependencies {
-    implementation(libs.commons.io)
-    implementation(libs.guava)
-    implementation(libs.fastutil)
-    implementation(libs.mzio.global.events)
+import javafx.beans.property.StringProperty;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
+import org.jetbrains.annotations.Nullable;
+
+public class FxTextFields {
+
+  public static TextField newTextField(@Nullable Integer columnCount,
+      @Nullable StringProperty textProperty, @Nullable String tooltip) {
+    return newTextField(columnCount, textProperty, tooltip);
+  }
+
+  public static TextField newTextField(@Nullable Integer columnCount,
+      @Nullable StringProperty textProperty, @Nullable String prompt, @Nullable String tooltip) {
+    var field = new TextField();
+    if (textProperty != null) {
+      field.textProperty().bindBidirectional(textProperty);
+    }
+    if (prompt != null) {
+      field.setPromptText(prompt);
+    }
+    if (tooltip != null) {
+      field.setTooltip(new Tooltip(tooltip));
+    }
+    if (columnCount == null) {
+      field.setPrefColumnCount(columnCount);
+    }
+    return field;
+  }
+
 }

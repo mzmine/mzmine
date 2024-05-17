@@ -27,7 +27,6 @@ package io.github.mzmine.gui.preferences;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
-import io.github.mzmine.gui.preferences.ProxySettings.ProxyType;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
@@ -51,8 +50,10 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.web.Proxy;
+import io.github.mzmine.util.web.ProxyType;
+import io.github.mzmine.util.web.ProxyUtils;
 import io.mzio.users.gui.fx.UsersController;
-import io.mzio.users.user.CurrentUserService;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Map;
@@ -105,8 +106,8 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();
 
-  public static final OptionalModuleParameter proxySettings = new OptionalModuleParameter(
-      "Use proxy", "Use proxy for internet connection?", new ProxySettings(), false);
+  public static final OptionalModuleParameter<ProxyParameters> proxySettings = new OptionalModuleParameter<>(
+      "Use proxy", "Use proxy for internet connection?", new ProxyParameters(), false);
 
 //  public static final BooleanParameter sendStatistics = new BooleanParameter(
 //      "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
@@ -139,24 +140,24 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final HiddenParameter<Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
       new OptOutParameter("Ion mobility compatibility warnings",
           "Shows a warning message when a module without explicit ion mobility support is "
-              + "used to process ion mobility data."));
+          + "used to process ion mobility data."));
 
   public static final DirectoryParameter tempDirectory = new DirectoryParameter(
       "Temporary file directory", "Directory where temporary files"
-      + " will be stored. Directory should be located on a drive with fast read and write "
-      + "(e.g., an SSD). Requires a restart of MZmine to take effect (the program argument --temp "
-      + "overrides this parameter, if set: --temp D:\\your_tmp_dir\\)",
+                                  + " will be stored. Directory should be located on a drive with fast read and write "
+                                  + "(e.g., an SSD). Requires a restart of MZmine to take effect (the program argument --temp "
+                                  + "overrides this parameter, if set: --temp D:\\your_tmp_dir\\)",
       System.getProperty("java.io.tmpdir"));
 
   public static final ComboParameter<KeepInMemory> memoryOption = new ComboParameter<>(
       "Keep in memory", String.format(
       "Specifies the objects that are kept in memory rather than memory mapping "
-          + "them into temp files in the temp directory. Parameter is overriden by the program "
-          + "argument --memory. Depending on the read/write speed of the temp directory,"
-          + " memory mapping is a fast and memory efficient way to handle data, therefore, the "
-          + "default is to memory map all spectral data and feature data with the option %s. On "
-          + "systems where memory (RAM) is no concern, viable options are %s and %s, to keep all in memory "
-          + "or to keep mass lists and feauture data in memory, respectively.", KeepInMemory.NONE,
+      + "them into temp files in the temp directory. Parameter is overriden by the program "
+      + "argument --memory. Depending on the read/write speed of the temp directory,"
+      + " memory mapping is a fast and memory efficient way to handle data, therefore, the "
+      + "default is to memory map all spectral data and feature data with the option %s. On "
+      + "systems where memory (RAM) is no concern, viable options are %s and %s, to keep all in memory "
+      + "or to keep mass lists and feauture data in memory, respectively.", KeepInMemory.NONE,
       KeepInMemory.ALL, KeepInMemory.MASSES_AND_FEATURES), KeepInMemory.values(),
       KeepInMemory.NONE);
 
@@ -178,7 +179,7 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final ComboParameter<ImageNormalization> imageNormalization = new ComboParameter<ImageNormalization>(
       "Normalize images",
       "Specifies if displayed images shall be normalized to the average TIC or shown according to the raw data."
-          + "only applies to newly generated plots.", ImageNormalization.values(),
+      + "only applies to newly generated plots.", ImageNormalization.values(),
       ImageNormalization.NO_NORMALIZATION);
 
   public static final ComboParameter<PaintScaleTransform> imageTransformation = new ComboParameter<>(
@@ -313,8 +314,8 @@ public class MZminePreferences extends SimpleParameterSet {
 
       boolean changeColors = false;
       if (theme.isDark() && (ColorUtils.isDark(bgColor) || ColorUtils.isDark(axisFont.getColor())
-          || ColorUtils.isDark(itemFont.getColor()) || ColorUtils.isDark(titleFont.getColor())
-          || ColorUtils.isDark(subTitleFont.getColor()))) {
+                             || ColorUtils.isDark(itemFont.getColor()) || ColorUtils.isDark(
+          titleFont.getColor()) || ColorUtils.isDark(subTitleFont.getColor()))) {
         if (MZmineCore.getDesktop().displayConfirmation("""
             MZmine detected that you changed the GUI theme.
             The current chart theme colors might not be readable.
@@ -419,38 +420,26 @@ public class MZminePreferences extends SimpleParameterSet {
     Boolean proxyEnabled = getParameter(proxySettings).getValue();
     if ((proxyEnabled != null) && (proxyEnabled)) {
       ParameterSet proxyParams = getParameter(proxySettings).getEmbeddedParameters();
-      String address = proxyParams.getParameter(ProxySettings.proxyAddress).getValue();
-      String port = proxyParams.getParameter(ProxySettings.proxyPort).getValue();
+      String address = proxyParams.getParameter(ProxyParameters.proxyAddress).getValue();
+      String port = proxyParams.getParameter(ProxyParameters.proxyPort).getValue();
 
       // some proxy urls contain http:// at the beginning, we need to filter this out
       if (address.startsWith("http://")) {
-        proxyParams.setParameter(ProxySettings.proxyType, ProxyType.HTTP);
+        proxyParams.setParameter(ProxyParameters.proxyType, ProxyType.HTTP);
         address = address.replaceFirst("http://", "");
       } else if (address.startsWith("https://")) {
-        proxyParams.setParameter(ProxySettings.proxyType, ProxyType.HTTPS);
+        proxyParams.setParameter(ProxyParameters.proxyType, ProxyType.HTTPS);
         address = address.replaceFirst("https://", "");
       }
 
-      final ProxyType proxyType = proxyParams.getValue(ProxySettings.proxyType);
+      final ProxyType proxyType = proxyParams.getValue(ProxyParameters.proxyType);
       // need to set both proxies anyway
-      System.setProperty("http.proxySet", "true");
-      System.setProperty("http.proxyHost", address);
-      System.setProperty("http.proxyPort", port);
-      System.setProperty("https.proxySet", "true");
-      System.setProperty("https.proxyHost", address);
-      System.setProperty("https.proxyPort", port);
-      System.setProperty("proxyType", proxyType.toString()); // needed for login service
+      ProxyUtils.setSystemProxy(address, port, proxyType);
     } else {
-      System.clearProperty("proxyType"); // needed for login service
-      System.clearProperty("http.proxySet");
-      System.clearProperty("http.proxyHost");
-      System.clearProperty("http.proxyPort");
-
-      System.clearProperty("https.proxySet");
-      System.clearProperty("https.proxyHost");
-      System.clearProperty("https.proxyPort");
+      ProxyUtils.clearSystemProxy();
     }
   }
+
 
   public NumberFormats getExportFormats() {
     return exportFormat;
@@ -470,5 +459,16 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public void setDarkMode(final boolean dark) {
     darkModeProperty.set(dark);
+  }
+
+  /**
+   * Set system proxy in preferences and {@link ProxyUtils#setSystemProxy(Proxy)}
+   */
+  public void setProxy(final Proxy proxy) {
+    OptionalModuleParameter<ProxyParameters> pp = getParameter(proxySettings);
+    pp.setValue(proxy.active());
+    ProxyParameters params = pp.getEmbeddedParameters();
+    params.setProxy(proxy);
+    ProxyUtils.setSystemProxy(proxy);
   }
 }

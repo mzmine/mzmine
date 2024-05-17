@@ -23,14 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-plugins {
-    id("io.github.mzmine.java-library-conv")
-    id("io.github.mzmine.javafx-conv")
-}
+package io.github.mzmine.javafx.components.factories;
 
-dependencies {
-    implementation(libs.commons.io)
-    implementation(libs.guava)
-    implementation(libs.fastutil)
-    implementation(libs.mzio.global.events)
+import javafx.beans.property.BooleanProperty;
+import javafx.scene.control.CheckBox;
+
+public class FxCheckBox {
+
+  public static CheckBox newCheckBox(String text, BooleanProperty selectedProperty) {
+    var box = new CheckBox(text);
+    box.selectedProperty().bindBidirectional(selectedProperty);
+    return box;
+  }
+
 }

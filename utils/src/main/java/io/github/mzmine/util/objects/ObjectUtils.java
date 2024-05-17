@@ -23,14 +23,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-plugins {
-    id("io.github.mzmine.java-library-conv")
-    id("io.github.mzmine.javafx-conv")
-}
+package io.github.mzmine.util.objects;
 
-dependencies {
-    implementation(libs.commons.io)
-    implementation(libs.guava)
-    implementation(libs.fastutil)
-    implementation(libs.mzio.global.events)
+import java.util.Arrays;
+import java.util.Objects;
+
+public class ObjectUtils {
+
+  /**
+   * No object is null
+   */
+  public static boolean noneNull(Object... objs) {
+    return Arrays.stream(objs).allMatch(Objects::nonNull);
+  }
+
+  /**
+   * Any object is null
+   */
+  public static boolean anyIsNull(Object... objs) {
+    return Arrays.stream(objs).anyMatch(Objects::isNull);
+  }
 }

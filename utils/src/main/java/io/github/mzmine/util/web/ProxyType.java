@@ -23,14 +23,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-plugins {
-    id("io.github.mzmine.java-library-conv")
-    id("io.github.mzmine.javafx-conv")
-}
+package io.github.mzmine.util.web;
 
-dependencies {
-    implementation(libs.commons.io)
-    implementation(libs.guava)
-    implementation(libs.fastutil)
-    implementation(libs.mzio.global.events)
+import org.jetbrains.annotations.Nullable;
+
+public enum ProxyType {
+  HTTP, HTTPS;
+
+  @Nullable
+  public static ProxyType parse(final String type) {
+    return switch (type.toLowerCase()) {
+      case "http" -> HTTP;
+      case "https" -> HTTPS;
+      case null, default -> null;
+    };
+  }
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case HTTP -> "http";
+      case HTTPS -> "https";
+    };
+  }
 }
