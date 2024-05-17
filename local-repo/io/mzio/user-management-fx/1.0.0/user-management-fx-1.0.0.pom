@@ -119,6 +119,12 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
+      <groupId>io.mzio</groupId>
+      <artifactId>global-events</artifactId>
+      <version>1.0.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
       <groupId>io.github.mzmine</groupId>
       <artifactId>javafx-framework</artifactId>
       <scope>runtime</scope>

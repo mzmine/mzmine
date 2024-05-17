@@ -27,11 +27,11 @@
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 31481,
-          "sha512": "6bd383391b6bf4583d10b845ff5be71802b6761b4fc3cfc61c64a374a0ad0bc0151802c0510bee5ecd5a90af796f343d58a48e86e26a23b82151166b387fe705",
-          "sha256": "1c1e303f3fe476f3d91f526217c5caf739f75fa4e470323067c3047fef3144e0",
-          "sha1": "89ea2662a94005b0cc9d5c4dcd6c6a598eda7451",
-          "md5": "0320aaaed5c28921426509a81d904c76"
+          "size": 32285,
+          "sha512": "dd05ab7afd4632c0bd7a4ad8999542bf5461f3800a49e99a4a453e1f8315de32fe3ab0eeec3775d97cc31f4b8ae779471f66044cbef3dd3a1166e20719b36b89",
+          "sha256": "bf24f1c57b01e1b50f2a7c7538b48588f0ee4dc59f2b21fbb9df441142208d95",
+          "sha1": "5795c8f8c9e22027a27a716fd141b508db1042b2",
+          "md5": "59a08a97c32c0dd682aaa3459ca112e6"
         }
       ]
     },
@@ -55,6 +55,13 @@
         {
           "group": "io.mzio",
           "module": "user-management",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
+          "group": "io.mzio",
+          "module": "global-events",
           "version": {
             "requires": "1.0.0"
           }
@@ -85,11 +92,11 @@
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 31481,
-          "sha512": "6bd383391b6bf4583d10b845ff5be71802b6761b4fc3cfc61c64a374a0ad0bc0151802c0510bee5ecd5a90af796f343d58a48e86e26a23b82151166b387fe705",
-          "sha256": "1c1e303f3fe476f3d91f526217c5caf739f75fa4e470323067c3047fef3144e0",
-          "sha1": "89ea2662a94005b0cc9d5c4dcd6c6a598eda7451",
-          "md5": "0320aaaed5c28921426509a81d904c76"
+          "size": 32285,
+          "sha512": "dd05ab7afd4632c0bd7a4ad8999542bf5461f3800a49e99a4a453e1f8315de32fe3ab0eeec3775d97cc31f4b8ae779471f66044cbef3dd3a1166e20719b36b89",
+          "sha256": "bf24f1c57b01e1b50f2a7c7538b48588f0ee4dc59f2b21fbb9df441142208d95",
+          "sha1": "5795c8f8c9e22027a27a716fd141b508db1042b2",
+          "md5": "59a08a97c32c0dd682aaa3459ca112e6"
         }
       ]
     }
