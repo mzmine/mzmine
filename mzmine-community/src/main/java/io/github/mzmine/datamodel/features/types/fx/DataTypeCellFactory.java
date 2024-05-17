@@ -28,15 +28,12 @@ package io.github.mzmine.datamodel.features.types.fx;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberRangeType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberFormatType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.util.Callback;
@@ -106,7 +103,7 @@ public class DataTypeCellFactory implements
           }
 
 
-          if (type instanceof NumberType) {
+          if (type instanceof NumberFormatType) {
             setAlignment(Pos.CENTER_RIGHT);
             setGraphic(null);
           } else {
