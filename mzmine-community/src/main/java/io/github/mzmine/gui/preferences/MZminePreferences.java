@@ -419,6 +419,8 @@ public class MZminePreferences extends SimpleParameterSet {
       ParameterSet proxyParams = getParameter(proxySettings).getEmbeddedParameters();
       String address = proxyParams.getParameter(ProxySettings.proxyAddress).getValue();
       String port = proxyParams.getParameter(ProxySettings.proxyPort).getValue();
+      address = address.replaceFirst("http://", ""); // some proxy urls contain http:// at the beginning, we need to filter this out
+      address = address.replaceFirst("https://", "");
       System.setProperty("http.proxySet", "true");
       System.setProperty("http.proxyHost", address);
       System.setProperty("http.proxyPort", port);
