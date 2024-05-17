@@ -30,15 +30,12 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
 
 import java.io.File;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import java.util.Collection;

@@ -37,10 +37,11 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -146,8 +147,8 @@ public class MZTabmExportTask extends AbstractTask {
       int fileCounter = 0;
 
       // Study Variable name and descriptions
-      Hashtable<String, List<RawDataFile>> svhash = new Hashtable<>();
-      Hashtable<RawDataFile, Assay> rawDataFileToAssay = new Hashtable<>();
+      HashMap<String, List<RawDataFile>> svhash = new HashMap<>();
+      HashMap<RawDataFile, Assay> rawDataFileToAssay = new HashMap<>();
 
       for (RawDataFile file : rawDataFiles) {
         fileCounter++;
@@ -208,7 +209,7 @@ public class MZTabmExportTask extends AbstractTask {
         //Get available annotations
         if (exportAll || !dataTypes.isEmpty()) {
 
-          List<DataType> listType = filterForTypesWithAnnotation(dataTypes);
+          List<ListWithSubsType> listType = filterForTypesWithAnnotation(dataTypes);
 
           for (DataType type : listType) {
 
@@ -217,15 +218,14 @@ public class MZTabmExportTask extends AbstractTask {
             setDefaultConfidences(sme);
 
             if (featureAnnotationList == null || featureAnnotationList.isEmpty()) {
-              sm.setReliability("4"); //unknown compoun
+              sm.setReliability("4"); //unknown compound
               continue;
-            } else if (type.getUniqueID().equals(LipidMatchListType.class)) {
-              //todo add a case (i.e. with lipids where there is only a class?
+            } else {
               sm.setReliability("2"); //putatively annotated compound (2)
             }
 
             // export annotations
-            exportAnnotations(type, featureAnnotationList, sme, annotationType);
+            exportAnnotations((ListWithSubsType<?>) type, featureAnnotationList, sme, annotationType);
           }
 
           Double rowMZ = featureListRow.getAverageMZ();
@@ -248,7 +248,7 @@ public class MZTabmExportTask extends AbstractTask {
           assignMissingMandatoryFields(sme);
 
           int dataFileCount = 0;
-          Hashtable<String, List<Double>> sampleVariableAbundancehash = new Hashtable<>();
+          HashMap<String, List<Double>> sampleVariableAbundancehash = new HashMap<>();
           for (RawDataFile dataFile : rawDataFiles) {
             dataFileCount++;
             Feature feature = featureListRow.getFeature(dataFile);
@@ -373,7 +373,7 @@ public class MZTabmExportTask extends AbstractTask {
 
   @NotNull
   private static List<SpectraRef> generateSpectraRef(Feature feature,
-      Hashtable<RawDataFile, Assay> rawDataFileToAssay) {
+      HashMap<RawDataFile, Assay> rawDataFileToAssay) {
     List<SpectraRef> sr = new ArrayList<>();
     for (Scan scan : feature.getScanNumbers()) {
       sr.add(new SpectraRef().msRun(
@@ -408,28 +408,30 @@ public class MZTabmExportTask extends AbstractTask {
     }
   }
 
-  private void exportAnnotations(DataType type, List annotationList, SmallMoleculeEvidence sme,
+  private void exportAnnotations(ListWithSubsType<?> type, List annotationList, SmallMoleculeEvidence sme,
       DataType<?> annotationType) {
     ListWithSubsType<Object> listWithSubsType = (ListWithSubsType) type;
 
     //get the list of subTypes
     final List<DataType> subDataTypeList = ((ListWithSubsType) type).getSubDataTypes();
 
-    for (int j = 0; j < subDataTypeList.size(); j++) {
-      final String uniqueID = subDataTypeList.get(j).getUniqueID();
+    for (DataType subType: subDataTypeList) {
+      final String uniqueID = subType.getUniqueID();
 
-      for (int k = 0; k < annotationList.size(); k++) {
-        Object mappedVal = listWithSubsType.map(subDataTypeList.get(j),
-            annotationList.get(k));
+      for (int j = 0; j < annotationList.size(); j++) {
+        Object mappedVal = listWithSubsType.map(subType, annotationList.get(j));
 
         if (mappedVal != null) {
+
+          modifyReliabilityForLipidMatch(mappedVal);
+
           String subtypeValue = mappedVal.toString();
 
           if (type instanceof NoTextColumn || uniqueID.equals("structure_2d")) {
             continue;
           }
 
-          String colName = type.getUniqueID() + "_" + uniqueID + "_" + k+1;
+          String colName = type.getUniqueID() + "_" + uniqueID + "_" + j + 1;
           createSMEOptCols(sme, type, colName, subtypeValue);
 
           if (type.getUniqueID().equals(annotationType.getUniqueID())) {
@@ -442,9 +444,19 @@ public class MZTabmExportTask extends AbstractTask {
     }
   }
 
-  private void createSMEOptCols(SmallMoleculeEvidence sme, DataType type, String name, String value) {
-    globalOptColumns.add(OptColumnMappingBuilder.forGlobal()
-        .withName(name));
+  private void modifyReliabilityForLipidMatch(Object mappedVal) {
+    if (mappedVal instanceof MatchedLipid) {
+      MatchedLipid mappedLipid = (MatchedLipid) mappedVal;
+      if (mappedLipid.getLipidAnnotation() instanceof MolecularSpeciesLevelAnnotation & mappedLipid.getLipidAnnotation().getLipidAnnotationLevel()
+          .equals("MOLECULAR_SPECIES_LEVEL")) {
+        sm.setReliability("3"); // only class identified
+      }
+    }
+  }
+
+  private void createSMEOptCols(SmallMoleculeEvidence sme, DataType type, String name,
+      String value) {
+    globalOptColumns.add(OptColumnMappingBuilder.forGlobal().withName(name));
     if (!value.equals("")) {
       sme.addOptItem(globalOptColumns.get(columnCount).build(value));
     } else {
@@ -456,28 +468,28 @@ public class MZTabmExportTask extends AbstractTask {
       String uniqueID, String subtypeValue) {
     sme.setDatabaseIdentifier(preferredAnnotation);
     String returnValue;
-    if (subtypeValue == "") {
+    if (subtypeValue.equals("")) {
       returnValue = "null";
     } else {
       returnValue = subtypeValue;
     }
-    if (uniqueID == "mol_formula") {
+    if (uniqueID.equals("mol_formula")) {
       sme.setChemicalFormula(returnValue);
     }
     if (uniqueID.contains("adduct")) {
       sme.setAdductIon(returnValue);
       sme.setCharge(getChargeParameterFromAdduct(returnValue));
     }
-    if (uniqueID == "compound_name") {
+    if (uniqueID.equals("compound_name")) {
       sme.setChemicalName(returnValue);
     }
-    if (uniqueID == "smiles") {
+    if (uniqueID.equals("smiles")) {
       sme.setSmiles(returnValue);
     }
-    if (uniqueID == "inchi") {
+    if (uniqueID.equals("inchi")) {
       sme.setInchi(returnValue);
     }
-    if (uniqueID == "precursor_mz") {
+    if (uniqueID.equals("precursor_mz")) {
       sme.setTheoreticalMassToCharge(DEFAULT_DOUBLE_VALUE);
     }
     if (uniqueID.contains("score") & !uniqueID.contains("isotope") & returnValue != null) {
@@ -504,7 +516,7 @@ public class MZTabmExportTask extends AbstractTask {
     sme.setIdConfidenceMeasure(confidences);
   }
 
-  private void addSVAbundance(Hashtable<String, List<Double>> sampleVariableAbundancehash,
+  private void addSVAbundance(HashMap<String, List<Double>> sampleVariableAbundancehash,
       String studyVariable) {
     //Using mean as average function for abundance of Study Variable
     Double sumSV = sampleVariableAbundancehash.get(studyVariable).stream()
@@ -528,8 +540,8 @@ public class MZTabmExportTask extends AbstractTask {
     sm.addAbundanceVariationStudyVariableItem(covSV);
   }
 
-  private void getStudyVariables(Hashtable<String, List<RawDataFile>> svhash,
-      Hashtable<RawDataFile, Assay> rawDataFileToAssay) {
+  private void getStudyVariables(HashMap<String, List<RawDataFile>> svhash,
+      HashMap<RawDataFile, Assay> rawDataFileToAssay) {
     int studyVarCount = 0;
     if (svhash.keySet().size() == 0) {
       StudyVariable studyVariable = new StudyVariable().id(1).name("undefined");
@@ -547,7 +559,7 @@ public class MZTabmExportTask extends AbstractTask {
     }
   }
 
-  private void createSVHash(Hashtable<String, List<RawDataFile>> svhash, RawDataFile file) {
+  private void createSVHash(HashMap<String, List<RawDataFile>> svhash, RawDataFile file) {
     for (UserParameter<?, ?> p : project.getParameters()) {
       if (p.getName().contains("study variable")) {
         if (svhash.containsKey(String.valueOf(project.getParameterValue(p, file)))) {
@@ -642,9 +654,9 @@ public class MZTabmExportTask extends AbstractTask {
     return (CompoundAnnotationUtils.isAnnotationOrMissingType(dataType));
   }
 
-  @Nullable
-  private static List<DataType> filterForTypesWithAnnotation(Collection<DataType> types) {
-    return types.stream().filter(Objects::nonNull).filter(MZTabmExportTask::isMatchesType).toList();
+  private static List<ListWithSubsType> filterForTypesWithAnnotation(Collection<DataType> types) {
+    return types.stream().filter(Objects::nonNull).filter(CompoundAnnotationUtils::isAnnotationOrMissingType).
+        filter(t -> t instanceof ListWithSubsType).map(t -> (ListWithSubsType) t).toList();
   }
 
   @NotNull
