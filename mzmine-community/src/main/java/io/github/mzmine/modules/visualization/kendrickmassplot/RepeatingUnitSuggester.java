@@ -68,7 +68,7 @@ public class RepeatingUnitSuggester {
   private final MZTolerance mzTolerance;
   private final ListView<String> listView;
   private final ObservableList<String> itemList;
-  private Task<ObservableList<String>> loadTask;
+  private Task<List<String>> loadTask;
 
   public RepeatingUnitSuggester(FeatureList featureList) {
     this.featureList = featureList;
@@ -83,7 +83,7 @@ public class RepeatingUnitSuggester {
   private void loadItems() {
     loadTask = new Task<>() {
       @Override
-      protected ObservableList<String> call() {
+      protected List<String> call() {
         return suggestRepeatingUnit();
       }
 
@@ -98,7 +98,7 @@ public class RepeatingUnitSuggester {
     new Thread(loadTask).start();
   }
 
-  public Task<ObservableList<String>> getLoadItemsTask() {
+  public Task<List<String>> getLoadItemsTask() {
     return loadTask;
   }
 
@@ -106,8 +106,8 @@ public class RepeatingUnitSuggester {
     return listView;
   }
 
-  private ObservableList<String> suggestRepeatingUnit() {
-    ObservableList<String> list = FXCollections.observableArrayList();
+  private List<String> suggestRepeatingUnit() {
+    List<String> list = new ArrayList<>();
     //get transformed mzValues
     double[] mzValues = extractMzValues();
 

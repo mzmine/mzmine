@@ -28,10 +28,10 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -67,12 +67,12 @@ public class KendrickMassPlotSetupDialog extends ParameterSetupDialog {
       return;
     }
     RepeatingUnitSuggester repeatingUnitSuggester = new RepeatingUnitSuggester(matchingFeatureList);
-    Task<ObservableList<String>> loadTask = repeatingUnitSuggester.getLoadItemsTask();
+    Task<List<String>> loadTask = repeatingUnitSuggester.getLoadItemsTask();
     loadTask.setOnSucceeded(_ -> {
       ListView<String> newListView = repeatingUnitSuggester.getListView();
       if (!vbox.getChildren().isEmpty() && vbox.getChildren().getFirst() instanceof ListView) {
         ListView<String> oldListView = (ListView<String>) vbox.getChildren().get(0);
-        if (!areListViewsEqual(oldListView, newListView)) {
+        if (!oldListView.equals(newListView)) {
           vbox.getChildren().setAll(newListView);
         }
       } else {
@@ -80,26 +80,6 @@ public class KendrickMassPlotSetupDialog extends ParameterSetupDialog {
       }
     });
 
-  }
-
-
-  private boolean areListViewsEqual(ListView<String> oldListView, ListView<String> newListView) {
-    ObservableList<String> oldItems = oldListView.getItems();
-    ObservableList<String> newItems = newListView.getItems();
-
-    // Check if both lists are of the same size
-    if (oldItems.size() != newItems.size()) {
-      return false;
-    }
-
-    // Compare each element
-    for (int i = 0; i < oldItems.size(); i++) {
-      if (!oldItems.get(i).equals(newItems.get(i))) {
-        return false; // Return false at the first instance of non-equal elements
-      }
-    }
-
-    return true; // If all elements are the same
   }
 
 }
