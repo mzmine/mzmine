@@ -23,32 +23,37 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.features.types.numbers.scores;
+package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import io.github.mzmine.util.maths.similarity.Similarity;
+import io.github.mzmine.datamodel.features.types.DataType;
+import java.text.NumberFormat;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The cosine similarity can be calculated in {@link Similarity#COSINE}
+ * A DataType that has a NumberFormat to format its content. May be a simple number or Range or
+ * complex object resolving to numbers.
+ *
+ * @param <T> any
  */
-public class CosineScoreType extends ScoreType {
+public abstract class NumberFormatType<T> extends DataType<T> {
 
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "cosine_score";
+  protected final NumberFormat DEFAULT_FORMAT;
+
+  protected NumberFormatType(NumberFormat defaultFormat) {
+    DEFAULT_FORMAT = defaultFormat;
   }
 
-  @NotNull
-  @Override
-  public String getHeaderString() {
-    return "Cosine similarity";
+  public abstract NumberFormat getFormat();
+
+  public abstract NumberFormat getExportFormat();
+
+  public NumberFormat getFormat(boolean export) {
+    return export ? getExportFormat() : getFormat();
   }
 
   @Override
-  public boolean getDefaultVisibility() {
-    return true;
+  public @NotNull String getFormattedString(final T value, final boolean export) {
+    return value != null ? getFormat(export).format(value) : "";
   }
+
 }

@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.CosineScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import java.util.List;
@@ -48,7 +48,7 @@ public class GNPSSpectralLibraryMatchesType extends ListWithSubsType<GNPSLibrary
   // Unmodifiable list of all subtypes
   private static final List<DataType> subTypes = List.of(new GNPSSpectralLibraryMatchesType(),
       new CompoundNameType(), new IonAdductType(), new SmilesStructureType(),
-      new InChIStructureType(), new CosineScoreType(), new MatchingSignalsType(),
+      new InChIStructureType(), new SimilarityType(), new MatchingSignalsType(),
       new GNPSLibraryUrlType(), new GNPSClusterUrlType(), new GNPSNetworkUrlType());
 
 
@@ -66,7 +66,7 @@ public class GNPSSpectralLibraryMatchesType extends ListWithSubsType<GNPSLibrary
       case IonAdductType __ -> match.getResultOr(ATT.ADDUCT, "");
       case SmilesStructureType __ -> match.getResultOr(ATT.SMILES, "");
       case InChIStructureType __ -> match.getResultOr(ATT.INCHI, "");
-      case CosineScoreType __ -> match.getResultOr(ATT.LIBRARY_MATCH_SCORE, null);
+      case SimilarityType __ -> match.getResultOr(ATT.LIBRARY_MATCH_SCORE, null);
       case MatchingSignalsType __ -> match.getResultOr(ATT.SHARED_SIGNALS, null);
       case GNPSLibraryUrlType __ -> match.getResultOr(ATT.GNPS_LIBRARY_URL, null);
       case GNPSClusterUrlType __ -> match.getResultOr(ATT.GNPS_CLUSTER_URL, null);

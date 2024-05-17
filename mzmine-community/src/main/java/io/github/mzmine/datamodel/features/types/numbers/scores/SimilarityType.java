@@ -26,30 +26,29 @@
 package io.github.mzmine.datamodel.features.types.numbers.scores;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
+import io.github.mzmine.util.maths.similarity.Similarity;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The MS/MS score is used during molecular formula prediction to score how many signals are
- * described by the molecular formula candidate. The score is calculated in
- * {@link MSMSScoreCalculator#evaluateMsMsFast}
+ * The similarity can be calculated in {@link Similarity#COSINE}
  */
-public class MsMsScoreType extends ScoreType {
+public class SimilarityType extends ScoreType {
 
   @NotNull
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "msms_score";
+    return "similarity_score";
   }
 
+  @NotNull
   @Override
-  public @NotNull String getHeaderString() {
-    return "MS/MS score";
+  public String getHeaderString() {
+    return "Similarity";
   }
 
   @Override
   public boolean getDefaultVisibility() {
-    return false; // inherits from score type, but is not as important
+    return true;
   }
 }
