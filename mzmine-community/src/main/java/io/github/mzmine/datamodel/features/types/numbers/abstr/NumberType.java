@@ -25,25 +25,15 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
-import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
-import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.control.TreeTableColumn;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public abstract class NumberType<T extends Number & Comparable<?>> extends
-    NumberFormatType<T> {
+/**
+ * Simple Number Type for anything that inherits from Number. This is useful for instanceof checks
+ * when iterating over data types.
+ *
+ * @param <T> a number
+ */
+public abstract class NumberType<T extends Number & Comparable<?>> extends NumberFormatType<T> {
 
   protected NumberType(NumberFormat defaultFormat) {
     super(defaultFormat);

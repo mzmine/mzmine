@@ -29,6 +29,12 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import java.text.NumberFormat;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A DataType that has a NumberFormat to format its content. May be a simple number or Range or
+ * complex object resolving to numbers.
+ *
+ * @param <T> any
+ */
 public abstract class NumberFormatType<T> extends DataType<T> {
 
   protected final NumberFormat DEFAULT_FORMAT;
