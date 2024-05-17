@@ -35,14 +35,10 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.MathUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
-import it.unimi.dsi.fastutil.doubles.DoubleCollection;
-import it.unimi.dsi.fastutil.doubles.DoubleComparator;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -124,9 +120,9 @@ public class RepeatingUnitSuggester {
     for (Double delta : filteredDeltas) {
       List<String> predictedFormulas = predictFormula(delta);
       for (String predictedFormula : predictedFormulas) {
-      if (!predictedFormula.isBlank() && !list.contains(predictedFormula)) {
+        if (!predictedFormula.isBlank() && !list.contains(predictedFormula)) {
         list.add(delta + ": " + predictedFormula);
-      }
+        }
       }
 
     }
@@ -180,15 +176,31 @@ public class RepeatingUnitSuggester {
 
   private List<Double> findTopNDeltaMedians(Map<Double, DoubleList> deltaMap, int topN) {
     // Get the top N entries based on the size of the DoubleList
-    return deltaMap.values().stream()
-        .sorted(Comparator.comparingInt(list -> list.size()))
-        // only topN deltas with most occurrence
-        .limit(topN)
-        // calculate median of mz
-        .map(DoubleCollection::toDoubleArray)
-        .map(MathUtils::calcMedian)
+    List<Map.Entry<Double, DoubleList>> topNEntries = deltaMap.entrySet().stream()
+        .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size())).limit(topN)
         .toList();
+
+    // Calculate the median for the top N entries' DoubleLists and collect them in a new list
+    return topNEntries.stream().map(entry -> calculateMedian(entry.getValue()))
+        .collect(Collectors.toList());
   }
+
+  private double calculateMedian(DoubleList doubleList) {
+    int size = doubleList.size();
+    if (size == 0) {
+      return 0.0; // Handle empty list case
+    }
+
+    DoubleList sortedList = new DoubleArrayList(doubleList);
+    sortedList.sort(null);
+
+    if (size % 2 == 0) {
+      return (sortedList.getDouble(size / 2 - 1) + sortedList.getDouble(size / 2)) / 2.0;
+    } else {
+      return sortedList.getDouble(size / 2);
+    }
+  }
+
 
   private List<String> predictFormula(double mass) {
     IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
