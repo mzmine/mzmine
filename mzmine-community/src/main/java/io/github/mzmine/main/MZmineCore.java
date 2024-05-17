@@ -192,15 +192,17 @@ public final class MZmineCore {
           }
         }
         if (mzEvent instanceof AuthServerNotReachedEvent) {
-          if (DesktopService.isGUI()) {
-            final ButtonType btn = getDesktop().displayConfirmation("""
-                Unable to reach auth server. Try setting a proxy in the preferences.
-                Open preferences dialog?
-                """, ButtonType.YES, ButtonType.NO);
-            if (btn == ButtonType.YES) {
-              ConfigService.getConfiguration().getPreferences().showSetupDialog(true, "Proxy");
+          FxThread.runLater(() -> {
+            if (DesktopService.isGUI()) {
+              final ButtonType btn = getDesktop().displayConfirmation("""
+                  Unable to reach auth server. Try setting a proxy in the preferences.
+                  Open preferences dialog?
+                  """, ButtonType.YES, ButtonType.NO);
+              if (btn == ButtonType.YES) {
+                ConfigService.getConfiguration().getPreferences().showSetupDialog(true, "Proxy");
+              }
             }
-          }
+          });
         }
       });
 

@@ -441,6 +441,7 @@ public class MZminePreferences extends SimpleParameterSet {
       System.setProperty("https.proxyPort", port);
       System.setProperty("proxyType", proxyType.toString()); // needed for login service
     } else {
+      System.clearProperty("proxyType"); // needed for login service
       System.clearProperty("http.proxySet");
       System.clearProperty("http.proxyHost");
       System.clearProperty("http.proxyPort");
