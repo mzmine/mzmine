@@ -216,6 +216,13 @@ public class DataTypeCheckListParameter implements
       Element e = (Element) childs.item(i);
       String key = e.getAttribute(DATA_TYPE_KEY_ATTR);
       Boolean val = Boolean.valueOf(e.getAttribute(DATA_TYPE_VISIBLE_ATTR));
+
+      final String replaced = key.replace("Feature:", "");
+      if(key.contains(" ") || !replaced.equals(replaced.toLowerCase())) {
+        // may be an old key from the time we were using the column headers
+        continue;
+      }
+
       value.put(key, val);
     }
   }
