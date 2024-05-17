@@ -56,6 +56,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.mzio.events.AuthRequiredEvent;
+import io.mzio.events.AuthServerNotReachedEvent;
 import io.mzio.events.EventService;
 import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.user.CurrentUserService;
@@ -77,6 +78,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.scene.control.ButtonType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -163,7 +165,7 @@ public final class MZmineCore {
         } else {
           logger.log(Level.WARNING,
               "Cannot create or access temp file directory that was set via program argument: "
-              + tempDirectory.getAbsolutePath());
+                  + tempDirectory.getAbsolutePath());
         }
       }
 
@@ -187,6 +189,17 @@ public final class MZmineCore {
             getDesktop().addTab(UsersTab.showTab());
           } else {
             getDesktop().displayMessage("Requires user login. Open mzmine and login to a user");
+          }
+        }
+        if (mzEvent instanceof AuthServerNotReachedEvent) {
+          if (DesktopService.isGUI()) {
+            final ButtonType btn = getDesktop().displayConfirmation("""
+                Unable to reach auth server. Try setting a proxy in the preferences.
+                Open preferences dialog?
+                """, ButtonType.YES, ButtonType.NO);
+            if (btn == ButtonType.YES) {
+              ConfigService.getConfiguration().getPreferences().showSetupDialog(true, "Proxy");
+            }
           }
         }
       });

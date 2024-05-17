@@ -27,21 +27,50 @@ package io.github.mzmine.gui.preferences;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Proxy server settings
  */
 public class ProxySettings extends SimpleParameterSet {
 
-  public static final StringParameter proxyAddress =
-      new StringParameter("Proxy adress", "Internet address of a proxy server");
+  public static final ComboParameter<ProxyType> proxyType = new ComboParameter<>("Proxy type",
+      "Set if the proxy is an http or an https proxy.", ProxyType.values(), ProxyType.HTTP);
 
-  public static final StringParameter proxyPort =
-      new StringParameter("Proxy port", "TCP port of proxy server");
+  public static final StringParameter proxyAddress = new StringParameter("Proxy address",
+      "Internet address of a proxy server");
+
+  public static final StringParameter proxyPort = new StringParameter("Proxy port",
+      "TCP port of proxy server");
 
   public ProxySettings() {
-    super(new Parameter[] {proxyAddress, proxyPort});
+    super(proxyType, proxyAddress, proxyPort);
   }
 
+  @Override
+  public Map<String, Parameter<?>> getNameParameterMap() {
+    var map = super.getNameParameterMap();
+    map.put("Proxy adress", proxyAddress);
+    return map;
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
+  }
+
+  public enum ProxyType {
+    HTTP, HTTPS;
+
+    @Override
+    public String toString() {
+      return switch (this) {
+        case HTTP -> "http";
+        case HTTPS -> "https";
+      };
+    }
+  }
 }
