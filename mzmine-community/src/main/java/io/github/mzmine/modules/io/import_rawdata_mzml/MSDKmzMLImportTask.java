@@ -287,6 +287,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
     // all this is checked before when building the BuildingMobilityScanStorage
     var mobilityType = framesMobilityScans.getFirst().getMobilityScans().getFirst().mobilityType();
 
+    // TIMS may have multiple segments but people should just use tdf
     if (mobilityType == MobilityType.TIMS && mobilities[0] - mobilities[1] < 0) {
       // for tims, mobilities must be sorted in descending order, so if [0]-[1] < 0, we must reverse
       ArrayUtils.reverse(mobilities);
@@ -304,15 +305,16 @@ public class MSDKmzMLImportTask extends AbstractTask {
       description = descriptionTemplate + convertedScansAfterFilter;
     }
 
-    // apply mass detection to frames NOT to mobility scans
+    // Mass detection is automatically applied to mobility scans if advanced parameters are selected
+    // at this point we do not have frames - so mass detection cannot be applied
+    // in future we need to find an easy way to get a simple frame already calculated from the mobility scans
+    // currently users need to apply merging step
     if (scanProcessorConfig.processor().containsMassDetection()) {
-      logger.warning("""
-          Applying the advanced import (with mass detection) to an IMS mzML file only performs mass
-           detection on the summed frame level. Better to perform individual steps of mass detection
-            to the mobility scans and the summed frames.""");
-      MsDataImportAndMassDetectWrapperTask massDetector = new MsDataImportAndMassDetectWrapperTask(
-          storage, newImsFile, this, scanProcessorConfig, moduleCallDate);
-      massDetector.applyMassDetection();
+      logger.info("""
+          Advanced data import applied mass detection on mobility scans.""");
+//      MsDataImportAndMassDetectWrapperTask massDetector = new MsDataImportAndMassDetectWrapperTask(
+//          storage, newImsFile, this, scanProcessorConfig, moduleCallDate);
+//      massDetector.applyMassDetection();
     }
     return newImsFile;
   }

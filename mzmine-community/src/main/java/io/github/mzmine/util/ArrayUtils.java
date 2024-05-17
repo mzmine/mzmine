@@ -164,6 +164,14 @@ public class ArrayUtils {
     return array[array.length - 1];
   }
 
+  /**
+   * Concatenate multiple arrays into one long array
+   *
+   * @param source       list of data sources of double[]
+   * @param dataSupplier function to extract the double[] from source
+   * @param <T>
+   * @return a long double array
+   */
   public static <T> double[] concat(final List<T> source,
       final Function<T, double[]> dataSupplier) {
     List<double[]> sourceData = new ArrayList<>(source.size());
@@ -173,6 +181,12 @@ public class ArrayUtils {
     return concat(sourceData);
   }
 
+  /**
+   * Concatenate multiple arrays into one long array
+   *
+   * @param sourceData list of data, order is preserved
+   * @return one long array
+   */
   public static double[] concat(final List<double[]> sourceData) {
     int numDp = sourceData.stream().mapToInt(a -> a.length).sum();
     final double[] result = new double[numDp];
