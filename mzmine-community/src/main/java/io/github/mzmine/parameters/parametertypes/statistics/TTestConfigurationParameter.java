@@ -26,9 +26,7 @@
 package io.github.mzmine.parameters.parametertypes.statistics;
 
 
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.significance.ttest.TTestSamplingConfig;
-import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.parameters.PropertyParameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
@@ -76,8 +74,8 @@ public class TTestConfigurationParameter implements
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if (value == null || value.column() == null || value.groupA() == null || value.groupB() == null
-        || value.samplingConfig() == null) {
+    if (value == null || value.column() == null || value.groupA() == null
+        || value.groupB() == null) {
       errorMessages.add(
           STR."Invalid t-Test parameter configuration \{value != null ? value.toString()
               : "configuration is null"}");
@@ -88,15 +86,13 @@ public class TTestConfigurationParameter implements
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    final MetadataTable metadata = MZmineCore.getProjectMetadata();
-
     final String colName = xmlElement.getAttribute(XML_COLUMN_ATTR);
-    final String sampling = xmlElement.getAttribute(XML_SAMPLING_ATTR);
+    final TTestSamplingConfig sampling = TTestSamplingConfig.parseOrElse(
+        xmlElement.getAttribute(XML_SAMPLING_ATTR), TTestSamplingConfig.UNPAIRED);
     final String a = xmlElement.getAttribute(XML_GRP_A_ATTR);
     final String b = xmlElement.getAttribute(XML_GRP_B_ATTR);
 
-    value = new StorableTTestConfiguration(
-        !sampling.isBlank() ? TTestSamplingConfig.valueOf(sampling) : null, colName, a, b);
+    value = new StorableTTestConfiguration(sampling, colName, a, b);
   }
 
   @Override
@@ -105,8 +101,9 @@ public class TTestConfigurationParameter implements
       return;
     }
 
+    // save enum name as identifier for valueOf
+    xmlElement.setAttribute(XML_SAMPLING_ATTR, value.samplingConfig().name());
     xmlElement.setAttribute(XML_COLUMN_ATTR, value.column());
-    xmlElement.setAttribute(XML_SAMPLING_ATTR, value.samplingConfig().toString());
     xmlElement.setAttribute(XML_GRP_A_ATTR, value.groupA());
     xmlElement.setAttribute(XML_GRP_B_ATTR, value.groupB());
   }
@@ -134,8 +131,6 @@ public class TTestConfigurationParameter implements
 
   @Override
   public UserParameter<StorableTTestConfiguration, TTestConfigurationComponent> cloneParameter() {
-    return value == null ? null : new TTestConfigurationParameter(name, desc,
-        new StorableTTestConfiguration(value.samplingConfig(), value.column(), value.groupA(),
-            value.groupB()));
+    return new TTestConfigurationParameter(name, desc, value);
   }
 }
