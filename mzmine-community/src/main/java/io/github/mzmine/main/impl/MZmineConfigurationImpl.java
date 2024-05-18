@@ -345,20 +345,24 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
       // traverse modules
       List<MZmineModule> allModules = new ArrayList<>(MZmineCore.getAllModules());
       for (MZmineModule module : allModules) {
-
-        String className = module.getClass().getName();
-
         Element moduleElement = configuration.createElement("module");
-        moduleElement.setAttribute("class", className);
-        modulesElement.appendChild(moduleElement);
-
         Element paramElement = configuration.createElement("parameters");
-        moduleElement.appendChild(paramElement);
+        String className = module.getClass().getName();
+        try {
+          moduleElement.setAttribute("class", className);
 
-        ParameterSet moduleParameters = getModuleParameters(module.getClass());
-        if (moduleParameters != null) {
-          moduleParameters.setSkipSensitiveParameters(skipSensitive);
-          moduleParameters.saveValuesToXML(paramElement);
+          ParameterSet moduleParameters = getModuleParameters(module.getClass());
+          if (moduleParameters != null) {
+            moduleParameters.setSkipSensitiveParameters(skipSensitive);
+            moduleParameters.saveValuesToXML(paramElement);
+          }
+
+          // only add if there is no exception
+          modulesElement.appendChild(moduleElement);
+          moduleElement.appendChild(paramElement);
+        } catch (Exception ex) {
+          logger.log(Level.WARNING,
+              STR."Error while saving module parameters to config. Skipping class \{className}");
         }
       }
 
