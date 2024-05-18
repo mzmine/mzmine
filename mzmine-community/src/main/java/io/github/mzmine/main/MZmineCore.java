@@ -58,6 +58,8 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.web.ProxyChangedEvent;
 import io.mzio.events.AuthRequiredEvent;
 import io.mzio.events.EventService;
+import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
+import io.mzio.users.gui.fx.LoginOptions;
 import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.user.CurrentUserService;
 import java.io.File;
@@ -129,9 +131,7 @@ public final class MZmineCore {
       Thread cleanupThread = new Thread(new TmpFileCleanup()); // check regular temp dir
       cleanupThread.setPriority(Thread.MIN_PRIORITY);
       cleanupThread.start();
-
-      MZmineArgumentParser argsParser = new MZmineArgumentParser();
-      argsParser.parse(args);
+      MZmineCoreArgumentParser argsParser = new MZmineCoreArgumentParser(args);
       getInstance().tdfPseudoProfile = argsParser.isLoadTdfPseudoProfile();
       getInstance().tsfProfile = argsParser.isLoadTsfProfile();
 
@@ -168,12 +168,14 @@ public final class MZmineCore {
         }
       }
 
-      // listen for user changes so that the latest user is saved
-      String username = ConfigService.getPreference(MZminePreferences.username);
-      // this will set the current user to CurrentUserService
-      // loads all users already logged in from the user folder
-      if (StringUtils.hasValue(username)) {
-        new UsersController().setCurrentUserByName(username);
+      if (argsParser.getUserFile() == null) {
+        // listen for user changes so that the latest user is saved
+        String username = ConfigService.getPreference(MZminePreferences.username);
+        // this will set the current user to CurrentUserService
+        // loads all users already logged in from the user folder
+        if (StringUtils.hasValue(username)) {
+          new UsersController().setCurrentUserByName(username);
+        }
       }
 
       CurrentUserService.subscribe(user -> {
@@ -187,7 +189,12 @@ public final class MZmineCore {
           if (DesktopService.isGUI()) {
             getDesktop().addTab(UsersTab.showTab());
           } else {
-            getDesktop().displayMessage("Requires user login. Open mzmine and login to a user");
+            try {
+              new UsersController().onLoginOrRegister(LoginOptions.CONSOLE);
+            } catch (Exception ex) {
+              getDesktop().displayMessage(
+                  "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+            }
           }
         }
         if (mzEvent instanceof ProxyChangedEvent pevent) {
@@ -216,12 +223,25 @@ public final class MZmineCore {
         setTempDirToPreference();
       }
 
-      KeepInMemory keepInMemory = argsParser.isKeepInMemory();
-      if (keepInMemory != null) {
-        // set to preferences
-        preferences.setParameter(MZminePreferences.memoryOption, keepInMemory);
-      } else {
-        keepInMemory = preferences.getParameter(MZminePreferences.memoryOption).getValue();
+      KeepInMemory keepInMemory;
+      try {
+        var memory = argsParser.isKeepInMemory();
+        if (StringUtils.hasValue(memory)) {
+          keepInMemory = KeepInMemory.parse(memory);
+
+          // set to preferences
+          preferences.setParameter(MZminePreferences.memoryOption, keepInMemory);
+        } else {
+          keepInMemory = preferences.getParameter(MZminePreferences.memoryOption).getValue();
+        }
+      } catch (Exception exception) {
+        logger.warning("Issue while reading keep in memory option from CLI argument");
+        System.exit(1);
+        return;
+      }
+
+      if (keepInMemory == null) {
+        keepInMemory = KeepInMemory.NONE;
       }
 
       String numCores = argsParser.getNumCores();
@@ -232,6 +252,17 @@ public final class MZmineCore {
 
       // apply memory management option
       keepInMemory.enforceToMemoryMapping();
+
+      // login user if cli option
+      if (argsParser.isCliLogin()) {
+        try {
+          logger.info("CLI user login");
+          new UsersController().loginOrRegisterConsoleBlocking();
+        } catch (Exception ex) {
+          getDesktop().displayMessage(
+              "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+        }
+      }
 
       // batch mode defined by command line argument
       File batchFile = argsParser.getBatchFile();
@@ -253,6 +284,23 @@ public final class MZmineCore {
       } else {
         // set headless desktop globally
         DesktopService.setDesktop(new HeadLessDesktop());
+
+        // requires user
+        if (CurrentUserService.isInvalid()) {
+          try {
+            logger.info("Requires user login");
+            new UsersController().loginOrRegisterConsoleBlocking();
+          } catch (Exception ex) {
+            getDesktop().displayMessage(
+                "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+          }
+          if (CurrentUserService.isInvalid()) {
+            logger.warning(
+                "No valid user. Please login via the GUI or CLI or provide a user via command line argument -user path/user.mzuser");
+            System.exit(1);
+            return;
+          }
+        }
 
         Task batchTask = null;
         if (batchFile != null) {
