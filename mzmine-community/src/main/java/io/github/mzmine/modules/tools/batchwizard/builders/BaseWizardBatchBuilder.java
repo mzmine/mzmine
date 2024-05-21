@@ -773,7 +773,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected MZTolerance getIsolationToleranceForInstrument(final WizardSequence steps) {
     var ms = steps.get(WizardPart.MS).get().getFactory();
     return switch ((MassSpectrometerWizardParameterFactory) ms) {
-      case Orbitrap, FTICR, LOW_RES -> new MZTolerance(0.4, 5);
+      case Orbitrap, Orbitrap_Astral, FTICR, LOW_RES -> new MZTolerance(0.4, 5);
       case QTOF -> new MZTolerance(1.6, 5);
     };
   }
