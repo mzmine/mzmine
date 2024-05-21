@@ -23,17 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.id_fraggraph.mvci;
+package io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.mvci;
 
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
-import io.github.mzmine.modules.tools.id_fraggraph.FragmentUtils;
-import io.github.mzmine.modules.tools.id_fraggraph.SignalWithFormulae;
-import io.github.mzmine.modules.tools.id_fraggraph.graphstream.FragmentGraphGenerator;
-import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
-import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
+import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.FragmentUtils;
+import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.SignalWithFormulae;
+import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.FragmentGraphGenerator;
+import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SignalFormulaeModel;
+import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SubFormulaEdge;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.FormulaWithExactMz;

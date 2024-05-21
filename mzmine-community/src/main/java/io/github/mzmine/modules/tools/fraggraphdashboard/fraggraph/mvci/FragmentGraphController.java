@@ -23,14 +23,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.tools.id_fraggraph.mvci;
+package io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.mvci;
 
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.tools.fraggraphdashboard.FragmentGraphCalcParameters;
-import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SignalFormulaeModel;
-import io.github.mzmine.modules.tools.id_fraggraph.graphstream.SubFormulaEdge;
+import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SignalFormulaeModel;
+import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.SubFormulaEdge;
 import io.github.mzmine.parameters.ParameterSet;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
