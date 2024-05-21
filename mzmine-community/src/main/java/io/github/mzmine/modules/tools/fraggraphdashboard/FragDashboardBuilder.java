@@ -30,6 +30,7 @@ import static io.github.mzmine.javafx.components.factories.FxLabels.newBoldLabel
 import static io.github.mzmine.javafx.components.factories.FxLabels.newLabel;
 import static io.github.mzmine.javafx.components.util.FxLayout.newFlowPane;
 import static io.github.mzmine.javafx.components.util.FxLayout.newHBox;
+import static io.github.mzmine.javafx.components.util.FxTabs.newTab;
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.gui.preferences.NumberFormats;
@@ -115,12 +116,12 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
         null);
 
     final SplitPane nodeTableGraphSplit = new SplitPane(fragmentGraph,
-        new TabPane(new Tab("Fragments", nodeTable), new Tab("Neutral losses", edgeTable)));
+        new TabPane(newTab("Fragments", nodeTable), newTab("Neutral losses", edgeTable)));
     nodeTableGraphSplit.setDividerPositions(0.6);
     nodeTableGraphSplit.setOrientation(Orientation.HORIZONTAL);
 
-    final TabPane spectraFormulaTab = new TabPane(new Tab("Precursor formulae", formulaWrap),
-        new Tab("Fragmentation spectrum", ms2Chart), new Tab("Isotopes", isotopeChart));
+    final TabPane spectraFormulaTab = new TabPane(newTab("Precursor formulae", formulaWrap),
+        newTab("Fragmentation spectrum", ms2Chart), newTab("Isotopes", isotopeChart));
 
     // set up a summary for the precursor formula. the text field can be edited directly and is bound
     // to formula property of the model. Same goes for the exact mass

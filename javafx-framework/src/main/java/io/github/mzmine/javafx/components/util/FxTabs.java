@@ -31,8 +31,12 @@ import javafx.scene.control.Tab;
 public class FxTabs {
 
   public static Tab newTab(final String title, final Node content) {
+    return newTab(title, false, content);
+  }
+
+  public static Tab newTab(final String title, boolean closable, final Node content) {
     var tab = new Tab(title, content);
-    tab.setClosable(false);
+    tab.setClosable(closable);
     return tab;
   }
 }
