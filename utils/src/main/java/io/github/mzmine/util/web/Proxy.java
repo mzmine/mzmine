@@ -39,11 +39,14 @@ public record Proxy(boolean active, @Nullable String address, @Nullable String p
 
   public static final Proxy EMPTY = new Proxy(false, null, null, ProxyType.HTTP);
 
+  public Proxy(final boolean active, @Nullable final String address, @Nullable final String port) {
+    this(active, address, port, null);
+  }
+
   public Proxy(final boolean active, @Nullable final String address, @Nullable final String port,
-      @Nullable final ProxyType type) {
+      @Nullable ProxyType type) {
     // deactivate if any is null
     this.active = active && ObjectUtils.noneNull(address, port);
-    this.type = requireNonNullElse(type, ProxyType.HTTP);
     this.port = port;
 
     // some proxy urls contain http:// at the beginning, we need to filter this out
@@ -51,11 +54,14 @@ public record Proxy(boolean active, @Nullable String address, @Nullable String p
       this.address = address;
     } else if (address.toLowerCase().startsWith("http://")) {
       this.address = address.replaceFirst("http://", "");
+      type = ProxyType.HTTP;
     } else if (address.toLowerCase().startsWith("https://")) {
       this.address = address.replaceFirst("https://", "");
+      type = ProxyType.HTTPS;
     } else {
       this.address = address;
     }
+    this.type = requireNonNullElse(type, ProxyType.HTTP);
   }
 
   /**

@@ -26,6 +26,7 @@
 package io.github.mzmine.util.web;
 
 import io.mzio.events.EventService;
+import java.util.InputMismatchException;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
@@ -128,4 +129,20 @@ public class ProxyUtils {
     }
   }
 
+  /**
+   * @param fullProxy Define proxy like http://myproxy:port
+   * @return the now set proxy
+   */
+  @NotNull
+  public static Proxy setSystemProxy(final String fullProxy) throws InputMismatchException {
+    var portIndex = fullProxy.lastIndexOf(":");
+    if (portIndex == -1) {
+      throw new InputMismatchException(
+          "Full proxy format did not contain a port. Define proxy like http://myproxy:port");
+    }
+    String port = fullProxy.substring(portIndex + 1);
+    String address = fullProxy.substring(0, portIndex);
+
+    return setSystemProxy(new Proxy(true, address, port));
+  }
 }
