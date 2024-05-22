@@ -134,6 +134,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWiza
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
@@ -773,7 +774,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected MZTolerance getIsolationToleranceForInstrument(final WizardSequence steps) {
     var ms = steps.get(WizardPart.MS).get().getFactory();
     return switch ((MassSpectrometerWizardParameterFactory) ms) {
-      case Orbitrap, FTICR, LOW_RES -> new MZTolerance(0.4, 5);
+      case Orbitrap, Orbitrap_Astral, FTICR, LOW_RES -> new MZTolerance(0.4, 5);
       case QTOF -> new MZTolerance(1.6, 5);
     };
   }
@@ -915,7 +916,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(MassDetectionModule.class).cloneParameterSet();
 
-    boolean denormalize = massDetectorOption.getValueType() == FACTOR_OF_LOWEST_SIGNAL;
+    final Boolean isDia = steps.get(WizardPart.WORKFLOW)
+        .map(w -> w instanceof WorkflowDiaWizardParameters).orElse(false);
+    boolean denormalize = massDetectorOption.getValueType() == FACTOR_OF_LOWEST_SIGNAL && !isDia;
     param.setParameter(MassDetectionParameters.denormalizeMSnScans, denormalize);
 
     param.setParameter(MassDetectionParameters.dataFiles,
