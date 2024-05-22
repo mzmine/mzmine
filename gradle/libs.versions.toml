@@ -41,6 +41,8 @@ jetbrains-annotations = 'org.jetbrains:annotations:22.0.0'
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-jdk14 = { module = "org.slf4j:slf4j-jdk14", version.ref = "slf4j" }
 
+semver4j = { module = "com.vdurmont:semver4j", version = "3.1.0" }
+
 fastutil = { group = "it.unimi.dsi", name = "fastutil", version = "8.5.6" }
 # UI dependent
 controlsfx = { module = "org.controlsfx:controlsfx", version.ref = "controlsfx" }

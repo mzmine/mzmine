@@ -27,12 +27,12 @@ package io.github.mzmine.gui.mainwindow;
 
 import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.gui.VersionCheckResultType;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.io.SemverVersionReader;
 
 public record VersionCheckResult(VersionCheckResultType type, Semver newVersion) {
 
   public static VersionCheckResult of(Semver newVersion) {
-    final Semver current = MZmineCore.getMZmineVersion();
+    final Semver current = SemverVersionReader.getMZmineVersion();
     if (newVersion == null) {
       return new VersionCheckResult(VersionCheckResultType.CANNOT_PARSE, newVersion);
     } else if (current.isLowerThan(newVersion)) {
@@ -51,7 +51,7 @@ public record VersionCheckResult(VersionCheckResultType type, Semver newVersion)
           STR."An updated version is available: MZmine \{newVersion}. Please download the newest version.";
       case CURRENT -> "No updated version of MZmine is available.";
       case THIS_IS_NEWER ->
-          STR."It seems you are running MZmine version \{MZmineCore.getMZmineVersion()
+          STR."It seems you are running MZmine version \{SemverVersionReader.getMZmineVersion()
               }, which is newer than the latest official release \{newVersion}";
       case NO_INTERNET -> "Error retrieving or parsing latest version number from MZmine website.";
       case CANNOT_PARSE ->

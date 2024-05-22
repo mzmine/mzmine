@@ -40,6 +40,12 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
+      <groupId>com.vdurmont</groupId>
+      <artifactId>semver4j</artifactId>
+      <version>3.1.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
       <groupId>io.mzio</groupId>
       <artifactId>user-management</artifactId>
       <version>1.0.0</version>
@@ -49,6 +55,11 @@
       <groupId>io.mzio</groupId>
       <artifactId>user-client</artifactId>
       <version>1.0.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.mzmine</groupId>
+      <artifactId>utils</artifactId>
       <scope>runtime</scope>
     </dependency>
   </dependencies>

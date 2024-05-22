@@ -26,7 +26,6 @@
 package io.github.mzmine.main;
 
 import com.vdurmont.semver4j.Semver;
-import com.vdurmont.semver4j.Semver.SemverType;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -55,6 +54,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.web.ProxyChangedEvent;
 import io.mzio.events.AuthRequiredEvent;
 import io.mzio.events.EventService;
@@ -64,7 +64,6 @@ import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.user.CurrentUserService;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -75,7 +74,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -107,7 +105,7 @@ public final class MZmineCore {
    */
   public static void main(final String[] args) {
     try {
-      Semver version = getMZmineVersion();
+      Semver version = SemverVersionReader.getMZmineVersion();
       logger.info("Starting mzmine " + version);
       /*
        * Dump the MZmine and JVM arguments for debugging purposes
@@ -237,24 +235,50 @@ public final class MZmineCore {
       // apply memory management option
       keepInMemory.enforceToMemoryMapping();
 
+      // batch mode defined by command line argument
+      File batchFile = argsParser.getBatchFile();
+      boolean isCliBatchProcessing = batchFile != null;
+
       // login user if cli option
       if (argsParser.isCliLogin()) {
+        boolean success = false;
         try {
           logger.info("CLI user login");
           new UsersController().loginOrRegisterConsoleBlocking();
+          success = true;
         } catch (Exception ex) {
           getDesktop().displayMessage(
               "Requires user login. Open mzmine GUI and login to a user. Then provide the user file as command line argument -user path/user.mzuser");
+          if (!isCliBatchProcessing) {
+            System.exit(1);
+            return;
+          }
+        }
+        // if no batch select - that means it was only a login call.
+        // save config and close mzmine
+        if (success && !isCliBatchProcessing) {
+          String currentUserName = CurrentUserService.getUserName().orElse("");
+          ConfigService.getPreferences().setParameter(MZminePreferences.username, currentUserName);
+          if (!ConfigService.saveUserConfig()) {
+            logger.severe(
+                "Failed to save user config after login. A solution may be to delete the .mzconfig file in the system user directory /.mzmine/");
+            System.exit(1);
+            return;
+          } else {
+            logger.info("User login successful, user configuration is saved with the new user "
+                        + currentUserName);
+            System.exit(0);
+            return;
+          }
         }
       }
 
-      // batch mode defined by command line argument
-      File batchFile = argsParser.getBatchFile();
+      // change input in batch?
       File[] overrideDataFiles = argsParser.getOverrideDataFiles();
       File[] overrideSpectralLibraryFiles = argsParser.getOverrideSpectralLibrariesFiles();
       boolean keepRunningInHeadless = argsParser.isKeepRunningAfterBatch();
 
-      boolean headLessMode = (batchFile != null || keepRunningInHeadless);
+      boolean headLessMode = (isCliBatchProcessing || keepRunningInHeadless);
       // If we have no arguments, run in GUI mode, otherwise run in batch mode
       if (!headLessMode) {
         try {
@@ -524,26 +548,6 @@ public final class MZmineCore {
   public static ImagingRawDataFile createNewImagingFile(@NotNull final String name,
       @Nullable final String absPath, @Nullable final MemoryMapStorage storage) throws IOException {
     return new ImagingRawDataFileImpl(name, absPath, storage);
-  }
-
-  @NotNull
-  public static Semver getMZmineVersion() {
-    try {
-      ClassLoader myClassLoader = MZmineCore.class.getClassLoader();
-      InputStream inStream = myClassLoader.getResourceAsStream("mzmineversion.properties");
-      if (inStream == null) {
-        return new Semver("3-SNAPSHOT", SemverType.LOOSE);
-      }
-      Properties properties = new Properties();
-      properties.load(inStream);
-      String versionString = properties.getProperty("version.semver");
-      if ((versionString == null) || (versionString.startsWith("$"))) {
-        return new Semver("3-SNAPSHOT", SemverType.LOOSE);
-      }
-      return new Semver(versionString, SemverType.LOOSE);
-    } catch (Exception e) {
-      return new Semver("3-SNAPSHOT", SemverType.LOOSE);
-    }
   }
 
   /**

@@ -27,7 +27,6 @@ package io.github.mzmine.gui;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.TaskService;
 import java.util.logging.Level;
@@ -56,10 +55,8 @@ class ShutDownHook extends Thread {
     }
 
     // Save configuration
-    try {
-      ConfigService.getConfiguration().saveConfiguration(MZmineConfiguration.CONFIG_FILE);
-    } catch (Exception e) {
-      logger.log(Level.WARNING, "Could not save config on shutdown", e);
+    if (!ConfigService.saveUserConfig()) {
+      logger.log(Level.WARNING, "Could not save config on shutdown");
     }
 
     // Close all temporary files
@@ -69,4 +66,5 @@ class ShutDownHook extends Thread {
     }
 
   }
+
 }

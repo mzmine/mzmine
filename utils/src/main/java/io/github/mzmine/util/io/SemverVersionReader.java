@@ -23,15 +23,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-plugins {
-    id("io.github.mzmine.java-library-conv")
-    id("io.github.mzmine.javafx-conv")
-}
+package io.github.mzmine.util.io;
 
-dependencies {
-    implementation(libs.commons.io)
-    implementation(libs.guava)
-    implementation(libs.fastutil)
-    implementation(libs.mzio.global.events)
-    implementation(libs.semver4j)
+import com.vdurmont.semver4j.Semver;
+import com.vdurmont.semver4j.Semver.SemverType;
+import java.io.InputStream;
+import java.util.Properties;
+import org.jetbrains.annotations.NotNull;
+
+public class SemverVersionReader {
+
+  @NotNull
+  public static Semver getMZmineVersion() {
+    try {
+      ClassLoader myClassLoader = SemverVersionReader.class.getClassLoader();
+      InputStream inStream = myClassLoader.getResourceAsStream("mzmineversion.properties");
+      if (inStream == null) {
+        return new Semver("3-SNAPSHOT", SemverType.LOOSE);
+      }
+      Properties properties = new Properties();
+      properties.load(inStream);
+      String versionString = properties.getProperty("version.semver");
+      if ((versionString == null) || (versionString.startsWith("$"))) {
+        return new Semver("3-SNAPSHOT", SemverType.LOOSE);
+      }
+      return new Semver(versionString, SemverType.LOOSE);
+    } catch (Exception e) {
+      return new Semver("3-SNAPSHOT", SemverType.LOOSE);
+    }
+  }
 }
