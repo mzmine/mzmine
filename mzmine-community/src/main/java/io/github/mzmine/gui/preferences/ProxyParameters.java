@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,13 +29,14 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import java.util.List;
+import io.github.mzmine.util.web.Proxy;
+import io.github.mzmine.util.web.ProxyType;
 import java.util.Map;
 
 /**
  * Proxy server settings
  */
-public class ProxySettings extends SimpleParameterSet {
+public class ProxyParameters extends SimpleParameterSet {
 
   public static final ComboParameter<ProxyType> proxyType = new ComboParameter<>("Proxy type",
       "Set if the proxy is an http or an https proxy.", ProxyType.values(), ProxyType.HTTP);
@@ -46,7 +47,7 @@ public class ProxySettings extends SimpleParameterSet {
   public static final StringParameter proxyPort = new StringParameter("Proxy port",
       "TCP port of proxy server");
 
-  public ProxySettings() {
+  public ProxyParameters() {
     super(proxyType, proxyAddress, proxyPort);
   }
 
@@ -62,15 +63,13 @@ public class ProxySettings extends SimpleParameterSet {
     return 2;
   }
 
-  public enum ProxyType {
-    HTTP, HTTPS;
-
-    @Override
-    public String toString() {
-      return switch (this) {
-        case HTTP -> "http";
-        case HTTPS -> "https";
-      };
+  public void setProxy(final Proxy proxy) {
+    if (proxy.address() != null) {
+      setParameter(proxyAddress, proxy.address());
     }
+    if (proxy.port() != null) {
+      setParameter(proxyPort, proxy.port());
+    }
+    setParameter(proxyType, proxy.type());
   }
 }

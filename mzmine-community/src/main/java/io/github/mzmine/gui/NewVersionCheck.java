@@ -30,6 +30,7 @@ import com.vdurmont.semver4j.Semver.SemverType;
 import io.github.mzmine.gui.mainwindow.VersionCheckResult;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.InetUtils;
+import io.github.mzmine.util.io.SemverVersionReader;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,7 +57,7 @@ public class NewVersionCheck implements Runnable {
   public void run() {
 
     // Check for updated version
-    Semver currentVersion = MZmineCore.getMZmineVersion();
+    Semver currentVersion = SemverVersionReader.getMZmineVersion();
 
     Semver newestVersion = null;
 
