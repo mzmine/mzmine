@@ -27,6 +27,7 @@ package io.github.mzmine.gui.preferences;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
+import io.github.mzmine.gui.preferences.ProxySettings.ProxyType;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
@@ -211,7 +212,7 @@ public class MZminePreferences extends SimpleParameterSet {
     darkModeProperty.subscribe(state -> {
       var oldTheme = getValue(theme);
 
-      if(oldTheme.isDark() != state) {
+      if (oldTheme.isDark() != state) {
         var theme = state ? Themes.JABREF_DARK : Themes.JABREF_LIGHT;
         setParameter(MZminePreferences.theme, theme);
         applyConfig(oldTheme);
@@ -240,7 +241,7 @@ public class MZminePreferences extends SimpleParameterSet {
         new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
             showPrecursorWindow, imageTransformation, imageNormalization});
 //    dialog.addParameterGroup("Other", new Parameter[]{
-        // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
+    // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
 //    });
     dialog.setFilterText(filterParameters);
 
@@ -259,6 +260,7 @@ public class MZminePreferences extends SimpleParameterSet {
   public void applyConfig() {
     applyConfig(null);
   }
+
   public void applyConfig(final @Nullable Themes previousTheme) {
     // Update proxy settings
     updateSystemProxySettings();
@@ -279,8 +281,8 @@ public class MZminePreferences extends SimpleParameterSet {
     theme.apply(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
     darkModeProperty.set(theme.isDark());
 
-    Boolean presentation = config.getPreferences()
-        .getParameter(MZminePreferences.presentationMode).getValue();
+    Boolean presentation = config.getPreferences().getParameter(MZminePreferences.presentationMode)
+        .getValue();
     if (presentation) {
       MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
           .add("themes/MZmine_default_presentation.css");
@@ -419,14 +421,27 @@ public class MZminePreferences extends SimpleParameterSet {
       ParameterSet proxyParams = getParameter(proxySettings).getEmbeddedParameters();
       String address = proxyParams.getParameter(ProxySettings.proxyAddress).getValue();
       String port = proxyParams.getParameter(ProxySettings.proxyPort).getValue();
+
+      // some proxy urls contain http:// at the beginning, we need to filter this out
+      if (address.startsWith("http://")) {
+        proxyParams.setParameter(ProxySettings.proxyType, ProxyType.HTTP);
+        address = address.replaceFirst("http://", "");
+      } else if (address.startsWith("https://")) {
+        proxyParams.setParameter(ProxySettings.proxyType, ProxyType.HTTPS);
+        address = address.replaceFirst("https://", "");
+      }
+
+      final ProxyType proxyType = proxyParams.getValue(ProxySettings.proxyType);
+      // need to set both proxies anyway
       System.setProperty("http.proxySet", "true");
       System.setProperty("http.proxyHost", address);
       System.setProperty("http.proxyPort", port);
-
       System.setProperty("https.proxySet", "true");
       System.setProperty("https.proxyHost", address);
       System.setProperty("https.proxyPort", port);
+      System.setProperty("proxyType", proxyType.toString()); // needed for login service
     } else {
+      System.clearProperty("proxyType"); // needed for login service
       System.clearProperty("http.proxySet");
       System.clearProperty("http.proxyHost");
       System.clearProperty("http.proxyPort");

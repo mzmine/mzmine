@@ -43,7 +43,14 @@ public class MzMLRawDataFile {
   private final File sourceFile;
 
   private final @NotNull List<String> msFunctions;
+  /**
+   * scans or frames in IMS
+   */
   private final @NotNull List<BuildingMzMLMsScan> msScans;
+  /**
+   * each element is one frame with all its mobility scans
+   */
+  private final @NotNull List<BuildingMobilityScanStorage> mobilityScanData;
   private final @NotNull List<Chromatogram> chromatograms;
 
   private @NotNull String defaultInstrumentConfiguration;
@@ -54,16 +61,19 @@ public class MzMLRawDataFile {
   private @NotNull String name;
 
   /**
-   *
-   * @param sourceFile a {@link File} object.
-   * @param msFunctions a {@link List} object.
-   * @param msScans a {@link List} object.
-   * @param chromatograms a {@link List} object.
+   * @param sourceFile       a {@link File} object.
+   * @param msFunctions      a {@link List} object.
+   * @param msScans          a {@link List} object.
+   * @param chromatograms    a {@link List} object.
+   * @param mobilityScanData list of mobility scan data already memory mapped. Each element
+   *                         represents a frame that contains multiple mobility scans
    */
   @SuppressWarnings("null")
-  public MzMLRawDataFile(File sourceFile, List<String> msFunctions, List<BuildingMzMLMsScan> msScans,
-      List<Chromatogram> chromatograms) {
+  public MzMLRawDataFile(File sourceFile, List<String> msFunctions,
+      List<BuildingMzMLMsScan> msScans, List<Chromatogram> chromatograms,
+      final List<BuildingMobilityScanStorage> mobilityScanData) {
     this.sourceFile = sourceFile;
+    this.mobilityScanData = mobilityScanData;
     this.startTimeStamp = "";
     this.name = sourceFile != null ? sourceFile.getName() : null;
     this.msFunctions = msFunctions;
@@ -72,6 +82,10 @@ public class MzMLRawDataFile {
     this.defaultInstrumentConfiguration = "unknown";
     this.defaultDataProcessingScan = "unknown";
     this.defaultDataProcessingChromatogram = "unknown";
+  }
+
+  public List<BuildingMobilityScanStorage> getMobilityScanData() {
+    return mobilityScanData;
   }
 
   @NotNull

@@ -73,7 +73,8 @@ public class SimpleFrame extends SimpleScan implements Frame {
     super(dataFile, scanNumber, msLevel, retentionTime, null, /*
          * fragmentScans,
          */
-        mzValues, intensityValues, spectrumType, polarity, scanDefinition, scanMZRange, accumulationTime);
+        mzValues, intensityValues, spectrumType, polarity, scanDefinition, scanMZRange,
+        accumulationTime);
 
     this.mobilityType = mobilityType;
     mobilityRange = Range.singleton(0.d);
@@ -144,14 +145,19 @@ public class SimpleFrame extends SimpleScan implements Frame {
           "Number of mobility values (%d) does not match number of mobility scans (%d).",
           getMobilities().size(), originalMobilityScans.size()));
     }
-    mobilityScanStorage = new MobilityScanStorage(getDataFile().getMemoryMapStorage(), this,
-        originalMobilityScans, useAsMassList);
+    setMobilityScanStorage(
+        new MobilityScanStorage(getDataFile().getMemoryMapStorage(), this, originalMobilityScans,
+            useAsMassList));
+  }
+
+  public void setMobilityScanStorage(final MobilityScanStorage mobilityScanStorage) {
+    this.mobilityScanStorage = mobilityScanStorage;
   }
 
   @Override
   public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
-    return ((IMSRawDataFile) (getDataFile())).getSegmentMobilities(
-        mobilitySegment).getDouble(mobilityScanIndex);
+    return ((IMSRawDataFile) (getDataFile())).getSegmentMobilities(mobilitySegment)
+        .getDouble(mobilityScanIndex);
   }
 
   @Override
