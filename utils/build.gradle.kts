@@ -28,6 +28,12 @@ plugins {
     id("io.github.mzmine.javafx-conv")
 }
 
+repositories {
+    mavenCentral()
+    // local libraries
+    maven { url = uri("file://" + layout.projectDirectory.dir("../local-repo")) }
+}
+
 dependencies {
     implementation(libs.commons.io)
     implementation(libs.guava)
