@@ -35,10 +35,13 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.MathUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleCollection;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,7 +124,7 @@ public class RepeatingUnitSuggester {
       List<String> predictedFormulas = predictFormula(delta);
       for (String predictedFormula : predictedFormulas) {
         if (!predictedFormula.isBlank() && !list.contains(predictedFormula)) {
-        list.add(delta + ": " + predictedFormula);
+          list.add(delta + ": " + predictedFormula);
         }
       }
 
@@ -176,29 +179,12 @@ public class RepeatingUnitSuggester {
 
   private List<Double> findTopNDeltaMedians(Map<Double, DoubleList> deltaMap, int topN) {
     // Get the top N entries based on the size of the DoubleList
-    List<Map.Entry<Double, DoubleList>> topNEntries = deltaMap.entrySet().stream()
-        .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size())).limit(topN)
-        .toList();
-
-    // Calculate the median for the top N entries' DoubleLists and collect them in a new list
-    return topNEntries.stream().map(entry -> calculateMedian(entry.getValue()))
-        .collect(Collectors.toList());
-  }
-
-  private double calculateMedian(DoubleList doubleList) {
-    int size = doubleList.size();
-    if (size == 0) {
-      return 0.0; // Handle empty list case
-    }
-
-    DoubleList sortedList = new DoubleArrayList(doubleList);
-    sortedList.sort(null);
-
-    if (size % 2 == 0) {
-      return (sortedList.getDouble(size / 2 - 1) + sortedList.getDouble(size / 2)) / 2.0;
-    } else {
-      return sortedList.getDouble(size / 2);
-    }
+    return deltaMap.values().stream()
+        .sorted(Comparator.comparing(List::size, Comparator.reverseOrder()))
+        // only topN deltas with most occurrence
+        .limit(topN)
+        // calculate median of mz
+        .map(DoubleCollection::toDoubleArray).map(MathUtils::calcMedian).toList();
   }
 
 
@@ -307,9 +293,9 @@ public class RepeatingUnitSuggester {
       Collection<FeatureListAppliedMethod> appliedMethods = Objects.requireNonNull(featureList)
           .getAppliedMethods();
 
-        return ParameterUtils.getValueFromAppliedMethods(appliedMethods,
-                ADAPChromatogramBuilderParameters.class, ADAPChromatogramBuilderParameters.mzTolerance)
-            .orElse(new MZTolerance(0.005, 15));
+      return ParameterUtils.getValueFromAppliedMethods(appliedMethods,
+              ADAPChromatogramBuilderParameters.class, ADAPChromatogramBuilderParameters.mzTolerance)
+          .orElse(new MZTolerance(0.005, 15));
     } catch (Exception e) {
       logger.log(Level.WARNING,
           " Could not extract previously used mz tolerance, will apply default settings. "
