@@ -200,22 +200,6 @@ public final class MZmineCore {
         if (mzEvent instanceof ProxyChangedEvent pevent) {
           ConfigService.getPreferences().setProxy(pevent.proxy());
         }
-//        if (mzEvent instanceof AuthServerNotReachedEvent) {
-//          FxThread.runLater(() -> {
-//            if (DesktopService.isGUI()) {
-        // show settings tab
-//              getDesktop().addTab(UsersTab.showTab(UsersViewState.SETTINGS));
-
-//              final ButtonType btn = getDesktop().displayConfirmation("""
-//                  Unable to reach mzmine user server. Try setting a proxy in the preferences.
-//                  Open preferences dialog?
-//                  """, ButtonType.YES, ButtonType.NO);
-//              if (btn == ButtonType.YES) {
-//                ConfigService.getConfiguration().getPreferences().showSetupDialog(true, "Proxy");
-//              }
-//            }
-//          });
-//        }
       });
 
       // set temp directory
