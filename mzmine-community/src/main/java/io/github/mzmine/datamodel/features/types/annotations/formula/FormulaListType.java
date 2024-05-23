@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -73,7 +73,7 @@ public class FormulaListType extends ListWithSubsType<ResultFormula> implements 
   }
 
   @Override
-  protected <K> @Nullable K map(@NotNull final DataType<K> subType, final ResultFormula formula) {
+  public <K> @Nullable K map(@NotNull final DataType<K> subType, final ResultFormula formula) {
     return (K) switch (subType) {
       case FormulaListType __ -> formula;
       case FormulaMassType __ -> formula.getExactMass();

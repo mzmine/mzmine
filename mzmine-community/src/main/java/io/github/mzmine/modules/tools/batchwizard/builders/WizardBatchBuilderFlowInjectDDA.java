@@ -65,7 +65,7 @@ public class WizardBatchBuilderFlowInjectDDA extends BaseWizardBatchBuilder {
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
     makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
-        minRtDataPoints, null);
+        minRtDataPoints, null, polarity);
 
     var groupMs2Params = createMs2GrouperParameters(minRtDataPoints, false, null);
 

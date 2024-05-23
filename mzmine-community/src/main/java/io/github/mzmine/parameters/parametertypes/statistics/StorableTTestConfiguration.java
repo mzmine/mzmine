@@ -33,15 +33,16 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
-public record StorableTTestConfiguration(TTestSamplingConfig samplingConfig, String column,
+public record StorableTTestConfiguration(@NotNull TTestSamplingConfig samplingConfig, String column,
                                          String groupA, String groupB) {
 
   private static final Logger logger = Logger.getLogger(StorableTTestConfiguration.class.getName());
 
   /**
-   * @return A {@link StudentTTest} or null. The configuration is only returned if the column
-   * exists and the respective values exist in that column.
+   * @return A {@link StudentTTest} or null. The configuration is only returned if the column exists
+   * and the respective values exist in that column.
    */
   public <T> StudentTTest<T> toValidConfig() {
     final MetadataTable metadata = MZmineCore.getProjectMetadata();
@@ -76,8 +77,9 @@ public record StorableTTestConfiguration(TTestSamplingConfig samplingConfig, Str
       return null;
     }
 
-    if(a.equals(b)) {
-      logger.warning(() -> STR."Same grouping parameter selected for both groups of the t-Test. (\{a})");
+    if (a.equals(b)) {
+      logger.warning(
+          () -> STR."Same grouping parameter selected for both groups of the t-Test. (\{a})");
     }
 
     return new StudentTTest<>(samplingConfig, col, a, b);

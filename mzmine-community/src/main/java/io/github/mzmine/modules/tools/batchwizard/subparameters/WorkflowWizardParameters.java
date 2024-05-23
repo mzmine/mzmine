@@ -32,7 +32,7 @@ import io.github.mzmine.parameters.Parameter;
 public sealed class WorkflowWizardParameters extends WizardStepParameters permits
     WorkflowDdaWizardParameters, WorkflowGcElectronImpactWizardParameters,
     WorkflowImagingWizardParameters, WorkflowLibraryGenerationWizardParameters,
-    WorkflowDiaWizardParameters {
+    WorkflowDiaWizardParameters, WorkflowTargetPlateWizardParameters {
 
   public WorkflowWizardParameters(final WorkflowWizardParameterFactory preset,
       final Parameter<?>... parameters) {

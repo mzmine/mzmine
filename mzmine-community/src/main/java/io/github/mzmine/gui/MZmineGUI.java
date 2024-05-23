@@ -63,6 +63,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FragWindow;
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.web.WebUtils;
@@ -516,7 +517,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       Platform.exit();
     }
 
-    stage.setTitle("mzmine " + MZmineCore.getMZmineVersion());
+    stage.setTitle("mzmine " + SemverVersionReader.getMZmineVersion());
     stage.setMinWidth(600);
     stage.setMinHeight(400);
 
@@ -541,7 +542,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     desktopSetupThread.setPriority(Thread.MIN_PRIORITY);
     desktopSetupThread.start();
 
-    setStatusBarText("Welcome to mzmine " + MZmineCore.getMZmineVersion());
+    setStatusBarText("Welcome to mzmine " + SemverVersionReader.getMZmineVersion());
 
     stage.show();
 

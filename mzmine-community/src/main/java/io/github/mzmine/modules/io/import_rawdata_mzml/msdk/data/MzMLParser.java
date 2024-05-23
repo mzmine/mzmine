@@ -27,7 +27,7 @@ package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import io.github.msdk.datamodel.Chromatogram;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.TagTracker;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
@@ -58,7 +58,6 @@ public class MzMLParser {
 
   private final Vars vars;
   private final TagTracker tracker;
-  private final MzMLFileImportMethod importer;
   private final MemoryMapStorage storage;
   private final @NotNull ScanImportProcessorConfig scanProcessorConfig;
 
@@ -76,13 +75,12 @@ public class MzMLParser {
       .collect(Collectors.toMap(MzMLArrayType::getAccession, Function.identity()));
 
 
-  public MzMLParser(MzMLFileImportMethod importer, MemoryMapStorage storage,
+  public MzMLParser(MSDKmzMLImportTask importer, MemoryMapStorage storage,
       @NotNull ScanImportProcessorConfig scanProcessorConfig) {
     this.vars = new Vars();
     this.tracker = new TagTracker();
-    this.importer = importer;
     this.newRawFile = new MzMLRawDataFile(importer.getMzMLFile(), vars.msFunctionsList,
-        vars.spectrumList, vars.chromatogramsList);
+        vars.spectrumList, vars.chromatogramsList, vars.mobilityScanData);
     this.storage = storage;
     this.scanProcessorConfig = scanProcessorConfig;
   }
@@ -509,7 +507,10 @@ public class MzMLParser {
       if (closingTagName.contentEquals(MzMLTags.TAG_SPECTRUM)) {
         filterProcessFinalizeScan();
       }
-
+    }
+    if (closingTagName.contentEquals(MzMLTags.TAG_SPECTRUM_LIST)) {
+      // finished the last scan
+      vars.memoryMapAndClearFrameMobilityScanData(storage);
     }
 
 //    else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
@@ -533,7 +534,7 @@ public class MzMLParser {
 //    logger.info(STR."Finalizing scan \{spectrum.getScanNumber()}");
     if (scanProcessorConfig.scanFilter().matches(spectrum)) {
       if (spectrum.loadProcessMemMapData(storage, scanProcessorConfig)) {
-        vars.spectrumList.add(spectrum);
+        vars.addSpectrumToList(storage, spectrum);
       }
     }
     vars.spectrum = null;
@@ -713,9 +714,13 @@ public class MzMLParser {
     MzMLScanWindowList scanWindowList;
     MzMLScanWindow scanWindow;
     ArrayList<MzMLReferenceableParamGroup> referenceableParamGroupList;
-    List<BuildingMzMLMsScan> spectrumList;
+    final List<BuildingMzMLMsScan> spectrumList;
+    List<BuildingMzMLMsScan> mobilityScans;
+    final List<BuildingMobilityScanStorage> mobilityScanData = new ArrayList<>();
     List<Chromatogram> chromatogramsList;
     List<String> msFunctionsList;
+
+    int nextFrameStartScanIndex = 0;
 
     Vars() {
       defaultArrayLength = 0;
@@ -735,9 +740,58 @@ public class MzMLParser {
       scanWindow = null;
       referenceableParamGroupList = new ArrayList<>();
       spectrumList = new ArrayList<>();
+      mobilityScans = new ArrayList<>();
       chromatogramsList = new ArrayList<>();
       msFunctionsList = new ArrayList<>(); // TODO populate this list
     }
+
+    public void addSpectrumToList(final MemoryMapStorage storage, BuildingMzMLMsScan scan) {
+      MzMLMobility mobility = scan.getMobility();
+      if (mobility == null) {
+        // scan or frame spectrum
+        spectrumList.add(scan);
+        return;
+      }
+
+      if (mobilityScans.isEmpty()) {
+        mobilityScans.add(scan);
+        return;
+      }
+
+      BuildingMzMLMsScan last = mobilityScans.getLast();
+      if (last != null && Double.compare(last.getRetentionTime(), scan.getRetentionTime()) != 0) {
+        // changed retention time --> finish frame and memory map all mobility scans together as one
+        memoryMapAndClearFrameMobilityScanData(storage);
+      }
+      mobilityScans.add(scan);
+    }
+
+    /**
+     * Memory map all latest mobility scans into one data storage
+     */
+    public void memoryMapAndClearFrameMobilityScanData(final MemoryMapStorage storage) {
+      if (mobilityScans.isEmpty()) {
+        return;
+      }
+
+      // memory map data now to disk
+      var memoryMapped = new BuildingMobilityScanStorage(storage, mobilityScans);
+      mobilityScanData.add(memoryMapped);
+
+      nextFrameStartScanIndex = mobilityScans.size();
+      // all scans were already converted
+      mobilityScans.clear();
+    }
+
+  }
+
+  /**
+   * Already memory mapped data of all scans
+   *
+   * @return
+   */
+  public List<BuildingMobilityScanStorage> getMobilityScanData() {
+    return vars.mobilityScanData;
   }
 
   public int getTotalScans() {

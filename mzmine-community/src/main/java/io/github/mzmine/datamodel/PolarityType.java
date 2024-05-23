@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,6 +64,7 @@ public enum PolarityType {
     return switch (str.toLowerCase()) {
       case "+", "positive", "pos", "+1", "1+", "1" -> PolarityType.POSITIVE;
       case "-", "negative", "neg", "-1", "1-" -> PolarityType.NEGATIVE;
+      case "any polarity" -> PolarityType.ANY; // sometimes used as filter option
       default -> UNKNOWN;
     };
   }
@@ -96,6 +98,13 @@ public enum PolarityType {
    */
   public int getSign() {
     return sign;
+  }
+
+  public String toLabel() {
+    if (this == ANY) {
+      return "Any polarity";
+    }
+    return StringUtils.capitalize(name().toLowerCase());
   }
 
   @Override

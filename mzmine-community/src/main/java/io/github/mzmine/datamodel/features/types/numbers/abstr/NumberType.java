@@ -25,29 +25,19 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
-import io.github.mzmine.datamodel.features.types.DataType;
 import java.text.NumberFormat;
-import org.jetbrains.annotations.NotNull;
 
-public abstract class NumberType<T> extends DataType<T> {
-
-  protected final NumberFormat DEFAULT_FORMAT;
+/**
+ * Simple Number Type for anything that inherits from Number. This is useful for instanceof checks
+ * when iterating over data types.
+ *
+ * @param <T> a number
+ */
+public abstract class NumberType<T extends Number & Comparable<?>> extends NumberFormatType<T> {
 
   protected NumberType(NumberFormat defaultFormat) {
-    DEFAULT_FORMAT = defaultFormat;
+    super(defaultFormat);
   }
 
-  public abstract NumberFormat getFormat();
-
-  public abstract NumberFormat getExportFormat();
-
-  public NumberFormat getFormat(boolean export) {
-    return export ? getExportFormat() : getFormat();
-  }
-
-  @Override
-  public @NotNull String getFormattedString(final T value, final boolean export) {
-    return value != null ? getFormat(export).format(value) : "";
-  }
 
 }

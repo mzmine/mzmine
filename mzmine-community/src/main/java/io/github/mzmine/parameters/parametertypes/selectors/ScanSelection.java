@@ -75,6 +75,11 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
         MsLevelFilter.of(msLevel), null);
   }
 
+  public ScanSelection(Range<Double> scanRTRange, Integer msLevel, PolarityType polarity) {
+    this(null, null, scanRTRange, null, polarity, MassSpectrumType.ANY, MsLevelFilter.of(msLevel),
+        null);
+  }
+
   public ScanSelection(final int msLevel, final Range<Float> scanRTRange) {
     this(null, null, scanRTRange == null ? null : RangeUtils.toDoubleRange(scanRTRange), null,
         PolarityType.ANY, MassSpectrumType.ANY, MsLevelFilter.of(msLevel), null);
@@ -357,4 +362,9 @@ public record ScanSelection(Range<Integer> scanNumberRange, Integer baseFilterin
         getScanDefinition());
   }
 
+  public ScanSelection withPolarity(final PolarityType polarity) {
+    return new ScanSelection(getScanNumberRange(), getBaseFilteringInteger(), getScanRTRange(),
+        getScanMobilityRange(), polarity, getSpectrumType(), getMsLevelFilter(),
+        getScanDefinition());
+  }
 }

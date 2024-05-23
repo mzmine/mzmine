@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -70,6 +70,7 @@ import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -113,7 +114,7 @@ public class DataTypes {
                 if (value != null) {
                   throw new IllegalStateException(
                       "FATAL: Multiple data types with unique ID " + dt.getUniqueID() + "\n"
-                      + value.getClass().getName() + "\n" + dt.getClass().getName());
+                          + value.getClass().getName() + "\n" + dt.getClass().getName());
                 }
                 TYPES.put(dt.getClass().getName(), dt);
               }
@@ -125,6 +126,27 @@ public class DataTypes {
           });
     } catch (IOException e) {
       logger.severe("Cannot instantiate classPath for DataType.class. Cannot load projects.");
+    }
+    addTypeCompatibilityMethods();
+  }
+
+  /**
+   * If a type has been renamed but load/save remained the same, we can
+   */
+  private static void addTypeCompatibilityMethods() {
+    addCompatibilityTypeMapping("cosine_score", new SimilarityType());
+  }
+
+  /**
+   * Safe method to add a compatibility mapping. will throw an exception if the id is already in
+   * use.
+   */
+  private static void addCompatibilityTypeMapping(String oldUniqueId, DataType<?> newType) {
+    final DataType<?> old = map.put(oldUniqueId, newType);
+    if (old != null) {
+      throw new IllegalStateException(
+          STR."FATAL: Multiple data types with unique ID \{oldUniqueId}\n\{newType.getClass()
+              .getName()}\n\{old.getClass().getName()}");
     }
   }
 

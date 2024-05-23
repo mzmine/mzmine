@@ -25,6 +25,7 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import javafx.beans.property.ObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -74,6 +75,16 @@ public class FxButtons {
       Tooltip.install(b, new Tooltip(tooltip));
     }
     b.getStyleClass().add("icon-button");
+    return b;
+  }
+
+  public static Button createButton(final String label, final String tooltip,
+      final ObjectProperty<EventHandler<ActionEvent>> handlerProperty) {
+    Button b = new Button(label);
+    b.onActionProperty().bind(handlerProperty);
+    if (tooltip != null) {
+      b.setTooltip(new Tooltip(tooltip));
+    }
     return b;
   }
 }
