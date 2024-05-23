@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -273,6 +273,14 @@ public class CSVParsingUtils {
   public static List<String[]> readData(final File file, final String separator)
       throws IOException, CsvException {
     try (var reader = Files.newBufferedReader(file.toPath())) {
+
+      reader.mark(1);
+      final char[] possibleBom = new char[1];
+      final int read = reader.read(possibleBom);
+      if (read == 1 && possibleBom[0] != '\uFEFF') {
+        reader.reset(); // no BOM found, skip
+      }
+
       return readData(reader, separator);
     }
   }
