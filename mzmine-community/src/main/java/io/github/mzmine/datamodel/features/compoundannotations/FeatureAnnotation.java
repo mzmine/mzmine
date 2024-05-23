@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -59,6 +60,8 @@ public interface FeatureAnnotation {
           SpectralDBAnnotation.loadFromXML(reader, project, project.getCurrentRawDataFiles());
       case SimpleCompoundDBAnnotation.XML_ATTR ->
           SimpleCompoundDBAnnotation.loadFromXML(reader, project, flist, row);
+      case MatchedLipid.XML_ELEMENT ->
+          MatchedLipid.loadFromXML(reader, project.getCurrentRawDataFiles());
       default -> null;
     };
   }

@@ -516,6 +516,13 @@ public class ModularFeatureListRow implements FeatureListRow {
     return list != null ? list : List.of();
   }
 
+  @Override
+  public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
+    synchronized (getMap()) {
+      set(CompoundDatabaseMatchesType.class, annotations);
+    }
+  }
+
   /**
    * Checks if this row contains an annotation based on the {@link ListWithSubsType} and the
    * {@link AnnotationType} and if the corresponding entry is not null or empty.
@@ -535,13 +542,6 @@ public class ModularFeatureListRow implements FeatureListRow {
       }
     }
     return false;
-  }
-
-  @Override
-  public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
-    synchronized (getMap()) {
-      set(CompoundDatabaseMatchesType.class, annotations);
-    }
   }
 
   @Override
@@ -711,7 +711,6 @@ public class ModularFeatureListRow implements FeatureListRow {
       case FeatureAnnotation ann -> ann.getCompoundName();
       case ManualAnnotation ann -> ann.getCompoundName();
       case MolecularFormulaIdentity ann -> ann.getFormulaAsString();
-      case MatchedLipid lipid -> lipid.getLipidAnnotation().getAnnotation();
       case null -> null;
       default -> throw new IllegalStateException("Unexpected value: " + annotation);
     };
