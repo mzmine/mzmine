@@ -52,6 +52,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
@@ -61,6 +62,7 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
+import io.github.mzmine.util.io.SemverVersionReader;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -148,7 +150,7 @@ public class MZTabmExportTask extends AbstractTask {
     mtd.setDescription(featureList.getName());
     mtd.addSoftwareItem(new Software().id(1).parameter(
         new Parameter().cvLabel("MS").cvAccession("MS:1002342").name("MZmine")
-            .value(String.valueOf(MZmineCore.getMZmineVersion()))));
+            .value(String.valueOf(SemverVersionReader.getMZmineVersion()))));
     mtd.setSmallMoleculeQuantificationUnit(
         new Parameter().cvLabel("PRIDE").cvAccession("PRIDE:0000330")
             .name("Arbitrary quantification unit"));
@@ -169,7 +171,7 @@ public class MZTabmExportTask extends AbstractTask {
         .fullName("PRIDE PRoteomics IDEntifications (PRIDE) database controlled vocabulary")
         .version("17.11.2022").uri("http://purl.obolibrary.org/obo/pride_cv.obo"));
     mtd.addDatabaseItem(
-        new Database().id(1).prefix("mzmdb").version(MZmineCore.getMZmineVersion().toString())
+        new Database().id(1).prefix("mzmdb").version(SemverVersionReader.getMZmineVersion().toString())
             .uri("https://mzmine.github.io/").param(new Parameter().name("MZmine database")));
     return mtd;
   }
@@ -530,25 +532,20 @@ public class MZTabmExportTask extends AbstractTask {
     } else {
       returnValue = subtypeValue;
     }
-    if (uniqueID.equals("mol_formula")) {
-      sme.setChemicalFormula(returnValue);
+    switch(returnValue) {
+      case "mol_formula":
+        sme.setChemicalFormula(returnValue);
+      case "adduct":
+        sme.setAdductIon(returnValue);
+        sme.setCharge(getChargeParameterFromAdduct(returnValue));
+      case "compound_name":
+        sme.setChemicalName(returnValue);
+      case "smiles":
+        sme.setSmiles(returnValue);
+      case "precursor_mz":
+        sme.setTheoreticalMassToCharge(DEFAULT_DOUBLE_VALUE);
     }
-    if (uniqueID.contains("adduct")) {
-      sme.setAdductIon(returnValue);
-      sme.setCharge(getChargeParameterFromAdduct(returnValue));
-    }
-    if (uniqueID.equals("compound_name")) {
-      sme.setChemicalName(returnValue);
-    }
-    if (uniqueID.equals("smiles")) {
-      sme.setSmiles(returnValue);
-    }
-    if (uniqueID.equals("inchi")) {
-      sme.setInchi(returnValue);
-    }
-    if (uniqueID.equals("precursor_mz")) {
-      sme.setTheoreticalMassToCharge(DEFAULT_DOUBLE_VALUE);
-    }
+
     if (uniqueID.contains("score") & !uniqueID.contains("isotope") & returnValue != null) {
       Parameter parameter = new Parameter();
       parameter.setName(uniqueID);
@@ -660,19 +657,18 @@ public class MZTabmExportTask extends AbstractTask {
   private List<Parameter> getPolarityParameters(RawDataFile file) {
     List<Parameter> polPara = new ArrayList<>();
     for (PolarityType scanPol : file.getDataPolarity()) {
-      Integer pol = scanPol.getSign();
       String polarity = "";
       String polCVA = "";
-      if (pol == 1) {
+      if (scanPol.equals(PolarityType.POSITIVE)) {
         polarity = "positive scan";
         polCVA = "MS:1000130";
-      } else if (pol == -1) {
+      } else if (scanPol.equals(PolarityType.NEGATIVE)) {
         polarity = "negative scan";
         polCVA = "MS:1000129";
       } else {
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
-            "Invalid scan polarity " + pol + " encountered for file " + file.getName() + ".");
+            STR."Invalid scan polarity \{polPara} encountered for file \{file.getName()}.");
         return null;
       }
       Parameter p = new Parameter().cvLabel("MS").cvAccession(polCVA).name(polarity);
