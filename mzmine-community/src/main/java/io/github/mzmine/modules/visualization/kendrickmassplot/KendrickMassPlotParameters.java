@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -94,7 +93,8 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
     if ((getParameters() == null) || (getParameters().length == 0)) {
       return ExitCode.OK;
     }
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
+    KendrickMassPlotSetupDialog dialog = new KendrickMassPlotSetupDialog(valueCheckRequired, this,
+        null);
 
     var xAxisValueComponent = dialog.getComponentForParameter(xAxisValues);
     var xAxisCustomKendrickMassBaseComponent = dialog.getComponentForParameter(
@@ -166,7 +166,6 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
-
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
@@ -176,4 +175,5 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
   public int getVersion() {
     return 2;
   }
+
 }
