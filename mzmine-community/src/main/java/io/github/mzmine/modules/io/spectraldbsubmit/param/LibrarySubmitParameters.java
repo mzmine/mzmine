@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -45,8 +45,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 
@@ -66,8 +65,8 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
 
   // submission and creation of libraries
   // save to local file
-  public static final OptionalParameter<FileNameParameter> LOCALFILE = new OptionalParameter<>(
-      new FileNameParameter("Local file", "Local library file", FileSelectionType.SAVE), false);
+  public static final OptionalParameter<FileNameSuffixExportParameter> LOCALFILE = new OptionalParameter<>(
+      new FileNameSuffixExportParameter("Local file", "Local library file", "speclib"), false);
   public static final BooleanParameter EXPORT_GNPS_JSON = new BooleanParameter(
       "Export GNPS json file", "The GNPS library submission json format", true);
   public static final BooleanParameter EXPORT_MSP = new BooleanParameter("Export NIST msp file",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,8 +29,7 @@ import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalF
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -46,9 +45,9 @@ public class IntraFeatureRowMs2SimilarityParameters extends SimpleParameterSet {
       new FileChooser.ExtensionFilter("All files", "*.*") //
   );
 
-  public static final OptionalParameter<FileNameParameter> filename = new OptionalParameter<>(
-      new FileNameParameter("Export to file", "Name of the output CSV file.", extensions,
-          FileSelectionType.SAVE), false);
+  public static final OptionalParameter<FileNameSuffixExportParameter> filename = new OptionalParameter<>(
+      new FileNameSuffixExportParameter("Export to file", "Name of the output CSV file.",
+          extensions, "intra_row_MS2similarity"), false);
 
   public static final MZToleranceParameter mzTol = new MZToleranceParameter("m/z tolerance (MS2)",
       "Tolerance value of the m/z difference between MS2 signals (add absolute tolerance to cover small neutral losses (5 ppm on m/z 18 may be insufficient))",

@@ -27,8 +27,7 @@ package io.github.mzmine.modules.example.export_coding_demo;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -45,8 +44,8 @@ public class CodingDemoParameters extends SimpleParameterSet {
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   // those are just example parameters and should be exchanged
-  public static final FileNameParameter outFile = new FileNameParameter("Export file",
-      "Save results to csv file", ExtensionFilters.CSV_TSV_EXPORT, FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter outFile = new FileNameSuffixExportParameter(
+      "Export file", "Save results to csv file", ExtensionFilters.CSV_TSV_EXPORT, "coding_demo");
 
   // optional parameters just add a checkbox in front of another parameter
   public static final OptionalParameter<MZRangeParameter> mzRange = new OptionalParameter<>(

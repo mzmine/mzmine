@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,8 +44,7 @@ import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter.Options;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilterParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
@@ -61,8 +60,8 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
 
-  public static final FileNameParameter file = new FileNameParameter("Export file",
-      "Local library file", FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter file = new FileNameSuffixExportParameter(
+      "Export file", "Local library file", "batch_library");
 
   public static final ComboParameter<SpectralLibraryExportFormats> exportFormat = new ComboParameter<>(
       "Export format", "format to export", SpectralLibraryExportFormats.values(),
@@ -74,7 +73,7 @@ public class LibraryBatchGenerationParameters extends SimpleParameterSet {
   public static final OptionalParameter<MZToleranceParameter> mergeMzTolerance = new OptionalParameter<>(
       new MZToleranceParameter("m/z tolerance (merging)",
           "If selected, spectra from different collision energies will be merged.\n"
-              + "The tolerance used to group signals during merging of spectra", 0.008, 25));
+          + "The tolerance used to group signals during merging of spectra", 0.008, 25));
 
   public static final OptionalModuleParameter<HandleChimericMsMsParameters> handleChimerics = new OptionalModuleParameter<>(
       "Handle chimeric spectra",

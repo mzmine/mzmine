@@ -54,8 +54,7 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
@@ -90,12 +89,11 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
       new ExtensionFilter("MGF mascot file (spectra)", "*.mgf"), //
       new ExtensionFilter("All files", "*.*") //
   );
-  public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
-      "Base name of the output files (.MGF and .CSV). "
-          + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
-          + "If the file already exists, it will be overwritten.", extensions,
-      FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter FILENAME = new FileNameSuffixExportParameter(
+      "Filename", "Base name of the output files (.MGF and .CSV). "
+                  + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+                  + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
+                  + "If the file already exists, it will be overwritten.", extensions, "iimn_fbmn");
 
 
   public GnpsFbmnExportAndSubmitParameters() {
@@ -106,7 +104,8 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    Region message = FxTextFlows.newTextFlowInAccordion("About the module/How to cite", boldText("About the GNPS Export/Submit Module:\n"),
+    Region message = FxTextFlows.newTextFlowInAccordion("About the module/How to cite",
+        boldText("About the GNPS Export/Submit Module:\n"),
         text("The GNPS Export module was designed for the"),
         boldText("Feature-Based Molecular Networking (FBMN)"),
         boldText("and the advanced Ion Identity Molecular Networking (IIMN)"), text("workflow on"),

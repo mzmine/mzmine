@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,14 +29,12 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 
 public class ExportScansParameters extends SimpleParameterSet {
 
-  public static final FileNameParameter file =
-      new FileNameParameter("File", "file destination", FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter file = new FileNameSuffixExportParameter("File",
+      "file destination", "scans");
   public static final ComboParameter<ScanFormats> formats = new ComboParameter<>("Format",
       "Export formats. mgf: MASCOT, SIRIUS;  txt: plain text;  mzML: Open standard",
       ScanFormats.values(), ScanFormats.mgf);

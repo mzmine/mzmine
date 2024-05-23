@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,10 +31,8 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.Collection;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -55,12 +53,12 @@ public class CSVExportModularParameters extends SimpleParameterSet {
       new ExtensionFilter("comma-separated values", "*.csv"), //
       new ExtensionFilter("All files", "*.*") //
   );
-  public static final FileNameParameter filename = new FileNameParameter("Filename",
-      "Name of the output CSV file. "
-          + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
-          + "If the file already exists, it will be overwritten.", extensions,
-      FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter filename = new FileNameSuffixExportParameter(
+      "Filename", "Name of the output CSV file. "
+                  + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+                  + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
+                  + "If the file already exists, it will be overwritten.", extensions,
+      "quant_modular");
 
 
   public CSVExportModularParameters() {

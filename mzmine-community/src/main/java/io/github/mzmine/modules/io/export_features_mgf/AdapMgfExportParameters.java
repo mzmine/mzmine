@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,8 +29,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import java.util.List;
@@ -71,12 +70,11 @@ public class AdapMgfExportParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
-  public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
-      "Name of the output MGF file. "
-      + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-      + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
-      + "If the file already exists, it will be overwritten.",
-      extensions, FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter FILENAME = new FileNameSuffixExportParameter(
+      "Filename", "Name of the output MGF file. "
+                  + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+                  + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
+                  + "If the file already exists, it will be overwritten.", extensions, "adap");
 
   public static final BooleanParameter FRACTIONAL_MZ = new BooleanParameter("Fractional m/z values",
       "If checked, write fractional m/z values", false);
@@ -84,12 +82,11 @@ public class AdapMgfExportParameters extends SimpleParameterSet {
   public static final ComboParameter<IntegerMode> ROUND_MODE = new ComboParameter<IntegerMode>(
       "Integer m/z", "Merging mode for fractional m/z to unit mass", IntegerMode.values());
 
-  public static final ComboParameter<MzMode> REPRESENTATIVE_MZ =
-      new ComboParameter<AdapMgfExportParameters.MzMode>("Representative m/z",
-          "Choose the representative m/z of a cluster.",
-          FXCollections.observableArrayList(MzMode.values()), MzMode.AS_IN_FEATURE_TABLE);
+  public static final ComboParameter<MzMode> REPRESENTATIVE_MZ = new ComboParameter<AdapMgfExportParameters.MzMode>(
+      "Representative m/z", "Choose the representative m/z of a cluster.",
+      FXCollections.observableArrayList(MzMode.values()), MzMode.AS_IN_FEATURE_TABLE);
 
   public AdapMgfExportParameters() {
-    super(new Parameter[] {FEATURE_LISTS, FILENAME, REPRESENTATIVE_MZ, FRACTIONAL_MZ, ROUND_MODE});
+    super(new Parameter[]{FEATURE_LISTS, FILENAME, REPRESENTATIVE_MZ, FRACTIONAL_MZ, ROUND_MODE});
   }
 }

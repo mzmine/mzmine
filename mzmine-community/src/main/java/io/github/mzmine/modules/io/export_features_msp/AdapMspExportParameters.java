@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,8 +28,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import java.util.List;
@@ -47,12 +46,11 @@ public class AdapMspExportParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
-  public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
-      "Name of the output MSP file. "
-          + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.msp\" would become \"blahSourceFeatureListNameblah.msp\"). "
-          + "If the file already exists, it will be overwritten.", extensions,
-      FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter FILENAME = new FileNameSuffixExportParameter(
+      "Filename", "Name of the output MSP file. "
+                  + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+                  + "(i.e. \"blah{}blah.msp\" would become \"blahSourceFeatureListNameblah.msp\"). "
+                  + "If the file already exists, it will be overwritten.", extensions, "adap");
 
   public static final OptionalParameter<StringParameter> ADD_RET_TIME = new OptionalParameter<>(
       new StringParameter("Add retention time",

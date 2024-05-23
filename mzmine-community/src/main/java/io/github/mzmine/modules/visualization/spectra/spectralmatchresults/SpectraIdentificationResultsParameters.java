@@ -28,31 +28,29 @@ package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 
 /**
  * Saves the export paths of the SpectraIdentificationResultsWindow
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class SpectraIdentificationResultsParameters extends SimpleParameterSet {
 
-  public static final FileNameParameter file =
-      new FileNameParameter("file", "file without extension", FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter file = new FileNameSuffixExportParameter("file",
+      "file without extension", "spectral_match");
 
-  public static final BooleanParameter all =
-      new BooleanParameter("Show export all", "Show button in panel", true);
-  public static final BooleanParameter pdf =
-      new BooleanParameter("Show export pdf", "Show button in panel", true);
-  public static final BooleanParameter emf =
-      new BooleanParameter("Show export emf", "Show button in panel", true);
-  public static final BooleanParameter svg =
-      new BooleanParameter("Show export svg", "Show button in panel", true);
+  public static final BooleanParameter all = new BooleanParameter("Show export all",
+      "Show button in panel", true);
+  public static final BooleanParameter pdf = new BooleanParameter("Show export pdf",
+      "Show button in panel", true);
+  public static final BooleanParameter emf = new BooleanParameter("Show export emf",
+      "Show button in panel", true);
+  public static final BooleanParameter svg = new BooleanParameter("Show export svg",
+      "Show button in panel", true);
 
   public SpectraIdentificationResultsParameters() {
-    super(new Parameter[] {file, all, pdf, emf, svg});
+    super(new Parameter[]{file, all, pdf, emf, svg});
   }
 
 }

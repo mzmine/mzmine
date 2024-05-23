@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,14 +28,12 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular.export;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 
 public class IsotopePatternExportParameters extends SimpleParameterSet {
 
-  public static final FileNameParameter outputFile =
-      new FileNameParameter("Output file", "Please set the path and name of the output text file",
-          FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter outputFile = new FileNameSuffixExportParameter(
+      "Output file", "Please set the path and name of the output text file", "isotopes");
 
   public IsotopePatternExportParameters() {
     super(new Parameter[]{outputFile});

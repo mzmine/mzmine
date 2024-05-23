@@ -30,8 +30,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.util.DimensionUnitUtil;
 import io.github.mzmine.util.DimensionUnitUtil.DimUnit;
@@ -45,8 +44,8 @@ import org.jfree.chart.JFreeChart;
 
 public class GraphicsExportParameters extends SimpleParameterSet {
 
-  public static final FileNameParameter path = new FileNameParameter("Path", "The file path",
-      FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter path = new FileNameSuffixExportParameter("Path",
+      "The file path");
   public static final OptionalParameter<DoubleParameter> height = new OptionalParameter<DoubleParameter>(
       new DoubleParameter("Height",
           "Only uses width if height is unchecked. Otherwise uses fixed height for the chart or plot",
