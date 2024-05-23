@@ -56,6 +56,7 @@ import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.web.ProxyChangedEvent;
+import io.github.mzmine.util.web.ProxyUtils;
 import io.mzio.events.AuthRequiredEvent;
 import io.mzio.events.EventService;
 import io.mzio.mzmine.startup.MZmineCoreArgumentParser;
@@ -164,6 +165,12 @@ public final class MZmineCore {
               "Cannot create or access temp file directory that was set via program argument: "
               + tempDirectory.getAbsolutePath());
         }
+      }
+
+      //set proxy to config
+      if (argsParser.getFullProxy() != null) {
+        // proxy was already set
+        preferences.setProxy(ProxyUtils.getSelectedSystemProxy());
       }
 
       if (argsParser.getUserFile() == null) {
