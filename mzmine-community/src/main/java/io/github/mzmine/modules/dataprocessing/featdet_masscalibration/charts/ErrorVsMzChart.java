@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,10 @@
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.charts;
 
 
+import com.google.common.collect.Range;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassPeakMatch;
+import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.errormodeling.DistributionRange;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,10 +47,6 @@ import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import com.google.common.collect.Range;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassPeakMatch;
-import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.errormodeling.DistributionRange;
 
 /**
  * Chart for error size vs mz ratio plots (xy scatter plot of error values vs mz ratio) with
@@ -54,19 +54,10 @@ import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.errormode
  */
 public class ErrorVsMzChart extends EChartViewer {
 
-  class ErrorVsMzTooltipGenerator implements XYToolTipGenerator {
-    @Override
-    public String generateToolTip(XYDataset dataset, int series, int item) {
-      return ChartUtils.generateTooltipText(matches, item);
-    }
-  }
-
   private final XYPlot plot;
-
   protected List<MassPeakMatch> matches;
   protected ArrayList<ValueMarker> rangeMarkers = new ArrayList<>();
   protected XYTextAnnotation trendNameAnnotation;
-
   protected ErrorVsMzChart(JFreeChart chart) {
     super(chart);
     this.plot = chart.getXYPlot();
@@ -150,6 +141,7 @@ public class ErrorVsMzChart extends EChartViewer {
 
     XYSeriesCollection dataset = new XYSeriesCollection(errorsXY);
     plot.setDataset(0, dataset);
+    plot.setRenderer(0, ChartUtils.createErrorsRenderer());
 
     if (trend != null) {
       XYSeries trendSeries =
@@ -157,9 +149,18 @@ public class ErrorVsMzChart extends EChartViewer {
               dataset.getDomainUpperBound(false), 1000, "trend series");
       XYSeriesCollection trendDataset = new XYSeriesCollection(trendSeries);
       plot.setDataset(1, trendDataset);
+      plot.setRenderer(1, ChartUtils.createTrendRenderer());
       trendNameAnnotation = new XYTextAnnotation("Trend: " + trend.getName(),
           plot.getDomainAxis().getRange().getCentralValue(),
           plot.getRangeAxis().getLowerBound() + plot.getRangeAxis().getRange().getLength() / 10);
+    }
+  }
+
+  class ErrorVsMzTooltipGenerator implements XYToolTipGenerator {
+
+    @Override
+    public String generateToolTip(XYDataset dataset, int series, int item) {
+      return ChartUtils.generateTooltipText(matches, item);
     }
   }
 }
