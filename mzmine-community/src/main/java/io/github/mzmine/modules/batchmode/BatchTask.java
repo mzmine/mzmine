@@ -29,16 +29,14 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.batchmode.change_outfiles.ChangeOutputFilesUtils;
 import io.github.mzmine.modules.batchmode.timing.StepTimeMeasurement;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -259,40 +257,25 @@ public class BatchTask extends AbstractTask {
 
   private void setOutputFiles(final File parentDir, final boolean createResultsDir,
       final String datasetName) {
-    int changedOutputSteps = 0;
-    for (MZmineProcessingStep<?> currentStep : queue) {
-      // only change for export modules
-      if (currentStep.getModule() instanceof MZmineRunnableModule mod && (
-          mod.getModuleCategory() == MZmineModuleCategory.FEATURELISTEXPORT
-          || mod.getModuleCategory() == MZmineModuleCategory.RAWDATAEXPORT)) {
-        ParameterSet params = currentStep.getParameterSet();
-        for (final Parameter<?> p : params.getParameters()) {
-          if (p instanceof FileNameParameter fnp) {
-            File old = fnp.getValue();
-            String oldName = FileAndPathUtil.eraseFormat(old).getName();
-            fnp.setValue(
-                createDatasetExportPath(parentDir, createResultsDir, datasetName, oldName));
-            changedOutputSteps++;
-          }
-        }
-      }
-    }
-    if (changedOutputSteps == 0) {
+    File exportPath = createDatasetExportPath(parentDir, createResultsDir, datasetName);
+    var countChanged = ChangeOutputFilesUtils.applyTo(queue, exportPath);
+
+    if (countChanged == 0) {
       logger.info(
           "No output steps were changes... Make sure to include steps that include filename parameters for export");
       throw new IllegalStateException(
           "No output steps were changes... Make sure to include steps that include filename parameters for export");
     } else {
-      logger.info("Changed output for n steps=" + changedOutputSteps);
+      logger.info("Changed output for n steps=" + countChanged);
     }
   }
 
   private File createDatasetExportPath(final File parentDir, final boolean createResultsDir,
-      final String datasetName, final String oldName) {
+      final String datasetName) {
     if (createResultsDir) {
-      return Paths.get(parentDir.getPath(), "results", datasetName, oldName + datasetName).toFile();
+      return Paths.get(parentDir.getPath(), "results", datasetName, datasetName).toFile();
     } else {
-      return Paths.get(parentDir.getPath(), datasetName, oldName + datasetName).toFile();
+      return Paths.get(parentDir.getPath(), datasetName, datasetName).toFile();
     }
   }
 
