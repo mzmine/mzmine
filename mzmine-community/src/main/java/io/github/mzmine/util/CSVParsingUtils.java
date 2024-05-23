@@ -274,6 +274,12 @@ public class CSVParsingUtils {
       throws IOException, CsvException {
     try (var reader = Files.newBufferedReader(file.toPath())) {
 
+      // some users/programs save csv files with an encoding prefix in the first few bytes. This
+      // prefix is equal to the char code \uFEFF and means that the file is utf-8 encoded. However,
+      // most UTF-8 files don't come with this prefix (=BOM, byte order marker). If it is there,
+      // we want to skip it, otherwise the first csv field may be mis-recognised as a string with a
+      // different encoding.
+      // see: https://stackoverflow.com/questions/4897876/reading-utf-8-bom-marker
       reader.mark(1);
       final char[] possibleBom = new char[1];
       final int read = reader.read(possibleBom);
