@@ -26,15 +26,30 @@
 package io.github.mzmine.util.web;
 
 import io.mzio.events.EventService;
+import java.util.InputMismatchException;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 public class ProxyUtils {
 
+  private static boolean allowChanges = true;
+
+  public static synchronized void setAllowChanges(final boolean allowChanges) {
+    ProxyUtils.allowChanges = allowChanges;
+  }
+
+  public static boolean isAllowChanges() {
+    return allowChanges;
+  }
+
   /**
    * Remove system properties
    */
-  public static void clearSystemProxy() {
+  public static synchronized void clearSystemProxy() {
+    if (!allowChanges) {
+      return;
+    }
+
     Proxy old = getSelectedSystemProxy();
     System.clearProperty("proxyType"); // needed for login service
     System.clearProperty("http.proxySet");
@@ -60,7 +75,8 @@ public class ProxyUtils {
    * @return proxy object with the final address
    */
   @NotNull
-  public static Proxy setSystemProxy(String address, String port, ProxyType proxyType) {
+  public static synchronized Proxy setSystemProxy(String address, String port,
+      ProxyType proxyType) {
     return setSystemProxy(new Proxy(true, address, port, proxyType));
   }
 
@@ -71,7 +87,11 @@ public class ProxyUtils {
    * @return proxy object with the final address
    */
   @NotNull
-  public static Proxy setSystemProxy(Proxy proxy) {
+  public static synchronized Proxy setSystemProxy(Proxy proxy) {
+    if (!allowChanges) {
+      return getSystemProxy(proxy.type());
+    }
+
     if (!proxy.active()) {
       clearSystemProxy();
       return Proxy.EMPTY;
@@ -101,7 +121,7 @@ public class ProxyUtils {
    * The proxy of a specific type
    */
   @NotNull
-  public static Proxy getSelectedSystemProxy() {
+  public static synchronized Proxy getSelectedSystemProxy() {
     String type = System.getProperty("proxyType");
     if (type == null) {
       return Proxy.EMPTY;
@@ -117,7 +137,7 @@ public class ProxyUtils {
    * The proxy of a specific type
    */
   @NotNull
-  public static Proxy getSystemProxy(ProxyType type) {
+  public static synchronized Proxy getSystemProxy(ProxyType type) {
     boolean active = "true".equals(System.getProperty(type + ".proxySet"));
     String address = System.getProperty(type + ".proxyHost");
     String port = System.getProperty(type + ".proxyPort");
@@ -128,4 +148,38 @@ public class ProxyUtils {
     }
   }
 
+  /**
+   * @param fullProxy Define proxy like http://myproxy:port
+   * @return the now set proxy
+   */
+  @NotNull
+  public static synchronized Proxy setSystemProxy(final String fullProxy)
+      throws InputMismatchException {
+    var portIndex = fullProxy.lastIndexOf(":");
+    if (portIndex == -1) {
+      throw new InputMismatchException(
+          "Full proxy format did not contain a port. Define proxy like http://myproxy:port");
+    }
+    String port = fullProxy.substring(portIndex + 1);
+    String address = fullProxy.substring(0, portIndex);
+
+    var proxy = new Proxy(true, address, port);
+    return setSystemProxy(proxy);
+  }
+
+  /**
+   * Changes the system proxy and sets the allow changes to false to block later changes. This is
+   * useful when setting via command line
+   *
+   * @param fullProxy Define proxy like http://myproxy:port
+   * @return the now set proxy
+   */
+  @NotNull
+  public static synchronized Proxy setSystemProxyAndBlockLaterChanges(final String fullProxy)
+      throws InputMismatchException {
+    setAllowChanges(true);
+    var proxy = setSystemProxy(fullProxy);
+    setAllowChanges(false);
+    return proxy;
+  }
 }

@@ -33,5 +33,10 @@
       <version>22.0.0</version>
       <scope>runtime</scope>
     </dependency>
+    <dependency>
+      <groupId>io.github.mzmine</groupId>
+      <artifactId>utils</artifactId>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
 </project>

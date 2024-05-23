@@ -51,6 +51,10 @@
           "version": {
             "requires": "22.0.0"
           }
+        },
+        {
+          "group": "io.github.mzmine",
+          "module": "utils"
         }
       ],
       "files": [
