@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,7 +25,6 @@
 
 package io.github.mzmine.util;
 
-import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +46,15 @@ public record FormulaWithExactMz(IMolecularFormula formula, double mz) {
   public String toString() {
     var formats = ConfigService.getGuiFormats();
     String mass = getCharge() == 0 ? "mass" : "m/z";
+    return STR."\{formulaString()}: \{mass}=\{formats.mz(mz)}";
+  }
+
+  /**
+   * Add a Δ Delta symbol to the output string
+   */
+  public String toDeltaString() {
+    var formats = ConfigService.getGuiFormats();
+    String mass = getCharge() == 0 ? "Δmass" : "Δm/z";
     return STR."\{formulaString()}: \{mass}=\{formats.mz(mz)}";
   }
 

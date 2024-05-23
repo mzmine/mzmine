@@ -28,30 +28,28 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
-import java.util.List;
+import io.github.mzmine.util.FormulaWithExactMz;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
-import javafx.concurrent.Task;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 
 public class KendrickMassPlotSetupDialog extends ParameterSetupDialog {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
-  private final VBox vbox;
+  private final ListView<FormulaWithExactMz> listView;
 
   public KendrickMassPlotSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
       Region message) {
     super(valueCheckRequired, parameters, message);
-    vbox = new VBox();
-    vbox.getChildren()
-        .add(new ListView<>(FXCollections.observableArrayList("Calculating repeating units...")));
+    listView = new ListView<>();
+    listView.setPrefHeight(300);
     this.getParamsPane().addColumn(2);
     this.getParamsPane().add(new Label("Suggested repeating units:"), 2, 0);
-    this.getParamsPane().add(vbox, 2, 1, 1, 8);
+    this.getParamsPane().add(new BorderPane(listView), 2, 1, 1, 8);
     addSuggestedRepeatingUnits();
   }
 
@@ -66,20 +64,10 @@ public class KendrickMassPlotSetupDialog extends ParameterSetupDialog {
       logger.log(Level.WARNING, "No feature list selected");
       return;
     }
-    RepeatingUnitSuggester repeatingUnitSuggester = new RepeatingUnitSuggester(matchingFeatureList);
-    Task<List<String>> loadTask = repeatingUnitSuggester.getLoadItemsTask();
-    loadTask.setOnSucceeded(_ -> {
-      ListView<String> newListView = repeatingUnitSuggester.getListView();
-      if (!vbox.getChildren().isEmpty() && vbox.getChildren().getFirst() instanceof ListView) {
-        ListView<String> oldListView = (ListView<String>) vbox.getChildren().get(0);
-        if (!oldListView.equals(newListView)) {
-          vbox.getChildren().setAll(newListView);
-        }
-      } else {
-        vbox.getChildren().setAll(newListView);
-      }
-    });
 
+    // run prediction and add results to view on fx thread
+    RepeatingUnitSuggester.createOnNewThread(matchingFeatureList,
+        result -> listView.setItems(FXCollections.observableList(result)));
   }
 
 }

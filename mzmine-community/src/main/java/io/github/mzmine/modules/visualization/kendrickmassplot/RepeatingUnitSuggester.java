@@ -29,12 +29,12 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicChecker;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.MathUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleCollection;
@@ -43,17 +43,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.scene.control.ListView;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
@@ -63,54 +62,39 @@ import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class RepeatingUnitSuggester {
+public class RepeatingUnitSuggester extends Task<List<FormulaWithExactMz>> {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final FeatureList featureList;
   private final MZTolerance mzTolerance;
-  private final ListView<String> listView;
-  private final ObservableList<String> itemList;
-  private Task<List<String>> loadTask;
 
   public RepeatingUnitSuggester(FeatureList featureList) {
     this.featureList = featureList;
-    listView = new ListView<>();
-    itemList = FXCollections.observableArrayList();
-    listView.setItems(itemList);
-    listView.setPrefHeight(300);
     mzTolerance = extractMzToleranceFromPreviousMethods();
-    loadItems();
   }
 
-  private void loadItems() {
-    loadTask = new Task<>() {
-      @Override
-      protected List<String> call() {
-        return suggestRepeatingUnit();
-      }
-
-      @Override
-      protected void succeeded() {
-        super.succeeded();
-        itemList.setAll(getValue());
-      }
-
-    };
-
-    new Thread(loadTask).start();
+  /**
+   * Creates a new suggester, sets a callback consumer for the results on success and starts on a
+   * new thread.
+   *
+   * @param resultConsumerOnFxThread consumes results only on success. Called from fx Thread
+   * @return this task in case error handling needs to be added
+   */
+  public static Task<List<FormulaWithExactMz>> createOnNewThread(FeatureList featureList,
+      Consumer<List<FormulaWithExactMz>> resultConsumerOnFxThread) {
+    var suggester = new RepeatingUnitSuggester(featureList);
+    suggester.setOnSucceeded(_ -> resultConsumerOnFxThread.accept(suggester.getValue()));
+    // run prediction after setting consumer
+    suggester.predictOnNewThread();
+    return suggester;
   }
 
-  public Task<List<String>> getLoadItemsTask() {
-    return loadTask;
+  public void predictOnNewThread() {
+    new Thread(this).start();
   }
 
-  public ListView<String> getListView() {
-    return listView;
-  }
-
-  private List<String> suggestRepeatingUnit() {
-    List<String> list = new ArrayList<>();
+  private List<FormulaWithExactMz> suggestRepeatingUnit() {
     //get transformed mzValues
     double[] mzValues = extractMzValues();
 
@@ -120,16 +104,12 @@ public class RepeatingUnitSuggester {
     List<Double> topFiveDeltas = findTopNDeltaMedians(deltaMap, 5);
     List<Double> filteredDeltas = filterMultimers(topFiveDeltas);
 
+    Set<FormulaWithExactMz> uniqueFormulas = new HashSet<>();
     for (Double delta : filteredDeltas) {
-      List<String> predictedFormulas = predictFormula(delta);
-      for (String predictedFormula : predictedFormulas) {
-        if (!predictedFormula.isBlank() && !list.contains(predictedFormula)) {
-          list.add(delta + ": " + predictedFormula);
-        }
-      }
-
+      List<FormulaWithExactMz> predictedFormulas = predictFormula(delta);
+      uniqueFormulas.addAll(predictedFormulas);
     }
-    return list;
+    return new ArrayList<>(uniqueFormulas);
   }
 
   /*This method takes into account the detected charge state of a feature list row.
@@ -188,7 +168,7 @@ public class RepeatingUnitSuggester {
   }
 
 
-  private List<String> predictFormula(double mass) {
+  private List<FormulaWithExactMz> predictFormula(double mass) {
     IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
     double minMass = mzTolerance.getToleranceRange(mass).lowerEndpoint();
     double maxMass = mzTolerance.getToleranceRange(mass).upperEndpoint();
@@ -214,13 +194,10 @@ public class RepeatingUnitSuggester {
 
       MolecularFormulaGenerator mfg = new MolecularFormulaGenerator(builder, minMass, maxMass,
           mfRange);
-      Map<IMolecularFormula, Double> bestFormulas = new HashMap<>();
+      List<FormulaWithExactMz> bestFormulas = new ArrayList<>();
 
       IMolecularFormula formula;
       while ((formula = mfg.getNextFormula()) != null) {
-        double formulaMass = MolecularFormulaManipulator.getMass(formula);
-        double massError = Math.abs(formulaMass - mass);
-
         Double rdbeValue = RDBERestrictionChecker.calculateRDBE(formula);
         boolean rdbeValid = rdbeValue != null && RDBERestrictionChecker.checkRDBE(rdbeValue,
             Range.closed(0.0, 20.0), false);
@@ -230,30 +207,23 @@ public class RepeatingUnitSuggester {
           elementValid = true;
         }
         if (rdbeValid && elementValid && nitrogenRuleValid) {
-          bestFormulas.put(formula, massError);
+          bestFormulas.add(new FormulaWithExactMz(formula));
         }
       }
 
-      if (!bestFormulas.isEmpty()) {
-        List<String> bestFormulasStrings = new ArrayList<>();
-        for (Entry<IMolecularFormula, Double> entry : bestFormulas.entrySet()) {
-          bestFormulasStrings.add(MolecularFormulaManipulator.getString(entry.getKey()) + " (Δ "
-              + MZmineCore.getConfiguration().getMZFormat().format(entry.getValue()) + ")");
-        }
-        return bestFormulasStrings;
-
-      } else {
-        logger.log(Level.WARNING, "No valid formula found for mass: " + mass);
+      if (bestFormulas.isEmpty()) {
+        logger.info("No valid formula found for mass: " + mass);
       }
+      return bestFormulas;
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
-    return new ArrayList<>();
+    return List.of();
   }
 
   private boolean passesSimpleNitrogenHeuristic(IMolecularFormula formula, Isotopes ifac) {
     return MolecularFormulaManipulator.getElementCount(formula, ifac.getMajorIsotope("N"))
-        <= MolecularFormulaManipulator.getElementCount(formula, ifac.getMajorIsotope("C"));
+           <= MolecularFormulaManipulator.getElementCount(formula, ifac.getMajorIsotope("C"));
   }
 
 
@@ -281,7 +251,7 @@ public class RepeatingUnitSuggester {
     }
     double ratio = delta / baseDelta;
     return Math.abs(ratio - Math.round(ratio))
-        < mzTolerance.getMzTolerance(); // Check if delta is an approximate integer multiple of baseDelta
+           < mzTolerance.getMzTolerance(); // Check if delta is an approximate integer multiple of baseDelta
   }
 
   /*
@@ -299,9 +269,13 @@ public class RepeatingUnitSuggester {
     } catch (Exception e) {
       logger.log(Level.WARNING,
           " Could not extract previously used mz tolerance, will apply default settings. "
-              + e.getMessage());
+          + e.getMessage());
     }
     return new MZTolerance(0.005, 15);
   }
 
+  @Override
+  protected List<FormulaWithExactMz> call() throws Exception {
+    return suggestRepeatingUnit();
+  }
 }
