@@ -34,7 +34,6 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.FormulaWithExactMz;
 import io.github.mzmine.util.MathUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleCollection;
@@ -62,7 +61,7 @@ import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class RepeatingUnitSuggester extends Task<List<FormulaWithExactMz>> {
+public class RepeatingUnitSuggester extends Task<List<RepeatingUnit>> {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -81,8 +80,8 @@ public class RepeatingUnitSuggester extends Task<List<FormulaWithExactMz>> {
    * @param resultConsumerOnFxThread consumes results only on success. Called from fx Thread
    * @return this task in case error handling needs to be added
    */
-  public static Task<List<FormulaWithExactMz>> createOnNewThread(FeatureList featureList,
-      Consumer<List<FormulaWithExactMz>> resultConsumerOnFxThread) {
+  public static Task<List<RepeatingUnit>> createOnNewThread(FeatureList featureList,
+      Consumer<List<RepeatingUnit>> resultConsumerOnFxThread) {
     var suggester = new RepeatingUnitSuggester(featureList);
     suggester.setOnSucceeded(_ -> resultConsumerOnFxThread.accept(suggester.getValue()));
     // run prediction after setting consumer
@@ -94,7 +93,7 @@ public class RepeatingUnitSuggester extends Task<List<FormulaWithExactMz>> {
     new Thread(this).start();
   }
 
-  private List<FormulaWithExactMz> suggestRepeatingUnit() {
+  private List<RepeatingUnit> suggestRepeatingUnit() {
     //get transformed mzValues
     double[] mzValues = extractMzValues();
 
@@ -104,9 +103,9 @@ public class RepeatingUnitSuggester extends Task<List<FormulaWithExactMz>> {
     List<Double> topFiveDeltas = findTopNDeltaMedians(deltaMap, 5);
     List<Double> filteredDeltas = filterMultimers(topFiveDeltas);
 
-    Set<FormulaWithExactMz> uniqueFormulas = new HashSet<>();
+    Set<RepeatingUnit> uniqueFormulas = new HashSet<>();
     for (Double delta : filteredDeltas) {
-      List<FormulaWithExactMz> predictedFormulas = predictFormula(delta);
+      List<RepeatingUnit> predictedFormulas = predictFormula(delta);
       uniqueFormulas.addAll(predictedFormulas);
     }
     return new ArrayList<>(uniqueFormulas);
@@ -168,7 +167,7 @@ public class RepeatingUnitSuggester extends Task<List<FormulaWithExactMz>> {
   }
 
 
-  private List<FormulaWithExactMz> predictFormula(double mass) {
+  private List<RepeatingUnit> predictFormula(double mass) {
     IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
     double minMass = mzTolerance.getToleranceRange(mass).lowerEndpoint();
     double maxMass = mzTolerance.getToleranceRange(mass).upperEndpoint();
@@ -194,7 +193,7 @@ public class RepeatingUnitSuggester extends Task<List<FormulaWithExactMz>> {
 
       MolecularFormulaGenerator mfg = new MolecularFormulaGenerator(builder, minMass, maxMass,
           mfRange);
-      List<FormulaWithExactMz> bestFormulas = new ArrayList<>();
+      List<RepeatingUnit> bestFormulas = new ArrayList<>();
 
       IMolecularFormula formula;
       while ((formula = mfg.getNextFormula()) != null) {
@@ -207,7 +206,7 @@ public class RepeatingUnitSuggester extends Task<List<FormulaWithExactMz>> {
           elementValid = true;
         }
         if (rdbeValid && elementValid && nitrogenRuleValid) {
-          bestFormulas.add(new FormulaWithExactMz(formula));
+          bestFormulas.add(RepeatingUnit.create(formula, mass));
         }
       }
 
@@ -275,7 +274,7 @@ public class RepeatingUnitSuggester extends Task<List<FormulaWithExactMz>> {
   }
 
   @Override
-  protected List<FormulaWithExactMz> call() throws Exception {
+  protected List<RepeatingUnit> call() throws Exception {
     return suggestRepeatingUnit();
   }
 }

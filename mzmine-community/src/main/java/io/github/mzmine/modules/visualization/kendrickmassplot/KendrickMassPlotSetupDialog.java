@@ -28,7 +28,6 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
-import io.github.mzmine.util.FormulaWithExactMz;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
@@ -40,7 +39,7 @@ import javafx.scene.layout.Region;
 public class KendrickMassPlotSetupDialog extends ParameterSetupDialog {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
-  private final ListView<FormulaWithExactMz> listView;
+  private final ListView<RepeatingUnit> listView;
 
   public KendrickMassPlotSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
       Region message) {
