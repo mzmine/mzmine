@@ -467,9 +467,7 @@ public class BatchComponentController implements LastFilesComponent {
       return;
     }
     File baseFile = parameters.getValue(ChangeOutputFilesParameters.outBaseFile);
-    for (final MZmineProcessingStep<MZmineProcessingModule> step : currentStepsList.getItems()) {
-      ChangeOutputFilesUtils.applyTo(step.getParameterSet(), baseFile);
-    }
+    ChangeOutputFilesUtils.applyTo(currentStepsList.getItems(), baseFile);
   }
 
   // Queue operations.

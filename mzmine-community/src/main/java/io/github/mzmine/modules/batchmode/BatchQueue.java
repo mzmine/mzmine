@@ -278,11 +278,9 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
    */
   public void setOutputBaseFile(final String overrideOutBaseFile) {
     logger.info("Changing all output files with path and base filename: " + overrideOutBaseFile);
-    File file = new File(overrideOutBaseFile);
-    for (final MZmineProcessingStep<MZmineProcessingModule> step : this) {
-      var params = step.getParameterSet();
-      ChangeOutputFilesUtils.applyTo(params, file);
-    }
+    File baseFile = new File(overrideOutBaseFile);
+
+    ChangeOutputFilesUtils.applyTo(this, baseFile);
     logger.info("Done changing output file paths.");
   }
 }

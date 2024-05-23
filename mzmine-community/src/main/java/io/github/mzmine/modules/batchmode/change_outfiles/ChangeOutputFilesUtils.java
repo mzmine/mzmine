@@ -25,13 +25,17 @@
 
 package io.github.mzmine.modules.batchmode.change_outfiles;
 
+import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
+import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import java.io.File;
+import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -39,32 +43,70 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ChangeOutputFilesUtils {
 
-  public static void applyTo(@Nullable final ParameterSet params, final File baseFile) {
-    if (params == null) {
-      return;
+  /**
+   * @param baseFile file path and base filename usually without extension to be set to all
+   *                 parameters of type {@link FileNameSuffixExportParameter} with their suffix.
+   * @return number of changed parameters
+   */
+  public static int applyTo(
+      @Nullable final List<MZmineProcessingStep<MZmineProcessingModule>> steps,
+      final File baseFile) {
+    if (steps == null) {
+      return 0;
     }
 
-    for (final Parameter<?> parameter : params.getParameters()) {
-      applyTo(parameter, baseFile);
+    int changed = 0;
+    for (var step : steps) {
+      ParameterSet params = step.getParameterSet();
+      if (params == null) {
+        continue;
+      }
+      for (final Parameter<?> parameter : params.getParameters()) {
+        changed += applyTo(parameter, baseFile);
+      }
     }
+    return changed;
   }
 
-  private static void applyTo(final Parameter<?> parameter, final File baseFile) {
+  /**
+   * @param baseFile file path and base filename usually without extension to be set to all
+   *                 parameters of type {@link FileNameSuffixExportParameter} with their suffix.
+   * @return number of changed parameters
+   */
+  public static int applyTo(@Nullable final ParameterSet params, final File baseFile) {
+    if (params == null) {
+      return 0;
+    }
+
+    int changed = 0;
+    for (final Parameter<?> parameter : params.getParameters()) {
+      changed += applyTo(parameter, baseFile);
+    }
+    return changed;
+  }
+
+  private static int applyTo(final Parameter<?> parameter, final File baseFile) {
     if (parameter == null) {
-      return;
+      return 0;
     }
     if (parameter instanceof FileNameSuffixExportParameter outParam) {
       outParam.setValueAppendSuffix(baseFile);
+      return 1;
     }
     // search for embedded parameters
     if (parameter instanceof EmbeddedParameterSet<?, ?> parent) {
       ParameterSet embedded = parent.getEmbeddedParameters();
-      applyTo(embedded, baseFile);
+      return applyTo(embedded, baseFile);
     }
     // optional?
     if (parameter instanceof EmbeddedParameter<?, ?, ?> parent) {
       UserParameter<?, ?> embedded = parent.getEmbeddedParameter();
-      applyTo(embedded, baseFile);
+      return applyTo(embedded, baseFile);
     }
+    if (parameter instanceof HiddenParameter<?> parent) {
+      var embedded = parent.getEmbeddedParameter();
+      return applyTo(embedded, baseFile);
+    }
+    return 0;
   }
 }

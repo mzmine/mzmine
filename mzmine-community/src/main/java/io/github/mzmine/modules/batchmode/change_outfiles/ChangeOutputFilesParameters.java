@@ -25,8 +25,15 @@
 
 package io.github.mzmine.modules.batchmode.change_outfiles;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
+import io.github.mzmine.util.ExitCode;
+import javafx.application.Platform;
+import javafx.scene.layout.Region;
 
 /**
  * Parameters to change all output files at once
@@ -40,5 +47,20 @@ public class ChangeOutputFilesParameters extends SimpleParameterSet {
 
   public ChangeOutputFilesParameters() {
     super(outBaseFile);
+  }
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    assert Platform.isFxApplicationThread();
+
+    final Region message = FxTextFlows.newTextFlowInAccordion("Change all output filenames", true,
+        text("""
+            Define a new output file path and base filename without any format to change all steps that export files. \
+            Make sure to select a fully qualified file path. After pressing ok, all export file names will change to the \
+            base filename with module specific suffixes added."""));
+
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
+    dialog.showAndWait();
+    return dialog.getExitCode();
   }
 }
