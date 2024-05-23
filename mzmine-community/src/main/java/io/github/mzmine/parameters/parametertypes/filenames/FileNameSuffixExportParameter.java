@@ -94,7 +94,7 @@ public class FileNameSuffixExportParameter extends FileNameParameter {
   public File setValueAppendSuffix(File file) {
     file = FileAndPathUtil.eraseFormat(file);
     if (StringUtils.hasValue(suffix)) {
-      file = FileAndPathUtil.getRealFilePathWithSuffix(file, suffix);
+      file = FileAndPathUtil.getRealFilePathWithSuffix(file, "_" + suffix);
     }
     setValue(file);
     return file;
