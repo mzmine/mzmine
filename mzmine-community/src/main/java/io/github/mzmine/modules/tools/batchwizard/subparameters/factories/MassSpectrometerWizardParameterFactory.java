@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
  * toString method
  */
 public enum MassSpectrometerWizardParameterFactory implements WizardParameterFactory {
-  Orbitrap, QTOF, FTICR, LOW_RES;
+  QTOF, Orbitrap, Orbitrap_Astral, FTICR, LOW_RES;
 
   /**
    * Special presets derived from IMS go here
@@ -55,6 +55,7 @@ public enum MassSpectrometerWizardParameterFactory implements WizardParameterFac
   public String toString() {
     return switch (this) {
       case Orbitrap, QTOF, FTICR -> super.toString();
+      case Orbitrap_Astral -> "Orbitrap Astral";
       case LOW_RES -> "Low res.";
     };
   }
@@ -75,6 +76,9 @@ public enum MassSpectrometerWizardParameterFactory implements WizardParameterFac
               5E2, 1E2, 1E3, new MZTolerance(0.005, 20), new MZTolerance(0.0015, 3),
               new MZTolerance(0.004, 8));
       case Orbitrap -> new MassSpectrometerWizardParameters(this,
+          MassDetectorWizardOptions.FACTOR_OF_LOWEST_SIGNAL, 5, 2.5, 5E4,
+          new MZTolerance(0.002, 10), new MZTolerance(0.0015, 3), new MZTolerance(0.0015, 5));
+      case Orbitrap_Astral -> new MassSpectrometerWizardParameters(this,
           MassDetectorWizardOptions.FACTOR_OF_LOWEST_SIGNAL, 5, 2.5, 5E4,
           new MZTolerance(0.002, 10), new MZTolerance(0.0015, 3), new MZTolerance(0.0015, 5));
       // TODO optimize some defaults

@@ -27,11 +27,11 @@
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 31481,
-          "sha512": "6bd383391b6bf4583d10b845ff5be71802b6761b4fc3cfc61c64a374a0ad0bc0151802c0510bee5ecd5a90af796f343d58a48e86e26a23b82151166b387fe705",
-          "sha256": "1c1e303f3fe476f3d91f526217c5caf739f75fa4e470323067c3047fef3144e0",
-          "sha1": "89ea2662a94005b0cc9d5c4dcd6c6a598eda7451",
-          "md5": "0320aaaed5c28921426509a81d904c76"
+          "size": 32285,
+          "sha512": "b882dc873758b1570ec1002278e83ccb74552d7957b43a69d7cb0e4917cbf7493d329391b392d858497634bf0394804e27ec72660e931edc9ca2c07625aa0b9a",
+          "sha256": "4df8e3ca273158756567e69fa479568ce727c25d0097c984cf66d852cbda98ad",
+          "sha1": "4109cab9e8404c94fdd3b3837bb11be13a541128",
+          "md5": "ee7e047bab0bca9b69bc694e64e9c3ac"
         }
       ]
     },
@@ -55,6 +55,13 @@
         {
           "group": "io.mzio",
           "module": "user-management",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
+          "group": "io.mzio",
+          "module": "global-events",
           "version": {
             "requires": "1.0.0"
           }
@@ -85,11 +92,11 @@
         {
           "name": "user-client-1.0.0.jar",
           "url": "user-client-1.0.0.jar",
-          "size": 31481,
-          "sha512": "6bd383391b6bf4583d10b845ff5be71802b6761b4fc3cfc61c64a374a0ad0bc0151802c0510bee5ecd5a90af796f343d58a48e86e26a23b82151166b387fe705",
-          "sha256": "1c1e303f3fe476f3d91f526217c5caf739f75fa4e470323067c3047fef3144e0",
-          "sha1": "89ea2662a94005b0cc9d5c4dcd6c6a598eda7451",
-          "md5": "0320aaaed5c28921426509a81d904c76"
+          "size": 32285,
+          "sha512": "b882dc873758b1570ec1002278e83ccb74552d7957b43a69d7cb0e4917cbf7493d329391b392d858497634bf0394804e27ec72660e931edc9ca2c07625aa0b9a",
+          "sha256": "4df8e3ca273158756567e69fa479568ce727c25d0097c984cf66d852cbda98ad",
+          "sha1": "4109cab9e8404c94fdd3b3837bb11be13a541128",
+          "md5": "ee7e047bab0bca9b69bc694e64e9c3ac"
         }
       ]
     }

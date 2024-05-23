@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,16 +33,18 @@ import io.github.mzmine.datamodel.features.types.modifiers.AddElementDialog;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberFormatType;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.cell.ComboBoxTreeTableCell;
+import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
 /**
@@ -70,6 +72,17 @@ public class EditComboCellFactory implements
   public TreeTableCell<ModularFeatureListRow, Object> call(
       TreeTableColumn<ModularFeatureListRow, Object> param) {
     return new ComboBoxTreeTableCell<>() {
+
+      Label textValue = new Label();
+      VBox textWrapper = new VBox(textValue);
+      {
+        textValue.setWrapText(true);
+        textWrapper.setMaxHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
+        textWrapper.setPrefHeight(USE_COMPUTED_SIZE);
+        textWrapper.setAlignment(Pos.CENTER);
+        setMaxHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
+      }
+
       @Override
       public void startEdit() {
         List list = getTypeList();
@@ -99,6 +112,8 @@ public class EditComboCellFactory implements
         super.updateItem(item, empty);
         if(!getTableRow().isVisible()) {
           // fix to make the cell factory not go crazy and create invisible nodes
+          setGraphic(null);
+          setText(null);
           return;
         }
 
@@ -132,12 +147,13 @@ public class EditComboCellFactory implements
             setTooltip(new Tooltip(type.getFormattedStringCheckType(list)));
           } else {
             String formatted = type.getFormattedStringCheckType(list);
+            textValue.setText(formatted);
             setTooltip(new Tooltip(formatted));
-            setText(formatted);
-            setGraphic(null);
+            setText(null);
+            setGraphic(textWrapper);
           }
         }
-        if (type instanceof NumberType) {
+        if (type instanceof NumberFormatType) {
           setAlignment(Pos.CENTER_RIGHT);
         } else {
           setAlignment(Pos.CENTER);

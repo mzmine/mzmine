@@ -37,9 +37,9 @@ import io.github.mzmine.modules.visualization.projectmetadata.table.columns.Meta
 import java.util.List;
 import java.util.Objects;
 import org.apache.commons.math3.stat.inference.TestUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
- *
  * @param <T> Type of the metadata column.
  */
 public final class StudentTTest<T> implements RowSignificanceTest {
@@ -51,8 +51,8 @@ public final class StudentTTest<T> implements RowSignificanceTest {
   private final List<RawDataFile> groupedFilesA;
   private final List<RawDataFile> groupedFilesB;
 
-  public StudentTTest(TTestSamplingConfig samplingConfig, MetadataColumn<T> column, T groupA,
-      T groupB) {
+  public StudentTTest(@NotNull TTestSamplingConfig samplingConfig, MetadataColumn<T> column,
+      T groupA, T groupB) {
     this.samplingConfig = samplingConfig;
     this.column = column;
     this.groupA = groupA;
@@ -143,8 +143,8 @@ public final class StudentTTest<T> implements RowSignificanceTest {
 
   @Override
   public String toString() {
-    return "StudentTTest{" + "samplingConfig=" + samplingConfig + ", column=" + column
-        + ", groupA=" + groupA + ", groupB=" + groupB + ", groupedFilesA=" + groupedFilesA
-        + ", groupedFilesB=" + groupedFilesB + '}';
+    return "StudentTTest{" + "samplingConfig=" + samplingConfig + ", column=" + column + ", groupA="
+           + groupA + ", groupB=" + groupB + ", groupedFilesA=" + groupedFilesA + ", groupedFilesB="
+           + groupedFilesB + '}';
   }
 }

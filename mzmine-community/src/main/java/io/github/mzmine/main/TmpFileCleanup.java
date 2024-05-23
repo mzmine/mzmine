@@ -42,6 +42,7 @@ import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
+import java.nio.file.DirectoryNotEmptyException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -85,7 +86,12 @@ public class TmpFileCleanup implements Runnable {
 
           if (remainingTmpFile.isDirectory()) {
             // delete directory we used to store raw files on project import.
-            FileUtils.deleteDirectory(remainingTmpFile);
+            try {
+              FileUtils.deleteDirectory(remainingTmpFile);
+            } catch (DirectoryNotEmptyException e) {
+              logger.info(
+                  () -> STR."Unable to delete directory \{remainingTmpFile}, it might be used by another mzmine instance.");
+            }
             continue;
           }
 
@@ -168,7 +174,8 @@ public class TmpFileCleanup implements Runnable {
 
       return (Unsafe) theUnsafe;
 
-    } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | NoSuchFieldException | ClassCastException e) {
+    } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
+             NoSuchFieldException | ClassCastException e) {
       // jdk.internal.misc.Unsafe doesn't yet have an invokeCleaner() method,
       // but that method should be added if sun.misc.Unsafe is removed.
       e.printStackTrace();
