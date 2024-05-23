@@ -42,15 +42,15 @@ import org.w3c.dom.NodeList;
  */
 public class FileNameParameter implements UserParameter<File, FileNameComponent> {
 
-  private static final String CURRENT_FILE_ELEMENT = "current_file";
-  private static final String LAST_FILE_ELEMENT = "last_file";
-  private final String name;
-  private final String description;
+  protected static final String CURRENT_FILE_ELEMENT = "current_file";
+  protected static final String LAST_FILE_ELEMENT = "last_file";
+  protected final String name;
+  protected final String description;
   protected final FileSelectionType type;
   protected final List<ExtensionFilter> filters;
-  private File value;
+  protected File value;
   protected List<File> lastFiles;
-  private final boolean allowEmptyString;
+  protected final boolean allowEmptyString;
 
   /**
    * @param name
@@ -139,7 +139,8 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
 
   @Override
   public FileNameParameter cloneParameter() {
-    FileNameParameter copy = new FileNameParameter(name, description, filters, type, allowEmptyString);
+    FileNameParameter copy = new FileNameParameter(name, description, filters, type,
+        allowEmptyString);
     copy.setValue(this.getValue());
     copy.setLastFiles(new ArrayList<>(lastFiles));
     return copy;

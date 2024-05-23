@@ -25,23 +25,31 @@
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
+import io.github.mzmine.util.StringUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Parameter for export filename. This parameter allows to set a new value and add the suffix to it
  */
 public class FileNameSuffixExportParameter extends FileNameParameter {
 
+  @Nullable
   private final String suffix;
+
+  public FileNameSuffixExportParameter(String name, String description) {
+    this(name, description, null, true);
+  }
 
   /**
    * @param suffix a suffix that will be added to the file name when changing the output files.
    *               suffix="test" will result in filename_test
    */
-  public FileNameSuffixExportParameter(String name, String description, String suffix) {
+  public FileNameSuffixExportParameter(String name, String description, @Nullable String suffix) {
     this(name, description, suffix, true);
   }
 
@@ -49,7 +57,7 @@ public class FileNameSuffixExportParameter extends FileNameParameter {
    * @param suffix a suffix that will be added to the file name when changing the output files.
    *               suffix="test" will result in filename_test
    */
-  public FileNameSuffixExportParameter(String name, String description, String suffix,
+  public FileNameSuffixExportParameter(String name, String description, @Nullable String suffix,
       boolean allowEmptyString) {
     this(name, description, List.of(), suffix, allowEmptyString);
   }
@@ -59,7 +67,7 @@ public class FileNameSuffixExportParameter extends FileNameParameter {
    *               suffix="test" will result in filename_test
    */
   public FileNameSuffixExportParameter(String name, String description,
-      List<ExtensionFilter> filters, String suffix) {
+      List<ExtensionFilter> filters, @Nullable String suffix) {
     this(name, description, filters, suffix, true);
   }
 
@@ -68,11 +76,12 @@ public class FileNameSuffixExportParameter extends FileNameParameter {
    *               suffix="test" will result in filename_test
    */
   public FileNameSuffixExportParameter(String name, String description,
-      List<ExtensionFilter> filters, String suffix, boolean allowEmptyString) {
+      List<ExtensionFilter> filters, @Nullable String suffix, boolean allowEmptyString) {
     super(name, description, filters, FileSelectionType.SAVE, allowEmptyString);
     this.suffix = suffix;
   }
 
+  @Nullable
   public String getSuffix() {
     return suffix;
   }
@@ -83,9 +92,20 @@ public class FileNameSuffixExportParameter extends FileNameParameter {
    * @return filename with the suffix.
    */
   public File setValueAppendSuffix(File file) {
-    File suffixedFile = FileAndPathUtil.getRealFilePathWithSuffix(file, suffix);
-    FileAndPathUtil.getRealFilePathWithSuffix(file, suffix);
-    setValue(suffixedFile);
-    return suffixedFile;
+    if (StringUtils.hasValue(suffix)) {
+      file = FileAndPathUtil.getRealFilePathWithSuffix(file, suffix);
+    }
+    setValue(file);
+    return file;
+  }
+
+
+  @Override
+  public FileNameParameter cloneParameter() {
+    FileNameSuffixExportParameter copy = new FileNameSuffixExportParameter(name, description,
+        filters, suffix, allowEmptyString);
+    copy.setValue(this.getValue());
+    copy.setLastFiles(new ArrayList<>(lastFiles));
+    return copy;
   }
 }
