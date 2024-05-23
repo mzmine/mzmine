@@ -1,9 +1,0 @@
-version: '1'
-
-services:
-  mzmine:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: mzmine
-    container_name: mzmine
