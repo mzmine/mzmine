@@ -278,7 +278,7 @@ public class CSVParsingUtils {
       final char[] possibleBom = new char[1];
       final int read = reader.read(possibleBom);
       if (read == 1 && possibleBom[0] != '\uFEFF') {
-        reader.reset(); // no BOM found, skip
+        reader.reset(); // no BOM found, don't skip
       }
 
       return readData(reader, separator);
