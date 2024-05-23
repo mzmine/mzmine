@@ -38,6 +38,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.StreamCopy;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.SemverVersionReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -253,7 +254,7 @@ public class ProjectSavingTask extends AbstractTask {
       } else {
         setErrorMessage(
             "Failed saving the project. Error while saving " + currentSavedObjectName + ": "
-                + ExceptionUtils.exceptionToString(e));
+            + ExceptionUtils.exceptionToString(e));
       }
 
     }
@@ -268,7 +269,7 @@ public class ProjectSavingTask extends AbstractTask {
 
     zipStream.putNextEntry(new ZipEntry(VERSION_FILENAME));
 
-    String MZmineVersion = String.valueOf(MZmineCore.getMZmineVersion());
+    String MZmineVersion = String.valueOf(SemverVersionReader.getMZmineVersion());
 
     zipStream.write(MZmineVersion.getBytes());
 

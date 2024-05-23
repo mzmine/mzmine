@@ -33,7 +33,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
-import io.github.mzmine.javafx.components.factories.FxComponentFactory;
+import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
@@ -86,18 +86,18 @@ public class PCAViewBuilder extends FxViewBuilder<PCAModel> {
         .addRangeMarker(new ValueMarker(0, markerColor, EStandardChartTheme.DEFAULT_MARKER_STROKE));
 
     final BorderPane pane = new BorderPane();
-    final HBox scaling = FxComponentFactory.createLabeledComboBox("Scaling",
+    final HBox scaling = FxComboBox.createLabeledComboBox("Scaling",
         FXCollections.observableArrayList(ScalingFunctions.values()),
         model.scalingFunctionProperty());
-    final HBox imputation = FxComponentFactory.createLabeledComboBox("Missing value imputation",
+    final HBox imputation = FxComboBox.createLabeledComboBox("Missing value imputation",
         FXCollections.observableArrayList(ImputationFunctions.values()),
         model.imputationFunctionProperty());
-    final HBox domain = FxComponentFactory.createLabeledComboBox("Domain PC",
-        model.getAvailablePCs(), model.domainPcProperty());
-    final HBox range = FxComponentFactory.createLabeledComboBox("Range PC", model.getAvailablePCs(),
+    final HBox domain = FxComboBox.createLabeledComboBox("Domain PC", model.getAvailablePCs(),
+        model.domainPcProperty());
+    final HBox range = FxComboBox.createLabeledComboBox("Range PC", model.getAvailablePCs(),
         model.rangePcProperty());
     final HBox coloring = createMetadataBox();
-    final HBox abundance = FxComponentFactory.createLabeledComboBox("Abundance",
+    final HBox abundance = FxComboBox.createLabeledComboBox("Abundance",
         FXCollections.observableArrayList(AbundanceMeasure.values()), model.abundanceProperty());
 
     final TitledPane controls = new TitledPane("Controls",

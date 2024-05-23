@@ -38,6 +38,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParam
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.collections.CollectionUtils;
+import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.javafx.ArrayObservableList;
 import java.io.File;
 import java.util.Collection;
@@ -75,7 +76,7 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
       @NotNull final List<String> errorMessages, boolean skipUnkownModules) {
     Semver batchMzmineVersion = null;
     final String mzmineVersionError;
-    Semver mzmineVersion = MZmineCore.getMZmineVersion();
+    Semver mzmineVersion = SemverVersionReader.getMZmineVersion();
     if (xmlElement.hasAttribute(XML_MZMINE_VERSION_ATTR)) {
       batchMzmineVersion = new Semver(xmlElement.getAttribute(XML_MZMINE_VERSION_ATTR));
 
@@ -219,7 +220,8 @@ public class BatchQueue extends ArrayObservableList<MZmineProcessingStep<MZmineP
    */
   public void saveToXml(final Element xmlElement) {
     // set MZmine version always to the latest
-    xmlElement.setAttribute(XML_MZMINE_VERSION_ATTR, MZmineCore.getMZmineVersion().toString());
+    xmlElement.setAttribute(XML_MZMINE_VERSION_ATTR,
+        SemverVersionReader.getMZmineVersion().toString());
 
     final Document document = xmlElement.getOwnerDocument();
 

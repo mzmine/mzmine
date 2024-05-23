@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,13 +32,13 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.SemverVersionReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -207,8 +207,8 @@ public class FeatureMLExportModularTask extends AbstractTask {
         new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date())});
 
     // software
-    this.generateEmptyElement(xmlWriter, "software",
-        new String[]{"name", "MZmine", "version", MZmineCore.getMZmineVersion().toString()});
+    this.generateEmptyElement(xmlWriter, "software", new String[]{"name", "MZmine", "version",
+        SemverVersionReader.getMZmineVersion().toString()});
 
     // end dataProcessing
     xmlWriter.writeEndElement();

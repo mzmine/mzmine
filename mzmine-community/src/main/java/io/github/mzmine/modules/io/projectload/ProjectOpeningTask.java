@@ -42,6 +42,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.StreamCopy;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.SemverVersionReader;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -280,7 +281,7 @@ public class ProjectOpeningTask extends AbstractTask {
 
     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
     String projectVersionString = reader.readLine();
-    String mzmineVersionString = String.valueOf(MZmineCore.getMZmineVersion());
+    String mzmineVersionString = String.valueOf(SemverVersionReader.getMZmineVersion());
 
     // todo adjust for new version when project load/save is done
     Matcher m = versionPattern.matcher(mzmineVersionString);
@@ -312,10 +313,11 @@ public class ProjectOpeningTask extends AbstractTask {
     // Check if project was saved with a newer version
     if (mzmineMajorVersion > 0) {
       if ((projectMajorVersion > mzmineMajorVersion) || ((projectMajorVersion == mzmineMajorVersion)
-          && (projectMinorVersion > mzmineMinorVersion))) {
+                                                         && (projectMinorVersion
+                                                             > mzmineMinorVersion))) {
         String warning = "Warning: this project was saved with a newer version of MZmine ("
-            + projectVersionString + "). Opening this project in MZmine " + mzmineVersionString
-            + " may result in errors or loss of information.";
+                         + projectVersionString + "). Opening this project in MZmine "
+                         + mzmineVersionString + " may result in errors or loss of information.";
         MZmineCore.getDesktop().displayMessage(warning);
       }
     }
