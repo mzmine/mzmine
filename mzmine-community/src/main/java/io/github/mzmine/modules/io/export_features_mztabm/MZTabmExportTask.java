@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,20 @@ package io.github.mzmine.modules.io.export_features_mztabm;
 
 import com.google.common.collect.Range;
 import de.isas.mztab2.io.MzTabValidatingWriter;
-import de.isas.mztab2.model.*;
+import de.isas.mztab2.model.Assay;
+import de.isas.mztab2.model.CV;
+import de.isas.mztab2.model.Database;
+import de.isas.mztab2.model.Metadata;
+import de.isas.mztab2.model.MsRun;
+import de.isas.mztab2.model.MzTab;
+import de.isas.mztab2.model.OptColumnMapping;
+import de.isas.mztab2.model.Parameter;
+import de.isas.mztab2.model.SmallMoleculeEvidence;
+import de.isas.mztab2.model.SmallMoleculeFeature;
+import de.isas.mztab2.model.SmallMoleculeSummary;
+import de.isas.mztab2.model.Software;
+import de.isas.mztab2.model.SpectraRef;
+import de.isas.mztab2.model.StudyVariable;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -42,52 +55,52 @@ import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
+import java.io.File;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.ac.ebi.pride.jmztab2.model.IOptColumnMappingBuilder;
 import uk.ac.ebi.pride.jmztab2.model.OptColumnMappingBuilder;
 import uk.ac.ebi.pride.jmztab2.model.OptColumnMappingBuilder.GlobalOptColumnMappingBuilder;
 
-import java.io.File;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.time.Instant;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 public class MZTabmExportTask extends AbstractTask {
-
-  private int processedRows = 0, totalRows = 0;
 
   // parameter values
   private final MZmineProject project;
   private final File fileName;
-  private String plNamePattern = "{}";
-
-  private FeatureList featureList;
   private final boolean exportAll;
-  private Metadata mtd;
-  private SmallMoleculeSummary sm;
-  private SmallMoleculeFeature smf;
-
-  private List<GlobalOptColumnMappingBuilder> globalOptColumns;
-
-  private int columnCount;
-
   //atm default values are used in case charges, theoretical masses, and best_confidence_value
   //in case if value is null
   //modify in case mzTab-M specification is updated
   private final Integer DEFAULT_INTEGER_VALUE = 1000;
-
   private final Double DEFAULT_DOUBLE_VALUE = 1000.00;
+  private int processedRows = 0, totalRows = 0;
+  private String plNamePattern = "{}";
+  private FeatureList featureList;
+  private Metadata mtd;
+  private SmallMoleculeSummary sm;
+  private SmallMoleculeFeature smf;
+  private List<GlobalOptColumnMappingBuilder> globalOptColumns;
+  private int columnCount;
 
 
   MZTabmExportTask(MZmineProject project, FeatureList featureList, ParameterSet parameters,
@@ -97,6 +110,68 @@ public class MZTabmExportTask extends AbstractTask {
     this.featureList = featureList;
     this.fileName = parameters.getParameter(MZTabmExportParameters.filename).getValue();
     this.exportAll = parameters.getParameter(MZTabmExportParameters.exportAll).getValue();
+  }
+
+  @NotNull
+  private static List<SpectraRef> generateSpectraRef(Feature feature,
+      HashMap<RawDataFile, Assay> rawDataFileToAssay) {
+    List<SpectraRef> sr = new ArrayList<>();
+    for (Scan scan : feature.getScanNumbers()) {
+      sr.add(new SpectraRef().msRun(
+              rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().getFirst())
+          .reference("index=" + scan.getScanNumber()));
+    }
+    if (sr.isEmpty()) {
+      sr.add(new SpectraRef().msRun(
+              rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().getFirst())
+          .reference("index=0"));
+    }
+    return sr;
+  }
+
+  private static boolean isMatchesType(DataType dataType) {
+    return (CompoundAnnotationUtils.isAnnotationOrMissingType(dataType));
+  }
+
+  private static List<? extends ListWithSubsType<?>> filterForTypesWithAnnotation(
+      Collection<DataType> types) {
+    return types.stream().filter(Objects::nonNull)
+        .filter(CompoundAnnotationUtils::isAnnotationOrMissingType)
+        .filter(t -> t instanceof ListWithSubsType).map(t -> (ListWithSubsType<?>) t).toList();
+  }
+
+  @NotNull
+  private static Metadata generateMetadata(FeatureList featureList) {
+    Metadata mtd = new Metadata();
+    mtd.setMzTabVersion("2.0.0-M");
+    mtd.setMzTabID("1");
+    mtd.setDescription(featureList.getName());
+    mtd.addSoftwareItem(new Software().id(1).parameter(
+        new Parameter().cvLabel("MS").cvAccession("MS:1002342").name("MZmine")
+            .value(String.valueOf(MZmineCore.getMZmineVersion()))));
+    mtd.setSmallMoleculeQuantificationUnit(
+        new Parameter().cvLabel("PRIDE").cvAccession("PRIDE:0000330")
+            .name("Arbitrary quantification unit"));
+    mtd.setSmallMoleculeFeatureQuantificationUnit(
+        new Parameter().cvLabel("PRIDE").cvAccession("PRIDE:0000330")
+            .name("Arbitrary quantification unit"));
+    mtd.addIdConfidenceMeasureItem(
+        new Parameter().id(1).cvLabel("MS").cvAccession("MS_1003303").name("spectral similarity"));
+    mtd.setSmallMoleculeIdentificationReliability(
+        new Parameter().cvLabel("MS").cvAccession("MS:1002896")
+            .name("compound identification confidence level"));
+    mtd.setQuantificationMethod(new Parameter().cvLabel("MS").cvAccession("MS:1001834")
+        .name("LC-MS label-free quantification analysis"));
+    mtd.addCvItem(
+        new CV().id(1).label("MS").fullName("PSI-MS controlled vocabulary").version("4.1.108")
+            .uri("https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"));
+    mtd.addCvItem(new CV().id(2).label("MS")
+        .fullName("PRIDE PRoteomics IDEntifications (PRIDE) database controlled vocabulary")
+        .version("17.11.2022").uri("http://purl.obolibrary.org/obo/pride_cv.obo"));
+    mtd.addDatabaseItem(
+        new Database().id(1).prefix("mzmdb").version(MZmineCore.getMZmineVersion().toString())
+            .uri("https://mzmine.github.io/").param(new Parameter().name("MZmine database")));
+    return mtd;
   }
 
   @Override
@@ -209,12 +284,12 @@ public class MZTabmExportTask extends AbstractTask {
         //Get available annotations
         if (exportAll || !dataTypes.isEmpty()) {
 
-          List<ListWithSubsType> listType = filterForTypesWithAnnotation(dataTypes);
+          List<? extends ListWithSubsType<?>> listType = filterForTypesWithAnnotation(dataTypes);
 
-          for (DataType type : listType) {
+          for (ListWithSubsType<?> type : listType) {
 
             // get the actual value of the ListWithSubsType stored in the feature list
-            final List featureAnnotationList = (List) featureListRow.get(type);
+            final List<?> featureAnnotationList = featureListRow.get(type);
             setDefaultConfidences(sme);
 
             if (featureAnnotationList == null || featureAnnotationList.isEmpty()) {
@@ -225,7 +300,7 @@ public class MZTabmExportTask extends AbstractTask {
             }
 
             // export annotations
-            exportAnnotations((ListWithSubsType<?>) type, featureAnnotationList, sme, annotationType);
+            exportAnnotations(type, featureAnnotationList, sme, annotationType);
           }
 
           Double rowMZ = featureListRow.getAverageMZ();
@@ -371,23 +446,6 @@ public class MZTabmExportTask extends AbstractTask {
     }
   }
 
-  @NotNull
-  private static List<SpectraRef> generateSpectraRef(Feature feature,
-      HashMap<RawDataFile, Assay> rawDataFileToAssay) {
-    List<SpectraRef> sr = new ArrayList<>();
-    for (Scan scan : feature.getScanNumbers()) {
-      sr.add(new SpectraRef().msRun(
-              rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().getFirst())
-          .reference("index=" + scan.getScanNumber()));
-    }
-    if (sr.isEmpty()) {
-      sr.add(new SpectraRef().msRun(
-              rawDataFileToAssay.get(feature.getRawDataFile()).getMsRunRef().getFirst())
-          .reference("index=0"));
-    }
-    return sr;
-  }
-
   private void assignMissingMandatoryFields(SmallMoleculeEvidence sme) {
     if (sme.getIdentificationMethod() == null) {
       Parameter identificationMethod = new Parameter();
@@ -408,33 +466,31 @@ public class MZTabmExportTask extends AbstractTask {
     }
   }
 
-  private void exportAnnotations(ListWithSubsType<?> type, List annotationList, SmallMoleculeEvidence sme,
-      DataType<?> annotationType) {
-    ListWithSubsType<Object> listWithSubsType = (ListWithSubsType) type;
+  private void exportAnnotations(ListWithSubsType listWithSubsType, List annotationList,
+      SmallMoleculeEvidence sme, DataType<?> annotationType) {
 
     //get the list of subTypes
-    final List<DataType> subDataTypeList = ((ListWithSubsType) type).getSubDataTypes();
+    final List<DataType> subDataTypeList = listWithSubsType.getSubDataTypes();
 
-    for (DataType subType: subDataTypeList) {
+    for (DataType subType : subDataTypeList) {
       final String uniqueID = subType.getUniqueID();
 
       for (int j = 0; j < annotationList.size(); j++) {
+        if (subType instanceof NoTextColumn || uniqueID.equals("structure_2d")) {
+          continue;
+        }
+
         Object mappedVal = listWithSubsType.map(subType, annotationList.get(j));
 
         if (mappedVal != null) {
 
           modifyReliabilityForLipidMatch(mappedVal);
+          String subtypeValue = subType.getFormattedExportString(mappedVal);
 
-          String subtypeValue = mappedVal.toString();
+          String colName = STR."\{listWithSubsType.getUniqueID()}_\{uniqueID}_\{j}1";
+          createSMEOptCols(sme, listWithSubsType, colName, subtypeValue);
 
-          if (type instanceof NoTextColumn || uniqueID.equals("structure_2d")) {
-            continue;
-          }
-
-          String colName = type.getUniqueID() + "_" + uniqueID + "_" + j + 1;
-          createSMEOptCols(sme, type, colName, subtypeValue);
-
-          if (type.getUniqueID().equals(annotationType.getUniqueID())) {
+          if (listWithSubsType.getUniqueID().equals(annotationType.getUniqueID())) {
             updateWithPreferredAnnotation(sme, annotationType.getUniqueID(), uniqueID,
                 subtypeValue);
           }
@@ -447,8 +503,9 @@ public class MZTabmExportTask extends AbstractTask {
   private void modifyReliabilityForLipidMatch(Object mappedVal) {
     if (mappedVal instanceof MatchedLipid) {
       MatchedLipid mappedLipid = (MatchedLipid) mappedVal;
-      if (mappedLipid.getLipidAnnotation() instanceof MolecularSpeciesLevelAnnotation & mappedLipid.getLipidAnnotation().getLipidAnnotationLevel()
-          .equals("MOLECULAR_SPECIES_LEVEL")) {
+      if (mappedLipid.getLipidAnnotation() instanceof MolecularSpeciesLevelAnnotation
+          & mappedLipid.getLipidAnnotation().getLipidAnnotationLevel()
+          .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
         sm.setReliability("3"); // only class identified
       }
     }
@@ -648,48 +705,5 @@ public class MZTabmExportTask extends AbstractTask {
     // Substitute
     String newFilename = fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
     return newFilename;
-  }
-
-  private static boolean isMatchesType(DataType dataType) {
-    return (CompoundAnnotationUtils.isAnnotationOrMissingType(dataType));
-  }
-
-  private static List<ListWithSubsType> filterForTypesWithAnnotation(Collection<DataType> types) {
-    return types.stream().filter(Objects::nonNull).filter(CompoundAnnotationUtils::isAnnotationOrMissingType).
-        filter(t -> t instanceof ListWithSubsType).map(t -> (ListWithSubsType) t).toList();
-  }
-
-  @NotNull
-  private static Metadata generateMetadata(FeatureList featureList) {
-    Metadata mtd = new Metadata();
-    mtd.setMzTabVersion("2.0.0-M");
-    mtd.setMzTabID("1");
-    mtd.setDescription(featureList.getName());
-    mtd.addSoftwareItem(new Software().id(1).parameter(
-        new Parameter().cvLabel("MS").cvAccession("MS:1002342").name("MZmine")
-            .value(String.valueOf(MZmineCore.getMZmineVersion()))));
-    mtd.setSmallMoleculeQuantificationUnit(
-        new Parameter().cvLabel("PRIDE").cvAccession("PRIDE:0000330")
-            .name("Arbitrary quantification unit"));
-    mtd.setSmallMoleculeFeatureQuantificationUnit(
-        new Parameter().cvLabel("PRIDE").cvAccession("PRIDE:0000330")
-            .name("Arbitrary quantification unit"));
-    mtd.addIdConfidenceMeasureItem(
-        new Parameter().id(1).cvLabel("MS").cvAccession("MS_1003303").name("spectral similarity"));
-    mtd.setSmallMoleculeIdentificationReliability(
-        new Parameter().cvLabel("MS").cvAccession("MS:1002896")
-            .name("compound identification confidence level"));
-    mtd.setQuantificationMethod(new Parameter().cvLabel("MS").cvAccession("MS:1001834")
-        .name("LC-MS label-free quantification analysis"));
-    mtd.addCvItem(
-        new CV().id(1).label("MS").fullName("PSI-MS controlled vocabulary").version("4.1.108")
-            .uri("https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"));
-    mtd.addCvItem(new CV().id(2).label("MS")
-        .fullName("PRIDE PRoteomics IDEntifications (PRIDE) database controlled vocabulary")
-        .version("17.11.2022").uri("http://purl.obolibrary.org/obo/pride_cv.obo"));
-    mtd.addDatabaseItem(
-        new Database().id(1).prefix("mzmdb").version(MZmineCore.getMZmineVersion().toString())
-            .uri("https://mzmine.github.io/").param(new Parameter().name("MZmine database")));
-    return mtd;
   }
 }
