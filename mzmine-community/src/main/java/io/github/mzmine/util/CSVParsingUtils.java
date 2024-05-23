@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -273,6 +273,20 @@ public class CSVParsingUtils {
   public static List<String[]> readData(final File file, final String separator)
       throws IOException, CsvException {
     try (var reader = Files.newBufferedReader(file.toPath())) {
+
+      // some users/programs save csv files with an encoding prefix in the first few bytes. This
+      // prefix is equal to the char code \uFEFF and means that the file is utf-8 encoded. However,
+      // most UTF-8 files don't come with this prefix (=BOM, byte order marker). If it is there,
+      // we want to skip it, otherwise the first csv field may be mis-recognised as a string with a
+      // different encoding.
+      // see: https://stackoverflow.com/questions/4897876/reading-utf-8-bom-marker
+      reader.mark(1);
+      final char[] possibleBom = new char[1];
+      final int read = reader.read(possibleBom);
+      if (read == 1 && possibleBom[0] != '\uFEFF') {
+        reader.reset(); // no BOM found, don't skip
+      }
+
       return readData(reader, separator);
     }
   }
