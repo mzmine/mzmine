@@ -249,7 +249,6 @@ public class MZmineTestUtil {
 //        }
 //      }
 
-      MZmineCore.main(new String[]{"-r", "-m", "all"});
       try {
         logger.fine("Trying to find TESTRUNNER_USER env");
         String testRunner = System.getenv("TESTRUNNER_USER");
@@ -274,6 +273,7 @@ public class MZmineTestUtil {
           CurrentUserService.setUser(user);
         }
       }
+      MZmineCore.main(new String[]{"-r", "-m", "all"});
     } catch (Exception ex) {
       // might be already initialized
       logger.log(Level.INFO,
