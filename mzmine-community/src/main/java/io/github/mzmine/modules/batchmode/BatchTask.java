@@ -60,8 +60,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -104,7 +106,8 @@ public class BatchTask extends AbstractTask {
     this.project = project;
     this.queue = parameters.getParameter(BatchModeParameters.batchQueue).getValue();
     // advanced parameters
-    useAdvanced = parameters.getParameter(BatchModeParameters.advanced).getValue();
+    useAdvanced = false;
+//    useAdvanced = parameters.getParameter(BatchModeParameters.advanced).getValue();
     if (useAdvanced) {
       // if sub directories is set - the input and output files are changed to each sub directory
       // each sub dir is processed sequentially as a different dataset
@@ -422,6 +425,11 @@ public class BatchTask extends AbstractTask {
     if (AllSpectralDataImportParameters.isParameterSetClass(batchStepParameters)) {
       var loadedRawDataFiles = AllSpectralDataImportParameters.getLoadedRawDataFiles(
           ProjectService.getProject(), batchStepParameters);
+
+      // because of concurrency - the project may not have all the new raw data files - but all newly created files are in createdDataFiles
+      Set<RawDataFile> files = new HashSet<>(loadedRawDataFiles);
+      files.addAll(createdDataFiles);
+      loadedRawDataFiles = new ArrayList<>(files);
 
       // loaded should always be >= created as we are at most skipping files
       if (loadedRawDataFiles.size() >= createdDataFiles.size()) {
