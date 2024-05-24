@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
@@ -46,7 +47,6 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implements AnnotationType {
@@ -59,11 +59,6 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
       new MzPpmDifferenceType(), //
       new ExplainedIntensityPercentType(),//
       new LipidSpectrumType());
-
-  private static double getExactMass(MatchedLipid match) {
-    return MolecularFormulaManipulator.getMass(match.getLipidAnnotation().getMolecularFormula(),
-        AtomContainerManipulator.MonoIsotopic) + match.getIonizationType().getAddedMass();
-  }
 
   @NotNull
   @Override
@@ -89,7 +84,7 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
       case LipidSpectrumType __ -> true;
       case MzPpmDifferenceType __ -> {
         // calc ppm error?
-        double exactMass = getExactMass(match);
+        double exactMass = MatchedLipid.getExactMass(match);
         yield (float) ((exactMass - match.getAccurateMz()) / exactMass) * 1000000;
       }
       default -> throw new UnsupportedOperationException(
@@ -112,7 +107,7 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
     if (!(value instanceof List<?> list)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-          + value.getClass());
+              + value.getClass());
     }
 
     for (Object o : list) {
@@ -120,7 +115,7 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
         continue;
       }
 
-      id.saveToXML(writer);
+      id.saveToXML(writer, flist, row);
     }
   }
 
@@ -130,7 +125,7 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
 
     if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
-          && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
+        && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
       throw new IllegalStateException("Wrong element");
     }
 
@@ -144,7 +139,10 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
         continue;
       }
 
-      if (reader.getLocalName().equals(MatchedLipid.XML_ELEMENT)) {
+      if (reader.getLocalName().equals(MatchedLipid.XML_ELEMENT) || (
+          reader.getLocalName().equals(FeatureAnnotation.XML_ELEMENT)
+              && MatchedLipid.XML_ELEMENT.equals(
+              reader.getAttributeValue(null, FeatureAnnotation.XML_TYPE_ATTR)))) {
         MatchedLipid id = MatchedLipid.loadFromXML(reader, currentRawDataFiles);
         ids.add(id);
       }
