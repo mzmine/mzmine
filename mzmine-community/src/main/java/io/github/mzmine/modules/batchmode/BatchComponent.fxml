@@ -58,7 +58,7 @@
         <Insets/>
       </opaqueInsets>
       <padding>
-        <Insets top="5.0"/>
+        <Insets top="5.0" bottom="5"/>
       </padding>
     </FlowPane>
     <FlowPane alignment="TOP_CENTER" hgap="5.0" prefHeight="200.0" prefWidth="200.0" vgap="5.0"

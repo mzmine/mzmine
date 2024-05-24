@@ -165,7 +165,9 @@ public class BatchModeModule implements MZmineProcessingModule {
 
     final BatchTask newTask;
     // check if advanced
-    if (parameters.getValue(BatchModeParameters.advanced)) {
+//    boolean useAdvanced = parameters.getValue(BatchModeParameters.advanced);
+    boolean useAdvanced = false;
+    if (useAdvanced) {
       AdvancedBatchModeParameters params = parameters.getParameter(BatchModeParameters.advanced)
           .getEmbeddedParameters();
       File parentDir = params.getValue(AdvancedBatchModeParameters.processingParentDir);
