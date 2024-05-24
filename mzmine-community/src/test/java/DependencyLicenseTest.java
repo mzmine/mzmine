@@ -40,7 +40,7 @@ public class DependencyLicenseTest {
     try (InputStream dps = this.getClass().getClassLoader()
         .getResourceAsStream("dependency/dependency-licenses.json")) {
       final Dependencies dependency = mapper.readValue(dps, Dependencies.class);
-      logger.info(dependency.toString());
+//      logger.info(dependency.toString());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
