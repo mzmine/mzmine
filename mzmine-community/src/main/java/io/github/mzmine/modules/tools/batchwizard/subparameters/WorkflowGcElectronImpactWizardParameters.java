@@ -29,8 +29,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.Workfl
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import java.io.File;
 
 public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWizardParameters {
@@ -50,10 +49,10 @@ public final class WorkflowGcElectronImpactWizardParameters extends WorkflowWiza
       "Export annotation graphics", "Exports annotations to png and pdf images.", false);
 
 
-  public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
-      new FileNameParameter("Export path",
-          "If checked, export results for different tools, e.g., GNPS, SIRIUS, ...",
-          FileSelectionType.SAVE, false), false);
+  public static final OptionalParameter<FileNameSuffixExportParameter> exportPath = new OptionalParameter<>(
+      new FileNameSuffixExportParameter("Export path",
+          "If checked, export results for different tools, e.g., GNPS, SIRIUS, ...", null, false),
+      false);
 
 
   public WorkflowGcElectronImpactWizardParameters() {

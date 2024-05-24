@@ -23,27 +23,25 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.io.export_scans;
+package io.github.mzmine.modules.batchmode.change_outfiles;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class ExportScansParameters extends SimpleParameterSet {
+/**
+ * Change all output files at once
+ */
+public class ChangeOutputFilesModule implements MZmineModule {
 
-  public static final FileNameSuffixExportParameter file = new FileNameSuffixExportParameter("File",
-      "file destination", "scans");
-  public static final ComboParameter<ScanFormats> formats = new ComboParameter<>("Format",
-      "Export formats. mgf: MASCOT, SIRIUS;  txt: plain text;  mzML: Open standard",
-      ScanFormats.values(), ScanFormats.mgf);
-
-  public static final BooleanParameter export_masslist = new BooleanParameter(
-      "Export centroid mass list", "Exports the centroid mass list instead of raw data", true);
-
-  public ExportScansParameters() {
-    super(new Parameter[]{file, formats, export_masslist});
+  @Override
+  public @NotNull String getName() {
+    return "Change output files";
   }
 
+  @Override
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return ChangeOutputFilesParameters.class;
+  }
 }
