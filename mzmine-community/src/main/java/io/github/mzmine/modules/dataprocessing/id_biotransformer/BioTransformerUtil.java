@@ -102,12 +102,18 @@ public class BioTransformerUtil {
 
   public static List<CompoundDBAnnotation> parseLibrary(final File file,
       IonNetworkLibrary library) {
+    if (!file.exists() && file.canRead()) {
+      logger.info(
+          () -> "BioTransformer result file does not exist, this means that no metabolites were predicted.");
+      return List.of();
+    }
     final CompoundDbLoadResult annotationResults = CSVParsingUtils.getAnnotationsFromCsvFile(file,
         ",", types, library);
     if (annotationResults.status() != TaskStatus.ERROR) {
       return annotationResults.annotations();
     } else {
-      throw new RuntimeException(annotationResults.errorMessage());
+      logger.info(annotationResults.errorMessage());
+      return List.of();
     }
   }
 

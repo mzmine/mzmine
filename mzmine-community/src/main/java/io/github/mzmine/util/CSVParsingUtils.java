@@ -218,11 +218,20 @@ public class CSVParsingUtils {
       @Nullable IonNetworkLibrary ionLibrary) {
     List<CompoundDBAnnotation> list = new ArrayList<>();
 
+    if (!peakListFile.exists()) {
+      return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR,
+          STR."Input file \{peakListFile.getAbsolutePath()} does not exist.");
+    }
+
     List<String[]> peakListValues = null;
     try {
       peakListValues = readData(peakListFile, fieldSeparator);
-    } catch (IOException | CsvException e) {
 
+      if (peakListValues.isEmpty()) {
+        return new CompoundDbLoadResult(List.of(), TaskStatus.ERROR,
+            STR."File \{peakListFile.getAbsolutePath()} did not contain any content.");
+      }
+    } catch (IOException | CsvException e) {
       throw new RuntimeException(e);
     }
 

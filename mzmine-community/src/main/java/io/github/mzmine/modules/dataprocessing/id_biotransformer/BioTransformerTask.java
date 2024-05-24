@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -166,18 +166,17 @@ public class BioTransformerTask extends AbstractTask {
     }
 
     String filename = id + "_transformation";
-    final File file;
     // will be cleaned by temp file cleanup (windows)
-    file = FileAndPathUtil.createTempFile("mzmine_bio_" + filename, ".csv");
-    file.deleteOnExit();
+    final File outputFile = FileAndPathUtil.createTempFile("mzmine_bio_" + filename, ".csv");
+    outputFile.deleteOnExit();
 
     final List<String> cmd = BioTransformerUtil.buildCommandLineArguments(bestSmiles, parameters,
-        file);
+        outputFile);
 
     BioTransformerUtil.runCommandAndWait(bioTransformerPath.getParentFile(), cmd);
 
     final List<CompoundDBAnnotation> bioTransformerAnnotations = BioTransformerUtil.parseLibrary(
-        file, ionLibrary);
+        outputFile, ionLibrary);
 
     bioTransformerAnnotations.forEach(a -> a.put(CompoundNameType.class,
         Objects.requireNonNullElse(prefix, "") + "_" + a.get(CompoundNameType.class)));
