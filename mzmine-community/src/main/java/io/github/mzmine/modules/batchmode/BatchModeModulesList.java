@@ -88,6 +88,7 @@ import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrela
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingModule;
+import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.ExternalCCSCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule;
@@ -359,6 +360,7 @@ public class BatchModeModulesList {
       NistMsSearchModule.class, //
       PrecursorDBSearchModule.class, //
       SpectralLibrarySearchModule.class, //
+      BioTransformerModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_IO}
