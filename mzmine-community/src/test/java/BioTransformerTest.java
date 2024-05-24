@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class BioTransformerTest {
@@ -147,7 +148,7 @@ class BioTransformerTest {
   }
 
   @Test
-//  @Disabled("Cannot be run on github without uploading biotransformer jar.")
+  @Disabled("Cannot be run on github without uploading biotransformer jar.")
   void combinedTest() throws IOException {
     final File outputFile = new File("valsartan-transformation2.csv");
     outputFile.deleteOnExit();
