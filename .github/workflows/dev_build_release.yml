@@ -113,20 +113,19 @@ jobs:
           MACOS_APP_IDENTITY_TEAM_ID: ${{ secrets.MACOS_APP_IDENTITY_TEAM_ID }}
           TESTRUNNER_USER: ${{ secrets.TESTRUNNER_USER }}
 
-# turn off for now just upload
-#      - name: Pack macOS .app to .dmg
-#        if: runner.os == 'macOS'
-#        run: |
-#          npm install --python=python3.11 -g appdmg
-#          appdmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
-#
-#      - name: Upload macOS installer
-#        if: runner.os == 'macOS'
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: mzmine_macOS_installer
-#          path: mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
-#          retention-days: 7  # store for 7 days
+      - name: Pack macOS .app to .dmg
+        if: runner.os == 'macOS'
+        run: |
+          npm install --python=python3.11 -g appdmg
+          appdmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
+
+      - name: Upload macOS installer
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v2
+        with:
+          name: mzmine_macOS_installer
+          path: mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
+          retention-days: 7  # store for 7 days
 
 #      - name: Remove dmg File and Make .app executable
 #        if: runner.os == 'macOS'
