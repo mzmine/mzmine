@@ -29,14 +29,12 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.KendrickRegionExtractionModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.KendrickRegionExtractionParameters;
-import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.KendrickRegionExtractionTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -121,6 +119,7 @@ public class KendrickMassPlotAnchorPaneController {
   private Label divisorLabelXAxis;
 
   private ParameterSet parameters;
+  private KendrickMassPlotChart kendrickChart;
 
   @FXML
   public void initialize(ParameterSet parameters) {
@@ -232,11 +231,11 @@ public class KendrickMassPlotAnchorPaneController {
 
     kendrickMassPlotXYZDataset.addTaskStatusListener((_, newStatus, _) -> {
       if (newStatus == TaskStatus.FINISHED) {
-        KendrickMassPlotChart kendrickMassPlotChart = new KendrickMassPlotChart(title, xAxisLabel,
+        kendrickChart = new KendrickMassPlotChart(title, xAxisLabel,
             yAxisLabel, zAxisLabel, kendrickMassPlotXYZDataset);
         KendrickMassPlotBubbleLegend kendrickMassPlotBubbleLegend = new KendrickMassPlotBubbleLegend(
             kendrickMassPlotXYZDataset);
-        var selectionWrapper = new RegionSelectionWrapper<>(kendrickMassPlotChart,
+        var selectionWrapper = new RegionSelectionWrapper<>(kendrickChart,
             this::onExtractPressed);
         FxThread.runLater(() -> {
           plotPane.setCenter(selectionWrapper);
@@ -370,7 +369,7 @@ public class KendrickMassPlotAnchorPaneController {
     XYPlot plot = Objects.requireNonNull(getChart()).getXYPlot();
     KendrickMassPlotXYZDataset newDataset = new KendrickMassPlotXYZDataset(parameters, xAxisDivisor,
         xAxisCharge, yAxisDivisor, yAxisCharge);
-    newDataset.addTaskStatusListener((task, newStatus, oldStatus) -> {
+    newDataset.addTaskStatusListener((_, newStatus, _) -> {
       if (newStatus == TaskStatus.FINISHED) {
         FxThread.runLater(() -> {
           plot.setDataset(newDataset);
@@ -384,16 +383,12 @@ public class KendrickMassPlotAnchorPaneController {
     setTooltips();
   }
 
-  public BorderPane getPlotPane() {
-    return plotPane;
-  }
-
   public BorderPane getBubbleLegendPane() {
     return bubbleLegendPane;
   }
 
   private JFreeChart getChart() {
-    if (plotPane.getChildren().get(0) instanceof EChartViewer viewer) {
+    if (kendrickChart instanceof EChartViewer viewer) {
       return viewer.getChart();
     }
     return null;
