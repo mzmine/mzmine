@@ -69,7 +69,7 @@ if (OperatingSystem.current().isWindows()) project.ext.osSuffix = "Windows"
 if (OperatingSystem.current().isMacOsX()) {
     project.ext.osSuffix = "macOS"
     project.ext.appName = "mzmine"
-    project.ext.appleID = "mzmine.devel@gmail.com"
+    project.ext.appleID = "ansgar.korf@mzio.io"
 
     getLogger().lifecycle('Checking macOS system variables...')
 
