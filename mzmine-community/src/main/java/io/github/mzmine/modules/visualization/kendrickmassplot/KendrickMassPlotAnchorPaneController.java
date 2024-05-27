@@ -29,10 +29,20 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
+import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.main.ConfigService;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.KendrickRegionExtractionModule;
+import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.KendrickRegionExtractionParameters;
+import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.KendrickRegionExtractionTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
+import java.awt.geom.Point2D;
+import java.util.List;
 import java.util.Objects;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -118,11 +128,9 @@ public class KendrickMassPlotAnchorPaneController {
     this.featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
         .getMatchingFeatureLists()[0];
 
-    this.useRKM_X = parameters.getParameter(
-            KendrickMassPlotParameters.xAxisValues).getValue()
+    this.useRKM_X = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue()
         .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS);
-    this.useRKM_Y = parameters.getParameter(
-            KendrickMassPlotParameters.yAxisValues).getValue()
+    this.useRKM_Y = parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue()
         .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS);
     boolean useCustomXAxisKMBase = parameters.getParameter(KendrickMassPlotParameters.xAxisValues)
         .getValue().isKendrickType();
@@ -153,8 +161,7 @@ public class KendrickMassPlotAnchorPaneController {
     this.yAxisCharge = 1;
     this.xAxisCharge = 1;
 
-    this.useRKM_X = parameters.getParameter(
-            KendrickMassPlotParameters.xAxisValues).getValue()
+    this.useRKM_X = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue()
         .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS);
     this.useRKM_Y = parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue()
         .equals(KendrickPlotDataTypes.REMAINDER_OF_KENDRICK_MASS);
@@ -223,20 +230,40 @@ public class KendrickMassPlotAnchorPaneController {
     KendrickMassPlotXYZDataset kendrickMassPlotXYZDataset = new KendrickMassPlotXYZDataset(
         parameters, 1, 1);
 
-    kendrickMassPlotXYZDataset.addTaskStatusListener((task, newStatus, oldStatus) -> {
+    kendrickMassPlotXYZDataset.addTaskStatusListener((_, newStatus, _) -> {
       if (newStatus == TaskStatus.FINISHED) {
         KendrickMassPlotChart kendrickMassPlotChart = new KendrickMassPlotChart(title, xAxisLabel,
             yAxisLabel, zAxisLabel, kendrickMassPlotXYZDataset);
         KendrickMassPlotBubbleLegend kendrickMassPlotBubbleLegend = new KendrickMassPlotBubbleLegend(
             kendrickMassPlotXYZDataset);
+        var selectionWrapper = new RegionSelectionWrapper<>(kendrickMassPlotChart,
+            this::onExtractPressed);
         FxThread.runLater(() -> {
-          plotPane.setCenter(kendrickMassPlotChart);
+          plotPane.setCenter(selectionWrapper);
           bubbleLegendPane.setCenter(kendrickMassPlotBubbleLegend);
           updateToolBar();
           setTooltips();
         });
       }
     });
+  }
+
+  public void onExtractPressed(List<List<Point2D>> regionPointLists) {
+    final ParameterSet param = ConfigService.getConfiguration()
+        .getModuleParameters(KendrickRegionExtractionModule.class);
+
+    final ParameterSet kendrickParam = param.getEmbeddedParameterValue(
+        KendrickRegionExtractionParameters.kendrickParam);
+    ParameterUtils.copyParameters(parameters,
+        kendrickParam); // use the settings used for this plot.
+
+    param.setParameter(KendrickRegionExtractionParameters.xAxisDivisor, xAxisDivisor);
+    param.setParameter(KendrickRegionExtractionParameters.xAxisCharge, xAxisCharge);
+    param.setParameter(KendrickRegionExtractionParameters.yAxisCharge, yAxisCharge);
+    param.setParameter(KendrickRegionExtractionParameters.yAxisDivisor, yAxisDivisor);
+    param.setParameter(KendrickRegionExtractionParameters.regions, regionPointLists);
+
+    MZmineCore.setupAndRunModule(KendrickRegionExtractionModule.class);
   }
 
   private void setArrowIcon(Button button, FontAwesomeIcon icon) {
@@ -418,8 +445,9 @@ public class KendrickMassPlotAnchorPaneController {
     } else if (useRKM && divisor == getDivisorKM(kmdBase) && !divisorUp) {
       divisor--;
       return divisor;
-    } else
+    } else {
       return divisor;
+    }
   }
 
   /*

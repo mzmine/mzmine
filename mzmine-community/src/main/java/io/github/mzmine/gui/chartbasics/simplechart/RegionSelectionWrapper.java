@@ -25,8 +25,13 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
+import static io.github.mzmine.javafx.components.util.FxLayout.newFlowPane;
+import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
+
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
+import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.RegionsParameter;
@@ -40,6 +45,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -52,6 +58,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javax.validation.constraints.NotNull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -63,6 +70,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.jfree.chart.annotations.XYAnnotation;
 import org.jfree.chart.annotations.XYShapeAnnotation;
+import org.jfree.data.xy.XYDataset;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -89,15 +97,18 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
   private final Paint roiPaint = MZmineCore.getConfiguration().getDefaultColorPalette()
       .getNegativeColorAWT();
 
+  public RegionSelectionWrapper(@NotNull final T node) {
+    this(node, null);
+  }
+
   /**
-   *
    * @param node The chart
    */
-  public RegionSelectionWrapper(T node) {
+  public RegionSelectionWrapper(T node, Consumer<List<List<Point2D>>> onExtractPressed) {
     this.node = node;
     setCenter(node);
     selectionControls = new GridPane();
-    importExportControls = new FlowPane();
+    importExportControls = newFlowPane(Pos.TOP_CENTER);
 
     final Button btnSaveToFile = new Button("Save regions");
     btnSaveToFile.setOnAction(e -> saveRegionsToFile());
@@ -105,16 +116,19 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
     btnLoadFromFile.setOnAction(e -> loadRegionsFromFile());
 
     importExportControls.getChildren().addAll(btnSaveToFile, btnLoadFromFile);
-    importExportControls.setHgap(5);
-    importExportControls.setAlignment(Pos.TOP_CENTER);
 
-    bottomWrap = new VBox();
+    bottomWrap = newVBox(Pos.TOP_CENTER);
     bottomWrap.getChildren().addAll(selectionControls, importExportControls);
     setBottom(bottomWrap);
-    bottomWrap.setAlignment(Pos.TOP_CENTER);
 
     finishedRegionSelectionListeners = FXCollections.observableArrayList();
     initSelectionPane();
+
+    if (onExtractPressed != null) {
+      final Button extractButton = FxButtons.createButton("Extract region(s)",
+          () -> onExtractPressed.accept(getFinishedRegionsAsListOfPointLists()));
+      importExportControls.getChildren().add(extractButton);
+    }
   }
 
   public ObservableList<RegionSelectionListener> getFinishedRegionListeners() {
@@ -127,7 +141,7 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
   }
 
   public List<Path2D> getFinishedRegionsAsListOfPaths() {
-    return finishedRegionSelectionListeners.stream().map(l -> l.buildingPathProperty().get())
+    return finishedRegionSelectionListeners.stream().map(l -> l.pathProperty().get())
         .collect(Collectors.toList());
   }
 
@@ -174,8 +188,8 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
           }
           if (c.wasAdded()) {
             node.getChart().getXYPlot().addAnnotation(
-                new XYShapeAnnotation(c.getAddedSubList().get(0).buildingPathProperty().get(),
-                    roiStroke, roiPaint));
+                new XYShapeAnnotation(c.getAddedSubList().get(0).pathProperty().get(), roiStroke,
+                    roiPaint));
             btnClearRegions.setDisable(false);
           }
         });
@@ -255,5 +269,21 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
         e.printStackTrace();
       }
     });
+  }
+
+  public static <V, D extends XYDataset & XYItemObjectProvider<V>> boolean isItemInRegion(int item,
+      int series, @NotNull D dataset, @NotNull RegionSelectionListener region) {
+    if (item > dataset.getItemCount(series)) {
+      return false;
+    }
+
+    final double x = dataset.getXValue(series, item);
+    final double y = dataset.getYValue(series, item);
+
+    final Path2D path = region.pathProperty().get();
+    if (path == null) {
+      return false;
+    }
+    return path.contains(x, y);
   }
 }

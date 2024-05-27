@@ -136,17 +136,17 @@ public class RegionsParameter implements UserParameter<List<List<Point2D>>, Regi
   }
 
   @Override
-  public void setValueToComponent(RegionsComponent regionsComponent, @Nullable List<List<Point2D>> newValue) {
-
+  public void setValueToComponent(RegionsComponent regionsComponent,
+      @Nullable List<List<Point2D>> newValue) {
+    regionsComponent.setLabelText(STR."\{newValue != null ? newValue.size() : 0} regions selected");
   }
 
   @Override
   public UserParameter cloneParameter() {
     RegionsParameter param = new RegionsParameter(name, description);
     List<List<Point2D>> newValue = new ArrayList<>();
-    for (List<Point2D> list : value) {
-      List<Point2D> newList = new ArrayList<>();
-      newList.addAll(list);
+    for (List<Point2D> regionPoints : value) {
+      List<Point2D> newList = new ArrayList<>(regionPoints);
       newValue.add(newList);
     }
     param.setValue(newValue);

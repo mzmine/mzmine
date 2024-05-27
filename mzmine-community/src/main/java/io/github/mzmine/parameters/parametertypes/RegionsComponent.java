@@ -30,13 +30,20 @@ import javafx.scene.layout.FlowPane;
 
 public class RegionsComponent extends FlowPane {
 
-//  private final TextField tfPoint;
+  private final Label label;
+
+  //  private final TextField tfPoint;
 //  private final TreeView<Point2D> tvPoints;
 
   public RegionsComponent() {
 //    tvPoints = new TreeView<>();
 //    TreeItem<String> regions = new TreeItem<>("Regions");
 //    tvPoints.setRoot(tvPoints);
-    getChildren().add(new Label("See preview"));
+    label = new Label("See preview");
+    getChildren().add(label);
+  }
+
+  public void setLabelText(String text) {
+    label.setText(text);
   }
 }
