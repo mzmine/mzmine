@@ -31,7 +31,9 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
+import javafx.scene.control.Accordion;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -155,5 +157,17 @@ public class FxLayout {
     scroll.setFitToHeight(true);
     scroll.setCenterShape(true);
     return scroll;
+  }
+
+  public static TitledPane newTitledPane(String title, Node node) {
+    return new TitledPane(title, node);
+  }
+
+  public static Accordion newAccordion(boolean expandFirst, TitledPane... contents) {
+    final Accordion accordion = new Accordion(contents);
+    if (expandFirst && contents.length > 0) {
+      accordion.setExpandedPane(contents[0]);
+    }
+    return accordion;
   }
 }

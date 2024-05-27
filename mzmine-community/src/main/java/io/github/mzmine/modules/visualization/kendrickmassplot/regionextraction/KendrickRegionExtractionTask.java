@@ -12,9 +12,10 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import java.awt.geom.Path2D;
-import java.awt.geom.Point2D.Double;
+import java.awt.geom.Point2D;
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class KendrickRegionExtractionTask extends AbstractTask {
 
@@ -63,17 +64,10 @@ public class KendrickRegionExtractionTask extends AbstractTask {
         xAxisDivisior, xAxisCharge, yAxisDivisor, yAxisCharge);
     dataset.run();
 
-    final List<FeatureListRow> rows = regions.stream().<FeatureListRow>mapMulti((r, c) -> {
-      for (int i = 0; i < dataset.getItemCount(0); i++) {
-        if (isCanceled()) {
-          return;
-        }
-
-        if (r.contains(new Double(dataset.getXValue(0, i), dataset.getYValue(0, i)))) {
-          c.accept(dataset.getItemObject(i));
-        }
-      }
-    }).toList();
+    final List<FeatureListRow> rows = IntStream.range(0, dataset.getItemCount(0)).filter(
+            index -> regions.stream().anyMatch(region -> region.contains(
+                new Point2D.Double(dataset.getXValue(0, index), dataset.getYValue(0, index)))))
+        .mapToObj(dataset::getItemObject).toList();
 
     if (isCanceled()) {
       return;
@@ -87,10 +81,13 @@ public class KendrickRegionExtractionTask extends AbstractTask {
     DataTypeUtils.copyTypes(flist, filtered, true, true);
     rows.forEach(filtered::addRow);
 
-    filtered.getAppliedMethods().addAll(flist.getAppliedMethods());
-    filtered.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(KendrickRegionExtractionModule.class, parameters,
-            getModuleCallDate()));
+    filtered.getAppliedMethods().
+
+        addAll(flist.getAppliedMethods());
+    filtered.addDescriptionOfAppliedTask(new
+
+        SimpleFeatureListAppliedMethod(KendrickRegionExtractionModule.class, parameters,
+        getModuleCallDate()));
 
     if (!isCanceled()) {
       project.addFeatureList(filtered);

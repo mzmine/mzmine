@@ -25,7 +25,9 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
+import static io.github.mzmine.javafx.components.util.FxLayout.newAccordion;
 import static io.github.mzmine.javafx.components.util.FxLayout.newFlowPane;
+import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
 import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
@@ -90,7 +92,6 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
 
   final GridPane selectionControls;
   final FlowPane importExportControls;
-  final VBox bottomWrap;
   private final T node;
   private final ObservableList<RegionSelectionListener> finishedRegionSelectionListeners;
   private final Stroke roiStroke = new BasicStroke(1f);
@@ -110,22 +111,23 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
     selectionControls = new GridPane();
     importExportControls = newFlowPane(Pos.TOP_CENTER);
 
-    final Button btnSaveToFile = new Button("Save regions");
+    final Button btnSaveToFile = new Button("Save");
     btnSaveToFile.setOnAction(e -> saveRegionsToFile());
-    final Button btnLoadFromFile = new Button("Load regions");
+    final Button btnLoadFromFile = new Button("Load");
     btnLoadFromFile.setOnAction(e -> loadRegionsFromFile());
 
     importExportControls.getChildren().addAll(btnSaveToFile, btnLoadFromFile);
 
-    bottomWrap = newVBox(Pos.TOP_CENTER);
+    VBox bottomWrap = newVBox(Pos.TOP_CENTER);
     bottomWrap.getChildren().addAll(selectionControls, importExportControls);
-    setBottom(bottomWrap);
+    setBottom(
+        newAccordion(false, newTitledPane("Regions of interest (ROI) selection", bottomWrap)));
 
     finishedRegionSelectionListeners = FXCollections.observableArrayList();
     initSelectionPane();
 
     if (onExtractPressed != null) {
-      final Button extractButton = FxButtons.createButton("Extract region(s)",
+      final Button extractButton = FxButtons.createButton("Extract to feature list",
           () -> onExtractPressed.accept(getFinishedRegionsAsListOfPointLists()));
       importExportControls.getChildren().add(extractButton);
     }
@@ -146,10 +148,10 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
   }
 
   private void initSelectionPane() {
-    final Button btnStartRegion = new Button("Start region");
-    final Button btnFinishRegion = new Button("Finish region");
-    final Button btnCancelRegion = new Button("Cancel region");
-    final Button btnClearRegions = new Button("Clear regions");
+    final Button btnStartRegion = new Button("Start");
+    final Button btnFinishRegion = new Button("Finish");
+    final Button btnCancelRegion = new Button("Cancel");
+    final Button btnClearRegions = new Button("Clear");
 
     btnStartRegion.setOnAction(e -> {
       node.startRegion();
