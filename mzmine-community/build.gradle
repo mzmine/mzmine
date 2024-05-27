@@ -491,7 +491,7 @@ task signApp(dependsOn: jpackage) {
 
 task notarizeApp(dependsOn: signApp) {
 
-    if (OperatingSystem.current().isMacOsX() && macSigning) {
+    if (OperatingSystem.current().isMacOsX() && macSigning && false) {
 
         doLast {
 
