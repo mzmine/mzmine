@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,8 +33,8 @@ import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.KendrickRegionExtractionModule;
-import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.KendrickRegionExtractionParameters;
+import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.RegionExtractionModule;
+import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.RegionExtractionParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -249,20 +249,20 @@ public class KendrickMassPlotAnchorPaneController {
 
   public void onExtractPressed(List<List<Point2D>> regionPointLists) {
     final ParameterSet param = ConfigService.getConfiguration()
-        .getModuleParameters(KendrickRegionExtractionModule.class);
+        .getModuleParameters(RegionExtractionModule.class);
 
     final ParameterSet kendrickParam = param.getEmbeddedParameterValue(
-        KendrickRegionExtractionParameters.kendrickParam);
+        RegionExtractionParameters.kendrickParam);
     ParameterUtils.copyParameters(parameters,
         kendrickParam); // use the settings used for this plot.
 
-    param.setParameter(KendrickRegionExtractionParameters.xAxisDivisor, xAxisDivisor);
-    param.setParameter(KendrickRegionExtractionParameters.xAxisCharge, xAxisCharge);
-    param.setParameter(KendrickRegionExtractionParameters.yAxisCharge, yAxisCharge);
-    param.setParameter(KendrickRegionExtractionParameters.yAxisDivisor, yAxisDivisor);
-    param.setParameter(KendrickRegionExtractionParameters.regions, regionPointLists);
+    param.setParameter(RegionExtractionParameters.xAxisDivisor, xAxisDivisor);
+    param.setParameter(RegionExtractionParameters.xAxisCharge, xAxisCharge);
+    param.setParameter(RegionExtractionParameters.yAxisCharge, yAxisCharge);
+    param.setParameter(RegionExtractionParameters.yAxisDivisor, yAxisDivisor);
+    param.setParameter(RegionExtractionParameters.regions, regionPointLists);
 
-    MZmineCore.setupAndRunModule(KendrickRegionExtractionModule.class);
+    MZmineCore.setupAndRunModule(RegionExtractionModule.class);
   }
 
   private void setArrowIcon(Button button, FontAwesomeIcon icon) {

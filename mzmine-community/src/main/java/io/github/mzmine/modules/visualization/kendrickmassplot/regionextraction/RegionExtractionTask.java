@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004-2024 The MZmine Development Team
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -17,7 +42,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.IntStream;
 
-public class KendrickRegionExtractionTask extends AbstractTask {
+public class RegionExtractionTask extends AbstractTask {
 
   private final ParameterSet kendrickParameters;
   private final List<Path2D> regions;
@@ -29,19 +54,19 @@ public class KendrickRegionExtractionTask extends AbstractTask {
   private final Integer yAxisDivisor;
   private String suffix;
 
-  public KendrickRegionExtractionTask(ParameterSet parameters, MZmineProject project,
+  public RegionExtractionTask(ParameterSet parameters, MZmineProject project,
       Instant moduleCallDate) {
     super(moduleCallDate, "Extract regions from regions");
 
     kendrickParameters = parameters.getEmbeddedParameterValue(
-        KendrickRegionExtractionParameters.kendrickParam);
-    regions = parameters.getValue(KendrickRegionExtractionParameters.regions).stream()
+        RegionExtractionParameters.kendrickParam);
+    regions = parameters.getValue(RegionExtractionParameters.regions).stream()
         .map(RegionSelectionListener::getShape).toList();
-    xAxisCharge = parameters.getValue(KendrickRegionExtractionParameters.xAxisCharge);
-    yAxisCharge = parameters.getValue(KendrickRegionExtractionParameters.yAxisCharge);
-    xAxisDivisior = parameters.getValue(KendrickRegionExtractionParameters.xAxisDivisor);
-    yAxisDivisor = parameters.getValue(KendrickRegionExtractionParameters.yAxisDivisor);
-    suffix = parameters.getValue(KendrickRegionExtractionParameters.suffix);
+    xAxisCharge = parameters.getValue(RegionExtractionParameters.xAxisCharge);
+    yAxisCharge = parameters.getValue(RegionExtractionParameters.yAxisCharge);
+    xAxisDivisior = parameters.getValue(RegionExtractionParameters.xAxisDivisor);
+    yAxisDivisor = parameters.getValue(RegionExtractionParameters.yAxisDivisor);
+    suffix = parameters.getValue(RegionExtractionParameters.suffix);
     this.parameters = parameters;
     this.project = project;
   }
@@ -86,7 +111,7 @@ public class KendrickRegionExtractionTask extends AbstractTask {
         addAll(flist.getAppliedMethods());
     filtered.addDescriptionOfAppliedTask(new
 
-        SimpleFeatureListAppliedMethod(KendrickRegionExtractionModule.class, parameters,
+        SimpleFeatureListAppliedMethod(RegionExtractionModule.class, parameters,
         getModuleCallDate()));
 
     if (!isCanceled()) {
