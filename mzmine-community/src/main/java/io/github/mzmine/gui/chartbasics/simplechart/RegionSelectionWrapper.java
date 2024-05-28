@@ -25,16 +25,20 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
+import static io.github.mzmine.javafx.components.factories.FxButtons.createButton;
+import static io.github.mzmine.javafx.components.factories.FxButtons.createCancelButton;
+import static io.github.mzmine.javafx.components.factories.FxButtons.createLoadButton;
+import static io.github.mzmine.javafx.components.factories.FxButtons.createSaveButton;
 import static io.github.mzmine.javafx.components.util.FxLayout.newAccordion;
 import static io.github.mzmine.javafx.components.util.FxLayout.newFlowPane;
 import static io.github.mzmine.javafx.components.util.FxLayout.newTitledPane;
-import static io.github.mzmine.javafx.components.util.FxLayout.newVBox;
 
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.RegionsParameter;
 import io.github.mzmine.util.XMLUtils;
@@ -49,15 +53,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javax.validation.constraints.NotNull;
@@ -90,13 +95,12 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
 
   private static final String REGION_FILE_EXTENSION = "*.mzmineregionxml";
 
-  final GridPane selectionControls;
-  final FlowPane importExportControls;
   private final T node;
-  private final ObservableList<RegionSelectionListener> finishedRegionSelectionListeners;
+  private final ObservableList<RegionSelectionListener> finishedRegionSelectionListeners = FXCollections.observableArrayList();
   private final Stroke roiStroke = new BasicStroke(1f);
   private final Paint roiPaint = MZmineCore.getConfiguration().getDefaultColorPalette()
       .getNegativeColorAWT();
+  private FlowPane controlPane;
 
   public RegionSelectionWrapper(@NotNull final T node) {
     this(node, null);
@@ -108,28 +112,23 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
   public RegionSelectionWrapper(T node, Consumer<List<List<Point2D>>> onExtractPressed) {
     this.node = node;
     setCenter(node);
-    selectionControls = new GridPane();
-    importExportControls = newFlowPane(Pos.TOP_CENTER);
 
-    final Button btnSaveToFile = new Button("Save");
-    btnSaveToFile.setOnAction(e -> saveRegionsToFile());
-    final Button btnLoadFromFile = new Button("Load");
-    btnLoadFromFile.setOnAction(e -> loadRegionsFromFile());
+    final Button btnSaveToFile = createSaveButton(this::saveRegionsToFile);
+    final Button btnLoadFromFile = createLoadButton(this::loadRegionsFromFile);
+    var regionDrawingButtons = createSelectionButtons();
 
-    importExportControls.getChildren().addAll(btnSaveToFile, btnLoadFromFile);
+    controlPane = newFlowPane(Pos.TOP_CENTER);
+    controlPane.getChildren()
+        .addAll(btnSaveToFile, btnLoadFromFile, new Separator(Orientation.VERTICAL));
+    controlPane.getChildren().addAll(regionDrawingButtons);
 
-    VBox bottomWrap = newVBox(Pos.TOP_CENTER);
-    bottomWrap.getChildren().addAll(selectionControls, importExportControls);
     setBottom(
-        newAccordion(false, newTitledPane("Regions of interest (ROI) selection", bottomWrap)));
-
-    finishedRegionSelectionListeners = FXCollections.observableArrayList();
-    initSelectionPane();
+        newAccordion(false, newTitledPane("Regions of interest (ROI) selection", controlPane)));
 
     if (onExtractPressed != null) {
-      final Button extractButton = FxButtons.createButton("Extract to feature list",
-          () -> onExtractPressed.accept(getFinishedRegionsAsListOfPointLists()));
-      importExportControls.getChildren().add(extractButton);
+      final Button extractButton = FxButtons.createButton("Extract to feature list", FxIcons.FILTER,
+          null, () -> onExtractPressed.accept(getFinishedRegionsAsListOfPointLists()));
+      controlPane.getChildren().add(extractButton);
     }
   }
 
@@ -147,39 +146,35 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
         .collect(Collectors.toList());
   }
 
-  private void initSelectionPane() {
-    final Button btnStartRegion = new Button("Start");
-    final Button btnFinishRegion = new Button("Finish");
-    final Button btnCancelRegion = new Button("Cancel");
-    final Button btnClearRegions = new Button("Clear");
-
-    btnStartRegion.setOnAction(e -> {
-      node.startRegion();
-      btnFinishRegion.setDisable(false);
-    });
-
-    btnFinishRegion.setOnAction(e -> {
+  private List<Button> createSelectionButtons() {
+    final SimpleBooleanProperty disableFinish = new SimpleBooleanProperty(true);
+    final Button btnFinishRegion = createButton("Finish", FxIcons.CHECK_CIRCLE, null, () -> {
       RegionSelectionListener selection = node.finishPath();
       if (selection.buildingPointsProperty().getSize() > 3) {
         finishedRegionSelectionListeners.add(selection);
       }
-      btnFinishRegion.setDisable(true);
+      disableFinish.set(true);
     });
-    btnFinishRegion.setDisable(true);
+    btnFinishRegion.disableProperty().bind(disableFinish);
 
-    btnCancelRegion.setOnAction(e -> {
+    final Button btnStartRegion = createButton("Start", FxIcons.START, null, () -> {
+      node.startRegion();
+      disableFinish.set(false);
+    });
+
+    final Button btnCancelRegion = createCancelButton(() -> {
       node.finishPath();
-      btnFinishRegion.setDisable(true);
+      disableFinish.set(true);
     });
 
-    btnClearRegions.setDisable(true);
-    btnClearRegions.setOnAction(e -> {
+    final Button btnClearRegions = createButton("Clear", FxIcons.CLEAR, null, () -> {
       final List<XYAnnotation> annotations = node.getChart().getXYPlot().getAnnotations();
       new ArrayList<>(annotations).forEach(
           a -> node.getChart().getXYPlot().removeAnnotation(a, true));
       finishedRegionSelectionListeners.clear();
-      btnFinishRegion.setDisable(true);
+      disableFinish.set(true);
     });
+    btnClearRegions.setDisable(true);
 
     finishedRegionSelectionListeners.addListener(
         (ListChangeListener<RegionSelectionListener>) c -> {
@@ -196,17 +191,11 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
           }
         });
 
-    selectionControls.add(btnStartRegion, 0, 0);
-    selectionControls.add(btnFinishRegion, 1, 0);
-    selectionControls.add(btnCancelRegion, 2, 0);
-    selectionControls.add(btnClearRegions, 3, 0);
-    selectionControls.setHgap(5);
-    selectionControls.getStyleClass().add(".region-match-chart-bg");
-    selectionControls.setAlignment(Pos.TOP_CENTER);
+    return List.of(btnStartRegion, btnFinishRegion, btnCancelRegion, btnClearRegions);
   }
 
-  public GridPane getSelectionControls() {
-    return selectionControls;
+  public FlowPane getControlPane() {
+    return controlPane;
   }
 
   private void loadRegionsFromFile() {
