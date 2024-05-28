@@ -39,7 +39,7 @@ public enum FxIcons implements IconCodeSupplier {
   USER, DOCUMENTATION, BUG, WEBSITE, GEAR_PREFERENCES, RELOAD, YOUTUBE, DEVELOPMENT, BOOK, ROCKET,
 
   // ACTIONS
-  SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP;
+  SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION;
 
 
   @Override
@@ -70,6 +70,7 @@ public enum FxIcons implements IconCodeSupplier {
       case CLEAR -> "bi-dash-circle-dotted";
       case START -> "bi-play-circle";
       case STOP -> "bi-stop-circle";
+      case DRAW_REGION -> "bi-bounding-box";
     };
   }
 }

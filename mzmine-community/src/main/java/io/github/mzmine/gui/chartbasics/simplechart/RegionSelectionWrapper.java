@@ -157,7 +157,7 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
     });
     btnFinishRegion.disableProperty().bind(disableFinish);
 
-    final Button btnStartRegion = createButton("Start", FxIcons.START, null, () -> {
+    final Button btnStartRegion = createButton("Start", FxIcons.DRAW_REGION, null, () -> {
       node.startRegion();
       disableFinish.set(false);
     });
