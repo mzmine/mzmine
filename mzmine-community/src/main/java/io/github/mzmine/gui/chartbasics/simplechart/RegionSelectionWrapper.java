@@ -52,6 +52,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -93,7 +95,8 @@ import org.xml.sax.SAXException;
 public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelection> extends
     BorderPane {
 
-  private static final String REGION_FILE_EXTENSION = "*.mzmineregionxml";
+  private static final Logger logger = Logger.getLogger(RegionSelectionWrapper.class.getName());
+  public static final String REGION_FILE_EXTENSION = "*.mzmineregionxml";
 
   private final T node;
   private final ObservableList<RegionSelectionListener> finishedRegionSelectionListeners = FXCollections.observableArrayList();
@@ -202,36 +205,46 @@ public class RegionSelectionWrapper<T extends EChartViewer & AllowsRegionSelecti
     FxThread.runLater(() -> {
       final FileChooser chooser = new FileChooser();
       chooser.getExtensionFilters()
-          .add(new ExtensionFilter("MZmine regions file", REGION_FILE_EXTENSION));
+          .add(new ExtensionFilter("mzmine regions file", REGION_FILE_EXTENSION));
       final File file = chooser.showOpenDialog(MZmineCore.getDesktop().getMainWindow());
-      if (file == null) {
-        return;
-      }
-      try {
-        final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        final DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        final Document regionsFile = dBuilder.parse(file);
-        final XPathFactory factory = XPathFactory.newInstance();
-        final XPath xpath = factory.newXPath();
+      var regions = loadRegionsFromFile(file);
 
-        final XPathExpression expr = xpath.compile("//root");
-        final NodeList nodes = (NodeList) expr.evaluate(regionsFile, XPathConstants.NODESET);
-
-        for (int i = 0; i < nodes.getLength(); i++) {
-          final RegionsParameter param = new RegionsParameter("regions", "User defined regions");
-          param.loadValueFromXML((Element) nodes.item(i));
-
-          for (List<Point2D> point2DS : param.getValue()) {
-            final RegionSelectionListener l = new RegionSelectionListener(node);
-            l.buildingPointsProperty().setValue(FXCollections.observableArrayList(point2DS));
-            finishedRegionSelectionListeners.add(l);
-          }
-        }
-      } catch (ParserConfigurationException | IOException | SAXException |
-               XPathExpressionException e) {
-        e.printStackTrace();
+      for (List<Point2D> point2DS : regions) {
+        final RegionSelectionListener l = new RegionSelectionListener(node);
+        l.buildingPointsProperty().setValue(FXCollections.observableArrayList(point2DS));
+        finishedRegionSelectionListeners.add(l);
       }
     });
+  }
+
+  @NotNull
+  public static List<List<Point2D>> loadRegionsFromFile(File file) {
+    if (file == null || !file.exists() || !file.canRead()) {
+      return List.of();
+    }
+    List<List<Point2D>> regions = new ArrayList<>();
+
+    try {
+      final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+      final DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+      final Document regionsFile = dBuilder.parse(file);
+      final XPathFactory factory = XPathFactory.newInstance();
+      final XPath xpath = factory.newXPath();
+
+      final XPathExpression expr = xpath.compile("//root");
+      final NodeList nodes = (NodeList) expr.evaluate(regionsFile, XPathConstants.NODESET);
+
+      for (int i = 0; i < nodes.getLength(); i++) {
+        final RegionsParameter param = new RegionsParameter("regions", "User defined regions");
+        param.loadValueFromXML((Element) nodes.item(i));
+
+        regions.addAll(param.getValue());
+      }
+    } catch (ParserConfigurationException | IOException | SAXException |
+             XPathExpressionException e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+    }
+    return regions;
   }
 
   private void saveRegionsToFile() {
