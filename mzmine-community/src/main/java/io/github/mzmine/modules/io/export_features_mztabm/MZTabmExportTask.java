@@ -52,8 +52,6 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
-import io.github.mzmine.main.MZmineConfiguration;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.molecular_species.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.lipids.LipidAnnotationLevel;
@@ -102,7 +100,11 @@ public class MZTabmExportTask extends AbstractTask {
   private SmallMoleculeSummary sm;
   private SmallMoleculeFeature smf;
   private List<GlobalOptColumnMappingBuilder> globalOptColumns;
+  List<IOptColumnMappingBuilder> feature_mzList;
+  List<IOptColumnMappingBuilder> feature_rtList;
+  List<IOptColumnMappingBuilder> feature_heightList;
   private int columnCount;
+  private NumberFormat formatter;
 
 
   MZTabmExportTask(MZmineProject project, FeatureList featureList, ParameterSet parameters,
@@ -170,9 +172,9 @@ public class MZTabmExportTask extends AbstractTask {
     mtd.addCvItem(new CV().id(2).label("MS")
         .fullName("PRIDE PRoteomics IDEntifications (PRIDE) database controlled vocabulary")
         .version("17.11.2022").uri("http://purl.obolibrary.org/obo/pride_cv.obo"));
-    mtd.addDatabaseItem(
-        new Database().id(1).prefix("mzmdb").version(SemverVersionReader.getMZmineVersion().toString())
-            .uri("https://mzmine.github.io/").param(new Parameter().name("MZmine database")));
+    mtd.addDatabaseItem(new Database().id(1).prefix("mzmdb")
+        .version(SemverVersionReader.getMZmineVersion().toString()).uri("https://mzmine.github.io/")
+        .param(new Parameter().name("MZmine database")));
     return mtd;
   }
 
@@ -196,25 +198,19 @@ public class MZTabmExportTask extends AbstractTask {
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
     //Optional Columns
-    List<IOptColumnMappingBuilder> feature_mzList = new ArrayList<>();
-    List<IOptColumnMappingBuilder> feature_rtList = new ArrayList<>();
-    List<IOptColumnMappingBuilder> feature_heightList = new ArrayList<>();
+    feature_mzList = new ArrayList<>();
+    feature_rtList = new ArrayList<>();
+    feature_heightList = new ArrayList<>();
 
     File curFile = fileName;
 
     try {
       //Filename cleanup
-      if (substitute) {
-        // Cleanup from illegal filename characters
-        //not small alphabets, large alphabets, numbers, dots or dashes
-        String newFilename = generateNewFilename(featureList);
-        curFile = new File(newFilename);
-      }
+      cleanupFilename(curFile, substitute);
 
       MzTab mzTabFile = new MzTab();
 
       //Set up US decimal number formatting
-      NumberFormat formatter;
       formatter = new DecimalFormat("#.######");
 
       //Metadata
@@ -268,13 +264,7 @@ public class MZTabmExportTask extends AbstractTask {
         smf = new SmallMoleculeFeature();
         smf.setSmfId(i + 1);
         SmallMoleculeEvidence sme = new SmallMoleculeEvidence();
-        sme.setSmeId(i + 1);
-
-        sme.setMsLevel(new Parameter().cvLabel("MS").cvAccession("MS:1000511").name("ms level")
-            .value(String.valueOf(
-                featureListRow.getBestFeature().getRepresentativeScan().getMSLevel())));
-        sme.setEvidenceInputId(String.valueOf(i + 1));
-        sme.setRank(1);
+        setSMEparameters(sme, i, featureListRow);
 
         final Collection<DataType> dataTypes = featureListRow.getTypes();
 
@@ -305,24 +295,7 @@ public class MZTabmExportTask extends AbstractTask {
             exportAnnotations(type, featureAnnotationList, sme, annotationType);
           }
 
-          Double rowMZ = featureListRow.getAverageMZ();
-          Float rowRT = featureListRow.getAverageRT();
-          Range<Float> rowRTRange = featureListRow.get(RTRangeType.class);
-          Integer rowCharge = featureListRow.getRowCharge().intValue();
-
-          if (rowMZ != null) {
-            smf.setExpMassToCharge(rowMZ.doubleValue());
-            sme.setExpMassToCharge(rowMZ.doubleValue());
-          }
-          if (rowRT != null) {
-            smf.setRetentionTimeInSeconds(rowRT.doubleValue() * 60f);
-          }
-          if (rowRTRange != null) {
-            smf.setRetentionTimeInSecondsStart(rowRTRange.lowerEndpoint().doubleValue() * 60f);
-            smf.setRetentionTimeInSecondsEnd(rowRTRange.upperEndpoint().doubleValue() * 60f);
-          }
-
-          assignMissingMandatoryFields(sme);
+          assignMandatoryFields(sme, featureListRow);
 
           int dataFileCount = 0;
           HashMap<String, List<Double>> sampleVariableAbundancehash = new HashMap<>();
@@ -330,51 +303,9 @@ public class MZTabmExportTask extends AbstractTask {
             dataFileCount++;
             Feature feature = featureListRow.getFeature(dataFile);
             if (feature != null) {
-              //Spectra ref
-              //modify if better alternative representation of spectra ref is suggested
-              List<SpectraRef> sr = generateSpectraRef(feature, rawDataFileToAssay);
-              sme.setSpectraRef(sr);
-
-              String featureMZ = formatter.format(feature.getMZ());
-              String featureRT = formatter.format(feature.getRT() * 60f);
-              String featureHeight = formatter.format(feature.getHeight());
-              Double featureArea = feature.getArea().doubleValue();
-
-              sm.addOptItem(feature_mzList.get(dataFileCount - 1).build(featureMZ));
-              sm.addOptItem(feature_rtList.get(dataFileCount - 1).build(featureRT));
-              sm.addOptItem(feature_heightList.get(dataFileCount - 1)
-                  .build(featureHeight.formatted(formatter)));
-
-              Integer featureCharge = feature.getCharge();
-              if (smf.getCharge() == null) {
-                if (featureCharge != 0) {
-                  smf.setCharge(featureCharge);
-                } else {
-                  smf.setCharge(DEFAULT_INTEGER_VALUE);
-                  if (sme.getCharge() == null) {
-                    sme.setCharge(DEFAULT_INTEGER_VALUE);
-                  }
-                }
-              }
-
-              sm.addAbundanceAssayItem(featureArea.doubleValue());
-              smf.addAbundanceAssayItem(featureArea.doubleValue());
-              for (String sampleVariable : svhash.keySet()) {
-                if (svhash.get(sampleVariable).contains(dataFile)) {
-                  if (sampleVariableAbundancehash.containsKey(sampleVariable)) {
-                    sampleVariableAbundancehash.get(sampleVariable).add(featureArea);
-                  } else {
-                    List<Double> l = new ArrayList<>();
-                    l.add(featureArea);
-                    sampleVariableAbundancehash.put(sampleVariable, l);
-                  }
-                }
-              }
+              extractRawFileFeatureData(dataFile, feature, sme, rawDataFileToAssay, svhash,
+                  sampleVariableAbundancehash, dataFileCount);
             }
-          }
-          if (rowCharge > 0) {
-            smf.setCharge(rowCharge);
-            sme.setCharge(rowCharge);
           }
           if (!sampleVariableAbundancehash.keySet().isEmpty()) {
             for (String studyVariable : sampleVariableAbundancehash.keySet()) {
@@ -448,6 +379,86 @@ public class MZTabmExportTask extends AbstractTask {
     }
   }
 
+  private void extractRawFileFeatureData(RawDataFile dataFile, Feature feature,
+      SmallMoleculeEvidence sme, HashMap<RawDataFile, Assay> rawDataFileToAssay,
+      HashMap<String, List<RawDataFile>> svhash,
+      HashMap<String, List<Double>> sampleVariableAbundancehash, int dataFileCount) {
+    //Spectra ref
+    //modify if better alternative representation of spectra ref is suggested
+    List<SpectraRef> sr = generateSpectraRef(feature, rawDataFileToAssay);
+    sme.setSpectraRef(sr);
+
+    String featureMZ = formatter.format(feature.getMZ());
+    String featureRT = formatter.format(feature.getRT() * 60f);
+    String featureHeight = formatter.format(feature.getHeight());
+    Double featureArea = feature.getArea().doubleValue();
+
+    sm.addOptItem(feature_mzList.get(dataFileCount - 1).build(featureMZ));
+    sm.addOptItem(feature_rtList.get(dataFileCount - 1).build(featureRT));
+    sm.addOptItem(
+        feature_heightList.get(dataFileCount - 1).build(featureHeight.formatted(formatter)));
+
+    Integer featureCharge = feature.getCharge();
+    if (smf.getCharge() == null) {
+      if (featureCharge != 0) {
+        smf.setCharge(featureCharge);
+      } else {
+        smf.setCharge(DEFAULT_INTEGER_VALUE);
+        if (sme.getCharge() == null) {
+          sme.setCharge(DEFAULT_INTEGER_VALUE);
+        }
+      }
+    }
+
+    sm.addAbundanceAssayItem(featureArea.doubleValue());
+    smf.addAbundanceAssayItem(featureArea.doubleValue());
+    for (String sampleVariable : svhash.keySet()) {
+      if (svhash.get(sampleVariable).contains(dataFile)) {
+        if (sampleVariableAbundancehash.containsKey(sampleVariable)) {
+          sampleVariableAbundancehash.get(sampleVariable).add(featureArea);
+        } else {
+          List<Double> l = new ArrayList<>();
+          l.add(featureArea);
+          sampleVariableAbundancehash.put(sampleVariable, l);
+        }
+      }
+    }
+  }
+
+  private void assignMandatoryFields(SmallMoleculeEvidence sme, FeatureListRow featureListRow) {
+    Double rowMZ = featureListRow.getAverageMZ();
+    Float rowRT = featureListRow.getAverageRT();
+    Range<Float> rowRTRange = featureListRow.get(RTRangeType.class);
+    Integer rowCharge = featureListRow.getRowCharge().intValue();
+
+    if (rowMZ != null) {
+      smf.setExpMassToCharge(rowMZ.doubleValue());
+      sme.setExpMassToCharge(rowMZ.doubleValue());
+    }
+    if (rowRT != null) {
+      smf.setRetentionTimeInSeconds(rowRT.doubleValue() * 60f);
+    }
+    if (rowRTRange != null) {
+      smf.setRetentionTimeInSecondsStart(rowRTRange.lowerEndpoint().doubleValue() * 60f);
+      smf.setRetentionTimeInSecondsEnd(rowRTRange.upperEndpoint().doubleValue() * 60f);
+    }
+    if (rowCharge > 0) {
+      smf.setCharge(rowCharge);
+      sme.setCharge(rowCharge);
+    }
+    assignMissingMandatoryFields(sme);
+  }
+
+  private static void setSMEparameters(SmallMoleculeEvidence sme, int i,
+      FeatureListRow featureListRow) {
+    sme.setSmeId(i + 1);
+
+    sme.setMsLevel(new Parameter().cvLabel("MS").cvAccession("MS:1000511").name("ms level").value(
+        String.valueOf(featureListRow.getBestFeature().getRepresentativeScan().getMSLevel())));
+    sme.setEvidenceInputId(String.valueOf(i + 1));
+    sme.setRank(1);
+  }
+
   private void assignMissingMandatoryFields(SmallMoleculeEvidence sme) {
     if (sme.getIdentificationMethod() == null) {
       Parameter identificationMethod = new Parameter();
@@ -502,6 +513,16 @@ public class MZTabmExportTask extends AbstractTask {
     }
   }
 
+  private File cleanupFilename(File file, boolean substitute) {
+    if (substitute) {
+      // Cleanup from illegal filename characters
+      //not small alphabets, large alphabets, numbers, dots or dashes
+      String newFilename = generateNewFilename(featureList);
+      file = new File(newFilename);
+    }
+    return file;
+  }
+
   private void modifyReliabilityForLipidMatch(Object mappedVal) {
     if (mappedVal instanceof MatchedLipid) {
       MatchedLipid mappedLipid = (MatchedLipid) mappedVal;
@@ -532,7 +553,7 @@ public class MZTabmExportTask extends AbstractTask {
     } else {
       returnValue = subtypeValue;
     }
-    switch(returnValue) {
+    switch (returnValue) {
       case "mol_formula":
         sme.setChemicalFormula(returnValue);
       case "adduct":
