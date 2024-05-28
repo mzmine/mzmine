@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +47,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
@@ -56,6 +58,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.IndexedCheckModel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
@@ -77,25 +80,17 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
   /**
    * Create the component.
    *
-   * @param choices the adduct choices.
-   */
-  public MultiChoiceComponent(List<T> choices, List<T> defaultChoices, Supplier<T> addChoiceParam,
-      StringMapParser<T> parser) {
-    this(choices, defaultChoices, addChoiceParam, parser, true, true, true, true, true, true);
-  }
-
-  /**
-   * Create the component.
-   *
    * @param choices        the adduct choices.
    * @param addChoiceParam usually a ParameterSet as ObjectGenerator to add new choices
+   * @param comparator     sorter
    */
   public MultiChoiceComponent(List<T> choices, List<T> defaultChoices, Supplier<T> addChoiceParam,
       StringMapParser<T> parser, boolean btnToggleSelect, boolean btnClear, boolean btnAdd,
-      boolean btnImport, boolean btnExport, boolean btnDefault) {
+      boolean btnImport, boolean btnExport, boolean btnDefault,
+      @NotNull final Comparator<T> comparator) {
     this.parser = parser;
 
-    setChoices(choices);
+    adductsView.setItems(new SortedList<>(FXCollections.observableArrayList(choices), comparator));
 
     buttonBar.setSpacing(10.0);
     Button importButton = new Button("Import...");
