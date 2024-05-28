@@ -52,8 +52,9 @@ import org.jetbrains.annotations.Nullable;
 public class IonModification extends NeutralMolecule implements Comparable<IonModification>,
     StringMapParser<IonModification> {
 
-  public static Comparator<IonModification> POLARITY_MASS_SORTER = Comparator.comparingInt(
-      IonModification::getCharge).reversed().thenComparing(NeutralMolecule::getMass);
+  public static Comparator<IonModification> POLARITY_MASS_SORTER = Comparator.comparing(
+          IonModification::getPolarity).thenComparingInt(IonModification::getAbsCharge)
+      .thenComparing(NeutralMolecule::getMass);
 
   // use combinations of X adducts (2H++; -H+Na2+) and modifications
   public static final IonModification M_MINUS = new IonModification(IonModificationType.ADDUCT, "e",
