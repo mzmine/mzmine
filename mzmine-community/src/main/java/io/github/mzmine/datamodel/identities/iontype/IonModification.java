@@ -52,6 +52,10 @@ import org.jetbrains.annotations.Nullable;
 public class IonModification extends NeutralMolecule implements Comparable<IonModification>,
     StringMapParser<IonModification> {
 
+  public static Comparator<IonModification> POLARITY_MASS_SORTER = Comparator.comparing(
+          IonModification::getPolarity).thenComparingInt(IonModification::getAbsCharge)
+      .thenComparing(NeutralMolecule::getMass);
+
   // use combinations of X adducts (2H++; -H+Na2+) and modifications
   public static final IonModification M_MINUS = new IonModification(IonModificationType.ADDUCT, "e",
       +0.00054858, -1);
@@ -315,8 +319,8 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
         .flatMap(Arrays::stream).filter(m -> {
           String sign = m.getAddRemovePartSign();
           return part.equals(sign + m.getName()) || part.equals(sign + m.getMolFormula()) ||
-              // positive part can also be without sign
-              (sign.equals("+") && (part.equals(m.getName()) || part.equals(m.getMolFormula())));
+                 // positive part can also be without sign
+                 (sign.equals("+") && (part.equals(m.getName()) || part.equals(m.getMolFormula())));
         }).findFirst().orElseGet(() -> {
           // if formula fails - cannot know the charge and massDiff - so just default to zero
           // parser will add charges later

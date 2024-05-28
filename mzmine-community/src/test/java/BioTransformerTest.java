@@ -23,6 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
@@ -85,8 +86,9 @@ class BioTransformerTest {
     final URL resource = BioTransformerTest.class.getClassLoader()
         .getResource("biotransformer/transformation.csv");
     final File file = new File(resource.getFile());
-    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1, true, 1,
-        new IonModification[]{IonModification.H}, new IonModification[]{});
+    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1,
+        PolarityType.POSITIVE, 1, new IonModification[]{IonModification.H},
+        new IonModification[]{});
     final List<CompoundDBAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(file,
         library);
 
@@ -114,8 +116,9 @@ class BioTransformerTest {
     final URL resource = BioTransformerTest.class.getClassLoader()
         .getResource("biotransformer/transformation_header_only.csv");
     final File file = new File(resource.getFile());
-    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1, true, 1,
-        new IonModification[]{IonModification.H}, new IonModification[]{});
+    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1,
+        PolarityType.POSITIVE, 1, new IonModification[]{IonModification.H},
+        new IonModification[]{});
     final List<CompoundDBAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(file,
         library);
 
@@ -127,8 +130,9 @@ class BioTransformerTest {
     final URL resource = BioTransformerTest.class.getClassLoader()
         .getResource("biotransformer/transformation_empty.csv");
     final File file = new File(resource.getFile());
-    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1, true, 1,
-        new IonModification[]{IonModification.H}, new IonModification[]{});
+    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1,
+        PolarityType.POSITIVE, 1, new IonModification[]{IonModification.H},
+        new IonModification[]{});
     final List<CompoundDBAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(file,
         library);
 
@@ -139,8 +143,9 @@ class BioTransformerTest {
   void praseLibraryThatDoesNotExist() throws IOException {
     final File file = new File("biotransformer/transformation_thisfiledoesnotexist.csv");
     assert !file.exists();
-    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1, true, 1,
-        new IonModification[]{IonModification.H}, new IonModification[]{});
+    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1,
+        PolarityType.POSITIVE, 1, new IonModification[]{IonModification.H},
+        new IonModification[]{});
     final List<CompoundDBAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(file,
         library);
 
@@ -153,7 +158,8 @@ class BioTransformerTest {
     final File outputFile = new File("valsartan-transformation2.csv");
     outputFile.deleteOnExit();
     final File biotransformer = new File(
-        BioTransformerTest.class.getResource("biotransformer/jar/BioTransformer3.0_20230525.jar").getFile());
+        BioTransformerTest.class.getResource("biotransformer/jar/BioTransformer3.0_20230525.jar")
+            .getFile());
 
     List<String> expectedCmd = new ArrayList<>(
         List.of("java", "-jar", biotransformer.getName(), "-k", "pred", "-b", "env", "-s", "1",
@@ -172,8 +178,9 @@ class BioTransformerTest {
     Assertions.assertTrue(
         BioTransformerUtil.runCommandAndWait(biotransformer.getParentFile(), cmdLine));
 
-    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1, true, 1,
-        new IonModification[]{IonModification.H}, new IonModification[]{});
+    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1,
+        PolarityType.POSITIVE, 1, new IonModification[]{IonModification.H},
+        new IonModification[]{});
     final List<CompoundDBAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(
         outputFile, library);
 
