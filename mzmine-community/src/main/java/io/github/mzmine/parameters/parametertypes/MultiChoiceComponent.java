@@ -76,6 +76,7 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
   private final VBox buttonBar = new VBox();
   private final StringMapParser<T> parser;
   private final String separator = ";";
+  private final ObservableList<T> currentChoices;
 
   /**
    * Create the component.
@@ -90,7 +91,8 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
       @NotNull final Comparator<T> comparator) {
     this.parser = parser;
 
-    adductsView.setItems(new SortedList<>(FXCollections.observableArrayList(choices), comparator));
+    currentChoices = FXCollections.observableArrayList(choices);
+    adductsView.setItems(new SortedList<>(currentChoices, comparator));
 
     buttonBar.setSpacing(10.0);
     Button importButton = new Button("Import...");
@@ -124,12 +126,12 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
     setRight(buttonBar);
 
     clearButton.setTooltip(new Tooltip("Remove all items"));
-    clearButton.setOnAction(e -> adductsView.getItems().clear());
+    clearButton.setOnAction(e -> currentChoices.clear());
 
     toggleSelectButton.setTooltip(new Tooltip("Toggle selection"));
     toggleSelectButton.setOnAction(e -> {
       final IndexedCheckModel<T> model = adductsView.getCheckModel();
-      final ObservableList<T> items = adductsView.getItems();
+      final ObservableList<T> items = currentChoices;
       if (items.size() > 0) {
         boolean newState = !model.isChecked(items.get(0));
         model.clearChecks();
@@ -151,7 +153,6 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
         if (parameters.showSetupDialog(true) == ExitCode.OK) {
           // Add to list of choices (if not already present).
           T choice = addChoiceParam.get();
-          final Collection<T> currentChoices = adductsView.getItems();
           if (!currentChoices.contains(choice)) {
             currentChoices.add(choice);
           }
@@ -159,7 +160,6 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
       } else {
         try {
           T choice = addChoiceParam.get();
-          final Collection<T> currentChoices = adductsView.getItems();
           if (!currentChoices.contains(choice)) {
             currentChoices.add(choice);
           }
@@ -198,7 +198,7 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
       }
 
       // Load adducts from CSV data into parent choices.
-      loadChoices(csvLines, adductsView.getItems());
+      loadChoices(csvLines, currentChoices);
     });
 
     exportButton.setTooltip(new Tooltip("Export custom adducts to a CSV file"));
@@ -215,7 +215,7 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
 
       // Export the adducts.
       try {
-        exportToFile(file, adductsView.getItems());
+        exportToFile(file, currentChoices);
       } catch (IOException ex) {
         final String msg = "There was a problem writing the choices file.";
         MZmineCore.getDesktop().displayErrorMessage(msg + "\n(" + ex.getMessage() + ')');
@@ -232,18 +232,16 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
   }
 
   public List<T> getChoices() {
-    return new ArrayList<>(adductsView.getItems());
+    return new ArrayList<>(currentChoices);
   }
 
   public void setChoices(List<T> choices) {
-    adductsView.getItems().clear();
-    adductsView.getItems().addAll(choices);
+    currentChoices.setAll(choices);
   }
 
   @SafeVarargs
   public final void setChoices(T... choices) {
-    adductsView.getItems().clear();
-    adductsView.getItems().addAll(choices);
+    currentChoices.setAll(choices);
   }
 
   public List<T> getValue() {
