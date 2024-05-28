@@ -35,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParamet
 public class RegionExtractionParameters extends SimpleParameterSet {
 
   public static final ParameterSetParameter<KendrickMassPlotParameters> kendrickParam = new ParameterSetParameter<>(
-      "Configure (kendrick) plot creation",
+      "Configure plot creation (Kendrick)",
       "Configure the generation of the dataset (e.g., the x and y values for the region extraction",
       (KendrickMassPlotParameters) new KendrickMassPlotParameters().cloneParameterSet());
 
