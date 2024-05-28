@@ -713,7 +713,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
       removeChartMouseListener(currentRegionListener);
     }
     currentRegionListener = new RegionSelectionListener(this);
-    currentRegionListener.buildingPathProperty().addListener(((observable, oldValue, newValue) -> {
+    currentRegionListener.pathProperty().addListener(((observable, oldValue, newValue) -> {
       if (currentRegionAnnotation != null) {
         getXYPlot().removeAnnotation(currentRegionAnnotation, false);
       }

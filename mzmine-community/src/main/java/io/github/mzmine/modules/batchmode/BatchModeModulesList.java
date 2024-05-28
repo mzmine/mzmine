@@ -167,6 +167,7 @@ import io.github.mzmine.modules.visualization.histogram.HistogramVisualizerModul
 import io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
+import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.RegionExtractionModule;
 import io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSummaryModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule;
@@ -308,6 +309,7 @@ public class BatchModeModulesList {
       MobilityMzRegionExtractionModule.class, //
       NeutralLossFilterModule.class, //
       PeakComparisonRowFilterModule.class, //
+      RegionExtractionModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_PROCESSING}

@@ -23,12 +23,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.visualization.kendrickmassplot;
+package io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.impl.AbstractProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -36,42 +35,21 @@ import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Kendrick mass plot module
- *
- * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
- */
-public class KendrickMassPlotModule implements MZmineRunnableModule {
+public class RegionExtractionModule extends AbstractProcessingModule {
 
-  private static final String MODULE_NAME = "4D feature plot (Kendrick)";
-  private static final String MODULE_DESCRIPTION = "4 dimensional feature plot, formerly Kendrick mass plot.";
-
-  @Override
-  public @NotNull String getName() {
-    return MODULE_NAME;
+  public RegionExtractionModule() {
+    super("4D region of interest (ROI) extraction", RegionExtractionParameters.class,
+        MZmineModuleCategory.FEATURELISTFILTERING,
+        "Extract a region from a multidimensional plot created using the 4D feature plot module.");
   }
 
   @Override
-  public @NotNull String getDescription() {
-    return MODULE_DESCRIPTION;
-  }
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Instant moduleCallDate) {
 
-  @Override
-  @NotNull
-  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    KendrickMassPlotTab newTab = new KendrickMassPlotTab(parameters);
-    MZmineCore.getDesktop().addTab(newTab);
+    tasks.add(new RegionExtractionTask(parameters, project, moduleCallDate));
+
     return ExitCode.OK;
-  }
-
-  @Override
-  public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.VISUALIZATIONFEATURELIST;
-  }
-
-  @Override
-  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return KendrickMassPlotParameters.class;
   }
 }
