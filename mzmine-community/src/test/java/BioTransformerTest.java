@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -110,12 +110,50 @@ class BioTransformerTest {
   }
 
   @Test
+  void parseHeaderOnlyLibraryTest() throws IOException {
+    final URL resource = BioTransformerTest.class.getClassLoader()
+        .getResource("biotransformer/transformation_header_only.csv");
+    final File file = new File(resource.getFile());
+    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1, true, 1,
+        new IonModification[]{IonModification.H}, new IonModification[]{});
+    final List<CompoundDBAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(file,
+        library);
+
+    Assertions.assertEquals(0, compoundDBAnnotations.size());
+  }
+
+  @Test
+  void parseEmptyLibraryTest() throws IOException {
+    final URL resource = BioTransformerTest.class.getClassLoader()
+        .getResource("biotransformer/transformation_empty.csv");
+    final File file = new File(resource.getFile());
+    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1, true, 1,
+        new IonModification[]{IonModification.H}, new IonModification[]{});
+    final List<CompoundDBAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(file,
+        library);
+
+    Assertions.assertEquals(0, compoundDBAnnotations.size());
+  }
+
+  @Test
+  void praseLibraryThatDoesNotExist() throws IOException {
+    final File file = new File("biotransformer/transformation_thisfiledoesnotexist.csv");
+    assert !file.exists();
+    final IonNetworkLibrary library = new IonNetworkLibrary(new MZTolerance(0.005, 10), 1, true, 1,
+        new IonModification[]{IonModification.H}, new IonModification[]{});
+    final List<CompoundDBAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(file,
+        library);
+
+    Assertions.assertEquals(0, compoundDBAnnotations.size());
+  }
+
+  @Test
   @Disabled("Cannot be run on github without uploading biotransformer jar.")
   void combinedTest() throws IOException {
     final File outputFile = new File("valsartan-transformation2.csv");
     outputFile.deleteOnExit();
     final File biotransformer = new File(
-        BioTransformerTest.class.getResource("biotransformer/BioTransformer3.0.jar").getFile());
+        BioTransformerTest.class.getResource("biotransformer/jar/BioTransformer3.0_20230525.jar").getFile());
 
     List<String> expectedCmd = new ArrayList<>(
         List.of("java", "-jar", biotransformer.getName(), "-k", "pred", "-b", "env", "-s", "1",

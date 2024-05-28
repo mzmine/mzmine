@@ -350,6 +350,10 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     return selectedRows[row].toString();
   }
 
+  public FeatureListRow getSelectedRow(int row) {
+    return selectedRows[row];
+  }
+
   @Override
   public Comparable<?> getSeriesKey(int series) {
     return getRowKey(series);

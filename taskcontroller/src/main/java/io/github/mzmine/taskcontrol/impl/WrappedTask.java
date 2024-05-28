@@ -51,6 +51,13 @@ public class WrappedTask implements Task {
   public WrappedTask(Task task, TaskPriority priority) {
     this.task = task;
     this.priority = new SimpleObjectProperty<>(priority);
+    task.addTaskStatusListener((_, newStatus, _) -> {
+      if (newStatus == TaskStatus.CANCELED) {
+        this.cancel();
+      } else if (newStatus == TaskStatus.ERROR) {
+        future.cancel(true);
+      }
+    });
   }
 
   @Nullable
