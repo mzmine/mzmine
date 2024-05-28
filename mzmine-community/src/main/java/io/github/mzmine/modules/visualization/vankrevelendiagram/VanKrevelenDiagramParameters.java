@@ -50,7 +50,7 @@ public class VanKrevelenDiagramParameters extends SimpleParameterSet {
 
   public VanKrevelenDiagramParameters() {
     super(new Parameter[]{featureList, colorScaleValues, bubbleSizeValues},
-        "https://mzmine.github.io/mzmine_documentation/visualization_modules/processed_additional/processed_additional.html#van-krevelen-diagram");
+        "");
   }
 
   @Override
