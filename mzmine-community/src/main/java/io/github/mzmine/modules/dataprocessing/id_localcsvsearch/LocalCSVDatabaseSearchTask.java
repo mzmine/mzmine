@@ -330,8 +330,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   }
   DatabaseIsotopeRefinerScanBased refiner = new DatabaseIsotopeRefinerScanBased(storage, moduleCallDate);
   private void refineAnnotationsByIsotopes(FeatureList flist) {
-    DatabaseIsotopeRefinerScanBased.refineAnnotationsByIsotopesDifferentResolutions(flist.getRows(),
-        isotopeMzTolerance, minRelativeIsotopeIntensity, minIsotopeScore);
+    refiner.refineAnnotationsByIsotopesDifferentResolutions(parameters, project, flist, flist.getRows(),
+        isotopeMzTolerance, rtTolerance, minRelativeIsotopeIntensity, minIsotopeScore, removeIsotopes,suffix);
   }
 
   /**
@@ -349,7 +349,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           .map(s -> new ImportType(true, s, type)).toList();
       if (!commentFields.isEmpty()) {
         final SimpleStringProperty error = new SimpleStringProperty();
-        commentFields = CSVParsingUtils.findLineIds(commentFields, databaseValues[0], error);
+        commentFields = CSVParsingUtils.findLineIds(commentFields, databaseValues.getFirst(), error);
         if (commentFields == null) {
           setErrorMessage(error.get());
         }

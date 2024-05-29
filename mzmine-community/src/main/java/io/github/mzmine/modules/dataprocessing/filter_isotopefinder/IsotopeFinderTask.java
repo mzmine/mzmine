@@ -90,7 +90,6 @@ class IsotopeFinderTask extends AbstractTask {
   // parameter values
   private final ParameterSet parameters;
   private final MZTolerance isoMzTolerance;
-  private final RTTolerance rtTolerance;
   private final int isotopeMaxCharge;
   private final List<Element> isotopeElements;
   private final Boolean mergedMobilityScans;
@@ -112,7 +111,6 @@ class IsotopeFinderTask extends AbstractTask {
     isoMzTolerance = parameters.getValue(IsotopeFinderParameters.isotopeMzTolerance);
     isotopes = isotopeElements.stream().map(Objects::toString).collect(Collectors.joining(","));
     mergedMobilityScans = parameters.getValue(IsotopeFinderParameters.mergedMobilityScan);
-    rtTolerance = parameters.getValue(IsotopeFinderParameters.rtTolerance);
   }
 
   @Override
@@ -378,7 +376,6 @@ class IsotopeFinderTask extends AbstractTask {
 
         if (mobility && featureData instanceof IonMobilogramTimeSeries imsData) {
           MergedMassSpectrum mergedMobilityScan = null;
-          Range<Float> rtRange = rtTolerance.getToleranceRange(feature.getRT());
           final Range<Float> mobilityFWHM = IonMobilityUtils.getMobilityFWHM(imsData.getSummedMobilogram());
           final List <MobilityScan> mobilityScans = imsData.getMobilograms().stream()
               .flatMap(s -> ( s.getSpectra().stream()))
