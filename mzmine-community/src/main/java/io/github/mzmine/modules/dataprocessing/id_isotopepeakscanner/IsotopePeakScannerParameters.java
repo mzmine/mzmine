@@ -56,10 +56,11 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
 //      new BooleanParameter("Check RT", "Compare RT of peaks to parent.");
   public static final BooleanParameter bestScores =
       new BooleanParameter("Only the best Scores",
-          "Shows only the matches with the best score for the searched patterns.", true);
+          "If several isotope distributions were searched for: Shows only the matches with "
+              + "the best score for the searched patterns within the same retention range and mass range of the isotope pattern.", true);
   public static final BooleanParameter onlyMonoisotopic =
       new BooleanParameter("Only the monoisotopic signals",
-          "Show only the match with the best result for an isotopic pattern (monoisotopic signals).", true);
+          "Show only the match with the best result for an isotopic pattern (major isotopes).", true);
 
   public static final BooleanParameter resolvedByMobility =
       new BooleanParameter("Use time and mobility resolved mass spectra",
