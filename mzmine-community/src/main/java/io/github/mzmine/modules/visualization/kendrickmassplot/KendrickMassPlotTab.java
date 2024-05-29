@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,7 +43,7 @@ public class KendrickMassPlotTab extends SimpleTab {
   private final KendrickMassPlotAnchorPaneController controller;
 
   public KendrickMassPlotTab(ParameterSet parameters) {
-    super("Kendrick Mass Plot");
+    super("4D feature plot Plot");
 
     AnchorPane root = null;
     FXMLLoader loader = new FXMLLoader((getClass().getResource("KendrickMassPlotAnchorPane.fxml")));

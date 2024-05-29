@@ -605,8 +605,8 @@
     </Menu>
   </Menu>
 
-  <Menu text="Processing wizard">
-    <MenuItem text="Processing wizard" onAction="#showWizardTab"
+  <Menu text="mzwizard">
+    <MenuItem text="Open mzwizard" onAction="#showWizardTab"
       userData="io.github.mzmine.modules.tools.batchwizard.BatchWizardModule">
       <accelerator>
         <KeyCodeCombination alt="UP" code="W"
