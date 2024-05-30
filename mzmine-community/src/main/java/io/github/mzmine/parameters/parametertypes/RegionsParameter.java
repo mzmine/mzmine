@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,6 +30,7 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -49,12 +50,12 @@ public class RegionsParameter implements UserParameter<List<List<Point2D>>, Regi
 
   private final String name;
   private final String description;
-  private List<List<Point2D>> value;
+  @NotNull
+  private List<List<Point2D>> value = new ArrayList<>();
 
   public RegionsParameter(String name, String description) {
     this.name = name;
     this.description = description;
-    value = new ArrayList<>();
   }
 
   @Override
@@ -62,14 +63,15 @@ public class RegionsParameter implements UserParameter<List<List<Point2D>>, Regi
     return name;
   }
 
+  @NotNull
   @Override
   public List<List<Point2D>> getValue() {
     return value;
   }
 
   @Override
-  public void setValue(List<List<Point2D>> newValue) {
-    this.value = newValue;
+  public void setValue(@Nullable List<List<Point2D>> newValue) {
+    this.value = newValue != null ? newValue : List.of();
   }
 
   @Override
@@ -132,21 +134,21 @@ public class RegionsParameter implements UserParameter<List<List<Point2D>>, Regi
 
   @Override
   public void setValueFromComponent(RegionsComponent regionsComponent) {
-
+    this.value = regionsComponent.getValue() != null ? regionsComponent.getValue() : List.of();
   }
 
   @Override
-  public void setValueToComponent(RegionsComponent regionsComponent, @Nullable List<List<Point2D>> newValue) {
-
+  public void setValueToComponent(RegionsComponent regionsComponent,
+      @Nullable List<List<Point2D>> newValue) {
+    regionsComponent.setValue(newValue);
   }
 
   @Override
   public UserParameter cloneParameter() {
     RegionsParameter param = new RegionsParameter(name, description);
     List<List<Point2D>> newValue = new ArrayList<>();
-    for (List<Point2D> list : value) {
-      List<Point2D> newList = new ArrayList<>();
-      newList.addAll(list);
+    for (List<Point2D> regionPoints : value) {
+      List<Point2D> newList = new ArrayList<>(regionPoints);
       newValue.add(newList);
     }
     param.setValue(newValue);

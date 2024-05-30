@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,7 +30,10 @@ import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.actions.AddIonModificationAction;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.actions.CombineESIAdductsAction;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceComponent;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import javafx.scene.layout.HBox;
@@ -57,21 +60,19 @@ public class IonModificationComponent extends HBox {
     adducts = new MultiChoiceComponent<>(choicesAdducts,
         List.of(IonModification.getDefaultValuesPos()), null, IonModification.H,
         // just any object as a parser
-        true, true, false, true, true, false);
+        true, true, false, true, true, false, IonModification.POLARITY_MASS_SORTER);
     // add top label
     adducts.setTitle("Adducts");
     // add buttons
     adducts.addButton("Add", new AddIonModificationAction(adducts));
     adducts.addButton("Combine", new CombineESIAdductsAction(adducts));
-    adducts.addButton("Reset positive",
-        (e) -> adducts.setChoices(IonModification.getDefaultValuesPos()));
-    adducts.addButton("Reset negative",
-        (e) -> adducts.setChoices(IonModification.getDefaultValuesNeg()));
+    adducts.addButton("Add positive", _ -> addAdductChoices(IonModification.getDefaultValuesPos()));
+    adducts.addButton("Add negative", _ -> addAdductChoices(IonModification.getDefaultValuesNeg()));
 
     mods = new MultiChoiceComponent<>(choicesMods,
         List.of(IonModification.getDefaultModifications()), null, IonModification.H,
         // just any object as a parser
-        true, true, false, true, true, false);
+        true, true, false, true, true, false, IonModification.POLARITY_MASS_SORTER);
     // add top label
     mods.setTitle("Modifications");
     // add buttons
@@ -80,6 +81,12 @@ public class IonModificationComponent extends HBox {
     mods.addButton("Reset", (e) -> mods.setChoices(IonModification.getDefaultModifications()));
 
     getChildren().addAll(adducts, mods);
+  }
+
+  private void addAdductChoices(final IonModification[] choices) {
+    var set = new HashSet<>(adducts.getChoices());
+    Collections.addAll(set, choices);
+    adducts.setChoices(new ArrayList<>(set));
   }
 
   public IonModification[][] getChoices() {

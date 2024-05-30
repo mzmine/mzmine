@@ -31,24 +31,35 @@ import io.github.mzmine.gui.chartbasics.chartutils.ColoredBubbleDatasetRenderer;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
+import io.github.mzmine.gui.chartbasics.simplechart.AllowsRegionSelection;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
 import java.text.DecimalFormat;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartFactory;
+import org.jfree.chart.annotations.XYShapeAnnotation;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.ui.RectangleEdge;
 
-public class KendrickMassPlotChart extends EChartViewer {
+public class KendrickMassPlotChart extends EChartViewer implements AllowsRegionSelection {
 
   private final String colorScaleLabel;
   private final Color legendBg = new Color(0, 0, 0, 0);
+
+  private final BooleanProperty isDrawingRegion = new SimpleBooleanProperty(false);
+  private RegionSelectionListener currentRegionListener = null;
+  private XYShapeAnnotation currentRegionAnnotation;
 
   public KendrickMassPlotChart(String title, String xAxisLabel, String yAxisLabel,
       String colorScaleLabel, KendrickMassPlotXYZDataset dataset) {
@@ -111,5 +122,50 @@ public class KendrickMassPlotChart extends EChartViewer {
     return newLegend;
   }
 
+  /**
+   * Initializes a {@link RegionSelectionListener} and adds it to the plot. Following clicks will be
+   * added to a region. Region selection can be finished by
+   * {@link SimpleXYZScatterPlot#finishPath()}.
+   */
+  @Override
+  public void startRegion() {
+    isDrawingRegion.set(true);
+
+    if (currentRegionListener != null) {
+      removeChartMouseListener(currentRegionListener);
+    }
+    currentRegionListener = new RegionSelectionListener(this);
+    currentRegionListener.pathProperty().addListener(((observable, oldValue, newValue) -> {
+      if (currentRegionAnnotation != null) {
+        getChart().getXYPlot().removeAnnotation(currentRegionAnnotation, false);
+      }
+      Color regionColor = new Color(0.6f, 0.6f, 0.6f, 0.4f);
+      currentRegionAnnotation = new XYShapeAnnotation(newValue, new BasicStroke(1f), regionColor,
+          regionColor);
+      getChart().getXYPlot().addAnnotation(currentRegionAnnotation, true);
+    }));
+    addChartMouseListener(currentRegionListener);
+  }
+
+  /**
+   * The {@link RegionSelectionListener} of the current selection. The path/points can be retrieved
+   * from the listener object.
+   *
+   * @return The finished listener
+   */
+  @Override
+  public RegionSelectionListener finishPath() {
+    if (!isDrawingRegion.get()) {
+      return null;
+    }
+    if (currentRegionAnnotation != null) {
+      getChart().getXYPlot().removeAnnotation(currentRegionAnnotation);
+    }
+    isDrawingRegion.set(false);
+    removeChartMouseListener(currentRegionListener);
+    RegionSelectionListener tempRegionListener = currentRegionListener;
+    currentRegionListener = null;
+    return tempRegionListener;
+  }
 }
 
