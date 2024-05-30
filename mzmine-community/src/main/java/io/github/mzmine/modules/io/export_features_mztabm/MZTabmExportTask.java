@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.export_features_mztabm;
 
 import com.google.common.collect.Range;
+import de.isas.mztab2.io.MzTabNonValidatingWriter;
 import de.isas.mztab2.io.MzTabValidatingWriter;
 import de.isas.mztab2.model.Assay;
 import de.isas.mztab2.model.CV;
@@ -76,6 +77,7 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.ac.ebi.pride.jmztab2.model.IOptColumnMappingBuilder;
@@ -261,6 +263,7 @@ public class MZTabmExportTask extends AbstractTask {
 
         sm = new SmallMoleculeSummary();
         sm.setSmlId(i + 1);
+        sm.setReliability("4");
         smf = new SmallMoleculeFeature();
         smf.setSmfId(i + 1);
         SmallMoleculeEvidence sme = new SmallMoleculeEvidence();
@@ -279,20 +282,14 @@ public class MZTabmExportTask extends AbstractTask {
           List<? extends ListWithSubsType<?>> listType = filterForTypesWithAnnotation(dataTypes);
 
           for (ListWithSubsType<?> type : listType) {
-
-            // get the actual value of the ListWithSubsType stored in the feature list
+            
             final List<?> featureAnnotationList = featureListRow.get(type);
             setDefaultConfidences(sme);
 
-            if (featureAnnotationList == null || featureAnnotationList.isEmpty()) {
-              sm.setReliability("4"); //unknown compound
-              continue;
-            } else {
+            if (featureAnnotationList != null) {
               sm.setReliability("2"); //putatively annotated compound (2)
+              exportAnnotations(type, featureAnnotationList, sme, annotationType);
             }
-
-            // export annotations
-            exportAnnotations(type, featureAnnotationList, sme, annotationType);
           }
 
           assignMandatoryFields(sme, featureListRow);
@@ -498,7 +495,7 @@ public class MZTabmExportTask extends AbstractTask {
         if (mappedVal != null) {
 
           modifyReliabilityForLipidMatch(mappedVal);
-          String subtypeValue = subType.getFormattedExportString(mappedVal);
+          String subtypeValue = mappedVal.toString();
 
           String colName = STR."\{listWithSubsType.getUniqueID()}_\{uniqueID}_\{j}1";
           createSMEOptCols(sme, listWithSubsType, colName, subtypeValue);
