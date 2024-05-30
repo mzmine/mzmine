@@ -36,7 +36,10 @@ public enum FxIcons implements IconCodeSupplier {
   DARK_MODE_SWITCH,
 
   //
-  USER, DOCUMENTATION, BUG, WEBSITE, GEAR_PREFERENCES, RELOAD, YOUTUBE, DEVELOPMENT, BOOK, ROCKET;
+  USER, DOCUMENTATION, BUG, WEBSITE, GEAR_PREFERENCES, RELOAD, YOUTUBE, DEVELOPMENT, BOOK, ROCKET,
+
+  // ACTIONS
+  SAVE, LOAD, CANCEL, FILTER, CLEAR, START, STOP, DRAW_REGION;
 
 
   @Override
@@ -60,6 +63,14 @@ public enum FxIcons implements IconCodeSupplier {
       case BOOK -> "bi-book";
       case DOCUMENTATION -> "bi-book";
       case ROCKET -> "las-rocket";
+      case SAVE -> "bi-box-arrow-down";
+      case LOAD -> "bi-box-arrow-in-up";
+      case CANCEL -> "bi-x-circle";
+      case FILTER -> "bi-funnel";
+      case CLEAR -> "bi-dash-circle-dotted";
+      case START -> "bi-play-circle";
+      case STOP -> "bi-stop-circle";
+      case DRAW_REGION -> "bi-bounding-box";
     };
   }
 }

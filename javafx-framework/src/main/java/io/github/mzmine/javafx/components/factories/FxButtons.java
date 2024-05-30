@@ -25,6 +25,9 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.javafx.util.IconCodeSupplier;
 import javafx.beans.property.ObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -57,6 +60,11 @@ public class FxButtons {
     return createButton(label, tooltip, icon, _ -> onAction.run());
   }
 
+  public static Button createButton(@Nullable String label, @NotNull IconCodeSupplier icon,
+      @Nullable String tooltip, Runnable onAction) {
+    return createButton(label, tooltip, FxIconUtil.getFontIcon(icon), _ -> onAction.run());
+  }
+
   public static Button createButton(@Nullable String label, @Nullable String tooltip,
       @Nullable Node icon, EventHandler<ActionEvent> onAction) {
     Button b = new Button(label, icon);
@@ -86,5 +94,17 @@ public class FxButtons {
       b.setTooltip(new Tooltip(tooltip));
     }
     return b;
+  }
+
+  public static Button createSaveButton(Runnable runnable) {
+    return createButton("Save", null, FxIconUtil.getFontIcon(FxIcons.SAVE), runnable);
+  }
+
+  public static Button createLoadButton(Runnable runnable) {
+    return createButton("Load", null, FxIconUtil.getFontIcon(FxIcons.LOAD), runnable);
+  }
+
+  public static Button createCancelButton(Runnable runnable) {
+    return createButton("Cancel", null, FxIconUtil.getFontIcon(FxIcons.CANCEL), runnable);
   }
 }

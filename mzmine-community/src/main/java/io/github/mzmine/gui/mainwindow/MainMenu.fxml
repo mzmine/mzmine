@@ -564,7 +564,7 @@
 
       <SeparatorMenuItem/>
 
-      <MenuItem text="Kendrick mass plot" onAction="#runModule"
+      <MenuItem text="4D feature plot (Kendrick)" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule"/>
       <MenuItem text="Van Krevelen diagram" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule"/>

@@ -28,6 +28,7 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.XYZBubbleDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
@@ -51,7 +52,7 @@ import org.jfree.data.xy.AbstractXYZDataset;
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Task,
-    XYZBubbleDataset {
+    XYZBubbleDataset, XYItemObjectProvider<FeatureListRow> {
   // TODO replace with getTask method or AbstractTaskXYZDataset
 
   private static final Logger logger = Logger.getLogger(KendrickMassPlotXYZDataset.class.getName());
@@ -75,8 +76,7 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
   private Integer yDivisor;
   private int yCharge;
 
-  public KendrickMassPlotXYZDataset(ParameterSet parameters, int xCharge,
-      int yCharge) {
+  public KendrickMassPlotXYZDataset(ParameterSet parameters, int xCharge, int yCharge) {
     FeatureList featureList = parameters.getParameter(KendrickMassPlotParameters.featureList)
         .getValue().getMatchingFeatureLists()[0];
     this.parameters = parameters.cloneParameterSet();
@@ -119,7 +119,6 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     bubbleSizeValues = new double[selectedRows.length];
     MZmineCore.getTaskController().addTask(this);
   }
-
 
   @Override
   public void run() {
@@ -169,7 +168,6 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     finishedSteps = 1;
     setStatus(TaskStatus.FINISHED);
   }
-
 
   private void initDimensionValues(double[] values, String kendrickMassBase,
       KendrickPlotDataTypes kendrickPlotDataType, int divisor, int charge) {
@@ -246,7 +244,6 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
       return 0;
     }
   }
-
 
   @Override
   public double getBubbleSizeValue(int series, int item) {
@@ -350,6 +347,10 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     return selectedRows[row].toString();
   }
 
+  public FeatureListRow getSelectedRow(int row) {
+    return selectedRows[row];
+  }
+
   @Override
   public Comparable<?> getSeriesKey(int series) {
     return getRowKey(series);
@@ -368,10 +369,8 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
   private double calculateKendrickMassDefectChargeAndDivisorDependent(double mz,
       String kendrickMassBase, int charge, int divisor) {
     double kendrickMassChargeAndDivisorDependent = calculateKendrickMassChargeAndDivisorDependent(
-        mz, kendrickMassBase, charge,
-        divisor);
-    return Math.round(
-        kendrickMassChargeAndDivisorDependent)
+        mz, kendrickMassBase, charge, divisor);
+    return Math.round(kendrickMassChargeAndDivisorDependent)
         - kendrickMassChargeAndDivisorDependent;
   }
 
@@ -454,12 +453,19 @@ public class KendrickMassPlotXYZDataset extends AbstractXYZDataset implements Ta
     }
   }
 
-
   @Override
   public void error(@NotNull String message, @Nullable Exception exceptionToLog) {
     if (exceptionToLog != null) {
       logger.log(Level.SEVERE, message, exceptionToLog);
     }
     setStatus(TaskStatus.ERROR);
+  }
+
+  @Override
+  public FeatureListRow getItemObject(int item) {
+    if (item < selectedRows.length) {
+      return selectedRows[item];
+    }
+    return null;
   }
 }

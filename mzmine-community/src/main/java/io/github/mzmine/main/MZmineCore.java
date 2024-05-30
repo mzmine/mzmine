@@ -281,6 +281,7 @@ public final class MZmineCore {
       }
 
       // change input in batch?
+      String outBaseFile = argsParser.getOutBaseFile();
       File[] overrideDataFiles = argsParser.getOverrideDataFiles();
       File[] overrideSpectralLibraryFiles = argsParser.getOverrideSpectralLibrariesFiles();
       boolean keepRunningInHeadless = argsParser.isKeepRunningAfterBatch();
@@ -327,7 +328,7 @@ public final class MZmineCore {
 
           // run batch file
           batchTask = BatchModeModule.runBatch(ProjectService.getProject(), batchFile,
-              overrideDataFiles, overrideSpectralLibraryFiles, Instant.now());
+              overrideDataFiles, overrideSpectralLibraryFiles, outBaseFile, Instant.now());
         }
 
         // option to keep MZmine running after the batch is finished

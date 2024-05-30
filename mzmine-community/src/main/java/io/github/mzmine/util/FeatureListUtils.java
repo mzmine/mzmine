@@ -32,7 +32,9 @@ import static io.github.mzmine.util.RangeUtils.isBounded;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -615,5 +617,25 @@ public class FeatureListUtils {
     FeatureListUtils.transferRowTypes(newFlist, List.of(featureList));
     FeatureListUtils.transferSelectedScans(newFlist, List.of(featureList));
     return newFlist;
+  }
+
+  /**
+   * Get the polarity of the feature list. Only checks a single row
+   *
+   * @return polarity or {@link PolarityType#UNKNOWN}
+   */
+  public static @NotNull PolarityType getPolarity(final FeatureList featureList) {
+    return getPolarity(featureList, PolarityType.UNKNOWN);
+  }
+
+  /**
+   * Get the polarity of the feature list. Only checks a single row
+   *
+   * @return polarity or default value if missing
+   */
+  public static @NotNull PolarityType getPolarity(final FeatureList featureList,
+      @NotNull final PolarityType defaultValue) {
+    return featureList.stream().findFirst().map(FeatureListRow::getBestFeature)
+        .map(Feature::getRepresentativeScan).map(Scan::getPolarity).orElse(defaultValue);
   }
 }

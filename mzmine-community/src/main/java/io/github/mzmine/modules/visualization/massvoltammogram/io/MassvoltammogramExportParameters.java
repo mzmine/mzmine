@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,13 +29,12 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 
 public class MassvoltammogramExportParameters extends SimpleParameterSet {
 
-  public static final FileNameParameter path = new FileNameParameter("Path",
-      "The path the file will be saved to.", FileSelectionType.SAVE, false);
+  public static final FileNameSuffixExportParameter path = new FileNameSuffixExportParameter("Path",
+      "The path the file will be saved to.", "massvolt", false);
 
   public static final ComboParameter<String> fileFormat = new ComboParameter<>("File Format",
       "The file format the massvoltammogram will be exported to",

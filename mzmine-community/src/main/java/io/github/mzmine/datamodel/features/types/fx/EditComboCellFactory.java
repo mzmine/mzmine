@@ -110,12 +110,6 @@ public class EditComboCellFactory implements
       @Override
       public void updateItem(Object item, boolean empty) {
         super.updateItem(item, empty);
-        if(!getTableRow().isVisible()) {
-          // fix to make the cell factory not go crazy and create invisible nodes
-          setGraphic(null);
-          setText(null);
-          return;
-        }
 
         if (item == null || empty) {
           setGraphic(null);
