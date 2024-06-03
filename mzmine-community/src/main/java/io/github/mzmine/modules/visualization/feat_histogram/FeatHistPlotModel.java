@@ -29,21 +29,26 @@ import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberFormatType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import java.util.Collection;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatHistPlotModel {
 
   private final ObjectProperty<List<FeatureList>> flists = new SimpleObjectProperty<>();
 
-  private final ObjectProperty<NumberFormatType> dataType = new SimpleObjectProperty<>();
-  private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>(
-      AbundanceMeasure.Height);
+  private final ObservableList<NumberType> typeChoices = FXCollections.observableArrayList();
+
+  private final ObjectProperty<NumberType> dataType = new SimpleObjectProperty<>();
+//  private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>(
+//      AbundanceMeasure.Height);
   private final ObjectProperty<Collection<DatasetAndRenderer>> datasets = new SimpleObjectProperty<>(
       List.of());
 //  private final ObjectProperty<@Nullable RowSignificanceTest> test = new SimpleObjectProperty<>();
@@ -63,6 +68,11 @@ public class FeatHistPlotModel {
   public void setFlists(List<FeatureList> flists) {
     this.flists.set(flists);
   }
+
+//  public void setTypeChoices(FeatureList flist) {
+//    this.typeChoices = flist.getFeatureTypes().stream();
+//  }
+  public ObservableList<NumberType> getTypeChoices() { return this.typeChoices; }
 
 //  public AbundanceMeasure getAbundanceMeasure() {
 //    return abundanceMeasure.get();
@@ -88,10 +98,10 @@ public class FeatHistPlotModel {
     return datasets;
   }
 
-  public NumberFormatType getDataType() { return dataType.get(); }
-  public ObjectProperty<NumberFormatType> dataTypeProperty() { return dataType; }
+  public NumberType getDataType() { return dataType.get(); }
+  public ObjectProperty<NumberType> dataTypeProperty() { return dataType; }
 
-  public void setDataType(NumberFormatType type) { this.dataType.set(type); }
+  public void setDataType(NumberType type) { this.dataType.set(type); }
 
 //  public @Nullable RowSignificanceTest getTest() {
 //    return test.get();

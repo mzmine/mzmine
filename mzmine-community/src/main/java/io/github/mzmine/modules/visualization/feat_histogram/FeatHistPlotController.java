@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.feat_histogram;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import io.github.mzmine.gui.framework.fx.SelectedFeatureListsBinding;
 import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
@@ -52,6 +53,8 @@ public class FeatHistPlotController extends FxController<FeatHistPlotModel> impl
     super(new FeatHistPlotModel());
 
     model.setFlists(flist != null ? List.of(flist) : null);
+    model.getTypeChoices().setAll(flist.getFeatureTypes().stream()
+        .filter(NumberType.class::isInstance).map(NumberType.class::cast).toList());
     viewBuilder = new FeatHistPlotViewBuilder(model);
     view = viewBuilder.build();
 
@@ -62,6 +65,16 @@ public class FeatHistPlotController extends FxController<FeatHistPlotModel> impl
 //    PropertyUtils.onChange(this::computeDataset, model.testProperty(), model.flistsProperty(),
 //        model.abundanceMeasureProperty(), model.pValueProperty());
     PropertyUtils.onChange(this::computeDataset, model.dataTypeProperty(), model.flistsProperty());
+    model.flistsProperty().subscribe((featureLists) -> {
+      if (featureLists == null) {
+        //todo remove all choices from model
+        return;
+      }
+      List<NumberType> types = featureLists.stream()
+          .flatMap(featureList -> featureList.getFeatureTypes().stream())
+          .filter(NumberType.class::isInstance).map(NumberType.class::cast).toList();
+      model.getTypeChoices().setAll(types);
+    });
   }
 
   private void computeDataset() {

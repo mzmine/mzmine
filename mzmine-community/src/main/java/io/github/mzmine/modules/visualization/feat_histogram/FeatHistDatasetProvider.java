@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberFormatType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
@@ -43,21 +44,22 @@ import java.util.List;
 import javafx.beans.property.Property;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatHistDatasetProvider extends SimpleXYProvider implements
-    XYItemObjectProvider<RowSignificanceTestResult> {
+public class FeatHistDatasetProvider extends SimpleXYProvider {
+//    implements XYItemObjectProvider<RowSignificanceTestResult> {
 
-  private final StudentTTest<?> test;
-  private final List<RowSignificanceTestResult> results;
+//  private final StudentTTest<?> test;
+//  private final List<RowSignificanceTestResult> results;
 
 //  private final AbundanceMeasure abundanceMeasure;
   private final NumberFormatType dataType;
 
-  public FeatHistDatasetProvider(StudentTTest<?> test, List<RowSignificanceTestResult> results,
+  public FeatHistDatasetProvider(
+//      StudentTTest<?> test, List<RowSignificanceTestResult> results,
 //      Color color, String key, AbundanceMeasure abundanceMeasure) {
       Color color, String key, NumberFormatType dataType) {
     super(key, color, new DecimalFormat("0.0"), new DecimalFormat("0.0"));
-    this.test = test;
-    this.results = results;
+//    this.test = test;
+//    this.results = results;
 //    this.abundanceMeasure = abundanceMeasure;
     this.dataType = dataType;
   }
@@ -69,37 +71,39 @@ public class FeatHistDatasetProvider extends SimpleXYProvider implements
 
   @Override
   public @Nullable String getToolTipText(int index) {
-    RowSignificanceTestResult result = results.get(index);
-    final FeatureAnnotation bestAnnotation = FeatureUtils.getBestFeatureAnnotation(result.row());
-    String name = result.row().toString();
-    if (bestAnnotation != null) {
-      name += STR.", \{bestAnnotation.getCompoundName()}";
-    }
-    return String.format("""
-        %s
-        Fold change: %.3f
-        p-Value: %.3f""", name, Math.pow(2, getDomainValue(index)), result.pValue());
+//    RowSignificanceTestResult result = results.get(index);
+//    final FeatureAnnotation bestAnnotation = FeatureUtils.getBestFeatureAnnotation(result.row());
+//    String name = result.row().toString();
+    String name = dataType.getUniqueID();
+//    if (bestAnnotation != null) {
+//      name += STR.", \{bestAnnotation.getCompoundName()}";
+//    }
+//    return String.format("""
+//        %s
+//        Fold change: %.3f
+//        p-Value: %.3f""", name, Math.pow(2, getDomainValue(index)), result.pValue());
+    return name;
   }
 
-  @Override
-  public RowSignificanceTestResult getItemObject(int item) {
-    return results.get(item);
-  }
+//  @Override
+//  public RowSignificanceTestResult getItemObject(int item) {
+//    return results.get(item);
+//  }
 
-  @Override
-  public void computeValues(Property<TaskStatus> status) {
-    double[] minusLog10PValue = new double[results.size()];
-    final List<RawDataFile> groupAFiles = test.getGroupAFiles();
-    final List<RawDataFile> groupBFiles = test.getGroupBFiles();
-
-    for (int i = 0; i < results.size(); i++) {
-      minusLog10PValue[i] = -Math.log10(results.get(i).pValue());
-    }
+//  @Override
+//  public void computeValues(Property<TaskStatus> status) {
+//    double[] minusLog10PValue = new double[results.size()];
+//    final List<RawDataFile> groupAFiles = test.getGroupAFiles();
+//    final List<RawDataFile> groupBFiles = test.getGroupBFiles();
+//
+//    for (int i = 0; i < results.size(); i++) {
+//      minusLog10PValue[i] = -Math.log10(results.get(i).pValue());
+//    }
 //    double[] log2FoldChange = StatisticUtils.calculateLog2FoldChange(results, groupAFiles,
 //        groupBFiles, dataType);
 //
 //    setxValues(log2FoldChange);
-    setyValues(minusLog10PValue);
-  }
+//    setyValues(minusLog10PValue);
+//  }
 
 }

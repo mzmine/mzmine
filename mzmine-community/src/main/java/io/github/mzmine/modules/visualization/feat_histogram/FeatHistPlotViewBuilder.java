@@ -27,6 +27,7 @@ package io.github.mzmine.modules.visualization.feat_histogram;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
@@ -89,16 +90,19 @@ public class FeatHistPlotViewBuilder extends FxViewBuilder<FeatHistPlotModel> {
 //        "log2(fold change)", "-log10(p-Value)");
     mainPane.setCenter(chart);
 
-    final HBox pValueBox = createPValueBox();
-    final HBox abundanceBox = createAbundanceBox();
-    final VBox pAndAbundance = new VBox(space, pValueBox, abundanceBox);
-    final Region testConfigPane = createTestParametersPane();
+//    final HBox pValueBox = createPValueBox();
+//    final HBox abundanceBox = createAbundanceBox();
+    final HBox dataTypeBox = createDataTypeBox();
+//    final VBox pAndAbundance = new VBox(space, pValueBox, abundanceBox);
+    final VBox pAndAbundance = new VBox(space, dataTypeBox);
+//    final Region testConfigPane = createTestParametersPane();
 
-    final TitledPane controls = new TitledPane("Settings",
-        createControlsPane(pAndAbundance, testConfigPane));
-    final Accordion accordion = new Accordion(controls);
-    accordion.setExpandedPane(controls);
-    mainPane.setBottom(accordion);
+//    final TitledPane controls = new TitledPane("Settings",
+//        createControlsPane(pAndAbundance, testConfigPane));
+//    final Accordion accordion = new Accordion(controls);
+//    accordion.setExpandedPane(controls);
+//    mainPane.setBottom(accordion);
+    mainPane.setBottom(pAndAbundance);
 
     chart.setDefaultRenderer(new ColoredXYShapeRenderer());
     model.datasetsProperty().addListener((_, _, n) -> {
@@ -134,16 +138,29 @@ public class FeatHistPlotViewBuilder extends FxViewBuilder<FeatHistPlotModel> {
   }
 
   @NotNull
-  private HBox createPValueBox() {
-    final HBox pValueBox = new HBox(space);
-    Label label = new Label("p-Value:");
-    final DoubleComponent pValueComponent = new DoubleComponent(100, 0.0, 1d,
-        new DecimalFormat("0.###"), 0.05);
+  private HBox createDataTypeBox() {
+    final HBox dataTypeBox = new HBox(space);
+    Label label = new Label("Data type: ");
+    final ComboBox<NumberType> dataTypeCombo = new ComboBox<>(
+        model.getTypeChoices()
+    );
+    dataTypeCombo.setValue(model.getDataType());
+    model.dataTypeProperty().bindBidirectional(dataTypeCombo.valueProperty());
+    dataTypeBox.getChildren().addAll(label);
+    return dataTypeBox;
+  }
+
+//  @NotNull
+//  private HBox createPValueBox() {
+//    final HBox pValueBox = new HBox(space);
+//    Label label = new Label("p-Value:");
+//    final DoubleComponent pValueComponent = new DoubleComponent(100, 0.0, 1d,
+//        new DecimalFormat("0.###"), 0.05);
 //    Bindings.bindBidirectional(pValueComponent.getTextField().textProperty(),
 //        model.pValueProperty(), new DecimalFormat("0.###"));
-    pValueBox.getChildren().addAll(label, pValueComponent.getTextField());
-    return pValueBox;
-  }
+//    pValueBox.getChildren().addAll(label, pValueComponent.getTextField());
+//    return pValueBox;
+//  }
 
   @NotNull
   private FlowPane createControlsPane(Region... panes) {
@@ -156,17 +173,17 @@ public class FeatHistPlotViewBuilder extends FxViewBuilder<FeatHistPlotModel> {
     return controls;
   }
 
-  @NotNull
-  private HBox createAbundanceBox() {
+//  @NotNull
+//  private HBox createAbundanceBox() {
 //    final ComboBox<AbundanceMeasure> abundanceCombo = new ComboBox<>(
 //        FXCollections.observableList(List.of(AbundanceMeasure.values())));
 //    abundanceCombo.setValue(model.getAbundanceMeasure());
 //    model.abundanceMeasureProperty().bindBidirectional(abundanceCombo.valueProperty());
 //
-    final HBox abundanceBox = new HBox(space);
+//    final HBox abundanceBox = new HBox(space);
 //    abundanceBox.getChildren().addAll(new Label("Abundance measure:"), abundanceCombo);
-    return abundanceBox;
-  }
+//    return abundanceBox;
+//  }
 
   private Region createTestParametersPane() {
 
