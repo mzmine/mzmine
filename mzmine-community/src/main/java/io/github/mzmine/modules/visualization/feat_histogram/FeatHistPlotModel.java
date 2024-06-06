@@ -99,6 +99,8 @@ public class FeatHistPlotModel {
   }
 
   public NumberType getDataType() { return dataType.get(); }
+
+  //todo rename into selectedDataType
   public ObjectProperty<NumberType> dataTypeProperty() { return dataType; }
 
   public void setDataType(NumberType type) { this.dataType.set(type); }

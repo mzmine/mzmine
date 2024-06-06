@@ -26,7 +26,9 @@
 package io.github.mzmine.modules.visualization.feat_histogram;
 
 import io.github.mzmine.datamodel.AbundanceMeasure;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
@@ -50,6 +52,7 @@ import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -146,7 +149,19 @@ public class FeatHistPlotViewBuilder extends FxViewBuilder<FeatHistPlotModel> {
     );
     dataTypeCombo.setValue(model.getDataType());
     model.dataTypeProperty().bindBidirectional(dataTypeCombo.valueProperty());
-    dataTypeBox.getChildren().addAll(label);
+    dataTypeBox.getChildren().addAll(label, dataTypeCombo);
+    return dataTypeBox;
+  }
+  @NotNull
+  private HBox createFeatureListsBox() {
+    final HBox dataTypeBox = new HBox(space);
+    Label label = new Label("Feature list: ");
+    final ComboBox<List<FeatureList>> featureListCombo = new ComboBox<>(
+        FXCollections.observableList(model.getFlists())
+    );
+    featureListCombo.setValue(model.getFlists().getFirst());
+    model.selectedRowsProperty().bindBidirectional(featureListCombo.valueProperty());
+    dataTypeBox.getChildren().addAll(label, featureListCombo);
     return dataTypeBox;
   }
 

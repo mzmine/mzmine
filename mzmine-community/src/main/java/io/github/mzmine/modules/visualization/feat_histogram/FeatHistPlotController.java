@@ -74,6 +74,7 @@ public class FeatHistPlotController extends FxController<FeatHistPlotModel> impl
           .flatMap(featureList -> featureList.getFeatureTypes().stream())
           .filter(NumberType.class::isInstance).map(NumberType.class::cast).toList();
       model.getTypeChoices().setAll(types);
+      model.dataTypeProperty().set(types.getFirst());
     });
   }
 

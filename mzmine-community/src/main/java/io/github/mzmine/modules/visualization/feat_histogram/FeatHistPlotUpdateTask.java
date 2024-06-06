@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberFormatType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
@@ -82,13 +83,13 @@ class FeatHistPlotUpdateTask extends FxUpdateTask<FeatHistPlotModel> {
 //    test = model.getTest();
 //    abundanceMeasure = model.getAbundanceMeasure();
 //    pValue = model.getpValue();
-    dataType = model.getDataType();
+//    dataType = model.getDataType();
     progress.setTotal(flist != null ? flist.getNumberOfRows() : 0);
   }
 
   @Override
   public boolean checkPreConditions() {
-    return flist != null;
+    return flist != null && dataType != null;
 //    && test != null;
   }
 
@@ -97,11 +98,16 @@ class FeatHistPlotUpdateTask extends FxUpdateTask<FeatHistPlotModel> {
     if (!checkPreConditions()) {
       return;
     }
-    List<RowSignificanceTestResult> rowSignificanceTestResults = new ArrayList<>();
-    for (final FeatureListRow row : flist.getRows()) {
+//    List<RowSignificanceTestResult> rowSignificanceTestResults = new ArrayList<>();
+    double[] data = null;
+//    for (final FeatureListRow row : flist.getRows()) {
+    for (int i = 0; i < flist.getNumberOfRows(); i++) {
       if (isCanceled()) {
         return;
       }
+
+      data[i] = (double) flist.getRow(i).get(dataType);
+
 //      RowSignificanceTestResult result = test.test(row, abundanceMeasure);
 //      if (result != null) {
 //        rowSignificanceTestResults.add(result);
@@ -109,9 +115,9 @@ class FeatHistPlotUpdateTask extends FxUpdateTask<FeatHistPlotModel> {
       progress.getAndIncrement();
     }
 
-    final Map<DataType<?>, List<RowSignificanceTestResult>> dataTypeMap = DataTypeUtils.groupByBestDataType(
-        rowSignificanceTestResults, RowSignificanceTestResult::row, true,
-        FeatureAnnotationPriority.getDataTypesInOrder());
+//    final Map<DataType<?>, List<RowSignificanceTestResult>> dataTypeMap = DataTypeUtils.groupByBestDataType(
+//        rowSignificanceTestResults, RowSignificanceTestResult::row, true,
+//        FeatureAnnotationPriority.getDataTypesInOrder());
 
 //    if (!(test instanceof StudentTTest<?> ttest)) {
 //      return;
@@ -120,10 +126,11 @@ class FeatHistPlotUpdateTask extends FxUpdateTask<FeatHistPlotModel> {
     final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
     temporaryDatasets = new ArrayList<>();
     colors.resetColorCounter(); // set color index to 0
-    for (Entry<DataType<?>, List<RowSignificanceTestResult>> entry : dataTypeMap.entrySet()) {
 
-      final DataType<?> type = entry.getKey();
-      final List<RowSignificanceTestResult> testResults = entry.getValue();
+//    for (Entry<DataType<?>, List<RowSignificanceTestResult>> entry : dataTypeMap.entrySet()) {
+//
+//      final DataType<?> type = entry.getKey();
+//      final List<RowSignificanceTestResult> testResults = entry.getValue();
 
 //      final List<RowSignificanceTestResult> significantRows = testResults.stream()
 //          .filter(result -> result.pValue() < pValue).toList();
@@ -131,6 +138,15 @@ class FeatHistPlotUpdateTask extends FxUpdateTask<FeatHistPlotModel> {
 //          .filter(result -> result.pValue() >= pValue).toList();
 
       final Color color = colors.getNextColorAWT();
+
+      if (data != null) {
+        var provider = new FeatHistDatasetProvider(color,
+            dataType.toString(),
+            dataType);
+        temporaryDatasets.add(new DatasetAndRenderer(new ColoredXYDataset(
+            provider, RunOption.THIS_THREAD),
+            new ColoredXYShapeRenderer(false)));
+      }
 //      if (!significantRows.isEmpty()) {
 //        var provider = new FeatHistDatasetProvider(ttest, significantRows, color,
 //            STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "not annotated"
@@ -147,7 +163,7 @@ class FeatHistPlotUpdateTask extends FxUpdateTask<FeatHistPlotModel> {
 //            new DatasetAndRenderer(new ColoredXYDataset(provider, RunOption.THIS_THREAD),
 //                new ColoredXYShapeRenderer(true)));
 //      }
-    }
+//    }
   }
 
   @Override
@@ -160,7 +176,7 @@ class FeatHistPlotUpdateTask extends FxUpdateTask<FeatHistPlotModel> {
 
   @Override
   public String getTaskDescription() {
-    return "Updating volcano plot";
+    return "Updating feature histogram plot";
   }
 
   @Override
