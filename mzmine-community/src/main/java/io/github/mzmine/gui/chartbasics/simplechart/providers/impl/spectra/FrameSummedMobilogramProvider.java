@@ -60,7 +60,7 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
 
   public FrameSummedMobilogramProvider(Frame frame, int binWidth) {
     this.frame = frame;
-    this.binWidth = binWidth;
+    this.binWidth = Math.max(1, binWidth);
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
