@@ -28,6 +28,11 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.DataImportWizardParameterFactory;
+import io.github.mzmine.modules.visualization.projectmetadata.io.ProjectMetadataImportParameters;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.util.files.ExtensionFilters;
 
 /**
  * Reuses the filenames {@link AllSpectralDataImportParameters}
@@ -36,11 +41,16 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.DataIm
  */
 public final class DataImportWizardParameters extends WizardStepParameters {
 
+  public static final OptionalParameter<FileNameParameter> metadataFile = new OptionalParameter<>(
+      ProjectMetadataImportParameters.fileName);
+
+  public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
+      ExtensionFilters.MS_RAW_DATA);
+
   public DataImportWizardParameters() {
     super(WizardPart.DATA_IMPORT, DataImportWizardParameterFactory.Data,
         // parameters
-        AllSpectralDataImportParameters.metadataFile, //
-        AllSpectralDataImportParameters.fileNames);
+        metadataFile, fileNames);
   }
 
 }
