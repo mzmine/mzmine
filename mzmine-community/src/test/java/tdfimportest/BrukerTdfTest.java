@@ -188,17 +188,17 @@ public class BrukerTdfTest {
     final List<SimpleSpectralArrays> f1v2 = utils.loadDataPointsForFrame_v2(1, 660L, 818L);
     final List<SimpleSpectralArrays> f2v2 = utils.loadDataPointsForFrame_v2(2, 660L, 818L);
 
-    Assertions.assertEquals(f1v1.size(), f1v2.size());
-    Assertions.assertEquals(f2v1.size(), f2v2.size());
-    for (int i = 0; i < f1v1.size(); i++) {
-      final SimpleSpectralArrays v1 = f1v1.get(i);
-      final SimpleSpectralArrays v2 = f1v2.get(i);
-      Assertions.assertEquals(v1, v2);
-
-      final SimpleSpectralArrays d1 = f2v1.get(i);
-      final SimpleSpectralArrays d2 = f2v2.get(i);
-      Assertions.assertEquals(d1, d2);
-    }
+//    Assertions.assertEquals(f1v1.size(), f1v2.size());
+//    Assertions.assertEquals(f2v1.size(), f2v2.size());
+//    for (int i = 0; i < f1v1.size(); i++) {
+//      final SimpleSpectralArrays v1 = f1v1.get(i);
+//      final SimpleSpectralArrays v2 = f1v2.get(i);
+//      Assertions.assertEquals(v1, v2);
+//
+//      final SimpleSpectralArrays d1 = f2v1.get(i);
+//      final SimpleSpectralArrays d2 = f2v2.get(i);
+//      Assertions.assertEquals(d1, d2);
+//    }
 
     Assertions.assertEquals(f1v1, f1v2);
     Assertions.assertEquals(f2v1, f2v2);
