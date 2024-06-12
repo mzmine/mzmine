@@ -112,7 +112,7 @@ public class PCALoadingsProvider extends SimpleXYProvider implements PlotXYZData
 
     // LinkedHashMap is sorted
     legendNames = typesInOrder.keySet().stream()
-        .map(type -> type instanceof MissingValueType _ ? "Not annotated" : type.getHeaderString())
+        .map(type -> type instanceof MissingValueType _ ? "Unknown" : type.getHeaderString())
         .toArray(String[]::new);
 
     setxValues(domainData);
