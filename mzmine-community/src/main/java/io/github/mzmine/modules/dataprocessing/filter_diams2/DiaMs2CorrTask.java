@@ -158,6 +158,9 @@ public class DiaMs2CorrTask extends AbstractTask {
     final RawDataFile file = flist.getRawDataFile(0);
     final List<Scan> ms2Scans = List.of(ms2ScanSelection.getMatchingScans(file));
     if(ms2Scans.isEmpty()) {
+      flist.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(DiaMs2CorrModule.class, parameters,
+              getModuleCallDate()));
       setStatus(TaskStatus.FINISHED);
       return;
     }
@@ -170,6 +173,9 @@ public class DiaMs2CorrTask extends AbstractTask {
     var ms2Flist = buildChromatograms(dummyProject, file);
 
     if(ms2Flist == null) {
+      flist.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(DiaMs2CorrModule.class, parameters,
+              getModuleCallDate()));
       setStatus(TaskStatus.FINISHED);
       return;
     }
