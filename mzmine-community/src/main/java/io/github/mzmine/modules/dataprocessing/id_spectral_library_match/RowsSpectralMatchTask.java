@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -597,14 +597,20 @@ public class RowsSpectralMatchTask extends AbstractTask {
   }
 
   public List<Scan> getScans(FeatureListRow row) throws MissingMassListException {
+    var allFragmentScans = fragmentScanSelection.getAllFragmentSpectra(row);
     if (msLevelFilter.isMs1Only()) {
-      var scan = row.getBestFeature().getRepresentativeScan();
-      return scan == null ? List.of() : List.of(scan);
+      if (!allFragmentScans.isEmpty()) {
+        var peseudoSpectrum = allFragmentScans.getFirst();
+        return peseudoSpectrum == null ? List.of() : List.of(peseudoSpectrum);
+      } else {
+        var scan = row.getBestFeature().getRepresentativeScan();
+        return scan == null ? List.of() : List.of(scan);
+      }
     } else {
       // merge spectra by enegy and total - or just use all scans
       // depending on selected option
-      var allScans = fragmentScanSelection.getAllFragmentSpectra(row);
-      return allScans.stream().filter(scan -> scan.getNumberOfDataPoints() >= minMatch).toList();
+      return allFragmentScans.stream().filter(scan -> scan.getNumberOfDataPoints() >= minMatch)
+          .toList();
     }
   }
 
