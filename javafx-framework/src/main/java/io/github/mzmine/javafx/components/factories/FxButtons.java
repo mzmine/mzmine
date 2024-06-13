@@ -97,14 +97,26 @@ public class FxButtons {
   }
 
   public static Button createSaveButton(Runnable runnable) {
-    return createButton("Save", null, FxIconUtil.getFontIcon(FxIcons.SAVE), runnable);
+    return createSaveButton("Save", runnable);
+  }
+
+  public static Button createSaveButton(String text, Runnable runnable) {
+    return createButton(text, null, FxIconUtil.getFontIcon(FxIcons.SAVE), runnable);
   }
 
   public static Button createLoadButton(Runnable runnable) {
-    return createButton("Load", null, FxIconUtil.getFontIcon(FxIcons.LOAD), runnable);
+    return createLoadButton("Load", runnable);
+  }
+
+  public static Button createLoadButton(String text, Runnable runnable) {
+    return createButton(text, null, FxIconUtil.getFontIcon(FxIcons.LOAD), runnable);
   }
 
   public static Button createCancelButton(Runnable runnable) {
-    return createButton("Cancel", null, FxIconUtil.getFontIcon(FxIcons.CANCEL), runnable);
+    return createCancelButton("Cancel", runnable);
+  }
+
+  public static Button createCancelButton(String text, Runnable runnable) {
+    return createButton(text, null, FxIconUtil.getFontIcon(FxIcons.CANCEL), runnable);
   }
 }
