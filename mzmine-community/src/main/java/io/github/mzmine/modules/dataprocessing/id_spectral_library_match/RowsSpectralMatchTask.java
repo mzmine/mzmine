@@ -607,7 +607,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
         return scan == null ? List.of() : List.of(scan);
       }
     } else {
-      // merge spectra by enegy and total - or just use all scans
+      // merge spectra by energy and total - or just use all scans
       // depending on selected option
       return allFragmentScans.stream().filter(scan -> scan.getNumberOfDataPoints() >= minMatch)
           .toList();
