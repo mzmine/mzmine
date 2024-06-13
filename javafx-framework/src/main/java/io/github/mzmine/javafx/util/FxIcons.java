@@ -33,7 +33,7 @@ public enum FxIcons implements IconCodeSupplier {
   ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN,
 
   // UI
-  DARK_MODE_SWITCH,
+  DARK_MODE_SWITCH, BATCH,
 
   //
   USER, DOCUMENTATION, BUG, WEBSITE, GEAR_PREFERENCES, RELOAD, YOUTUBE, DEVELOPMENT, BOOK, ROCKET,
@@ -71,6 +71,7 @@ public enum FxIcons implements IconCodeSupplier {
       case START -> "bi-play-circle";
       case STOP -> "bi-stop-circle";
       case DRAW_REGION -> "bi-bounding-box";
+      case BATCH -> "bi-layout-split";
     };
   }
 }
