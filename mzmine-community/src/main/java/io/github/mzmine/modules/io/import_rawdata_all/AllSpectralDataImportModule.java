@@ -45,6 +45,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.process
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.processors.MassDetectorMsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.processors.SortByMzMsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.BafImportTask;
+import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafLib;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFImportTask;
@@ -297,6 +298,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         .count();
     final long numTsf = fileTypes.stream().filter(type -> type.equals(RawDataFileType.BRUKER_TSF))
         .count();
+    final long numBaf = fileTypes.stream().filter(type -> type.equals(RawDataFileType.BRUKER_BAF))
+        .count();
     if (numTdf > 0) {
       TDFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
           .getParameter(MZminePreferences.numOfThreads).getValue() / numTdf));
@@ -304,6 +307,10 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     if (numTsf > 0) {
       TSFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
           .getParameter(MZminePreferences.numOfThreads).getValue() / numTsf));
+    }
+    if(numBaf > 0) {
+      BafLib.baf2sql_set_num_threads(Math.max((int) (MZmineCore.getConfiguration().getPreferences()
+          .getParameter(MZminePreferences.numOfThreads).getValue() / numBaf), 1));
     }
 
     for (int i = 0; i < fileNames.length; i++) {

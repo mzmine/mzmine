@@ -50,7 +50,6 @@ import java.lang.invoke.MethodHandles;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class BafLib {
@@ -95,17 +94,6 @@ public class BafLib {
     };
   }
 
-  static final Supplier<String> LIB_NAME = () -> {
-    if (com.sun.jna.Platform.isWindows()) {
-      return "baf2sql_c.dll";
-    } else if (com.sun.jna.Platform.isMac()) {
-      throw new RuntimeException("Baf import is not supported on Mac.");
-    } else if (com.sun.jna.Platform.isLinux()) {
-      return "baf2sql_c.so";
-    }
-    throw new RuntimeException("Baf import is not supported on your OS.");
-  };
-
 //  static final SymbolLookup SYMBOL_LOOKUP = SymbolLookup.libraryLookup(
 //          BafLib.class.getClassLoader().getResource("vendorlib/bruker_baf/%s".formatted(LIB_NAME.get()))
 //              .toString(), LIBRARY_ARENA).or(SymbolLookup.loaderLookup())
@@ -113,12 +101,13 @@ public class BafLib {
 //static final String path = System.mapLibraryName(
 //    "C:\\Users\\Steffen\\git\\mzmine3\\mzmine-community\\src\\main\\resources\\vendorlib\\bruker_baf\\baf2sql_c");
 
-  // not nice but the only thing that would worl properly
+  // not nice but the only thing that would work properly
   static final Path path;
   static {
     try {
       path = Path.of(BafLib.class.getClassLoader()
-          .getResource("vendorlib/bruker_baf/%s".formatted(System.mapLibraryName("baf2sql_c"))).toURI());
+          .getResource("vendorlib/bruker_baf/%s".formatted(System.mapLibraryName("baf2sql_c")))
+          .toURI());
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
