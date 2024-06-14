@@ -76,6 +76,10 @@ public class SampleTypeFilter {
     return matches(feature.getRawDataFile());
   }
 
+  public boolean isEmpty() {
+    return types.isEmpty();
+  }
+
   public static SampleTypeFilter all() {
     return new SampleTypeFilter(List.of(SampleType.values()));
   }
