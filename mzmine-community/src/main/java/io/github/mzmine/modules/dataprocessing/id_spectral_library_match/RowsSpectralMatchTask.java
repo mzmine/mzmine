@@ -600,8 +600,10 @@ public class RowsSpectralMatchTask extends AbstractTask {
   public List<Scan> getScans(FeatureListRow row) throws MissingMassListException {
     var allFragmentScans = fragmentScanSelection.getAllFragmentSpectra(row);
     if (msLevelFilter.isMs1Only()) {
-      if (allFragmentScans.size() == 1 && allFragmentScans.getFirst() instanceof PseudoSpectrum) {
-        return allFragmentScans;
+      List<Scan> pseudoSpectra = allFragmentScans.stream()
+          .filter(scan -> scan instanceof PseudoSpectrum).toList();
+      if (!pseudoSpectra.isEmpty()) {
+        return pseudoSpectra;
       } else {
         var scan = row.getBestFeature().getRepresentativeScan();
         return scan == null ? List.of() : List.of(scan);
