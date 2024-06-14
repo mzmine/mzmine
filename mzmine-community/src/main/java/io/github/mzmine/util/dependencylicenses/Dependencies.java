@@ -76,8 +76,14 @@ public record Dependencies(List<Dependency> dependencies) {
 
   private static final List<Dependency> other = List.of(
       new Dependency("TDF Software Development Kit, Bruker Daltonics GmbH & Co.KG",
-          "2.8.7.1-win32-vc141", List.of(),
-          List.of(new ModuleLicense("EULA TDF-SDK (Bruker Daltonics GmbH & Co.KG)", null))),
+          "2.8.7.1-win32-vc141", List.of(), List.of(new ModuleLicense(
+          STR."EULA TDF-SDK (Bruker Daltonics GmbH & Co.KG) (see \{Dependencies.class.getClassLoader()
+              .getResource("vendorlib/bruker/EULA TDF-SDK.pdf)").getPath()}", null))),
+      new Dependency(
+          "Baf2Sql Software Development Kit, Bruker Daltonics GmbH & Co.KG (see \\{Dependencies.class.getClassLoader()\n"
+              + "                  .getResource(\"vendorlib/bruker_baf/THIRD-PARTY-LICENSE-README.txt)\").getPath()}",
+          "2.9.0", List.of(),
+          List.of(new ModuleLicense("EULA BAF-SDK (Bruker Daltonics GmbH & Co.KG)", null))),
       new Dependency("ThermoRawFileParser", "1.4.3",
           List.of("https://github.com/compomics/ThermoRawFileParser"), List.of(
           new ModuleLicense("Apache License, Version 2.0",
