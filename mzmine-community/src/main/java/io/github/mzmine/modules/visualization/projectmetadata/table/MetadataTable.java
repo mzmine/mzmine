@@ -113,15 +113,18 @@ public class MetadataTable {
       }
       setValue(dateCol, newFile, newFile.getStartTimeStamp());
 
-      MetadataColumn sampleTypeColumn = getColumnByName(SAMPLE_TYPE_HEADER);
-      if (sampleTypeColumn == null) {
-        sampleTypeColumn = new StringMetadataColumn(SAMPLE_TYPE_HEADER, "The type of the sample");
-      }
-      setValue(sampleTypeColumn, newFile, SampleType.ofFile(newFile));
-
+      assignSampleType(newFile);
     } catch (Exception ignored) {
       logger.warning("Cannot set date " + newFile.getStartTimeStamp().toString());
     }
+  }
+
+  private void assignSampleType(RawDataFile newFile) {
+    MetadataColumn sampleTypeColumn = getColumnByName(SAMPLE_TYPE_HEADER);
+    if (sampleTypeColumn == null) {
+      sampleTypeColumn = new StringMetadataColumn(SAMPLE_TYPE_HEADER, "The type of the sample");
+    }
+    setValue(sampleTypeColumn, newFile, SampleType.ofFile(newFile).toString());
   }
 
   /**
@@ -231,7 +234,16 @@ public class MetadataTable {
    * @return was the import successful?
    */
   public boolean importMetadata(File file, final boolean skipColOnError) {
-    return tableIOUtils.importFrom(file, skipColOnError);
+    final boolean b = tableIOUtils.importFrom(file, skipColOnError);
+
+    if (b) {
+      if(getColumnByName(SAMPLE_TYPE_HEADER) == null) {
+        getData().values().stream().flatMap(m -> m.entrySet().stream()).map(Entry::getKey)
+            .forEach(this::assignSampleType);
+      }
+    }
+
+    return b;
   }
 
   /**

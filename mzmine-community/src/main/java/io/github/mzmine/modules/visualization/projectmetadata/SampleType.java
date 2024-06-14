@@ -32,18 +32,8 @@ import org.jetbrains.annotations.NotNull;
 public enum SampleType {
   BLANK, SAMPLE, QC, CALIBRATION;
 
-  @Override
-  public String toString() {
-    return switch (this) {
-      case BLANK -> "blank";
-      case SAMPLE -> "sample";
-      case QC -> "qc";
-      case CALIBRATION -> "calibration";
-    };
-  }
-
-  public static SampleType ofFile(@NotNull final RawDataFile file) {
-    final String name = file.getName().toLowerCase();
+  public static SampleType ofString(String sampleType) {
+    final String name = sampleType.toLowerCase();
     final Pattern qcPattern = Pattern.compile(".*(qc).*");
     final Pattern blankPattern = Pattern.compile(".*(blank|media).*");
     final Pattern calPattern = Pattern.compile(".*(cal).*");
@@ -58,5 +48,20 @@ public enum SampleType {
       return CALIBRATION;
     }
     return SAMPLE;
+  }
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case BLANK -> "blank";
+      case SAMPLE -> "sample";
+      case QC -> "qc";
+      case CALIBRATION -> "calibration";
+    };
+  }
+
+  @NotNull
+  public static SampleType ofFile(@NotNull final RawDataFile file) {
+    return ofString(file.getName());
   }
 }

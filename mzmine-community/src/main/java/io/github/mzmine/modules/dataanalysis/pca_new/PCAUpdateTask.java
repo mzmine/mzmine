@@ -49,7 +49,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
@@ -110,7 +109,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 
   @Override
   protected void process() {
-    final ObservableList<FeatureListRow> rows = flists.get(0).getRows();
+    final List<FeatureListRow> rows = model.getSampleTypeFilter().filter(flists.get(0).getRows());
     final Comparator<? super DataType<?>> annotationPrioSorter = FeatureAnnotationPriority.createSorter(
         SortOrder.ASCENDING);
     final Map<FeatureListRow, DataType<?>> rowsMappedToBestAnnotation = CompoundAnnotationUtils.mapBestAnnotationTypesByPriority(
@@ -120,7 +119,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
             rowsMappedToBestAnnotation.get(r2)))).toList();
 
     pcaRowsResult = PCAUtils.performPCAOnRows(rowsSortedByAnnotationPrio, abundance, scaling,
-        imputer);
+        imputer, model.getSampleTypeFilter());
     progressProvider.getAndIncrement();
 
     final PCAScoresProvider scores = new PCAScoresProvider(pcaRowsResult, "Scores", Color.RED,
