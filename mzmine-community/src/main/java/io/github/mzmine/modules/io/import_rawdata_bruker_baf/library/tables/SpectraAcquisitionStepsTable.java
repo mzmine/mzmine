@@ -88,6 +88,13 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
       BafStepsTable.REACTION_TYPE_COL);
   private final TDFDataColumn<Double> massCol = new TDFDataColumn<>(BafStepsTable.MASS_COL);
 
+  /**
+   * Merged in from the Variables table. Specifically added as last column, since it is created in
+   * the query {@link this#getQueryText(String)}. Do not move
+   */
+  private final TDFDataColumn<Double> collisionEnergyColumn = new TDFDataColumn<>(
+      "CollisionEnergy");
+
   private final BafStepsTable stepsTable = new BafStepsTable();
 
   private MassSpectrumType spectrumType = MassSpectrumType.CENTROIDED;
@@ -102,7 +109,8 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
         Arrays.asList(rtCol, segment, acquisitionKey, mzAcqRangeLowerCol, mzAcqRangeUpper,
             sumIntensityCol, maxIntensityCol, profileMzIdCol, profileIntensityCol, lineMzIdCol,
             lineIntensityCol, lineAreaIdCol, polarityCol, scanModeCol, acquisitionModeCol,
-            msLevelCol, targetSpectrumCol, numberCol, isolationTypeCol, reactionTypeCol, massCol));
+            msLevelCol, targetSpectrumCol, numberCol, isolationTypeCol, reactionTypeCol, massCol,
+            collisionEnergyColumn));
   }
 
   @Override
@@ -122,8 +130,10 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
         .filter(col -> !col.getCoulumnName().equals(BafStepsTable.MS_LEVEL_COL)) // duplicate
         .map(col -> "%s.%s".formatted(stepsTableStr, col.getCoulumnName()))
         .collect(Collectors.joining(", "));
+    final String collisionEnergyCol =
+        BafVariables.NAME + "." + BafVariables.VALUE_COL + " AS CollisionEnergy";
 
-    return String.join(", ", spectraString, acqString, stepsString);
+    return String.join(", ", spectraString, acqString, stepsString, collisionEnergyCol);
   }
 
   @Override
@@ -131,12 +141,17 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
     final String spectraTable = BafSpectraTable.NAME;
     final String acqTable = BafAcqusitionKeysTable.NAME;
 
-    return "SELECT " + columnHeadersForQuery + " FROM " + spectraTable + " LEFT JOIN " + acqTable
-        + " ON " + spectraTable + "." + BafSpectraTable.AQUISITION_KEY_COL + "=" + acqTable + "."
-        + BafAcqusitionKeysTable.ID_COL + " LEFT JOIN " + BafStepsTable.NAME + " ON " + spectraTable
-        + "." + BafSpectraTable.ID_COL + "=" + BafStepsTable.NAME + "."
-        + BafStepsTable.TARGET_SPECTRUM_COL + " ORDER BY " + spectraTable + "."
-        + BafSpectraTable.ID_COL;
+    return "SELECT " + columnHeadersForQuery + " FROM " + spectraTable + //
+        " LEFT JOIN " + acqTable + " ON " + spectraTable + "." + BafSpectraTable.AQUISITION_KEY_COL
+        + "=" + acqTable + "." + BafAcqusitionKeysTable.ID_COL + //
+        " LEFT JOIN " + BafStepsTable.NAME + " ON " + spectraTable + "." + BafSpectraTable.ID_COL
+        + "=" + BafStepsTable.NAME + "." + BafStepsTable.TARGET_SPECTRUM_COL + //
+        // merges the collision energy column into this table (below)
+        " LEFT JOIN " + BafVariables.NAME + " ON " + spectraTable + "." + BafSpectraTable.ID_COL
+        + "=" + BafVariables.NAME + "." + BafVariables.SPECTRUM_COL + " WHERE " + BafVariables.NAME
+        + "." + BafVariables.VARIABLE_COL + "=5" +
+        // documentation says 5 is a constant value. could also get it from the SupportedVariables table otherwise.
+        " ORDER BY " + spectraTable + "." + BafSpectraTable.ID_COL;
   }
 
   @Override
@@ -220,7 +235,7 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
   public int getMsLevel(int index) {
     return switch (msLevelCol.get(index).intValue()) {
       case 0 -> 1;
-      case 2, 4, 5 -> 2; // 2 = msms, 4 = in source cid, 5 = broadband cid
+      case 1 -> 2;
       default -> throw new IllegalStateException("Unknown scan mode.");
     };
   }
@@ -233,10 +248,11 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
   }
 
   public MsMsInfo getMsMsInfo(int index) {
-    if (massCol.get(index) == null) {
+    if (massCol.get(index) == null || massCol.get(index) == 0L) {
       return null;
     }
-    return new DDAMsMsInfoImpl(massCol.get(index), null, null, null, null, getMsLevel(index),
+    return new DDAMsMsInfoImpl(massCol.get(index), null,
+        collisionEnergyColumn.get(index).floatValue(), null, null, getMsLevel(index),
         getActivationMethod(index), null);
   }
 
