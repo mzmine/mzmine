@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
@@ -599,9 +600,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
   public List<Scan> getScans(FeatureListRow row) throws MissingMassListException {
     var allFragmentScans = fragmentScanSelection.getAllFragmentSpectra(row);
     if (msLevelFilter.isMs1Only()) {
-      if (!allFragmentScans.isEmpty()) {
-        var peseudoSpectrum = allFragmentScans.getFirst();
-        return peseudoSpectrum == null ? List.of() : List.of(peseudoSpectrum);
+      if (allFragmentScans.size() == 1 && allFragmentScans.getFirst() instanceof PseudoSpectrum) {
+        return allFragmentScans;
       } else {
         var scan = row.getBestFeature().getRepresentativeScan();
         return scan == null ? List.of() : List.of(scan);
