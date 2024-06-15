@@ -26,11 +26,13 @@
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.util.ExitCode;
 
 public class SpectralDeconvolutionGCParameters extends SimpleParameterSet {
 
@@ -40,6 +42,9 @@ public class SpectralDeconvolutionGCParameters extends SimpleParameterSet {
   public static final IntegerParameter MIN_NUMBER_OF_SIGNALS = new IntegerParameter(
       "Minimum signals in pseudo spectrum",
       "Minimum number of deconvoluted signals in pseudo spectrum", 10, true, 1, 5000);
+  public static final ComboParameter<SpectralDeconvolutionAlgorithm> SPECTRAL_DECONVOLUTION_ALGORITHM = new ComboParameter<>(
+      "Deconvolution algorithm", "Choose the deconvolution algorithm",
+      SpectralDeconvolutionAlgorithm.values());
 
   public static final StringParameter SUFFIX = new StringParameter("Name suffix",
       "Suffix to be added to feature list name", "decon");
@@ -48,7 +53,25 @@ public class SpectralDeconvolutionGCParameters extends SimpleParameterSet {
       false);
 
   public SpectralDeconvolutionGCParameters() {
-    super(FEATURE_LISTS, RT_TOLERANCE, MIN_NUMBER_OF_SIGNALS, SUFFIX, HANDLE_ORIGINAL);
+    super(FEATURE_LISTS, RT_TOLERANCE, MIN_NUMBER_OF_SIGNALS, SPECTRAL_DECONVOLUTION_ALGORITHM,
+        SUFFIX, HANDLE_ORIGINAL);
+  }
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    if ((getParameters() == null) || (getParameters().length == 0)) {
+      return ExitCode.OK;
+    }
+    SpectralDeconvolutionGCDialog dialog = new SpectralDeconvolutionGCDialog(valueCheckRequired,
+        this);
+
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
   }
 
 }
