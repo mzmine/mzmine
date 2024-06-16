@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -61,7 +62,7 @@ import org.jfree.data.xy.XYSeries;
 
 public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
 
-  private static final Color FEATURE_RT_WINDOW_MARKER_COLOR = new Color(200, 200, 255, 100);
+  private static final Color DOMAIN_MARKER_COLOR = new Color(200, 200, 255, 100);
   private static final Color TOLERANCE_MARKER_COLOR = new Color(255, 128, 0, 100);
 
   private final ParameterSet parameters;
@@ -81,6 +82,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
   private SpectralDeconvolutionAlgorithm spectralDeconvolutionAlgorithm;
   private RTTolerance rtTolerance;
   private Integer minNumberOfSignals;
+  private List<Range<Double>> mzValuesToIgnore;
   private PseudoSpectrumVisualizerPane pseudoSpectrumVisualizerPane;
   private List<ModularFeature> allFeatures;
   private List<List<ModularFeature>> groupedFeatures;
@@ -152,7 +154,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     Feature closestFeatureGroupNew = findClosestFeatureGroup(rtValue, mzValue);
     if (closestFeatureGroupNew != null && closestFeatureGroup != closestFeatureGroupNew) {
       closestFeatureGroup = closestFeatureGroupNew;
-      deconvolutedFeaturesComboBox.setValue(closestFeatureGroup);
+      deconvolutedFeaturesComboBox.getSelectionModel().select(closestFeatureGroup);
       updateSelectedFeature();
     }
   }
@@ -166,7 +168,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
       for (List<ModularFeature> features : groupedFeatures) {
         for (ModularFeature feature : features) {
           if (feature.equals(closestFeature)) {
-            return features.getFirst();
+            return SpectralDeconvolutionTools.getMainFeature(features, mzValuesToIgnore);
           }
         }
       }
@@ -187,8 +189,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
       pseudoSpectrumVisualizerPane = new PseudoSpectrumVisualizerPane(selectedFeature);
       pseudoSpectrumPaneWrapper.setCenter(pseudoSpectrumVisualizerPane);
       scatterPlot.getChart().getXYPlot().clearDomainMarkers();
-      scatterPlot.addIntervalMarker(selectedFeature.getRawDataPointsRTRange(),
-          FEATURE_RT_WINDOW_MARKER_COLOR);
+      scatterPlot.addIntervalMarker(selectedFeature.getRawDataPointsRTRange(), DOMAIN_MARKER_COLOR);
       scatterPlot.addIntervalMarker(rtTolerance.getToleranceRange(selectedFeature.getRT()),
           TOLERANCE_MARKER_COLOR);
       selectedFeatureGroupLabel.setText(
@@ -251,6 +252,13 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     rtTolerance = parameters.getValue(SpectralDeconvolutionGCParameters.RT_TOLERANCE);
     minNumberOfSignals = parameters.getValue(
         SpectralDeconvolutionGCParameters.MIN_NUMBER_OF_SIGNALS);
+    if (parameters.getParameter(SpectralDeconvolutionGCParameters.ADVANCED).getValue()) {
+      mzValuesToIgnore = parameters.getParameter(SpectralDeconvolutionGCParameters.ADVANCED)
+          .getEmbeddedParameters()
+          .getValue(AdvancedSpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE);
+    } else {
+      mzValuesToIgnore = null;
+    }
   }
 
   private void populateScatterPlot() {
@@ -275,7 +283,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
       protected ObservableList<Feature> call() {
         List<FeatureListRow> featureListRows = SpectralDeconvolutionTools.generatePseudoSpectra(
             allFeatures, featureList, rtTolerance, minNumberOfSignals,
-            spectralDeconvolutionAlgorithm);
+            spectralDeconvolutionAlgorithm, mzValuesToIgnore);
         return featureListRows.stream().map(row -> row.getFeature(featureList.getRawDataFile(0)))
             .filter(Objects::nonNull).sorted(Comparator.comparingDouble(Feature::getRT))
             .collect(Collectors.toCollection(FXCollections::observableArrayList));

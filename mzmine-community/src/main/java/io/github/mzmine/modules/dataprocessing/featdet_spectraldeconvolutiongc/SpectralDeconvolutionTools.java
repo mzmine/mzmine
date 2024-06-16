@@ -119,7 +119,7 @@ public class SpectralDeconvolutionTools {
         double highestCorrelation = Double.NEGATIVE_INFINITY;
 
         for (List<ModularFeature> potentialCluster : potentialClusters) {
-          ModularFeature clusterRepFeature = potentialCluster.get(0); // Representative feature
+          ModularFeature clusterRepFeature = potentialCluster.getFirst(); // Representative feature
           double correlation = calculateCorrelation(clusterRepFeature, feature);
           if (correlation > highestCorrelation) {
             bestCluster = potentialCluster;
@@ -245,7 +245,8 @@ public class SpectralDeconvolutionTools {
 
   public static List<FeatureListRow> generatePseudoSpectra(List<ModularFeature> features,
       FeatureList featureList, RTTolerance rtTolerance, int minNumberOfSignals,
-      SpectralDeconvolutionAlgorithm spectralDeconvolutionAlgorithm) {
+      SpectralDeconvolutionAlgorithm spectralDeconvolutionAlgorithm,
+      List<Range<Double>> mzValuesToIgnore) {
     List<FeatureListRow> deconvolutedFeatureListRowsByRtOnly = new ArrayList<>();
     List<List<ModularFeature>> groupedFeatures = SpectralDeconvolutionTools.groupFeatures(
         spectralDeconvolutionAlgorithm, features, rtTolerance, minNumberOfSignals);
@@ -254,8 +255,8 @@ public class SpectralDeconvolutionTools {
         continue;
       }
 
-      // is already sorted by intensity best first
-      ModularFeature mainFeature = group.getFirst();
+      // find main feature as representative feature in new feature list
+      ModularFeature mainFeature = getMainFeature(group, mzValuesToIgnore);
 
       group.sort(Comparator.comparingDouble(ModularFeature::getMZ));
       double[] mzs = new double[group.size()];
@@ -264,7 +265,6 @@ public class SpectralDeconvolutionTools {
         mzs[i] = group.get(i).getMZ();
         intensities[i] = group.get(i).getHeight();
       }
-
       // Create PseudoSpectrum, take first feature to ensure most intense is representative feature
       PseudoSpectrum pseudoSpectrum = new SimplePseudoSpectrum(featureList.getRawDataFile(0), 1,
           // MS Level
@@ -276,6 +276,40 @@ public class SpectralDeconvolutionTools {
       deconvolutedFeatureListRowsByRtOnly.add(mainFeature.getRow());
     }
     return deconvolutedFeatureListRowsByRtOnly;
+  }
+
+  public static ModularFeature getMainFeature(List<ModularFeature> groups,
+      List<Range<Double>> mzValuesToIgnore) {
+    List<Range<Double>> adjustedRanges = new ArrayList<>();
+    if (mzValuesToIgnore != null) {
+      // Adjust ranges if min and max values are the same
+      for (Range<Double> range : mzValuesToIgnore) {
+        if (range.lowerEndpoint().equals(range.upperEndpoint())) {
+          double minValue = range.lowerEndpoint();
+          double maxValue = minValue + 1.0;
+          adjustedRanges.add(Range.closed(minValue, maxValue));
+        } else {
+          adjustedRanges.add(range);
+        }
+      }
+    }
+
+    for (ModularFeature feature : groups) {
+      double mz = feature.getMZ();
+      boolean isIgnored = false;
+      if (!adjustedRanges.isEmpty()) {
+        for (Range<Double> range : adjustedRanges) {
+          if (range.contains(mz)) {
+            isIgnored = true;
+            break;
+          }
+        }
+      }
+      if (!isIgnored) {
+        return feature;
+      }
+    }
+    return null; // Return null if all features are in the ignored ranges
   }
 
 }

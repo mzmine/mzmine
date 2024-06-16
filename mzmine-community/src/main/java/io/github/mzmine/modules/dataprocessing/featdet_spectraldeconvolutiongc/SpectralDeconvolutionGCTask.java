@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -57,6 +58,7 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
   private final RTTolerance rtTolerance;
   private final int minNumberOfSignals;
   private final SpectralDeconvolutionAlgorithm spectralDeconvolutionAlgorithm;
+  private final List<Range<Double>> mzValuesToIgnore;
   private FeatureList deconvolutedFeatureList;
 
   protected SpectralDeconvolutionGCTask(MZmineProject project, FeatureList featureList,
@@ -70,6 +72,13 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
         SpectralDeconvolutionGCParameters.MIN_NUMBER_OF_SIGNALS);
     spectralDeconvolutionAlgorithm = parameters.getValue(
         SpectralDeconvolutionGCParameters.SPECTRAL_DECONVOLUTION_ALGORITHM);
+    if (parameters.getParameter(SpectralDeconvolutionGCParameters.ADVANCED).getValue()) {
+      mzValuesToIgnore = parameters.getParameter(SpectralDeconvolutionGCParameters.ADVANCED)
+          .getEmbeddedParameters()
+          .getValue(AdvancedSpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE);
+    } else {
+      mzValuesToIgnore = null;
+    }
     handleOriginal = parameters.getValue(SpectralDeconvolutionGCParameters.HANDLE_ORIGINAL);
     suffix = parameters.getValue(SpectralDeconvolutionGCParameters.SUFFIX);
 
@@ -81,7 +90,8 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
     try {
       List<ModularFeature> features = featureList.getFeatures(featureList.getRawDataFile(0));
       List<FeatureListRow> deconvolutedFeatureListRows = SpectralDeconvolutionTools.generatePseudoSpectra(
-          features, featureList, rtTolerance, minNumberOfSignals, spectralDeconvolutionAlgorithm);
+          features, featureList, rtTolerance, minNumberOfSignals, spectralDeconvolutionAlgorithm,
+          mzValuesToIgnore);
       createNewDeconvolutedFeatureList(deconvolutedFeatureListRows);
       if (!isCanceled()) {
         handleOriginal.reflectNewFeatureListToProject(suffix, project, deconvolutedFeatureList,
