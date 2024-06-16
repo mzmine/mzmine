@@ -26,8 +26,6 @@
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
 import com.google.common.collect.Range;
-import com.google.common.collect.RangeMap;
-import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -38,7 +36,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.TreeSet;
+import java.util.PriorityQueue;
 
 public class SpectralDeconvolutionTools {
 
@@ -47,28 +45,22 @@ public class SpectralDeconvolutionTools {
       RTTolerance rtTolerance, int minNumberOfSignals) {
     switch (spectralDeconvolutionAlgorithm) {
       case HIERARCHICAL_CLUSTERING -> {
-        return SpectralDeconvolutionTools.clusterFeaturesByRT(features, rtTolerance,
+        return SpectralDeconvolutionTools.clusterFeaturesByRTHierarchical(features, rtTolerance,
             minNumberOfSignals);
       }
-      case HIERARCHICAL_CLUSTERING_AND_SHAPE_CORRELATION -> {
+      case RT_GROUPING_AND_SHAPE_CORRELATION -> {
         return SpectralDeconvolutionTools.clusterFeaturesByRTAndCorrelation(features, rtTolerance,
             minNumberOfSignals);
       }
-      case RT_RANGES -> {
-        return SpectralDeconvolutionTools.groupFeaturesByRTRanges(features, rtTolerance,
-            minNumberOfSignals);
-      }
-      default ->
-          SpectralDeconvolutionTools.clusterFeaturesByRT(features, rtTolerance, minNumberOfSignals);
     }
-    // fallback
-    return SpectralDeconvolutionTools.clusterFeaturesByRT(features, rtTolerance,
+    return SpectralDeconvolutionTools.clusterFeaturesByRTAndCorrelation(features, rtTolerance,
         minNumberOfSignals);
   }
 
   private static List<List<ModularFeature>> clusterFeaturesByRT(List<ModularFeature> features,
       RTTolerance rtTolerance, int minNumberOfSignals) {
-    features.sort(Comparator.comparingDouble(ModularFeature::getArea).reversed());  // Sort by area
+    features.sort(
+        Comparator.comparingDouble(ModularFeature::getHeight).reversed());  // Sort by area
 
     List<List<ModularFeature>> clusters = new ArrayList<>();
     for (ModularFeature feature : features) {
@@ -99,9 +91,7 @@ public class SpectralDeconvolutionTools {
 
   public static List<List<ModularFeature>> clusterFeaturesByRTAndCorrelation(
       List<ModularFeature> features, RTTolerance rtTolerance, int minNumberOfSignals) {
-    // Sort features by area in descending order
-    features.sort(Comparator.comparingDouble(ModularFeature::getArea).reversed());
-
+    features.sort(Comparator.comparingDouble(ModularFeature::getHeight).reversed());
     List<List<ModularFeature>> clusters = new ArrayList<>();
 
     for (ModularFeature feature : features) {
@@ -109,8 +99,7 @@ public class SpectralDeconvolutionTools {
 
       // Find all clusters that the feature can potentially fit into
       for (List<ModularFeature> cluster : clusters) {
-        ModularFeature clusterRepFeature = cluster.get(
-            0); // Get the first feature as the representative
+        ModularFeature clusterRepFeature = cluster.getFirst(); // Get the first feature as the representative
         if (rtTolerance.checkWithinTolerance(clusterRepFeature.getRT(), feature.getRT())) {
           potentialClusters.add(cluster);
         }
@@ -123,7 +112,7 @@ public class SpectralDeconvolutionTools {
         clusters.add(newCluster);
       } else if (potentialClusters.size() == 1) {
         // Only one matching cluster, add the feature to it
-        potentialClusters.get(0).add(feature);
+        potentialClusters.getFirst().add(feature);
       } else {
         // Multiple matching clusters, use correlation to determine the best one
         List<ModularFeature> bestCluster = null;
@@ -198,79 +187,60 @@ public class SpectralDeconvolutionTools {
   }
 
   private static Range<Float> getOverlap(Range<Float> range1, Range<Float> range2) {
-    if (range1.isConnected(range2)) {
+    if (range1 != null && range2 != null && range1.isConnected(range2)) {
       return range1.intersection(range2);
     } else {
       return null; // Indicating no overlap
     }
   }
 
-  public static List<List<ModularFeature>> clusterFeaturesByRT1(List<ModularFeature> features,
+  private static List<List<ModularFeature>> clusterFeaturesByRTHierarchical(
+      List<ModularFeature> features,
       RTTolerance rtTolerance, int minNumberOfSignals) {
-    // Sort features by retention time
-    features.sort(Comparator.comparingDouble(ModularFeature::getRT));
+    features.sort(Comparator.comparingDouble(ModularFeature::getHeight).reversed());
 
-    List<List<ModularFeature>> clusters = new ArrayList<>();
-    TreeSet<ModularFeature> sortedFeatures = new TreeSet<>(
-        Comparator.comparingDouble(ModularFeature::getRT));
-
+    List<Cluster> clusters = new ArrayList<>();
     for (ModularFeature feature : features) {
-      List<ModularFeature> bestCluster = null;
-      ModularFeature bestClusterRepFeature = null;
-      double smallestDistance = Double.MAX_VALUE;
-
-      for (List<ModularFeature> cluster : clusters) {
-        ModularFeature clusterRepFeature = getRepresentativeFeature(
-            cluster);  // Get representative feature
-        double distance = Math.abs(clusterRepFeature.getRT() - feature.getRT());
-
-        if (rtTolerance.checkWithinTolerance(clusterRepFeature.getRT(), feature.getRT())
-            && distance < smallestDistance) {
-          bestCluster = cluster;
-          bestClusterRepFeature = clusterRepFeature;
-          smallestDistance = distance;
-        }
-      }
-
-      if (bestCluster != null) {
-        bestCluster.add(feature);
-        if (feature.getArea() > bestClusterRepFeature.getArea()) {
-          sortedFeatures.remove(bestClusterRepFeature);
-          sortedFeatures.add(feature);
-        }
-      } else {
-        List<ModularFeature> newCluster = new ArrayList<>();
-        newCluster.add(feature);
-        clusters.add(newCluster);
-        sortedFeatures.add(feature);
-      }
-    }
-    clusters.removeIf(cluster -> cluster.size() < minNumberOfSignals);
-    return clusters;
-  }
-
-  private static ModularFeature getRepresentativeFeature(List<ModularFeature> cluster) {
-    return cluster.stream().max(Comparator.comparingDouble(ModularFeature::getArea))
-        .orElse(cluster.getFirst());
-  }
-
-  private static List<List<ModularFeature>> groupFeaturesByRTRanges(List<ModularFeature> features,
-      RTTolerance rtTolerance, int minNumberOfSignals) {
-    features.sort(Comparator.comparingDouble(ModularFeature::getArea).reversed());
-
-    RangeMap<Float, List<ModularFeature>> rangeRtMap = TreeRangeMap.create();
-
-    for (ModularFeature feature : features) {
-      Float rt = feature.getRT();
-      List<ModularFeature> group = rangeRtMap.get(rt);
-      if (group == null) {
-        group = new ArrayList<>();
-        rangeRtMap.put(rtTolerance.getToleranceRange(rt), group);
-      }
-      group.add(feature);
+      clusters.add(new Cluster(feature));
     }
 
-    return new ArrayList<>(rangeRtMap.asMapOfRanges().values());
+    PriorityQueue<ClusterPair> queue = new PriorityQueue<>();
+    for (int i = 0; i < clusters.size(); i++) {
+      for (int j = i + 1; j < clusters.size(); j++) {
+        float distance = clusters.get(i).getRTDistance(clusters.get(j));
+        queue.add(new ClusterPair(clusters.get(i), clusters.get(j), distance));
+      }
+    }
+
+    while (!queue.isEmpty()) {
+      ClusterPair pair = queue.poll();
+      if (clusters.contains(pair.cluster1) && clusters.contains(pair.cluster2)) {
+        // Check if all features in pair.cluster2 are within rtTolerance of the representative feature of pair.cluster1
+        boolean withinTolerance = pair.cluster2.features.stream().allMatch(
+            feature -> rtTolerance.checkWithinTolerance(
+                pair.cluster1.getRepresentativeFeature().getRT(), feature.getRT()));
+        if (withinTolerance) {
+          pair.cluster1.addFeatures(pair.cluster2);
+          clusters.remove(pair.cluster2);
+
+          for (Cluster other : clusters) {
+            if (other != pair.cluster1) {
+              float distance = pair.cluster1.getRTDistance(other);
+              queue.add(new ClusterPair(pair.cluster1, other, distance));
+            }
+          }
+        }
+      }
+    }
+
+    List<List<ModularFeature>> result = new ArrayList<>();
+    for (Cluster cluster : clusters) {
+      if (cluster.features.size() >= minNumberOfSignals) {
+        cluster.features.sort(Comparator.comparingDouble(ModularFeature::getHeight).reversed());
+        result.add(cluster.features);
+      }
+    }
+    return result;
   }
 
   public static List<FeatureListRow> generatePseudoSpectra(List<ModularFeature> features,

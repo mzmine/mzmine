@@ -25,9 +25,20 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
-public enum SpectralDeconvolutionAlgorithm {
+public class ClusterPair implements Comparable<ClusterPair> {
 
-  RT_GROUPING_AND_SHAPE_CORRELATION,//
-  HIERARCHICAL_CLUSTERING, //
+  Cluster cluster1;
+  Cluster cluster2;
+  double distance;
 
+  public ClusterPair(Cluster cluster1, Cluster cluster2, double distance) {
+    this.cluster1 = cluster1;
+    this.cluster2 = cluster2;
+    this.distance = distance;
+  }
+
+  @Override
+  public int compareTo(ClusterPair other) {
+    return Double.compare(this.distance, other.distance);
+  }
 }

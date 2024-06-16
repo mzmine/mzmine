@@ -86,12 +86,12 @@ public class SpectralDeconvolutionPreviewPlot extends EChartViewer {
     datasetIndex = 0;
   }
 
-  public void addIntervalMarker(Range<Float> rtRange) {
-    plot.clearDomainMarkers();
+  public void addIntervalMarker(Range<Float> rtRange, Color color) {
+
     // Create an IntervalMarker
     IntervalMarker intervalMarker = new IntervalMarker(rtRange.lowerEndpoint(),
         rtRange.upperEndpoint());
-    intervalMarker.setPaint(new Color(200, 200, 255, 100));
+    intervalMarker.setPaint(color);
     intervalMarker.setLabelTextAnchor(TextAnchor.TOP_RIGHT);
 
     // Add the interval marker to the plot

@@ -25,9 +25,40 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
-public enum SpectralDeconvolutionAlgorithm {
+import io.github.mzmine.datamodel.features.ModularFeature;
+import java.util.ArrayList;
+import java.util.List;
 
-  RT_GROUPING_AND_SHAPE_CORRELATION,//
-  HIERARCHICAL_CLUSTERING, //
+public class Cluster {
+
+  List<ModularFeature> features;
+  float minRT;
+  float maxRT;
+  ModularFeature representativeFeature;
+
+  Cluster(ModularFeature feature) {
+    this.features = new ArrayList<>();
+    this.features.add(feature);
+    this.minRT = feature.getRT();
+    this.maxRT = feature.getRT();
+    this.representativeFeature = feature;
+  }
+
+  float getRTDistance(Cluster other) {
+    return Math.abs(this.representativeFeature.getRT() - other.representativeFeature.getRT());
+  }
+
+  void addFeatures(Cluster other) {
+    this.features.addAll(other.features);
+    this.minRT = Math.min(this.minRT, other.minRT);
+    this.maxRT = Math.max(this.maxRT, other.maxRT);
+    if (other.representativeFeature.getHeight() > this.representativeFeature.getHeight()) {
+      this.representativeFeature = other.representativeFeature;
+    }
+  }
+
+  ModularFeature getRepresentativeFeature() {
+    return representativeFeature;
+  }
 
 }
