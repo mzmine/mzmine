@@ -155,6 +155,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     makeAndAddAlignmentStep(q);
     makeAndAddDuplicateRowFilterStep(q, handleOriginalFeatureLists, mzTolFeaturesIntraSample,
         rtFwhm, imsInstrumentType);
+    makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath);
     makeAndAddLibrarySearchMS1Step(q, false);
 
     if (isExportActive) {
