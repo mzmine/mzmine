@@ -91,7 +91,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
   public SpectralDeconvolutionGCDialog(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
     this.parameters = parameters;
-    setMinWidth(800);
+    setMinWidth(1000);
     setMinHeight(1000);
 
     paramPreviewSplit = new SplitPane();
