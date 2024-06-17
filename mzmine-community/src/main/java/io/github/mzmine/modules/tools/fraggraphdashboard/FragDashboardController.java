@@ -26,8 +26,15 @@
 package io.github.mzmine.modules.tools.fraggraphdashboard;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
@@ -38,18 +45,26 @@ import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.graphstream.S
 import io.github.mzmine.modules.tools.fraggraphdashboard.fraggraph.mvci.FragmentGraphController;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import javafx.beans.property.ObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FragDashboardController extends FxController<FragDashboardModel> {
 
+  private static final Logger logger = Logger.getLogger(FragDashboardController.class.getName());
+
   private final FragDashboardBuilder fragDashboardBuilder;
   private final FragmentGraphController fragmentGraphController;
-
   private final ParameterSet parameters;
   private SpectrumPlotTableController isotopeController;
   private SpectrumPlotTableController ms2Controller;
@@ -84,7 +99,7 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
 
     fragDashboardBuilder = new FragDashboardBuilder(model, fragmentGraphController.buildView(),
         ms2Controller.buildView(), isotopeController.buildView(), this::updateFragmentGraph,
-        this::startFormulaCalculation, parameters);
+        this::startFormulaCalculation, this::saveToRowAction, parameters);
 
     initSelectedEdgeToSpectrumListener();
   }
@@ -126,32 +141,71 @@ public class FragDashboardController extends FxController<FragDashboardModel> {
       @Nullable MassSpectrum isotopePattern, @Nullable IMolecularFormula formula,
       @Nullable List<ResultFormula> formulae) {
     setInput(precursorMz, ms2Spectrum, isotopePattern, formula);
+    if (formula != null) {
+      updateFragmentGraph();
+    }
+
     if (formulae != null) {
       model.precursorFormulaeProperty().setAll(formulae);
     }
   }
 
   private void initSelectedEdgeToSpectrumListener() {
-    model.selectedEdgesProperty().addListener(new ListChangeListener<SubFormulaEdge>() {
-      @Override
-      public void onChanged(Change<? extends SubFormulaEdge> change) {
-        while (change.next()) {
-          if (change.wasAdded()) {
-            for (SubFormulaEdge edge : change.getAddedSubList()) {
-              ms2Controller.addDomainMarker(
-                  Range.closed(edge.smaller().getPeakWithFormulae().peak().getMZ(),
-                      edge.larger().getPeakWithFormulae().peak().getMZ()));
-            }
+    model.selectedEdgesProperty().addListener((ListChangeListener<SubFormulaEdge>) change -> {
+      while (change.next()) {
+        if (change.wasAdded()) {
+          for (SubFormulaEdge edge : change.getAddedSubList()) {
+            ms2Controller.addDomainMarker(
+                Range.closed(edge.smaller().getPeakWithFormulae().peak().getMZ(),
+                    edge.larger().getPeakWithFormulae().peak().getMZ()));
           }
-          if (change.wasRemoved()) {
-            for (SubFormulaEdge edge : change.getRemoved()) {
-              ms2Controller.removeDomainMarker(
-                  Range.closed(edge.smaller().getPeakWithFormulae().peak().getMZ(),
-                      edge.larger().getPeakWithFormulae().peak().getMZ()));
-            }
+        }
+        if (change.wasRemoved()) {
+          for (SubFormulaEdge edge : change.getRemoved()) {
+            ms2Controller.removeDomainMarker(
+                Range.closed(edge.smaller().getPeakWithFormulae().peak().getMZ(),
+                    edge.larger().getPeakWithFormulae().peak().getMZ()));
           }
         }
       }
     });
+  }
+
+  /**
+   * Saves the selected formula to a row as a ResultFormula.
+   */
+  public void saveToRowAction() {
+    if (model.getRow() != null && model.getPrecursorFormula() != null) {
+      try {
+
+        IMolecularFormula chargedFormula = (IMolecularFormula) model.getPrecursorFormula().clone();
+
+        final SimpleIsotopePattern measuredPattern = new SimpleIsotopePattern(
+            ScanUtils.extractDataPoints(model.getIsotopePattern()), chargedFormula.getCharge(),
+            IsotopePatternStatus.DETECTED, "");
+
+        final Map<DataPoint, String> annotations = model.allNodesProperty().stream().collect(
+            Collectors.toMap(sfm -> sfm.getPeakWithFormulae().peak(),
+                sfm -> MolecularFormulaManipulator.getString(
+                    sfm.getSelectedFormulaWithMz().formula())));
+
+        final ResultFormula formula = new ResultFormula(chargedFormula, measuredPattern,
+            model.getSpectrum(), model.getPrecursorMz(),
+            parameters.getValue(FragmentGraphCalcParameters.ms2Tolerance), annotations);
+
+        final FeatureList featureList = model.getRow().getFeatureList();
+        if (featureList != null) {
+          featureList.addRowType(DataTypes.get(FormulaListType.class));
+        }
+        model.getRow().addFormula(formula, true);
+
+      } catch (CloneNotSupportedException e) {
+        logger.log(Level.WARNING, "Failed to clone molecular formula.", e);
+      }
+    }
+  }
+
+  public ObjectProperty<@Nullable FeatureListRow> rowProperty() {
+    return model.rowProperty();
   }
 }

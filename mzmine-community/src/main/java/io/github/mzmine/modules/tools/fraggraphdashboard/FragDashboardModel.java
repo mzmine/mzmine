@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.fraggraphdashboard;
 
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
@@ -62,6 +63,10 @@ public class FragDashboardModel {
    * The measured precursor m/z (accurate mass).
    */
   private final DoubleProperty precursorMz = new SimpleDoubleProperty();
+
+  /**
+   * currently not used.
+   */
   private final ObjectProperty<IonType> ionType = new SimpleObjectProperty<>(
       new IonType(IonModification.H));
   private final ListProperty<IonType> ionTypes = new SimpleListProperty<>(
@@ -90,6 +95,11 @@ public class FragDashboardModel {
   private final ListProperty<SubFormulaEdge> allEdges = new SimpleListProperty<>(
       FXCollections.observableArrayList());
 
+  /**
+   * If the frag dashboard was opened from a feature list row, the row is stored here.
+   */
+  private final ObjectProperty<@Nullable FeatureListRow> row = new SimpleObjectProperty<>(null);
+
   public FragDashboardModel() {
   }
 
@@ -97,60 +107,60 @@ public class FragDashboardModel {
     return isotopePattern.get();
   }
 
-  public ObjectProperty<MassSpectrum> isotopePatternProperty() {
-    return isotopePattern;
-  }
-
   public void setIsotopePattern(MassSpectrum isotopePattern) {
     this.isotopePattern.set(isotopePattern);
+  }
+
+  public ObjectProperty<MassSpectrum> isotopePatternProperty() {
+    return isotopePattern;
   }
 
   public double getPrecursorMz() {
     return precursorMz.get();
   }
 
-  public DoubleProperty precursorMzProperty() {
-    return precursorMz;
-  }
-
   public void setPrecursorMz(double precursorMz) {
     this.precursorMz.set(precursorMz);
   }
 
-  public IonType getIonType() {
-    return ionType.get();
+  public DoubleProperty precursorMzProperty() {
+    return precursorMz;
   }
 
-  public ObjectProperty<IonType> ionTypeProperty() {
-    return ionType;
-  }
+//  public IonType getIonType() {
+//    return ionType.get();
+//  }
 
-  public void setIonType(IonType ionType) {
-    this.ionType.set(ionType);
-  }
+//  public void setIonType(IonType ionType) {
+//    this.ionType.set(ionType);
+//  }
+
+//  public ObjectProperty<IonType> ionTypeProperty() {
+//    return ionType;
+//  }
 
   public ObservableList<IonType> getIonTypes() {
     return ionTypes.get();
-  }
-
-  public ListProperty<IonType> ionTypesProperty() {
-    return ionTypes;
   }
 
   public void setIonTypes(ObservableList<IonType> ionTypes) {
     this.ionTypes.set(ionTypes);
   }
 
+  public ListProperty<IonType> ionTypesProperty() {
+    return ionTypes;
+  }
+
   public ObservableList<ResultFormula> getPrecursorFormulae() {
     return precursorFormulae.get();
   }
 
-  public ListProperty<ResultFormula> precursorFormulaeProperty() {
-    return precursorFormulae;
-  }
-
   public void setPrecursorFormulae(ObservableList<ResultFormula> precursorFormulae) {
     this.precursorFormulae.set(precursorFormulae);
+  }
+
+  public ListProperty<ResultFormula> precursorFormulaeProperty() {
+    return precursorFormulae;
   }
 
   @Nullable
@@ -158,83 +168,95 @@ public class FragDashboardModel {
     return precursorFormula.get();
   }
 
-  public ObjectProperty<@Nullable IMolecularFormula> precursorFormulaProperty() {
-    return precursorFormula;
-  }
-
   public void setPrecursorFormula(@Nullable IMolecularFormula precursorFormula) {
     this.precursorFormula.set(precursorFormula);
+  }
+
+  public ObjectProperty<@Nullable IMolecularFormula> precursorFormulaProperty() {
+    return precursorFormula;
   }
 
   public MassSpectrum getSpectrum() {
     return spectrum.get();
   }
 
-  public ObjectProperty<MassSpectrum> spectrumProperty() {
-    return spectrum;
-  }
-
   public void setSpectrum(MassSpectrum spectrum) {
     this.spectrum.set(spectrum);
+  }
+
+  public ObjectProperty<MassSpectrum> spectrumProperty() {
+    return spectrum;
   }
 
   public ObservableList<SignalFormulaeModel> getSelectedNodes() {
     return selectedNodes.get();
   }
 
-  public ListProperty<SignalFormulaeModel> selectedNodesProperty() {
-    return selectedNodes;
-  }
-
   public void setSelectedNodes(ObservableList<SignalFormulaeModel> selectedNodes) {
     this.selectedNodes.set(selectedNodes);
+  }
+
+  public ListProperty<SignalFormulaeModel> selectedNodesProperty() {
+    return selectedNodes;
   }
 
   public ObservableList<SignalFormulaeModel> getAllNodes() {
     return allNodes.get();
   }
 
-  public ListProperty<SignalFormulaeModel> allNodesProperty() {
-    return allNodes;
-  }
-
   public void setAllNodes(ObservableList<SignalFormulaeModel> allNodes) {
     this.allNodes.set(allNodes);
+  }
+
+  public ListProperty<SignalFormulaeModel> allNodesProperty() {
+    return allNodes;
   }
 
   public ObservableList<SubFormulaEdge> getSelectedEdges() {
     return selectedEdges.get();
   }
 
-  public ListProperty<SubFormulaEdge> selectedEdgesProperty() {
-    return selectedEdges;
-  }
-
   public void setSelectedEdges(ObservableList<SubFormulaEdge> selectedEdges) {
     this.selectedEdges.set(selectedEdges);
+  }
+
+  public ListProperty<SubFormulaEdge> selectedEdgesProperty() {
+    return selectedEdges;
   }
 
   public ObservableList<SubFormulaEdge> getAllEdges() {
     return allEdges.get();
   }
 
-  public ListProperty<SubFormulaEdge> allEdgesProperty() {
-    return allEdges;
-  }
-
   public void setAllEdges(ObservableList<SubFormulaEdge> allEdges) {
     this.allEdges.set(allEdges);
+  }
+
+  public ListProperty<SubFormulaEdge> allEdgesProperty() {
+    return allEdges;
   }
 
   public boolean getAllowGraphRecalculation() {
     return allowGraphRecalculation.get();
   }
 
+  public void setAllowGraphRecalculation(boolean allowGraphRecalculation) {
+    this.allowGraphRecalculation.set(allowGraphRecalculation);
+  }
+
   public BooleanProperty allowGraphRecalculationProperty() {
     return allowGraphRecalculation;
   }
 
-  public void setAllowGraphRecalculation(boolean allowGraphRecalculation) {
-    this.allowGraphRecalculation.set(allowGraphRecalculation);
+  public @Nullable FeatureListRow getRow() {
+    return row.get();
+  }
+
+  public void setRow(@Nullable FeatureListRow row) {
+    this.row.set(row);
+  }
+
+  public ObjectProperty<@Nullable FeatureListRow> rowProperty() {
+    return row;
   }
 }

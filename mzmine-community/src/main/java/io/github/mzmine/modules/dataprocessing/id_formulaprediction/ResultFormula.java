@@ -38,11 +38,13 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.TryCatch;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +56,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class ResultFormula extends MolecularFormulaIdentity {
@@ -86,6 +89,45 @@ public class ResultFormula extends MolecularFormulaIdentity {
     this.msmsAnnotation = msmsAnnotation;
   }
 
+  /**
+   * Creates a result neutralFormula from the given input.
+   *
+   * @param neutralFormula              The charged ion formula.
+   * @param measuredPattern             the measured isotope pattern
+   * @param ms2
+   * @param searchedMass
+   * @param isotopeAndFragmentTolerance Tolerance used to compare the isotope patterns and ms2
+   *                                    spectra.
+   * @param msmsAnnotation
+   */
+  public ResultFormula(IMolecularFormula chargedFormula, @NotNull IsotopePattern measuredPattern,
+      @NotNull MassSpectrum ms2, double searchedMass,
+      @NotNull MZTolerance isotopeAndFragmentTolerance,
+      @Nullable Map<DataPoint, String> msmsAnnotation) throws CloneNotSupportedException {
+    super(chargedFormula, searchedMass);
+
+    final int charge = Objects.requireNonNullElse(chargedFormula.getCharge(), 0);
+
+    this.predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(chargedFormula,
+        0.01, isotopeAndFragmentTolerance.getMzToleranceForMass(searchedMass), Math.abs(charge),
+        PolarityType.fromInt(charge), false);
+
+    this.isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(measuredPattern,
+        predictedIsotopePattern, isotopeAndFragmentTolerance, 0.01);
+
+    final MSMSScore msmsScore = MSMSScoreCalculator.evaluateMSMS(isotopeAndFragmentTolerance,
+        chargedFormula, ScanUtils.extractDataPoints(ms2), searchedMass, charge);
+
+    this.msmsScore = msmsScore.explainedIntensity();
+    this.msmsAnnotation = msmsAnnotation != null ? msmsAnnotation : msmsScore.annotation();
+  }
+
+  /**
+   * Creates a result formula from the row and the given ionic formula.
+   *
+   * @param ionFormula
+   * @param row
+   */
   public ResultFormula(IMolecularFormula ionFormula, FeatureListRow row) {
     super(ionFormula, FormulaUtils.calculateMzRatio(ionFormula));
     predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(ionFormula, 0.01,
@@ -142,6 +184,58 @@ public class ResultFormula extends MolecularFormulaIdentity {
     } else {
       return formulae;
     }
+  }
+
+  public static ResultFormula loadFromXML(@NotNull final XMLStreamReader reader)
+      throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      throw new IllegalStateException(
+          "Unexpected xml element for ResultFormula: " + reader.getLocalName());
+    }
+
+    Float isotopeScore = null;
+    Float msmsScore = null;
+    IsotopePattern pattern = null;
+    Map<DataPoint, String> annotations = null;
+    MolecularFormulaIdentity id = null;
+
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(XML_ELEMENT))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+      switch (reader.getLocalName()) {
+        case MolecularFormulaIdentity.XML_ELEMENT ->
+            id = MolecularFormulaIdentity.loadFromXML(reader);
+        case ISOTOPE_SCORE_ELEMENT ->
+            isotopeScore = ParsingUtils.stringToFloat(reader.getElementText());
+        case MSMS_SCORE_ELEMENT -> msmsScore = ParsingUtils.stringToFloat(reader.getElementText());
+        case SimpleIsotopePattern.XML_ELEMENT -> pattern = SimpleIsotopePattern.loadFromXML(reader);
+        case MSMS_ANNOTATIONS_ELEMENT -> annotations = loadAnnotations(reader);
+      }
+    }
+
+    return new ResultFormula(id.getFormulaAsObject(), pattern, isotopeScore, msmsScore, annotations,
+        id.getSearchedNeutralMass());
+  }
+
+  private static Map<DataPoint, String> loadAnnotations(XMLStreamReader reader)
+      throws XMLStreamException {
+    var map = new HashMap<DataPoint, String>();
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(MSMS_ANNOTATIONS_ELEMENT))) {
+      reader.next();
+      if (reader.isStartElement() && reader.getLocalName().equals(ANNOTATION_ELEMENT)) {
+        Double mz = ParsingUtils.stringToDouble(reader.getAttributeValue(null, ANNOTATION_MZ_ATTR));
+        Double intensity = Objects.requireNonNullElse(
+            ParsingUtils.stringToDouble(reader.getAttributeValue(null, ANNOTATION_INTENSITY_ATTR)),
+            1d);
+        String value = ParsingUtils.readNullableString(reader.getElementText());
+        map.put(new SimpleDataPoint(mz, intensity), value);
+      }
+    }
+    return map;
   }
 
   public Map<DataPoint, String> getMSMSannotation() {
@@ -218,58 +312,6 @@ public class ResultFormula extends MolecularFormulaIdentity {
       writer.writeEndElement();
     }
     writer.writeEndElement();
-  }
-
-  public static ResultFormula loadFromXML(@NotNull final XMLStreamReader reader)
-      throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
-      throw new IllegalStateException(
-          "Unexpected xml element for ResultFormula: " + reader.getLocalName());
-    }
-
-    Float isotopeScore = null;
-    Float msmsScore = null;
-    IsotopePattern pattern = null;
-    Map<DataPoint, String> annotations = null;
-    MolecularFormulaIdentity id = null;
-
-    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
-        .equals(XML_ELEMENT))) {
-      reader.next();
-      if (!reader.isStartElement()) {
-        continue;
-      }
-      switch (reader.getLocalName()) {
-        case MolecularFormulaIdentity.XML_ELEMENT ->
-            id = MolecularFormulaIdentity.loadFromXML(reader);
-        case ISOTOPE_SCORE_ELEMENT ->
-            isotopeScore = ParsingUtils.stringToFloat(reader.getElementText());
-        case MSMS_SCORE_ELEMENT -> msmsScore = ParsingUtils.stringToFloat(reader.getElementText());
-        case SimpleIsotopePattern.XML_ELEMENT -> pattern = SimpleIsotopePattern.loadFromXML(reader);
-        case MSMS_ANNOTATIONS_ELEMENT -> annotations = loadAnnotations(reader);
-      }
-    }
-
-    return new ResultFormula(id.getFormulaAsObject(), pattern, isotopeScore, msmsScore, annotations,
-        id.getSearchedNeutralMass());
-  }
-
-  private static Map<DataPoint, String> loadAnnotations(XMLStreamReader reader)
-      throws XMLStreamException {
-    var map = new HashMap<DataPoint, String>();
-    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
-        .equals(MSMS_ANNOTATIONS_ELEMENT))) {
-      reader.next();
-      if (reader.isStartElement() && reader.getLocalName().equals(ANNOTATION_ELEMENT)) {
-        Double mz = ParsingUtils.stringToDouble(reader.getAttributeValue(null, ANNOTATION_MZ_ATTR));
-        Double intensity = Objects.requireNonNullElse(
-            ParsingUtils.stringToDouble(reader.getAttributeValue(null, ANNOTATION_INTENSITY_ATTR)),
-            1d);
-        String value = ParsingUtils.readNullableString(reader.getElementText());
-        map.put(new SimpleDataPoint(mz, intensity), value);
-      }
-    }
-    return map;
   }
 
   @Override

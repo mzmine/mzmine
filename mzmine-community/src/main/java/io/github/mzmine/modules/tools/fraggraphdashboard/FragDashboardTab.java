@@ -127,9 +127,7 @@ public class FragDashboardTab extends SimpleTab {
     controller = new FragDashboardController(parameters);
     controller.setInput(mz, ms2, bestIsotopePattern, formula, ResultFormula.forAllAnnotations(row, true));
     setContent(controller.buildView());
-    if(formula != null) {
-      controller.updateFragmentGraph();
-    }
+    controller.rowProperty().set(row);
   }
 
   public static void addNewTab(@Nullable ParameterSet parameters) {

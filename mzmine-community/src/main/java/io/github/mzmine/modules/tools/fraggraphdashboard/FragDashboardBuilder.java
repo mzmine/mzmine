@@ -57,7 +57,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
-import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -81,14 +80,16 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
   private final Runnable calculateFormulaeMethod;
   private final ComboComponent<PolarityType> polarityCombo = new ComboComponent<>(
       FXCollections.observableArrayList(PolarityType.POSITIVE, PolarityType.NEGATIVE));
+  private Runnable saveToRowAction;
 
   protected FragDashboardBuilder(FragDashboardModel model, @NotNull Region fragmentGraph,
       @NotNull Region ms2Chart, @NotNull Region isotopeChart, Runnable updateGraphMethod,
-      Runnable calculateFormulaeMethod, ParameterSet parameters) {
+      Runnable calculateFormulaeMethod, Runnable saveToRowAction, ParameterSet parameters) {
     super(model);
     this.fragmentGraph = fragmentGraph;
     this.ms2Chart = ms2Chart;
     this.isotopeChart = isotopeChart;
+    this.saveToRowAction = saveToRowAction;
     this.parameters = parameters;
     this.updateGraphMethod = () -> {
       model.setAllowGraphRecalculation(false);
@@ -142,8 +143,8 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
 
   @NotNull
   private Button createSettingsButton() {
-    return createButton("Settings", null,
-        FxIconUtil.getFontIcon(FxIcons.GEAR_PREFERENCES, 20), () -> {
+    return createButton("Settings", null, FxIconUtil.getFontIcon(FxIcons.GEAR_PREFERENCES, 20),
+        () -> {
           final ExitCode exitCode = parameters.showSetupDialog(true);
           if (exitCode == ExitCode.OK) {
             polarityCombo.setValue(parameters.getValue(FragmentGraphCalcParameters.polarity));
@@ -197,7 +198,7 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
       if (f != null) {
         // allow recalc if a new valid formula was set.
         model.allowGraphRecalculationProperty().set(true);
-        if(f.getCharge() != null) {
+        if (f.getCharge() != null) {
           polarityCombo.setValue(PolarityType.fromInt(f.getCharge()));
         }
       }
@@ -220,9 +221,14 @@ public class FragDashboardBuilder extends FxViewBuilder<FragDashboardModel> {
       }
     });
 
-    return newFlowPane(updateGraph,
-        newHBox(newLabel("Precursor formula:"), selectedFormulaField),
-        newHBox(newLabel("Exact mass:"), formulaExactMassLabel),
-        newHBox(precursorMzLabel, mzField), newHBox(newLabel("Polarity:"), polarityCombo));
+    final Button saveButton = createButton("Save formula to row",
+        STR."Saves the selected formula to the selected row. (\{model.getRow() != null
+            ? model.getRow().toString() : "none selected"})", saveToRowAction);
+    saveButton.disableProperty()
+        .bind(Bindings.createBooleanBinding(() -> model.getRow() == null, model.rowProperty()));
+
+    return newFlowPane(updateGraph, newHBox(newLabel("Precursor formula:"), selectedFormulaField),
+        newHBox(newLabel("Exact mass:"), formulaExactMassLabel), newHBox(precursorMzLabel, mzField),
+        newHBox(newLabel("Polarity:"), polarityCombo), saveButton);
   }
 }
