@@ -26,14 +26,16 @@
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.AdvancedParametersParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.ranges.ListDoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.util.ExitCode;
+import java.util.ArrayList;
 
 public class SpectralDeconvolutionGCParameters extends SimpleParameterSet {
 
@@ -50,15 +52,17 @@ public class SpectralDeconvolutionGCParameters extends SimpleParameterSet {
   public static final StringParameter SUFFIX = new StringParameter("Name suffix",
       "Suffix to be added to feature list name", "decon");
 
-  public static final AdvancedParametersParameter<AdvancedSpectralDeconvolutionGCParameters> ADVANCED = new AdvancedParametersParameter<>(
-      new AdvancedSpectralDeconvolutionGCParameters());
-
   public static final OriginalFeatureListHandlingParameter HANDLE_ORIGINAL = new OriginalFeatureListHandlingParameter(
       false);
 
+  public static final OptionalParameter<ListDoubleRangeParameter> MZ_VALUES_TO_IGNORE = new OptionalParameter<>(
+      new ListDoubleRangeParameter("Exclude m/z-values",
+          "m/z-values to exclude as model feature. Values will be added to pseudo spectrum, yet not considered as representative feature in the feature list.",
+          false, new ArrayList<>()));
+
   public SpectralDeconvolutionGCParameters() {
     super(FEATURE_LISTS, RT_TOLERANCE, MIN_NUMBER_OF_SIGNALS, SPECTRAL_DECONVOLUTION_ALGORITHM,
-        SUFFIX, HANDLE_ORIGINAL, ADVANCED);
+        SUFFIX, HANDLE_ORIGINAL, MZ_VALUES_TO_IGNORE);
   }
 
   @Override

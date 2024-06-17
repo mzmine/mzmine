@@ -252,10 +252,9 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     rtTolerance = parameters.getValue(SpectralDeconvolutionGCParameters.RT_TOLERANCE);
     minNumberOfSignals = parameters.getValue(
         SpectralDeconvolutionGCParameters.MIN_NUMBER_OF_SIGNALS);
-    if (parameters.getParameter(SpectralDeconvolutionGCParameters.ADVANCED).getValue()) {
-      mzValuesToIgnore = parameters.getParameter(SpectralDeconvolutionGCParameters.ADVANCED)
-          .getEmbeddedParameters()
-          .getValue(AdvancedSpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE);
+    if (parameters.getParameter(SpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE).getValue()) {
+      mzValuesToIgnore = parameters.getParameter(
+          SpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE).getEmbeddedParameter().getValue();
     } else {
       mzValuesToIgnore = null;
     }
