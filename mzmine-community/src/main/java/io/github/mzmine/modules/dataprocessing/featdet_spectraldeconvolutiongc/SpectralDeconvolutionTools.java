@@ -56,7 +56,7 @@ public class SpectralDeconvolutionTools {
         mzs[i] = group.get(i).getMZ();
         intensities[i] = group.get(i).getHeight();
       }
-      // Create PseudoSpectrum, take first feature to ensure most intense is representative feature
+      // Create PseudoSpectrum
       PseudoSpectrum pseudoSpectrum = new SimplePseudoSpectrum(featureList.getRawDataFile(0), 1,
           // MS Level
           mainFeature.getRT(), null, // No MsMsInfo for pseudo spectrum
