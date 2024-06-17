@@ -31,14 +31,49 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.visualization.projectmetadata.table.MetadataTable;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.project.ProjectService;
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class SampleTypeFilter {
 
-  private final List<SampleType> types;
+  private final EnumSet<SampleType> types;
 
-  public SampleTypeFilter(final List<SampleType> types) {
-    this.types = types.stream().toList(); // copy, list might change content
+  public SampleTypeFilter(@NotNull final Collection<SampleType> types) {
+    this.types = EnumSet.copyOf(types); // copy, list might change content
+  }
+
+  public static SampleTypeFilter all() {
+    return new SampleTypeFilter(List.of(SampleType.values()));
+  }
+
+  public static SampleTypeFilter of(@NotNull final SampleType... types) {
+    return new SampleTypeFilter(List.of(types));
+  }
+
+  public static SampleTypeFilter of(@NotNull final List<SampleType> types) {
+    return new SampleTypeFilter(types);
+  }
+
+  public static SampleTypeFilter of(@NotNull final SampleType type) {
+    return new SampleTypeFilter(List.of(type));
+  }
+
+  public static SampleTypeFilter qc() {
+    return of(SampleType.QC);
+  }
+
+  public static SampleTypeFilter blank() {
+    return of(SampleType.BLANK);
+  }
+
+  public static SampleTypeFilter sample() {
+    return of(SampleType.SAMPLE);
+  }
+
+  public static SampleTypeFilter calibration() {
+    return of(SampleType.CALIBRATION);
   }
 
   public boolean matches(final SampleType type) {
@@ -60,7 +95,7 @@ public class SampleTypeFilter {
     final SampleType type;
     if (metadataColumn != null) {
       final String sampleType = metadata.getValue(metadataColumn, file);
-       type = SampleType.ofString(sampleType);
+      type = SampleType.ofString(sampleType);
     } else {
       type = SampleType.ofString(file.getName());
     }
@@ -68,6 +103,10 @@ public class SampleTypeFilter {
     return matches(type);
   }
 
+  /**
+   * Filters a list of rows to contain only rows that contain at least one feature of the sample
+   * types described by this filter.
+   */
   public List<FeatureListRow> filter(final List<FeatureListRow> rows) {
     return rows.stream().filter(row -> row.streamFeatures().anyMatch(this::matches)).toList();
   }
@@ -78,37 +117,5 @@ public class SampleTypeFilter {
 
   public boolean isEmpty() {
     return types.isEmpty();
-  }
-
-  public static SampleTypeFilter all() {
-    return new SampleTypeFilter(List.of(SampleType.values()));
-  }
-
-  public static SampleTypeFilter of(final SampleType... types) {
-    return new SampleTypeFilter(List.of(types));
-  }
-
-  public static SampleTypeFilter of(final List<SampleType> types) {
-    return new SampleTypeFilter(types);
-  }
-
-  public static SampleTypeFilter of(final SampleType type) {
-    return new SampleTypeFilter(List.of(type));
-  }
-
-  public static SampleTypeFilter qc() {
-    return of(SampleType.QC);
-  }
-
-  public static SampleTypeFilter blank() {
-    return of(SampleType.BLANK);
-  }
-
-  public static SampleTypeFilter sample() {
-    return of(SampleType.SAMPLE);
-  }
-
-  public static SampleTypeFilter calibration() {
-    return of(SampleType.CALIBRATION);
   }
 }

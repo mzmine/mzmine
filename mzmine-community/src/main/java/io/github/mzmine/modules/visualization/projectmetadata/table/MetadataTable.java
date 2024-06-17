@@ -120,11 +120,22 @@ public class MetadataTable {
   }
 
   private void assignSampleType(RawDataFile newFile) {
-    MetadataColumn sampleTypeColumn = getColumnByName(SAMPLE_TYPE_HEADER);
-    if (sampleTypeColumn == null) {
-      sampleTypeColumn = new StringMetadataColumn(SAMPLE_TYPE_HEADER, "The type of the sample");
-    }
+    final MetadataColumn<String> sampleTypeColumn = getSampleTypeColumn();
     setValue(sampleTypeColumn, newFile, SampleType.ofFile(newFile).toString());
+  }
+
+  public MetadataColumn<String> getSampleTypeColumn() {
+    final MetadataColumn<?> col = getColumnByName(SAMPLE_TYPE_HEADER);
+    if (col == null) {
+      final StringMetadataColumn sampleType = new StringMetadataColumn(SAMPLE_TYPE_HEADER,
+          "The type of the sample");
+      addColumn(sampleType);
+      // column was just created, add default sample types
+      data.values().stream().flatMap(m -> m.keySet().stream()).distinct()
+          .forEach(this::assignSampleType);
+      return sampleType;
+    }
+    return (MetadataColumn<String>) col;
   }
 
   /**
@@ -237,9 +248,8 @@ public class MetadataTable {
     final boolean b = tableIOUtils.importFrom(file, skipColOnError);
 
     if (b) {
-      if(getColumnByName(SAMPLE_TYPE_HEADER) == null) {
-        getData().values().stream().flatMap(m -> m.entrySet().stream()).map(Entry::getKey)
-            .forEach(this::assignSampleType);
+      if (getColumnByName(SAMPLE_TYPE_HEADER) == null) {
+        getSampleTypeColumn(); // return value does not matter, but this also creates the default mappings.
       }
     }
 

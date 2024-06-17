@@ -32,11 +32,16 @@ import org.jetbrains.annotations.NotNull;
 public enum SampleType {
   BLANK, SAMPLE, QC, CALIBRATION;
 
+  /**
+   * checks for naming patterns in the sample name. default return is {@link #SAMPLE}.
+   */
   public static SampleType ofString(String sampleType) {
     final String name = sampleType.toLowerCase();
-    final Pattern qcPattern = Pattern.compile(".*(qc).*");
-    final Pattern blankPattern = Pattern.compile(".*(blank|media).*");
-    final Pattern calPattern = Pattern.compile(".*(cal).*");
+    final Pattern qcPattern = Pattern.compile(".*(?<![a-z])*([-_0-9]*qc[-_0-9]*)(?![a-z])*.*");
+    final Pattern blankPattern = Pattern.compile(
+        ".*(?<![a-z])*([-_0-9]*blank|media|blk[-_0-9]*)(?![a-z])*.*");
+    final Pattern calPattern = Pattern.compile(
+        ".*(?<![a-z])*([-_0-9]*cal|quant[-_0-9]*)(?![a-z])*.*");
 
     if (qcPattern.matcher(name).matches()) {
       return QC;
@@ -50,6 +55,14 @@ public enum SampleType {
     return SAMPLE;
   }
 
+  /**
+   * checks for naming patterns in the sample name. default return is {@link #SAMPLE}.
+   */
+  @NotNull
+  public static SampleType ofFile(@NotNull final RawDataFile file) {
+    return ofString(file.getName());
+  }
+
   @Override
   public String toString() {
     return switch (this) {
@@ -58,10 +71,5 @@ public enum SampleType {
       case QC -> "qc";
       case CALIBRATION -> "calibration";
     };
-  }
-
-  @NotNull
-  public static SampleType ofFile(@NotNull final RawDataFile file) {
-    return ofString(file.getName());
   }
 }
