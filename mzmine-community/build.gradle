@@ -123,6 +123,14 @@ repositories {
 //    maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
     // For jimzml
     // maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
+
+    maven {
+        url "https://bio.informatik.uni-jena.de/repository/libs-oss"
+        metadataSources {
+            mavenPom()
+            artifact()
+        }
+    }
 }
 
 ext {
@@ -216,6 +224,10 @@ dependencies {
     // the defacto standard parser in jackson?
     implementation(libs.woodstox.core)
     implementation(libs.aalto.xml)
+
+    // sirius api
+    implementation "de.unijena.bioinf.ms:sirius_nightsky_sdk:6.0.1-SNAPSHOT"
+    implementation "de.unijena.bioinf.ms:sirius_nightsky_sdk.openapi:6.0.1-SNAPSHOT"
 }
 
 /*
