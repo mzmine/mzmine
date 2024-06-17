@@ -35,7 +35,6 @@ import io.github.mzmine.modules.visualization.pseudospectrumvisualizer.PseudoSpe
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.ComboComponent;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.awt.Color;
 import java.util.Comparator;
 import java.util.List;
@@ -80,8 +79,6 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
 
   private FeatureList featureList;
   private SpectralDeconvolutionAlgorithm spectralDeconvolutionAlgorithm;
-  private RTTolerance rtTolerance;
-  private Integer minNumberOfSignals;
   private List<Range<Double>> mzValuesToIgnore;
   private PseudoSpectrumVisualizerPane pseudoSpectrumVisualizerPane;
   private List<ModularFeature> allFeatures;
@@ -190,8 +187,8 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
       pseudoSpectrumPaneWrapper.setCenter(pseudoSpectrumVisualizerPane);
       scatterPlot.getChart().getXYPlot().clearDomainMarkers();
       scatterPlot.addIntervalMarker(selectedFeature.getRawDataPointsRTRange(), DOMAIN_MARKER_COLOR);
-      scatterPlot.addIntervalMarker(rtTolerance.getToleranceRange(selectedFeature.getRT()),
-          TOLERANCE_MARKER_COLOR);
+      scatterPlot.addIntervalMarker(spectralDeconvolutionAlgorithm.getRtTolerance()
+          .getToleranceRange(selectedFeature.getRT()), TOLERANCE_MARKER_COLOR);
       selectedFeatureGroupLabel.setText(
           "Selected rt group: " + MZmineCore.getConfiguration().getRTFormat()
               .format(selectedFeature.getRT()) + " min");
@@ -199,6 +196,9 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
   }
 
   private void updatePreview() {
+    if (!checkParameterValues(true, false)) {
+      return;
+    }
     if (parameters.getValue(SpectralDeconvolutionGCParameters.FEATURE_LISTS)
         .getMatchingFeatureLists().length > 0) {
 
@@ -211,8 +211,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
       Task<List<List<ModularFeature>>> groupFeaturesTask = new Task<>() {
         @Override
         protected List<List<ModularFeature>> call() {
-          return SpectralDeconvolutionTools.groupFeatures(spectralDeconvolutionAlgorithm,
-              allFeatures, rtTolerance, minNumberOfSignals);
+          return spectralDeconvolutionAlgorithm.groupFeatures(allFeatures);
         }
       };
 
@@ -247,11 +246,10 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     featureList = parameters.getParameter(SpectralDeconvolutionGCParameters.FEATURE_LISTS)
         .getValue().getMatchingFeatureLists()[0];
     allFeatures = featureList.getFeatures(featureList.getRawDataFile(0));
-    spectralDeconvolutionAlgorithm = parameters.getValue(
+    var spectralDeconvolutionAlgorithmMZmineProcessingStep = parameters.getValue(
         SpectralDeconvolutionGCParameters.SPECTRAL_DECONVOLUTION_ALGORITHM);
-    rtTolerance = parameters.getValue(SpectralDeconvolutionGCParameters.RT_TOLERANCE);
-    minNumberOfSignals = parameters.getValue(
-        SpectralDeconvolutionGCParameters.MIN_NUMBER_OF_SIGNALS);
+    spectralDeconvolutionAlgorithm = SpectralDeconvolutionTools.createSpectralDeconvolutionAlgorithm(
+        spectralDeconvolutionAlgorithmMZmineProcessingStep);
     if (parameters.getParameter(SpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE).getValue()) {
       mzValuesToIgnore = parameters.getParameter(
           SpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE).getEmbeddedParameter().getValue();
@@ -280,9 +278,10 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     Task<ObservableList<Feature>> pseudoSpectraTask = new Task<>() {
       @Override
       protected ObservableList<Feature> call() {
+        List<List<ModularFeature>> groupedFeatures = spectralDeconvolutionAlgorithm.groupFeatures(
+            allFeatures);
         List<FeatureListRow> featureListRows = SpectralDeconvolutionTools.generatePseudoSpectra(
-            allFeatures, featureList, rtTolerance, minNumberOfSignals,
-            spectralDeconvolutionAlgorithm, mzValuesToIgnore);
+            groupedFeatures, featureList, mzValuesToIgnore);
         return featureListRows.stream().map(row -> row.getFeature(featureList.getRawDataFile(0)))
             .filter(Objects::nonNull).sorted(Comparator.comparingDouble(Feature::getRT))
             .collect(Collectors.toCollection(FXCollections::observableArrayList));

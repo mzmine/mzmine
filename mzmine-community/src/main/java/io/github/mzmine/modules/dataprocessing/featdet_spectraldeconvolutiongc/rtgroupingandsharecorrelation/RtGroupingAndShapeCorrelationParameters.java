@@ -23,23 +23,21 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
+package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.rtgroupingandsharecorrelation;
 
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import java.util.List;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
-public interface SpectralDeconvolutionAlgorithm extends MZmineModule {
+public class RtGroupingAndShapeCorrelationParameters extends SimpleParameterSet {
 
-  SpectralDeconvolutionAlgorithm create(ParameterSet parameters);
+  public static final RTToleranceParameter RT_TOLERANCE = new RTToleranceParameter();
+  public static final IntegerParameter MIN_NUMBER_OF_SIGNALS = new IntegerParameter(
+      "Minimum signals in pseudo spectrum",
+      "Minimum number of deconvoluted signals in pseudo spectrum", 10, true, 1, 5000);
 
-  List<List<ModularFeature>> groupFeatures(List<ModularFeature> features);
-
-  RTTolerance getRtTolerance();
-
-  default List<List<ModularFeature>> groupFeatures() {
-    throw new UnsupportedOperationException("Method not implemented. Please implement me.");
+  public RtGroupingAndShapeCorrelationParameters() {
+    super(RT_TOLERANCE, MIN_NUMBER_OF_SIGNALS);
   }
+
 }

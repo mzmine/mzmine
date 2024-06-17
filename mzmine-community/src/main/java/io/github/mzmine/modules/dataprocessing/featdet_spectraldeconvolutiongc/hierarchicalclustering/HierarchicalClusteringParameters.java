@@ -23,22 +23,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
+package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.hierarchicalclustering;
 
-public class ClusterPair implements Comparable<ClusterPair> {
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
-  Cluster cluster1;
-  Cluster cluster2;
-  double distance;
+public class HierarchicalClusteringParameters extends SimpleParameterSet {
 
-  public ClusterPair(Cluster cluster1, Cluster cluster2, double distance) {
-    this.cluster1 = cluster1;
-    this.cluster2 = cluster2;
-    this.distance = distance;
-  }
+  public static final RTToleranceParameter RT_TOLERANCE = new RTToleranceParameter();
+  public static final IntegerParameter MIN_NUMBER_OF_SIGNALS = new IntegerParameter(
+      "Minimum signals in pseudo spectrum",
+      "Minimum number of deconvoluted signals in pseudo spectrum", 10, true, 1, 5000);
 
-  @Override
-  public int compareTo(ClusterPair other) {
-    return Double.compare(this.distance, other.distance);
+  public HierarchicalClusteringParameters() {
+    super(RT_TOLERANCE, MIN_NUMBER_OF_SIGNALS);
   }
 }

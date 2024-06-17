@@ -23,23 +23,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
+package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.hierarchicalclustering;
 
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import java.util.List;
+public class ClusterPair implements Comparable<ClusterPair> {
 
-public interface SpectralDeconvolutionAlgorithm extends MZmineModule {
+  Cluster cluster1;
+  Cluster cluster2;
+  double distance;
 
-  SpectralDeconvolutionAlgorithm create(ParameterSet parameters);
+  public ClusterPair(Cluster cluster1, Cluster cluster2, double distance) {
+    this.cluster1 = cluster1;
+    this.cluster2 = cluster2;
+    this.distance = distance;
+  }
 
-  List<List<ModularFeature>> groupFeatures(List<ModularFeature> features);
-
-  RTTolerance getRtTolerance();
-
-  default List<List<ModularFeature>> groupFeatures() {
-    throw new UnsupportedOperationException("Method not implemented. Please implement me.");
+  @Override
+  public int compareTo(ClusterPair other) {
+    return Double.compare(this.distance, other.distance);
   }
 }

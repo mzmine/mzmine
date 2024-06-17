@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
+package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.hierarchicalclustering;
 
 import io.github.mzmine.datamodel.features.ModularFeature;
 import java.util.ArrayList;

@@ -35,8 +35,10 @@ import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_gc.GCAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionAlgorithm;
+import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionAlgorithms;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.rtgroupingandsharecorrelation.RtGroupingAndShapeCorrelationParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
@@ -185,16 +187,15 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
   private void makeSpectralDeconvolutionStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(SpectralDeconvolutionGCModule.class).cloneParameterSet();
-    param.setParameter(SpectralDeconvolutionGCParameters.RT_TOLERANCE, intraSampleRtTol);
-    param.setParameter(SpectralDeconvolutionGCParameters.MIN_NUMBER_OF_SIGNALS,
-        minNumberOfSignalsInDeconSpectra);
+    MZmineProcessingStep<SpectralDeconvolutionAlgorithm> spectralDeconvolutionAlgorithmMZmineProcessingStep = createSpectralDeconvolutionStep();
     param.setParameter(SpectralDeconvolutionGCParameters.SPECTRAL_DECONVOLUTION_ALGORITHM,
-        SpectralDeconvolutionAlgorithm.RT_GROUPING_AND_SHAPE_CORRELATION);
+        spectralDeconvolutionAlgorithmMZmineProcessingStep);
     param.setParameter(SpectralDeconvolutionGCParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(SpectralDeconvolutionGCParameters.HANDLE_ORIGINAL,
         handleOriginalFeatureLists);
     param.setParameter(SpectralDeconvolutionGCParameters.SUFFIX, "decon");
+    param.setParameter(SpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE, false);
     q.add(new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(SpectralDeconvolutionGCModule.class), param));
   }
@@ -311,6 +312,15 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
 
     q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AdapMspExportModule.class),
         param));
+  }
+
+  private MZmineProcessingStep<SpectralDeconvolutionAlgorithm> createSpectralDeconvolutionStep() {
+    SpectralDeconvolutionAlgorithm detect = SpectralDeconvolutionAlgorithms.RT_GROUPING_AND_SHAPE_CORRELATION.getDefaultModule();
+    ParameterSet param = SpectralDeconvolutionAlgorithms.RT_GROUPING_AND_SHAPE_CORRELATION.getParametersCopy();
+    param.setParameter(RtGroupingAndShapeCorrelationParameters.RT_TOLERANCE, intraSampleRtTol);
+    param.setParameter(RtGroupingAndShapeCorrelationParameters.MIN_NUMBER_OF_SIGNALS,
+        minNumberOfSignalsInDeconSpectra);
+    return new MZmineProcessingStepImpl<>(detect, param);
   }
 
 }
