@@ -27,11 +27,15 @@ package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 public class RtGroupingAndShapeCorrelationParameters extends SimpleParameterSet {
 
-  public static final RTToleranceParameter RT_TOLERANCE = new RTToleranceParameter();
+  public static final RTToleranceParameter RT_TOLERANCE = new RTToleranceParameter(
+      "Retention time tolerance", "Maximum allowed difference between two retention time values",
+      new RTTolerance(0.02f, Unit.MINUTES));
   public static final IntegerParameter MIN_NUMBER_OF_SIGNALS = new IntegerParameter(
       "Minimum signals in pseudo spectrum",
       "Minimum number of deconvoluted signals in pseudo spectrum", 10, true, 1, 5000);
