@@ -30,7 +30,9 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.javafx.components.util.FxLayout;
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
@@ -38,16 +40,19 @@ import io.github.mzmine.modules.visualization.pseudospectrumvisualizer.PseudoSpe
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.ComboComponent;
+import io.github.mzmine.taskcontrol.SimpleRunnableTask;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskService;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -58,6 +63,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
@@ -68,6 +74,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
 
   private static final Color DOMAIN_MARKER_COLOR = new Color(200, 200, 255, 100);
   private static final Color TOLERANCE_MARKER_COLOR = new Color(255, 128, 0, 100);
+  public static final NumberFormats GUI_FORMATS = ConfigService.getGuiFormats();
 
   private final ParameterSet parameters;
   private final SplitPane paramPreviewSplit;
@@ -106,8 +113,14 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     previewWrapperPane = new BorderPane();
     pseudoSpectrumPaneWrapper = new BorderPane();
     scatterPlot = new SpectralDeconvolutionPreviewPlot("Spectral Deconvolution",
-        ConfigService.getGuiFormats().unit("Retention time", "min"),
+        GUI_FORMATS.unit("Retention time", "min"),
         "m/z");
+    NumberAxis domainAxis = (NumberAxis) scatterPlot.getChart().getXYPlot().getDomainAxis();
+    domainAxis.setNumberFormatOverride(ConfigService.getGuiFormats().rtFormat());
+
+    NumberAxis rangeAxis = (NumberAxis) scatterPlot.getChart().getXYPlot().getRangeAxis();
+    rangeAxis.setNumberFormatOverride(ConfigService.getGuiFormats().mzFormat());
+
     scatterPlotBorderPane = new BorderPane();
     scatterPlotBorderPane.setCenter(scatterPlot);
     scatterPlotLegend = buildScatterPlotLegend();
@@ -146,13 +159,13 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     HBox legendBox = new HBox(20);
 
     // Create the legend item for the main feature RT range
-    Label mainFeatureRtRangeLbl = new Label("Compound rt range");
+    Label mainFeatureRtRangeLbl = new Label("Compound RT range");
     Rectangle mainFeatureRtRangeRect = new Rectangle(20, 20,
         FxColorUtil.awtColorToFX(DOMAIN_MARKER_COLOR));
     HBox mainFeatureLegendItem = FxLayout.newHBox(mainFeatureRtRangeRect, mainFeatureRtRangeLbl);
 
     // Create the legend item for the RT tolerance range
-    Label rtToleranceLbl = new Label("rt tolerance range");
+    Label rtToleranceLbl = new Label("RT tolerance range");
     Rectangle rtToleranceRect = new Rectangle(20, 20,
         FxColorUtil.awtColorToFX(TOLERANCE_MARKER_COLOR));
     HBox rtToleranceLegendItem = FxLayout.newHBox(rtToleranceRect, rtToleranceLbl);
@@ -225,7 +238,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
       scatterPlot.addIntervalMarker(spectralDeconvolutionAlgorithm.getRtTolerance()
           .getToleranceRange(selectedFeature.getRT()), TOLERANCE_MARKER_COLOR);
       selectedFeatureGroupLabel.setText(
-          "Selected rt group: " + MZmineCore.getConfiguration().getRTFormat()
+          "Selected RT group: " + ConfigService.getGuiFormats().rtFormat()
               .format(selectedFeature.getRT()) + " min");
     }
   }
@@ -246,35 +259,26 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
 
       paramPreviewSplit.setDividerPositions(0.4); // Set divider position after button click
 
-      Task<List<List<ModularFeature>>> groupFeaturesTask = new Task<>() {
+      var groupFeaturesTask = new SimpleRunnableTask(
+          () -> groupedFeatures = spectralDeconvolutionAlgorithm.groupFeatures(allFeatures));
+
+      TaskStatusListener taskStatusListener = new TaskStatusListener() {
         @Override
-        protected List<List<ModularFeature>> call() {
-          return spectralDeconvolutionAlgorithm.groupFeatures(allFeatures);
+        public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus) {
+          if (newStatus.equals(TaskStatus.FINISHED)) {
+            FxThread.runLater(() -> {
+              populateScatterPlot();
+              updateFeatureComboBox();
+              updateSelectedFeature();
+              updateButton.setDisable(false);
+              preparingPreviewLabel.setVisible(false);
+              scatterPlot.setVisible(true);
+            });
+          }
         }
       };
-
-      groupFeaturesTask.setOnSucceeded(_ -> {
-        groupedFeatures = groupFeaturesTask.getValue();
-        populateScatterPlot();
-        updateFeatureComboBox();
-        updateSelectedFeature();
-        updateButton.setDisable(false);
-        preparingPreviewLabel.setVisible(false);
-        scatterPlot.setVisible(true);
-      });
-
-      groupFeaturesTask.setOnFailed(_ -> {
-        Throwable throwable = groupFeaturesTask.getException();
-        MZmineCore.getDesktop()
-            .displayErrorMessage("Error grouping features: " + throwable.getMessage());
-        updateButton.setDisable(false);
-        preparingPreviewLabel.setVisible(false);
-        scatterPlot.setVisible(true);
-      });
-
-      Thread groupFeaturesThread = new Thread(groupFeaturesTask);
-      groupFeaturesThread.setDaemon(true);
-      groupFeaturesThread.start();
+      groupFeaturesTask.addTaskStatusListener(taskStatusListener);
+      TaskService.getController().addTask(groupFeaturesTask);
     } else {
       MZmineCore.getDesktop().displayMessage("No feature list selected. Cannot show preview");
     }
@@ -297,7 +301,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
   }
 
   private void populateScatterPlot() {
-    Platform.runLater(() -> {
+    FxThread.runLater(() -> {
       scatterPlot.clearDatasets();
       SimpleColorPalette colorPalette = ConfigService.getDefaultColorPalette();
       groupedFeatures.sort(Comparator.comparingDouble(group -> group.getFirst().getRT()));
