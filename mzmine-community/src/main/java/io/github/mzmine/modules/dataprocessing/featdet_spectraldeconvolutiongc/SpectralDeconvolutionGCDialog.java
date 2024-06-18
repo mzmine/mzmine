@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.pseudospectrumvisualizer.PseudoSpectrumVisualizerPane;
 import io.github.mzmine.parameters.ParameterSet;
@@ -73,12 +74,12 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
   private final BorderPane pseudoSpectrumPaneWrapper;
   private final BorderPane scatterPlotBorderPane;
   private final HBox scatterPlotLegend;
-  private final Button updateButton;
   private final ComboComponent<Feature> deconvolutedFeaturesComboBox;
   private final Label numberOfCompoundsLabel;
   private final Label selectedFeatureGroupLabel;
   private final Label preparingPreviewLabel;
   private final SpectralDeconvolutionPreviewPlot scatterPlot;
+  private final Button updateButton;
 
   private FeatureList featureList;
   private SpectralDeconvolutionAlgorithm spectralDeconvolutionAlgorithm;
@@ -97,13 +98,11 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     paramPreviewSplit = new SplitPane();
     paramPreviewSplit.getItems().add(getParamPane());
     paramPreviewSplit.setOrientation(Orientation.HORIZONTAL);
-    paramPreviewSplit.setDividerPositions(0.4);
+    paramPreviewSplit.setDividerPositions(1.0);
     mainPane.setCenter(paramPreviewSplit);
 
     previewWrapperPane = new BorderPane();
     pseudoSpectrumPaneWrapper = new BorderPane();
-    updateButton = new Button("Update preview");
-    updateButton.setOnAction(_ -> updatePreview());
 
     scatterPlot = new SpectralDeconvolutionPreviewPlot("Spectral Deconvolution", "Retention Time",
         "m/z");
@@ -115,9 +114,10 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     clusteringSelectedFeatureSplit.getItems().add(scatterPlotBorderPane);
     clusteringSelectedFeatureSplit.setOrientation(Orientation.VERTICAL);
     previewWrapperPane.setCenter(clusteringSelectedFeatureSplit);
+    previewWrapperPane.setVisible(false); // Initially invisible
 
     deconvolutedFeaturesComboBox = new ComboComponent<>(FXCollections.observableArrayList());
-    HBox buttonBox = new HBox(updateButton, deconvolutedFeaturesComboBox);
+    HBox buttonBox = new HBox(deconvolutedFeaturesComboBox);
     deconvolutedFeaturesComboBox.setOnAction(_ -> updateSelectedFeature());
     previewWrapperPane.setBottom(buttonBox);
 
@@ -130,9 +130,14 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     preparingPreviewLabel = new Label("Preparing preview");
     preparingPreviewLabel.setStyle("-fx-font-size: 24px;");
     preparingPreviewLabel.setVisible(false);
-    scatterPlotBorderPane.getChildren().add(preparingPreviewLabel);
+    previewWrapperPane.setTop(preparingPreviewLabel);
 
     addMouseClickListenerToScatterPlot();
+
+    // Add the update button to the button bar of the parameter pane
+    updateButton = new Button("Update preview");
+    updateButton.setOnAction(_ -> updatePreview());
+    getParamPane().getButtonBar().getButtons().add(updateButton);
   }
 
   private HBox buildScatterPlotLegend() {
@@ -141,13 +146,13 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     // Create the legend item for the main feature RT range
     Label mainFeatureRtRangeLbl = new Label("Compound rt range");
     Rectangle mainFeatureRtRangeRect = new Rectangle(20, 20,
-        javafx.scene.paint.Color.rgb(200, 200, 255, 0.39));
+        FxColorUtil.awtColorToFX(DOMAIN_MARKER_COLOR));
     HBox mainFeatureLegendItem = new HBox(5, mainFeatureRtRangeRect, mainFeatureRtRangeLbl);
 
     // Create the legend item for the RT tolerance range
     Label rtToleranceLbl = new Label("rt tolerance range");
     Rectangle rtToleranceRect = new Rectangle(20, 20,
-        javafx.scene.paint.Color.rgb(255, 128, 0, 0.39));
+        FxColorUtil.awtColorToFX(TOLERANCE_MARKER_COLOR));
     HBox rtToleranceLegendItem = new HBox(5, rtToleranceRect, rtToleranceLbl);
 
     legendBox.getChildren().addAll(mainFeatureLegendItem, rtToleranceLegendItem);
@@ -232,7 +237,10 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
 
       updateButton.setDisable(true);
       preparingPreviewLabel.setVisible(true);
+      previewWrapperPane.setVisible(true);
       scatterPlot.setVisible(false);
+
+      paramPreviewSplit.setDividerPositions(0.4); // Set divider position after button click
 
       Task<List<List<ModularFeature>>> groupFeaturesTask = new Task<>() {
         @Override
@@ -296,49 +304,31 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
         for (ModularFeature feature : group) {
           series.add(feature.getRT(), feature.getMZ());
         }
-        Color color = colorPalette.getAWT(i % colorPalette.size());
+        Color color = FxColorUtil.fxColorToAWT(colorPalette.get(i % colorPalette.size()));
         scatterPlot.addDataset(series, color);
       }
     });
   }
 
   private void updateFeatureComboBox() {
-    Task<ObservableList<Feature>> pseudoSpectraTask = new Task<>() {
-      @Override
-      protected ObservableList<Feature> call() {
-        List<List<ModularFeature>> groupedFeatures = spectralDeconvolutionAlgorithm.groupFeatures(
-            allFeatures);
-        List<FeatureListRow> featureListRows = SpectralDeconvolutionTools.generatePseudoSpectra(
-            groupedFeatures, featureList, mzValuesToIgnore);
-        return featureListRows.stream().map(row -> row.getFeature(featureList.getRawDataFile(0)))
-            .filter(Objects::nonNull).sorted(Comparator.comparingDouble(Feature::getRT))
-            .collect(Collectors.toCollection(FXCollections::observableArrayList));
-      }
-    };
+    List<List<ModularFeature>> groupedFeatures = spectralDeconvolutionAlgorithm.groupFeatures(
+        allFeatures);
+    List<FeatureListRow> featureListRows = SpectralDeconvolutionTools.generatePseudoSpectra(
+        groupedFeatures, featureList, mzValuesToIgnore);
 
-    pseudoSpectraTask.setOnSucceeded(_ -> {
-      ObservableList<Feature> resultFeatures = pseudoSpectraTask.getValue();
-      Platform.runLater(() -> {
-        deconvolutedFeaturesComboBox.setItems(resultFeatures);
-        if (!resultFeatures.isEmpty()) {
-          deconvolutedFeaturesComboBox.setValue(resultFeatures.getFirst());
-        }
-        if (!clusteringSelectedFeatureSplit.getItems().contains(pseudoSpectrumPaneWrapper)) {
-          clusteringSelectedFeatureSplit.getItems().add(pseudoSpectrumPaneWrapper);
-        }
-        numberOfCompoundsLabel.setText("Number of compounds: " + resultFeatures.size());
-      });
-    });
+    ObservableList<Feature> resultFeatures = featureListRows.stream()
+        .map(row -> row.getFeature(featureList.getRawDataFile(0))).filter(Objects::nonNull)
+        .sorted(Comparator.comparingDouble(Feature::getRT))
+        .collect(Collectors.toCollection(FXCollections::observableArrayList));
+    deconvolutedFeaturesComboBox.setItems(resultFeatures);
+    if (!resultFeatures.isEmpty()) {
+      deconvolutedFeaturesComboBox.setValue(resultFeatures.getFirst());
+    }
+    if (!clusteringSelectedFeatureSplit.getItems().contains(pseudoSpectrumPaneWrapper)) {
+      clusteringSelectedFeatureSplit.getItems().add(pseudoSpectrumPaneWrapper);
+    }
+    numberOfCompoundsLabel.setText("Number of compounds: " + resultFeatures.size());
 
-    pseudoSpectraTask.setOnFailed(_ -> {
-      Throwable throwable = pseudoSpectraTask.getException();
-      Platform.runLater(() -> MZmineCore.getDesktop()
-          .displayErrorMessage("Error generating pseudo spectra: " + throwable.getMessage()));
-    });
-
-    Thread pseudoSpectraThread = new Thread(pseudoSpectraTask);
-    pseudoSpectraThread.setDaemon(true);
-    pseudoSpectraThread.start();
   }
 
   @Override
