@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.javafx.util.FxColorUtil;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.pseudospectrumvisualizer.PseudoSpectrumVisualizerPane;
 import io.github.mzmine.parameters.ParameterSet;
@@ -295,7 +296,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
   private void populateScatterPlot() {
     Platform.runLater(() -> {
       scatterPlot.clearDatasets();
-      SimpleColorPalette colorPalette = MZmineCore.getConfiguration().getDefaultColorPalette();
+      SimpleColorPalette colorPalette = ConfigService.getDefaultColorPalette();
       groupedFeatures.sort(Comparator.comparingDouble(group -> group.getFirst().getRT()));
       for (int i = 0; i < groupedFeatures.size(); i++) {
         List<ModularFeature> group = groupedFeatures.get(i);
