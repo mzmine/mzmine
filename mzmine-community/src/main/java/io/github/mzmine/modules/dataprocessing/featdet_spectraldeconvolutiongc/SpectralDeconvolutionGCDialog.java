@@ -45,14 +45,16 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
@@ -69,7 +71,8 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
   private final SplitPane clusteringSelectedFeatureSplit;
   private final BorderPane previewWrapperPane;
   private final BorderPane pseudoSpectrumPaneWrapper;
-  private final StackPane scatterPlotStackPane;
+  private final BorderPane scatterPlotBorderPane;
+  private final HBox scatterPlotLegend;
   private final Button updateButton;
   private final ComboComponent<Feature> deconvolutedFeaturesComboBox;
   private final Label numberOfCompoundsLabel;
@@ -104,10 +107,12 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
 
     scatterPlot = new SpectralDeconvolutionPreviewPlot("Spectral Deconvolution", "Retention Time",
         "m/z");
-    scatterPlotStackPane = new StackPane();
-    scatterPlotStackPane.getChildren().add(scatterPlot);
+    scatterPlotBorderPane = new BorderPane();
+    scatterPlotBorderPane.setCenter(scatterPlot);
+    scatterPlotLegend = buildScatterPlotLegend();
+    scatterPlotBorderPane.setBottom(scatterPlotLegend);
     clusteringSelectedFeatureSplit = new SplitPane();
-    clusteringSelectedFeatureSplit.getItems().add(scatterPlotStackPane);
+    clusteringSelectedFeatureSplit.getItems().add(scatterPlotBorderPane);
     clusteringSelectedFeatureSplit.setOrientation(Orientation.VERTICAL);
     previewWrapperPane.setCenter(clusteringSelectedFeatureSplit);
 
@@ -125,9 +130,30 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     preparingPreviewLabel = new Label("Preparing preview");
     preparingPreviewLabel.setStyle("-fx-font-size: 24px;");
     preparingPreviewLabel.setVisible(false);
-    scatterPlotStackPane.getChildren().add(preparingPreviewLabel);
+    scatterPlotBorderPane.getChildren().add(preparingPreviewLabel);
 
     addMouseClickListenerToScatterPlot();
+  }
+
+  private HBox buildScatterPlotLegend() {
+    HBox legendBox = new HBox(20);
+
+    // Create the legend item for the main feature RT range
+    Label mainFeatureRtRangeLbl = new Label("Compound rt range");
+    Rectangle mainFeatureRtRangeRect = new Rectangle(20, 20,
+        javafx.scene.paint.Color.rgb(200, 200, 255, 0.39));
+    HBox mainFeatureLegendItem = new HBox(5, mainFeatureRtRangeRect, mainFeatureRtRangeLbl);
+
+    // Create the legend item for the RT tolerance range
+    Label rtToleranceLbl = new Label("rt tolerance range");
+    Rectangle rtToleranceRect = new Rectangle(20, 20,
+        javafx.scene.paint.Color.rgb(255, 128, 0, 0.39));
+    HBox rtToleranceLegendItem = new HBox(5, rtToleranceRect, rtToleranceLbl);
+
+    legendBox.getChildren().addAll(mainFeatureLegendItem, rtToleranceLegendItem);
+    legendBox.setAlignment(Pos.CENTER);
+    legendBox.setPadding(new Insets(10, 0, 10, 0)); // 10 pixels padding at top and bottom
+    return legendBox;
   }
 
   private void addMouseClickListenerToScatterPlot() {
