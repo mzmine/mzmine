@@ -99,7 +99,7 @@ public class SpectralDeconvolutionTools {
     return null; // Return null if all features are in the ignored ranges
   }
 
-  private static @NotNull List<Range<Double>> getAdjustedRanges(
+  public static @NotNull List<Range<Double>> getAdjustedRanges(
       List<Range<Double>> mzValuesToIgnore) {
     List<Range<Double>> adjustedRanges = new ArrayList<>();
     if (mzValuesToIgnore != null) {

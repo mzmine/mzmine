@@ -194,10 +194,12 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
         .orElse(null);
 
     if (closestFeature != null) {
+      List<Range<Double>> adjustedRanges = SpectralDeconvolutionTools.getAdjustedRanges(
+          mzValuesToIgnore);
       for (List<ModularFeature> features : groupedFeatures) {
         for (ModularFeature feature : features) {
           if (feature.equals(closestFeature)) {
-            return SpectralDeconvolutionTools.getMainFeature(features, mzValuesToIgnore);
+            return SpectralDeconvolutionTools.getMainFeature(features, adjustedRanges);
           }
         }
       }
