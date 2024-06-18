@@ -194,12 +194,12 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
         .orElse(null);
 
     if (closestFeature != null) {
-      List<Range<Double>> adjustedRanges = SpectralDeconvolutionTools.getAdjustedRanges(
+      List<Range<Double>> adjustedRanges = SpectralDeconvolutionUtils.getAdjustedRanges(
           mzValuesToIgnore);
       for (List<ModularFeature> features : groupedFeatures) {
         for (ModularFeature feature : features) {
           if (feature.equals(closestFeature)) {
-            return SpectralDeconvolutionTools.getMainFeature(features, adjustedRanges);
+            return SpectralDeconvolutionUtils.getMainFeature(features, adjustedRanges);
           }
         }
       }
@@ -285,7 +285,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     allFeatures = featureList.getFeatures(featureList.getRawDataFile(0));
     var spectralDeconvolutionAlgorithmMZmineProcessingStep = parameters.getValue(
         SpectralDeconvolutionGCParameters.SPECTRAL_DECONVOLUTION_ALGORITHM);
-    spectralDeconvolutionAlgorithm = SpectralDeconvolutionTools.createSpectralDeconvolutionAlgorithm(
+    spectralDeconvolutionAlgorithm = SpectralDeconvolutionUtils.createSpectralDeconvolutionAlgorithm(
         spectralDeconvolutionAlgorithmMZmineProcessingStep);
     if (parameters.getParameter(SpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE).getValue()) {
       mzValuesToIgnore = parameters.getParameter(
@@ -316,7 +316,7 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
   private void updateFeatureComboBox() {
     List<List<ModularFeature>> groupedFeatures = spectralDeconvolutionAlgorithm.groupFeatures(
         allFeatures);
-    List<FeatureListRow> featureListRows = SpectralDeconvolutionTools.generatePseudoSpectra(
+    List<FeatureListRow> featureListRows = SpectralDeconvolutionUtils.generatePseudoSpectra(
         groupedFeatures, featureList, mzValuesToIgnore);
 
     ObservableList<Feature> resultFeatures = featureListRows.stream()

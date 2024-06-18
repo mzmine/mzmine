@@ -66,7 +66,7 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
     this.featureList = featureList;
     var spectralDeconvolutionAlgorithmMZmineProcessingStep = parameters.getValue(
         SpectralDeconvolutionGCParameters.SPECTRAL_DECONVOLUTION_ALGORITHM);
-    spectralDeconvolutionAlgorithm = SpectralDeconvolutionTools.createSpectralDeconvolutionAlgorithm(
+    spectralDeconvolutionAlgorithm = SpectralDeconvolutionUtils.createSpectralDeconvolutionAlgorithm(
         spectralDeconvolutionAlgorithmMZmineProcessingStep);
     if (parameters.getParameter(SpectralDeconvolutionGCParameters.MZ_VALUES_TO_IGNORE).getValue()) {
       mzValuesToIgnore = parameters.getParameter(
@@ -86,7 +86,7 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
       List<ModularFeature> features = featureList.getFeatures(featureList.getRawDataFile(0));
       List<List<ModularFeature>> groupedFeatures = spectralDeconvolutionAlgorithm.groupFeatures(
           features);
-      List<FeatureListRow> deconvolutedFeatureListRows = SpectralDeconvolutionTools.generatePseudoSpectra(
+      List<FeatureListRow> deconvolutedFeatureListRows = SpectralDeconvolutionUtils.generatePseudoSpectra(
           groupedFeatures, featureList, mzValuesToIgnore);
       createNewDeconvolutedFeatureList(deconvolutedFeatureListRows);
       if (!isCanceled()) {

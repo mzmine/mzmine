@@ -39,8 +39,20 @@ import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public class SpectralDeconvolutionTools {
+public class SpectralDeconvolutionUtils {
 
+  /**
+   * Generates pseudo spectra for a list of grouped features, excluding those within specified m/z
+   * ranges. The features in each group need to be sorted in descending order by feature height.
+   *
+   * @param groupedFeatures  A list of groups, where each group is a list of {@link ModularFeature}
+   *                         objects.
+   * @param featureList      The {@link FeatureList} to which the pseudo spectra will be added.
+   * @param mzValuesToIgnore A list of {@link Range} objects representing m/z ranges to be
+   *                         excluded.
+   * @return A list of {@link FeatureListRow} objects representing the deconvoluted feature list
+   * rows.
+   */
   public static List<FeatureListRow> generatePseudoSpectra(
       List<List<ModularFeature>> groupedFeatures, FeatureList featureList,
       List<Range<Double>> mzValuesToIgnore) {
@@ -99,6 +111,14 @@ public class SpectralDeconvolutionTools {
     return null; // Return null if all features are in the ignored ranges
   }
 
+  /**
+   * Adjusts the given m/z ranges to ensure that ranges with equal minimum and maximum values are
+   * expanded.
+   *
+   * @param mzValuesToIgnore A list of {@link Range} objects representing m/z ranges to be
+   *                         adjusted.
+   * @return A list of adjusted {@link Range} objects.
+   */
   public static @NotNull List<Range<Double>> getAdjustedRanges(
       List<Range<Double>> mzValuesToIgnore) {
     List<Range<Double>> adjustedRanges = new ArrayList<>();
@@ -117,12 +137,18 @@ public class SpectralDeconvolutionTools {
     return adjustedRanges;
   }
 
-
+  /**
+   * Creates a new instance of the {@link SpectralDeconvolutionAlgorithm} using the provided
+   * processing step.
+   *
+   * @param spectralDeconvolutionAlgorithmStep The processing step for creating the spectral
+   *                                           deconvolution algorithm.
+   * @return A new instance of the {@link SpectralDeconvolutionAlgorithm}.
+   */
   @NotNull
   public static SpectralDeconvolutionAlgorithm createSpectralDeconvolutionAlgorithm(
       final MZmineProcessingStep<SpectralDeconvolutionAlgorithm> spectralDeconvolutionAlgorithmStep) {
     ParameterSet parameterSet = spectralDeconvolutionAlgorithmStep.getParameterSet();
-    // derive new mass detector with parameters
     return spectralDeconvolutionAlgorithmStep.getModule().create(parameterSet);
   }
 
