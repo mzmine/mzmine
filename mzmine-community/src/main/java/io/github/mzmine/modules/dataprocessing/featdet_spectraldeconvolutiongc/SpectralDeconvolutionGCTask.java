@@ -27,14 +27,11 @@ package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.PseudoSpectrum;
-import io.github.mzmine.datamodel.PseudoSpectrumType;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.impl.SimplePseudoSpectrum;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
@@ -44,8 +41,6 @@ import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -105,66 +100,6 @@ public class SpectralDeconvolutionGCTask extends AbstractFeatureListTask {
       setStatus(TaskStatus.ERROR);
       setErrorMessage(e.getMessage());
     }
-  }
-
-  private List<FeatureListRow> generatePseudoSpectra(List<ModularFeature> features,
-      List<List<ModularFeature>> groupedFeatures) {
-    List<FeatureListRow> deconvolutedFeatureListRowsByRtOnly = new ArrayList<>();
-    for (List<ModularFeature> group : groupedFeatures) {
-      // find main feature as representative feature in new feature list
-      ModularFeature mainFeature = getMainFeature(group);
-
-      group.sort(Comparator.comparingDouble(ModularFeature::getMZ));
-      double[] mzs = new double[group.size()];
-      double[] intensities = new double[group.size()];
-      for (int i = 0; i < group.size(); i++) {
-        mzs[i] = group.get(i).getMZ();
-        intensities[i] = group.get(i).getHeight();
-      }
-      // Create PseudoSpectrum, take first feature to ensure most intense is representative feature
-      PseudoSpectrum pseudoSpectrum = new SimplePseudoSpectrum(featureList.getRawDataFile(0), 1,
-          // MS Level
-          mainFeature.getRT(), null, // No MsMsInfo for pseudo spectrum
-          mzs, intensities, mainFeature.getRepresentativeScan().getPolarity(),
-          "Correlated Features Pseudo Spectrum", PseudoSpectrumType.GC_EI);
-
-      mainFeature.setAllMS2FragmentScans(List.of(pseudoSpectrum));
-      deconvolutedFeatureListRowsByRtOnly.add(mainFeature.getRow());
-    }
-    return deconvolutedFeatureListRowsByRtOnly;
-  }
-
-  private ModularFeature getMainFeature(List<ModularFeature> groups) {
-    List<Range<Double>> adjustedRanges = new ArrayList<>();
-    if (mzValuesToIgnore != null) {
-      // Adjust ranges if min and max values are the same
-      for (Range<Double> range : mzValuesToIgnore) {
-        if (range.lowerEndpoint().equals(range.upperEndpoint())) {
-          double minValue = range.lowerEndpoint();
-          double maxValue = minValue + 1.0;
-          adjustedRanges.add(Range.closed(minValue, maxValue));
-        } else {
-          adjustedRanges.add(range);
-        }
-      }
-    }
-
-    for (ModularFeature feature : groups) {
-      double mz = feature.getMZ();
-      boolean isIgnored = false;
-      if (!adjustedRanges.isEmpty()) {
-        for (Range<Double> range : adjustedRanges) {
-          if (range.contains(mz)) {
-            isIgnored = true;
-            break;
-          }
-        }
-      }
-      if (!isIgnored) {
-        return feature;
-      }
-    }
-    return null; // Return null if all features are in the ignored ranges
   }
 
   private void createNewDeconvolutedFeatureList(List<FeatureListRow> deconvolutedFeatureListRows) {
