@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.util.FxColorUtil;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.MZmineCore;
@@ -104,7 +105,6 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
 
     previewWrapperPane = new BorderPane();
     pseudoSpectrumPaneWrapper = new BorderPane();
-
     scatterPlot = new SpectralDeconvolutionPreviewPlot("Spectral Deconvolution", "Retention Time",
         "m/z");
     scatterPlotBorderPane = new BorderPane();
@@ -118,14 +118,14 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     previewWrapperPane.setVisible(false); // Initially invisible
 
     deconvolutedFeaturesComboBox = new ComboComponent<>(FXCollections.observableArrayList());
-    HBox buttonBox = new HBox(deconvolutedFeaturesComboBox);
+    HBox buttonBox = FxLayout.newHBox(deconvolutedFeaturesComboBox);
     deconvolutedFeaturesComboBox.setOnAction(_ -> updateSelectedFeature());
     previewWrapperPane.setBottom(buttonBox);
 
     paramPreviewSplit.getItems().add(previewWrapperPane);
     numberOfCompoundsLabel = new Label("Number of compounds: ");
     selectedFeatureGroupLabel = new Label("Selected rt group: ");
-    VBox labelVBox = new VBox(numberOfCompoundsLabel, selectedFeatureGroupLabel);
+    VBox labelVBox = FxLayout.newVBox(numberOfCompoundsLabel, selectedFeatureGroupLabel);
     buttonBox.getChildren().add(labelVBox);
 
     preparingPreviewLabel = new Label("Preparing preview");
@@ -148,13 +148,13 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
     Label mainFeatureRtRangeLbl = new Label("Compound rt range");
     Rectangle mainFeatureRtRangeRect = new Rectangle(20, 20,
         FxColorUtil.awtColorToFX(DOMAIN_MARKER_COLOR));
-    HBox mainFeatureLegendItem = new HBox(5, mainFeatureRtRangeRect, mainFeatureRtRangeLbl);
+    HBox mainFeatureLegendItem = FxLayout.newHBox(mainFeatureRtRangeRect, mainFeatureRtRangeLbl);
 
     // Create the legend item for the RT tolerance range
     Label rtToleranceLbl = new Label("rt tolerance range");
     Rectangle rtToleranceRect = new Rectangle(20, 20,
         FxColorUtil.awtColorToFX(TOLERANCE_MARKER_COLOR));
-    HBox rtToleranceLegendItem = new HBox(5, rtToleranceRect, rtToleranceLbl);
+    HBox rtToleranceLegendItem = FxLayout.newHBox(rtToleranceRect, rtToleranceLbl);
 
     legendBox.getChildren().addAll(mainFeatureLegendItem, rtToleranceLegendItem);
     legendBox.setAlignment(Pos.CENTER);
