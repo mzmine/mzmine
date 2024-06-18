@@ -45,9 +45,10 @@ public class SpectralDeconvolutionTools {
       List<List<ModularFeature>> groupedFeatures, FeatureList featureList,
       List<Range<Double>> mzValuesToIgnore) {
     List<FeatureListRow> deconvolutedFeatureListRowsByRtOnly = new ArrayList<>();
+    List<Range<Double>> adjustedRanges = getAdjustedRanges(mzValuesToIgnore);
     for (List<ModularFeature> group : groupedFeatures) {
       // find main feature as representative feature in new feature list
-      ModularFeature mainFeature = getMainFeature(group, mzValuesToIgnore);
+      ModularFeature mainFeature = getMainFeature(group, adjustedRanges);
 
       group.sort(Comparator.comparingDouble(ModularFeature::getMZ));
       double[] mzs = new double[group.size()];
@@ -69,22 +70,17 @@ public class SpectralDeconvolutionTools {
     return deconvolutedFeatureListRowsByRtOnly;
   }
 
-  public static ModularFeature getMainFeature(List<ModularFeature> groups,
-      List<Range<Double>> mzValuesToIgnore) {
-    List<Range<Double>> adjustedRanges = new ArrayList<>();
-    if (mzValuesToIgnore != null) {
-      // Adjust ranges if min and max values are the same
-      for (Range<Double> range : mzValuesToIgnore) {
-        if (range.lowerEndpoint().equals(range.upperEndpoint())) {
-          double minValue = range.lowerEndpoint();
-          double maxValue = minValue + 1.0;
-          adjustedRanges.add(Range.closed(minValue, maxValue));
-        } else {
-          adjustedRanges.add(range);
-        }
-      }
-    }
-
+  /**
+   * Retrieves the main feature from a list of features, excluding those within specified m/z
+   * ranges. The features in the list should be sorted in descending order by feature height.
+   *
+   * @param groups         A list of {@link ModularFeature} objects sorted in descending order by
+   *                       feature height.
+   * @param adjustedRanges A list of {@link Range} objects representing m/z ranges to be excluded.
+   * @return The first {@link ModularFeature} not within the excluded m/z ranges, or {@code null} if
+   * all features are within the excluded ranges.
+   */
+  public static ModularFeature getMainFeature(List<ModularFeature> groups, List<Range<Double>> adjustedRanges) {
     for (ModularFeature feature : groups) {
       double mz = feature.getMZ();
       boolean isIgnored = false;
@@ -101,6 +97,24 @@ public class SpectralDeconvolutionTools {
       }
     }
     return null; // Return null if all features are in the ignored ranges
+  }
+
+  private static @NotNull List<Range<Double>> getAdjustedRanges(
+      List<Range<Double>> mzValuesToIgnore) {
+    List<Range<Double>> adjustedRanges = new ArrayList<>();
+    if (mzValuesToIgnore != null) {
+      // Adjust ranges if min and max values are the same
+      for (Range<Double> range : mzValuesToIgnore) {
+        if (range.lowerEndpoint().equals(range.upperEndpoint())) {
+          double minValue = range.lowerEndpoint();
+          double maxValue = minValue + 1.0;
+          adjustedRanges.add(Range.closed(minValue, maxValue));
+        } else {
+          adjustedRanges.add(range);
+        }
+      }
+    }
+    return adjustedRanges;
   }
 
 
