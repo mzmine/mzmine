@@ -35,11 +35,11 @@ import io.github.mzmine.modules.visualization.pseudospectrumvisualizer.PseudoSpe
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.ComboComponent;
+import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -287,14 +287,16 @@ public class SpectralDeconvolutionGCDialog extends ParameterSetupDialog {
   private void populateScatterPlot() {
     Platform.runLater(() -> {
       scatterPlot.clearDatasets();
-      Random random = new Random();
-      for (List<ModularFeature> group : groupedFeatures) {
+      SimpleColorPalette colorPalette = MZmineCore.getConfiguration().getDefaultColorPalette();
+      groupedFeatures.sort(Comparator.comparingDouble(group -> group.getFirst().getRT()));
+      for (int i = 0; i < groupedFeatures.size(); i++) {
+        List<ModularFeature> group = groupedFeatures.get(i);
         XYSeries series = new XYSeries("Group " + MZmineCore.getConfiguration().getRTFormat()
             .format(group.getFirst().getRT()));
         for (ModularFeature feature : group) {
           series.add(feature.getRT(), feature.getMZ());
         }
-        Color color = new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256));
+        Color color = colorPalette.getAWT(i % colorPalette.size());
         scatterPlot.addDataset(series, color);
       }
     });
