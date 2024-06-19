@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.LipidFragmentationRule;
-import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.fragmentation.ILipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.fragmentation.LipidFragmentFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
@@ -194,9 +193,8 @@ public class LipidAnnotationUtils {
         if (msmsScan.getMassList() == null) {
           return new HashSet<>();
         }
-        DataPoint[] massList = null;
-        massList = msmsScan.getMassList().getDataPoints();
-        massList = MSMSLipidTools.deisotopeMassList(massList, mzToleranceMS2);
+        DataPoint[] dataPoints = null;
+        dataPoints = msmsScan.getMassList().getDataPoints();
         Set<LipidFragment> annotatedFragments = new HashSet<>();
         if (rules != null && rules.length > 0) {
           ILipidFragmentFactory lipidFragmentFactory = new LipidFragmentFactory(mzToleranceMS2,
@@ -212,7 +210,8 @@ public class LipidAnnotationUtils {
           ISpeciesLevelMatchedLipidFactory matchedLipidFactory = getSpeciesLevelMatchedLipidFactory(
               lipidCategory);
           MatchedLipid matchedSpeciesLevelLipid = matchedLipidFactory.validateSpeciesLevelAnnotation(
-              row.getAverageMZ(), lipid, annotatedFragments, massList, minMsMsScore, mzToleranceMS2,
+              row.getAverageMZ(), lipid, annotatedFragments, dataPoints, minMsMsScore,
+              mzToleranceMS2,
               ionization);
           if (matchedSpeciesLevelLipid != null) {
             matchedLipidsInScan.add(matchedSpeciesLevelLipid);
@@ -221,7 +220,8 @@ public class LipidAnnotationUtils {
           IMolecularSpeciesLevelMatchedLipidFactory matchedMolecularSpeciesLipidFactory = getMolecularSpeciesLevelMatchedLipidFactory(
               lipidCategory);
           Set<MatchedLipid> molecularSpeciesLevelMatchedLipids = matchedMolecularSpeciesLipidFactory.predictMolecularSpeciesLevelMatches(
-              annotatedFragments, lipid, row.getAverageMZ(), massList, minMsMsScore, mzToleranceMS2,
+              annotatedFragments, lipid, row.getAverageMZ(), dataPoints, minMsMsScore,
+              mzToleranceMS2,
               ionization);
           if (molecularSpeciesLevelMatchedLipids != null
               && !molecularSpeciesLevelMatchedLipids.isEmpty()) {
@@ -236,7 +236,7 @@ public class LipidAnnotationUtils {
               //check MSMS score
               molecularSpeciesLevelMatchedLipid = matchedMolecularSpeciesLipidFactory.validateMolecularSpeciesLevelAnnotation(
                   row.getAverageMZ(), molecularSpeciesLevelMatchedLipid.getLipidAnnotation(),
-                  molecularSpeciesLevelMatchedLipid.getMatchedFragments(), massList, minMsMsScore,
+                  molecularSpeciesLevelMatchedLipid.getMatchedFragments(), dataPoints, minMsMsScore,
                   mzToleranceMS2, ionization);
               if (molecularSpeciesLevelMatchedLipid != null) {
                 matchedLipidsInScan.add(molecularSpeciesLevelMatchedLipid);
