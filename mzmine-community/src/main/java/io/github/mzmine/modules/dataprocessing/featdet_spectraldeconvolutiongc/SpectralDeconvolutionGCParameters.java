@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc;
 
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -59,8 +60,9 @@ public class SpectralDeconvolutionGCParameters extends SimpleParameterSet {
           false, new ArrayList<>()), false);
 
   public SpectralDeconvolutionGCParameters() {
-    super(FEATURE_LISTS, SPECTRAL_DECONVOLUTION_ALGORITHM, SUFFIX, HANDLE_ORIGINAL,
-        MZ_VALUES_TO_IGNORE);
+    super(new Parameter[]{FEATURE_LISTS, SPECTRAL_DECONVOLUTION_ALGORITHM, SUFFIX, HANDLE_ORIGINAL,
+            MZ_VALUES_TO_IGNORE},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_spectraldeconvolutiongc/spectraldeconvolutiongc.html");
   }
 
   @Override
