@@ -713,6 +713,12 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
   }
 
   @Override
+  public void displayErrorMessageAndThrow(RuntimeException ex) throws RuntimeException {
+    displayErrorMessage(ex.getMessage());
+    throw ex;
+  }
+
+  @Override
   public void displayException(Exception e) {
     displayErrorMessage(e.toString());
   }
