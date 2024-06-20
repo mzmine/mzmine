@@ -25,8 +25,12 @@
 
 package io.github.mzmine.modules.tools.siriusapi;
 
+import com.opencsv.CSVWriterBuilder;
+import com.opencsv.ICSVWriter;
+import de.unijena.bioinf.ms.nightsky.sdk.api.SearchableDatabasesApi;
 import de.unijena.bioinf.ms.nightsky.sdk.model.BasicSpectrum;
 import de.unijena.bioinf.ms.nightsky.sdk.model.FeatureImport;
+import de.unijena.bioinf.ms.nightsky.sdk.model.SearchableDatabase;
 import de.unijena.bioinf.ms.nightsky.sdk.model.SimplePeak;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
@@ -38,12 +42,27 @@ import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.SpectraMerging;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MzmineToSirius {
+
+  private static final Logger logger = Logger.getLogger(MzmineToSirius.class.getName());
 
   public static FeatureImport feature(FeatureListRow row) {
     final FeatureImport f = new FeatureImport();
@@ -54,6 +73,9 @@ public class MzmineToSirius {
     final IonIdentity adduct = row.getBestIonIdentity();
     if (adduct != null) {
       f.setAdduct(adduct.toString());
+    } else {
+      f.setAdduct("[M+?]%s".formatted(
+          row.getBestFeature().getRepresentativeScan().getPolarity().asSingleChar()));
     }
 
     f.setMs2Spectra(row.getAllFragmentScans().stream().map(MzmineToSirius::spectrum).toList());
@@ -121,7 +143,44 @@ public class MzmineToSirius {
     return spectrum;
   }
 
+  public static SearchableDatabase toCustomDatabase(final @NotNull List<CompoundDBAnnotation> compounds) {
+    Sirius sirius = Sirius.getInstance();
 
-  public static void toCustomDatabase(final @NotNull List<CompoundDBAnnotation> compounds) {
+    final Map<String, CompoundDBAnnotation> uniqueCompounds = compounds.stream()
+        .filter(a -> a.getSmiles() != null)
+        .collect(Collectors.toMap(CompoundDBAnnotation::getSmiles, a -> a));
+    final File dbFile = writeCustomDatabase(uniqueCompounds);
+
+    final SearchableDatabasesApi databases = sirius.api().databases();
+    final SearchableDatabase database = databases.importIntoDatabase(
+        FileAndPathUtil.eraseFormat(dbFile).getName(), 1000, List.of(dbFile));
+    database.customDb(true);
+    return database;
+  }
+
+  private static File writeCustomDatabase(final Map<String, CompoundDBAnnotation> db) {
+    final File file = new File(new File(FileAndPathUtil.getMzmineDir(), "sirius_databases"),
+        "custom_%s".formatted(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).toString()));
+    if (!file.getParentFile().exists()) {
+      file.getParentFile().mkdirs();
+    }
+
+    try (var bufferedWriter = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8,
+        StandardOpenOption.WRITE, StandardOpenOption.APPEND, StandardOpenOption.CREATE)) {
+      CSVWriterBuilder builder = new CSVWriterBuilder(bufferedWriter).withSeparator('\t');
+      final ICSVWriter writer = builder.build();
+
+      for (Entry<String, CompoundDBAnnotation> entry : db.entrySet()) {
+        final String smiles = entry.getKey();
+        final CompoundDBAnnotation annotation = entry.getValue();
+        final String name = annotation.getCompoundName();
+        writer.writeNext(new String[]{smiles, name}, false);
+      }
+      bufferedWriter.flush();
+    } catch (IOException e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      throw new RuntimeException(e);
+    }
+    return file;
   }
 }

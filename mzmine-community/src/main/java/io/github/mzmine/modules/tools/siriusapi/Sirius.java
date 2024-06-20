@@ -110,12 +110,17 @@ public class Sirius {
     return port;
   }
 
+  public NightSkyClient api() {
+    return client;
+  }
+
   public void exportToSirius(List<? extends FeatureListRow> rows) {
     checkLogin();
     final List<FeatureImport> features = rows.stream().map(MzmineToSirius::feature).toList();
 //    client.projects().openProjectSpace(project.getProjectId(), null, List.of());
     var imported = client.features()
         .addAlignedFeatures(project.getProjectId(), features, List.of(AlignedFeatureOptField.NONE));
+//    imported.stream().collect(Collectors.toMap(f -> f.getAlignedFeatureId(), f -> ))
     logger.info(() -> "Added features " + imported.stream()
         .map(f -> f.getName() + "->" + f.getAlignedFeatureId()).collect(Collectors.joining(";")));
   }
