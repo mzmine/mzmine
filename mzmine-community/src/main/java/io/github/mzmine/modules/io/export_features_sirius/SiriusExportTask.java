@@ -244,7 +244,7 @@ public class SiriusExportTask extends AbstractTask {
     final List<SpectralLibraryEntry> entries = new ArrayList<>();
 
     // export either correlated OR MS1
-    final MassSpectrum correlated = generateCorrelationSpectrum(row, null);
+    final MassSpectrum correlated = generateCorrelationSpectrum(row, null, mzTol);
     if (correlated != null && correlated.getNumberOfDataPoints() > 1) {
       entries.add(spectrumToEntry(MsType.CORRELATED, correlated, row.getBestFeature()));
     } else {
@@ -433,8 +433,8 @@ public class SiriusExportTask extends AbstractTask {
    * via IIN (+ their isotopes).
    */
   @Nullable
-  private MassSpectrum generateCorrelationSpectrum(@NotNull FeatureListRow row,
-      @Nullable RawDataFile file) {
+  public static MassSpectrum generateCorrelationSpectrum(@NotNull FeatureListRow row,
+      @Nullable RawDataFile file, MZTolerance mzTol) {
     file = file != null ? file : row.getBestFeature().getRawDataFile();
     final List<DataPoint> dps = new ArrayList<>();
 
@@ -493,7 +493,7 @@ public class SiriusExportTask extends AbstractTask {
   /**
    * Adds the isotopic peaks of this row to the list of data points.
    */
-  private void addIsotopePattern(@NotNull Feature feature, @NotNull List<DataPoint> dps,
+  private static void addIsotopePattern(@NotNull Feature feature, @NotNull List<DataPoint> dps,
       @Nullable IsotopePattern ip) {
     if (ip != null) {
       for (int i = 0; i < ip.getNumberOfDataPoints(); i++) {
@@ -510,7 +510,7 @@ public class SiriusExportTask extends AbstractTask {
    * @param sortedDp data points sorted by mz.
    * @param mzTol    MZ tolerance to filter equal data points.
    */
-  private void removeDuplicateDataPoints(List<DataPoint> sortedDp, MZTolerance mzTol) {
+  private static void removeDuplicateDataPoints(List<DataPoint> sortedDp, MZTolerance mzTol) {
     for (int i = sortedDp.size() - 2; i >= 0; i--) {
       if (mzTol.checkWithinTolerance(sortedDp.get(i).getMZ(), sortedDp.get(i + 1).getMZ())) {
         if (sortedDp.get(i) instanceof AnnotatedDataPoint) {
