@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -176,7 +176,7 @@ public class BrukerTdfTest {
 
   @Test
   public void testCachedConversion() {
-    TDFUtils utils = new TDFUtils(1);
+    TDFUtils utils = new TDFUtils();
 
     final URL resource = this.getClass()
         .getResource("/rawdatafiles/additional/lc-tims-ms-pasef-a.d");
