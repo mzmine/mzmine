@@ -59,6 +59,7 @@ import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
+import io.github.mzmine.modules.dataprocessing.id_addmanualcomp.CompoundAnnotationController;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
@@ -135,7 +136,8 @@ public class FeatureTableContextMenu extends ContextMenu {
   final Menu exportMenu;
 
   private final FeatureTableFX table;
-  @Nullable ModularFeatureListRow selectedRow;
+  @Nullable
+  ModularFeatureListRow selectedRow;
   private Set<DataType<?>> selectedRowTypes;
   private Set<DataType<?>> selectedFeatureTypes;
   private Set<RawDataFile> selectedFiles;
@@ -177,6 +179,12 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void initIdentitiesMenu() {
+
+    final MenuItem annotateManually = new ConditionalMenuItem("Annotate manually",
+        () -> selectedRow != null);
+    annotateManually.setOnAction(
+        _ -> new CompoundAnnotationController(selectedRow, table).showWindow());
+
     final MenuItem openCompoundIdUrl = new ConditionalMenuItem("Open compound ID URL (disabled)",
         () -> false);
 
@@ -239,7 +247,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     });
 
     idsMenu.getItems()
-        .addAll(openCompoundIdUrl, copyIdsItem, pasteIdsItem, clearIdsItem, bioTransformerItem,
+        .addAll(annotateManually, openCompoundIdUrl, copyIdsItem, pasteIdsItem, clearIdsItem,
+            bioTransformerItem,
             clearAnnotationsMenu);
   }
 
@@ -533,12 +542,12 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,
-            new SeparatorMenuItem(), showNetworkVisualizerItem,
-            show2DItem, show3DItem, showIntensityPlotItem, showInIMSRawDataOverviewItem,
-            showInMobilityMzVisualizerItem, new SeparatorMenuItem(), showSpectrumItem,
-            showFeatureFWHMMs1Item, showBestMobilityScanItem, extractSumSpectrumFromMobScans,
-            showMSMSItem, showMSMSMirrorItem, showAllMSMSItem, showPseudoSpectrumItem,
-            showDiaMirror, new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
+            new SeparatorMenuItem(), showNetworkVisualizerItem, show2DItem, show3DItem,
+            showIntensityPlotItem, showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem,
+            new SeparatorMenuItem(), showSpectrumItem, showFeatureFWHMMs1Item,
+            showBestMobilityScanItem, extractSumSpectrumFromMobScans, showMSMSItem,
+            showMSMSMirrorItem, showAllMSMSItem, showPseudoSpectrumItem, showDiaMirror,
+            new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
             showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
             showPeakRowSummaryItem, showCorrelatedImageFeaturesItem);
   }
