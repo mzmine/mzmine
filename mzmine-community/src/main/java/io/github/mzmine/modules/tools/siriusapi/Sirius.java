@@ -51,29 +51,19 @@ public class Sirius {
   private static final Logger logger = Logger.getLogger(Sirius.class.getName());
 
 
-  private static NightSkyClient client;
-
-  private static Sirius instance;
+  private NightSkyClient client;
 
   // one session id for this mzmine session
   private static final String sessionId = FileAndPathUtil.safePathEncode(
       "mzmine_%s".formatted(LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES)));
 
-  private static ProjectInfo project;
+  private ProjectInfo project;
 
   private Sirius() {
     client = launchOrGetClient();
-    instance = this;
     if (project == null) {
       project = client.projects().getProjectSpaces().getFirst();
     }
-  }
-
-  public static synchronized Sirius getInstance() {
-    if (instance == null) {
-      instance = new Sirius();
-    }
-    return instance;
   }
 
   public static synchronized NightSkyClient launchOrGetClient() throws RuntimeException {
@@ -137,13 +127,13 @@ public class Sirius {
   }
 
   public static void main(String[] args) {
-    final Sirius sirius = getInstance();
+    final Sirius sirius = new Sirius();
 
     final List<ProjectInfo> projectSpaces = sirius.client.projects().getProjectSpaces();
     projectSpaces.forEach(p -> logger.info(p.toString()));
     final ProjectInfo project = projectSpaces.getFirst();
 
-    logger.info(client.jobs().getDefaultJobConfig(true).toString());
+    logger.info(sirius.api().jobs().getDefaultJobConfig(true).toString());
 
 //    sirius.client.features().addAlignedFeatures(project.getProjectId(), )
 

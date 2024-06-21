@@ -80,8 +80,8 @@ public class MzmineToSirius {
 
     f.setMs2Spectra(row.getAllFragmentScans().stream().map(MzmineToSirius::spectrum).toList());
     f.setMs1Spectra(List.of(generateCorrelationSpectrum(row)));
-    f.setRtStartSeconds(row.getAverageRT() * 60d);
-    f.setRtEndSeconds(row.getAverageRT() * 60d);
+    f.setRtStartSeconds(row.getBestFeature().getRawDataPointsRTRange().lowerEndpoint() * 60d);
+    f.setRtEndSeconds(row.getBestFeature().getRawDataPointsRTRange().upperEndpoint() * 60d);
 
     return f;
   }
@@ -143,7 +143,8 @@ public class MzmineToSirius {
     return spectrum;
   }
 
-  public static SearchableDatabase toCustomDatabase(final @NotNull List<CompoundDBAnnotation> compounds) {
+  public static SearchableDatabase toCustomDatabase(
+      final @NotNull List<CompoundDBAnnotation> compounds) {
     Sirius sirius = Sirius.getInstance();
 
     final Map<String, CompoundDBAnnotation> uniqueCompounds = compounds.stream()
