@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleImagingFrame;
-import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
@@ -76,32 +75,23 @@ import org.jetbrains.annotations.Nullable;
  */
 public class TDFUtils {
 
-  public static final int SCAN_PACKAGE_SIZE = 50;
+  public static final int SCAN_PACKAGE_SIZE = 5_000;
   public static final int BUFFER_SIZE_INCREMENT = 100_000; // 100 kb increase each time we fail
   private static final Logger logger = Logger.getLogger(TDFUtils.class.getName());
-  private static int DEFAULT_NUMTHREADS = (int) Math.max(
-      MZmineCore.getConfiguration().getPreferences().getParameter(MZminePreferences.numOfThreads)
-          .getValue() * 0.8f, 1);
   private final NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-  private final int numThreads;
+  private final Int2DoubleMap indexToMzBuffer = new Int2DoubleOpenHashMap();
+  private final Int2IntMap indicesToIndexMap = new Int2IntOpenHashMap();
   public int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private TDFLibrary tdfLib = null;
-
-
   /**
    * the handle of the currently opened file
    **/
   private long handle = 0L;
-  private final Int2DoubleMap indexToMzBuffer = new Int2DoubleOpenHashMap();
-  private final Int2IntMap indicesToIndexMap = new Int2IntOpenHashMap();
 
   public TDFUtils() {
-    this(DEFAULT_NUMTHREADS);
+    loadLibrary();
   }
 
-  public TDFUtils(int numThreads) {
-    this.numThreads = numThreads;
-  }
 
   /**
    * Creates an array of the given size and populates it with numbers from 1 to size
@@ -136,19 +126,6 @@ public class TDFUtils {
       case 2, 9, 10, 8 -> 2;
       default -> 0;
     };
-  }
-
-  /**
-   * Sets the default number of threads to use for each raw file across all {@link TDFUtils}
-   * instances.
-   *
-   * @param numThreads
-   */
-  public static void setDefaultNumThreads(int numThreads) {
-    numThreads = Math.max(numThreads, 1);
-    final int finalNumThreads = numThreads;
-    logger.finest(() -> "Setting number of threads per file to " + finalNumThreads);
-    DEFAULT_NUMTHREADS = numThreads;
   }
 
   /**
@@ -202,7 +179,7 @@ public class TDFUtils {
       return false;
     }
     logger.info("Native TDF library initialised " + tdfLib.toString());
-    setNumThreads(numThreads);
+    setNumThreads(1);
 
     return true;
   }
@@ -421,6 +398,9 @@ public class TDFUtils {
       }
       Arrays.fill(buffer, (byte) 0);
     }
+    // the buffer is only valid for one frame,
+    // otherwise the index -> mz mapping may change due to temperature compensation
+//    indexToMzBuffer.clear();
     return dataPoints;
   }
 
@@ -442,6 +422,7 @@ public class TDFUtils {
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
     final List<BuildingMobilityScan> spectra = new ArrayList<>(numScans);
+
     final List<SimpleSpectralArrays> dataPoints = loadDataPointsForFrame_v2(frameId, 0, numScans);
 
     if (numScans != dataPoints.size()) {
@@ -807,16 +788,15 @@ public class TDFUtils {
     }
   }
 
-  public void setNumThreads(int numThreads) {
+  private void setNumThreads(int numThreads) {
     if (tdfLib == null) {
       if (!loadLibrary()) {
         return;
       }
     }
     if (numThreads >= 1) {
-      logger.finest(() -> "Setting number of threads per file to " + numThreads);
+//      logger.finest(() -> "Setting number of threads per file to " + numThreads);
       tdfLib.tims_set_num_threads(numThreads);
     }
   }
-
 }
