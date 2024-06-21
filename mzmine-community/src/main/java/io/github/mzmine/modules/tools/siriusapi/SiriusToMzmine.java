@@ -47,7 +47,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class SiriusToMzmine {
 
-  public @Nullable CompoundDBAnnotation toMzmine(
+  public static @Nullable CompoundDBAnnotation toMzmine(
       @Nullable StructureCandidateFormula structure) {
     if (structure == null) {
       return null;

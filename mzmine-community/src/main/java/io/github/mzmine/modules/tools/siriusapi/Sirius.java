@@ -26,11 +26,16 @@
 package io.github.mzmine.modules.tools.siriusapi;
 
 import de.unijena.bioinf.ms.nightsky.sdk.NightSkyClient;
+import de.unijena.bioinf.ms.nightsky.sdk.model.AlignedFeature;
 import de.unijena.bioinf.ms.nightsky.sdk.model.AlignedFeatureOptField;
 import de.unijena.bioinf.ms.nightsky.sdk.model.FeatureImport;
+import de.unijena.bioinf.ms.nightsky.sdk.model.Job;
+import de.unijena.bioinf.ms.nightsky.sdk.model.JobOptField;
 import de.unijena.bioinf.ms.nightsky.sdk.model.JobSubmission;
 import de.unijena.bioinf.ms.nightsky.sdk.model.ProjectInfo;
+import de.unijena.bioinf.ms.nightsky.sdk.model.StructureCandidateFormula;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.gui.DesktopService;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
@@ -39,7 +44,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -49,17 +58,13 @@ import org.jetbrains.annotations.Nullable;
 public class Sirius {
 
   private static final Logger logger = Logger.getLogger(Sirius.class.getName());
-
-
-  private NightSkyClient client;
-
   // one session id for this mzmine session
   private static final String sessionId = FileAndPathUtil.safePathEncode(
       "mzmine_%s".formatted(LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES)));
-
+  private NightSkyClient client;
   private ProjectInfo project;
 
-  private Sirius() {
+  public Sirius() {
     client = launchOrGetClient();
     if (project == null) {
       project = client.projects().getProjectSpaces().getFirst();
@@ -69,13 +74,23 @@ public class Sirius {
   public static synchronized NightSkyClient launchOrGetClient() throws RuntimeException {
     final File siriusDir = new File(FileUtils.getUserDirectory(), ".sirius-6.0");
     final File portFile = new File(siriusDir, "sirius.port");
-    final File pidFile = new File(siriusDir, "sirius.pid");
 
-    final Integer port = getPort(portFile);
+    Integer port = getPort(portFile);
 
     if (port == null) {
       logger.info("Sirius not running yet, launching.");
-      return new NightSkyClient();
+      final Runtime runtime = Runtime.getRuntime();
+      try {
+        runtime.exec(new String[]{"sirius", "rest", "--gui"});
+        while ((port = getPort(portFile)) == null) {
+          Thread.sleep(100);
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      return new NightSkyClient(port);
     }
     logger.info("Sirius already running at port: " + port);
     return new NightSkyClient(port.intValue());
@@ -98,32 +113,6 @@ public class Sirius {
       port = Integer.parseInt(portString);
     }
     return port;
-  }
-
-  public NightSkyClient api() {
-    return client;
-  }
-
-  public void exportToSirius(List<? extends FeatureListRow> rows) {
-    checkLogin();
-    final List<FeatureImport> features = rows.stream().map(MzmineToSirius::feature).toList();
-//    client.projects().openProjectSpace(project.getProjectId(), null, List.of());
-    var imported = client.features()
-        .addAlignedFeatures(project.getProjectId(), features, List.of(AlignedFeatureOptField.NONE));
-//    imported.stream().collect(Collectors.toMap(f -> f.getAlignedFeatureId(), f -> ))
-    logger.info(() -> "Added features " + imported.stream()
-        .map(f -> f.getName() + "->" + f.getAlignedFeatureId()).collect(Collectors.joining(";")));
-  }
-
-  public void runFingerId(List<FeatureImport> features) {
-    checkLogin();
-    client.projects().openProjectSpace(project.getProjectId(), null, List.of());
-    client.features().addAlignedFeatures(project.getProjectId(), features, List.of());
-
-    final JobSubmission submission = client.jobs().getDefaultJobConfig(true);
-    submission.setAlignedFeatureIds(features.stream().map(FeatureImport::getFeatureId).toList());
-
-//    client.jobs().startJob(project.getProjectId(), )
   }
 
   public static void main(String[] args) {
@@ -162,9 +151,90 @@ public class Sirius {
     return;
   }
 
+  public NightSkyClient api() {
+    return client;
+  }
+
+  /**
+   * Exports rows to sirius. checks the current project
+   *
+   * @param rows The rows to export
+   * @return A mapping of mzmine feature id {@link FeatureListRow#getID()} to sirius unique id
+   * {@link AlignedFeature#getAlignedFeatureId()}.
+   */
+  public Map<Integer, String> exportToSiriusUnique(List<? extends FeatureListRow> rows) {
+    checkLogin();
+    final List<FeatureImport> features = rows.stream().map(MzmineToSirius::feature).toList();
+//    client.projects().openProjectSpace(project.getProjectId(), null, List.of());
+
+    final Map<Integer, String> mzmineIdToSiriusId = client.features()
+        .getAlignedFeatures(project.getProjectId(), List.of(AlignedFeatureOptField.NONE)).stream()
+        .collect(Collectors.toMap(
+            alignedFeature -> Integer.valueOf(alignedFeature.getExternalFeatureId()),
+            AlignedFeature::getAlignedFeatureId));
+
+    final List<FeatureImport> notImportedFeatures = features.stream()
+        .filter(f -> mzmineIdToSiriusId.get(Integer.valueOf(f.getExternalFeatureId())) == null)
+        .toList();
+
+    var imported = client.features().addAlignedFeatures(project.getProjectId(), notImportedFeatures,
+        List.of(AlignedFeatureOptField.NONE));
+    var mzmineIdToSiriusId2 = imported.stream().collect(
+        Collectors.toMap(AlignedFeature::getExternalFeatureId,
+            AlignedFeature::getAlignedFeatureId));
+
+    final HashMap<Integer, String> idMap = new HashMap<>(mzmineIdToSiriusId);
+    mzmineIdToSiriusId2.forEach(
+        (mzmineId, siriusId) -> idMap.put(Integer.valueOf(mzmineId), siriusId));
+
+    logger.info(() -> "Added features " + idMap.entrySet().stream()
+        .map(e -> "%d->%s".formatted(e.getKey(), e.getValue())).collect(Collectors.joining("; ")));
+    return idMap;
+  }
+
+  /**
+   * Maps the rows that are already imported to sirius to their aligned feature id.
+   */
+  public Map<FeatureListRow, String> mapFeatureToSiriusId(List<? extends FeatureListRow> rows) {
+    checkLogin();
+    final Map<Integer, String> mzmineIdToSiriusId = client.features()
+        .getAlignedFeatures(project.getProjectId(), List.of(AlignedFeatureOptField.NONE)).stream()
+        .collect(Collectors.toMap(
+            alignedFeature -> Integer.valueOf(alignedFeature.getExternalFeatureId()),
+            AlignedFeature::getAlignedFeatureId));
+
+    return rows.stream().collect(Collectors.toMap(r -> r, r -> mzmineIdToSiriusId.get(r.getID())));
+  }
+
+  public Job runFingerId(List<FeatureListRow> rows) {
+    checkLogin();
+    final Map<Integer, String> idsMap = exportToSiriusUnique(rows);
+    final JobSubmission submission = client.jobs().getDefaultJobConfig(true);
+    submission.setAlignedFeatureIds(idsMap.values().stream().toList());
+    final Job job = client.jobs()
+        .startJob(project.getProjectId(), submission, List.of(JobOptField.PROGRESS));
+    return job;
+  }
+
+  public void importResultsForRows(List<FeatureListRow> rows) {
+    checkLogin();
+    final Map<FeatureListRow, String> rowToSiriusId = mapFeatureToSiriusId(rows);
+    rowToSiriusId.forEach((row, id) -> {
+      final List<StructureCandidateFormula> structureCandidates = api().features()
+          .getStructureCandidates(project.getProjectId(), id, List.of());
+      final List<CompoundDBAnnotation> siriusAnnotations = structureCandidates.stream()
+          .sorted(Comparator.comparingInt(StructureCandidateFormula::getRank))
+          .map(SiriusToMzmine::toMzmine).toList();
+      final List<CompoundDBAnnotation> annotations = new ArrayList<>(row.getCompoundAnnotations());
+      annotations.addAll(siriusAnnotations);
+      row.setCompoundAnnotations(annotations);
+    });
+  }
+
   public void checkLogin() {
     if (!client.account().isLoggedIn()) {
       DesktopService.getDesktop().displayErrorMessageAndThrow(new SiriusNotLoggedInException());
     }
   }
+
 }

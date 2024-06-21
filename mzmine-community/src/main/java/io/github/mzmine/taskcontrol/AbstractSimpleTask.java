@@ -132,4 +132,9 @@ public abstract class AbstractSimpleTask extends AbstractTask {
       raw.getAppliedMethods().add(appliedMethod);
     }
   }
+
+  @NotNull
+  public ParameterSet getParameters() {
+    return parameters;
+  }
 }

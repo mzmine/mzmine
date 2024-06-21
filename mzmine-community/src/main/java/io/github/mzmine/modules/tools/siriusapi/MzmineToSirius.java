@@ -42,6 +42,7 @@ import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportTask;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.io.File;
@@ -54,6 +55,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -66,16 +68,15 @@ public class MzmineToSirius {
 
   public static FeatureImport feature(FeatureListRow row) {
     final FeatureImport f = new FeatureImport();
-    f.setFeatureId(String.valueOf(row.getID()));
+    f.setExternalFeatureId(String.valueOf(row.getID()));
     f.setName(String.valueOf(row.getID()));
     f.setIonMass(row.getAverageMZ());
+    f.setCharge(FeatureUtils.extractBestSignedChargeState(row, row.getMostIntenseFragmentScan()));
 
     final IonIdentity adduct = row.getBestIonIdentity();
     if (adduct != null) {
-      f.setAdduct(adduct.toString());
-    } else {
-      f.setAdduct("[M+?]%s".formatted(
-          row.getBestFeature().getRepresentativeScan().getPolarity().asSingleChar()));
+      f.setDetectedAdducts(Set.of(adduct.toString()));
+      f.setCharge(adduct.getIonType().getCharge());
     }
 
     f.setMs2Spectra(row.getAllFragmentScans().stream().map(MzmineToSirius::spectrum).toList());
@@ -145,7 +146,7 @@ public class MzmineToSirius {
 
   public static SearchableDatabase toCustomDatabase(
       final @NotNull List<CompoundDBAnnotation> compounds) {
-    Sirius sirius = Sirius.getInstance();
+    Sirius sirius = new Sirius();
 
     final Map<String, CompoundDBAnnotation> uniqueCompounds = compounds.stream()
         .filter(a -> a.getSmiles() != null)

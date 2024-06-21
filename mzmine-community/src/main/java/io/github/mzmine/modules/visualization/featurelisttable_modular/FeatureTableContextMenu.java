@@ -331,7 +331,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem sendToSirius = new ConditionalMenuItem("Open in Sirius",
         () -> !selectedRows.isEmpty());
-    sendToSirius.setOnAction(_ -> Sirius.getInstance().exportToSirius(selectedRows));
+    sendToSirius.setOnAction(_ -> new Sirius().exportToSiriusUnique(selectedRows));
 
     searchMenu.getItems().addAll(spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
         formulaPredictionItem, new SeparatorMenuItem(), masstSearch, sendToSirius);
