@@ -47,7 +47,7 @@ public class SiriusFingerIdParameters extends SimpleParameterSet {
     super(flist, rowIds);
   }
 
-  public static SiriusFingerIdParameters of(List<FeatureListRow> rows) {
+  public static SiriusFingerIdParameters of(List<? extends FeatureListRow> rows) {
     final String ids = FeatureUtils.rowsToIdString(rows);
 
     final ModularFeatureList featureList = (ModularFeatureList) rows.stream()

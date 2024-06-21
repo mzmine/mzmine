@@ -662,7 +662,7 @@ public class FeatureUtils {
     return absCharge * pol.getSign();
   }
 
-  public static String rowsToIdString(List<FeatureListRow> rows) {
+  public static String rowsToIdString(List<? extends FeatureListRow> rows) {
     return rows.stream().map(FeatureListRow::getID).map(Object::toString)
         .collect(Collectors.joining(";"));
   }

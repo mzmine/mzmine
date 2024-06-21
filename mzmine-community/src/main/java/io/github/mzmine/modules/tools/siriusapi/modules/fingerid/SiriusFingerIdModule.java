@@ -72,7 +72,7 @@ public class SiriusFingerIdModule extends AbstractProcessingModule {
     return ExitCode.OK;
   }
 
-  public void run(List<FeatureListRow> rows) {
+  public void run(List<? extends FeatureListRow> rows) {
     final ArrayList<Task> tasks = new ArrayList<>();
     final SiriusFingerIdParameters parameters = SiriusFingerIdParameters.of(rows);
     runModule(ProjectService.getProject(), parameters, tasks, Instant.now());

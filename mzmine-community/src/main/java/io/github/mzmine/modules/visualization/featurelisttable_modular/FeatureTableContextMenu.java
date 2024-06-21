@@ -69,6 +69,7 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.tools.siriusapi.Sirius;
+import io.github.mzmine.modules.tools.siriusapi.modules.fingerid.SiriusFingerIdModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
@@ -329,12 +330,17 @@ public class FeatureTableContextMenu extends ContextMenu {
     formulaPredictionItem.setOnAction(
         e -> FormulaPredictionModule.showSingleRowIdentificationDialog(selectedRows.get(0)));
 
-    final MenuItem sendToSirius = new ConditionalMenuItem("Open in Sirius",
+    final MenuItem sendToSirius = new ConditionalMenuItem("Send to Sirius",
         () -> !selectedRows.isEmpty());
     sendToSirius.setOnAction(_ -> new Sirius().exportToSiriusUnique(selectedRows));
 
+    final MenuItem runFingerId = new ConditionalMenuItem("Run CSI:FingerId",
+        () -> !selectedRows.isEmpty());
+    runFingerId.setOnAction(
+        _ -> MZmineCore.getModuleInstance(SiriusFingerIdModule.class).run(selectedRows));
+
     searchMenu.getItems().addAll(spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
-        formulaPredictionItem, new SeparatorMenuItem(), masstSearch, sendToSirius);
+        formulaPredictionItem, new SeparatorMenuItem(), masstSearch, sendToSirius, runFingerId);
   }
 
   private void initShowMenu() {

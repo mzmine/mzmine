@@ -209,7 +209,7 @@ public class Sirius {
   public Job runFingerId(List<FeatureListRow> rows) {
     checkLogin();
     final Map<Integer, String> idsMap = exportToSiriusUnique(rows);
-    final JobSubmission submission = client.jobs().getDefaultJobConfig(true);
+    final JobSubmission submission = client.jobs().getDefaultJobConfig(false);
     submission.setAlignedFeatureIds(idsMap.values().stream().toList());
     final Job job = client.jobs()
         .startJob(project.getProjectId(), submission, List.of(JobOptField.PROGRESS));
