@@ -240,7 +240,8 @@ public class LatestTaskScheduler {
     List<String> tasksToRemove = new ArrayList<>();
     try (var _ = taskLock.lockRead()) {
       runningTasks.forEach((key, task) -> {
-        if (task!=null && (!(task instanceof FxUpdateTask<?> ut) || ut.isCancelTaskOnParentClosed())) {
+        if (task != null && (!(task instanceof FxUpdateTask<?> ut)
+                             || ut.isCancelTaskOnParentClosed())) {
           task.cancel();
         }
         tasksToRemove.add(key);

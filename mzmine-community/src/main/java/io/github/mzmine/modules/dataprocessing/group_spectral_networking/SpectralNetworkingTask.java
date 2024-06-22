@@ -54,6 +54,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.GraphStreamUtils;
+import io.github.mzmine.util.collections.StreamUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.maths.Combinatorics;
 import io.github.mzmine.util.maths.similarity.Similarity;
@@ -444,37 +445,47 @@ public class SpectralNetworkingTask extends AbstractTask {
     final int numRows = filteredRows.size();
     totalMaxPairs = Combinatorics.uniquePairs(filteredRows);
     logger.log(Level.INFO, MessageFormat.format("Checking MS2 similarity on {0} rows", numRows));
-    // try map multi for all pairs
-    long comparedPairs = IntStream.range(0, numRows - 1).boxed()
-        .<Pair<FilteredRowData, FilteredRowData>>mapMulti((i, consumer) -> {
-          if (isCanceled()) {
-            return;
-          }
-          FilteredRowData a = filteredRows.get(i);
-          var mzA = a.row().getAverageMZ();
-          for (int j = i + 1; j < numRows; j++) {
-            FilteredRowData b = filteredRows.get(j);
-            double deltaMz = b.row().getAverageMZ() - mzA;
-            if (deltaMz > maxMzDelta) {
-              return; // out of range so stop searching
-            }
-            // within range so add to queue
-            consumer.accept(Pair.of(a, b));
-          }
-        }).parallel().mapToLong(pair -> {
-          // need to map to ensure thread is waiting for completion
+
+    long comparedPairs = StreamUtils.processPairs(filteredRows, this::isCanceled, true, //
+        (first, later) -> maxMzDelta < later.row.getAverageMZ() - first.row.getAverageMZ(), //
+        pair -> {
+          // the actual processing
           checkSpectralPair(pair.left(), pair.right(), mapSimilarity, mapNeutralLoss);
-          // count comparisons
           processedPairs.incrementAndGet();
-          return 1;
-        }).sum();
+        });
+
+    // try map multi for all pairs
+//    long comparedPairs = IntStream.range(0, numRows - 1).boxed()
+//        .<Pair<FilteredRowData, FilteredRowData>>mapMulti((i, consumer) -> {
+//          if (isCanceled()) {
+//            return;
+//          }
+//          FilteredRowData a = filteredRows.get(i);
+//          var mzA = a.row().getAverageMZ();
+//          for (int j = i + 1; j < numRows; j++) {
+//            FilteredRowData b = filteredRows.get(j);
+//            double deltaMz = b.row().getAverageMZ() - mzA;
+//            if (deltaMz > maxMzDelta) {
+//              return; // out of range so stop searching
+//            }
+//            // within range so add to queue
+//            consumer.accept(Pair.of(a, b));
+//          }
+//        }).parallel().mapToLong(pair -> {
+//          // need to map to ensure thread is waiting for completion
+//          checkSpectralPair(pair.left(), pair.right(), mapSimilarity, mapNeutralLoss);
+//          // count comparisons
+//          processedPairs.incrementAndGet();
+//          return 1;
+//        }).sum();
 
     logger.info("Spectral networking: Performed %d pairwise comparisons.".formatted(comparedPairs));
   }
 
-  private void checkSpectralPair(final FilteredRowData a, final FilteredRowData b,
+  private boolean checkSpectralPair(final FilteredRowData a, final FilteredRowData b,
       final R2RMap<RowsRelationship> mapSimilarity, final R2RMap<RowsRelationship> mapNeutralLoss) {
-    checkR2RMs2Similarity(mapSimilarity, a.row(), b.row(), a.data(), b.data(), Type.MS2_COSINE_SIM);
+    boolean result = checkR2RMs2Similarity(mapSimilarity, a.row(), b.row(), a.data(), b.data(),
+        Type.MS2_COSINE_SIM);
 
     // check neutral loss similarity
     if (checkNeutralLoss) {
@@ -487,6 +498,7 @@ public class SpectralNetworkingTask extends AbstractTask {
       checkR2RMs2Similarity(mapNeutralLoss, a.row(), b.row(), massDiffA, massDiffB,
           Type.MS2_NEUTRAL_LOSS_SIM);
     }
+    return result;
   }
 
   @NotNull
@@ -669,7 +681,7 @@ public class SpectralNetworkingTask extends AbstractTask {
    * @param b             row b
    * @param simType       similarity type
    */
-  public void checkR2RMs2Similarity(R2RMap<RowsRelationship> mapSimilarity, FeatureListRow a,
+  public boolean checkR2RMs2Similarity(R2RMap<RowsRelationship> mapSimilarity, FeatureListRow a,
       FeatureListRow b, DataPoint[] sortedA, DataPoint[] sortedB, Type simType) {
     // align and check spectra
     SpectralSimilarity spectralSim =
@@ -681,7 +693,9 @@ public class SpectralNetworkingTask extends AbstractTask {
     if (spectralSim != null && spectralSim.cosine() >= minCosineSimilarity) {
       var r2r = new R2RSpectralSimilarity(a, b, simType, spectralSim);
       mapSimilarity.add(a, b, r2r);
+      return true;
     }
+    return false;
   }
 
   @Override

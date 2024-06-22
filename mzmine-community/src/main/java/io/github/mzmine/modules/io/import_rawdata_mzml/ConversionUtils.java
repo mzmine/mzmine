@@ -43,6 +43,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWindow;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
 import java.nio.DoubleBuffer;
 import java.util.List;
@@ -168,7 +169,7 @@ public class ConversionUtils {
    * @param currentFrameNumber the IMS frame
    * @param currentScanNumber  the IMS scan number
    */
-  public static void extractImsMsMsInfo(final BuildingMzMLMsScan scan,
+  public static void extractImsMsMsInfo(final MzMLPrecursorList precursorList,
       @NotNull List<BuildingImsMsMsInfo> buildingInfos, final int currentFrameNumber,
       final int currentScanNumber) {
     Double lowerWindow = null;
@@ -176,7 +177,7 @@ public class ConversionUtils {
     Double isolationMz = null;
     Integer charge = null;
     Float colissionEnergy = null;
-    for (MzMLPrecursorElement precursorElement : scan.getPrecursorList().getPrecursorElements()) {
+    for (MzMLPrecursorElement precursorElement : precursorList.getPrecursorElements()) {
       Optional<MzMLPrecursorSelectedIonList> selectedIonList = precursorElement.getSelectedIonList();
       if (selectedIonList.isPresent()) {
         if (selectedIonList.get().getSelectedIonList().size() > 1) {

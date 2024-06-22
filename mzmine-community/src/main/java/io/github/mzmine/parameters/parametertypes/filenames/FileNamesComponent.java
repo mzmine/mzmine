@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -234,15 +234,14 @@ public class FileNamesComponent extends BorderPane {
     txtFilename.setOnDragDropped(e -> {
       if (e.getDragboard().hasFiles()) {
         final List<File> files = e.getDragboard().getFiles();
-        final List<String> patterns = new ArrayList<>();
 
         StringBuilder sb = new StringBuilder(txtFilename.getText());
         if (!sb.toString().endsWith("\n")) {
           sb.append("\n");
         }
 
-        filters.stream().flatMap(f -> f.getExtensions().stream()).forEach(
-            extension -> patterns.add(extension.toLowerCase().replace("*", "").toLowerCase()));
+        final List<String> patterns = filters.stream().flatMap(f -> f.getExtensions().stream())
+            .map(extension -> extension.toLowerCase().replace("*", "").toLowerCase()).toList();
 
         for (File file : files) {
           if (patterns.stream()

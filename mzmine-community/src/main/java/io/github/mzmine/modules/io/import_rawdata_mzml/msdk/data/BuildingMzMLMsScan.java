@@ -653,4 +653,12 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   public SimpleSpectralArrays getMobilityScanSimpleSpectralData() {
     return mobilityScanSimpleSpectralData;
   }
+
+  /**
+   * Gets cleared later - first we collect all scans and memory map them together for each frame
+   * with the same retention time
+   */
+  public void clearMobilityData() {
+    mobilityScanSimpleSpectralData = null;
+  }
 }

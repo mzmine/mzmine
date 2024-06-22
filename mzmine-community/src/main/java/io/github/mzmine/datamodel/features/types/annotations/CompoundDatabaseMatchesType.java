@@ -80,7 +80,7 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
   }
 
   @Override
-  protected <K> @Nullable K map(@NotNull final DataType<K> subType,
+  public <K> @Nullable K map(@NotNull final DataType<K> subType,
       final CompoundDBAnnotation item) {
     return item.get(subType);
   }
@@ -170,6 +170,6 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
 
   @Override
   public int getPrefColumnWidth() {
-    return 350;
+    return 150;
   }
 }

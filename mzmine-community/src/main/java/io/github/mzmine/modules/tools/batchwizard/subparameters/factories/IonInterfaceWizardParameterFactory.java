@@ -94,17 +94,16 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
           new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES),
           new RTTolerance(0.1f, Unit.MINUTES));
       case HILIC -> new IonInterfaceHplcWizardParameters(this, true, 15, 5, Range.closed(0.3, 30d),
-          new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(3, Unit.SECONDS),
-          new RTTolerance(3, Unit.SECONDS));
+          new RTTolerance(0.15f, Unit.MINUTES), new RTTolerance(3, Unit.SECONDS),
+          new RTTolerance(6, Unit.SECONDS));
       case GC_CI -> new IonInterfaceHplcWizardParameters(this, true, 30, 6, Range.closed(0.3, 30d),
           new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES),
           new RTTolerance(0.1f, Unit.MINUTES));
       // different workflow for GC-EI
-      case GC_EI ->
-          new IonInterfaceGcElectronImpactWizardParameters(this, false, true,
-              Range.closed(0.3, 30d),
-              new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.04f, Unit.MINUTES),
-              new RTTolerance(0.1f, Unit.MINUTES), 4, Range.closed(0.001, 0.06));
+      case GC_EI -> new IonInterfaceGcElectronImpactWizardParameters(this, false, true,
+          Range.closed(0.3, 30d), new RTTolerance(0.05f, Unit.MINUTES),
+          new RTTolerance(0.04f, Unit.MINUTES), new RTTolerance(0.1f, Unit.MINUTES), 4,
+          Range.closed(0.001, 0.06));
       // parameters for imaging
       case MALDI, LDI, DESI, SIMS -> new IonInterfaceImagingWizardParameters(this, 25, false);
       //
@@ -163,7 +162,8 @@ public enum IonInterfaceWizardParameterFactory implements WizardParameterFactory
       case GC_EI ->
           new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.DECONVOLUTION};
       case MALDI, LDI, DESI, SIMS ->
-          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.IMAGING};
+          new WorkflowWizardParameterFactory[]{WorkflowWizardParameterFactory.IMAGING,
+              WorkflowWizardParameterFactory.TARGET_PLATE};
     };
   }
 }

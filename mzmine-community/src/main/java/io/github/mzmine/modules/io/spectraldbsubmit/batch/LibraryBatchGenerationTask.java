@@ -45,6 +45,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.ChimericPrecursorChecker;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.ChimericPrecursorFlag;
 import io.github.mzmine.modules.dataanalysis.spec_chimeric_precursor.ChimericPrecursorResults;
@@ -210,7 +211,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
     var featureList = row.getFeatureList();
     // might filter matches for compound name in feature list name
     // only if this option is active
-    List<CompoundDBAnnotation> matches = row.getCompoundAnnotations().stream()
+    List<FeatureAnnotation> matches = CompoundAnnotationUtils.streamFeatureAnnotations(row)
         .filter(match -> msMsQualityChecker.matchesName(match, featureList)).toList();
 
     if (scans.isEmpty() || matches.isEmpty()) {
@@ -219,9 +220,9 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
     // first entry for the same molecule reflect the most common ion type, usually M+H
     // if multiple compounds match, they are sorted by score descending
-    var filteredMatches = CompoundAnnotationUtils.getBestMatchesPerCompoundName(matches);
+    matches = CompoundAnnotationUtils.getBestMatchesPerCompoundName(matches);
 
-    if (filteredMatches.stream()
+    if (matches.stream()
         .noneMatch(match -> msMsQualityChecker.matchesName(match, featureList))) {
       return;
     }
@@ -231,7 +232,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
 
     scans = selectMergeAndFilterScans(scans);
     // export
-    exportAllMatches(writer, row, scans, filteredMatches, chimericMap);
+    exportAllMatches(writer, row, scans, matches, chimericMap);
   }
 
   /**
@@ -262,11 +263,11 @@ public class LibraryBatchGenerationTask extends AbstractTask {
    * @param chimericMap     flags chimeric spectra
    */
   private void exportAllMatches(final BufferedWriter writer, final FeatureListRow row,
-      final List<Scan> scans, final List<CompoundDBAnnotation> filteredMatches,
+      final List<Scan> scans, final List<FeatureAnnotation> filteredMatches,
       final Map<Scan, ChimericPrecursorResults> chimericMap) throws IOException {
     // filtered matches contain one match per compound name sorted by the least complex first
     // M+H better than 2M+H2+2
-    for (final CompoundDBAnnotation match : filteredMatches) {
+    for (final FeatureAnnotation match : filteredMatches) {
       // cache all formulas
       IMolecularFormula formula = FormulaUtils.getIonizedFormula(match);
       FormulaWithExactMz[] sortedFormulas = FormulaUtils.getAllFormulas(formula, 1, 15);
@@ -305,11 +306,11 @@ public class LibraryBatchGenerationTask extends AbstractTask {
    */
   @NotNull
   private SpectralLibraryEntry createEntry(final FeatureListRow row,
-      final CompoundDBAnnotation match, final Map<Scan, ChimericPrecursorResults> chimericMap,
+      final FeatureAnnotation match, final Map<Scan, ChimericPrecursorResults> chimericMap,
       final Scan msmsScan, final MSMSScore score, final DataPoint[] dps,
-      final List<CompoundDBAnnotation> allMatchedCompounds) {
+      final List<FeatureAnnotation> allMatchedCompounds) {
     // add instrument type etc by parameter
-    SpectralLibraryEntry entry = SpectralLibraryEntry.create(library.getStorage(), msmsScan, match,
+    SpectralLibraryEntry entry = SpectralLibraryEntry.create(row, library.getStorage(), msmsScan, match,
         dps);
     entry.putAll(metadataMap);
 
@@ -320,7 +321,7 @@ public class LibraryBatchGenerationTask extends AbstractTask {
       entry.putIfNotNull(DBEntryField.OTHER_MATCHED_COMPOUNDS_N, allMatchedCompounds.size() - 1);
       entry.putIfNotNull(DBEntryField.OTHER_MATCHED_COMPOUNDS_NAMES, allMatchedCompounds.stream()
           .filter(m -> !Objects.equals(match.getCompoundName(), m.getCompoundName()))
-          .map(CompoundDBAnnotation::toString).collect(Collectors.joining("; ")));
+          .map(FeatureAnnotation::toString).collect(Collectors.joining("; ")));
     }
     // score might be successful without having a formula - so check if we actually have scores
     if (score.explainedSignals() > 0) {

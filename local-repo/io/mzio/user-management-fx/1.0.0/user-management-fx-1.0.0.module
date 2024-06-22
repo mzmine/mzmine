@@ -27,11 +27,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 33975,
-          "sha512": "6a4e5b8233e2ad8c89dbe03e805ed836c41425571e398376ffd89906e7380de9d022eda3a9c047de201dfb0d29f9b0a5d9a8ab6a34bf8aa6858643b957f593aa",
-          "sha256": "1f4d73b32426063f22f4b22d7eeafd0a06dd551adb23bd0c0713092d9a0ecc47",
-          "sha1": "588ed75853998a63ce71a999c29ec635f0dbf730",
-          "md5": "d86ac2bf5b46fda6b29b9f6c16ca07f9"
+          "size": 39606,
+          "sha512": "7f78be077424a5381c5aaf3aad3bc4f53c37d00a1899b4671bbeadd6d1de0eb13833f5474c02878beb5058436021c1c7813f640c24a54ef0f8f7ecf799d4658c",
+          "sha256": "2c09f564ca11f988e89c62924c0e02c24e9fc7000c9c1228c56b6ce7a1129c37",
+          "sha1": "76af46f2902c1ee1ee0dec4ad565b4d95554c9c1",
+          "md5": "bc26663c60129e7d9ea52bcac5cda017"
         }
       ]
     },
@@ -200,6 +200,13 @@
           }
         },
         {
+          "group": "io.mzio",
+          "module": "global-events",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
           "group": "io.github.mzmine",
           "module": "javafx-framework"
         },
@@ -223,11 +230,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 33975,
-          "sha512": "6a4e5b8233e2ad8c89dbe03e805ed836c41425571e398376ffd89906e7380de9d022eda3a9c047de201dfb0d29f9b0a5d9a8ab6a34bf8aa6858643b957f593aa",
-          "sha256": "1f4d73b32426063f22f4b22d7eeafd0a06dd551adb23bd0c0713092d9a0ecc47",
-          "sha1": "588ed75853998a63ce71a999c29ec635f0dbf730",
-          "md5": "d86ac2bf5b46fda6b29b9f6c16ca07f9"
+          "size": 39606,
+          "sha512": "7f78be077424a5381c5aaf3aad3bc4f53c37d00a1899b4671bbeadd6d1de0eb13833f5474c02878beb5058436021c1c7813f640c24a54ef0f8f7ecf799d4658c",
+          "sha256": "2c09f564ca11f988e89c62924c0e02c24e9fc7000c9c1228c56b6ce7a1129c37",
+          "sha1": "76af46f2902c1ee1ee0dec4ad565b4d95554c9c1",
+          "md5": "bc26663c60129e7d9ea52bcac5cda017"
         }
       ]
     }

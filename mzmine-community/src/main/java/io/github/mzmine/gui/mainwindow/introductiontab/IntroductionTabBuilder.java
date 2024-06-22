@@ -155,7 +155,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
         () -> MZmineCore.getDesktop().openWebPage("https://mzio.io/#mzmine"));
 
     final ButtonBase btnUserManagement = FxIconUtil.newIconButton(FxIcons.USER, 45,
-        "User management", () -> MZmineCore.getDesktop().addTab(new UsersTab()));
+        "User management", UsersTab::showTab);
     FxFlashingAnimation.animate(btnUserManagement, model.needsUserLoginProperty());
 
     final ButtonBase btnDevelopment = FxIconUtil.newIconButton(FxIcons.DEVELOPMENT, 45,
@@ -206,7 +206,7 @@ public class IntroductionTabBuilder extends FxViewBuilder<IntroductionTabModel> 
     final Button downloadButton = FxButtons.createButton(
         FxIconUtil.getFontIcon("bi-download", 60, Color.web("3391C1")),
         () -> MZmineCore.getDesktop()
-            .openWebPage("https://github.com/mzmine/mzmine3/releases/tag/v3.9.0"));
+            .openWebPage("https://github.com/mzmine/mzmine3/releases/latest"));
     box.getChildren().addAll(label, downloadButton);
 //    box.visibleProperty().bindBidirectional(model.newVersionAvailableProperty());
     box.setAlignment(Pos.CENTER);

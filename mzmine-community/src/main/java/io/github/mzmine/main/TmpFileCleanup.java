@@ -26,6 +26,7 @@
 package io.github.mzmine.main;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
 import io.github.mzmine.project.ProjectManager;
@@ -41,6 +42,7 @@ import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
+import java.nio.file.DirectoryNotEmptyException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -66,8 +68,9 @@ public class TmpFileCleanup implements Runnable {
           new File(System.getProperty("java.io.tmpdir"))};
       File[] remainingTmpFiles = Arrays.stream(tempDir).map(f -> f.listFiles((dir, name) -> {
         if (name.matches("mzmine.*\\.tmp") || name.matches(
-            "(.)*" + RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER + "(.)*") || name.matches(
-            "(.)*" + FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER + "(.)*")) {
+            STR."(.)*\{RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER}(.)*") || name.matches(
+            STR."(.)*\{FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER}(.)*") || name.matches(
+            STR."(.)*\{ThermoRawImportTask.THERMO_RAW_PARSER_DIR}(.)*")) {
           return true;
         }
         return false;
@@ -83,7 +86,12 @@ public class TmpFileCleanup implements Runnable {
 
           if (remainingTmpFile.isDirectory()) {
             // delete directory we used to store raw files on project import.
-            FileUtils.deleteDirectory(remainingTmpFile);
+            try {
+              FileUtils.deleteDirectory(remainingTmpFile);
+            } catch (DirectoryNotEmptyException e) {
+              logger.info(
+                  () -> STR."Unable to delete directory \{remainingTmpFile}, it might be used by another mzmine instance.");
+            }
             continue;
           }
 
@@ -166,7 +174,8 @@ public class TmpFileCleanup implements Runnable {
 
       return (Unsafe) theUnsafe;
 
-    } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | NoSuchFieldException | ClassCastException e) {
+    } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
+             NoSuchFieldException | ClassCastException e) {
       // jdk.internal.misc.Unsafe doesn't yet have an invokeCleaner() method,
       // but that method should be added if sun.misc.Unsafe is removed.
       e.printStackTrace();

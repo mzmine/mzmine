@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,25 +23,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.preferences;
+package io.github.mzmine.javafx.components.factories;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
+import javafx.beans.property.BooleanProperty;
+import javafx.scene.control.CheckBox;
 
-/**
- * Proxy server settings
- */
-public class ProxySettings extends SimpleParameterSet {
+public class FxCheckBox {
 
-  public static final StringParameter proxyAddress =
-      new StringParameter("Proxy adress", "Internet address of a proxy server");
-
-  public static final StringParameter proxyPort =
-      new StringParameter("Proxy port", "TCP port of proxy server");
-
-  public ProxySettings() {
-    super(new Parameter[] {proxyAddress, proxyPort});
+  public static CheckBox newCheckBox(String text, BooleanProperty selectedProperty) {
+    var box = new CheckBox(text);
+    box.selectedProperty().bindBidirectional(selectedProperty);
+    return box;
   }
 
 }

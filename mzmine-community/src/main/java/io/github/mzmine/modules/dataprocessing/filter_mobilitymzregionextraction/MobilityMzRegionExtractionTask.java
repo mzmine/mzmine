@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.PlotType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -71,20 +72,6 @@ public class MobilityMzRegionExtractionTask extends AbstractTask {
     suffix = parameterSet.getParameter(MobilityMzRegionExtractionParameters.suffix).getValue();
   }
 
-  public static Path2D getShape(List<Point2D> points) {
-    if (points.isEmpty()) {
-      return new Path2D.Double();
-    }
-    Path2D path = new Path2D.Double();
-    path.moveTo(points.get(0).getX(), points.get(0).getY());
-
-    for (int i = 1; i < points.size(); i++) {
-      path.lineTo(points.get(i).getX(), points.get(i).getY());
-    }
-    path.closePath();
-    return path;
-  }
-
   @Override
   public String getTaskDescription() {
     return "Extraction of mm/z mobility regions.";
@@ -100,7 +87,7 @@ public class MobilityMzRegionExtractionTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     List<Path2D> regions = new ArrayList<>();
-    pointsLists.forEach(list -> regions.add(getShape(list)));
+    pointsLists.forEach(list -> regions.add(RegionSelectionListener.getShape(list)));
 
     ModularFeatureList newFeatureList = originalFeatureList
         .createCopy(originalFeatureList.getName() + " " + suffix, getMemoryMapStorage(), false);

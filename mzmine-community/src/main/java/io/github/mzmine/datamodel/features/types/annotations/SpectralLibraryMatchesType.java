@@ -45,8 +45,8 @@ import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.CosineScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.ExplainedIntensityPercentType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
@@ -72,7 +72,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
   private static final List<DataType> subTypes = List.of( //
       new SpectralLibraryMatchesType(), //
       new CompoundNameType(), //
-      new CosineScoreType(),//
+      new SimilarityType(),//
       new MatchingSignalsType(),//
       new ExplainedIntensityPercentType(),//
       new IonAdductType(), //
@@ -103,7 +103,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
   }
 
   @Override
-  protected <K> @Nullable K map(@NotNull final DataType<K> subType,
+  public <K> @Nullable K map(@NotNull final DataType<K> subType,
       final SpectralDBAnnotation match) {
     final SpectralLibraryEntry entry = match.getEntry();
     return (K) switch (subType) {
@@ -114,7 +114,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       case MolecularStructureType __ -> entry.getStructure();
       case SmilesStructureType __ -> entry.getField(DBEntryField.SMILES).orElse("").toString();
       case InChIStructureType __ -> entry.getField(DBEntryField.INCHI).orElse("").toString();
-      case CosineScoreType __ -> (float) match.getSimilarity().getScore();
+      case SimilarityType __ -> (float) match.getSimilarity().getScore();
       case ExplainedIntensityPercentType __ -> match.getSimilarity().getExplainedLibraryIntensity();
       case MatchingSignalsType __ -> match.getSimilarity().getOverlap();
       case PrecursorMZType __ -> entry.getField(DBEntryField.PRECURSOR_MZ).orElse(null);
@@ -204,6 +204,6 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
 
   @Override
   public int getPrefColumnWidth() {
-    return 350;
+    return 150;
   }
 }

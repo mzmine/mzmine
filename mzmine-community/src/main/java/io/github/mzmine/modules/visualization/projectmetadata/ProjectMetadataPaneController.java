@@ -65,7 +65,8 @@ import javafx.stage.Stage;
 public class ProjectMetadataPaneController {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
-  private final MZmineProject currentProject = ProjectService.getProjectManager().getCurrentProject();
+  private final MZmineProject currentProject = ProjectService.getProjectManager()
+      .getCurrentProject();
   private final MetadataTable metadataTable = currentProject.getProjectMetadata();
   private Stage currentStage;
   private RawDataFile[] fileList;
@@ -103,7 +104,8 @@ public class ProjectMetadataPaneController {
 
     // display the columns
     TableColumn[] tableColumns = new TableColumn[columnsNumber + 1];
-    tableColumns[0] = createColumn(0, "Data File", "These are the names of the RawDataFiles");
+    tableColumns[0] = createColumn(0, MetadataColumn.FILENAME_HEADER,
+        "These are the names of the RawDataFiles");
     var columns = metadataTable.getColumns();
     int columnId = 1;
     for (var col : columns) {
@@ -276,7 +278,7 @@ public class ProjectMetadataPaneController {
       return;
     }
     String parameterName = ((Label) column.getGraphic()).getText();
-    if (parameterName.equals("Data File")) {
+    if (parameterName.equals(MetadataColumn.FILENAME_HEADER)) {
       Alert alert = new Alert(Alert.AlertType.INFORMATION);
       alert.setTitle("Cannot remove Raw Data File Column");
       alert.setHeaderText(null);

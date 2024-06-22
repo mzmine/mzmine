@@ -88,7 +88,7 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
     }
     this.extractedData = new ArrayList<>();
 
-    List<String[]> lines = CSVParsingUtils.readData(new File(filename), ";");
+    List<String[]> lines = CSVParsingUtils.readData(new File(filename), ",");
     for (String[] lineValues : lines) {
       try {
         String mzRatioString = lineValues[mzRatioColumn];

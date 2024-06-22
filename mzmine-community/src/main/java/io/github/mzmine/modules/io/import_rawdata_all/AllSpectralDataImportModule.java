@@ -56,13 +56,11 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
-import io.github.mzmine.modules.io.import_rawdata_waters_raw.WatersRawImportTask;
 import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportTask;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
@@ -287,12 +285,11 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     // if any is null the data type was not detected then error out
     if (fileTypes.stream().anyMatch(Objects::isNull)) {
       String files = IntStream.range(0, fileTypes.size()).filter(i -> fileTypes.get(i) == null)
-          .mapToObj(i -> fileNames[i].getAbsolutePath()).collect(Collectors.joining("\n"));
-      String msg =
-          "Could not identify the data type needed for import of n files=" + fileTypes.stream()
-              .filter(Objects::isNull).count();
+          .mapToObj(i -> fileNames[i].getAbsolutePath()).collect(Collectors.joining(",\n"));
+      String msg = STR."Could not identify the data type needed for import of n files=\{fileTypes.stream()
+          .filter(Objects::isNull).count()}. The file/path might not exist.\n.\{files}";
       MZmineCore.getDesktop().displayErrorMessage(msg);
-      logger.log(Level.SEVERE, msg + ".  " + files);
+      logger.log(Level.SEVERE, STR."\{msg}.  \{files}");
       return ExitCode.ERROR;
     }
 
@@ -315,13 +312,13 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       final File fileName = fileNames[i];
 
       if ((!fileName.exists()) || (!fileName.canRead())) {
-        MZmineCore.getDesktop().displayErrorMessage("Cannot read file " + fileName);
-        logger.warning("Cannot read file " + fileName);
+        MZmineCore.getDesktop().displayErrorMessage(STR."Cannot read file \{fileName}. The file/path might not exist.");
+        logger.warning(STR."Cannot read file \{fileName}. The file/path might not exist.");
         return ExitCode.ERROR;
       }
 
       final RawDataFileType fileType = fileTypes.get(i);
-      logger.finest("File " + fileName + " type detected as " + fileType);
+      logger.finest(STR."File \{fileName} type detected as \{fileType}");
 
       try {
         RawDataFile newMZmineFile = createDataFile(fileType, fileName.getAbsolutePath(),
@@ -356,7 +353,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         }
 
       } catch (IOException e) {
-        MZmineCore.getDesktop().displayErrorMessage("Could not create a new temporary file " + e);
+        MZmineCore.getDesktop().displayErrorMessage(
+            STR."Could not create a new temporary file \{e}. Does the dirve of the temporary storage have enough space?");
         logger.log(Level.SEVERE, "Could not create a new temporary file ", e);
         return ExitCode.ERROR;
       }
@@ -406,8 +404,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new MzDataImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
       case NETCDF ->
           new NetCDFImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
-      case WATERS_RAW ->
-          new WatersRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
+//      case WATERS_RAW ->
+//          new WatersRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
       case THERMO_RAW ->
           new ThermoRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate,
               scanProcessorConfig);
@@ -453,7 +451,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new ThermoRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate,
               scanProcessorConfig);
       // all unsupported tasks are wrapped to apply import and mass detection separately
-      case AIRD, MZDATA, WATERS_RAW, NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV ->
+      case AIRD, MZDATA,/* WATERS_RAW,*/ NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV ->
           createWrappedAdvancedTask(fileType, project, file, newMZmineFile, scanProcessorConfig,
               module, parameters, moduleCallDate, storage);
       default -> throw new IllegalStateException("Unexpected data type: " + fileType);
@@ -477,7 +475,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   private RawDataFile createDataFile(RawDataFileType fileType, String absPath, String newName,
       MemoryMapStorage storage) throws IOException {
     return switch (fileType) {
-      case MZXML, MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, ICPMSMS_CSV ->
+      case MZXML, MZDATA, THERMO_RAW, /*WATERS_RAW,*/ NETCDF, ICPMSMS_CSV ->
           MZmineCore.createNewFile(newName, absPath, storage);
       case MZML, MZML_IMS, MZML_ZIP, MZML_GZIP, AIRD -> null; // created in Mzml import task
       case IMZML -> MZmineCore.createNewImagingFile(newName, absPath, storage);

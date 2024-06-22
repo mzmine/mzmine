@@ -123,7 +123,6 @@ import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchGeneration
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchMetadataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryExportQualityParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.SpectralLibraryExportFormats;
-import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.WizardSequence;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.AnnotationLocalCSVDatabaseSearchParameters;
@@ -135,7 +134,9 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.MassDetectorWiza
 import io.github.mzmine.modules.tools.batchwizard.subparameters.MassSpectrometerWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WizardStepParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDdaWizardParameters;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.WorkflowDiaWizardParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.ParameterUtils;
@@ -175,9 +176,12 @@ import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectral
 import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarityParameters;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
@@ -211,7 +215,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected final MZTolerance mzTolScans;
   protected final MZTolerance mzTolFeaturesIntraSample;
   protected final MZTolerance mzTolInterSample;
-  protected final Polarity polarity;
+  protected final WizardMsPolarity polarity;
   // csv database
   private final boolean checkLocalCsvDatabase;
   // lipid annotation
@@ -309,7 +313,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected static void makeAndAddAdapChromatogramStep(final BatchQueue q,
       final Double minFeatureHeight, final MZTolerance mzTolScans,
       final WizardMassDetectorNoiseLevels massDetectorOption, final Integer minRtDataPoints,
-      @Nullable final Range<Double> cropRtRange) {
+      @Nullable final Range<Double> cropRtRange, WizardMsPolarity polarity) {
     MassDetectorWizardOptions detectorType = massDetectorOption.getValueType();
 
     double noiseLevelMs1;
@@ -326,8 +330,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     param.setParameter(ADAPChromatogramBuilderParameters.dataFiles,
         new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     // crop rt range
-    param.setParameter(ADAPChromatogramBuilderParameters.scanSelection,
-        new ScanSelection(cropRtRange, 1));
+    var scanSelection = new ScanSelection(cropRtRange, 1, polarity.toScanPolaritySelection());
+    param.setParameter(ADAPChromatogramBuilderParameters.scanSelection, scanSelection);
+
     param.setParameter(ADAPChromatogramBuilderParameters.minimumConsecutiveScans, minRtDataPoints);
     param.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzTolScans);
     param.setParameter(ADAPChromatogramBuilderParameters.suffix, "eics");
@@ -675,27 +680,27 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   }
 
   private void createAndSetIonLibrary(final IonLibraryParameterSet ionLibraryParam) {
-    ionLibraryParam.setParameter(IonLibraryParameterSet.POSITIVE_MODE,
-        polarity == Polarity.Positive ? "POSITIVE" : "NEGATIVE");
-    ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_CHARGE, 2);
-    ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_MOLECULES, 2);
-    IonModification[] adducts;
-    IonModification[] adductChoices;
-    if (polarity == Polarity.Positive) {
-      adducts = new IonModification[]{IonModification.H, IonModification.H_H2O_1,
-          IonModification.NA, IonModification.Hneg_NA2, IonModification.K, IonModification.NH4,
-          IonModification.H2plus};
-      adductChoices = IonModification.getDefaultValuesPos();
-    } else {
-      adducts = new IonModification[]{IonModification.H_NEG, IonModification.FA,
-          IonModification.NA_2H, IonModification.CL};
-      adductChoices = IonModification.getDefaultValuesNeg();
+    Set<IonModification> adducts = new HashSet<>();
+    Set<IonModification> adductChoices = new HashSet<>();
+    // No filter or Positive option --> add positive
+    if (polarity.toScanPolaritySelection().includesPositive()) {
+      // default positive
+      Collections.addAll(adducts, IonModification.H, IonModification.H_H2O_1, IonModification.NA,
+          IonModification.Hneg_NA2, IonModification.K, IonModification.NH4, IonModification.H2plus);
+      Collections.addAll(adductChoices, IonModification.getDefaultValuesPos());
+    }
+    if (polarity.toScanPolaritySelection().includesNegative()) {
+      Collections.addAll(adducts, IonModification.H_NEG, IonModification.FA, IonModification.NA_2H,
+          IonModification.CL);
+      Collections.addAll(adductChoices, IonModification.getDefaultValuesNeg());
     }
     IonModification[] modifications = new IonModification[]{};
-    var ionLib = ionLibraryParam.getParameter(IonLibraryParameterSet.ADDUCTS);
     // set choices first then values
-    ionLib.setChoices(adductChoices, IonModification.getDefaultModifications());
-    ionLib.setValue(new IonModification[][]{adducts, modifications});
+    var modificationChoices = IonModification.getDefaultModifications();
+    var selected = new IonModification[][]{adducts.toArray(IonModification[]::new), modifications};
+
+    ionLibraryParam.setAll(2, 2, adductChoices.toArray(IonModification[]::new), modificationChoices,
+        selected);
   }
 
   /**
@@ -770,7 +775,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
   protected MZTolerance getIsolationToleranceForInstrument(final WizardSequence steps) {
     var ms = steps.get(WizardPart.MS).get().getFactory();
     return switch ((MassSpectrometerWizardParameterFactory) ms) {
-      case Orbitrap, FTICR, LOW_RES -> new MZTolerance(0.4, 5);
+      case Orbitrap, Orbitrap_Astral, FTICR, LOW_RES -> new MZTolerance(0.4, 5);
       case QTOF -> new MZTolerance(1.6, 5);
     };
   }
@@ -912,7 +917,9 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(MassDetectionModule.class).cloneParameterSet();
 
-    boolean denormalize = massDetectorOption.getValueType() == FACTOR_OF_LOWEST_SIGNAL;
+    final Boolean isDia = steps.get(WizardPart.WORKFLOW)
+        .map(w -> w instanceof WorkflowDiaWizardParameters).orElse(false);
+    boolean denormalize = massDetectorOption.getValueType() == FACTOR_OF_LOWEST_SIGNAL && !isDia;
     param.setParameter(MassDetectionParameters.denormalizeMSnScans, denormalize);
 
     param.setParameter(MassDetectionParameters.dataFiles,
@@ -938,7 +945,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
         .getModuleParameters(MobilityScanMergerModule.class).cloneParameterSet();
 
     param.setParameter(MobilityScanMergerParameters.mzTolerance, mzTolScans);
-    param.setParameter(MobilityScanMergerParameters.scanSelection, new ScanSelection());
+    param.setParameter(MobilityScanMergerParameters.scanSelection, new ScanSelection(1));
     param.setParameter(MobilityScanMergerParameters.noiseLevel,
         0d); // the noise level of the mass detector already did all the filtering we want (at least in the wizard)
     param.setParameter(MobilityScanMergerParameters.mergingType, IntensityMergingType.SUMMED);

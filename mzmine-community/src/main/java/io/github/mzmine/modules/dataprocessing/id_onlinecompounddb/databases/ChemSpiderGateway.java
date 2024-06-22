@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,12 +31,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.io.SemverVersionReader;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
@@ -55,7 +55,6 @@ import org.rsc.chemspider.api.RecordsApi;
 
 /**
  * Searches the ChemSpider database.
- * 
  */
 public class ChemSpiderGateway implements DBGateway {
 
@@ -65,12 +64,9 @@ public class ChemSpiderGateway implements DBGateway {
   private static final String UNKNOWN_NAME = "Unknown name";
 
   // Pattern for chemical structure URLs - replace CSID.
-  private static final String STRUCTURE_URL_PATTERN =
-      "http://www.chemspider.com/Chemical-Structure.CSID.html";
-  private static final String STRUCTURE2D_URL_PATTERN =
-      "http://www.chemspider.com/FilesHandler.ashx?type=str&id=CSID";
-  private static final String STRUCTURE3D_URL_PATTERN =
-      "http://www.chemspider.com/FilesHandler.ashx?type=str&3d=yes&id=CSID";
+  private static final String STRUCTURE_URL_PATTERN = "http://www.chemspider.com/Chemical-Structure.CSID.html";
+  private static final String STRUCTURE2D_URL_PATTERN = "http://www.chemspider.com/FilesHandler.ashx?type=str&id=CSID";
+  private static final String STRUCTURE3D_URL_PATTERN = "http://www.chemspider.com/FilesHandler.ashx?type=str&3d=yes&id=CSID";
 
   // Pattern to clean-up formulas.
   private static final Pattern FORMULA_PATTERN = Pattern.compile("[\\W_]*");
@@ -97,11 +93,11 @@ public class ChemSpiderGateway implements DBGateway {
       filterRequest.setOrderBy(OrderByEnum.RECORDID);
 
       FilteringApi apiInstance = new FilteringApi();
-      apiInstance.getApiClient().setUserAgent("MZmine " + MZmineCore.getMZmineVersion());
+      apiInstance.getApiClient().setUserAgent("mzmine " + SemverVersionReader.getMZmineVersion());
 
       FilterQueryResponse queryId = apiInstance.filterMassPost(filterRequest, apiKey);
-      QueryResultResponse result =
-          apiInstance.filterQueryIdResultsGet(queryId.getQueryId(), apiKey, 0, numOfResults);
+      QueryResultResponse result = apiInstance.filterQueryIdResultsGet(queryId.getQueryId(), apiKey,
+          0, numOfResults);
       List<Integer> integerIDs = result.getResults();
       List<String> stringIDs = Lists.transform(integerIDs, Functions.toStringFunction());
 
@@ -113,7 +109,8 @@ public class ChemSpiderGateway implements DBGateway {
   }
 
   @Override
-  public CompoundDBAnnotation getCompound(final String ID, ParameterSet parameters) throws IOException {
+  public CompoundDBAnnotation getCompound(final String ID, ParameterSet parameters)
+      throws IOException {
 
     logger.finest("Fetching compound info for CSID #" + ID);
 
@@ -124,19 +121,21 @@ public class ChemSpiderGateway implements DBGateway {
 
     try {
       RecordsApi apiInstance = new RecordsApi();
-      apiInstance.getApiClient().setUserAgent("MZmine " + MZmineCore.getMZmineVersion());
+      apiInstance.getApiClient().setUserAgent("mzmine " + SemverVersionReader.getMZmineVersion());
 
       Integer recordId = Integer.valueOf(ID);
       RecordResponse response = apiInstance.recordsRecordIdDetailsGet(recordId, fields, apiKey);
 
       String name = response.getCommonName();
-      if (Strings.isNullOrEmpty(name))
+      if (Strings.isNullOrEmpty(name)) {
         name = UNKNOWN_NAME;
+      }
       String formula = response.getFormula();
 
       // Fix formula formatting
-      if (!Strings.isNullOrEmpty(formula))
+      if (!Strings.isNullOrEmpty(formula)) {
         formula = FORMULA_PATTERN.matcher(formula).replaceAll("");
+      }
 
       // Create and return the compound record.
       return new SimpleCompoundDBAnnotation(OnlineDatabases.CHEMSPIDER, ID, name, formula,

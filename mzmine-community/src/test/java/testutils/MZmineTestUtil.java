@@ -249,12 +249,13 @@ public class MZmineTestUtil {
 //        }
 //      }
 
-      MZmineCore.main(new String[]{"-r", "-m", "all"});
       try {
         logger.fine("Trying to find TESTRUNNER_USER env");
         String testRunner = System.getenv("TESTRUNNER_USER");
         if (testRunner != null && !testRunner.isBlank()) {
           logger.info("Loaded TESTRUNNER_USER from env var");
+        } else {
+          logger.info("Unable to load test user from env variable.");
         }
         var user = UserFileReader.parseUser(testRunner);
         if (user != null) {
@@ -272,6 +273,7 @@ public class MZmineTestUtil {
           CurrentUserService.setUser(user);
         }
       }
+      MZmineCore.main(new String[]{"-r", "-m", "all"});
     } catch (Exception ex) {
       // might be already initialized
       logger.log(Level.INFO,

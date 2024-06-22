@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.PseudoSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
@@ -597,14 +598,21 @@ public class RowsSpectralMatchTask extends AbstractTask {
   }
 
   public List<Scan> getScans(FeatureListRow row) throws MissingMassListException {
+    var allFragmentScans = fragmentScanSelection.getAllFragmentSpectra(row);
     if (msLevelFilter.isMs1Only()) {
-      var scan = row.getBestFeature().getRepresentativeScan();
-      return scan == null ? List.of() : List.of(scan);
+      List<Scan> pseudoSpectra = allFragmentScans.stream()
+          .filter(scan -> scan instanceof PseudoSpectrum).toList();
+      if (!pseudoSpectra.isEmpty()) {
+        return pseudoSpectra;
+      } else {
+        var scan = row.getBestFeature().getRepresentativeScan();
+        return scan == null ? List.of() : List.of(scan);
+      }
     } else {
-      // merge spectra by enegy and total - or just use all scans
+      // merge spectra by energy and total - or just use all scans
       // depending on selected option
-      var allScans = fragmentScanSelection.getAllFragmentSpectra(row);
-      return allScans.stream().filter(scan -> scan.getNumberOfDataPoints() >= minMatch).toList();
+      return allFragmentScans.stream().filter(scan -> scan.getNumberOfDataPoints() >= minMatch)
+          .toList();
     }
   }
 

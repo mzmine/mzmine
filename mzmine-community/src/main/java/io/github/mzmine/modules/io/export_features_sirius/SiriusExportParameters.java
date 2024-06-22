@@ -51,8 +51,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -84,15 +83,15 @@ public class SiriusExportParameters extends SimpleParameterSet {
       false);
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
   private static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("mgf format for SIRIUS", "*.mgf") //
+      new ExtensionFilter("mgf format for SIRIUS that contains MS1 and MS2 data", "*.mgf") //
   );
-  public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
-      "Name of the output MGF file. " + "Use pattern \"" + SiriusExportTask.MULTI_NAME_PATTERN
-          + "\" in the file name to substitute with feature list name. " + "(i.e. \"blah"
-          + SiriusExportTask.MULTI_NAME_PATTERN
-          + "blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
-          + "If the file already exists, it will be overwritten.", extensions,
-      FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter FILENAME = new FileNameSuffixExportParameter(
+      "Filename", STR."""
+      Name of the output MGF file. Use pattern "\{SiriusExportTask.MULTI_NAME_PATTERN}" in the file name
+      to substitute with feature list name. (i.e. "blah\{SiriusExportTask.MULTI_NAME_PATTERN}blah.mgf" would
+      become "blahSourceFeatureListNameblah.mgf"). If the file already exists, it will be overwritten.""",
+      extensions, "sirius" // suffix
+  );
 
   public SiriusExportParameters() {
     super(new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, MZ_TOL, NEED_ANNOTATION,
@@ -134,8 +133,8 @@ public class SiriusExportParameters extends SimpleParameterSet {
         FILENAME).getName().contains(SiriusExportTask.MULTI_NAME_PATTERN)) {
       errorMessages.add(
           "More than one feature list selected but \"" + SiriusExportTask.MULTI_NAME_PATTERN
-              + "\" pattern not found in name."
-              + "Please add the name pattern to create individual files.");
+          + "\" pattern not found in name."
+          + "Please add the name pattern to create individual files.");
       superCheck = false;
     }
 

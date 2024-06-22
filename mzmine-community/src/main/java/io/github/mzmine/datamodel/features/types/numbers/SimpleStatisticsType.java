@@ -36,7 +36,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberFormatType;
 import io.github.mzmine.datamodel.features.types.numbers.stats.MaximumType;
 import io.github.mzmine.datamodel.features.types.numbers.stats.MeanType;
 import io.github.mzmine.datamodel.features.types.numbers.stats.MinimumType;
@@ -53,7 +53,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class SimpleStatisticsType extends NumberType<SimpleStatistics> implements
+public abstract class SimpleStatisticsType extends NumberFormatType<SimpleStatistics> implements
     SubColumnsFactory {
 
 
