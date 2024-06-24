@@ -98,9 +98,8 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
       fields.add(tf, 1, i);
 
       Label parsed = new Label();
-      parsed.textProperty().bind(Bindings.createStringBinding(
-          () -> type.getFormattedStringCheckType(model.getDataModel().get(type)),
-          model.valueAt(type)));
+      parsed.textProperty().addListener(
+          (_, _, _) -> type.getFormattedStringCheckType(model.getDataModel().get(type)));
       fields.add(parsed, 2, i);
     }
     fields.getColumnConstraints().addAll(new ColumnConstraints(100),
@@ -203,6 +202,7 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
     });
 
     tf.textProperty().bindBidirectional(stringProperty);
+    tf.textProperty().addListener((_, _, _) -> numberProperty.get());
     return tf;
   }
 
@@ -224,6 +224,7 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
       }
     });
 
+    tf.textProperty().addListener((_, _, _) -> property.get());
     return tf;
   }
 }
