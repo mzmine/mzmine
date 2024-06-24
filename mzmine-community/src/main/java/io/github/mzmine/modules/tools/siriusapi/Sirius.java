@@ -237,4 +237,7 @@ public class Sirius {
     }
   }
 
+  public ProjectInfo getProject() {
+    return project;
+  }
 }

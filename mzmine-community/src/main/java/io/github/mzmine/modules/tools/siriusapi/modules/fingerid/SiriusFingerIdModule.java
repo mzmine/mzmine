@@ -65,8 +65,9 @@ public class SiriusFingerIdModule extends AbstractProcessingModule {
     final Sirius sirius = new Sirius();
     final Job job = sirius.runFingerId(rows);
 
+
     final JobWaiterTask jobWaiterTask = new JobWaiterTask(this.getClass(), moduleCallDate,
-        parameters, job, () -> sirius.importResultsForRows(rows));
+        parameters, () -> sirius.api().jobs().getJob(sirius.getProject().getProjectId(), job.getId(), List.of()), () -> sirius.importResultsForRows(rows));
 
     tasks.add(jobWaiterTask);
     return ExitCode.OK;

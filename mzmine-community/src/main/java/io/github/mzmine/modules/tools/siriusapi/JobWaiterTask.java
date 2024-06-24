@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.tools.siriusapi;
 
 import de.unijena.bioinf.ms.nightsky.sdk.model.Job;
+import de.unijena.bioinf.ms.nightsky.sdk.model.JobProgress.StateEnum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModule;
@@ -35,32 +36,37 @@ import io.github.mzmine.taskcontrol.AbstractSimpleTask;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public class JobWaiterTask extends AbstractSimpleTask {
 
-  private final Job job;
+  private static final Logger logger = Logger.getLogger(JobWaiterTask.class.getName());
+
+  private final Supplier<Job> jobSupplier;
   private final Runnable onFinished;
 
   public JobWaiterTask(@NotNull Class<? extends MZmineModule> callingModule,
-      @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters, Job job,
+      @NotNull Instant moduleCallDate, @NotNull ParameterSet parameters, Supplier<Job> jobSupplier,
       Runnable onFinished) {
     super(null, moduleCallDate, parameters, callingModule);
-    this.job = job;
+    this.jobSupplier = jobSupplier;
     this.onFinished = onFinished;
   }
 
   @Override
   protected void process() {
     try {
-      while (!hasFinished(job)) {
+      while (!hasFinished(jobSupplier.get())) {
         TimeUnit.MILLISECONDS.sleep(100);
       }
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
 
-    if (!wasSuccessful(job)) {
+    if (!wasSuccessful(jobSupplier.get())) {
+      logger.warning(() -> "Sirius job was not successful.");
       return;
     }
 
@@ -74,7 +80,7 @@ public class JobWaiterTask extends AbstractSimpleTask {
 
   @Override
   protected @NotNull List<RawDataFile> getProcessedDataFiles() {
-    return List.of(ParameterUtils.getMatchingRawDataFilesFromParameter(getParameters()));
+    return List.of();
   }
 
   @Override
@@ -83,14 +89,16 @@ public class JobWaiterTask extends AbstractSimpleTask {
   }
 
   boolean hasFinished(Job job) {
-    return switch (job.getProgress().getState()) {
+    final StateEnum state = job.getProgress().getState();
+    return switch (state) {
       case WAITING, READY, QUEUED, SUBMITTED, RUNNING -> false;
       case CANCELED, FAILED, DONE -> true;
     };
   }
 
   boolean wasSuccessful(Job job) {
-    return switch (job.getProgress().getState()) {
+    final StateEnum state = job.getProgress().getState();
+    return switch (state) {
       case WAITING, READY, QUEUED, SUBMITTED, RUNNING, CANCELED, FAILED -> false;
       case DONE -> true;
     };
