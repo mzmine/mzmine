@@ -34,6 +34,7 @@ import static io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2
 import static io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafLib.baf2sql_get_sqlite_cache_filename_v2;
 
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.BafPropertiesTable;
+import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.Ms2Table;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.SpectraAcquisitionStepsTable;
 import java.io.File;
 import java.lang.foreign.Arena;
@@ -56,6 +57,7 @@ public class BafUtils {
   private long handle;
   private final SpectraAcquisitionStepsTable spectraTable = new SpectraAcquisitionStepsTable();
   private final BafPropertiesTable metadata = new BafPropertiesTable();
+  private final Ms2Table ms2Table = new Ms2Table();
 
   private final Arena arena;
   private final MemorySegment mzSizeBuffer;
@@ -173,6 +175,7 @@ public class BafUtils {
         logger.finest(() -> "Connection established. " + connection.toString());
         spectraTable.executeQuery(connection);
         metadata.executeQuery(connection);
+        ms2Table.executeQuery(connection);
       } catch (SQLException e) {
         throw new RuntimeException(e);
       }
@@ -245,5 +248,9 @@ public class BafUtils {
       return;
     }
     baf2sql_array_close_storage(handle);
+  }
+
+  public Ms2Table getMs2Table() {
+    return ms2Table;
   }
 }

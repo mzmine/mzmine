@@ -31,7 +31,7 @@ import java.util.Arrays;
 
 public class BafVariables extends TDFDataTable<Long> {
 
-  public static final String NAME = "PerSpectrumVariables";
+  public static final String NAME = "Variables";
 
   public static final String SPECTRUM_COL = "SPECTRUM";
   public static final String VARIABLE_COL = "VARIABLE";

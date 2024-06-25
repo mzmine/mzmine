@@ -41,6 +41,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleS
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafUtils;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.BafPropertiesTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.BafPropertiesTable.Values;
+import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.Ms2Table;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.SpectraAcquisitionStepsTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.RawDataFileImpl;
@@ -112,12 +113,13 @@ public class BafImportTask extends AbstractTask {
 
       final SpectraAcquisitionStepsTable scanTable = baf.getSpectraTable();
       final BafPropertiesTable metadata = baf.getMetadata();
+      final Ms2Table ms2Table = baf.getMs2Table();
 
       totalScans = scanTable.getNumberOfScans();
       for (int i = 0; i < scanTable.getNumberOfScans(); i++) {
         final int id = scanTable.getId(i);
 
-        final MsMsInfo msMsInfo = scanTable.getMsMsInfo(i);
+        final MsMsInfo msMsInfo = ms2Table.getMsMsInfo(i);
         final SimpleBuildingScan metadataScan = new SimpleBuildingScan(id, scanTable.getMsLevel(i),
             scanTable.getPolarity(i), scanTable.getSpectrumType(), scanTable.getRt(i), 0d, 0);
 

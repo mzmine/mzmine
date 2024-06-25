@@ -28,9 +28,6 @@ package io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables;
 
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
-import io.github.mzmine.datamodel.msms.ActivationMethod;
-import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFDataColumn;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFDataTable;
 import java.sql.Connection;
@@ -79,24 +76,6 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
   private final TDFDataColumn<Long> msLevelCol = new TDFDataColumn<>(
       BafAcqusitionKeysTable.MsLevelCol);
 
-  private final TDFDataColumn<Long> targetSpectrumCol = new TDFDataColumn<>(
-      BafStepsTable.TARGET_SPECTRUM_COL);
-  private final TDFDataColumn<Long> numberCol = new TDFDataColumn<>(BafStepsTable.NUMBER_COL);
-  private final TDFDataColumn<Long> isolationTypeCol = new TDFDataColumn<>(
-      BafStepsTable.ISOLATION_TYPE_COL);
-  private final TDFDataColumn<Long> reactionTypeCol = new TDFDataColumn<>(
-      BafStepsTable.REACTION_TYPE_COL);
-  private final TDFDataColumn<Double> massCol = new TDFDataColumn<>(BafStepsTable.MASS_COL);
-
-  /**
-   * Merged in from the Variables table. Specifically added as last column, since it is created in
-   * the query {@link this#getQueryText(String)}. Do not move
-   */
-  private final TDFDataColumn<Double> collisionEnergyColumn = new TDFDataColumn<>(
-      "CollisionEnergy");
-
-  private final BafStepsTable stepsTable = new BafStepsTable();
-
   private MassSpectrumType spectrumType = MassSpectrumType.CENTROIDED;
 
 
@@ -109,8 +88,7 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
         Arrays.asList(rtCol, segment, acquisitionKey, mzAcqRangeLowerCol, mzAcqRangeUpper,
             sumIntensityCol, maxIntensityCol, profileMzIdCol, profileIntensityCol, lineMzIdCol,
             lineIntensityCol, lineAreaIdCol, polarityCol, scanModeCol, acquisitionModeCol,
-            msLevelCol, targetSpectrumCol, numberCol, isolationTypeCol, reactionTypeCol, massCol,
-            collisionEnergyColumn));
+            msLevelCol));
   }
 
   @Override
@@ -126,14 +104,14 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
         .filter(col -> !col.getCoulumnName().equals(BafAcqusitionKeysTable.ID_COL))
         .map(col -> "%s.%s".formatted(acqTable, col.getCoulumnName()))
         .collect(Collectors.joining(", "));
-    final String stepsString = stepsTable.columns().stream()
+    /*final String stepsString = stepsTable.columns().stream()
         .filter(col -> !col.getCoulumnName().equals(BafStepsTable.MS_LEVEL_COL)) // duplicate
         .map(col -> "%s.%s".formatted(stepsTableStr, col.getCoulumnName()))
         .collect(Collectors.joining(", "));
     final String collisionEnergyCol =
-        BafVariables.NAME + "." + BafVariables.VALUE_COL + " AS CollisionEnergy";
+        BafVariables.NAME + "." + BafVariables.VALUE_COL + " AS CollisionEnergy";*/
 
-    return String.join(", ", spectraString, acqString, stepsString, collisionEnergyCol);
+    return String.join(", ", spectraString, acqString);
   }
 
   @Override
@@ -144,12 +122,8 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
     return "SELECT " + columnHeadersForQuery + " FROM " + spectraTable + //
         " LEFT JOIN " + acqTable + " ON " + spectraTable + "." + BafSpectraTable.AQUISITION_KEY_COL
         + "=" + acqTable + "." + BafAcqusitionKeysTable.ID_COL + //
-        " LEFT JOIN " + BafStepsTable.NAME + " ON " + spectraTable + "." + BafSpectraTable.ID_COL
-        + "=" + BafStepsTable.NAME + "." + BafStepsTable.TARGET_SPECTRUM_COL + //
-        // merges the collision energy column into this table (below)
-        " LEFT JOIN " + BafVariables.NAME + " ON " + spectraTable + "." + BafSpectraTable.ID_COL
-        + "=" + BafVariables.NAME + "." + BafVariables.SPECTRUM_COL + " WHERE " + BafVariables.NAME
-        + "." + BafVariables.VARIABLE_COL + "=5" +
+//        " LEFT JOIN " + BafStepsTable.NAME + " ON " + spectraTable + "." + BafSpectraTable.ID_COL
+//        + "=" + BafStepsTable.NAME + "." + BafStepsTable.TARGET_SPECTRUM_COL + //
         // documentation says 5 is a constant value. could also get it from the SupportedVariables table otherwise.
         " ORDER BY " + spectraTable + "." + BafSpectraTable.ID_COL;
   }
@@ -238,22 +212,6 @@ public class SpectraAcquisitionStepsTable extends TDFDataTable<Long> {
       case 1 -> 2;
       default -> throw new IllegalStateException("Unknown scan mode.");
     };
-  }
-
-  public ActivationMethod getActivationMethod(int index) {
-    return switch (reactionTypeCol.get(index).intValue()) {
-      case 0x00000001 -> ActivationMethod.CID;
-      default -> null;
-    };
-  }
-
-  public MsMsInfo getMsMsInfo(int index) {
-    if (massCol.get(index) == null || massCol.get(index) == 0L) {
-      return null;
-    }
-    return new DDAMsMsInfoImpl(massCol.get(index), null,
-        collisionEnergyColumn.get(index).floatValue(), null, null, getMsLevel(index),
-        getActivationMethod(index), null);
   }
 
   public int getNumberOfScans() {
