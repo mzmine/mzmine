@@ -33,9 +33,9 @@ public class BafVariables extends TDFDataTable<Long> {
 
   public static final String NAME = "Variables";
 
-  public static final String SPECTRUM_COL = "SPECTRUM";
-  public static final String VARIABLE_COL = "VARIABLE";
-  public static final String VALUE_COL = "VALUE";
+  public static final String SPECTRUM_COL = "Spectrum";
+  public static final String VARIABLE_COL = "Variable";
+  public static final String VALUE_COL = "Value";
 
   private final TDFDataColumn<Long> spectrumColumn;
   private final TDFDataColumn<Long> variableColumn = new TDFDataColumn<>(VARIABLE_COL);

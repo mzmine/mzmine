@@ -33,17 +33,27 @@ import static io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tabl
 
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DIAMsMsInfoImpl;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFDataColumn;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFDataTable;
+import io.github.mzmine.util.RangeUtils;
 import java.sql.Connection;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Ms2Table extends TDFDataTable<Long> {
 
   public static final String NAME = "MS2 Table";
   public static final String TARGET_SPECTRUM_COL = "TargetSpectrum";
+  private static final String collisionEnergy = "CollisionEnergy";
+  private static final String isolationWidth = "IsolationWidth";
+
+  // need to create aliases, otherwise it is ambiguous for sql
+  final String v1 = "v1";
+  final String v2 = "v2";
 
   private final TDFDataColumn<Long> targetSpectrumCol;
   private final TDFDataColumn<Long> numberCol = new TDFDataColumn<>(NUMBER_COL);
@@ -51,18 +61,18 @@ public class Ms2Table extends TDFDataTable<Long> {
   private final TDFDataColumn<Long> reactionTypeCol = new TDFDataColumn<>(REACTION_TYPE_COL);
   private final TDFDataColumn<Long> msLevelCol = new TDFDataColumn<>(MS_LEVEL_COL);
   private final TDFDataColumn<Double> massCol = new TDFDataColumn<>(MASS_COL);
-
   /**
    * Merged in from the Variables table. Specifically added as last column, since it is created in
    * the query {@link this#getQueryText(String)}. Do not move
    */
-  private final TDFDataColumn<Double> collisionEnergyColumn = new TDFDataColumn<>(
-      "CollisionEnergy");
-  private final TDFDataColumn<Double> isolationWidthColumn = new TDFDataColumn<>("IsolationWidth");
+  private final TDFDataColumn<Double> collisionEnergyColumn = new TDFDataColumn<>(collisionEnergy);
+  private final TDFDataColumn<Double> isolationWidthColumn = new TDFDataColumn<>(isolationWidth);
+
+  private final Map<Integer, MsMsInfo> msmsInfoMap = new HashMap<>();
 
 
   public Ms2Table() {
-    super(NAME, BafSpectraTable.ID_COL);
+    super(NAME, TARGET_SPECTRUM_COL);
 
     targetSpectrumCol = (TDFDataColumn<Long>) getColumn(TARGET_SPECTRUM_COL);
     columns.addAll(Arrays.asList(numberCol, isolationTypeCol, reactionTypeCol, msLevelCol, massCol,
@@ -76,13 +86,8 @@ public class Ms2Table extends TDFDataTable<Long> {
     };
   }
 
-  public MsMsInfo getMsMsInfo(int index) {
-    if (massCol.get(index) == null || massCol.get(index) == 0L) {
-      return null;
-    }
-    return new DDAMsMsInfoImpl(massCol.get(index), null,
-        collisionEnergyColumn.get(index).floatValue(), null, null, getMsLevel(index),
-        getActivationMethod(index), null);
+  public MsMsInfo getMsMsInfo(int scanNumber) {
+    return msmsInfoMap.get(scanNumber);
   }
 
   public int getMsLevel(int index) {
@@ -101,10 +106,8 @@ public class Ms2Table extends TDFDataTable<Long> {
     final String stepsString = stepsTable.columns().stream()
         .map(col -> "%s.%s".formatted(BafStepsTable.NAME, col.getCoulumnName()))
         .collect(Collectors.joining(", "));
-    final String collisionEnergyCol =
-        BafVariables.NAME + "." + BafVariables.VALUE_COL + " AS CollisionEnergy";
-    final String isolationWidthCol =
-        BafVariables.NAME + "." + BafVariables.VALUE_COL + " AS IsolationWidth";
+    final String collisionEnergyCol = v1 + "." + BafVariables.VALUE_COL + " AS CollisionEnergy";
+    final String isolationWidthCol = v2 + "." + BafVariables.VALUE_COL + " AS IsolationWidth";
     return String.join(", ", stepsString, collisionEnergyCol, isolationWidthCol);
   }
 
@@ -112,19 +115,50 @@ public class Ms2Table extends TDFDataTable<Long> {
   protected String getQueryText(String columnHeadersForQuery) {
     final String query = "SELECT " + columnHeadersForQuery + " FROM " + BafStepsTable.NAME + //
         // merges the collision energy column into this table (below)
-        " LEFT JOIN " + BafVariables.NAME + " ON " + BafStepsTable.NAME + "." //
-        + BafStepsTable.TARGET_SPECTRUM_COL + "=" + BafVariables.NAME + "." //
-        + BafVariables.SPECTRUM_COL + " AND " + BafVariables.NAME + "." //
+        " LEFT JOIN " + BafVariables.NAME + " " + v1 + " ON " + BafStepsTable.NAME + "." //
+        + BafStepsTable.TARGET_SPECTRUM_COL + "=" + v1 + "." //
+        + BafVariables.SPECTRUM_COL + " AND " + v1 + "." //
         + BafVariables.VARIABLE_COL + "=5" + //
-        " LEFT JOIN " + BafVariables.NAME + " ON " + BafStepsTable.NAME + "." //
-        + BafStepsTable.TARGET_SPECTRUM_COL + "=" + BafVariables.NAME + "." //
-        + BafVariables.SPECTRUM_COL + " AND " + BafVariables.NAME + "." //
+        " LEFT JOIN " + BafVariables.NAME + " " + v2 + " ON " + BafStepsTable.NAME + "." //
+        + BafStepsTable.TARGET_SPECTRUM_COL + "=" + v2 + "." //
+        + BafVariables.SPECTRUM_COL + " AND " + v2 + "." //
         + BafVariables.VARIABLE_COL + "=8";
     return query;
   }
 
+  private void buildMs2Infos() {
+    final long numberOfPrecursors = massCol.stream().distinct().count();
+    final double avgIsolationWidth = isolationWidthColumn.stream().mapToDouble(Double::doubleValue)
+        .average().orElse(3);
+
+    if (numberOfPrecursors < 50 && avgIsolationWidth > 5) {
+      // this might be DIA
+      for (int i = 0; i < targetSpectrumCol.size(); i++) {
+        final DIAMsMsInfoImpl diamsMsInfo = new DIAMsMsInfoImpl(
+            collisionEnergyColumn.get(i) != null ? collisionEnergyColumn.get(i).floatValue() : null,
+            null, getMsLevel(i), getActivationMethod(i),
+            isolationWidthColumn.get(i) != null ? RangeUtils.rangeAround(massCol.get(i),
+                isolationWidthColumn.get(i)) : null);
+        msmsInfoMap.put(targetSpectrumCol.get(i).intValue(), diamsMsInfo);
+      }
+    } else {
+      for (int i = 0; i < targetSpectrumCol.size(); i++) {
+        final DDAMsMsInfoImpl ddaMsMsInfo = new DDAMsMsInfoImpl(massCol.get(i), null,
+            collisionEnergyColumn.get(i) != null ? collisionEnergyColumn.get(i).floatValue() : null,
+            null, null, getMsLevel(i), getActivationMethod(i),
+            isolationWidthColumn.get(i) != null ? RangeUtils.rangeAround(massCol.get(i),
+                isolationWidthColumn.get(i)) : null);
+        msmsInfoMap.put(targetSpectrumCol.get(i).intValue(), ddaMsMsInfo);
+      }
+    }
+  }
+
   @Override
   public boolean executeQuery(Connection connection) {
-    return super.executeQuery(connection);
+    final boolean b = super.executeQuery(connection);
+    if (b) {
+      buildMs2Infos();
+    }
+    return b;
   }
 }

@@ -119,7 +119,7 @@ public class BafImportTask extends AbstractTask {
       for (int i = 0; i < scanTable.getNumberOfScans(); i++) {
         final int id = scanTable.getId(i);
 
-        final MsMsInfo msMsInfo = ms2Table.getMsMsInfo(i);
+        final MsMsInfo msMsInfo = ms2Table.getMsMsInfo(id);
         final SimpleBuildingScan metadataScan = new SimpleBuildingScan(id, scanTable.getMsLevel(i),
             scanTable.getPolarity(i), scanTable.getSpectrumType(), scanTable.getRt(i), 0d, 0);
 
