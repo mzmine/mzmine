@@ -40,14 +40,17 @@ public class RtGroupingAndShapeCorrelationAlgorithm implements SpectralDeconvolu
 
   private final RTTolerance rtTolerance;
   private final int minNumberOfSignals;
+  private final double minR;
 
   public RtGroupingAndShapeCorrelationAlgorithm() {
-    this(null, 1);
+    this(null, 1, 0.8);
   }
 
-  public RtGroupingAndShapeCorrelationAlgorithm(RTTolerance rtTolerance, int minNumberOfSignals) {
+  public RtGroupingAndShapeCorrelationAlgorithm(RTTolerance rtTolerance, int minNumberOfSignals,
+      double minR) {
     this.rtTolerance = rtTolerance;
     this.minNumberOfSignals = minNumberOfSignals;
+    this.minR = minR;
   }
 
   @Override
@@ -55,7 +58,8 @@ public class RtGroupingAndShapeCorrelationAlgorithm implements SpectralDeconvolu
     var rtTolerance = parameters.getValue(RtGroupingAndShapeCorrelationParameters.RT_TOLERANCE);
     var minNumberOfSignals = parameters.getValue(
         RtGroupingAndShapeCorrelationParameters.MIN_NUMBER_OF_SIGNALS);
-    return new RtGroupingAndShapeCorrelationAlgorithm(rtTolerance, minNumberOfSignals);
+    var minR = parameters.getValue(RtGroupingAndShapeCorrelationParameters.MIN_R);
+    return new RtGroupingAndShapeCorrelationAlgorithm(rtTolerance, minNumberOfSignals, minR);
   }
 
   @Override
@@ -81,7 +85,10 @@ public class RtGroupingAndShapeCorrelationAlgorithm implements SpectralDeconvolu
         clusters.add(newCluster);
       } else if (potentialClusters.size() == 1) {
         // Only one matching cluster, add the feature to it
-        potentialClusters.getFirst().add(feature);
+        double correlation = calculateCorrelation(potentialClusters.getFirst().getFirst(), feature);
+        if (correlation >= minR) {
+          potentialClusters.getFirst().add(feature);
+        }
       } else {
         // Multiple matching clusters, use correlation to determine the best one
         List<ModularFeature> bestCluster = null;
@@ -90,7 +97,7 @@ public class RtGroupingAndShapeCorrelationAlgorithm implements SpectralDeconvolu
         for (List<ModularFeature> potentialCluster : potentialClusters) {
           ModularFeature clusterRepFeature = potentialCluster.getFirst(); // Representative feature
           double correlation = calculateCorrelation(clusterRepFeature, feature);
-          if (correlation > highestCorrelation) {
+          if (correlation > highestCorrelation && correlation >= minR) {
             bestCluster = potentialCluster;
             highestCorrelation = correlation;
           }

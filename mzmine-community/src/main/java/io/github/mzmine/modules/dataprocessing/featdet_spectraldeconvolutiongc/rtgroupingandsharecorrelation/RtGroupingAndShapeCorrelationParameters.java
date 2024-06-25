@@ -27,6 +27,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
@@ -39,9 +40,12 @@ public class RtGroupingAndShapeCorrelationParameters extends SimpleParameterSet 
   public static final IntegerParameter MIN_NUMBER_OF_SIGNALS = new IntegerParameter(
       "Minimum signals in pseudo spectrum",
       "Minimum number of deconvoluted signals in pseudo spectrum", 10, true, 1, 5000);
+  public static final PercentParameter MIN_R = new PercentParameter("Minimum shape similarity",
+      "Minimum shape similarity (pearson correlation) of feature rt profile to be added to pseudo spectrum",
+      0.80, 0d, 1d);
 
   public RtGroupingAndShapeCorrelationParameters() {
-    super(RT_TOLERANCE, MIN_NUMBER_OF_SIGNALS);
+    super(RT_TOLERANCE, MIN_NUMBER_OF_SIGNALS, MIN_R);
   }
 
 }
