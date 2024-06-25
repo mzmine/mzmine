@@ -83,6 +83,7 @@ public class TDFUtils {
   private final Int2IntMap indicesToIndexMap = new Int2IntOpenHashMap();
   public int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private TDFLibrary tdfLib = null;
+  private File file;
   /**
    * the handle of the currently opened file
    **/
@@ -224,6 +225,7 @@ public class TDFUtils {
       }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
+      this.file = path;
       return handle;
     } else {
       logger.finest(() -> "Opening tdf path " + path.getAbsolutePath());
@@ -235,6 +237,7 @@ public class TDFUtils {
       }
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tdfLib.tims_has_recalibrated_state(handle));
+      file = path;
       return handle;
     }
   }
@@ -257,14 +260,18 @@ public class TDFUtils {
       tdfLib.tims_close(handle);
     }
     handle = 0L;
+    file = null;
   }
 
   /**
+   * use {@link #loadDataPointsForFrame_v2(long, long, long)}
+   *
    * @param frameId   The id of the frame. See {@link TDFFrameTable}
    * @param scanBegin The first scan index (starting with 0)
    * @param scanEnd   The last scan index
    * @return List of {@link SimpleSpectralArrays}, each represents the data points of one scan
    */
+  @Deprecated
   public List<SimpleSpectralArrays> loadDataPointsForFrame(final long frameId, final long scanBegin,
       final long scanEnd) {
     if (handle == 0L) {
@@ -330,7 +337,8 @@ public class TDFUtils {
   }
 
   /**
-   * Extracts mobility scans for the given range of scan numbers. Uses a caching functionality.
+   * Extracts mobility scans for the given range of scan numbers. Uses a caching functionality to be
+   * faster.
    *
    * @param frameId   The id of the frame. See {@link TDFFrameTable}
    * @param scanBegin The first scan index (starting with 0)
@@ -414,7 +422,7 @@ public class TDFUtils {
    * @param processorConfig import scan processor config
    * @return List of scans for the given frame id. Empty scans have been filtered out.
    */
-  @Nullable
+  @NotNull
   public List<BuildingMobilityScan> loadSpectraForTIMSFrame(final SimpleFrame frame,
       @NotNull final TDFFrameTable frameTable,
       @NotNull final ScanImportProcessorConfig processorConfig) {
@@ -426,9 +434,10 @@ public class TDFUtils {
     final List<SimpleSpectralArrays> dataPoints = loadDataPointsForFrame_v2(frameId, 0, numScans);
 
     if (numScans != dataPoints.size()) {
-      logger.warning(() -> "Number of scans for frame " + frameId + " in tdf (" + numScans
-          + ") does not match number of loaded scans (" + dataPoints.size() + ").");
-      return null;
+      logger.warning(() -> "TDF file " + file.getName() + ": Number of scans for frame " + frameId
+          + " in tdf (" + numScans + ") does not match number of loaded scans (" + dataPoints.size()
+          + ").");
+      return spectra;
     }
 
     for (int i = 0; i < dataPoints.size(); i++) {
@@ -523,11 +532,7 @@ public class TDFUtils {
     }
 
     // load data after filters applied
-    SimpleSpectralArrays data = SimpleSpectralArrays.EMPTY;
-    if (msLevel < 2 || frameTable.getMsMsTypeColumn().get(frameIndex)
-        != 8) { // only load ms2 merged frame for non-pasef
-      data = extractCentroidsForFrame(frameId, 0, numScans);
-    }
+    SimpleSpectralArrays data = extractCentroidsForFrame(frameId, 0, numScans);
 
     // process data?
     if (scanProcessorConfig.hasProcessors()) {
@@ -678,7 +683,8 @@ public class TDFUtils {
 
   /**
    * Converts extracted indices to mz values while employing a cache to limit the number and size of
-   * API calls. Indices may only belong to a single frame.
+   * API calls. Indices may only belong to a single frame. This method uses caching to convert
+   * indices faster.
    */
   private double[] convertIndicesToMZ_v2(final long handle, final long frameId,
       final int[] indices) {
