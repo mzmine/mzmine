@@ -110,7 +110,7 @@ public class MetadataTable {
       }
       setValue(dateCol, newFile, newFile.getStartTimeStamp());
     } catch (Exception ignored) {
-      logger.warning("Cannot set date " + newFile.getStartTimeStamp().toString());
+      logger.warning("Cannot set date " + newFile.getStartTimeStamp());
     }
   }
 
