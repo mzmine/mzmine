@@ -39,6 +39,10 @@ import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.S
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.rtgroupingandsharecorrelation.RtGroupingAndShapeCorrelationParameters;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.Isotope13CFilterParameters;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterChoices;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
@@ -71,8 +75,10 @@ import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpectralSimilarityParameters;
 import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarity;
 import java.io.File;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.openscience.cdk.Element;
 
 public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder {
 
@@ -155,6 +161,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     }
     makeSpectralDeconvolutionStep(q);
     makeAndAddAlignmentStep(q);
+    createRowFilterStep(q);
     makeAndAddDuplicateRowFilterStep(q, handleOriginalFeatureLists, mzTolFeaturesIntraSample,
         rtFwhm, imsInstrumentType);
     makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath);
@@ -200,7 +207,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         MZmineCore.getModuleInstance(SpectralDeconvolutionGCModule.class), param));
   }
 
-  protected void makeAndAddAlignmentStep(final BatchQueue q) {
+  private void makeAndAddAlignmentStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(GCAlignerModule.class).cloneParameterSet();
     param.setParameter(GCAlignerParameters.FEATURE_LISTS,
@@ -321,6 +328,58 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     param.setParameter(RtGroupingAndShapeCorrelationParameters.MIN_NUMBER_OF_SIGNALS,
         minNumberOfSignalsInDeconSpectra);
     return new MZmineProcessingStepImpl<>(detect, param);
+  }
+
+  private void createRowFilterStep(final BatchQueue q) {
+    if (!filter13C && !minAlignedSamples.isGreaterZero()) {
+      return;
+    }
+
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(RowsFilterModule.class).cloneParameterSet();
+    param.setParameter(RowsFilterParameters.FEATURE_LISTS,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    String suffix = (filter13C ? "13C" : "");
+    if (minAlignedSamples.isGreaterZero()) {
+      suffix = suffix + (suffix.isEmpty() ? "" : " ") + "peak";
+    }
+    param.setParameter(RowsFilterParameters.SUFFIX, suffix);
+    param.setParameter(RowsFilterParameters.MIN_FEATURE_COUNT, minAlignedSamples.isGreaterZero());
+    param.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT).getEmbeddedParameter()
+        .setValue(minAlignedSamples);
+
+    param.setParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT, false);
+    param.setParameter(RowsFilterParameters.ISOTOPE_FILTER_13C, filter13C);
+
+    final Isotope13CFilterParameters filterIsoParam = param.getParameter(
+        RowsFilterParameters.ISOTOPE_FILTER_13C).getEmbeddedParameters();
+    filterIsoParam.setParameter(Isotope13CFilterParameters.mzTolerance, mzTolFeaturesIntraSample);
+    filterIsoParam.setParameter(Isotope13CFilterParameters.maxCharge, 2);
+    filterIsoParam.setParameter(Isotope13CFilterParameters.applyMinCEstimation, true);
+    filterIsoParam.setParameter(Isotope13CFilterParameters.removeIfMainIs13CIsotope, true);
+    filterIsoParam.setParameter(Isotope13CFilterParameters.elements, List.of(new Element("O")));
+
+    //
+    param.setParameter(RowsFilterParameters.MZ_RANGE, false);
+    param.setParameter(RowsFilterParameters.RT_RANGE, false);
+    param.setParameter(RowsFilterParameters.FEATURE_DURATION, false);
+    param.setParameter(RowsFilterParameters.FWHM, false);
+    param.setParameter(RowsFilterParameters.CHARGE, false);
+    param.setParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT, false);
+    param.setParameter(RowsFilterParameters.GROUPSPARAMETER, RowsFilterParameters.defaultGrouping);
+    param.setParameter(RowsFilterParameters.HAS_IDENTITIES, false);
+    param.setParameter(RowsFilterParameters.IDENTITY_TEXT, false);
+    param.setParameter(RowsFilterParameters.COMMENT_TEXT, false);
+    param.setParameter(RowsFilterParameters.REMOVE_ROW, RowsFilterChoices.KEEP_MATCHING);
+    param.setParameter(RowsFilterParameters.MS2_Filter, false);
+    param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, false);
+    param.setParameter(RowsFilterParameters.KEEP_ALL_ANNOTATED, false);
+    param.setParameter(RowsFilterParameters.Reset_ID, false);
+    param.setParameter(RowsFilterParameters.massDefect, false);
+    param.setParameter(RowsFilterParameters.handleOriginal, handleOriginalFeatureLists);
+
+    q.add(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(RowsFilterModule.class),
+        param));
   }
 
 }
