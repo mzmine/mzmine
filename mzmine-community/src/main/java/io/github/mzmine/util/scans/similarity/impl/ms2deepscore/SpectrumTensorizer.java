@@ -40,7 +40,7 @@ public class SpectrumTensorizer {
 
   public SpectrumTensorizer(SettingsMS2Deepscore settings) {
     this.settings = settings;
-    this.numBins = (int) ((settings.maximumMZ() - settings.minimumMZ() / settings.binWidth()));
+    this.numBins = (int) ((settings.maximumMZ() - settings.minimumMZ()) / settings.binWidth());
   }
 
   public float[] tensorizeFragments(Scan spectrum) {
@@ -50,7 +50,7 @@ public class SpectrumTensorizer {
       float mz = (float) spectrum.getMzValue(i);
       float intensity = (float) spectrum.getIntensityValue(i);
       if (settings.minimumMZ() <= mz && mz < settings.maximumMZ()) {
-        int binIndex = (int) ((mz - settings.minimumMZ() / settings.binWidth()));
+        int binIndex = (int) ((mz - settings.minimumMZ()) / settings.binWidth());
         vector[binIndex] = (float) Math.max(vector[binIndex],
             Math.pow(intensity, settings.intensityScaling()));
       }

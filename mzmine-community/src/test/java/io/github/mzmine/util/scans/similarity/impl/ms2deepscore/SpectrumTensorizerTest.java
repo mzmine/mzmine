@@ -49,14 +49,15 @@ class SpectrumTensorizerTest {
         new double[]{5, 12, 12.1, 14., 14.3}, new double[]{100, 200, 400, 900, 100},
         MassSpectrumType.ANY, PolarityType.POSITIVE, "Pseudo", null);
 
-    settingsMS2Deepscore = new SettingsMS2Deepscore(50, "positive", 10, 15, 1.0, null, 0.5F);
+    settingsMS2Deepscore = new SettingsMS2Deepscore(50, "positive", 12, 15, 0.5, null, 0.5F);
   }
 
   @Test
   void testTensorizeFragments() {
     SpectrumTensorizer spectrumTensorizer = new SpectrumTensorizer(settingsMS2Deepscore);
     float[] results = spectrumTensorizer.tensorizeFragments(testSpectrum);
-    Assertions.assertArrayEquals(new float[]{0.0F, 0.0F, 20.0F, 0.0F, 30.0F}, results, 0.0001F);
+    Assertions.assertArrayEquals(new float[]{20.0F, 0.0F, 0.0F, 0.0F, 30.0F, 0.0F}, results,
+        0.0001F);
   }
 
   @Test
