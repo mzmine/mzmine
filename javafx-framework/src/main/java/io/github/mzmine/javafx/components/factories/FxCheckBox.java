@@ -23,6 +23,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+<<<<<<<< HEAD:mzmine-community/src/main/java/io/github/mzmine/modules/batchmode/change_outfiles/ChangeOutputFilesModule.java
+package io.github.mzmine.modules.batchmode.change_outfiles;
+
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Change all output files at once
+ */
+public class ChangeOutputFilesModule implements MZmineModule {
+
+  @Override
+  public @NotNull String getName() {
+    return "Change output files";
+========
 package io.github.mzmine.javafx.components.factories;
 
 import javafx.beans.property.BooleanProperty;
@@ -34,6 +51,11 @@ public class FxCheckBox {
     var box = new CheckBox(text);
     box.selectedProperty().bindBidirectional(selectedProperty);
     return box;
+>>>>>>>> 69eda4f52 (Merge MZMine changes):javafx-framework/src/main/java/io/github/mzmine/javafx/components/factories/FxCheckBox.java
   }
 
+  @Override
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
+    return ChangeOutputFilesParameters.class;
+  }
 }
