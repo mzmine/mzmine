@@ -28,7 +28,6 @@ package io.github.mzmine.util.scans.similarity.impl.ms2deepscore;
 import static ai.djl.ndarray.types.DataType.FLOAT32;
 
 import ai.djl.ndarray.NDArray;
-import ai.djl.ndarray.index.NDIndex;
 import ai.djl.translate.TranslateException;
 import io.github.mzmine.datamodel.Scan;
 
@@ -37,22 +36,11 @@ public abstract class EmbeddingBasedSimilarity {
   public abstract NDArray predictEmbedding(Scan[] scans) throws TranslateException;
 
   public float[][] dotProduct(NDArray embedding1, NDArray embedding2) {
-//    NDManager manager = NDManager.newBaseManager();
-    NDArray newEmbedding1 = embedding1.like();
-    NDArray newEmbedding2 = embedding2.like();
-
-//    NDArray newEmbedding1 = manager.create(embedding1.getShape());
-//    NDArray newEmbedding2 = manager.create(embedding2.getShape());
-
-    NDArray norm1 = embedding1.square().sum(new int[]{1}).sqrt();
-    NDArray norm2 = embedding2.square().sum(new int[]{1}).sqrt();
-    for (long i = 0; i < embedding1.getShape().getShape()[0]; i++) {
-      newEmbedding1.set(new NDIndex(i), embedding1.get(i).div(norm1.get(i)));
-    }
-    for (long i = 0; i < embedding2.getShape().getShape()[0]; i++) {
-      newEmbedding2.set(new NDIndex(i), embedding2.get(i).div(norm2.get(i)));
-    }
-    return convertNDArrayToFloatMatrix(newEmbedding1.dot(newEmbedding2.transpose()));
+    NDArray norm1 = embedding1.norm(new int[]{1});
+    NDArray norm2 = embedding2.norm(new int[]{1});
+    embedding1 = embedding1.transpose().div(norm1).transpose();
+    embedding2 = embedding2.transpose().div(norm2).transpose();
+    return convertNDArrayToFloatMatrix(embedding1.dot(embedding2.transpose()));
   }
 
   public float[][] predictMatrix(Scan[] scan1, Scan[] scan2) throws TranslateException {
