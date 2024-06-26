@@ -180,13 +180,26 @@ class MS2DeepscoreModelTest {
   }
 
   @Test
-  void testConvertNDArrayToDoubleMatrix() {
+  void testConvertNDArrayToFloatMatrix() {
     try (NDManager manager = NDManager.newBaseManager()) {
       float[][] inputMatrix = new float[][]{new float[]{1.0F, 1.0F, 0.0F, 0.0F},
           new float[]{1.0F, 0.0F, 1.0F, 1.0F}};
       NDArray embedding = manager.create(inputMatrix);
       float[][] outputMatrix = model.convertNDArrayToFloatMatrix(embedding);
       Assertions.assertArrayEquals(outputMatrix, inputMatrix);
+    }
+  }
+
+  @Test
+  void testConvertNDArrayToFloatMatrixFromDouble() {
+    try (NDManager manager = NDManager.newBaseManager()) {
+      double[][] inputMatrix = new double[][]{new double[]{1.0, 1.0, 0.0, 0.0},
+          new double[]{1.0, 0.0, 1.0, 1.0}};
+      float[][] expectedMatrix = new float[][]{new float[]{1.0F, 1.0F, 0.0F, 0.0F},
+          new float[]{1.0F, 0.0F, 1.0F, 1.0F}};
+      NDArray embedding = manager.create(inputMatrix);
+      float[][] outputMatrix = model.convertNDArrayToFloatMatrix(embedding);
+      Assertions.assertArrayEquals(outputMatrix, expectedMatrix);
     }
   }
 }

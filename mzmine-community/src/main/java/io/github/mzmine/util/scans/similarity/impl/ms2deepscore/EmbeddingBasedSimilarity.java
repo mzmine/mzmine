@@ -25,6 +25,8 @@
 
 package io.github.mzmine.util.scans.similarity.impl.ms2deepscore;
 
+import static ai.djl.ndarray.types.DataType.FLOAT32;
+
 import ai.djl.ndarray.NDArray;
 import ai.djl.ndarray.index.NDIndex;
 import ai.djl.translate.TranslateException;
@@ -61,15 +63,14 @@ public abstract class EmbeddingBasedSimilarity {
   }
 
   public float[][] convertNDArrayToFloatMatrix(NDArray ndArray) {
-//    todo ndArrays can be both float32 or float64. If this function gets a float64 as input,
-//     this method breaks. Not yet sure how to handle this well.
     long[] shape = ndArray.getShape().getShape();
     if (shape.length != 2) {
       throw new AssertionError("The NDArray is not a 2D matrix");
     }
     float[][] result = new float[(int) shape[0]][(int) shape[1]];
+    NDArray floatNdArray = ndArray.toType(FLOAT32, true);
     for (long i = 0; i < shape[0]; i++) {
-      result[(int) i] = ndArray.get(i).toFloatArray();
+      result[(int) i] = floatNdArray.get(i).toFloatArray();
     }
     return result;
   }
