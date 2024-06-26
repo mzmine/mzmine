@@ -90,7 +90,7 @@ public class StatsDashboardViewBuilder extends FxViewBuilder<StatsDashboardModel
     // listen to changes in the selected row, this updates the controllers via a binding in their
     // view builders.
     table.getSelectionModel().selectedItemProperty().addListener((_, old, row) -> {
-      if (row.getValue() != null && !old.equals(row)) {
+      if (old == null || (row.getValue() != null && !old.equals(row))) {
         model.selectedRowsProperty().set(List.of(row.getValue()));
       }
     });

@@ -605,8 +605,8 @@
     </Menu>
   </Menu>
 
-  <Menu text="Processing wizard">
-    <MenuItem text="Processing wizard" onAction="#showWizardTab"
+  <Menu text="mzwizard">
+    <MenuItem text="Open mzwizard" onAction="#showWizardTab"
       userData="io.github.mzmine.modules.tools.batchwizard.BatchWizardModule">
       <accelerator>
         <KeyCodeCombination alt="UP" code="W"
@@ -650,7 +650,7 @@
         <KeyCodeCombination alt="UP" code="U" control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
       </accelerator>
     </MenuItem>
-    <MenuItem text="Sing in / Sign up" onAction="#showUserSignUp"/>
+    <MenuItem text="Sign in / Sign up" onAction="#showUserSignUp"/>
     <MenuItem text="Remove user" fx:id="itemRemoveUser" onAction="#removeLocalUser"/>
     <MenuItem text="Open users directory" onAction="#openUsersDirectory"/>
     <MenuItem text="Manage user online" onAction="#openUserAccountConsole"/>
