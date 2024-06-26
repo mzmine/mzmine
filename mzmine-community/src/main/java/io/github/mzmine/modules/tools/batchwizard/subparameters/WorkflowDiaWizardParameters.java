@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -30,8 +30,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import java.io.File;
 import java.text.DecimalFormat;
 
@@ -56,16 +55,17 @@ public final class WorkflowDiaWizardParameters extends WorkflowWizardParameters 
   public static final BooleanParameter exportAnnotationGraphics = new BooleanParameter(
       "Export annotation graphics", "Exports annotations to png and pdf images.", false);
 
-  public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
-      new FileNameParameter("Export path",
-          "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...",
-          FileSelectionType.SAVE, false), false);
+  public static final OptionalParameter<FileNameSuffixExportParameter> exportPath = new OptionalParameter<>(
+      new FileNameSuffixExportParameter("Export path",
+          "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...", null,
+          false), false);
 
 
   public WorkflowDiaWizardParameters() {
     super(WorkflowWizardParameterFactory.DIA,
         // actual parameters
-        minPearson, minCorrelatedPoints, exportPath, exportGnps, exportSirius, exportAnnotationGraphics);
+        minPearson, minCorrelatedPoints, exportPath, exportGnps, exportSirius,
+        exportAnnotationGraphics);
   }
 
 

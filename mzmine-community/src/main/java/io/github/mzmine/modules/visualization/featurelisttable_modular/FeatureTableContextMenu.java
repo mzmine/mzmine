@@ -135,7 +135,8 @@ public class FeatureTableContextMenu extends ContextMenu {
   final Menu exportMenu;
 
   private final FeatureTableFX table;
-  @Nullable ModularFeatureListRow selectedRow;
+  @Nullable
+  ModularFeatureListRow selectedRow;
   private Set<DataType<?>> selectedRowTypes;
   private Set<DataType<?>> selectedFeatureTypes;
   private Set<RawDataFile> selectedFiles;
@@ -217,10 +218,12 @@ public class FeatureTableContextMenu extends ContextMenu {
         selectedRow.set(dt, newList);
         table.refresh();
       });
+
       final MenuItem clearAllAnnotations = new ConditionalMenuItem(
-          "Clear all " + listType.getHeaderString(), () -> selectedRow.get(listType) != null);
+          "Clear all " + listType.getHeaderString(),
+          () -> selectedRows.stream().anyMatch(row -> row.get(listType) != null));
       clearAllAnnotations.setOnAction(e -> {
-        selectedRow.set(listType, null);
+        selectedRows.forEach(r -> r.set(listType, null));
         table.refresh();
       });
       clearAnnotationsMenu.getItems()
@@ -533,12 +536,12 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,
-            new SeparatorMenuItem(), showNetworkVisualizerItem,
-            show2DItem, show3DItem, showIntensityPlotItem, showInIMSRawDataOverviewItem,
-            showInMobilityMzVisualizerItem, new SeparatorMenuItem(), showSpectrumItem,
-            showFeatureFWHMMs1Item, showBestMobilityScanItem, extractSumSpectrumFromMobScans,
-            showMSMSItem, showMSMSMirrorItem, showAllMSMSItem, showPseudoSpectrumItem,
-            showDiaMirror, new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
+            new SeparatorMenuItem(), showNetworkVisualizerItem, show2DItem, show3DItem,
+            showIntensityPlotItem, showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem,
+            new SeparatorMenuItem(), showSpectrumItem, showFeatureFWHMMs1Item,
+            showBestMobilityScanItem, extractSumSpectrumFromMobScans, showMSMSItem,
+            showMSMSMirrorItem, showAllMSMSItem, showPseudoSpectrumItem, showDiaMirror,
+            new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
             showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
             showPeakRowSummaryItem, showCorrelatedImageFeaturesItem);
   }

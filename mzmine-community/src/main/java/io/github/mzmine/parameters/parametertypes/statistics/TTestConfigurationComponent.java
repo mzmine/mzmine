@@ -62,7 +62,7 @@ public class TTestConfigurationComponent extends GridPane implements
 
     samplingCombo = new ComboBox<>(
         FXCollections.observableList(List.of(TTestSamplingConfig.values())));
-    samplingCombo.getSelectionModel().selectFirst();
+    samplingCombo.getSelectionModel().select(TTestSamplingConfig.UNPAIRED);
 
     // using an actual combo here. TTest is used for visualisation which is not available in headless mode.
     final MetadataTable metadata = MZmineCore.getProjectMetadata();
@@ -121,17 +121,9 @@ public class TTestConfigurationComponent extends GridPane implements
     }
 
     var sampling = samplingCombo.getValue();
-    if (sampling == null) {
-      return;
-    }
-
     final String a = groupACombo.getValue();
-    if (a == null) {
-      return;
-    }
-
     final String b = groupBCombo.getValue();
-    if (b == null) {
+    if (a == null || sampling == null || b == null) {
       return;
     }
 

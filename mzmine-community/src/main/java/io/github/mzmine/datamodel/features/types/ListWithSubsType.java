@@ -188,7 +188,30 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements Sub
     }
   }
 
-  protected abstract <K> @Nullable K map(@NotNull DataType<K> subType, T item);
+  /**
+   * This method extracts the sub column value K from the parentItem, which is usually an item with
+   * the list of this {@link ListWithSubsType}. This could be one annotation of a list of
+   * annotations.
+   *
+   * This way one can retrieve the formatted value of a sub columns like below:
+   *
+   * <pre>
+   *   {@code
+   *   // example with MZType column. listType is an arbitrary ListWithSubsType
+   *   var mzType = DataTypes.get(MZType.class);
+   *   var value = listType.map(mzType, aListItem);
+   *   String formatted = mzType.getFormattedString(value, false);
+   *   }
+   * </pre>
+   *
+   * @param subType    the data type of the sub column. Defines what value should be extracted from
+   *                   the parentItem
+   * @param parentItem the parent item, which is usually an element of the list set to this
+   *                   {@link ListWithSubsType}
+   * @param <K>        the value of the subType
+   * @return the value of the subType or null
+   */
+  public abstract <K> @Nullable K map(@NotNull DataType<K> subType, T parentItem);
 
   @Override
   public @Nullable Object getSubColValue(@NotNull final DataType sub, final Object value) {

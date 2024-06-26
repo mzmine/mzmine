@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,6 +26,10 @@
 package io.github.mzmine.modules.tools.batchwizard;
 
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
+import io.github.mzmine.javafx.util.FxIconUtil;
+import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchModeModule;
 import io.github.mzmine.modules.batchmode.BatchModeParameters;
@@ -43,9 +47,7 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.Wizard
 import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
-import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.javafx.util.FxIconUtil;
 import java.io.File;
 import java.text.MessageFormat;
 import java.time.LocalDate;
@@ -104,10 +106,13 @@ public class BatchWizardTab extends SimpleTab {
   private HBox schemaPane;
 
   public BatchWizardTab() {
-    super("Processing Wizard");
+    super("mzwizard");
+//    setGraphic(LightAndDarkModeIcon.mzwizardImageTab(200, 18));
     ALL_PRESETS = WizardStepParameters.createAllPresets();
     localPresetsButton = new LastFilesButton("Local presets", true,
         file -> applyLocalPartialSequence(localPresets.get(file)));
+    localPresetsButton.setGraphic(
+        FxIconUtil.getFontIcon("bi-folder-symlink", FxIconUtil.DEFAULT_ICON_SIZE));
     createContentPane();
     findAllLocalPresetFiles();
     // reset to mzmine default presets (loading the local presets have changed the parameters already once)
@@ -323,14 +328,10 @@ public class BatchWizardTab extends SimpleTab {
           });
     }
 
-    Button createBatch = new Button("Create batch");
-    createBatch.setOnAction(event -> createBatch());
-
-    Button save = new Button("Save presets");
-    save.setOnAction(event -> saveLocalWizardSequence());
-
-    Button load = new Button("Load presets");
-    load.setOnAction(event -> chooseAndLoadLocalSequence());
+    Button createBatch = FxButtons.createButton("Create batch", FxIcons.START, null,
+        this::createBatch);
+    Button save = FxButtons.createSaveButton("Save presets", this::saveLocalWizardSequence);
+    Button load = FxButtons.createLoadButton("Load presets", this::chooseAndLoadLocalSequence);
 
     topPane.getChildren()
         .addAll(createSpacer(), new Label("="), createSpacer(), createBatch, save, load,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,8 +28,7 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.batch.LibraryBatchMetadataParameters;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.WorkflowWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import java.io.File;
 
@@ -42,9 +41,9 @@ public final class WorkflowLibraryGenerationWizardParameters extends WorkflowWiz
       "Export to Feature-based Molecular Networking (FBMN) and Ion Identity Molecular Networking (IIMN) on GNPS",
       true);
 
-  public static final FileNameParameter exportPath = new FileNameParameter("Export path",
-      "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...",
-      FileSelectionType.SAVE, false);
+  public static final FileNameSuffixExportParameter exportPath = new FileNameSuffixExportParameter(
+      "Export path", "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...",
+      null, false);
 
 
   public static final ParameterSetParameter<LibraryBatchMetadataParameters> metadata = new ParameterSetParameter<>(

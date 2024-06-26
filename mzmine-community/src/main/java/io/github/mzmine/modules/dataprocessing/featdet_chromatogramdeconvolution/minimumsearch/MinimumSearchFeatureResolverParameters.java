@@ -28,7 +28,6 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
@@ -98,11 +97,6 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
         this, null);
     dialog.showAndWait();
     return dialog.getExitCode();
-  }
-
-  @Override
-  public FeatureResolver getResolver() {
-    throw new UnsupportedOperationException("Legacy resolver method. Unsupported in local min.");
   }
 
   @Nullable

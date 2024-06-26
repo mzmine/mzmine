@@ -39,6 +39,7 @@ import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunction
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunctions;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunction;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunctions;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import io.github.mzmine.modules.visualization.projectmetadata.table.columns.MetadataColumn;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
 import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
@@ -49,7 +50,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
@@ -67,6 +67,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
   private final ImputationFunction imputer;
 
   private final ScalingFunction scaling;
+  private final SampleTypeFilter sampleTypeFilter;
   private PCARowsResult pcaRowsResult;
 
   protected PCAUpdateTask(@NotNull String taskName, PCAModel model) {
@@ -84,6 +85,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
 
     final ImputationFunctions imputationFunction = model.getImputationFunction();
     imputer = imputationFunction.getImputer();
+    sampleTypeFilter = model.getSampleTypeFilter();
   }
 
   @Override
@@ -105,12 +107,16 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
       return false;
     }
 
+    if(sampleTypeFilter.isEmpty()) {
+      return false;
+    }
+
     return true;
   }
 
   @Override
   protected void process() {
-    final ObservableList<FeatureListRow> rows = flists.get(0).getRows();
+    final List<FeatureListRow> rows = sampleTypeFilter.filter(flists.get(0).getRows());
     final Comparator<? super DataType<?>> annotationPrioSorter = FeatureAnnotationPriority.createSorter(
         SortOrder.ASCENDING);
     final Map<FeatureListRow, DataType<?>> rowsMappedToBestAnnotation = CompoundAnnotationUtils.mapBestAnnotationTypesByPriority(
@@ -120,7 +126,7 @@ public class PCAUpdateTask extends FxUpdateTask<PCAModel> {
             rowsMappedToBestAnnotation.get(r2)))).toList();
 
     pcaRowsResult = PCAUtils.performPCAOnRows(rowsSortedByAnnotationPrio, abundance, scaling,
-        imputer);
+        imputer, sampleTypeFilter);
     progressProvider.getAndIncrement();
 
     final PCAScoresProvider scores = new PCAScoresProvider(pcaRowsResult, "Scores", Color.RED,

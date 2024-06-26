@@ -1,0 +1,101 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "io.mzio",
+    "module": "mzmine-core",
+    "version": "1.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "mzmine-core-1.0.0.jar",
+          "url": "mzmine-core-1.0.0.jar",
+          "size": 10081,
+          "sha512": "aa6fcf3615a35e61b4733136b39604a6f041e3809a8339f9fb10985f0f95e8bcc6944d266462598866dd941a6e888b7da20bfa032ca818b07452fa00ffe834a8",
+          "sha256": "474b642a41a93261683db0beb9bc68a19961eb48cbabaa9192e3660d4f3032f9",
+          "sha1": "66167b9b176b655706884a0dc20b1e812a95b787",
+          "md5": "da5f2b8304309ddc53c139997f417e0d"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains",
+          "module": "annotations",
+          "version": {
+            "requires": "22.0.0"
+          }
+        },
+        {
+          "group": "commons-cli",
+          "module": "commons-cli",
+          "version": {
+            "requires": "1.6.0"
+          }
+        },
+        {
+          "group": "com.vdurmont",
+          "module": "semver4j",
+          "version": {
+            "requires": "3.1.0"
+          }
+        },
+        {
+          "group": "io.mzio",
+          "module": "user-management",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
+          "group": "io.mzio",
+          "module": "user-client",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
+          "group": "io.github.mzmine",
+          "module": "utils"
+        }
+      ],
+      "files": [
+        {
+          "name": "mzmine-core-1.0.0.jar",
+          "url": "mzmine-core-1.0.0.jar",
+          "size": 10081,
+          "sha512": "aa6fcf3615a35e61b4733136b39604a6f041e3809a8339f9fb10985f0f95e8bcc6944d266462598866dd941a6e888b7da20bfa032ca818b07452fa00ffe834a8",
+          "sha256": "474b642a41a93261683db0beb9bc68a19961eb48cbabaa9192e3660d4f3032f9",
+          "sha1": "66167b9b176b655706884a0dc20b1e812a95b787",
+          "md5": "da5f2b8304309ddc53c139997f417e0d"
+        }
+      ]
+    }
+  ]
+}

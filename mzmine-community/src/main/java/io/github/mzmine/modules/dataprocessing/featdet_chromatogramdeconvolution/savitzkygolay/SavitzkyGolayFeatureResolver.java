@@ -30,18 +30,15 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayFeatureResolverParameters.PEAK_DURATION;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.AbstractResolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.util.maths.CenterFunction;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.IndexRange;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,14 +48,41 @@ import org.jetbrains.annotations.NotNull;
  * (smoothed) of raw data points (intensity) that conforms each peak. The first derivative is used
  * to determine the peak's range, and the second derivative to determine the intensity of the peak.
  */
-public class SavitzkyGolayFeatureResolver implements FeatureResolver {
+public class SavitzkyGolayFeatureResolver extends AbstractResolver {
 
   // Savitzky-Golay filter width.
   private static final int SG_FILTER_LEVEL = 12;
 
-  @Override
-  public @NotNull String getName() {
-    return "Savitzky-Golay";
+  // Calculate noise threshold.
+  private final double derivativeThreshold;
+  private Range<Double> peakDuration = generalParameters.getParameter(PEAK_DURATION).getValue();
+  private double minimumPeakHeight = generalParameters.getParameter(MIN_PEAK_HEIGHT).getValue();
+
+
+  protected SavitzkyGolayFeatureResolver(@NotNull ParameterSet parameters,
+      @NotNull ModularFeatureList flist) {
+    super(parameters, flist);
+    derivativeThreshold = generalParameters.getParameter(DERIVATIVE_THRESHOLD_LEVEL).getValue();
+  }
+
+  /**
+   * Calculates the value according with the comparative threshold.
+   *
+   * @param derivativeIntensities     intensity first derivative.
+   * @param comparativeThresholdLevel threshold.
+   * @return double derivative threshold level.
+   */
+  private static double calcDerivativeThreshold(final double[] derivativeIntensities,
+      final double comparativeThresholdLevel) {
+
+    final int length = derivativeIntensities.length;
+    final double[] intensities = new double[length];
+    for (int i = 0; i < length; i++) {
+
+      intensities[i] = Math.abs(derivativeIntensities[i]);
+    }
+
+    return MathUtils.calcQuantile(intensities, comparativeThresholdLevel);
   }
 
   @Override
@@ -67,85 +91,58 @@ public class SavitzkyGolayFeatureResolver implements FeatureResolver {
   }
 
   @Override
-  public ResolvedPeak[] resolvePeaks(final Feature chromatogram, ParameterSet parameters,
-      CenterFunction mzCenterFunction, double msmsRange,
-      float rTRangeMSMS) {
+  public @NotNull List<Range<Double>> resolve(double[] x, double[] intensities) {
 
-    List<Scan> scanNumbers = chromatogram.getScanNumbers();
-    final int scanCount = scanNumbers.size();
-    double retentionTimes[] = new double[scanCount];
-    double intensities[] = new double[scanCount];
-    for (int i = 0; i < scanCount; i++) {
-      final Scan scanNum = scanNumbers.get(i);
-      retentionTimes[i] = scanNum.getRetentionTime();
-      DataPoint dp = chromatogram.getDataPointAtIndex(i);
-      if (dp != null) {
-        intensities[i] = dp.getIntensity();
-      } else {
-        intensities[i] = 0.0;
-      }
-    }
+    final int scanCount = x.length;
 
     // Calculate intensity statistics.
     double maxIntensity = 0.0;
     double avgIntensity = 0.0;
-    for (final double intensity : intensities) {
 
+    for (final double intensity : intensities) {
       maxIntensity = Math.max(intensity, maxIntensity);
       avgIntensity += intensity;
     }
 
     avgIntensity /= scanCount;
 
-    final List<ResolvedPeak> resolvedPeaks = new ArrayList<ResolvedPeak>(2);
+    final List<Range<Double>> resolvedPeaks = new ArrayList<>();
 
     // If the current chromatogram has characteristics of background or just
     // noise return an empty array.
     if (avgIntensity <= maxIntensity / 2.0) {
 
       // Calculate second derivatives of intensity values.
-      final double[] secondDerivative =
-          SGDerivative.calculateDerivative(intensities, false, SG_FILTER_LEVEL);
+      final double[] secondDerivative = SGDerivative.calculateDerivative(intensities, false,
+          SG_FILTER_LEVEL);
 
-      // Calculate noise threshold.
-      final double noiseThreshold = calcDerivativeThreshold(secondDerivative,
-          parameters.getParameter(DERIVATIVE_THRESHOLD_LEVEL).getValue());
+      final double noiseThreshold = calcDerivativeThreshold(secondDerivative, derivativeThreshold);
 
-      // Search for peaks.
-      scanNumbers.sort(Comparator.comparingInt(Scan::getScanNumber));
-      final ResolvedPeak[] resolvedOriginalPeaks = peaksSearch(chromatogram, scanNumbers,
-          secondDerivative, noiseThreshold, mzCenterFunction, msmsRange, rTRangeMSMS);
-
-      final Range<Double> peakDuration = parameters.getParameter(PEAK_DURATION).getValue();
-      final double minimumPeakHeight = parameters.getParameter(MIN_PEAK_HEIGHT).getValue();
+      final List<Range<Double>> resolvedOriginalPeaks = peaksSearch(x, intensities, noiseThreshold,
+          secondDerivative);
 
       // Apply final filter of detected peaks, according with setup
       // parameters.
-      for (final ResolvedPeak p : resolvedOriginalPeaks) {
-
-        if (peakDuration.contains(RangeUtils.rangeLength(p.getRawDataPointsRTRange()).doubleValue())
-            && p.getHeight() >= minimumPeakHeight) {
-
+      for (final Range<Double> p : resolvedOriginalPeaks) {
+        if (peakDuration.contains(RangeUtils.rangeLength(p).doubleValue())
+            && getMaxIntensity(x, intensities, p) >= minimumPeakHeight) {
           resolvedPeaks.add(p);
         }
       }
     }
 
-    return resolvedPeaks.toArray(new ResolvedPeak[resolvedPeaks.size()]);
+    return resolvedPeaks;
   }
 
   /**
    * Search for peaks.
-   * 
-   * @param chromatogram the chromatogram to search.
-   * @param scanNumbers scan number to focus search on
+   *
    * @param derivativeOfIntensities derivatives of intensity values.
-   * @param noiseThreshold noise threshold.
+   * @param noiseThreshold          noise threshold.
    * @return array of peaks found.
    */
-  private static ResolvedPeak[] peaksSearch(final Feature chromatogram, final List<Scan> scanNumbers,
-      final double[] derivativeOfIntensities, final double noiseThreshold,
-      CenterFunction mzCenterFunction, final double msmsRange, final double rTRangeMSMS) {
+  private List<Range<Double>> peaksSearch(double[] x, double[] y, double noiseThreshold,
+      final double[] derivativeOfIntensities) {
 
     // Flag to identify the current and next overlapped peak.
     boolean activeFirstPeak = false;
@@ -167,7 +164,7 @@ public class SavitzkyGolayFeatureResolver implements FeatureResolver {
     int nextPeakStart = totalNumberPoints;
     int currentPeakEnd = 0;
 
-    final List<ResolvedPeak> resolvedPeaks = new ArrayList<ResolvedPeak>(2);
+    final List<Range<Double>> resolvedPeaks = new ArrayList<>(3);
 
     // Shape analysis of derivative of chromatogram "*" represents the
     // original chromatogram shape. "-" represents
@@ -244,9 +241,8 @@ public class SavitzkyGolayFeatureResolver implements FeatureResolver {
 
       // If the peak starts in a region with no data points, move the
       // start to the first available data point.
-      while (currentPeakStart < scanNumbers.size() - 1) {
-
-        if (chromatogram.getDataPointAtIndex(currentPeakStart) == null) {
+      while (currentPeakStart < x.length - 1) {
+        if (y[currentPeakStart] == 0) {
           currentPeakStart++;
         } else {
           break;
@@ -257,7 +253,7 @@ public class SavitzkyGolayFeatureResolver implements FeatureResolver {
       // point inside, we have to finish the
       // peak there.
       for (int newEnd = currentPeakStart; newEnd <= currentPeakEnd; newEnd++) {
-        if (chromatogram.getDataPointAtIndex(newEnd) == null) {
+        if (y[newEnd] == 0) {
           currentPeakEnd = newEnd - 1;
           break;
         }
@@ -268,8 +264,7 @@ public class SavitzkyGolayFeatureResolver implements FeatureResolver {
       // the chromatogram.
       if (currentPeakEnd - currentPeakStart > 0 && !activeFirstPeak) {
 
-        resolvedPeaks.add(new ResolvedPeak(chromatogram, currentPeakStart, currentPeakEnd, mzCenterFunction,
-            msmsRange, (float) rTRangeMSMS));
+        resolvedPeaks.add(Range.closed(x[currentPeakStart], x[currentPeakEnd]));
 
         // If exists next overlapped peak, swap the indexes between next
         // and current, and clean ending index
@@ -293,32 +288,15 @@ public class SavitzkyGolayFeatureResolver implements FeatureResolver {
       }
     }
 
-    return resolvedPeaks.toArray(new ResolvedPeak[resolvedPeaks.size()]);
+    return resolvedPeaks;
   }
 
-  /**
-   * Calculates the value according with the comparative threshold.
-   * 
-   * @param derivativeIntensities intensity first derivative.
-   * @param comparativeThresholdLevel threshold.
-   * @return double derivative threshold level.
-   */
-  private static double calcDerivativeThreshold(final double[] derivativeIntensities,
-      final double comparativeThresholdLevel) {
-
-    final int length = derivativeIntensities.length;
-    final double[] intensities = new double[length];
-    for (int i = 0; i < length; i++) {
-
-      intensities[i] = Math.abs(derivativeIntensities[i]);
+  private double getMaxIntensity(double[] x, double[] y, Range<Double> range) {
+    final IndexRange indexRange = BinarySearch.indexRange(x, range);
+    double max = 0;
+    for (int i = indexRange.min(); i < indexRange.maxExclusive(); i++) {
+      max = Math.max(max, y[i]);
     }
-
-    return MathUtils.calcQuantile(intensities, comparativeThresholdLevel);
+    return max;
   }
-
-  @Override
-  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return SavitzkyGolayFeatureResolverParameters.class;
-  }
-
 }

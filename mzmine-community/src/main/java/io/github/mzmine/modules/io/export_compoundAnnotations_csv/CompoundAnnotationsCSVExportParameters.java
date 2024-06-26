@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,8 +28,7 @@ package io.github.mzmine.modules.io.export_compoundAnnotations_csv;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import java.util.List;
 import javafx.stage.FileChooser;
@@ -44,11 +43,12 @@ public class CompoundAnnotationsCSVExportParameters extends SimpleParameterSet {
       new FileChooser.ExtensionFilter("All files", "*.*") //
   );
 
-  public static final FileNameParameter filename = new FileNameParameter("Filename",
-      "Name of the output CSV file. "
-      + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-      + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
-      + "If the file already exists, it will be overwritten.", extensions, FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter filename = new FileNameSuffixExportParameter(
+      "Filename", "Name of the output CSV file. "
+                  + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+                  + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
+                  + "If the file already exists, it will be overwritten.", extensions,
+      "annotations");
 
   public static final IntegerParameter topNMatches = new IntegerParameter("Top N per method",
       "Exports the top N matches per annotation method", 10, true);

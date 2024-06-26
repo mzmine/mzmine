@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,13 +38,13 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Kendrick mass plot module
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class KendrickMassPlotModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "Kendrick mass plot";
-  private static final String MODULE_DESCRIPTION = "Kendrick mass plot.";
+  private static final String MODULE_NAME = "4D feature plot (Kendrick)";
+  private static final String MODULE_DESCRIPTION = "4 dimensional feature plot, formerly Kendrick mass plot.";
 
   @Override
   public @NotNull String getName() {

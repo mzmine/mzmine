@@ -51,8 +51,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.List;
@@ -69,8 +68,8 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter(1);
 
-  public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
-      "Base name of the output files (.MGF and .CSV).", extensions, FileSelectionType.SAVE);
+  public static final FileNameSuffixExportParameter FILENAME = new FileNameSuffixExportParameter(
+      "Filename", "Base name of the output files (.MGF and .CSV).", extensions, "gc_fbmn");
 
   public static final ComboParameter<MzMode> REPRESENTATIVE_MZ = new ComboParameter<AdapMgfExportParameters.MzMode>(
       "Representative m/z",
@@ -98,10 +97,10 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
 
-    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite", boldText("Export/Submit to GNPS-GC:"),
-        linebreak(), text("The GNPS Export module was designed for the "), boldText("GC "),
-        text("workflow on "), hyperlinkText("GNPS ", "https://gnps.ucsd.edu"),
-        text("See the GNPS-GC-MS documentation "),
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
+        boldText("Export/Submit to GNPS-GC:"), linebreak(),
+        text("The GNPS Export module was designed for the "), boldText("GC "), text("workflow on "),
+        hyperlinkText("GNPS ", "https://gnps.ucsd.edu"), text("See the GNPS-GC-MS documentation "),
         hyperlinkText("here ", "https://ccms-ucsd.github.io/GNPSDocumentation/gc-ms-documentation"),
         text("and please cite"), linebreak(), boldText("FBMN-GC paper: "), hyperlinkText(
             "Aksenov, A.A., Laponogov, I., Zhang, Z. et al. Nat Biotechnol 39, 169–173 (2021)",

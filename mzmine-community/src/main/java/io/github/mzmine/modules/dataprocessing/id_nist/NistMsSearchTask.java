@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,12 +29,10 @@ import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParame
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.IMPORT_PARAMETER;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.INTEGER_MZ;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MERGE_PARAMETER;
-import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MS_LEVEL;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.NIST_MS_SEARCH_DIR;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -133,8 +131,6 @@ public class NistMsSearchTask extends AbstractTask {
   private final FeatureListRow peakListRow;
   // Dot Product cut-offs.
   private final Double minDotProduct;
-  // MS Level.
-  private final int msLevel;
   // Optional params.
   private final MsMsSpectraMergeParameters mergeParameters;
   private final IntegerMode integerMZ;
@@ -177,7 +173,6 @@ public class NistMsSearchTask extends AbstractTask {
 
     // Parameters.
     minDotProduct = params.getParameter(DOT_PRODUCT).getValue();
-    msLevel = params.getParameter(MS_LEVEL).getValue();
     nistMsSearchDir = params.getParameter(NIST_MS_SEARCH_DIR).getValue();
     nistMsSearchExe = ((NistMsSearchParameters) params).getNistMsSearchExecutable();
     importOption = params.getParameter(IMPORT_PARAMETER).getValue();
@@ -283,7 +278,7 @@ public class NistMsSearchTask extends AbstractTask {
           if (locatorFile2 == null) {
 
             throw new IOException("Primary locator file " + locatorFile1
-                + " doesn't contain the name of a valid file.");
+                                  + " doesn't contain the name of a valid file.");
           }
 
           // Is MS Search already running?
@@ -291,7 +286,7 @@ public class NistMsSearchTask extends AbstractTask {
 
             throw new IllegalStateException(
                 "NIST MS Search appears to be busy - please wait until it finishes its current task and then try again.  Alternatively, try manually deleting the file "
-                    + locatorFile2);
+                + locatorFile2);
           }
         }
 
@@ -315,38 +310,27 @@ public class NistMsSearchTask extends AbstractTask {
           DataPoint[] dataPoints = null;
           String comment = null;
 
-          // Get MS level data points.
-          if (msLevel > 1) {
-            if (!row.hasMs2Fragmentation()) {
-              progress++;
-              continue;
-            }
-            // Merge multiple MSn fragment spectra.
-            if (mergeParameters != null) {
-              MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(
-                  MsMsSpectraMergeModule.class);
-              assert merger != null;
-              MergedSpectrum spectrum = merger.getBestMergedSpectrum(mergeParameters, row);
-              if (spectrum != null) {
-                dataPoints = spectrum.data;
-                comment = "MERGED_STATS= " + spectrum.getMergeStatsDescription();
-              }
-            } else {
-
-              // Get best fragment scan.
-              Scan scan = row.getMostIntenseFragmentScan();
-              dataPoints = ScanUtils.extractDataPoints(scan);
-              comment =
-                  "DATA_FILE = " + scan.getDataFile().getName() + " SCAN = " + scan.getScanNumber();
+          if (!row.hasMs2Fragmentation()) {
+            progress++;
+            continue;
+          }
+          // Merge multiple MSn fragment spectra.
+          if (mergeParameters != null) {
+            MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(
+                MsMsSpectraMergeModule.class);
+            assert merger != null;
+            MergedSpectrum spectrum = merger.getBestMergedSpectrum(mergeParameters, row);
+            if (spectrum != null) {
+              dataPoints = spectrum.data;
+              comment = "MERGED_STATS= " + spectrum.getMergeStatsDescription();
             }
           } else {
 
-            // Clustered Spectra.
-            IsotopePattern ip = row.getBestIsotopePattern();
-            if (ip != null) {
-              dataPoints = ScanUtils.extractDataPoints(ip);
-              comment = "Clustered spectra at RT= " + row.getAverageRT();
-            }
+            // Get best fragment scan.
+            Scan scan = row.getMostIntenseFragmentScan();
+            dataPoints = ScanUtils.extractDataPoints(scan);
+            comment =
+                "DATA_FILE = " + scan.getDataFile().getName() + " SCAN = " + scan.getScanNumber();
           }
 
           // Round high-res to low-res.
@@ -429,7 +413,7 @@ public class NistMsSearchTask extends AbstractTask {
             // Search results are for the wrong peak.
             throw new IllegalArgumentException(
                 "Search results are for a different peak.  Expected peak: " + rowID + " but found: "
-                    + hitID);
+                + hitID);
           }
         } else if (cmpMatcher.find()) {
 
@@ -485,7 +469,7 @@ public class NistMsSearchTask extends AbstractTask {
               }
               if (libMatcher.find()) {
                 lib = "Library: " + libMatcher.group(1) + "\n"
-                    + "NIST results only viewable in NIST MS Search";
+                      + "NIST results only viewable in NIST MS Search";
               }
 
               // Compound ion_type is combined with name field for LC-MS/MS field.
@@ -544,7 +528,7 @@ public class NistMsSearchTask extends AbstractTask {
     final File srcReady = new File(nistMsSearchDir, SEARCH_POLL_FILE_NAME);
     if (srcReady.exists() && !srcReady.delete()) {
       throw new IOException("Couldn't delete the search results polling file " + srcReady
-          + ".  Please delete it manually.");
+                            + ".  Please delete it manually.");
     }
 
     // Execute NIS MS Search.
@@ -586,7 +570,7 @@ public class NistMsSearchTask extends AbstractTask {
       final FeatureIdentity identity = peakRow.getPreferredFeatureIdentity();
       final String name =
           SPECTRUM_NAME_PREFIX + peakRow.getID() + (identity == null ? "" : " (" + identity + ')')
-              + " of " + peakList.getName();
+          + " of " + peakList.getName();
       writer.write("Name: " + name.substring(0, Math.min(SPECTRUM_NAME_MAX_LENGTH, name.length())));
       writer.newLine();
       writer.write("PrecursorMZ: " + peakRow.getAverageMZ());

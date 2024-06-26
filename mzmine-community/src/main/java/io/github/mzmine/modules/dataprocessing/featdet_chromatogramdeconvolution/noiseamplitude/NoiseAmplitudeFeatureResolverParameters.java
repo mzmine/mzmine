@@ -26,14 +26,17 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
+import org.jetbrains.annotations.Nullable;
 
 public class NoiseAmplitudeFeatureResolverParameters extends GeneralResolverParameters {
 
@@ -50,7 +53,7 @@ public class NoiseAmplitudeFeatureResolverParameters extends GeneralResolverPara
       MZmineCore.getConfiguration().getIntensityFormat());
 
   public NoiseAmplitudeFeatureResolverParameters() {
-    super(new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, MIN_PEAK_HEIGHT,
+    super(new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, dimension, MIN_PEAK_HEIGHT,
         PEAK_DURATION, NOISE_AMPLITUDE, MIN_NUMBER_OF_DATAPOINTS},
         "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_noise_ampl/noise-ampl-resolver.html");
   }
@@ -64,7 +67,7 @@ public class NoiseAmplitudeFeatureResolverParameters extends GeneralResolverPara
   }
 
   @Override
-  public FeatureResolver getResolver() {
-    return new NoiseAmplitudeFeatureResolver();
+  public @Nullable Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist) {
+    return new NoiseAmplitudeFeatureResolver(parameterSet, flist);
   }
 }

@@ -89,7 +89,7 @@ public class TimsTOFImageMsMsDialog extends ParameterSetupDialogWithPreview {
     cmbFlist.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
-            fBox.getFeatureBox().setItems(FXCollections.observableArrayList(
+            fBox.setItems(FXCollections.observableArrayList(
                 newValue.getFeatures(newValue.getRawDataFile(0))));
           }
         }));
@@ -99,8 +99,8 @@ public class TimsTOFImageMsMsDialog extends ParameterSetupDialogWithPreview {
       cmbFlist.getSelectionModel().selectFirst();
     }
 
-    fBox.getFeatureBox().getSelectionModel().selectedItemProperty()
-        .addListener(((observable, oldValue, newValue) -> {
+    fBox.selectedFeatureProperty()
+        .addListener(((_, _, newValue) -> {
           if (newValue != null) {
             featureChanged(newValue);
           }
@@ -128,11 +128,11 @@ public class TimsTOFImageMsMsDialog extends ParameterSetupDialogWithPreview {
           ProjectService.getProject(), true, true);
       MZmineCore.getTaskController().addTask(currentTask);
 
-      currentTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      currentTask.addTaskStatusListener((task, newStatus, _) -> {
         logger.finest("Preview task status changed: " + newStatus);
         if (newStatus == TaskStatus.FINISHED && task == currentTask) {
           imageChart.getChart()
-              .applyWithNotifyChanges(false, () -> updateMarkers(fBox.getFeatureBox().getValue()));
+              .applyWithNotifyChanges(false, () -> updateMarkers(fBox.getSelectedFeature()));
         }
       });
     });

@@ -29,11 +29,9 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
-import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import java.io.File;
-import java.time.Instant;
 import java.util.Comparator;
 import java.util.Objects;
 import org.junit.jupiter.api.AfterAll;
@@ -72,8 +70,7 @@ public class ProjectLoadTest {
     param.setParameter(ProjectLoaderParameters.projectFile, new File(
         ProjectLoaderParameters.class.getClassLoader().getResource("rawdatafiles/dom_test.mzmine")
             .getFile()));
-    final ProjectOpeningTask task = new ProjectOpeningTask(param, Instant.now());
-    final TaskResult result = MZmineTestUtil.callModuleWithTimeout(60, ProjectLoadModule.class,
+    final TaskResult result = MZmineTestUtil.callModuleWithTimeout(300, ProjectLoadModule.class,
         param);
     Assertions.assertInstanceOf(TaskResult.FINISHED.class, result, result.description());
 

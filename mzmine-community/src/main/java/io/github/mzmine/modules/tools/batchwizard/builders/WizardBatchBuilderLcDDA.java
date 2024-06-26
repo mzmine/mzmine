@@ -84,7 +84,7 @@ public class WizardBatchBuilderLcDDA extends BaseWizardBatchBuilder {
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
     makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
-        minRtDataPoints, cropRtRange);
+        minRtDataPoints, cropRtRange, polarity);
     makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
 
     var groupMs2Params = createMs2GrouperParameters();

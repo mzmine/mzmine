@@ -48,9 +48,11 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
-import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 import javax.xml.datatype.DatatypeFactory;
@@ -86,26 +88,22 @@ public class MzXMLImportTask extends AbstractTask {
   private DatatypeFactory dataTypeFactory;
 
   /*
-   * This variables are used to set the number of fragments that one single scan can have. The
-   * initial size of array is set to 10, but it depends of fragmentation level.
-   */
-  private final int[] parentTreeValue = new int[10];
-  private int msLevelTree = 0;
-
-  /*
    * This stack stores the current scan and all his fragments until all the information is recover.
    * The logic is FIFO at the moment of write into the RawDataFile
    */
-  private final LinkedList<SimpleScan> parentStack;
+  private final List<SimpleScan> parentStack = new ArrayList<>();
 
   /**
-   * The current building scan
+   * MS1 scan opens then may have MS2 then MS3 and closing tags are only after the top N scans are
+   * done
    */
-  private SimpleBuildingScan buildingScan;
+  private int numOpenScans = 0;
+
   /*
    * This variable hold the present scan or fragment, it is send to the stack when another
    * scan/fragment appears as a parser.startElement
    */
+  private SimpleBuildingScan buildingScan;
   private SimpleScan lastScan;
 
 
@@ -119,23 +117,16 @@ public class MzXMLImportTask extends AbstractTask {
     this.module = module;
     // 256 kilo-chars buffer
     charBuffer = new StringBuilder(1 << 18);
-    parentStack = new LinkedList<SimpleScan>();
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
     return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
   }
 
-  /**
-   * @see java.lang.Runnable#run()
-   */
   @Override
   public void run() {
 
@@ -157,7 +148,7 @@ public class MzXMLImportTask extends AbstractTask {
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, "During loading of data file. " + e.getMessage(), e);
       /* we may already have set the status to CANCELED */
       if (getStatus() == TaskStatus.PROCESSING) {
         setStatus(TaskStatus.ERROR);
@@ -210,6 +201,9 @@ public class MzXMLImportTask extends AbstractTask {
       // create mass list and scan. Override data points and spectrum type
       lastScan.addMassList(new ScanPointerMassList(lastScan));
     }
+
+    // after peaks the scan is done - add to stack and wait for last scan to be closed before adding to file
+    parentStack.add(lastScan);
   }
 
   private class MzXMLHandler extends DefaultHandler {
@@ -235,10 +229,9 @@ public class MzXMLImportTask extends AbstractTask {
 
       // <scan>
       if (qName.equalsIgnoreCase("scan")) {
+        numOpenScans++;
 
-        if (lastScan != null) {
-          lastScan = null;
-        }
+        lastScan = null;
         buildingScan = new SimpleBuildingScan();
 
         /*
@@ -281,23 +274,12 @@ public class MzXMLImportTask extends AbstractTask {
           throw new SAXException("Could not read retention time");
         }
 
-        int parentScan = -1;
-
         if (buildingScan.msLevel > 9) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("msLevel value bigger than 10");
           throw new SAXException("The value of msLevel is bigger than 10");
         }
 
-        /*
-         * if (msLevel > 1) { parentScan = parentTreeValue[msLevel - 1]; for (SimpleScan p :
-         * parentStack) { if (p.getScanNumber() == parentScan) { p.addFragmentScan(scanNumber); } }
-         * }
-         */
-
-        // Setting the level of fragment of scan and parent scan number
-        msLevelTree++;
-        parentTreeValue[buildingScan.msLevel] = buildingScan.scanNumber;
       }
 
       // <peaks>
@@ -333,42 +315,25 @@ public class MzXMLImportTask extends AbstractTask {
 
       // </scan>
       if (qName.equalsIgnoreCase("scan")) {
-
-        msLevelTree--;
-
-        /*
-         * At this point we verify if the scan and his fragments are closed, so we include the
-         * present scan/fragment into the stack and start to take elements from them (FIFO) for the
-         * RawDataFile.
-         */
-
-        if (msLevelTree == 0) {
-          if (lastScan != null) {
-            parentStack.addFirst(lastScan);
-          }
-          reset();
-          lastScan = null;
-          while (!parentStack.isEmpty()) {
-            SimpleScan currentScan = parentStack.removeLast();
-            try {
-              newMZmineFile.addScan(currentScan);
-            } catch (IOException e) {
-              e.printStackTrace();
-              setStatus(TaskStatus.ERROR);
-              setErrorMessage("IO error: " + e);
-              throw new SAXException("Parsing error: " + e);
-            }
-            parsedScans++;
-          }
-
-          /*
-           * The scan with all his fragments is in the RawDataFile, now we clean the stack for the
-           * next scan and fragments.
-           */
-          parentStack.clear();
-
+        numOpenScans--;
+        if (numOpenScans < 0) {
+          numOpenScans = 0;
         }
-
+        if (numOpenScans == 0) {
+          try {
+            for (final SimpleScan scan : parentStack) {
+              newMZmineFile.addScan(scan);
+            }
+          } catch (IOException e) {
+            logger.log(Level.WARNING, "Cannot store scan. " + e.getMessage(), e);
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage("IO error: " + e);
+            throw new SAXException("Parsing error: " + e);
+          }
+          parentStack.clear();
+        }
+        reset();
+        parsedScans++;
         return;
       }
 
@@ -457,7 +422,7 @@ public class MzXMLImportTask extends AbstractTask {
      * @see org.xml.sax.ContentHandler#characters(char[], int, int)
      */
     @Override
-    public void characters(char[] buf, int offset, int len) throws SAXException {
+    public void characters(char[] buf, int offset, int len) {
       charBuffer.append(buf, offset, len);
     }
   }

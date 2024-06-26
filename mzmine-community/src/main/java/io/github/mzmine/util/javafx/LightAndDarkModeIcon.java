@@ -37,6 +37,21 @@ import javafx.scene.layout.HBox;
  */
 public class LightAndDarkModeIcon extends HBox {
 
+  public static LightAndDarkModeIcon mzmineImage(int maxWidth, int maxHeight) {
+    return new LightAndDarkModeIcon("icons/introductiontab/logos_mzio_mzmine.png",
+        "icons/introductiontab/logos_mzio_mzmine_light.png", maxWidth, maxHeight);
+  }
+
+  public static LightAndDarkModeIcon mzwizardImage(int maxWidth, int maxHeight) {
+    return new LightAndDarkModeIcon("icons/introductiontab/logos_mzio_mzwizard.png",
+        "icons/introductiontab/logos_mzio_mzwizard_light.png", maxWidth, maxHeight);
+  }
+
+  public static LightAndDarkModeIcon mzwizardImageTab(int maxWidth, int maxHeight) {
+    return new LightAndDarkModeIcon("icons/introductiontab/logos_mzio_mzwizard_lowres.png",
+        "icons/introductiontab/logos_mzio_mzwizard_light_lowres.png", maxWidth, maxHeight);
+  }
+
   public LightAndDarkModeIcon(String resourcePathForLightMode, String resourcePathForDarkMode,
       int maxWidth, int maxHeight) {
     this(resourcePathForLightMode, resourcePathForDarkMode, maxWidth, maxHeight,

@@ -29,6 +29,8 @@ import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.util.List;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -41,18 +43,29 @@ import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 
 public class RegionSelectionListener implements ChartMouseListenerFX {
 
-  private final ObjectProperty<java.awt.geom.Path2D> buildingPath;
+  private final ObjectProperty<java.awt.geom.Path2D> path;
   private final ListProperty<Point2D> points;
   private final EChartViewer chart;
 
   public RegionSelectionListener(EChartViewer chart) {
     this.chart = chart;
     points = new SimpleListProperty<>(FXCollections.observableArrayList());
-    buildingPath = new SimpleObjectProperty<>();
-    points.addListener((ListChangeListener<Point2D>) c -> {
-      c.next();
-      buildingPath.set(getShape());
-    });
+    path = new SimpleObjectProperty<>();
+    path.bind(Bindings.createObjectBinding(this::getShape, points));
+  }
+
+  public static Path2D getShape(List<Point2D> points) {
+    if (points.isEmpty()) {
+      return new Path2D.Double();
+    }
+    Path2D path = new Path2D.Double();
+    path.moveTo(points.get(0).getX(), points.get(0).getY());
+
+    for (int i = 1; i < points.size(); i++) {
+      path.lineTo(points.get(i).getX(), points.get(i).getY());
+    }
+    path.closePath();
+    return path;
   }
 
   @Override
@@ -88,8 +101,8 @@ public class RegionSelectionListener implements ChartMouseListenerFX {
     return path;
   }
 
-  public ObjectProperty<Path2D> buildingPathProperty() {
-    return buildingPath;
+  public ObjectProperty<Path2D> pathProperty() {
+    return path;
   }
 
   public ListProperty<Point2D> buildingPointsProperty() {

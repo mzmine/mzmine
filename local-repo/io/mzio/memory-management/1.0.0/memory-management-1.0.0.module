@@ -28,10 +28,10 @@
           "name": "memory-management-1.0.0.jar",
           "url": "memory-management-1.0.0.jar",
           "size": 5786,
-          "sha512": "7833bd71eb41aa88ec0b685b680db38e2c8bc00b8ad3ab34fccf4234f74e13890e3a3d077fcf6cc95192b2594fbde9fc0c4cf7466946c69657cfb514990d734d",
-          "sha256": "9b25cdfd3afd6e958aa1ce14ef76a0a8a124cd8b77a3799cd22b7bf5dabe48ed",
-          "sha1": "fd4bfc0feea9f4937afd5c2306b7554267b618f2",
-          "md5": "f22d2775b9c7a43977eddb8ffb7cf668"
+          "sha512": "bf15665c823a5902e93b2a4d638683b51ec98c84f44f92069034dffb1060e1d9f131be74f637c35fbe560866d7cf911c30229bde96d248c312b219aba0f5e5cd",
+          "sha256": "7a72601dc0ced38289ab431820cfd015d08e8be6c3dd64b00e461ede28210ade",
+          "sha1": "7f2d1f8952f48f0eb1530e14208dc9d84b269cf8",
+          "md5": "ce9c72df5396ca7d28d119655702d1b1"
         }
       ]
     },
@@ -62,10 +62,10 @@
           "name": "memory-management-1.0.0.jar",
           "url": "memory-management-1.0.0.jar",
           "size": 5786,
-          "sha512": "7833bd71eb41aa88ec0b685b680db38e2c8bc00b8ad3ab34fccf4234f74e13890e3a3d077fcf6cc95192b2594fbde9fc0c4cf7466946c69657cfb514990d734d",
-          "sha256": "9b25cdfd3afd6e958aa1ce14ef76a0a8a124cd8b77a3799cd22b7bf5dabe48ed",
-          "sha1": "fd4bfc0feea9f4937afd5c2306b7554267b618f2",
-          "md5": "f22d2775b9c7a43977eddb8ffb7cf668"
+          "sha512": "bf15665c823a5902e93b2a4d638683b51ec98c84f44f92069034dffb1060e1d9f131be74f637c35fbe560866d7cf911c30229bde96d248c312b219aba0f5e5cd",
+          "sha256": "7a72601dc0ced38289ab431820cfd015d08e8be6c3dd64b00e461ede28210ade",
+          "sha1": "7f2d1f8952f48f0eb1530e14208dc9d84b269cf8",
+          "md5": "ce9c72df5396ca7d28d119655702d1b1"
         }
       ]
     }

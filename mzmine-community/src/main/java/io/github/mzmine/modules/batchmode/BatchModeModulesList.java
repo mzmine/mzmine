@@ -89,6 +89,7 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreModule;
+import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.ExternalCCSCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule;
@@ -146,7 +147,6 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportModule;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportModule;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportModule;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportModule;
-import io.github.mzmine.modules.io.import_rawdata_waters_raw.WatersRawImportModule;
 import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportModule;
 import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
@@ -168,6 +168,7 @@ import io.github.mzmine.modules.visualization.histogram.HistogramVisualizerModul
 import io.github.mzmine.modules.visualization.injection_time.InjectTimeAnalysisModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
+import io.github.mzmine.modules.visualization.kendrickmassplot.regionextraction.RegionExtractionModule;
 import io.github.mzmine.modules.visualization.lipidannotationsummary.LipidAnnotationSummaryModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFeatureListModule;
 import io.github.mzmine.modules.visualization.massvoltammogram.MassvoltammogramFromFileModule;
@@ -207,7 +208,7 @@ public class BatchModeModulesList {
       MzXMLImportModule.class, //
       NetCDFImportModule.class, //
       ThermoRawImportModule.class, //
-      WatersRawImportModule.class, //
+//      WatersRawImportModule.class, //
       ZipImportModule.class, //
       SpectralLibraryImportModule.class, //
       SpectralLibraryToFeatureListModule.class, //
@@ -309,6 +310,7 @@ public class BatchModeModulesList {
       MobilityMzRegionExtractionModule.class, //
       NeutralLossFilterModule.class, //
       PeakComparisonRowFilterModule.class, //
+      RegionExtractionModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_PROCESSING}
@@ -362,6 +364,7 @@ public class BatchModeModulesList {
       NistMsSearchModule.class, //
       PrecursorDBSearchModule.class, //
       SpectralLibrarySearchModule.class, //
+      BioTransformerModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_IO}

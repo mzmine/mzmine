@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,11 @@ package io.github.mzmine.modules.tools.batchwizard.subparameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.DataImportWizardParameterFactory;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.util.files.ExtensionFilters;
 
 /**
  * Reuses the filenames {@link AllSpectralDataImportParameters}
@@ -36,11 +41,19 @@ import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.DataIm
  */
 public final class DataImportWizardParameters extends WizardStepParameters {
 
+  public static final OptionalParameter<FileNameParameter> metadataFile = new OptionalParameter<>(
+      new FileNameParameter("Metadata file", """
+          CSV or TSV file with metadata. See exact format by opening metadata table and
+          exporting metadata file (after importing a few data files).""",
+          ExtensionFilters.CSV_TSV_IMPORT, FileSelectionType.OPEN));
+
+  public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
+      ExtensionFilters.MS_RAW_DATA);
+
   public DataImportWizardParameters() {
     super(WizardPart.DATA_IMPORT, DataImportWizardParameterFactory.Data,
         // parameters
-        AllSpectralDataImportParameters.metadataFile, //
-        AllSpectralDataImportParameters.fileNames);
+        metadataFile, fileNames);
   }
 
 }

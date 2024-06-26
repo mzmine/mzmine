@@ -232,7 +232,8 @@ public class FormulaUtils {
   }
 
   /**
-   * Calculates the m/z of the given formula. Formula must have a charge, otherwise the
+   * Calculates the m/z of the given formula. Formula must have a charge, otherwise the neutral mass
+   * is returned
    *
    * @param formula The formula.
    * @return the calculated m/z ratio. if the formula's charge is null or 0, the neutral mass is
@@ -601,6 +602,9 @@ public class FormulaUtils {
    */
   public static IMolecularFormula addFormula(IMolecularFormula result, IMolecularFormula add) {
     result.add(add);
+    final Integer resultCharge = Objects.requireNonNullElse(result.getCharge(), 0);
+    final Integer subtractCharge = Objects.requireNonNullElse(add.getCharge(), 0);
+    result.setCharge(resultCharge + subtractCharge);
     return result;
   }
 
@@ -753,7 +757,8 @@ public class FormulaUtils {
       return null;
     }
 
-    IMolecularFormula molecularFormula = FormulaUtils.neutralizeFormulaWithHydrogen(annotation.getFormula());
+    IMolecularFormula molecularFormula = FormulaUtils.neutralizeFormulaWithHydrogen(
+        annotation.getFormula());
     assert molecularFormula != null;
     try {
       // ionize formula

@@ -178,6 +178,7 @@ public class WideTableIOUtils implements TableIOUtils {
 
       // found header?
       if (titles == null) {
+        logger.warning(() -> "Did not find column headers.");
         return false;
       }
 

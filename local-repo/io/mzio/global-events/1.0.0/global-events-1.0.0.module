@@ -27,11 +27,11 @@
         {
           "name": "global-events-1.0.0.jar",
           "url": "global-events-1.0.0.jar",
-          "size": 2253,
-          "sha512": "77d4290afc27a8407ae3a25d60cf5069d372e1c22535c8796d4fc7c1c3cc45e3db552cd7e156c77b882900481cbd8c29bcf72eceafe8b4a912523f1adf7e6755",
-          "sha256": "88cd083217f41971905a1c07b656b4c39b284a3e9b329c29180f6ee5454ad6ed",
-          "sha1": "6df4b4aae71436afaae70a71e4ee236891c97743",
-          "md5": "a95fa4a3fcb91f2c519a59ab4439762c"
+          "size": 2657,
+          "sha512": "dbe383097e4d6f1703124b17bb7b4a68f10b0c5f03a08c938f123b2843fa22d78d564a579d5f4a500668befed07b3202e2800fcea5480b13ccfb982f3ae5e9c2",
+          "sha256": "361b9650f5342591277cc55acd0faf0d8c1a2eb10eac439160de8ac709659444",
+          "sha1": "53f26309004f5291128a2c32acbfa5890ba9fb2a",
+          "md5": "c728484fc976a6e1af7a691b99f15211"
         }
       ]
     },
@@ -51,21 +51,17 @@
           "version": {
             "requires": "22.0.0"
           }
-        },
-        {
-          "group": "io.github.mzmine",
-          "module": "utils"
         }
       ],
       "files": [
         {
           "name": "global-events-1.0.0.jar",
           "url": "global-events-1.0.0.jar",
-          "size": 2253,
-          "sha512": "77d4290afc27a8407ae3a25d60cf5069d372e1c22535c8796d4fc7c1c3cc45e3db552cd7e156c77b882900481cbd8c29bcf72eceafe8b4a912523f1adf7e6755",
-          "sha256": "88cd083217f41971905a1c07b656b4c39b284a3e9b329c29180f6ee5454ad6ed",
-          "sha1": "6df4b4aae71436afaae70a71e4ee236891c97743",
-          "md5": "a95fa4a3fcb91f2c519a59ab4439762c"
+          "size": 2657,
+          "sha512": "dbe383097e4d6f1703124b17bb7b4a68f10b0c5f03a08c938f123b2843fa22d78d564a579d5f4a500668befed07b3202e2800fcea5480b13ccfb982f3ae5e9c2",
+          "sha256": "361b9650f5342591277cc55acd0faf0d8c1a2eb10eac439160de8ac709659444",
+          "sha1": "53f26309004f5291128a2c32acbfa5890ba9fb2a",
+          "md5": "c728484fc976a6e1af7a691b99f15211"
         }
       ]
     }

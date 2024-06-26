@@ -26,10 +26,10 @@
 package io.github.mzmine.modules.tools.batchwizard.subparameters;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.WizardPart;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorNoiseLevels;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMassDetectorParameter;
+import io.github.mzmine.modules.tools.batchwizard.subparameters.custom_parameters.WizardMsPolarity;
 import io.github.mzmine.modules.tools.batchwizard.subparameters.factories.MassSpectrometerWizardParameterFactory;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -39,8 +39,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.ToleranceType;
 
 public final class MassSpectrometerWizardParameters extends WizardStepParameters {
 
-  public static final ComboParameter<Polarity> polarity = new ComboParameter<>("Ion mode",
-      "Polarity of the ion mode", Polarity.values(), Polarity.Positive);
+  public static final ComboParameter<WizardMsPolarity> polarity = new ComboParameter<>("Ion mode",
+      "Polarity of the ion mode, will filter spectra by this mode unless undefined", WizardMsPolarity.values(), WizardMsPolarity.No_filter);
 
   /**
    * No need for version increase as default is the same as before
@@ -90,10 +90,11 @@ public final class MassSpectrometerWizardParameters extends WizardStepParameters
     setParameter(scanToScanMzTolerance, scan2scanMzTolerance);
     setParameter(featureToFeatureMzTolerance, f2fMzTolerance);
     setParameter(sampleToSampleMzTolerance, sample2sampleMzTolerance);
+    setParameter(polarity, WizardMsPolarity.No_filter);
   }
 
   @Override
   public int getVersion() {
-    return 2;
+    return 3;
   }
 }

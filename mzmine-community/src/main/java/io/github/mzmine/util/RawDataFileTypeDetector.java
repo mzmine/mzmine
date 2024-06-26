@@ -84,9 +84,9 @@ public class RawDataFileTypeDetector {
 
       // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
       for (File f : fileName.listFiles()) {
-        if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT")) {
+        /*if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT")) {
           return RawDataFileType.WATERS_RAW;
-        }
+        }*/
         if (f.isFile() && (f.getName().contains(TDF_SUFFIX) || f.getName()
             .contains(TDF_BIN_SUFFIX))) {
           return RawDataFileType.BRUKER_TDF;

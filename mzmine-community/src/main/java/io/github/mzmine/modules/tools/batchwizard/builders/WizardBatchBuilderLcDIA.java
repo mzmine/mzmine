@@ -29,6 +29,8 @@ import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerParameters;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
@@ -42,8 +44,12 @@ import io.github.mzmine.parameters.parametertypes.OptionalValue;
 import io.github.mzmine.parameters.parametertypes.combowithinput.MsLevelFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.util.maths.Weighting;
+import io.github.mzmine.util.scans.SpectraMerging.IntensityMergingType;
 import java.io.File;
 import java.util.Optional;
 import org.jetbrains.annotations.Nullable;
@@ -99,7 +105,7 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     makeAndAddImportTask(q);
     makeAndAddMassDetectorSteps(q);
     makeAndAddAdapChromatogramStep(q, minFeatureHeight, mzTolScans, massDetectorOption,
-        minRtDataPoints, cropRtRange);
+        minRtDataPoints, cropRtRange, polarity);
     makeAndAddSmoothingStep(q, rtSmoothing, minRtDataPoints, false);
 
     var groupMs2Params = createMs2GrouperParameters();
@@ -146,7 +152,8 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     param.setParameter(DiaMs2CorrParameters.ms2ScanToScanAccuracy, mzTolScans);
     param.setParameter(DiaMs2CorrParameters.minMs1Intensity, minFeatureHeight);
     param.setParameter(DiaMs2CorrParameters.numCorrPoints, minCorrelatedPoints);
-    param.setParameter(DiaMs2CorrParameters.minMs2Intensity, minFeatureHeight * 0.5);
+    param.setParameter(DiaMs2CorrParameters.minMs2Intensity, Math.max(minFeatureHeight * 0.1,
+        massDetectorOption.getMs1NoiseLevel()));
     param.setParameter(DiaMs2CorrParameters.ms2ScanSelection,
         new ScanSelection(MsLevelFilter.of(2)));
 
@@ -194,5 +201,30 @@ public class WizardBatchBuilderLcDIA extends BaseWizardBatchBuilder {
     RTTolerance rtTol = new RTTolerance(rtFwhm.getTolerance() * (useCorrGrouping ? 1.1f : 0.7f),
         rtFwhm.getUnit());
     makeAndAddMetaCorrStep(q, minRtDataPoints, rtTol, stableIonizationAcrossSamples);
+  }
+
+  /**
+   * Specific for dia wizard: use ms1 and ms2
+   * @param q
+   */
+  protected void makeAndAddMobilityScanMergerStep(final BatchQueue q) {
+
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(MobilityScanMergerModule.class).cloneParameterSet();
+
+    param.setParameter(MobilityScanMergerParameters.mzTolerance, mzTolScans);
+    param.setParameter(MobilityScanMergerParameters.scanSelection, new ScanSelection(MsLevelFilter.ALL_LEVELS));
+    param.setParameter(MobilityScanMergerParameters.noiseLevel,
+        0d); // the noise level of the mass detector already did all the filtering we want (at least in the wizard)
+    param.setParameter(MobilityScanMergerParameters.mergingType, IntensityMergingType.SUMMED);
+    param.setParameter(MobilityScanMergerParameters.weightingType, Weighting.LINEAR);
+
+    final RawDataFilesSelection rawDataFilesSelection = new RawDataFilesSelection(
+        RawDataFilesSelectionType.BATCH_LAST_FILES);
+    param.setParameter(MobilityScanMergerParameters.rawDataFiles, rawDataFilesSelection);
+
+    q.add(
+        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(MobilityScanMergerModule.class),
+            param));
   }
 }

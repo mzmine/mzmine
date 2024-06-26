@@ -104,32 +104,14 @@
 
   <!-- RAW DATA METHODS -->
   <Menu text="Raw data methods">
-    <Menu text="Raw data import">
-      <MenuItem onAction="#runModule" text="Import MS data"
-        userData="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule">
-        <accelerator>
-          <KeyCodeCombination alt="UP" code="I"
-            control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
-        </accelerator>
-      </MenuItem>
-    </Menu>
+    <MenuItem onAction="#runModule" text="Import MS data"
+      userData="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="I"
+          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+      </accelerator>
+    </MenuItem>
 
-    <Menu text="Spectral libraries">
-      <MenuItem onAction="#runModule"
-        text="Spectral library import"
-        userData="io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule"/>
-      <MenuItem onAction="#runModule"
-        text="Spectral library to feature list"
-        userData="io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule"/>
-    </Menu>
-
-    <Menu text="Raw data export">
-      <MenuItem text="Export scans"
-        onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule"/>
-      <MenuItem text="Export MSn trees" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_msn_tree.MSnTreeExportModule"/>
-    </Menu>
 
     <Menu text="Spectra processing">
       <MenuItem text="Mass detection" onAction="#runModule"
@@ -164,9 +146,32 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_maldipseudofilegenerator.MaldiPseudoFileGeneratorModule"/>
     </Menu>
 
+    <SeparatorMenuItem/>
+
     <Menu text="File merging">
       <MenuItem text="Raw data file merging" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule"/>
+    </Menu>
+
+    <SeparatorMenuItem/>
+
+    <Menu text="Raw data export">
+      <MenuItem text="Export scans"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule"/>
+      <MenuItem text="Export MSn trees" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.export_msn_tree.MSnTreeExportModule"/>
+    </Menu>
+
+    <SeparatorMenuItem/>
+
+    <Menu text="Spectral libraries">
+      <MenuItem onAction="#runModule"
+        text="Spectral library import"
+        userData="io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule"/>
+      <MenuItem onAction="#runModule"
+        text="Spectral library to feature list"
+        userData="io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule"/>
     </Menu>
 
   </Menu>
@@ -186,12 +191,12 @@
     </Menu>
 
     <Menu text="LC-IMS-MS">
-<!--      <MenuItem onAction="#runModule"-->
-<!--        text="Ion mobility trace builder"-->
-<!--        userData="io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule"/>-->
-<!--      <MenuItem onAction="#runModule"-->
-<!--        text="Recursive IMS builder"-->
-<!--        userData="io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule"/>-->
+      <!--      <MenuItem onAction="#runModule"-->
+      <!--        text="Ion mobility trace builder"-->
+      <!--        userData="io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule"/>-->
+      <!--      <MenuItem onAction="#runModule"-->
+      <!--        text="Recursive IMS builder"-->
+      <!--        userData="io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule"/>-->
       <MenuItem onAction="#runModule" text="Chromatogram builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule"/>
       <MenuItem onAction="#runModule"
@@ -217,10 +222,10 @@
         text="MSn feature list builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_msn.MsnFeatureDetectionModule"/>
     </Menu>
-<!--    <Menu text="SRM">-->
-<!--      <MenuItem onAction="#runModule"-->
-<!--        text="SRM feature list builder (TODO)" userData="TODO"/>-->
-<!--    </Menu>-->
+    <!--    <Menu text="SRM">-->
+    <!--      <MenuItem onAction="#runModule"-->
+    <!--        text="SRM feature list builder (TODO)" userData="TODO"/>-->
+    <!--    </Menu>-->
 
     <SeparatorMenuItem/>
 
@@ -363,8 +368,8 @@
       <MenuItem text="Annotate Isomers" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule"/>
       <SeparatorMenuItem/>
-<!--      <MenuItem text="CliqueMS group (unfinished)" onAction="#runModule"-->
-<!--        userData="io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule"/>-->
+      <!--      <MenuItem text="CliqueMS group (unfinished)" onAction="#runModule"-->
+      <!--        userData="io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule"/>-->
       <MenuItem text="Image co-localization grouping" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule"/>
     </Menu>
@@ -373,12 +378,12 @@
       <MenuItem text="GC-EI spectral deconvolution"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule"/>
-<!--      <MenuItem text="Hierarchical clustering"-->
-<!--        onAction="#runModule"-->
-<!--        userData="io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule"/>-->
-<!--      <MenuItem text="Multivariate curve resolution"-->
-<!--        onAction="#runModule"-->
-<!--        userData="io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule"/>-->
+      <!--      <MenuItem text="Hierarchical clustering"-->
+      <!--        onAction="#runModule"-->
+      <!--        userData="io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule"/>-->
+      <!--      <MenuItem text="Multivariate curve resolution"-->
+      <!--        onAction="#runModule"-->
+      <!--        userData="io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule"/>-->
     </Menu>
 
     <Menu text="Feature list filtering">
@@ -393,9 +398,9 @@
       <SeparatorMenuItem/>
       <MenuItem text="Feature list blank subtraction" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule"/>
-<!--      <MenuItem text="Peak comparison rows filter" documentation lacking -->
-<!--        onAction="#runModule"-->
-<!--        userData="io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter.PeakComparisonRowFilterModule"/>-->
+      <!--      <MenuItem text="Peak comparison rows filter" documentation lacking -->
+      <!--        onAction="#runModule"-->
+      <!--        userData="io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter.PeakComparisonRowFilterModule"/>-->
       <MenuItem onAction="#runModule" text="mobility-m/z region filter"
         userData="io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule"/>
       <MenuItem text="Neutral loss filter" onAction="#runModule"
@@ -445,10 +450,10 @@
         <MenuItem text="Local compound database search"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule"/>
-<!--        <MenuItem-->
-<!--          text="Precursor search in spectral libraries"-->
-<!--          onAction="#runModule"-->
-<!--          userData="io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule"/>-->
+        <!--        <MenuItem-->
+        <!--          text="Precursor search in spectral libraries"-->
+        <!--          onAction="#runModule"-->
+        <!--          userData="io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule"/>-->
         <MenuItem text="BioTransformer 3.0"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule"/>
@@ -559,7 +564,7 @@
 
       <SeparatorMenuItem/>
 
-      <MenuItem text="Kendrick mass plot" onAction="#runModule"
+      <MenuItem text="4D feature plot (Kendrick)" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule"/>
       <MenuItem text="Van Krevelen diagram" onAction="#runModule"
         userData="io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule"/>
@@ -602,8 +607,8 @@
     </Menu>
   </Menu>
 
-  <Menu text="Processing wizard">
-    <MenuItem text="Processing wizard" onAction="#showWizardTab"
+  <Menu text="mzwizard">
+    <MenuItem text="Open mzwizard" onAction="#showWizardTab"
       userData="io.github.mzmine.modules.tools.batchwizard.BatchWizardModule">
       <accelerator>
         <KeyCodeCombination alt="UP" code="W"
@@ -647,7 +652,7 @@
         <KeyCodeCombination alt="UP" code="U" control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
       </accelerator>
     </MenuItem>
-    <MenuItem text="Sing in / Sign up" onAction="#showUserSignUp"/>
+    <MenuItem text="Sign in / Sign up" onAction="#showUserSignUp"/>
     <MenuItem text="Remove user" fx:id="itemRemoveUser" onAction="#removeLocalUser"/>
     <MenuItem text="Open users directory" onAction="#openUsersDirectory"/>
     <MenuItem text="Manage user online" onAction="#openUserAccountConsole"/>

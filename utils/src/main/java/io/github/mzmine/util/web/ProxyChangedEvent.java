@@ -23,28 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
+package io.github.mzmine.util.web;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.maths.CenterFunction;
+import io.mzio.events.MzEvent;
 
-public interface FeatureResolver extends MZmineModule {
+public record ProxyChangedEvent(Proxy proxy) implements MzEvent {
 
-  /**
-   * Resolve a peaks found within given chromatogram. For easy use, three arrays (scanNumbers,
-   * retentionTimes and intensities) are provided, although the contents of these arrays can also be
-   * obtained from the chromatogram itself. The size of these arrays must be same, and must be equal
-   * to the number of scans covered by given chromatogram.
-   *
-   * @param mzCenterFunction
-   * @param msmsRange
-   * @param rTRangeMSMS
-   */
-  public ResolvedPeak[] resolvePeaks(Feature chromatogram, ParameterSet parameters, CenterFunction mzCenterFunction, double msmsRange,
-      float rTRangeMSMS);
-
-  public Class<? extends MZmineProcessingModule> getModuleClass();
 }

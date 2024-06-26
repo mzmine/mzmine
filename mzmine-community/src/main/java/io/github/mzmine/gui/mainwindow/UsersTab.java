@@ -25,17 +25,24 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.InetUtils;
 import io.mzio.users.gui.fx.UsersController;
 import io.mzio.users.gui.fx.UsersViewState;
+import java.net.InetAddress;
+import java.net.http.HttpClient;
+import javafx.scene.control.TabPane;
 
 /**
  * Options for the user to login, register and control local users
  */
 public class UsersTab extends SimpleTab {
 
+  private volatile static UsersTab instance;
+
   private final UsersController controller;
 
-  public UsersTab() {
+  private UsersTab() {
     this(UsersViewState.LOCAL_USERS);
   }
 
@@ -44,6 +51,35 @@ public class UsersTab extends SimpleTab {
     controller = new UsersController(state);
     setContent(controller.buildView());
 
-    setOnClosed(_ -> controller.close());
+    setOnClosed(_ -> {
+      controller.close();
+      if (instance != null) {
+        synchronized (UsersTab.class) {
+          instance = null;
+        }
+      }
+    });
+  }
+
+  public static UsersTab showTab() {
+    return showTab(UsersViewState.LOCAL_USERS);
+  }
+
+  public static UsersTab showTab(UsersViewState state) {
+    if (instance == null) {
+      synchronized (UsersTab.class) {
+        if (instance == null) {
+          instance = new UsersTab(state);
+          MZmineCore.getDesktop().addTab(instance);
+        }
+      }
+    }
+    instance.controller.setState(state);
+    var tabPane = instance.getTabPane();
+    if (tabPane != null) {
+      // show tab
+      tabPane.getSelectionModel().select(instance);
+    }
+    return instance;
   }
 }

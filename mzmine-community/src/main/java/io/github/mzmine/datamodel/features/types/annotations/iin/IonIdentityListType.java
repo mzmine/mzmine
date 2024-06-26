@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -86,7 +86,7 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
   }
 
   @Override
-  protected <K> @Nullable K map(@NotNull final DataType<K> subType, final IonIdentity ion) {
+  public <K> @Nullable K map(@NotNull final DataType<K> subType, final IonIdentity ion) {
     final IonNetwork net = ion.getNetwork();
     return (K) switch (subType) {
       case IonIdentityListType __ -> ion;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,8 +31,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -60,14 +59,14 @@ public class CorrelatedFeaturesMzHistogramParameters extends SimpleParameterSet 
   public static final BooleanParameter limitToDoubleMz = new BooleanParameter("Limit delta to m/z",
       "Maximum m/z delta is the m/z of the smaller ion (feature list row)", true);
 
-  public static final OptionalParameter<FileNameParameter> saveToFile = new OptionalParameter<>(
-      new FileNameParameter("Append to file",
-          "Append the correlated features delta m/z to a csv file", extensions,
-          FileSelectionType.SAVE), false);
+  public static final OptionalParameter<FileNameSuffixExportParameter> saveToFile = new OptionalParameter<>(
+      new FileNameSuffixExportParameter("Append to file",
+          "Append the correlated features delta m/z to a csv file", extensions, "correlated_mzs"),
+      false);
 
   public CorrelatedFeaturesMzHistogramParameters() {
     super(new Parameter[]{featureLists, mzRange, rtRange, minCorr, limitToDoubleMz, binWidth,
-        saveToFile},
+            saveToFile},
         "https://mzmine.github.io/mzmine_documentation/visualization_modules/processed_additional/processed_additional.html#correlated-features-deltamz-histogram");
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -57,6 +57,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import io.github.mzmine.util.files.ExtensionFilters;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +70,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
   public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
-      "Name of file that contains information for peak identification", FileSelectionType.OPEN);
+      "Name of file that contains information for peak identification",
+      ExtensionFilters.CSV_TSV_IMPORT, FileSelectionType.OPEN);
 
   public static final StringParameter fieldSeparator = new StringParameter("Field separator",
       "Character(s) used to separate fields in the database file. Use '\\t' for tab seperated files.",
