@@ -44,7 +44,7 @@ public class MS2DeepscoreParameters extends SimpleParameterSet {
       "The minimum number of fragments for using a spectrum (minimum = 3)", 3, 3, null);
 
   public static final PercentParameter minScore = new PercentParameter("Min similarity",
-      "The minimum similarity score to store the MS2Deepscore prediction");
+      "The minimum similarity score to store the MS2Deepscore prediction", 0.9, 0.0, 1.0);
 
   public MS2DeepscoreParameters() {
     /*
