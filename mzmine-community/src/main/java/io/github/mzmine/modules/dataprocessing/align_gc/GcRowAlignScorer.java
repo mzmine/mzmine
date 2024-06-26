@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.align_common.FeatureRowAlignScorer;
+import io.github.mzmine.modules.dataprocessing.align_join.RowAlignmentScoreCalculator;
 import io.github.mzmine.modules.dataprocessing.align_join.RowVsRowScore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -123,10 +124,9 @@ public class GcRowAlignScorer implements FeatureRowAlignScorer {
   public void calculateAlignmentScores(final ModularFeatureList alignedFeatureList,
       final List<FeatureList> originalFeatureLists) {
 
-    // TODO add a alignment score here just with the aligned samples?
-    // maybe recalc similarity against the group
-//    RowAlignmentScoreCalculator calculator = new RowAlignmentScoreCalculator(originalFeatureLists,
-//        mzTolerance, rtTolerance, null, 0, rtWeight, 0);
-//    FeatureListUtils.addAlignmentScores(alignedFeatureList, calculator, false);
+    // TODO think about best way to calculate an alignment score that also includes spectral similarity
+    RowAlignmentScoreCalculator calculator = new RowAlignmentScoreCalculator(originalFeatureLists,
+        mzTolerance, rtTolerance, null, 0, rtWeight, 0);
+    FeatureListUtils.addAlignmentScores(alignedFeatureList, calculator, false);
   }
 }
