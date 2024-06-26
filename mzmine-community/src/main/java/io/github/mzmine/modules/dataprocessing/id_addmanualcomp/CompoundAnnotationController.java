@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMat
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import io.github.mzmine.util.annotations.ConnectedTypeCalculation;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ObservableMap;
@@ -43,13 +44,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class CompoundAnnotationController extends FxController<CompoundAnnotationModel> {
 
-  private static final CompoundAnnotationModel model = new CompoundAnnotationModel();
   private final CompoundAnnotationBuilder builder;
   private final FeatureTableFX featureTable;
   private Stage stage = new Stage();
 
   public CompoundAnnotationController(@NotNull FeatureListRow row, FeatureTableFX featureTable) {
-    super(model);
+    super(new CompoundAnnotationModel());
     this.featureTable = featureTable;
     model.setRow(row);
     builder = new CompoundAnnotationBuilder(model, this::onSave, this::onCancel);
@@ -74,9 +74,11 @@ public class CompoundAnnotationController extends FxController<CompoundAnnotatio
   public void onSave() {
     final ObservableMap<DataType, Object> dataModel = model.getDataModel();
     final SimpleCompoundDBAnnotation annotation = new SimpleCompoundDBAnnotation();
-    dataModel.entrySet().forEach(e -> annotation.put(e.getKey(), e.getValue()));
-
     final ModularFeatureListRow row = (ModularFeatureListRow) model.getRow();
+
+    dataModel.entrySet().forEach(e -> annotation.put(e.getKey(), e.getValue()));
+    ConnectedTypeCalculation.LIST.forEach(ctc -> ctc.calculateIfAbsent(row, annotation));
+
     final List<CompoundDBAnnotation> annotations = row.getCompoundAnnotations();
     final List<CompoundDBAnnotation> newAnnotations = new ArrayList<>();
     newAnnotations.add(annotation);

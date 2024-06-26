@@ -26,36 +26,55 @@
 package io.github.mzmine.modules.dataprocessing.id_addmanualcomp;
 
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
-import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.LongType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.StructureParser;
 import io.github.mzmine.javafx.components.factories.FxButtons;
+import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
+import io.github.mzmine.util.annotations.ConnectedTypeCalculation;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.MapChangeListener;
 import javafx.geometry.HPos;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -69,11 +88,22 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
   private final Runnable onSave;
   private final Runnable onCancel;
 
+  private BooleanProperty valid = new SimpleBooleanProperty(false);
+
+  private final List<DataType<?>> excludedTypes = new ArrayList<>();
+
   protected CompoundAnnotationBuilder(CompoundAnnotationModel model, Runnable onSave,
       Runnable onCancel) {
     super(model);
     this.onSave = onSave;
     this.onCancel = onCancel;
+
+    excludedTypes.addAll(ConnectedTypeCalculation.MAP.keySet());
+    excludedTypes.add(DataTypes.get(CompoundDatabaseMatchesType.class));
+    excludedTypes.add(DataTypes.get(CompoundAnnotationScoreType.class));
+    excludedTypes.add(DataTypes.get(MolecularStructureType.class));
+    excludedTypes.add(DataTypes.get(DatabaseMatchInfoType.class));
+    excludedTypes.add(DataTypes.get(IsotopePatternScoreType.class));
   }
 
   @Override
@@ -83,7 +113,7 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
         .sorted(Comparator.comparing(DataType::getUniqueID)).toList();
 
     final BorderPane main = new BorderPane();
-    final GridPane fields = new GridPane();
+    final GridPane fields = new GridPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
 
     final HBox structWrapper = new HBox();
     main.setTop(structWrapper);
@@ -98,8 +128,11 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
       fields.add(tf, 1, i);
 
       Label parsed = new Label();
-      parsed.textProperty().addListener(
-          (_, _, _) -> type.getFormattedStringCheckType(model.getDataModel().get(type)));
+//      tf.textProperty().addListener(
+//          (_, _, _) -> type.getFormattedStringCheckType(model.getDataModel().get(type)));
+      parsed.textProperty().bind(Bindings.createStringBinding(
+          () -> type.getFormattedStringCheckType(model.getDataModel().get(type)),
+          tf.textProperty()));
       fields.add(parsed, 2, i);
     }
     fields.getColumnConstraints().addAll(new ColumnConstraints(100),
@@ -110,8 +143,15 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
     scrollPane.setFitToWidth(true);
     main.setCenter(scrollPane);
 
-    FxButtons.createSaveButton(onSave);
-    FxButtons.createCancelButton(onCancel);
+    final Button save = FxButtons.createSaveButton(onSave);
+    final Button cancel = FxButtons.createCancelButton(onCancel);
+    final FlowPane buttons = FxLayout.newFlowPane(Pos.CENTER_RIGHT, save, cancel);
+    main.setBottom(buttons);
+
+    save.disableProperty().bind(valid.not());
+    Tooltip tooltip = new Tooltip("Fields \"Compound\" and \"Precursor m/z\" must be defined.");
+    save.setTooltip(tooltip);
+    valid.bind(Bindings.createBooleanBinding(this::validate, model.getDataModel()));
 
     return main;
   }
@@ -122,6 +162,7 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
       case SmilesStructureType smiles -> {
         final TextField text = createStringField(smiles);
         text.textProperty().addListener((_, s, t1) -> {
+          structWrapper.getChildren().clear();
           var structure = StructureParser.silent().parseStructure(t1, (String) null);
           if (structure != null) {
             structWrapper.getChildren().setAll(new Structure2DComponent(structure.structure()));
@@ -130,17 +171,19 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
         });
         yield text;
       }
-      case InChIKeyStructureType inchiKey -> {
-        final TextField text = createStringField(inchiKey);
+      case InChIStructureType inchi -> {
+        final TextField text = createStringField(inchi);
         text.textProperty().addListener((_, s, t1) -> {
+          structWrapper.getChildren().clear();
           var structure = StructureParser.silent().parseStructure(null, t1);
           if (structure != null) {
             structWrapper.getChildren().setAll(new Structure2DComponent(structure.structure()));
-            model.setType(inchiKey, t1);
+            model.setType(inchi, t1);
           }
         });
         yield text;
       }
+      case IonTypeType ion -> createAdductField(ion);
       case NumberType numberType -> createNumberField(numberType);
       case StringType strType -> createStringField(strType);
       default -> {
@@ -226,5 +269,54 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
 
     tf.textProperty().addListener((_, _, _) -> property.get());
     return tf;
+  }
+
+  private TextField createAdductField(IonTypeType ionType) {
+    TextField tf = new TextField();
+
+    ObjectProperty<IonType> ionTypeProperty = new SimpleObjectProperty<>(
+        (IonType) model.getDataModel().get(ionType));
+    StringProperty stringProperty = new SimpleStringProperty();
+
+    StringConverter<IonType> converter = new StringConverter<>() {
+      @Override
+      public java.lang.String toString(IonType object) {
+        if (object == null) {
+          return "";
+        }
+        return ionType.getFormattedStringCheckType(object);
+      }
+
+      @Override
+      public IonType fromString(java.lang.String string) {
+        if (string == null || string.isBlank()) {
+          return null;
+        }
+        return IonTypeParser.parse(string);
+      }
+    };
+
+    Bindings.bindBidirectional(stringProperty, ionTypeProperty, converter);
+    ionTypeProperty.addListener((_, _, newValue) -> {
+      if (!Objects.equals(model.getDataModel().get(ionType), newValue)) {
+        model.getDataModel().put(ionType, newValue);
+      }
+    });
+    model.getDataModel().addListener((MapChangeListener<DataType, Object>) change -> {
+      if (change.getKey().equals(ionType) && change.wasAdded() && !Objects.equals(
+          change.getValueAdded(), ionTypeProperty.get())) {
+        ionTypeProperty.set((IonType) change.getValueAdded());
+      }
+    });
+
+    tf.textProperty().bindBidirectional(stringProperty);
+    tf.textProperty().addListener((_, _, _) -> ionTypeProperty.get());
+    return tf;
+  }
+
+  private boolean validate() {
+    return model.getDataModel().get(DataTypes.get(PrecursorMZType.class)) != null
+        && model.getDataModel().get(DataTypes.get(CompoundNameType.class)) != null
+        && !((String) model.getDataModel().get(DataTypes.get(CompoundNameType.class))).isEmpty();
   }
 }
