@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -33,6 +33,7 @@ import static io.github.mzmine.modules.visualization.networking.visual.enums.Nod
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -375,7 +376,7 @@ public class SpectralNetworkingTask extends AbstractTask {
         rowMaps.addAllRowsRelationships(mapCosineSim, Type.MS2_COSINE_SIM);
         rowMaps.addAllRowsRelationships(mapNeutralLoss, Type.MS2_NEUTRAL_LOSS_SIM);
 
-        addNetworkStatisticsToRows();
+        addNetworkStatisticsToRows(featureList);
       }
 
       logger.info("Added %d edges for %s".formatted(mapCosineSim.size(), Type.MS2_COSINE_SIM));
@@ -400,7 +401,7 @@ public class SpectralNetworkingTask extends AbstractTask {
     }
   }
 
-  private void addNetworkStatisticsToRows() {
+  public static void addNetworkStatisticsToRows(@Nullable FeatureList featureList) {
     // create graph from Type.MS2_COSINE_SIM
     // set community and cluster_index
     FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
