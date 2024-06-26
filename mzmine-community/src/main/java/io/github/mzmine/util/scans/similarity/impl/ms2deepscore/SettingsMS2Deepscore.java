@@ -26,14 +26,15 @@
 package io.github.mzmine.util.scans.similarity.impl.ms2deepscore;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public record SettingsMS2Deepscore(@JsonProperty("embedding_dim") Integer embeddingDimension,
-                                   @JsonProperty("ionisation_mode") String ionisationMode,
-                                   @JsonProperty("min_mz") int minimumMZ,
+                                   String ionisationMode, @JsonProperty("min_mz") int minimumMZ,
                                    @JsonProperty("max_mz") int maximumMZ,
                                    @JsonProperty("mz_bin_width") Double binWidth,
-                                   @JsonProperty("additional_metadata") Object[][] additionalMetadata,
-                                   @JsonProperty("intensity_scaling") float intensityScaling
+                                   Object[][] additionalMetadata, float intensityScaling
 
 ) {
 
