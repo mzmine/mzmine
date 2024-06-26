@@ -35,17 +35,22 @@ public abstract class EmbeddingBasedSimilarity {
   public abstract NDArray predictEmbedding(Scan[] scans) throws TranslateException;
 
   public double[][] dotProduct(NDArray embedding1, NDArray embedding2) {
+//    NDManager manager = NDManager.newBaseManager();
+    NDArray newEmbedding1 = embedding1.like();
+    NDArray newEmbedding2 = embedding2.like();
+
+//    NDArray newEmbedding1 = manager.create(embedding1.getShape());
+//    NDArray newEmbedding2 = manager.create(embedding2.getShape());
+
     NDArray norm1 = embedding1.square().sum(new int[]{1}).sqrt();
     NDArray norm2 = embedding2.square().sum(new int[]{1}).sqrt();
-    System.out.println(norm1);
-    System.out.println(norm2);
     for (long i = 0; i < embedding1.getShape().getShape()[0]; i++) {
-      embedding1.set(new NDIndex(i), embedding1.get(i).div(norm1.get(i)));
+      newEmbedding1.set(new NDIndex(i), embedding1.get(i).div(norm1.get(i)));
     }
     for (long i = 0; i < embedding2.getShape().getShape()[0]; i++) {
-      embedding2.set(new NDIndex(i), embedding2.get(i).div(norm2.get(i)));
+      newEmbedding2.set(new NDIndex(i), embedding2.get(i).div(norm2.get(i)));
     }
-    return convertNDArrayToDoubleMatrix(embedding1.dot(embedding2.transpose()));
+    return convertNDArrayToDoubleMatrix(newEmbedding1.dot(newEmbedding2.transpose()));
   }
 
   public double[][] predictMatrix(Scan[] scan1, Scan[] scan2) throws TranslateException {
