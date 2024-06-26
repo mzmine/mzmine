@@ -30,11 +30,15 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.annotations.ConnectedTypeCalculation;
+import io.mzio.users.user.CurrentUserService;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ObservableMap;
@@ -62,8 +66,10 @@ public class CompoundAnnotationController extends FxController<CompoundAnnotatio
   }
 
   public void showWindow() {
-    final Scene scene = new Scene(builder.build(), 500, 500);
+    final Scene scene = new Scene(builder.build(), 500, 400);
     stage.setScene(scene);
+    stage.setTitle("Annotate manually - %s".formatted(
+        ConfigService.getGuiFormats().mz(model.getRow().getAverageMZ())));
     stage.show();
   }
 
@@ -78,6 +84,10 @@ public class CompoundAnnotationController extends FxController<CompoundAnnotatio
 
     dataModel.entrySet().forEach(e -> annotation.put(e.getKey(), e.getValue()));
     ConnectedTypeCalculation.LIST.forEach(ctc -> ctc.calculateIfAbsent(row, annotation));
+
+    annotation.put(DataTypes.get(DatabaseNameType.class), "Annotated manually by %s".formatted(
+        CurrentUserService.getUser() != null ? CurrentUserService.getUser().getNickname()
+            : "unknown user."));
 
     final List<CompoundDBAnnotation> annotations = row.getCompoundAnnotations();
     final List<CompoundDBAnnotation> newAnnotations = new ArrayList<>();

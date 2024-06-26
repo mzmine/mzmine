@@ -52,10 +52,11 @@ import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import io.github.mzmine.util.annotations.ConnectedTypeCalculation;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -71,7 +72,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
@@ -79,6 +79,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.Nullable;
 
@@ -90,7 +91,7 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
 
   private BooleanProperty valid = new SimpleBooleanProperty(false);
 
-  private final List<DataType<?>> excludedTypes = new ArrayList<>();
+  private final Set<DataType<?>> excludedTypes = new HashSet<>();
 
   protected CompoundAnnotationBuilder(CompoundAnnotationModel model, Runnable onSave,
       Runnable onCancel) {
@@ -117,23 +118,26 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
 
     final HBox structWrapper = new HBox();
     main.setTop(structWrapper);
+    int rowCounter = 0;
     for (int i = 0; i < subDataTypes.size(); i++) {
       DataType type = subDataTypes.get(i);
+      if(excludedTypes.contains(type)) {
+        continue;
+      }
       final TextField tf = createTextField(type, structWrapper);
       if (tf == null) {
         continue;
       }
       Label label = new Label(type.getHeaderString());
-      fields.add(label, 0, i);
-      fields.add(tf, 1, i);
+      fields.add(label, 0, rowCounter);
+      fields.add(tf, 1, rowCounter);
 
       Label parsed = new Label();
-//      tf.textProperty().addListener(
-//          (_, _, _) -> type.getFormattedStringCheckType(model.getDataModel().get(type)));
       parsed.textProperty().bind(Bindings.createStringBinding(
           () -> type.getFormattedStringCheckType(model.getDataModel().get(type)),
           tf.textProperty()));
-      fields.add(parsed, 2, i);
+      fields.add(parsed, 2, rowCounter);
+      rowCounter++;
     }
     fields.getColumnConstraints().addAll(new ColumnConstraints(100),
         new ColumnConstraints(100, 300, Double.MAX_VALUE, Priority.ALWAYS, HPos.LEFT, true),
@@ -146,12 +150,13 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
     final Button save = FxButtons.createSaveButton(onSave);
     final Button cancel = FxButtons.createCancelButton(onCancel);
     final FlowPane buttons = FxLayout.newFlowPane(Pos.CENTER_RIGHT, save, cancel);
-    main.setBottom(buttons);
+    final Label required = new Label("Fields \"Compound\" and \"Precursor m/z\" must be defined.");
+    final VBox vBox = FxLayout.newVBox(Pos.TOP_RIGHT, buttons, required);
+    main.setBottom(vBox);
 
-    save.disableProperty().bind(valid.not());
-    Tooltip tooltip = new Tooltip("Fields \"Compound\" and \"Precursor m/z\" must be defined.");
-    save.setTooltip(tooltip);
     valid.bind(Bindings.createBooleanBinding(this::validate, model.getDataModel()));
+    required.disableProperty().bind(valid);
+    save.disableProperty().bind(valid.not());
 
     return main;
   }
@@ -226,7 +231,7 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
           };
         } catch (ParseException e) {
           logger.finest("Cannot parse value %s in field for type %s".formatted(string, numberType));
-          throw new RuntimeException(e);
+          return null;
         }
       }
     };
