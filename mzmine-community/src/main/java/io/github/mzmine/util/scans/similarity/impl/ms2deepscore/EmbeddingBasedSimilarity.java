@@ -34,7 +34,7 @@ public abstract class EmbeddingBasedSimilarity {
 
   public abstract NDArray predictEmbedding(Scan[] scans) throws TranslateException;
 
-  public double[][] dotProduct(NDArray embedding1, NDArray embedding2) {
+  public float[][] dotProduct(NDArray embedding1, NDArray embedding2) {
 //    NDManager manager = NDManager.newBaseManager();
     NDArray newEmbedding1 = embedding1.like();
     NDArray newEmbedding2 = embedding2.like();
@@ -50,24 +50,26 @@ public abstract class EmbeddingBasedSimilarity {
     for (long i = 0; i < embedding2.getShape().getShape()[0]; i++) {
       newEmbedding2.set(new NDIndex(i), embedding2.get(i).div(norm2.get(i)));
     }
-    return convertNDArrayToDoubleMatrix(newEmbedding1.dot(newEmbedding2.transpose()));
+    return convertNDArrayToFloatMatrix(newEmbedding1.dot(newEmbedding2.transpose()));
   }
 
-  public double[][] predictMatrix(Scan[] scan1, Scan[] scan2) throws TranslateException {
+  public float[][] predictMatrix(Scan[] scan1, Scan[] scan2) throws TranslateException {
     NDArray embeddings1 = this.predictEmbedding(scan1);
     NDArray embeddings2 = this.predictEmbedding(scan2);
 
     return this.dotProduct(embeddings1, embeddings2);
   }
 
-  public double[][] convertNDArrayToDoubleMatrix(NDArray ndArray) {
+  public float[][] convertNDArrayToFloatMatrix(NDArray ndArray) {
+//    todo ndArrays can be both float32 or float64. If this function gets a float64 as input,
+//     this method breaks. Not yet sure how to handle this well.
     long[] shape = ndArray.getShape().getShape();
     if (shape.length != 2) {
       throw new AssertionError("The NDArray is not a 2D matrix");
     }
-    double[][] result = new double[(int) shape[0]][(int) shape[1]];
+    float[][] result = new float[(int) shape[0]][(int) shape[1]];
     for (long i = 0; i < shape[0]; i++) {
-      result[(int) i] = ndArray.get(i).toDoubleArray();
+      result[(int) i] = ndArray.get(i).toFloatArray();
     }
     return result;
   }

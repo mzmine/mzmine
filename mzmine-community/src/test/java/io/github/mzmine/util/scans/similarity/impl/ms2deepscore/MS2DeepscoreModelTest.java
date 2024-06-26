@@ -136,14 +136,25 @@ class MS2DeepscoreModelTest {
 
   @Test
   void testPredictMatrix() {
-    double[][] similarityMatrix;
+    float[][] similarityMatrix;
     try {
       similarityMatrix = model.predictMatrix(testSpectra, testSpectra);
     } catch (TranslateException e) {
       throw new RuntimeException(e);
     }
-    //      todo add check that it is correct
+
     System.out.println(Arrays.deepToString(similarityMatrix));
+
+    double[][] expectedSimilarityMatrix = new double[][]{new double[]{1.0, 0.996335},
+        new double[]{0.996335, 1.0}};
+    Assertions.assertEquals(similarityMatrix.length, expectedSimilarityMatrix.length);
+    Assertions.assertEquals(similarityMatrix[0].length, expectedSimilarityMatrix[0].length);
+
+    for (int i = 0; i < similarityMatrix.length; i++) {
+      for (int j = 0; j < similarityMatrix[0].length; j++) {
+        assertEquals(expectedSimilarityMatrix[i][j], similarityMatrix[i][j], 0.0000001);
+      }
+    }
   }
 
   @Test
@@ -152,20 +163,29 @@ class MS2DeepscoreModelTest {
       NDArray embedding1 = manager.create(
           new double[][]{new double[]{1.0, 1.0, 0.0, 0.0}, new double[]{1.0, 0.0, 1.0, 1.0}});
       NDArray embedding2 = manager.create(
-          new double[][]{new double[]{1.0, 1.0, 0.0, 0.0}, new double[]{0.0, 0.0, 1.0, 1.0}});
-      double[][] similarity_matrix = model.dotProduct(embedding1, embedding2);
-//      todo add check that it is correct
-      System.out.println(Arrays.deepToString(similarity_matrix));
+          new double[][]{new double[]{0.0, 1.0, 1.0, 0.0}, new double[]{0.0, 0.0, 1.0, 1.0}});
+      float[][] similarityMatrix = model.dotProduct(embedding1, embedding2);
+      System.out.println(Arrays.deepToString(similarityMatrix));
+      float[][] expectedSimilarityMatrix = new float[][]{new float[]{0.5F, 0.0F},
+          new float[]{0.40824829F, 0.81649658F}};
+      Assertions.assertEquals(similarityMatrix.length, expectedSimilarityMatrix.length);
+      Assertions.assertEquals(similarityMatrix[0].length, expectedSimilarityMatrix[0].length);
+
+      for (int i = 0; i < similarityMatrix.length; i++) {
+        for (int j = 0; j < similarityMatrix[0].length; j++) {
+          assertEquals(similarityMatrix[i][j], expectedSimilarityMatrix[i][j], 0.0000001);
+        }
+      }
     }
   }
 
   @Test
   void testConvertNDArrayToDoubleMatrix() {
     try (NDManager manager = NDManager.newBaseManager()) {
-      double[][] inputMatrix = new double[][]{new double[]{1.0, 1.0, 0.0, 0.0},
-          new double[]{1.0, 0.0, 1.0, 1.0}};
+      float[][] inputMatrix = new float[][]{new float[]{1.0F, 1.0F, 0.0F, 0.0F},
+          new float[]{1.0F, 0.0F, 1.0F, 1.0F}};
       NDArray embedding = manager.create(inputMatrix);
-      double[][] outputMatrix = model.convertNDArrayToDoubleMatrix(embedding);
+      float[][] outputMatrix = model.convertNDArrayToFloatMatrix(embedding);
       Assertions.assertArrayEquals(outputMatrix, inputMatrix);
     }
   }
