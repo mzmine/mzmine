@@ -100,6 +100,7 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
     this.onCancel = onCancel;
 
     excludedTypes.addAll(ConnectedTypeCalculation.MAP.keySet());
+    excludedTypes.remove(DataTypes.get(IonTypeType.class));
     excludedTypes.add(DataTypes.get(CompoundDatabaseMatchesType.class));
     excludedTypes.add(DataTypes.get(CompoundAnnotationScoreType.class));
     excludedTypes.add(DataTypes.get(MolecularStructureType.class));
