@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -23,7 +23,6 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-<<<<<<<< HEAD:mzmine-community/src/main/java/io/github/mzmine/modules/batchmode/change_outfiles/ChangeOutputFilesModule.java
 package io.github.mzmine.modules.batchmode.change_outfiles;
 
 import io.github.mzmine.modules.MZmineModule;
@@ -39,19 +38,7 @@ public class ChangeOutputFilesModule implements MZmineModule {
   @Override
   public @NotNull String getName() {
     return "Change output files";
-========
-package io.github.mzmine.javafx.components.factories;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.scene.control.CheckBox;
-
-public class FxCheckBox {
-
-  public static CheckBox newCheckBox(String text, BooleanProperty selectedProperty) {
-    var box = new CheckBox(text);
-    box.selectedProperty().bindBidirectional(selectedProperty);
-    return box;
->>>>>>>> 69eda4f52 (Merge MZMine changes):javafx-framework/src/main/java/io/github/mzmine/javafx/components/factories/FxCheckBox.java
   }
 
   @Override
