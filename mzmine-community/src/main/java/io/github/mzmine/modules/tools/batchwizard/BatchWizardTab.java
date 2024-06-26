@@ -108,7 +108,7 @@ public class BatchWizardTab extends SimpleTab {
 
   public BatchWizardTab() {
     super("");
-    setGraphic(LightAndDarkModeIcon.mzwizardImage(200, 18));
+    setGraphic(LightAndDarkModeIcon.mzwizardImageTab(200, 18));
     ALL_PRESETS = WizardStepParameters.createAllPresets();
     localPresetsButton = new LastFilesButton("Local presets", true,
         file -> applyLocalPartialSequence(localPresets.get(file)));
