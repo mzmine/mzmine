@@ -52,6 +52,8 @@ public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
   private final ZooModel<NDList, NDList> model;
   private final SettingsMS2Deepscore settings;
   private final SpectrumTensorizer spectrumTensorizer;
+  private final NDManager ndManager;
+  private final Predictor<NDList, NDList> predictor;
 
   public MS2DeepscoreModel(URI modelFilePath, URI settingsFilePath)
       throws ModelNotFoundException, MalformedModelException, IOException {
@@ -68,7 +70,13 @@ public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
           "The model uses an additional metadata format that is not supported. Please use the default MS2Deepscore model or ask the developers for support.");
     }
     this.spectrumTensorizer = new SpectrumTensorizer(settings);
+    this.ndManager = NDManager.newBaseManager();
+    this.predictor = model.newPredictor();
 
+  }
+
+  public void closeNdManager() {
+    ndManager.close();
   }
 
   private SettingsMS2Deepscore loadSettings(URI settingsFilePath) throws IOException {
@@ -85,13 +93,9 @@ public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
 
   public NDArray predictEmbeddingFromTensors(TensorizedSpectra tensorizedSpectra)
       throws TranslateException {
-//    Todo This is an autoclosable object. Using a try block is suggested, but in that case the output is not available outside this function ... I am not sure about how to fix this.
-    NDManager manager = NDManager.newBaseManager();
-    Predictor<NDList, NDList> predictor = model.newPredictor();
     NDList predictions = predictor.predict(
-        new NDList(manager.create(tensorizedSpectra.tensorizedFragments()),
-            manager.create(tensorizedSpectra.tensorizedMetadata())));
-
+        new NDList(ndManager.create(tensorizedSpectra.tensorizedFragments()),
+            ndManager.create(tensorizedSpectra.tensorizedMetadata())));
     return predictions.getFirst();
 
   }

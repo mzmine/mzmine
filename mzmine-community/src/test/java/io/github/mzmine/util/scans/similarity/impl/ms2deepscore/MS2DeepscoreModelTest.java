@@ -77,6 +77,7 @@ class MS2DeepscoreModelTest {
 
   @AfterAll
   static void tearDown() {
+    model.closeNdManager();
   }
 
   // Method to generate a list of 1000 random values
