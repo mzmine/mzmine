@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.io.import_rawdata_all.spectral_processor;
 
 import io.github.mzmine.datamodel.Scan;
+import java.util.Arrays;
 
 /**
  * Data structure to represent spectral data in memory
@@ -44,5 +45,24 @@ public record SimpleSpectralArrays(double[] mzs, double[] intensities) {
 
   public int getNumberOfDataPoints() {
     return mzs().length;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SimpleSpectralArrays that)) {
+      return false;
+    }
+
+    return Arrays.equals(mzs, that.mzs) && Arrays.equals(intensities, that.intensities);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Arrays.hashCode(mzs);
+    result = 31 * result + Arrays.hashCode(intensities);
+    return result;
   }
 }
