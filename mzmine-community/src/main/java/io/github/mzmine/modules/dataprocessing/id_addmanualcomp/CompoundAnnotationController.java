@@ -67,6 +67,8 @@ public class CompoundAnnotationController extends FxController<CompoundAnnotatio
 
   public void showWindow() {
     final Scene scene = new Scene(builder.build(), 500, 400);
+    ConfigService.getConfiguration().getTheme().apply(scene.getStylesheets());
+
     stage.setScene(scene);
     stage.setTitle("Annotate manually - %s".formatted(
         ConfigService.getGuiFormats().mz(model.getRow().getAverageMZ())));

@@ -114,6 +114,7 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
     // added as possibly calculated type, but should be present in the gui
     excludedTypes.remove(DataTypes.get(IonTypeType.class));
     excludedTypes.remove(DataTypes.get(PrecursorMZType.class));
+    excludedTypes.remove(DataTypes.get(FormulaType.class));
   }
 
   @Override
@@ -124,6 +125,7 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
 
     final BorderPane main = new BorderPane();
     final GridPane fields = new GridPane(FxLayout.DEFAULT_SPACE, FxLayout.DEFAULT_SPACE);
+    fields.setPadding(FxLayout.DEFAULT_PADDING_INSETS);
 
     final HBox structWrapper = new HBox();
     main.setTop(structWrapper);
@@ -160,8 +162,9 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
     final Button cancel = FxButtons.createCancelButton(onCancel);
     final FlowPane buttons = FxLayout.newFlowPane(Pos.CENTER_RIGHT, save, cancel);
     final TextFlow required = FxTextFlows.newTextFlow(TextAlignment.RIGHT, text("Fields "),
-        text("\"Compound\""), text("and "), boldText("\"Precursor m/z\""),
-        text("must be defined."));
+        boldText("\"Compound\""), text(" and either of: "), boldText("\"Precursor m/z\""),
+        text(", "), boldText(" \"SMILES\" and \"Adduct\""), text(", or "),
+        boldText("\"Formula\" and \"Adduct\""), text(" must be defined."));
     final VBox vBox = FxLayout.newVBox(Pos.TOP_RIGHT, buttons, required);
     main.setBottom(vBox);
 
@@ -331,6 +334,7 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
   }
 
   private boolean validate() {
+
     return ((model.getDataModel().get(DataTypes.get(PrecursorMZType.class)) != null
         // calc from formula + adduct
         || (model.getDataModel().get(DataTypes.get(FormulaType.class)) != null
