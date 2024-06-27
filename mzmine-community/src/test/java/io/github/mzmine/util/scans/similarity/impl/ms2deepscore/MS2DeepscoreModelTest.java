@@ -146,8 +146,7 @@ class MS2DeepscoreModelTest {
 
     System.out.println(Arrays.deepToString(similarityMatrix));
 
-    double[][] expectedSimilarityMatrix = new double[][]{new double[]{1.0, 0.996335},
-        new double[]{0.996335, 1.0}};
+    double[][] expectedSimilarityMatrix = new double[][]{{1.0, 0.996335}, {0.996335, 1.0}};
     Assertions.assertEquals(similarityMatrix.length, expectedSimilarityMatrix.length);
     Assertions.assertEquals(similarityMatrix[0].length, expectedSimilarityMatrix[0].length);
 
@@ -169,8 +168,7 @@ class MS2DeepscoreModelTest {
 
     System.out.println(Arrays.deepToString(similarityMatrix));
 
-    double[][] expectedSimilarityMatrix = new double[][]{new double[]{1.0, 0.996335},
-        new double[]{0.996335, 1.0}};
+    double[][] expectedSimilarityMatrix = new double[][]{{1.0, 0.996335}, {0.996335, 1.0}};
     Assertions.assertEquals(similarityMatrix.length, expectedSimilarityMatrix.length);
     Assertions.assertEquals(similarityMatrix[0].length, expectedSimilarityMatrix[0].length);
 
@@ -185,12 +183,12 @@ class MS2DeepscoreModelTest {
   void testDotProduct() {
     try (NDManager manager = NDManager.newBaseManager()) {
       NDArray embedding1 = manager.create(
-          new double[][]{new double[]{1.0, 1.0, 0.0, 0.0}, new double[]{1.0, 0.0, 1.0, 1.0}});
+          new double[][]{{1.0, 1.0, 0.0, 0.0}, {1.0, 0.0, 1.0, 1.0}});
       NDArray embedding2 = manager.create(
-          new double[][]{new double[]{0.0, 1.0, 1.0, 0.0}, new double[]{0.0, 0.0, 1.0, 1.0}});
+          new double[][]{{0.0, 1.0, 1.0, 0.0}, {0.0, 0.0, 1.0, 1.0}});
       float[][] similarityMatrix = model.dotProduct(embedding1, embedding2);
       System.out.println(Arrays.deepToString(similarityMatrix));
-      float[][] expectedSimilarityMatrix = new float[][]{new float[]{0.5F, 0.0F},
+      float[][] expectedSimilarityMatrix = new float[][]{{0.5F, 0.0F},
           new float[]{0.40824829F, 0.81649658F}};
       Assertions.assertEquals(similarityMatrix.length, expectedSimilarityMatrix.length);
       Assertions.assertEquals(similarityMatrix[0].length, expectedSimilarityMatrix[0].length);
@@ -206,7 +204,7 @@ class MS2DeepscoreModelTest {
   @Test
   void testConvertNDArrayToFloatMatrix() {
     try (NDManager manager = NDManager.newBaseManager()) {
-      float[][] inputMatrix = new float[][]{new float[]{1.0F, 1.0F, 0.0F, 0.0F},
+      float[][] inputMatrix = new float[][]{{1.0F, 1.0F, 0.0F, 0.0F},
           new float[]{1.0F, 0.0F, 1.0F, 1.0F}};
       NDArray embedding = manager.create(inputMatrix);
       float[][] outputMatrix = model.convertNDArrayToFloatMatrix(embedding);
@@ -217,10 +215,8 @@ class MS2DeepscoreModelTest {
   @Test
   void testConvertNDArrayToFloatMatrixFromDouble() {
     try (NDManager manager = NDManager.newBaseManager()) {
-      double[][] inputMatrix = new double[][]{new double[]{1.0, 1.0, 0.0, 0.0},
-          new double[]{1.0, 0.0, 1.0, 1.0}};
-      float[][] expectedMatrix = new float[][]{new float[]{1.0F, 1.0F, 0.0F, 0.0F},
-          new float[]{1.0F, 0.0F, 1.0F, 1.0F}};
+      double[][] inputMatrix = new double[][]{{1.0, 1.0, 0.0, 0.0}, {1.0, 0.0, 1.0, 1.0}};
+      float[][] expectedMatrix = new float[][]{{1.0F, 1.0F, 0.0F, 0.0F}, {1.0F, 0.0F, 1.0F, 1.0F}};
       NDArray embedding = manager.create(inputMatrix);
       float[][] outputMatrix = model.convertNDArrayToFloatMatrix(embedding);
       Assertions.assertArrayEquals(outputMatrix, expectedMatrix);
