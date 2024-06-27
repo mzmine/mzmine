@@ -225,10 +225,12 @@ public class FeatureTableContextMenu extends ContextMenu {
         selectedRow.set(dt, newList);
         table.refresh();
       });
+
       final MenuItem clearAllAnnotations = new ConditionalMenuItem(
-          "Clear all " + listType.getHeaderString(), () -> selectedRow.get(listType) != null);
+          "Clear all " + listType.getHeaderString(),
+          () -> selectedRows.stream().anyMatch(row -> row.get(listType) != null));
       clearAllAnnotations.setOnAction(e -> {
-        selectedRow.set(listType, null);
+        selectedRows.forEach(r -> r.set(listType, null));
         table.refresh();
       });
       clearAnnotationsMenu.getItems()
