@@ -29,6 +29,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
@@ -41,6 +43,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.util.List;
@@ -49,29 +52,37 @@ import java.util.function.BiFunction;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
- * @param typeToCalculate
- * @param calc
+ * @param typeToCalculate The type to calculate the value for.
+ * @param calc            A function to calculate the desired value of the type. May trhow an
+ *                        {@link NullPointerException} (caught) but no other exception.
  * @param <T>
  */
 public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
                                           BiFunction<FeatureListRow, CompoundDBAnnotation, T> calc) {
 
-  private static final Logger logger = Logger.getLogger(ConnectedTypeCalculation.class.getName());
-
-  public void calculateIfAbsent(FeatureListRow row, CompoundDBAnnotation annotation) {
-    try {
-      if (annotation.get(typeToCalculate) == null) {
-        final T result = calc.apply(row, annotation);
-        annotation.putIfNotNull(typeToCalculate, result);
-      }
-    } catch (NullPointerException e) {
-      logger.info("Cannot calculate value for type: " + typeToCalculate.getUniqueID());
-    }
-  }
-
   public static final List<ConnectedTypeCalculation<?>> LIST = List.of(
+
+      new ConnectedTypeCalculation<>(DataTypes.get(FormulaType.class), (row, db) -> {
+        final String s = db.get(SmilesStructureType.class);
+        final IMolecularFormula formulaFromSmiles = FormulaUtils.getFormulaFromSmiles(s);
+        return MolecularFormulaManipulator.getString(formulaFromSmiles);
+      }),
+
+      new ConnectedTypeCalculation<>(DataTypes.get(PrecursorMZType.class), (row, db) -> {
+        final IonType adduct = db.getAdductType(); // adduct defined
+        final String formula = db.getFormula(); // formula calculated above
+        final IMolecularFormula molFormula = FormulaUtils.createMajorIsotopeMolFormula(formula);
+        try {
+          final IMolecularFormula ionized = adduct.addToFormula(molFormula);
+          return FormulaUtils.calculateMzRatio(ionized);
+        } catch (CloneNotSupportedException e) {
+          return null;
+        }
+      }),
 
       new ConnectedTypeCalculation<>(DataTypes.get(MzPpmDifferenceType.class), (row, db) -> {
         final Double exactMass = db.get(PrecursorMZType.class);
@@ -106,4 +117,20 @@ public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
 
   public static final Map<DataType<?>, ConnectedTypeCalculation<?>> MAP = LIST.stream()
       .collect(Collectors.toMap(ConnectedTypeCalculation::typeToCalculate, ctc -> ctc));
+  private static final Logger logger = Logger.getLogger(ConnectedTypeCalculation.class.getName());
+
+  /**
+   * Calculates and sets the value for the {@link #typeToCalculate()} if the value is not null.
+   * Catches {@link NullPointerException} if it occurs in {@link #calc()}
+   */
+  public void calculateIfAbsent(FeatureListRow row, CompoundDBAnnotation annotation) {
+    try {
+      if (annotation.get(typeToCalculate) == null) {
+        final T result = calc.apply(row, annotation);
+        annotation.putIfNotNull(typeToCalculate, result);
+      }
+    } catch (NullPointerException e) {
+      logger.info("Cannot calculate value for type: " + typeToCalculate.getUniqueID());
+    }
+  }
 }
