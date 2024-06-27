@@ -43,6 +43,12 @@ public abstract class EmbeddingBasedSimilarity {
     return convertNDArrayToFloatMatrix(embedding1.dot(embedding2.transpose()));
   }
 
+  public float[][] predictMatrixSymmetric(Scan[] scans) throws TranslateException {
+    NDArray embeddings1 = this.predictEmbedding(scans);
+
+    return this.dotProduct(embeddings1, embeddings1);
+  }
+
   public float[][] predictMatrix(Scan[] scan1, Scan[] scan2) throws TranslateException {
     NDArray embeddings1 = this.predictEmbedding(scan1);
     NDArray embeddings2 = this.predictEmbedding(scan2);

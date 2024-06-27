@@ -159,6 +159,29 @@ class MS2DeepscoreModelTest {
   }
 
   @Test
+  void testPredictMatrixSymmetric() {
+    float[][] similarityMatrix;
+    try {
+      similarityMatrix = model.predictMatrixSymmetric(testSpectra);
+    } catch (TranslateException e) {
+      throw new RuntimeException(e);
+    }
+
+    System.out.println(Arrays.deepToString(similarityMatrix));
+
+    double[][] expectedSimilarityMatrix = new double[][]{new double[]{1.0, 0.996335},
+        new double[]{0.996335, 1.0}};
+    Assertions.assertEquals(similarityMatrix.length, expectedSimilarityMatrix.length);
+    Assertions.assertEquals(similarityMatrix[0].length, expectedSimilarityMatrix[0].length);
+
+    for (int i = 0; i < similarityMatrix.length; i++) {
+      for (int j = 0; j < similarityMatrix[0].length; j++) {
+        assertEquals(expectedSimilarityMatrix[i][j], similarityMatrix[i][j], 0.0000001);
+      }
+    }
+  }
+
+  @Test
   void testDotProduct() {
     try (NDManager manager = NDManager.newBaseManager()) {
       NDArray embedding1 = manager.create(
