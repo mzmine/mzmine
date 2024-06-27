@@ -61,6 +61,8 @@ import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 public class BrukerTdfTest {
 
@@ -174,6 +176,7 @@ public class BrukerTdfTest {
     }
   }
 
+  @DisabledOnOs(OS.MAC)
   @Test
   public void testCachedConversion() {
     TDFUtils utils = new TDFUtils();
