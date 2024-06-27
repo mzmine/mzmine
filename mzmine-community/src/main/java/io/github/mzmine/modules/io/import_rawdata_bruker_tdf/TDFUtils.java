@@ -350,6 +350,9 @@ public class TDFUtils {
     if (handle == 0L) {
       throw new IllegalStateException("No tdf data file opened yet.");
     }
+    // the buffer is only valid for one frame,
+    // otherwise the index -> mz mapping may change due to temperature compensation
+    indexToMzBuffer.clear();
 
     final List<SimpleSpectralArrays> dataPoints = new ArrayList<>((int) (scanEnd - scanBegin));
 
@@ -406,9 +409,6 @@ public class TDFUtils {
       }
       Arrays.fill(buffer, (byte) 0);
     }
-    // the buffer is only valid for one frame,
-    // otherwise the index -> mz mapping may change due to temperature compensation
-//    indexToMzBuffer.clear();
     return dataPoints;
   }
 
