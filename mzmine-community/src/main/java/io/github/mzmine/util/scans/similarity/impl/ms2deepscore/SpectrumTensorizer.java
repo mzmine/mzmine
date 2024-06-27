@@ -72,15 +72,16 @@ public class SpectrumTensorizer {
 
   private float scalePrecursorMZ(Scan scan, float mean, float standardDeviation) {
 //    @robin what happens if this is null, does that throw an exception?
-    @NotNull double precursorMZ = scan.getPrecursorMz();
-
+    Double precursorMZ = scan.getPrecursorMz();
+    if (precursorMZ == null) {
+      throw new RuntimeException("The precursor mz cannot be null to run ms2deepscore");
+    }
     return (float) (precursorMZ - mean) / standardDeviation;
   }
 
 
   public float[] tensorizeMetadata(Scan scan) {
-    float[] vector = new float[]{scalePrecursorMZ(scan, 0, 1000), binarizePolarity(scan)};
-    return vector;
+    return new float[]{scalePrecursorMZ(scan, 0, 1000), binarizePolarity(scan)};
   }
 
   public TensorizedSpectra tensorizeSpectra(Scan[] scans) {
