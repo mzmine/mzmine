@@ -19,7 +19,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 21,
+        "org.gradle.jvm.version": 22,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-api"
       },
@@ -28,10 +28,10 @@
           "name": "global-events-1.0.0.jar",
           "url": "global-events-1.0.0.jar",
           "size": 2657,
-          "sha512": "dbe383097e4d6f1703124b17bb7b4a68f10b0c5f03a08c938f123b2843fa22d78d564a579d5f4a500668befed07b3202e2800fcea5480b13ccfb982f3ae5e9c2",
-          "sha256": "361b9650f5342591277cc55acd0faf0d8c1a2eb10eac439160de8ac709659444",
-          "sha1": "53f26309004f5291128a2c32acbfa5890ba9fb2a",
-          "md5": "c728484fc976a6e1af7a691b99f15211"
+          "sha512": "28f71a1a2e364f923d3b3186bea4adfced15d0accfa16eb25f6d62d18d529a5730e6e192a1ee629646b4310410ad002684e4b1758ec13cdeeb07ba2dbd030f6d",
+          "sha256": "3c5dba8e6607be960a812aed5d031d3706ade2d44a30b9163f701b9a324fa73c",
+          "sha1": "99e317b73b1e7239286a2dfda1f8547eaf966c20",
+          "md5": "14a32ab1ecad1638606cb49e6be7c9e2"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 21,
+        "org.gradle.jvm.version": 22,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-runtime"
       },
@@ -58,10 +58,10 @@
           "name": "global-events-1.0.0.jar",
           "url": "global-events-1.0.0.jar",
           "size": 2657,
-          "sha512": "dbe383097e4d6f1703124b17bb7b4a68f10b0c5f03a08c938f123b2843fa22d78d564a579d5f4a500668befed07b3202e2800fcea5480b13ccfb982f3ae5e9c2",
-          "sha256": "361b9650f5342591277cc55acd0faf0d8c1a2eb10eac439160de8ac709659444",
-          "sha1": "53f26309004f5291128a2c32acbfa5890ba9fb2a",
-          "md5": "c728484fc976a6e1af7a691b99f15211"
+          "sha512": "28f71a1a2e364f923d3b3186bea4adfced15d0accfa16eb25f6d62d18d529a5730e6e192a1ee629646b4310410ad002684e4b1758ec13cdeeb07ba2dbd030f6d",
+          "sha256": "3c5dba8e6607be960a812aed5d031d3706ade2d44a30b9163f701b9a324fa73c",
+          "sha1": "99e317b73b1e7239286a2dfda1f8547eaf966c20",
+          "md5": "14a32ab1ecad1638606cb49e6be7c9e2"
         }
       ]
     }
