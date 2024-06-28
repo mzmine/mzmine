@@ -28,11 +28,13 @@ package io.github.mzmine.modules.dataprocessing.filter_deleterows;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.mzio.users.user.CurrentUserService;
 import java.time.Instant;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -71,6 +73,20 @@ public class DeleteRowsTask extends AbstractFeatureListTask {
 
   @Override
   public String getTaskDescription() {
-    return "";
+    return "Deleting rows %s from feature list %s.".formatted(rowIdStr, flist.getName());
+  }
+
+  @Override
+  protected void addAppliedMethod() {
+    SimpleFeatureListAppliedMethod appliedMethod = new SimpleFeatureListAppliedMethod(
+        "Manually deleted by user %s".formatted(
+            CurrentUserService.getUser() != null ? CurrentUserService.getUser().getNickname()
+                : "NOT LOGGED IN"), getModuleClass(), getParameters(), moduleCallDate);
+    for (final var flist : getProcessedFeatureLists()) {
+      flist.addDescriptionOfAppliedTask(appliedMethod);
+    }
+    for (final var raw : getProcessedDataFiles()) {
+      raw.getAppliedMethods().add(appliedMethod);
+    }
   }
 }
