@@ -27,11 +27,9 @@ package io.github.mzmine.modules.dataprocessing.id_addmanualcomp;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
@@ -39,7 +37,6 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.annotations.ConnectedTypeCalculation;
 import io.mzio.users.user.CurrentUserService;
-import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ObservableMap;
 import javafx.scene.Scene;
@@ -91,11 +88,7 @@ public class CompoundAnnotationController extends FxController<CompoundAnnotatio
         CurrentUserService.getUser() != null ? CurrentUserService.getUser().getNickname()
             : "unknown user."));
 
-    final List<CompoundDBAnnotation> annotations = row.getCompoundAnnotations();
-    final List<CompoundDBAnnotation> newAnnotations = new ArrayList<>();
-    newAnnotations.add(annotation);
-    newAnnotations.addAll(annotations);
-    row.set(CompoundDatabaseMatchesType.class, newAnnotations);
+    ManualCompoundAnnotationModule.annotate(row, List.of(annotation));
     if (featureTable != null) {
       featureTable.refresh();
     }
