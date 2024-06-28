@@ -122,14 +122,14 @@ jobs:
       - name: Rename macOS file
         if: runner.os == 'macOS'
         run: |
-          mv mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer.dmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer_$RUNNER_ARCH.dmg
-          mv mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_portable.zip mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_portable_$RUNNER_ARCH.dmg
+          mv mzmine-community/build/jpackage/mzmine_macOS_installer.dmg mzmine-community/build/jpackage/mzmine_macOS_installer_$RUNNER_ARCH.dmg
+          mv mzmine-community/build/jpackage/mzmine_macOS_portable.zip mzmine-community/build/jpackage/mzmine_macOS_portable_$RUNNER_ARCH.zip
 
       - name: Upload macOS installer
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v2
         with:
-          name: mzmine_macOS_installer $RUNNER_ARCH
+          name: mzmine_macOS_installer_$RUNNER_ARCH
           path: mzmine-community/build/jpackage/mzmine_macOS_installer_$RUNNER_ARCH.dmg
           retention-days: 7  # store for 7 days
 
