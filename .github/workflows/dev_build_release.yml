@@ -11,7 +11,7 @@ jobs:
     name: test and build
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ ubuntu-latest, macos-latest, macos-latest-large, windows-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -19,12 +19,12 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '22.0.1'
-#          cache: 'gradle'  # now done with gradle
+      #          cache: 'gradle'  # now done with gradle
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-#      in push to master use signed version for macOS defined below
+      #      in push to master use signed version for macOS defined below
       - name: Execute Gradle build (unsigned)
         if: runner.os != 'macOS'
         run: ./gradlew -p mzmine-community --stacktrace --info --warning-mode all
@@ -119,31 +119,37 @@ jobs:
           npm install --python=python3.11 -g appdmg
           appdmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
 
+      - name: Rename macOS file
+        if: runner.os == 'macOS'
+        run: |
+          mv mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer.dmg mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_installer_$RUNNER_ARCH.dmg
+          mv mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_portable.zip mzmine-community/gradle/appdmg.json mzmine-community/build/jpackage/mzmine_macOS_portable_$RUNNER_ARCH.dmg
+
       - name: Upload macOS installer
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v2
         with:
-          name: mzmine_macOS_installer
-          path: mzmine-community/build/jpackage/mzmine_macOS_installer.dmg
+          name: mzmine_macOS_installer $RUNNER_ARCH
+          path: mzmine-community/build/jpackage/mzmine_macOS_installer_$RUNNER_ARCH.dmg
           retention-days: 7  # store for 7 days
 
-#      - name: Remove dmg File and Make .app executable
-#        if: runner.os == 'macOS'
-#        run: |
-#          find ./build/jpackage/ -name '*.dmg' -delete
-#          chmod a+x build/jpackage/mzmine.app/Contents/MacOS/mzmine
-#      - name: Zip portable macos
-#        if: runner.os == 'macOS'
-#        uses: papeloto/action-zip@v1
-#        with:
-#          files: build/jpackage/
-#          dest: build/jpackage/mzmine_macOS_portable.zip
+      #      - name: Remove dmg File and Make .app executable
+      #        if: runner.os == 'macOS'
+      #        run: |
+      #          find ./build/jpackage/ -name '*.dmg' -delete
+      #          chmod a+x build/jpackage/mzmine.app/Contents/MacOS/mzmine
+      #      - name: Zip portable macos
+      #        if: runner.os == 'macOS'
+      #        uses: papeloto/action-zip@v1
+      #        with:
+      #          files: build/jpackage/
+      #          dest: build/jpackage/mzmine_macOS_portable.zip
       - name: Upload macOS portable builds
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v2
         with:
-          name: mzmine_macos_portable
-          path: mzmine-community/build/jpackage/mzmine_macOS_portable.zip
+          name: mzmine_macos_portable_$RUNNER_ARCH
+          path: mzmine-community/build/jpackage/mzmine_macOS_portable_$RUNNER_ARCH.zip
           retention-days: 7  # store for 7 days
 
 
