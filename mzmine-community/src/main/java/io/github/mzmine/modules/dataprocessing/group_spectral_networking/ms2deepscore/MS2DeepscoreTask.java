@@ -27,24 +27,30 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2dee
 
 import static io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingTask.addNetworkStatisticsToRows;
 
+import ai.djl.MalformedModelException;
+import ai.djl.repository.zoo.ModelNotFoundException;
+import ai.djl.translate.TranslateException;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
-import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
+import io.github.mzmine.datamodel.features.correlation.R2RSimpleSimilarity;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.scans.similarity.impl.ms2deepscore.MS2DeepscoreModel;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,8 +82,6 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
     // Get parameter values for easier use
     minSignals = parameters.getValue(MS2DeepscoreParameters.minSignals);
     minScore = parameters.getValue(MS2DeepscoreParameters.minScore);
-//    mzRange = parameters.getEmbeddedParameterValueIfSelectedOrElse(MS2DeepscoreParameters.mzRange,
-//        Range.all());
   }
 
   @Override
@@ -85,13 +89,24 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
 
     // init model
     description = "Loading model 2";
+    MS2DeepscoreModel model;
+    try {
+      URI modelFilePath = Objects.requireNonNull(MS2DeepscoreTask.class.getClassLoader()
+          .getResource("models/java_embeddings_ms2deepscore_model.pt")).toURI();
+      URI settingsFilePath = Objects.requireNonNull(MS2DeepscoreTask.class.getClassLoader()
+          .getResource("models/ms2deepscore_model_settings.json")).toURI();
 
-    // estimate work load - like how many eements to process
+      model = new MS2DeepscoreModel(modelFilePath, settingsFilePath);
+    } catch (ModelNotFoundException | MalformedModelException | IOException |
+             URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+    // estimate work load - like how many elements to process
     totalItems = Arrays.stream(featureLists).mapToLong(FeatureList::getNumberOfRows).sum();
-
+    System.out.println(totalItems);
     // each feature list
     for (FeatureList featureList : featureLists) {
-      processFeatureList(featureList);
+      processFeatureList(featureList, model);
     }
 
     // increment progress
@@ -99,35 +114,36 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
 
   }
 
-  private void processFeatureList(FeatureList featureList) {
-    description = "Vectorize spectra";
+  private void processFeatureList(FeatureList featureList, MS2DeepscoreModel model) {
 
-    List<VectorizedSpectrum> vectors = new ArrayList<>();
+    List<Scan> scanList = new ArrayList<>();
+    List<FeatureListRow> featureListRows = new ArrayList<>();
+
     for (FeatureListRow row : featureList.getRows()) {
       Scan scan = row.getMostIntenseFragmentScan();
       if (scan == null) {
         continue;
       }
-      MassList masses = scan.getMassList();
-      if (masses == null) {
-        throw new MissingMassListException(scan);
-      }
-      // filter by signals
-
-//      vectorize(scan)
+      scanList.add(scan);
+      featureListRows.add(row);
     }
+    Scan[] scans = scanList.toArray(new Scan[0]);
 
-    description = "Create embeddings";
-
-    description = "Calculate similarity";
-    final R2RMap<RowsRelationship> relationsMap = new R2RMap<>();
-
-    if (featureList != null) {
-      R2RNetworkingMaps rowMaps = featureList.getRowMaps();
-      rowMaps.addAllRowsRelationships(relationsMap, Type.MS2Deepscore);
-
-      addNetworkStatisticsToRows(featureList);
+    float[][] similarityMatrix;
+    try {
+      similarityMatrix = model.predictMatrixSymmetric(scans);
+    } catch (TranslateException e) {
+      throw new RuntimeException(e);
     }
+    description = "Calculate MS2Deepscore similarity";
+
+//    Convert the similarity matrix to a R2RMap
+    R2RMap<R2RSimpleSimilarity> relationsMap = convertMatrixToR2RMap(featureListRows,
+        similarityMatrix);
+    R2RNetworkingMaps rowMaps = featureList.getRowMaps();
+    rowMaps.addAllRowsRelationships(relationsMap, Type.MS2Deepscore);
+    addNetworkStatisticsToRows(featureList, rowMaps);
+
   }
 
   public R2RMap<R2RSimpleSimilarity> convertMatrixToR2RMap(List<FeatureListRow> featureListRow,
@@ -156,11 +172,6 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
   @Override
   protected @NotNull List<FeatureList> getProcessedFeatureLists() {
     return List.of(featureLists);
-  }
-
-  record RowStats(int id, double mz, double rt, int numFragmentScans, int maxFragmentSignals,
-                  String annotation, long numSamplesDetected) {
-
   }
 
 }
