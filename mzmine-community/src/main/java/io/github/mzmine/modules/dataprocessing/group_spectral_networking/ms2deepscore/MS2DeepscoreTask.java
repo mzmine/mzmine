@@ -44,13 +44,11 @@ import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.similarity.impl.ms2deepscore.MS2DeepscoreModel;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,6 +63,9 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
   private final @NotNull FeatureList[] featureLists;
   private final int minSignals;
   private final double minScore;
+  private final Path ms2deepscoreModelFile;
+  private final Path ms2deepscoreSettingsFile;
+
 
   private String description;
 
@@ -82,6 +83,12 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
     // Get parameter values for easier use
     minSignals = parameters.getValue(MS2DeepscoreParameters.minSignals);
     minScore = parameters.getValue(MS2DeepscoreParameters.minScore);
+    ms2deepscoreModelFile = parameters.getValue(MS2DeepscoreParameters.ms2deepscoreModelFile)
+        .toPath();
+    ms2deepscoreSettingsFile = parameters.getValue(MS2DeepscoreParameters.ms2deepscoreSettingsFile)
+        .toPath();
+
+
   }
 
   @Override
@@ -91,14 +98,8 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
     description = "Loading model 2";
     MS2DeepscoreModel model;
     try {
-      URI modelFilePath = Objects.requireNonNull(MS2DeepscoreTask.class.getClassLoader()
-          .getResource("models/java_embeddings_ms2deepscore_model.pt")).toURI();
-      URI settingsFilePath = Objects.requireNonNull(MS2DeepscoreTask.class.getClassLoader()
-          .getResource("models/ms2deepscore_model_settings.json")).toURI();
-
-      model = new MS2DeepscoreModel(modelFilePath, settingsFilePath);
-    } catch (ModelNotFoundException | MalformedModelException | IOException |
-             URISyntaxException e) {
+      model = new MS2DeepscoreModel(ms2deepscoreModelFile, ms2deepscoreSettingsFile);
+    } catch (ModelNotFoundException | MalformedModelException | IOException e) {
       throw new RuntimeException(e);
     }
     // estimate work load - like how many elements to process

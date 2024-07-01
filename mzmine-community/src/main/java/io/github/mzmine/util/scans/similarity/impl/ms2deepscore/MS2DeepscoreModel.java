@@ -38,10 +38,8 @@ import ai.djl.translate.TranslateException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.datamodel.Scan;
-import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
@@ -55,11 +53,11 @@ public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
   private final NDManager ndManager;
   private final Predictor<NDList, NDList> predictor;
 
-  public MS2DeepscoreModel(URI modelFilePath, URI settingsFilePath)
+  public MS2DeepscoreModel(Path modelFilePath, Path settingsFilePath)
       throws ModelNotFoundException, MalformedModelException, IOException {
 //        todo load settings as well.
     Criteria<NDList, NDList> criteria = Criteria.builder().setTypes(NDList.class, NDList.class)
-        .optModelPath(Paths.get(modelFilePath))
+        .optModelPath(modelFilePath)
         .optOption("mapLocation", "true") // this model requires mapLocation for GPU
         .optProgress(new ProgressBar()).build();
     this.model = criteria.loadModel();
@@ -79,16 +77,15 @@ public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
     ndManager.close();
   }
 
-  private SettingsMS2Deepscore loadSettings(URI settingsFilePath) throws IOException {
+  private SettingsMS2Deepscore loadSettings(Path settingsFilePath) throws IOException {
 
     ObjectMapper mapper = new ObjectMapper();
     //    Allows skipping fields in json which are not in SettingsMS2Deepscore (the for us useless settings)
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     //    Makes sure that all the important settings were in the json (with the expected name)
     mapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, true);
-
     // JSON file to Java object
-    return mapper.readValue(new File(settingsFilePath), SettingsMS2Deepscore.class);
+    return mapper.readValue(settingsFilePath.toFile(), SettingsMS2Deepscore.class);
   }
 
   public NDArray predictEmbeddingFromTensors(TensorizedSpectra tensorizedSpectra)

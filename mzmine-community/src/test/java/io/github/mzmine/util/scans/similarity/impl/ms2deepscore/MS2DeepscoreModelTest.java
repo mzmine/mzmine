@@ -38,10 +38,11 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.project.impl.RawDataFileImpl;
+import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -54,13 +55,14 @@ class MS2DeepscoreModelTest {
   private static SimpleScan[] testSpectra;
 
   @BeforeAll
-  static void setUp()
-      throws URISyntaxException, ModelNotFoundException, MalformedModelException, IOException {
+  static void setUp() throws ModelNotFoundException, MalformedModelException, IOException {
     // load model and setup objects that are shared with all tests
-    URI modelFilePath = MS2DeepscoreModelTest.class.getClassLoader()
-        .getResource("models/java_embeddings_ms2deepscore_model.pt").toURI();
-    URI settingsFilePath = MS2DeepscoreModelTest.class.getClassLoader()
-        .getResource("models/ms2deepscore_model_settings.json").toURI();
+    Path modelFilePath = new File(Objects.requireNonNull(
+        MS2DeepscoreModelTest.class.getClassLoader()
+            .getResource("models/java_embeddings_ms2deepscore_model.pt")).getFile()).toPath();
+    Path settingsFilePath = new File(Objects.requireNonNull(
+        MS2DeepscoreModelTest.class.getClassLoader()
+            .getResource("models/ms2deepscore_model_settings.json")).getFile()).toPath();
     model = new MS2DeepscoreModel(modelFilePath, settingsFilePath);
 
     RawDataFile dummyFile = new RawDataFileImpl("testfile", null, null,
