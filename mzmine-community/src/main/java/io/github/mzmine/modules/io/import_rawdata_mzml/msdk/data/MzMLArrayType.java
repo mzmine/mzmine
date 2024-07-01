@@ -31,7 +31,8 @@ package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 public enum MzMLArrayType {
   MZ("MS:1000514"), // m/z values array
   INTENSITY("MS:1000515"), // Intensity values array
-  TIME("MS:1000595"); // Retention time values array
+  TIME("MS:1000595"), // Retention time values array
+  WAVELENGTH("MS:1000617"); // wavelength array, eg. PDA detector
 
   private final String accession;
 
