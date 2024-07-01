@@ -130,6 +130,24 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
     }
   }
 
+  public R2RMap<R2RSimpleSimilarity> convertMatrixToR2RMap(List<FeatureListRow> featureListRow,
+      float[][] similarityMatrix) {
+    final R2RMap<R2RSimpleSimilarity> relationsMap = new R2RMap<>();
+    for (int i = 0; i < featureListRow.size(); i++) {
+      for (int j = 0; j < featureListRow.size(); j++) {
+        if (i != j) {
+          float similarityScore = similarityMatrix[i][j];
+          if (similarityScore > minScore) {
+            var r2r = new R2RSimpleSimilarity(featureListRow.get(i), featureListRow.get(j),
+                Type.MS2Deepscore, similarityScore);
+            relationsMap.add(featureListRow.get(i), featureListRow.get(j), r2r);
+          }
+        }
+      }
+    }
+    return relationsMap;
+  }
+
   @Override
   public String getTaskDescription() {
     return description;
