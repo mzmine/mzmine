@@ -124,8 +124,10 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
       if (scan == null) {
         continue;
       }
-      scanList.add(scan);
-      featureListRows.add(row);
+      if (scan.getMassList().getNumberOfDataPoints() >= minSignals) {
+        scanList.add(scan);
+        featureListRows.add(row);
+      }
     }
     Scan[] scans = scanList.toArray(new Scan[0]);
 
@@ -136,7 +138,7 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
       throw new RuntimeException(e);
     }
     description = "Calculate MS2Deepscore similarity";
-
+    System.out.println(featureListRows.size());
 //    Convert the similarity matrix to a R2RMap
     R2RMap<R2RSimpleSimilarity> relationsMap = convertMatrixToR2RMap(featureListRows,
         similarityMatrix);
