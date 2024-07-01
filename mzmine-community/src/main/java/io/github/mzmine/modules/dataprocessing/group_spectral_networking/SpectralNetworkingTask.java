@@ -375,8 +375,10 @@ public class SpectralNetworkingTask extends AbstractTask {
         R2RNetworkingMaps rowMaps = featureList.getRowMaps();
         rowMaps.addAllRowsRelationships(mapCosineSim, Type.MS2_COSINE_SIM);
         rowMaps.addAllRowsRelationships(mapNeutralLoss, Type.MS2_NEUTRAL_LOSS_SIM);
-
-        addNetworkStatisticsToRows(featureList);
+        R2RNetworkingMaps onlyCosineMap = new R2RNetworkingMaps();
+        onlyCosineMap.addAllRowsRelationships(featureList.getMs2SimilarityMap().get(),
+            Type.MS2_COSINE_SIM);
+        addNetworkStatisticsToRows(featureList, onlyCosineMap);
       }
 
       logger.info("Added %d edges for %s".formatted(mapCosineSim.size(), Type.MS2_COSINE_SIM));
@@ -401,14 +403,12 @@ public class SpectralNetworkingTask extends AbstractTask {
     }
   }
 
-  public static void addNetworkStatisticsToRows(@Nullable FeatureList featureList) {
-    // create graph from Type.MS2_COSINE_SIM
+  public static void addNetworkStatisticsToRows(@Nullable FeatureList featureList,
+      R2RNetworkingMaps r2RNetworkingMaps) {
     // set community and cluster_index
     FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
-    R2RNetworkingMaps onlyCosineMap = new R2RNetworkingMaps();
-    onlyCosineMap.addAllRowsRelationships(featureList.getMs2SimilarityMap().get(),
-        Type.MS2_COSINE_SIM);
-    var graph = generator.createNewGraph(featureList.getRows(), false, true, onlyCosineMap, false);
+    var graph = generator.createNewGraph(featureList.getRows(), false, true, r2RNetworkingMaps,
+        false);
     GraphStreamUtils.detectCommunities(graph);
 
     Object2IntMap<Object> communitySizes = GraphStreamUtils.getCommunitySizes(graph);
