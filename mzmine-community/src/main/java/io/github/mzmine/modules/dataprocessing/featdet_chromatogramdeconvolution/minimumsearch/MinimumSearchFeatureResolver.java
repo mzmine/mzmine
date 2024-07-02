@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -146,7 +146,21 @@ public class MinimumSearchFeatureResolver extends AbstractResolver {
               && currentRegionHeight >= peakMinRight * minRatio && xRange
               .contains(x[currentRegionEnd] - x[currentRegionStart])) {
 
-            resolved.add(Range.closed(x[currentRegionStart], x[currentRegionEnd]));
+            int start;
+            if(y[currentRegionStart] != 0.0 && y[Math.max(currentRegionStart - 1, 0)] == 0.0) {
+              start = currentRegionStart - 1;
+            } else {
+              start = currentRegionStart;
+            }
+
+            int end;
+            if(y[currentRegionEnd] != 0.0 && y[Math.min(currentRegionEnd + 1, y.length - 1)] == 0.0) {
+              end = currentRegionEnd + 1;
+            } else {
+              end = currentRegionEnd;
+            }
+
+            resolved.add(Range.closed(x[start], x[end]));
           }
 
           // Set the next region start to current region end - 1
