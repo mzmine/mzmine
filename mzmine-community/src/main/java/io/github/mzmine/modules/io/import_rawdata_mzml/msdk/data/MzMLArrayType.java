@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,10 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * Enumeration of different types of arrays which are parsed by the MzML Parser
  */
@@ -34,10 +38,21 @@ public enum MzMLArrayType {
   TIME("MS:1000595"), // Retention time values array
   WAVELENGTH("MS:1000617"); // wavelength array, eg. PDA detector
 
+  private static final Map<String, MzMLArrayType> map = Arrays.stream(MzMLArrayType.values()).collect(
+      Collectors.toMap(MzMLArrayType::getAccession, v -> v));
+
   private final String accession;
 
   MzMLArrayType(String accession) {
     this.accession = accession;
+  }
+
+  public static MzMLArrayType ofAccession(String accession) {
+    return map.get(accession);
+  }
+
+  public static boolean isArrayTypeAccession(String accession) {
+    return map.containsKey(accession);
   }
 
   /**

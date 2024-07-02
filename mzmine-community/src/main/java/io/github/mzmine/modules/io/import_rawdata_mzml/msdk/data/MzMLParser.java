@@ -313,24 +313,24 @@ public class MzMLParser {
       String openingTagName) throws XMLStreamException {
     if (openingTagName.contentEquals(MzMLTags.TAG_CHROMATOGRAM)) {
       String chromatogramId = getRequiredAttribute(xmlStreamReader, "id").toString();
-      Integer chromatogramNumber = getRequiredAttribute(xmlStreamReader, "index").toInt() + 1;
-      vars.defaultArrayLength = getRequiredAttribute(xmlStreamReader, "defaultArrayLength").toInt();
+      Integer chromatogramNumber =
+          Integer.parseInt(getRequiredAttribute(xmlStreamReader, "index")) + 1;
+      vars.defaultArrayLength =
+          Integer.parseInt(getRequiredAttribute(xmlStreamReader, "defaultArrayLength")) + 1;
       vars.chromatogram = new MzMLChromatogram(newRawFile, chromatogramId, chromatogramNumber,
           vars.defaultArrayLength);
-
     } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
       if (!tracker.inside(MzMLTags.TAG_BINARY_DATA_ARRAY) && !tracker.inside(MzMLTags.TAG_PRECURSOR)
           && !tracker.inside(MzMLTags.TAG_PRODUCT) && vars.chromatogram != null) {
         MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
         vars.chromatogram.getCVParams().addCVParam(cvParam);
       }
-
     } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
       vars.skipBinaryDataArray = false;
-      int encodedLength = getRequiredAttribute(xmlStreamReader, "encodedLength").toInt();
+      int encodedLength = Integer.parseInt(getRequiredAttribute(xmlStreamReader, "encodedLength"));
       final String arrayLength = xmlStreamReader.getAttributeValue(null, "arrayLength");
       if (arrayLength != null) {
-        vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, arrayLength.toInt());
+        vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, Integer.parseInt(arrayLength));
       } else {
         vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, vars.defaultArrayLength);
       }
@@ -366,11 +366,11 @@ public class MzMLParser {
         && !vars.skipBinaryDataArray) {
       String accession = getRequiredAttribute(xmlStreamReader, "accession").toString();
       if (vars.binaryDataInfo.isBitLengthAccession(accession)) {
-        vars.binaryDataInfo.setBitLength(accession);
-      } else if (vars.binaryDataInfo.isCompressionTypeAccession(accession)) {
+        vars.binaryDataInfo.setBitLength(MzMLBitLength.of(accession));
+      } else if (MzMLCompressionType.isCompressionTypeAccession(accession)) {
         manageCompression(vars.binaryDataInfo, accession);
-      } else if (vars.binaryDataInfo.isArrayTypeAccession(accession)) {
-        vars.binaryDataInfo.setArrayType(accession);
+      } else if (MzMLArrayType.isArrayTypeAccession(accession)) {
+        vars.binaryDataInfo.setArrayType(MzMLArrayType.ofAccession(accession));
       } else {
         vars.skipBinaryDataArray = true;
       }
@@ -513,13 +513,11 @@ public class MzMLParser {
     } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
       if (closingTagName.contentEquals(MzMLTags.TAG_CHROMATOGRAM)) {
         if (vars.chromatogram.getRtBinaryDataInfo() != null
-            && vars.chromatogram.getIntensityBinaryDataInfo() != null && (importer.getMzMLFile()
-            != null)) {
+            && vars.chromatogram.getIntensityBinaryDataInfo() != null && (newRawFile != null)) {
           vars.chromatogramsList.add(vars.chromatogram);
         }
       }
     }
-
   }
 
   /**
@@ -635,7 +633,7 @@ public class MzMLParser {
     if (attrValue == null) {
       throw new IllegalStateException(
           "Tag " + xmlStreamReader.getLocalName() + " must provide an `" + attr
-          + "`attribute (Line " + xmlStreamReader.getLocation().getLineNumber() + ")");
+              + "`attribute (Line " + xmlStreamReader.getLocation().getLineNumber() + ")");
     }
     return attrValue;
   }

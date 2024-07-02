@@ -46,7 +46,6 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javolution.text.CharArray;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -402,7 +401,7 @@ class MzMLChromatogram implements Chromatogram {
     return this.rtValues;
   }
 
-  public void processBinaryChromatogramValues(CharArray xmlMzContent,
+  public void processBinaryChromatogramValues(String xmlMzContent,
       MzMLBinaryDataInfo binaryDataInfo) {
     if (binaryDataInfo.getArrayLength() != numOfDataPoints) {
       logger.warning(
