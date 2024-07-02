@@ -26,7 +26,7 @@
 package io.github.mzmine.datamodel.otherdetectors;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
+import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,26 +46,27 @@ public interface OtherSpectraFile {
   @NotNull
   List<@NotNull Spectrum> getSpectra();
 
+  RawDataFile getRawDataFile();
+
   @NotNull
-  List<@NotNull OtherTimeSeries> getOtherTimeSeries();
+  IntensityTimeSeries getTimeSeries(int index);
 
-  String getDomainAxisLabelForSpectra();
+  @NotNull
+  List<@NotNull IntensityTimeSeries> getTimeSeries();
 
-  String getDomainAxisUnitForSpectra();
+  String getSpectraDomainLabel();
 
-  String getRangeAxisLabelForSpectra();
+  String getSpectraDomainUnit();
 
-  String getRangeAxisUnitForSpectra();
+  String getSpectraRangeLabel();
 
-  String getRangeAxisLabelForTimeSeries();
+  String getSpectraRangeUnit();
 
-  String getRangeAxisUnitForTimeSeries();
+  String getTimeSeriesDomainLabel();
 
-  default String getDomainAxisLabelForTimeSeries() {
-    return "RT";
-  }
+  String getTimeSeriesDomainUnit();
 
-  default Unit getDomainAxisUnitForTimeSeries() {
-    return Unit.MINUTES;
-  }
+  String getTimeSeriesRangeLabel();
+
+  String getTimeSeriesRangeUnit();
 }

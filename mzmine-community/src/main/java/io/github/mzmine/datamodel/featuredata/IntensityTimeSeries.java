@@ -23,40 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.otherdetectors;
+package io.github.mzmine.datamodel.featuredata;
 
-import io.github.mzmine.datamodel.RawDataFile;
+public interface IntensityTimeSeries extends IntensitySeries, TimeSeries {
 
-/**
- * Basic interface of spectral data. Does not have to be mass spectral data.
- */
-public interface Spectrum {
-
-  double getDomainValue(int index);
-
-  double getRangeValue(int index);
-
-  int getNumberOfValues();
-
-  default String getDomainUnit() {
-    return getOtherSpectraFile().getSpectraDomainUnit();
-  }
-
-  default String getRangeUnit() {
-    return getOtherSpectraFile().getSpectraRangeUnit();
-  }
-
-  default String getRangeLabel() {
-    return getOtherSpectraFile().getSpectraRangeLabel();
-  }
-
-  default String getDomainLabel() {
-    return getOtherSpectraFile().getSpectraDomainLabel();
-  }
-
-  default RawDataFile getMsRawDataFile() {
-    return getOtherSpectraFile().getRawDataFile();
-  }
-
-  OtherSpectraFile getOtherSpectraFile();
 }
