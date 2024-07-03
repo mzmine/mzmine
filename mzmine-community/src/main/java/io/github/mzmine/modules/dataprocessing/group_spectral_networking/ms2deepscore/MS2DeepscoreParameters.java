@@ -25,6 +25,12 @@
 
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.ms2deepscorePaper;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -33,8 +39,10 @@ import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.util.Objects;
+import javafx.scene.layout.Region;
 
 /**
  * Define any parameters here (see io.github.mzmine.parameters for parameter types) static is needed
@@ -74,4 +82,13 @@ public class MS2DeepscoreParameters extends SimpleParameterSet {
         ms2deepscoreSettingsFile);
   }
 
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
+        text("When using MS2Deepscore please cite:"), linebreak(), ms2deepscorePaper);
+
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
 }

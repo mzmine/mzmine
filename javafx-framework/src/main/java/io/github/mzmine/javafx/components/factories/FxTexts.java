@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The MZmine Development Team
+ * Copyright (c) 2004-2024 The mzmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,6 +53,10 @@ public class FxTexts {
   public static final Text sirius4Paper = hyperlinkText(
       "Dührkop, K., Fleischauer, M., Ludwig, M. et al. Nat Methods 16, 299–302 (2019)",
       "http://dx.doi.org/10.1038/s41592-019-0344-8");
+
+  public static final Text ms2deepscorePaper = hyperlinkText(
+      "Niek de Jonge, David Joas, Lem-Joe Truong, Justin J.J. van der Hooft, Florian Huber\n"
+          + "bioRxiv 2024.03.25.586580", "https://doi.org/10.1101/2024.03.25.586580");
 
   public static Text text(String content) {
     return new Text(content);
