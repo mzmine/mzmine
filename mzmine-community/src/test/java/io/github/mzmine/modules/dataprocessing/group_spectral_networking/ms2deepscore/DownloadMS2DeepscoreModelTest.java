@@ -35,7 +35,7 @@ import org.junit.jupiter.api.io.TempDir;
 class DownloadMS2DeepscoreModelTest {
 
   @Test
-  void parseStructureSmiles(@TempDir Path tempDir) {
+  void downloadSettings(@TempDir Path tempDir) {
     File file = DownloadMS2DeepscoreModel.download_settings(tempDir.toFile());
     assertTrue(file.exists());
   }
