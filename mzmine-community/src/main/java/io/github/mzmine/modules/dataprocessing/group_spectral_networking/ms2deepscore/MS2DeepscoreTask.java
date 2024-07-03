@@ -91,7 +91,6 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
     ms2deepscoreSettingsFile = parameters.getValue(MS2DeepscoreParameters.ms2deepscoreSettingsFile)
         .toPath();
     downloadModel = parameters.getValue(MS2DeepscoreParameters.downloadDirectory);
-    System.out.println(downloadModel);
     if (downloadModel) {
       final DirectoryParameter directoryParameter = parameters.getParameter(
           MS2DeepscoreParameters.downloadDirectory).getEmbeddedParameter();
@@ -155,7 +154,6 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
       throw new RuntimeException(e);
     }
     description = "Calculate MS2Deepscore similarity";
-    System.out.println(featureListRows.size());
 //    Convert the similarity matrix to a R2RMap
     R2RMap<R2RSimpleSimilarity> relationsMap = convertMatrixToR2RMap(featureListRows,
         similarityMatrix);
