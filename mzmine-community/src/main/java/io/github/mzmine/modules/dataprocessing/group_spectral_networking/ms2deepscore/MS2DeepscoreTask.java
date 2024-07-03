@@ -40,9 +40,11 @@ import io.github.mzmine.datamodel.features.correlation.R2RSimpleSimilarity;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.similarity.impl.ms2deepscore.MS2DeepscoreModel;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -63,9 +65,6 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
   private final @NotNull FeatureList[] featureLists;
   private final int minSignals;
   private final double minScore;
-  private final Path ms2deepscoreModelFile;
-  private final Path ms2deepscoreSettingsFile;
-
   private Path ms2deepscoreModelFile;
   private Path ms2deepscoreSettingsFile;
   private final Boolean downloadModel;
@@ -91,7 +90,6 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
         .toPath();
     ms2deepscoreSettingsFile = parameters.getValue(MS2DeepscoreParameters.ms2deepscoreSettingsFile)
         .toPath();
-
     downloadModel = parameters.getValue(MS2DeepscoreParameters.downloadDirectory);
     System.out.println(downloadModel);
     if (downloadModel) {
@@ -112,18 +110,18 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
           .toPath();
 
       ms2deepscoreModelFile = DownloadMS2DeepscoreModel.downloadModel(downloadDirectory).toPath();
-
+    }
     // init model
-    description = "Loading model 2";
+    description = "Loading model";
     MS2DeepscoreModel model;
     try {
       model = new MS2DeepscoreModel(ms2deepscoreModelFile, ms2deepscoreSettingsFile);
     } catch (ModelNotFoundException | MalformedModelException | IOException e) {
       throw new RuntimeException(e);
     }
+    description = "Calculating MS2Deepscore similarity";
     // estimate work load - like how many elements to process
     totalItems = Arrays.stream(featureLists).mapToLong(FeatureList::getNumberOfRows).sum();
-    System.out.println(totalItems);
     // each feature list
     for (FeatureList featureList : featureLists) {
       processFeatureList(featureList, model);
@@ -131,7 +129,6 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
 
     // increment progress
     incrementFinishedItems();
-
   }
 
   private void processFeatureList(FeatureList featureList, MS2DeepscoreModel model) {
