@@ -30,8 +30,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Paths;
-import java.util.Objects;
 import org.apache.commons.io.FileUtils;
 
 public class DownloadMS2DeepscoreModel {
@@ -53,30 +51,17 @@ public class DownloadMS2DeepscoreModel {
     }
   }
 
-  private static File getResourceModelFile(String fileName) {
-    URI modelsFolder;
-    try {
-      modelsFolder = Objects.requireNonNull(
-          DownloadMS2DeepscoreModel.class.getClassLoader().getResource("models")).toURI();
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-    File ModelsFolderPath = Paths.get(modelsFolder).toFile();
-    return new File(ModelsFolderPath, fileName);
-  }
-
-  public static File download_settings() {
+  public static File download_settings(File saveDirectory) {
     String fileURL = "https://zenodo.org/records/12628369/files/settings.json?download=1";
-    File file = getResourceModelFile("ms2deepscore_model_settings.json");
-    downloadFile(fileURL, file);
-    System.out.println(file);
-    return file;
+    File settingsFile = new File(saveDirectory, "ms2deepscore_model_settings.json");
+    downloadFile(fileURL, settingsFile);
+    return settingsFile;
   }
 
-  public static File download_model() {
+  public static File download_model(File saveDirectory) {
     String fileURL = "https://zenodo.org/records/12628369/files/ms2deepscore_model_java.pt?download=1";
-    File file = getResourceModelFile("ms2deepscore_model.pt");
-    downloadFile(fileURL, file);
-    return file;
+    File modelFile = new File(saveDirectory, "ms2deepscore_model.pt");
+    downloadFile(fileURL, modelFile);
+    return modelFile;
   }
 }
