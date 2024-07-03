@@ -25,38 +25,24 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
-import io.github.mzmine.datamodel.RawDataFile;
+public enum DetectorType {
 
-/**
- * Basic interface of spectral data. Does not have to be mass spectral data.
- */
-public interface Spectrum {
+  OTHER("Other", "Other"), PDA("PDA", "Photo diode array detector"), UV_VIS("UV/VIS",
+      "UV/VIS"), PUMP_PRESSURE("p", "pressure"), COMPOSITION("composition", "composition");
 
-  double getDomainValue(int index);
+  String abbreviation;
+  String fullName;
 
-  double getRangeValue(int index);
-
-  int getNumberOfValues();
-
-  default String getDomainUnit() {
-    return getOtherSpectraFile().getSpectraDomainUnit();
+  DetectorType(String abbreviation, String fullName) {
+    this.abbreviation = abbreviation;
+    this.fullName = fullName;
   }
 
-  default String getRangeUnit() {
-    return getOtherSpectraFile().getSpectraRangeUnit();
+  public String getAbbreviation() {
+    return abbreviation;
   }
 
-  default String getRangeLabel() {
-    return getOtherSpectraFile().getSpectraRangeLabel();
+  public String getFullName() {
+    return fullName;
   }
-
-  default String getDomainLabel() {
-    return getOtherSpectraFile().getSpectraDomainLabel();
-  }
-
-  default RawDataFile getMsRawDataFile() {
-    return getOtherSpectraFile().getRawDataFile();
-  }
-
-  OtherDataFile getOtherSpectraFile();
 }

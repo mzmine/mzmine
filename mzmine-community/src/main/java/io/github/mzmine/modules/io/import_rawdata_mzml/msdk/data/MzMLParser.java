@@ -316,7 +316,7 @@ public class MzMLParser {
       Integer chromatogramNumber =
           Integer.parseInt(getRequiredAttribute(xmlStreamReader, "index")) + 1;
       vars.defaultArrayLength =
-          Integer.parseInt(getRequiredAttribute(xmlStreamReader, "defaultArrayLength")) + 1;
+          Integer.parseInt(getRequiredAttribute(xmlStreamReader, "defaultArrayLength"));
       vars.chromatogram = new MzMLChromatogram(newRawFile, chromatogramId, chromatogramNumber,
           vars.defaultArrayLength);
     } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {

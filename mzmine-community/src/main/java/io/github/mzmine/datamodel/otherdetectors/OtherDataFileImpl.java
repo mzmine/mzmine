@@ -32,7 +32,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OtherSpectraFileImpl implements OtherSpectraFile {
+public class OtherDataFileImpl implements OtherDataFile {
 
   private final RawDataFile rawDataFile;
   private final List<IntensityTimeSeries> timeSeries = new ArrayList<>();
@@ -48,33 +48,13 @@ public class OtherSpectraFileImpl implements OtherSpectraFile {
   private @Nullable String timeSeriesRangeLabel;
   private @Nullable String timeSeriesRangeUnit;
 
-  public OtherSpectraFileImpl(RawDataFile rawDataFile) {
+  public OtherDataFileImpl(RawDataFile rawDataFile) {
     this.rawDataFile = rawDataFile;
   }
 
   @Override
   public @NotNull RawDataFile getCorrespondingRawDataFile() {
     return rawDataFile;
-  }
-
-  @Override
-  public boolean hasTimeSeries() {
-    return !timeSeries.isEmpty();
-  }
-
-  @Override
-  public boolean hasSpectra() {
-    return !spectra.isEmpty();
-  }
-
-  @Override
-  public int getNumberOfSpectra() {
-    return spectra.size();
-  }
-
-  @Override
-  public int getNumberOfTimeSeries() {
-    return timeSeries.size();
   }
 
   @Override

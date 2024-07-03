@@ -30,18 +30,26 @@ import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public interface OtherSpectraFile {
+public interface OtherDataFile {
 
   @NotNull
   RawDataFile getCorrespondingRawDataFile();
 
-  boolean hasTimeSeries();
+  default boolean hasTimeSeries() {
+    return !getTimeSeries().isEmpty();
+  }
 
-  boolean hasSpectra();
+  default boolean hasSpectra() {
+    return !getSpectra().isEmpty();
+  }
 
-  int getNumberOfSpectra();
+  default int getNumberOfSpectra() {
+    return getSpectra().size();
+  }
 
-  int getNumberOfTimeSeries();
+  default int getNumberOfTimeSeries() {
+    return getTimeSeries().size();
+  }
 
   @NotNull
   List<@NotNull Spectrum> getSpectra();
