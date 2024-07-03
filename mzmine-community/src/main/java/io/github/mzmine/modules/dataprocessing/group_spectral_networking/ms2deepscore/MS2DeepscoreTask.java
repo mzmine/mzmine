@@ -66,6 +66,10 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
   private final Path ms2deepscoreModelFile;
   private final Path ms2deepscoreSettingsFile;
 
+  private Path ms2deepscoreModelFile;
+  private Path ms2deepscoreSettingsFile;
+  private final Boolean downloadModel;
+  private final File downloadDirectory;
 
   private String description;
 
@@ -88,11 +92,25 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
     ms2deepscoreSettingsFile = parameters.getValue(MS2DeepscoreParameters.ms2deepscoreSettingsFile)
         .toPath();
 
-
+    downloadModel = parameters.getValue(MS2DeepscoreParameters.downloadDirectory);
+    System.out.println(downloadModel);
+    if (downloadModel) {
+      final DirectoryParameter directoryParameter = parameters.getParameter(
+          MS2DeepscoreParameters.downloadDirectory).getEmbeddedParameter();
+      downloadDirectory = directoryParameter.getValue();
+    } else {
+      downloadDirectory = null;
+    }
   }
 
   @Override
   protected void process() {
+    description = "Downloading model";
+    if (downloadModel) {
+      ms2deepscoreSettingsFile = DownloadMS2DeepscoreModel.download_settings(downloadDirectory)
+          .toPath();
+
+      ms2deepscoreModelFile = DownloadMS2DeepscoreModel.download_model(downloadDirectory).toPath();
 
     // init model
     description = "Loading model 2";

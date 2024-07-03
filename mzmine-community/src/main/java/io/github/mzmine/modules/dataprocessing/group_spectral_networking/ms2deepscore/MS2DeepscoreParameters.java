@@ -27,10 +27,14 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2dee
 
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.util.Objects;
 
 /**
  * Define any parameters here (see io.github.mzmine.parameters for parameter types) static is needed
@@ -48,21 +52,26 @@ public class MS2DeepscoreParameters extends SimpleParameterSet {
   public static final PercentParameter minScore = new PercentParameter("Min similarity",
       "The minimum similarity score to store the MS2Deepscore prediction", 0.9, 0.0, 1.0);
 
+  public static final OptionalParameter<DirectoryParameter> downloadDirectory = new OptionalParameter<>(
+      new DirectoryParameter("Download model directory",
+          "The directory in which the model is stored",
+          Objects.requireNonNull(FileAndPathUtil.resolveInMzmineDir("models")).toString()));
   public static final FileNameParameter ms2deepscoreModelFile = new FileNameParameter(
       "MS2Deepscore model",
       "The file location of the MS2Deepscore model, click download to download the model.",
-      FileSelectionType.OPEN, false);
+      FileSelectionType.OPEN, true);
 
   public static final FileNameParameter ms2deepscoreSettingsFile = new FileNameParameter(
       "MS2Deepscore model settings file",
       "The file location of the settings.json file, click download to download the model and settings.",
-      FileSelectionType.OPEN, false);
+      FileSelectionType.OPEN, true);
 
   public MS2DeepscoreParameters() {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */
-    super(featureLists, minSignals, minScore, ms2deepscoreModelFile, ms2deepscoreSettingsFile);
+    super(featureLists, minSignals, minScore, downloadDirectory, ms2deepscoreModelFile,
+        ms2deepscoreSettingsFile);
   }
 
 }
