@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -236,6 +236,8 @@ public class MzMLCV {
    * Constant <code>cvRetentionTimeArray="MS:1000595"</code>
    */
   public static final String cvRetentionTimeArray = "MS:1000595";
+
+  public static final String cvWavelengthArray = "MS:1000617";
 
   // UV spectrum, actually "electromagnetic radiation spectrum"
   /**

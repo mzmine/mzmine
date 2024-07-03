@@ -141,7 +141,6 @@ public class MzMLParser {
       } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
         MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
         vars.referenceableParamGroup.addCVParam(cvParam);
-
       }
     }
 
@@ -154,8 +153,6 @@ public class MzMLParser {
         Integer scanNumber = getScanNumber(id).orElse(index + 1);
         //        vars.spectrum = new BuildingMzMLMsScan(newRawFile, id, scanNumber, vars.defaultArrayLength);
         vars.spectrum = new BuildingMzMLMsScan(id, scanNumber, vars.defaultArrayLength);
-
-
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY_DATA_ARRAY)) {
         vars.skipBinaryDataArray = false;
         int encodedLength = Integer.parseInt(
@@ -220,11 +217,14 @@ public class MzMLParser {
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY)) {
         //todo check if we can put this before previous if and use this to create boolean to indicate detection of both mzs and intensities
         if (!vars.skipBinaryDataArray) {
-          if (MzMLCV.cvMzArray.equals(vars.binaryDataInfo.getArrayType().getAccession())) {
+          if (MzMLArrayType.MZ == vars.binaryDataInfo.getArrayType()) {
             vars.spectrum.setMzBinaryDataInfo(vars.binaryDataInfo);
           }
-          if (MzMLCV.cvIntensityArray.equals(vars.binaryDataInfo.getArrayType().getAccession())) {
+          if (MzMLArrayType.INTENSITY == vars.binaryDataInfo.getArrayType()) {
             vars.spectrum.setIntensityBinaryDataInfo(vars.binaryDataInfo);
+          }
+          if (MzMLArrayType.WAVELENGTH == vars.binaryDataInfo.getArrayType()) {
+            vars.spectrum.setWavelengthBinaryDataInfo(vars.binaryDataInfo);
           }
         }
         if (vars.spectrum != null && !vars.skipBinaryDataArray) {
@@ -315,8 +315,8 @@ public class MzMLParser {
       String chromatogramId = getRequiredAttribute(xmlStreamReader, "id").toString();
       Integer chromatogramNumber =
           Integer.parseInt(getRequiredAttribute(xmlStreamReader, "index")) + 1;
-      vars.defaultArrayLength =
-          Integer.parseInt(getRequiredAttribute(xmlStreamReader, "defaultArrayLength"));
+      vars.defaultArrayLength = Integer.parseInt(
+          getRequiredAttribute(xmlStreamReader, "defaultArrayLength"));
       vars.chromatogram = new MzMLChromatogram(newRawFile, chromatogramId, chromatogramNumber,
           vars.defaultArrayLength);
     } else if (openingTagName.contentEquals(MzMLTags.TAG_CV_PARAM)) {
@@ -527,8 +527,13 @@ public class MzMLParser {
   private void filterProcessFinalizeScan() {
     var spectrum = vars.spectrum;
 //    logger.info(STR."Finalizing scan \{spectrum.getScanNumber()}");
+    if (spectrum.isUVSpectrum()) {
+      logger.info("This is an uv spectrum");
+      return;
+    }
+
     if (scanProcessorConfig.scanFilter().matches(spectrum)) {
-      if (spectrum.loadProcessMemMapData(storage, scanProcessorConfig)) {
+      if (spectrum.loadProcessMemMapMzData(storage, scanProcessorConfig)) {
         vars.addSpectrumToList(storage, spectrum);
       }
     }

@@ -52,7 +52,7 @@ public interface OtherDataFile {
   }
 
   @NotNull
-  List<@NotNull Spectrum> getSpectra();
+  List<@NotNull OtherSpectrum> getSpectra();
 
   RawDataFile getRawDataFile();
 

@@ -36,7 +36,7 @@ public class OtherDataFileImpl implements OtherDataFile {
 
   private final RawDataFile rawDataFile;
   private final List<IntensityTimeSeries> timeSeries = new ArrayList<>();
-  private final List<Spectrum> spectra = new ArrayList<>();
+  private final List<OtherSpectrum> spectra = new ArrayList<>();
 
   private @Nullable String spectraDomainLabel;
   private @Nullable String spectraDomainUnit;
@@ -58,7 +58,7 @@ public class OtherDataFileImpl implements OtherDataFile {
   }
 
   @Override
-  public @NotNull List<@NotNull Spectrum> getSpectra() {
+  public @NotNull List<@NotNull OtherSpectrum> getSpectra() {
     return spectra;
   }
 
@@ -77,7 +77,7 @@ public class OtherDataFileImpl implements OtherDataFile {
     return timeSeries;
   }
 
-  public void addSpectrum(@NotNull Spectrum spectrum) {
+  public void addSpectrum(@NotNull OtherSpectrum spectrum) {
     spectra.add(spectrum);
   }
 

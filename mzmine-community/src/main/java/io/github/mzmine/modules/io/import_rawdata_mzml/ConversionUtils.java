@@ -36,6 +36,8 @@ import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
+import io.github.mzmine.datamodel.otherdetectors.OtherSpectrum;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
@@ -111,6 +113,18 @@ public class ConversionUtils {
       case NEGATIVE -> PolarityType.NEGATIVE;
       default -> PolarityType.UNKNOWN;
     };
+  }
+
+  public static OtherSpectrum toWavelengthSpectrum(OtherDataFile file, BuildingMzMLMsScan scan) {
+    if (!scan.isUVSpectrum()) {
+      throw new RuntimeException("Spectrum is not an UV spectrum");
+    }
+    if (!scan.getCVParams().getCVParamsList().stream()
+        .anyMatch(param -> param.getAccession().equals(MzMLCV.cvUVSpectrum))) {
+      throw new RuntimeException("CV param for UV spectra not found.");
+    }
+
+
   }
 
 

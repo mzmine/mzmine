@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 /**
  * Basic interface of spectral data. Does not have to be mass spectral data.
  */
-public interface Spectrum {
+public interface OtherSpectrum {
 
   double getDomainValue(int index);
 

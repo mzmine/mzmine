@@ -87,11 +87,13 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   // temporary - set to null after load
   private MzMLBinaryDataInfo mzBinaryDataInfo;
   private MzMLBinaryDataInfo intensityBinaryDataInfo;
+  private MzMLBinaryDataInfo wavelengthBinaryDataInfo;
 
   //Final memory-mapped processed data
   //No intermediate results
   private @Nullable DoubleBuffer mzValues;
   private @Nullable DoubleBuffer intensityValues;
+  private @Nullable DoubleBuffer wavelengthValues;
 
   // mobility scans are memory mapped later
   private @Nullable SimpleSpectralArrays mobilityScanSimpleSpectralData;
@@ -457,7 +459,8 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
 
         // check accession
         switch (accession) {
-          case MzMLCV.MS_RT_SCAN_START, MzMLCV.MS_RT_RETENTION_TIME, MzMLCV.MS_RT_RETENTION_TIME_LOCAL, MzMLCV.MS_RT_RETENTION_TIME_NORMALIZED -> {
+          case MzMLCV.MS_RT_SCAN_START, MzMLCV.MS_RT_RETENTION_TIME,
+               MzMLCV.MS_RT_RETENTION_TIME_LOCAL, MzMLCV.MS_RT_RETENTION_TIME_NORMALIZED -> {
             if (value.isEmpty()) {
               throw new IllegalStateException(
                   "For retention time cvParam the `value` must have been specified");
@@ -583,10 +586,10 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
    *
    * @return false if
    */
-  public boolean loadProcessMemMapData(final MemoryMapStorage storage,
+  public boolean loadProcessMemMapMzData(final MemoryMapStorage storage,
       final @NotNull ScanImportProcessorConfig config) {
     try {
-      SimpleSpectralArrays specData = loadData();
+      SimpleSpectralArrays specData = loadMzData();
       if (specData == null) {
         // may be null for UV spectra
         return false;
@@ -622,7 +625,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
    *
    * @return null if no data available otherwise the spectral arrays
    */
-  private @Nullable SimpleSpectralArrays loadData() throws MSDKException, IOException {
+  private @Nullable SimpleSpectralArrays loadMzData() throws MSDKException, IOException {
     if (mzBinaryDataInfo == null) {
       // maybe UV spectrum
       clearUnusedData();
@@ -632,7 +635,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     if (mzBinaryDataInfo.getArrayLength() != intensityBinaryDataInfo.getArrayLength()) {
       logger.warning(
           "Binary data array contains an array of different length than the default array length of the scan (#"
-          + getScanNumber() + ")");
+              + getScanNumber() + ")");
     }
     double[] mzs = MzMLPeaksDecoder.decodeToDouble(mzBinaryDataInfo);
     double[] intensities = MzMLPeaksDecoder.decodeToDouble(intensityBinaryDataInfo);
@@ -644,6 +647,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   public void clearUnusedData() {
     mzBinaryDataInfo = null;
     intensityBinaryDataInfo = null;
+    wavelengthBinaryDataInfo = null;
   }
 
   /**
@@ -660,5 +664,14 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
    */
   public void clearMobilityData() {
     mobilityScanSimpleSpectralData = null;
+  }
+
+  public void setWavelengthBinaryDataInfo(MzMLBinaryDataInfo binaryDataInfo) {
+    this.wavelengthBinaryDataInfo = binaryDataInfo;
+  }
+
+  public boolean isUVSpectrum() {
+    return mzBinaryDataInfo == null && (intensityBinaryDataInfo != null
+        && wavelengthBinaryDataInfo != null);
   }
 }
