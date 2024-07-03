@@ -36,7 +36,7 @@ class DownloadMS2DeepscoreModelTest {
 
   @Test
   void downloadSettings(@TempDir Path tempDir) {
-    File file = DownloadMS2DeepscoreModel.download_settings(tempDir.toFile());
+    File file = DownloadMS2DeepscoreModel.downloadSettings(tempDir.toFile());
     assertTrue(file.exists());
   }
 }

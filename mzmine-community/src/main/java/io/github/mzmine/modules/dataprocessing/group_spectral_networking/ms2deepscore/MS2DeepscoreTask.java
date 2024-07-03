@@ -107,10 +107,11 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
   protected void process() {
     description = "Downloading model";
     if (downloadModel) {
-      ms2deepscoreSettingsFile = DownloadMS2DeepscoreModel.download_settings(downloadDirectory)
+      logger.info("Downloading MS2Deepscore model");
+      ms2deepscoreSettingsFile = DownloadMS2DeepscoreModel.downloadSettings(downloadDirectory)
           .toPath();
 
-      ms2deepscoreModelFile = DownloadMS2DeepscoreModel.download_model(downloadDirectory).toPath();
+      ms2deepscoreModelFile = DownloadMS2DeepscoreModel.downloadModel(downloadDirectory).toPath();
 
     // init model
     description = "Loading model 2";
