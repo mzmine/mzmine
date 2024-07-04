@@ -183,6 +183,7 @@ public class MzMLCV {
    * Constant <code>cvChromatogramMRM_SRM="MS:1001473"</code>
    */
   public static final String cvChromatogramMRM_SRM = "MS:1001473";
+  public static final String cvChromatogramSIM = "MS:1001472";
   /**
    * Constant <code>cvChromatogramSIC="MS:1000627"</code>
    */
@@ -192,24 +193,28 @@ public class MzMLCV {
    */
   public static final String cvChromatogramBPC = "MS:1000628";
 
-  // Activation
-  /// activation methods
+  public static final String cvChromatogramElectromagneticRadiation = "MS:1000811";
+  public static final String cvChromatogramAbsorption = "MS:1000812";
+  public static final String cvChromatogramEmission = "MS:1000813";
+  public static final String cvChromatogramIonCurrent = "MS:1000810";
+  public static final String cvChromatogramPressure = "MS:1003019";
+  public static final String cvChromatogramFlowRate = "MS:1003020";
   /**
    * Constant <code>cvActivationEnergy="MS:1000045"</code>
    */
   public static final String cvActivationEnergy = "MS:1000045";
+  // Activation
+  /// activation methods
   public static final String cvPercentCollisionEnergy = "MS:1000138";
   public static final String cvActivationEnergy2 = "MS:1000509";
-  /// activation energies
   /**
    * Constant <code>cvActivationCID="MS:1000133"</code>
    */
   public static final String cvActivationCID = "MS:1000133";
+  /// activation energies
   public static final String cvElectronCaptureDissociation = "MS:1000250";
   public static final String cvHighEnergyCID = "MS:1000422";
   public static final String cvLowEnergyCID = "MS:1000433";
-
-  // Isolation
   /**
    * Constant <code>cvIsolationWindowTarget="MS:1000827"</code>
    */
@@ -218,12 +223,12 @@ public class MzMLCV {
    * Constant <code>cvIsolationWindowLowerOffset="MS:1000828"</code>
    */
   public static final String cvIsolationWindowLowerOffset = "MS:1000828";
+
+  // Isolation
   /**
    * Constant <code>cvIsolationWindowUpperOffset="MS:1000829"</code>
    */
   public static final String cvIsolationWindowUpperOffset = "MS:1000829";
-
-  // Data arrays
   /**
    * Constant <code>cvMzArray="MS:1000514"</code>
    */
@@ -232,25 +237,27 @@ public class MzMLCV {
    * Constant <code>cvIntensityArray="MS:1000515"</code>
    */
   public static final String cvIntensityArray = "MS:1000515";
+
+  // Data arrays
   /**
    * Constant <code>cvRetentionTimeArray="MS:1000595"</code>
    */
   public static final String cvRetentionTimeArray = "MS:1000595";
-
   public static final String cvWavelengthArray = "MS:1000617";
-
-  // UV spectrum, actually "electromagnetic radiation spectrum"
   /**
    * Constant <code>cvUVSpectrum="MS:1000804"</code>
    */
   public static final String cvUVSpectrum = "MS:1000804";
-
-  // Intensity array unit
+  // UV spectrum, actually "electromagnetic radiation spectrum"
+  public static final String cvFluorescenceDetector = "MS:1002308";
+  public static final String cvLowestObservedWavelength = "MS:1000619";
+  public static final String cvhighestObservedWavelength = "MS:1000618";
+  public static final String uoNanometer = "UO:0000018";
   /**
    * Constant <code>cvUnitsIntensity1="MS:1000131"</code>
    */
   public static final String cvUnitsIntensity1 = "MS:1000131";
-
+  // Intensity array unit
   // Ion mobility
   // <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="4.090608"
   // unitCvRef="UO" unitAccession="UO:0000028" unitName="millisecond"/>
@@ -261,4 +268,46 @@ public class MzMLCV {
   // square centimeter"/>
   public static final String cvMobilityInverseReduced = "MS:1002815";
   public static final String cvMobilityInverseReducedUnit = "MS:1002814";
+
+
+  public enum ChromatogramType {
+    TIC(cvChromatogramTIC), MRM_SRM(cvChromatogramMRM_SRM), SIM(cvChromatogramSIM), SIC(
+        cvChromatogramSIC), BPC(cvChromatogramBPC), ELECTROMAGNETIC_RADIATION(
+        cvChromatogramElectromagneticRadiation), ABSORPTION(cvChromatogramAbsorption), EMISSION(
+        cvChromatogramEmission), ION_CURRENT(cvChromatogramIonCurrent), PRESSURE(
+        cvChromatogramPressure), FLOW_RATE(cvChromatogramFlowRate);
+
+    String accession;
+
+    ChromatogramType(String accession) {
+      this.accession = accession;
+    }
+
+    public boolean isMsType() {
+      return switch (this) {
+        case TIC, BPC, SIC, SIM, MRM_SRM -> true;
+        case ELECTROMAGNETIC_RADIATION, FLOW_RATE, PRESSURE, ION_CURRENT, EMISSION, ABSORPTION ->
+            false;
+      };
+    }
+
+    public boolean isOtherType() {
+      return !isMsType();
+    }
+  }
+
+
+  public enum DetectorCVs {
+    UV_SPECTRUM(cvUVSpectrum), FLUORESCENCE(cvFluorescenceDetector);
+
+    String accession;
+
+    DetectorCVs(String accession) {
+      this.accession = accession;
+    }
+
+    public String getAccession() {
+      return accession;
+    }
+  }
 }

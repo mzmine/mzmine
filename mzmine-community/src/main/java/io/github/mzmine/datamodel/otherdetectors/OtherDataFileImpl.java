@@ -38,15 +38,16 @@ public class OtherDataFileImpl implements OtherDataFile {
   private final List<IntensityTimeSeries> timeSeries = new ArrayList<>();
   private final List<OtherSpectrum> spectra = new ArrayList<>();
 
-  private @Nullable String spectraDomainLabel;
-  private @Nullable String spectraDomainUnit;
-  private @Nullable String spectraRangeLabel;
-  private @Nullable String spectraRangeUnit;
+  private @NotNull String description = "Unknown file";
+  private @Nullable String spectraDomainLabel = "N/A";
+  private @Nullable String spectraDomainUnit = "N/A";
+  private @Nullable String spectraRangeLabel = "N/A";
+  private @Nullable String spectraRangeUnit = "N/A";
 
   private @Nullable String timeSeriesDomainLabel = "RT";
   private @Nullable String timeSeriesDomainUnit = "min";
-  private @Nullable String timeSeriesRangeLabel;
-  private @Nullable String timeSeriesRangeUnit;
+  private @Nullable String timeSeriesRangeLabel = "N/A";
+  private @Nullable String timeSeriesRangeUnit = "N/A";
 
   public OtherDataFileImpl(RawDataFile rawDataFile) {
     this.rawDataFile = rawDataFile;
@@ -155,5 +156,14 @@ public class OtherDataFileImpl implements OtherDataFile {
 
   public void setTimeSeriesRangeUnit(@Nullable String timeSeriesRangeUnit) {
     this.timeSeriesRangeUnit = timeSeriesRangeUnit;
+  }
+
+  @Override
+  public @NotNull String getDescription() {
+    return description;
+  }
+
+  public void setDescription(@NotNull String description) {
+    this.description = description;
   }
 }

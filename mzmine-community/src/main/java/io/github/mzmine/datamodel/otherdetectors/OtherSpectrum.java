@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 
 /**
@@ -37,6 +38,10 @@ public interface OtherSpectrum {
   double getRangeValue(int index);
 
   int getNumberOfValues();
+
+  MassSpectrumType getSpectrumType();
+
+  float getRetentionTime();
 
   default String getDomainUnit() {
     return getOtherSpectraFile().getSpectraDomainUnit();

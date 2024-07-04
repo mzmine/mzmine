@@ -696,7 +696,7 @@ public class MzMLParser {
         .filter(BuildingMzMLMsScan::isMassSpectrum).toList();
     newRawFile.setMsScans(msSpectra);
     newRawFile.setOtherScans(
-        vars.spectrumList.stream().filter(BuildingMzMLMsScan::isUVSpectrum).toList());
+        vars.spectrumList.stream().filter(scan -> !scan.isMassSpectrum()).toList());
     return newRawFile;
   }
 

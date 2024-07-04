@@ -533,6 +533,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     return getCVValue(cvParams, accession);
   }
 
+
   /**
    * <p>
    * Search for the CV Parameter value for the given accession in the given
@@ -553,6 +554,15 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
           value = Optional.ofNullable("");
         }
         return value;
+      }
+    }
+    return Optional.empty();
+  }
+
+  public Optional<MzMLCVParam> getCVParam(String accession) {
+    for (MzMLCVParam cvParam : cvParams.getCVParamsList()) {
+      if (cvParam.getAccession().equals(accession)) {
+        return Optional.of(cvParam);
       }
     }
     return Optional.empty();
@@ -672,8 +682,9 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   }
 
   public boolean isUVSpectrum() {
-    return mzBinaryDataInfo == null && (intensityBinaryDataInfo != null
-        && wavelengthBinaryDataInfo != null);
+    return (mzBinaryDataInfo == null && (intensityBinaryDataInfo != null
+        && wavelengthBinaryDataInfo != null)) || (mzValues == null && (intensityValues != null
+        && wavelengthValues != null));
   }
 
   /**
@@ -732,5 +743,9 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
 
   public boolean isMassSpectrum() {
     return mzBinaryDataInfo != null || mzValues != null;
+  }
+
+  public @Nullable DoubleBuffer getWavelengthValues() {
+    return wavelengthValues;
   }
 }

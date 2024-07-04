@@ -77,4 +77,7 @@ public interface OtherDataFile {
   String getTimeSeriesRangeLabel();
 
   String getTimeSeriesRangeUnit();
+
+  @NotNull
+  String getDescription();
 }

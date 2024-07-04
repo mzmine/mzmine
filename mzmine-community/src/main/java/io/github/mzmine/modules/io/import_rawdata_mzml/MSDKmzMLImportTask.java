@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.javafx.dialogs.DialogLoggerUtil;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
@@ -217,6 +218,11 @@ public class MSDKmzMLImportTask extends AbstractTask {
         return null;
       }
 
+      final List<OtherDataFile> otherDataFiles = ConversionUtils.convertOtherSpectra(newMZmineFile,
+          msdkTaskRes.getOtherSpectra());
+      ConversionUtils.convertOtherTraces(msdkTaskRes.getChromatograms());
+      newMZmineFile.setOtherDataFiles(otherDataFiles);
+
       newMZmineFile.setStartTimeStamp(startTimeStamp);
       logger.info("Finished parsing " + file + ", parsed " + convertedScansAfterFilter + " scans");
 
@@ -343,11 +349,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
       int storageOffset = frameStorage.getStorageOffset(scanIndex);
       int basePeakIndex = frameStorage.getBasePeakIndex(scanIndex);
 
-
       // fill in missing scans
       // I'm not proud of this piece of code, but some manufactures or conversion tools leave out
       // empty scans. Looking at you, Agilent. however, we need that info for proper processing ~SteffenHeu
-      Integer newScanId = mappedMobilities.get( mzMLScan.mobility());
+      Integer newScanId = mappedMobilities.get(mzMLScan.mobility());
       final int missingScans = newScanId - mobilityScanNumberCounter;
       // might be negative in case of tims, but for now we assume that no scans missing for tims
       for (int i = 0; i < missingScans; i++) {
@@ -357,8 +362,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
         mobilityScanNumberCounter++;
       }
 
-      ConversionUtils.extractImsMsMsInfo(mzMLScan.precursorList(), buildingImsMsMsInfos, frameNumber,
-          mobilityScanNumberCounter);
+      ConversionUtils.extractImsMsMsInfo(mzMLScan.precursorList(), buildingImsMsMsInfos,
+          frameNumber, mobilityScanNumberCounter);
       storageOffsets[mobilityScanNumberCounter] = storageOffset;
       basePeakIndices[mobilityScanNumberCounter] = basePeakIndex;
       mobilityScanNumberCounter++;

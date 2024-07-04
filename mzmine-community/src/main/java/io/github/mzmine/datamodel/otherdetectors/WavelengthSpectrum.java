@@ -25,6 +25,7 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
@@ -34,17 +35,23 @@ public class WavelengthSpectrum implements OtherSpectrum {
   private final OtherDataFile file;
   private final DoubleBuffer wavelengths;
   private final DoubleBuffer intensities;
+  private final MassSpectrumType spectrumType;
+  private final float rt;
 
   public WavelengthSpectrum(final OtherDataFile file, DoubleBuffer wavelengths,
-      DoubleBuffer intensities) {
+      DoubleBuffer intensities, MassSpectrumType spectrumType, float rt) {
     this.file = file;
     this.wavelengths = wavelengths;
     this.intensities = intensities;
+    this.spectrumType = spectrumType;
+    this.rt = rt;
   }
 
   public WavelengthSpectrum(OtherDataFile file, MemoryMapStorage storage, double[] wavelengths,
-      double[] intensities) {
+      double[] intensities, MassSpectrumType spectrumType, float rt) {
     this.file = file;
+    this.spectrumType = spectrumType;
+    this.rt = rt;
 
     if (wavelengths.length != intensities.length) {
       throw new RuntimeException("Wavelength and intensity arrays must have the same length");
@@ -67,6 +74,16 @@ public class WavelengthSpectrum implements OtherSpectrum {
   @Override
   public int getNumberOfValues() {
     return intensities.limit();
+  }
+
+  @Override
+  public MassSpectrumType getSpectrumType() {
+    return spectrumType;
+  }
+
+  @Override
+  public float getRetentionTime() {
+    return 0;
   }
 
   @Override
