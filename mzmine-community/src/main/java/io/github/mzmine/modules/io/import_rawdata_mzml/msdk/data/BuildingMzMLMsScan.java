@@ -120,6 +120,7 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
     this.mzScanWindowRange = null;
     this.mzValues = null;
     this.intensityValues = null;
+    this.wavelengthValues = null;
   }
 
   public MzMLCVGroup getCVParams() {
@@ -673,5 +674,63 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
   public boolean isUVSpectrum() {
     return mzBinaryDataInfo == null && (intensityBinaryDataInfo != null
         && wavelengthBinaryDataInfo != null);
+  }
+
+  /**
+   * Called when spectrum end is read. Load, process data points and memory map resulting data to
+   * disk to save RAM.
+   *
+   * @return false if no data was loaded.
+   */
+  public boolean loadProcessMemMapUvData(final MemoryMapStorage storage,
+      final @NotNull ScanImportProcessorConfig config) {
+    try {
+      SimpleSpectralArrays specData = loadUVData();
+      if (specData == null) {
+        return false;
+      }
+
+      // process and filter - needs metadata so wrap
+//      specData = config.processor().processScan(this, specData);
+
+      // memory map regular scan data but not mobility scans
+      this.wavelengthValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.mzs());
+      this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage,
+          specData.intensities());
+
+    } catch (MSDKException | IOException e) {
+      logger.warning("Could not load data of scan #%d".formatted(getScanNumber()));
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Decode and load data from binary arrays
+   *
+   * @return null if no data available otherwise the spectral arrays. Wavelengths are represented as
+   * mz as an intermediate.
+   */
+  private @Nullable SimpleSpectralArrays loadUVData() throws MSDKException, IOException {
+    if (wavelengthBinaryDataInfo == null) {
+      // maybe UV spectrum
+      clearUnusedData();
+      return null;
+    }
+
+    if (wavelengthBinaryDataInfo.getArrayLength() != intensityBinaryDataInfo.getArrayLength()) {
+      logger.warning(
+          "Binary data array contains an array of different length than the default array length of the scan (#"
+              + getScanNumber() + ")");
+    }
+    double[] wavelength = MzMLPeaksDecoder.decodeToDouble(wavelengthBinaryDataInfo);
+    double[] intensities = MzMLPeaksDecoder.decodeToDouble(intensityBinaryDataInfo);
+
+    clearUnusedData();
+    return new SimpleSpectralArrays(wavelength, intensities);
+  }
+
+  public boolean isMassSpectrum() {
+    return mzBinaryDataInfo != null || mzValues != null;
   }
 }

@@ -30,6 +30,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImp
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.TagTracker;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -60,6 +61,8 @@ public class MzMLParser {
   private final TagTracker tracker;
   private final MemoryMapStorage storage;
   private final @NotNull ScanImportProcessorConfig scanProcessorConfig;
+  private final File mzMLFile;
+
   private final MzMLRawDataFile newRawFile;
   private final Pattern scanNumberPattern = Pattern.compile("scan=([0-9]+)");
   private final Pattern agilentScanNumberPattern = Pattern.compile("scan[iI]d=([0-9]+)");
@@ -72,13 +75,13 @@ public class MzMLParser {
       .collect(Collectors.toMap(MzMLArrayType::getAccession, Function.identity()));
   private int totalScans = 0, parsedScans = 0;
 
-
   public MzMLParser(MSDKmzMLImportTask importer, MemoryMapStorage storage,
       @NotNull ScanImportProcessorConfig scanProcessorConfig) {
     this.vars = new Vars();
     this.tracker = new TagTracker();
-    this.newRawFile = new MzMLRawDataFile(importer.getMzMLFile(), vars.msFunctionsList,
-        vars.spectrumList, vars.chromatogramsList, vars.mobilityScanData);
+    mzMLFile = importer.getMzMLFile();
+    this.newRawFile = new MzMLRawDataFile(mzMLFile, vars.msFunctionsList, vars.chromatogramsList,
+        vars.mobilityScanData);
     this.storage = storage;
     this.scanProcessorConfig = scanProcessorConfig;
   }
@@ -466,11 +469,9 @@ public class MzMLParser {
     } else if (closingTagName.equals(MzMLTags.TAG_PRODUCT)) {
       if (tracker.inside(MzMLTags.TAG_SPECTRUM)) {
         vars.spectrum.getProductList().addProduct(vars.product);
+      } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM)) {
+        vars.chromatogram.setProdcut(vars.product);
       }
-//      else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM)) {
-//        vars.chromatogram.setProdcut(vars.product);
-//      }
-
     } else if (closingTagName.equals(MzMLTags.TAG_SELECTED_ION_LIST)) {
       vars.precursor.setSelectedIonList(vars.selectedIonList);
 
@@ -483,11 +484,9 @@ public class MzMLParser {
     } else if (closingTagName.equals(MzMLTags.TAG_PRECURSOR)) {
       if (tracker.inside(MzMLTags.TAG_SPECTRUM)) {
         vars.spectrum.getPrecursorList().addPrecursor(vars.precursor);
+      } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM)) {
+        vars.chromatogram.setPrecursor(vars.precursor);
       }
-
-//      else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM)) {
-//        vars.chromatogram.setPrecursor(vars.precursor);
-//      }
 
     } else if (closingTagName.equals(MzMLTags.TAG_SCAN_WINDOW)) {
       vars.scanWindowList.addScanWindow(vars.scanWindow);
@@ -510,6 +509,7 @@ public class MzMLParser {
     if (closingTagName.contentEquals(MzMLTags.TAG_SPECTRUM_LIST)) {
       // finished the last scan
       vars.memoryMapAndClearFrameMobilityScanData(storage);
+      vars.startNewSpectrumList();
     } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
       if (closingTagName.contentEquals(MzMLTags.TAG_CHROMATOGRAM)) {
         if (vars.chromatogram.getRtBinaryDataInfo() != null
@@ -529,6 +529,10 @@ public class MzMLParser {
 //    logger.info(STR."Finalizing scan \{spectrum.getScanNumber()}");
     if (spectrum.isUVSpectrum()) {
       logger.info("This is an uv spectrum");
+      if (spectrum.loadProcessMemMapUvData(storage, scanProcessorConfig)) {
+        vars.addSpectrumToList(storage, spectrum);
+      }
+      vars.spectrum = null;
       return;
     }
 
@@ -689,6 +693,9 @@ public class MzMLParser {
    * @return a {@link MzMLRawDataFile MzMLRawDataFile} containing the parsed data
    */
   public MzMLRawDataFile getMzMLRawFile() {
+    final int msSpectraListIndex = vars.getMsSpectraListIndex();
+    newRawFile.setMsScans(vars.allSpectraLists.get(msSpectraListIndex));
+    newRawFile.setOtherScans(vars.allSpectraLists);
     return newRawFile;
   }
 
@@ -724,7 +731,8 @@ public class MzMLParser {
    */
   private static class Vars {
 
-    final List<BuildingMzMLMsScan> spectrumList;
+    List<BuildingMzMLMsScan> currentSpectrumList;
+    final List<List<BuildingMzMLMsScan>> allSpectraLists = new ArrayList<>();
     final List<BuildingMobilityScanStorage> mobilityScanData = new ArrayList<>();
     int defaultArrayLength;
     boolean skipBinaryDataArray;
@@ -765,7 +773,8 @@ public class MzMLParser {
       scanWindowList = null;
       scanWindow = null;
       referenceableParamGroupList = new ArrayList<>();
-      spectrumList = new ArrayList<>();
+      currentSpectrumList = new ArrayList<>();
+      allSpectraLists.add(currentSpectrumList);
       mobilityScans = new ArrayList<>();
       chromatogramsList = new ArrayList<>();
       msFunctionsList = new ArrayList<>(); // TODO populate this list
@@ -775,7 +784,7 @@ public class MzMLParser {
       MzMLMobility mobility = scan.getMobility();
       if (mobility == null) {
         // scan or frame spectrum
-        spectrumList.add(scan);
+        currentSpectrumList.add(scan);
         return;
       }
 
@@ -809,6 +818,27 @@ public class MzMLParser {
       mobilityScans.clear();
     }
 
+    /**
+     * Triggered on tag </spectrumList>, used to differentiate different detectors.
+     */
+    public void startNewSpectrumList() {
+      currentSpectrumList = new ArrayList<>();
+      allSpectraLists.add(currentSpectrumList);
+    }
+
+    public int getMsSpectraListIndex() {
+      for (int i = 0; i < allSpectraLists.size(); i++) {
+        List<BuildingMzMLMsScan> spectra = allSpectraLists.get(i);
+        if (spectra.isEmpty()) {
+          continue;
+        }
+        final BuildingMzMLMsScan scan = spectra.getFirst();
+        if (scan.isMassSpectrum()) {
+          return i;
+        }
+      }
+      throw new IllegalStateException("No MS spectra found.");
+    }
   }
 
 }
