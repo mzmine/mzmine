@@ -509,7 +509,6 @@ public class MzMLParser {
     if (closingTagName.contentEquals(MzMLTags.TAG_SPECTRUM_LIST)) {
       // finished the last scan
       vars.memoryMapAndClearFrameMobilityScanData(storage);
-      vars.startNewSpectrumList();
     } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
       if (closingTagName.contentEquals(MzMLTags.TAG_CHROMATOGRAM)) {
         if (vars.chromatogram.getRtBinaryDataInfo() != null
@@ -693,9 +692,11 @@ public class MzMLParser {
    * @return a {@link MzMLRawDataFile MzMLRawDataFile} containing the parsed data
    */
   public MzMLRawDataFile getMzMLRawFile() {
-    final int msSpectraListIndex = vars.getMsSpectraListIndex();
-    newRawFile.setMsScans(vars.allSpectraLists.get(msSpectraListIndex));
-    newRawFile.setOtherScans(vars.allSpectraLists);
+    final List<BuildingMzMLMsScan> msSpectra = vars.spectrumList.stream()
+        .filter(BuildingMzMLMsScan::isMassSpectrum).toList();
+    newRawFile.setMsScans(msSpectra);
+    newRawFile.setOtherScans(
+        vars.spectrumList.stream().filter(BuildingMzMLMsScan::isUVSpectrum).toList());
     return newRawFile;
   }
 
@@ -731,9 +732,8 @@ public class MzMLParser {
    */
   private static class Vars {
 
-    List<BuildingMzMLMsScan> currentSpectrumList;
-    final List<List<BuildingMzMLMsScan>> allSpectraLists = new ArrayList<>();
     final List<BuildingMobilityScanStorage> mobilityScanData = new ArrayList<>();
+    List<BuildingMzMLMsScan> spectrumList;
     int defaultArrayLength;
     boolean skipBinaryDataArray;
     BuildingMzMLMsScan spectrum;
@@ -773,8 +773,7 @@ public class MzMLParser {
       scanWindowList = null;
       scanWindow = null;
       referenceableParamGroupList = new ArrayList<>();
-      currentSpectrumList = new ArrayList<>();
-      allSpectraLists.add(currentSpectrumList);
+      spectrumList = new ArrayList<>();
       mobilityScans = new ArrayList<>();
       chromatogramsList = new ArrayList<>();
       msFunctionsList = new ArrayList<>(); // TODO populate this list
@@ -784,7 +783,7 @@ public class MzMLParser {
       MzMLMobility mobility = scan.getMobility();
       if (mobility == null) {
         // scan or frame spectrum
-        currentSpectrumList.add(scan);
+        spectrumList.add(scan);
         return;
       }
 
@@ -817,28 +816,5 @@ public class MzMLParser {
       // all scans were already converted
       mobilityScans.clear();
     }
-
-    /**
-     * Triggered on tag </spectrumList>, used to differentiate different detectors.
-     */
-    public void startNewSpectrumList() {
-      currentSpectrumList = new ArrayList<>();
-      allSpectraLists.add(currentSpectrumList);
-    }
-
-    public int getMsSpectraListIndex() {
-      for (int i = 0; i < allSpectraLists.size(); i++) {
-        List<BuildingMzMLMsScan> spectra = allSpectraLists.get(i);
-        if (spectra.isEmpty()) {
-          continue;
-        }
-        final BuildingMzMLMsScan scan = spectra.getFirst();
-        if (scan.isMassSpectrum()) {
-          return i;
-        }
-      }
-      throw new IllegalStateException("No MS spectra found.");
-    }
   }
-
 }

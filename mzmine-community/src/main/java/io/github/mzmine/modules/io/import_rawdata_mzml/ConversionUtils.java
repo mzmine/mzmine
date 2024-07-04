@@ -127,7 +127,6 @@ public class ConversionUtils {
     return null;
   }
 
-
   public static Scan mzmlScanToSimpleScan(final RawDataFile dataFile,
       final BuildingMzMLMsScan scan) {
     return mzmlScanToSimpleScan(dataFile, scan, scan.getSpectrumType());

@@ -29,7 +29,6 @@ import com.google.common.collect.ImmutableList;
 import io.github.msdk.datamodel.Chromatogram;
 import io.github.msdk.datamodel.FileType;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -45,16 +44,15 @@ public class MzMLRawDataFile {
 
   private final @NotNull List<String> msFunctions;
   /**
-   * scans or frames in IMS
-   */
-  private List<BuildingMzMLMsScan> msScans;
-  private @NotNull List<List<BuildingMzMLMsScan>> otherSpectra = new ArrayList<>();
-  /**
    * each element is one frame with all its mobility scans
    */
   private final @NotNull List<BuildingMobilityScanStorage> mobilityScanData;
   private final @NotNull List<Chromatogram> chromatograms;
-
+  /**
+   * scans or frames in IMS
+   */
+  private List<BuildingMzMLMsScan> msScans;
+  private List<BuildingMzMLMsScan> otherSpectra;
   private @NotNull String defaultInstrumentConfiguration;
   private @NotNull String defaultDataProcessingScan;
   private @NotNull String defaultDataProcessingChromatogram;
@@ -107,8 +105,12 @@ public class MzMLRawDataFile {
   }
 
   @NotNull
-  public List<BuildingMzMLMsScan> getScans() {
+  public List<BuildingMzMLMsScan> getMsScans() {
     return msScans != null ? ImmutableList.copyOf(msScans) : List.of();
+  }
+
+  public void setMsScans(List<BuildingMzMLMsScan> scans) {
+    this.msScans = scans;
   }
 
   @NotNull
@@ -148,17 +150,11 @@ public class MzMLRawDataFile {
     this.defaultDataProcessingChromatogram = defaultDataProcessingChromatogram;
   }
 
-  public void setMsScans(List<BuildingMzMLMsScan> scans) {
-    this.msScans = scans;
+  public void setOtherScans(List<BuildingMzMLMsScan> scanList) {
+    otherSpectra = scanList;
   }
 
-  public void setOtherScans(List<List<BuildingMzMLMsScan>> scanLists) {
-    otherSpectra.clear();
-    for (List<BuildingMzMLMsScan> scanList : scanLists) {
-      if(msScans == scanList) {
-        continue;
-      }
-      otherSpectra.add(scanList);
-    }
+  public @NotNull List<BuildingMzMLMsScan> getOtherSpectra() {
+    return otherSpectra != null ? ImmutableList.copyOf(otherSpectra) : List.of();
   }
 }
