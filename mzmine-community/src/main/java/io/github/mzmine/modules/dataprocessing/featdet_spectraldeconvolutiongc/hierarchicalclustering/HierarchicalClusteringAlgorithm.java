@@ -27,7 +27,6 @@ package io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.
 
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionAlgorithm;
-import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.rtgroupingandsharecorrelation.RtGroupingAndShapeCorrelationAlgorithm;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.ArrayList;
@@ -56,7 +55,7 @@ public class HierarchicalClusteringAlgorithm implements SpectralDeconvolutionAlg
     var rtTolerance = parameters.getValue(HierarchicalClusteringParameters.RT_TOLERANCE);
     var minNumberOfSignals = parameters.getValue(
         HierarchicalClusteringParameters.MIN_NUMBER_OF_SIGNALS);
-    return new RtGroupingAndShapeCorrelationAlgorithm(rtTolerance, minNumberOfSignals);
+    return new HierarchicalClusteringAlgorithm(rtTolerance, minNumberOfSignals);
   }
 
   @Override
