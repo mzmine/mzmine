@@ -213,9 +213,7 @@ public class MzMLParser {
           } else {
             vars.skipBinaryDataArray = true;
           }
-
         }
-
 
       } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY)) {
         //todo check if we can put this before previous if and use this to create boolean to indicate detection of both mzs and intensities
@@ -337,20 +335,11 @@ public class MzMLParser {
       } else {
         vars.binaryDataInfo = new MzMLBinaryDataInfo(encodedLength, vars.defaultArrayLength);
       }
-
     } else if (openingTagName.contentEquals(MzMLTags.TAG_BINARY)) {
       if (vars.chromatogram != null && !vars.skipBinaryDataArray) {
         vars.chromatogram.processBinaryChromatogramValues(xmlStreamReader.getElementText(),
             vars.binaryDataInfo);
         tracker.exit(tracker.current());
-      }
-      if (!vars.skipBinaryDataArray) {
-        if (MzMLCV.cvRetentionTimeArray.equals(vars.binaryDataInfo.getArrayType().getAccession())) {
-          vars.chromatogram.setRtBinaryDataInfo(vars.binaryDataInfo);
-        }
-        if (MzMLCV.cvIntensityArray.equals(vars.binaryDataInfo.getArrayType().getAccession())) {
-          vars.chromatogram.setIntensityBinaryDataInfo(vars.binaryDataInfo);
-        }
       }
 
     } else if (openingTagName.contentEquals(MzMLTags.TAG_REF_PARAM_GROUP_REF)) {
@@ -361,7 +350,6 @@ public class MzMLParser {
           break;
         }
       }
-
     }
 
     if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM) && tracker.inside(MzMLTags.TAG_BINARY_DATA_ARRAY)
@@ -374,6 +362,15 @@ public class MzMLParser {
         manageCompression(vars.binaryDataInfo, accession);
       } else if (MzMLArrayType.isArrayTypeAccession(accession)) {
         vars.binaryDataInfo.setArrayType(MzMLArrayType.ofAccession(accession));
+        final String unitAccession = getRequiredAttribute(xmlStreamReader, "unitAccession");
+        vars.binaryDataInfo.setUnitAccession(unitAccession);
+
+        if (MzMLCV.cvRetentionTimeArray.equals(vars.binaryDataInfo.getArrayType().getAccession())) {
+          vars.chromatogram.setRtBinaryDataInfo(vars.binaryDataInfo);
+        }
+        if (MzMLCV.cvIntensityArray.equals(vars.binaryDataInfo.getArrayType().getAccession())) {
+          vars.chromatogram.setIntensityBinaryDataInfo(vars.binaryDataInfo);
+        }
       } else {
         vars.skipBinaryDataArray = true;
       }
@@ -541,32 +538,6 @@ public class MzMLParser {
       }
     }
     vars.spectrum = null;
-  }
-
-  /**
-   * <p>
-   * Carry out the required parsing of the mzML data when the
-   * {@link XMLStreamReader XMLStreamReader} when
-   * {@link javolution.xml.stream.XMLStreamConstants#CHARACTERS CHARACTERS} are found Deprecated
-   * until random access parser is introduced
-   * </p>
-   *
-   * @param xmlStreamReader an instance of {@link XMLStreamReader XMLStreamReader
-   */
-  @Deprecated
-  public void processCharacters(XMLStreamReader xmlStreamReader) {
-    if (!newRawFile.getOriginalFile().isPresent() && tracker.current()
-        .contentEquals(MzMLTags.TAG_BINARY) && !vars.skipBinaryDataArray) {
-      if (tracker.inside(MzMLTags.TAG_SPECTRUM_LIST) && scanProcessorConfig.scanFilter()
-          .matches(vars.spectrum)) {
-        // spectra are now loaded directly and processed when finishing a spectrum
-      } else if (tracker.inside(MzMLTags.TAG_CHROMATOGRAM_LIST)) {
-        switch (vars.binaryDataInfo.getArrayType().getAccession()) {
-          case MzMLCV.cvRetentionTimeArray -> vars.chromatogram.getDoubleRetentionTimes();
-          case MzMLCV.cvIntensityArray -> vars.chromatogram.getIntensityBinaryDataInfo();
-        }
-      }
-    }
   }
 
   /**

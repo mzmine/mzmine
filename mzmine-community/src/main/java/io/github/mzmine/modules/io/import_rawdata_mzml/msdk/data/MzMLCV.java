@@ -252,11 +252,42 @@ public class MzMLCV {
   public static final String cvFluorescenceDetector = "MS:1002308";
   public static final String cvLowestObservedWavelength = "MS:1000619";
   public static final String cvhighestObservedWavelength = "MS:1000618";
-  public static final String uoNanometer = "UO:0000018";
+  public static final String cvUnitsNanometer = "UO:0000018";
   /**
    * Constant <code>cvUnitsIntensity1="MS:1000131"</code>
    */
   public static final String cvUnitsIntensity1 = "MS:1000131";
+  public static final String cvUnitsIntensity2 = "MS:1000814";
+
+  public static final String cvUnitsGram = "UO:0000021";
+  public static final String cvUnitsMilliliter = "UO:0000098";
+  public static final String cvUnitsGramsPerLiter = "UO:0000175";
+  public static final String cvUnitsPPM = "UO:0000169";
+  public static final String cvUnitsTesla = "UO:0000228";
+  public static final String cvUnitsMeter = "UO:0000008";
+  public static final String cvUnitsHertz = "UO:0000106";
+  public static final String cvUnitsAbsorbance = "UO:0000269";
+  public static final String cvUnitsElectronVolt = "UO:0000266";
+  public static final String cvUnitsVolt = "UO:0000218";
+  public static final String cvUnitsVoltPerMeter = "UO:0000268";
+  public static final String cvUnitsMicroLiterPerMinute = "UO:0000271";
+  public static final String cvUnitsPascal = "UO:0000110";
+  public static final String cvUnitsDegreeKelvin = "UO:0000012";
+  public static final String cvUnitsDegreeCelsius = "UO:0000027";
+  public static final String cvUnitsMicrometer = "UO:0000017";
+  public static final String cvUnitsJoule = "UO:0000112";
+  public static final String cvUnitsNanosecond = "UO:0000150";
+  public static final String cvUnitsPercent = "UO:0000187";
+  public static final String cvUnitsDegree = "UO:0000185";
+  public static final String cvUnitsDalton = "UO:0000221";
+  public static final String cvUnitsKiloDalton = "UO:0000222";
+  public static final String cvUnitsPartsPerNotationUnit = "UO:0000166";
+  public static final String cvUnitsCount = "UO:0000189";
+  public static final String cvUnitsSquareAngstrom = "UO:0000324";
+  public static final String cvUnitsAreaUnit = "UO:0000047";
+  public static final String cvUnitsDimensionlessUnit = "UO:0000186";
+
+
   // Intensity array unit
   // Ion mobility
   // <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="4.090608"
@@ -268,33 +299,6 @@ public class MzMLCV {
   // square centimeter"/>
   public static final String cvMobilityInverseReduced = "MS:1002815";
   public static final String cvMobilityInverseReducedUnit = "MS:1002814";
-
-
-  public enum ChromatogramType {
-    TIC(cvChromatogramTIC), MRM_SRM(cvChromatogramMRM_SRM), SIM(cvChromatogramSIM), SIC(
-        cvChromatogramSIC), BPC(cvChromatogramBPC), ELECTROMAGNETIC_RADIATION(
-        cvChromatogramElectromagneticRadiation), ABSORPTION(cvChromatogramAbsorption), EMISSION(
-        cvChromatogramEmission), ION_CURRENT(cvChromatogramIonCurrent), PRESSURE(
-        cvChromatogramPressure), FLOW_RATE(cvChromatogramFlowRate);
-
-    String accession;
-
-    ChromatogramType(String accession) {
-      this.accession = accession;
-    }
-
-    public boolean isMsType() {
-      return switch (this) {
-        case TIC, BPC, SIC, SIM, MRM_SRM -> true;
-        case ELECTROMAGNETIC_RADIATION, FLOW_RATE, PRESSURE, ION_CURRENT, EMISSION, ABSORPTION ->
-            false;
-      };
-    }
-
-    public boolean isOtherType() {
-      return !isMsType();
-    }
-  }
 
 
   public enum DetectorCVs {
@@ -310,4 +314,5 @@ public class MzMLCV {
       return accession;
     }
   }
+
 }

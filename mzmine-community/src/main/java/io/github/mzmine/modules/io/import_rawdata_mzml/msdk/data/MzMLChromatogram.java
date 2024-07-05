@@ -37,6 +37,7 @@ import io.github.msdk.datamodel.RawDataFile;
 import io.github.msdk.datamodel.SeparationType;
 import io.github.msdk.datamodel.SimpleActivationInfo;
 import io.github.msdk.datamodel.SimpleIsolationInfo;
+import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -50,14 +51,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 
-class MzMLChromatogram implements Chromatogram {
+public class MzMLChromatogram implements Chromatogram {
 
   private final @NotNull MzMLRawDataFile dataFile;
   //  private @NotNull InputStream inputStream;
   private final @NotNull String chromatogramId;
   private final @NotNull Integer chromatogramNumber;
   private final @NotNull Integer numOfDataPoints;
-
+  private final Logger logger = Logger.getLogger(getClass().getName());
   private MzMLCVGroup cvParams;
   private MzMLPrecursorElement precursor;
   private MzMLProduct product;
@@ -67,12 +68,9 @@ class MzMLChromatogram implements Chromatogram {
   private Double mz;
   private SeparationType separationType;
   private Range<Float> rtRange;
-  private double[] rtValues;
+  private float[] rtValues;
   private double[] intensityValues;
-
   private MemoryMapStorage storage;
-
-  private final Logger logger = Logger.getLogger(getClass().getName());
 
   /**
    * <p>
@@ -393,12 +391,7 @@ class MzMLChromatogram implements Chromatogram {
    */
   @Override
   public float[] getRetentionTimes(@Nullable float array[]) {
-    throw new UnsupportedOperationException(
-        "This chromatogram was used for import only. Use the DoubleBuffer method");
-  }
-
-  public double[] getDoubleRetentionTimes() {
-    return this.rtValues;
+    return rtValues;
   }
 
   public void processBinaryChromatogramValues(String xmlMzContent,
@@ -408,15 +401,16 @@ class MzMLChromatogram implements Chromatogram {
           "Intensity binary data array contains a different array length from the default array length of the chromatogram (#"
               + getChromatogramNumber() + ")");
     }
+
     try {
-      double[] array = new double[this.numOfDataPoints];
       if (MzMLCV.cvRetentionTimeArray.equals(binaryDataInfo.getArrayType().getAccession())) {
-        this.rtValues = MzMLPeaksDecoder.decodeToDoubleAsArray(xmlMzContent.toString(),
-            binaryDataInfo, array);
+        rtBinaryDataInfo.setTextContent(xmlMzContent);
+        this.rtValues = ConversionUtils.convertDoublesToFloats(
+            MzMLPeaksDecoder.decodeToDouble(binaryDataInfo));
       }
       if (MzMLCV.cvIntensityArray.equals(binaryDataInfo.getArrayType().getAccession())) {
-        this.intensityValues = MzMLPeaksDecoder.decodeToDoubleAsArray(xmlMzContent.toString(),
-            binaryDataInfo, array);
+        intensityBinaryDataInfo.setTextContent(xmlMzContent);
+        this.intensityValues = MzMLPeaksDecoder.decodeToDouble(binaryDataInfo);
       }
     } catch (Exception e) {
       throw (new MSDKRuntimeException(e));
@@ -432,6 +426,11 @@ class MzMLChromatogram implements Chromatogram {
   public float[] getIntensityValues(@Nullable float array[]) {
     throw new UnsupportedOperationException(
         "This chromatogram was used for import only. Use the DoubleBuffer method");
+  }
+
+  @NotNull
+  public double[] getIntensities() {
+    return intensityValues;
   }
 
   /**
@@ -490,6 +489,15 @@ class MzMLChromatogram implements Chromatogram {
           value = Optional.of("");
         }
         return value;
+      }
+    }
+    return Optional.empty();
+  }
+
+  public Optional<MzMLCVParam> getCVParam(String accession) {
+    for (MzMLCVParam cvParam : cvParams.getCVParamsList()) {
+      if (cvParam.getAccession().equals(accession)) {
+        return Optional.of(cvParam);
       }
     }
     return Optional.empty();

@@ -220,7 +220,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
       final List<OtherDataFile> otherDataFiles = ConversionUtils.convertOtherSpectra(newMZmineFile,
           msdkTaskRes.getOtherSpectra());
-      ConversionUtils.convertOtherTraces(msdkTaskRes.getChromatograms());
+      final List<OtherDataFile> otherTraceFiles = ConversionUtils.convertOtherTraces(newMZmineFile,
+          msdkTaskRes.getChromatograms());
       newMZmineFile.setOtherDataFiles(otherDataFiles);
 
       newMZmineFile.setStartTimeStamp(startTimeStamp);

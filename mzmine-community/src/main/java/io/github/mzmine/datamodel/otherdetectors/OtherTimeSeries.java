@@ -37,11 +37,13 @@ public class OtherTimeSeries implements IntensityTimeSeries {
 
   protected final DoubleBuffer intensityBuffer;
   protected final FloatBuffer timeBuffer;
+  protected final String name;
 
   public OtherTimeSeries(@Nullable MemoryMapStorage storage, @NotNull float[] rtValues,
-      @NotNull double[] intensityValues) {
+      @NotNull double[] intensityValues, String name) {
     intensityBuffer = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
     timeBuffer = StorageUtils.storeValuesToFloatBuffer(storage, rtValues);
+    this.name = name;
   }
 
   @Override

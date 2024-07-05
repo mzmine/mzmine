@@ -426,4 +426,8 @@ public class RawDataFileImpl implements RawDataFile {
     this.otherDataFiles.clear();
     this.otherDataFiles.addAll(otherDataFiles);
   }
+
+  public void addOtherDataFiles(@NotNull List<@NotNull OtherDataFile> otherDataFiles) {
+    this.otherDataFiles.addAll(otherDataFiles);
+  }
 }

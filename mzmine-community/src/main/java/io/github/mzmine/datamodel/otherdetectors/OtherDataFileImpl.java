@@ -34,20 +34,22 @@ import org.jetbrains.annotations.Nullable;
 
 public class OtherDataFileImpl implements OtherDataFile {
 
+  public static final String DEFAULT_UNIT = "N/A";
+
   private final RawDataFile rawDataFile;
   private final List<IntensityTimeSeries> timeSeries = new ArrayList<>();
   private final List<OtherSpectrum> spectra = new ArrayList<>();
 
   private @NotNull String description = "Unknown file";
-  private @Nullable String spectraDomainLabel = "N/A";
-  private @Nullable String spectraDomainUnit = "N/A";
-  private @Nullable String spectraRangeLabel = "N/A";
-  private @Nullable String spectraRangeUnit = "N/A";
+  private @Nullable String spectraDomainLabel = DEFAULT_UNIT;
+  private @Nullable String spectraDomainUnit = DEFAULT_UNIT;
+  private @Nullable String spectraRangeLabel = DEFAULT_UNIT;
+  private @Nullable String spectraRangeUnit = DEFAULT_UNIT;
 
-  private @Nullable String timeSeriesDomainLabel = "RT";
+  private @Nullable String timeSeriesDomainLabel = "Retention time";
   private @Nullable String timeSeriesDomainUnit = "min";
-  private @Nullable String timeSeriesRangeLabel = "N/A";
-  private @Nullable String timeSeriesRangeUnit = "N/A";
+  private @Nullable String timeSeriesRangeLabel = DEFAULT_UNIT;
+  private @Nullable String timeSeriesRangeUnit = DEFAULT_UNIT;
 
   public OtherDataFileImpl(RawDataFile rawDataFile) {
     this.rawDataFile = rawDataFile;

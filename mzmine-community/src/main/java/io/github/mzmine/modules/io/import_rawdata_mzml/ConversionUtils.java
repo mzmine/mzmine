@@ -44,14 +44,17 @@ import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.datamodel.otherdetectors.WavelengthSpectrum;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV.DetectorCVs;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLChromatogram;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWindow;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorList;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLUnits;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -81,6 +84,21 @@ public class ConversionUtils {
 
   public static double[] convertFloatsToDoubles(float[] input) {
     return convertFloatsToDoubles(input, input.length);
+  }
+
+  public static float[] convertDoublesToFloats(double[] input, int length) {
+    if (input == null) {
+      return null; // Or throw an exception - your choice
+    }
+    float[] output = new float[length];
+    for (int i = 0; i < length; i++) {
+      output[i] = (float) input[i];
+    }
+    return output;
+  }
+
+  public static float[] convertDoublesToFloats(double[] input) {
+    return convertDoublesToFloats(input, input.length);
   }
 
   public static double[] convertIntsToDoubles(int[] input) {
@@ -183,7 +201,7 @@ public class ConversionUtils {
     final Optional<MzMLCVParam> cvLowestWavelength = scan.getCVParam(
         MzMLCV.cvLowestObservedWavelength);
     final Boolean isNanometer = cvLowestWavelength.map(
-        p -> p.getUnitAccession().orElse("").equals(MzMLCV.uoNanometer)).orElse(false);
+        p -> p.getUnitAccession().orElse("").equals(MzMLCV.cvUnitsNanometer)).orElse(false);
     otherDataFile.setSpectraDomainLabel("Wavelength");
     if (isNanometer) {
       otherDataFile.setSpectraDomainUnit("nm");
@@ -346,11 +364,48 @@ public class ConversionUtils {
     }
   }
 
-  public static OtherTimeSeries convertOtherTraces(List<Chromatogram> chromatograms) {
-    for (Chromatogram chromatogram : chromatograms) {
-      logger.finest(chromatogram.toString());
+  public static List<OtherDataFile> convertOtherTraces(RawDataFile file,
+      List<Chromatogram> chromatograms) {
+
+    final Map<ChromatogramType, List<MzMLChromatogram>> groupedChromatograms = chromatograms.stream()
+        .filter(c -> c instanceof MzMLChromatogram).map(c -> (MzMLChromatogram) c)
+        .collect(Collectors.groupingBy(ConversionUtils::getChromatogramType));
+
+    List<OtherDataFile> otherFiles = new ArrayList<>();
+
+    for (Entry<ChromatogramType, List<MzMLChromatogram>> grouped : groupedChromatograms.entrySet()) {
+      final OtherDataFileImpl otherFile = new OtherDataFileImpl(file);
+      otherFile.setDescription(grouped.getKey().getDescription());
+
+      for (MzMLChromatogram chrom : grouped.getValue()) {
+        final OtherTimeSeries timeSeries = new OtherTimeSeries(file.getMemoryMapStorage(),
+            chrom.getRetentionTimes(), chrom.getIntensities(), chrom.getId());
+
+        otherFile.addTimeSeries(timeSeries);
+
+        final String unitAccession = chrom.getIntensityBinaryDataInfo().getUnitAccession();
+        final MzMLUnits unit = MzMLUnits.ofAccession(unitAccession);
+        final String currentUnit = otherFile.getTimeSeriesRangeUnit();
+        if (!currentUnit.equals(OtherDataFileImpl.DEFAULT_UNIT) && !currentUnit.equals(
+            unit.getSign())) {
+          logger.severe(
+              () -> "Chromatogram units in file %s do not match.".formatted(file.getName()));
+        } else {
+          otherFile.setTimeSeriesRangeUnit(unit.getSign());
+          otherFile.setTimeSeriesRangeLabel(unit.getLabel());
+        }
+      }
+      otherFiles.add(otherFile);
     }
-    return null;
+
+    return otherFiles;
+  }
+
+  private static @NotNull ChromatogramType getChromatogramType(MzMLChromatogram c) {
+    return c.getCVParams().getCVParamsList().stream()
+        .filter(cv -> ChromatogramType.ofAccession(cv.getAccession()) != ChromatogramType.UNKNOWN)
+        .map(cv -> ChromatogramType.ofAccession(cv.getAccession())).findFirst()
+        .orElse(ChromatogramType.UNKNOWN);
   }
 
 
