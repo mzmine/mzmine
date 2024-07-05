@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,18 +25,19 @@
 
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import java.time.Instant;
-import java.util.Collection;
-
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class RTCalibrationModule implements MZmineProcessingModule {
 
@@ -58,11 +59,16 @@ public class RTCalibrationModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
-    RTCalibrationTask newTask = new RTCalibrationTask(project, parameters,
-        MemoryMapStorage.forFeatureList(), moduleCallDate);
-    tasks.add(newTask);
+    final List<String> errors = new ArrayList<>();
+    if (!parameters.checkParameterValues(errors)) {
+      String msg = MODULE_NAME + "\nPlease check parameter values:\n" + String.join("\n", errors);
+      MZmineCore.getDesktop().displayErrorMessage(msg);
+    } else {
+      RTCalibrationTask newTask = new RTCalibrationTask(project, parameters,
+          MemoryMapStorage.forFeatureList(), moduleCallDate);
+      tasks.add(newTask);
+    }
     return ExitCode.OK;
-
   }
 
   @Override
