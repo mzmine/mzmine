@@ -83,7 +83,7 @@ public class WavelengthSpectrum implements OtherSpectrum {
 
   @Override
   public float getRetentionTime() {
-    return 0;
+    return rt;
   }
 
   @Override

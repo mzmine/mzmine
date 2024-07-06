@@ -56,4 +56,8 @@ public class OtherTimeSeries implements IntensityTimeSeries {
     assert index < timeBuffer.limit();
     return timeBuffer.get(index);
   }
+
+  public String getName() {
+    return name;
+  }
 }
