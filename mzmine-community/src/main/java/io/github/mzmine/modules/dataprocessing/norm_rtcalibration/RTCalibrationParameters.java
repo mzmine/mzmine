@@ -34,6 +34,8 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 public class RTCalibrationParameters extends SimpleParameterSet {
@@ -41,14 +43,16 @@ public class RTCalibrationParameters extends SimpleParameterSet {
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(2);
 
   public static final StringParameter suffix = new StringParameter("Name suffix",
-      "Suffix to be added to feature list name", "normalized");
+      "Suffix to be added to feature list name", "RT_corrected");
 
-  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter MZTolerance = new MZToleranceParameter(0.005, 5);
 
-  public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
+  public static final RTToleranceParameter RTTolerance = new RTToleranceParameter(
+      "Retention time tolerance", "Maximum allowed difference between two retention time values",
+      new RTTolerance(0.01f, Unit.MINUTES));
 
   public static final DoubleParameter minHeight = new DoubleParameter("Minimum standard intensity",
-      "Minimum height of a feature to be selected as normalization standard",
+      "Minimum height of a feature to be selected as standard for RT correction",
       MZmineCore.getConfiguration().getIntensityFormat());
 
   public static final OriginalFeatureListHandlingParameter handleOriginal =
