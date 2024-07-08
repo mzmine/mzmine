@@ -62,7 +62,7 @@ public interface OtherDataFile {
   IntensityTimeSeries getTimeSeries(int index);
 
   @NotNull
-  List<@NotNull IntensityTimeSeries> getTimeSeries();
+  List<@NotNull OtherTimeSeries> getTimeSeries();
 
   String getSpectraDomainLabel();
 

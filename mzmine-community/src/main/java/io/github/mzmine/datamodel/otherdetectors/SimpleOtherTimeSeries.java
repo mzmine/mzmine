@@ -59,6 +59,7 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
     return timeBuffer.get(index);
   }
 
+  @Override
   public String getName() {
     return name;
   }

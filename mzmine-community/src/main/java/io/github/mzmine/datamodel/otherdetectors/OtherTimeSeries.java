@@ -30,6 +30,8 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramTyp
 
 public interface OtherTimeSeries extends IntensityTimeSeries {
 
+  String getName();
+
   ChromatogramType getChromatoogramType();
 
   OtherDataFile getOtherDataFile();
