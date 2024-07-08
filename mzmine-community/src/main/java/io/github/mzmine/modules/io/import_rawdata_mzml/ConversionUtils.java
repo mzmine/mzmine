@@ -40,7 +40,7 @@ import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherSpectrum;
-import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
+import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
 import io.github.mzmine.datamodel.otherdetectors.WavelengthSpectrum;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.BuildingMzMLMsScan;
@@ -378,8 +378,9 @@ public class ConversionUtils {
       otherFile.setDescription(grouped.getKey().getDescription());
 
       for (MzMLChromatogram chrom : grouped.getValue()) {
-        final OtherTimeSeries timeSeries = new OtherTimeSeries(file.getMemoryMapStorage(),
-            chrom.getRetentionTimes(), chrom.getIntensities(), chrom.getId());
+        final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(
+            file.getMemoryMapStorage(), chrom.getRetentionTimes(), chrom.getIntensities(),
+            chrom.getId(), otherFile);
 
         otherFile.addTimeSeries(timeSeries);
 

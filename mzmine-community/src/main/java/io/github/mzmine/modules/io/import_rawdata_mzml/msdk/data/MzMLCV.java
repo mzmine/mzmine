@@ -301,6 +301,9 @@ public class MzMLCV {
   public static final String cvMobilityInverseReducedUnit = "MS:1002814";
 
 
+  /**
+   * CV values that are specific for a detector and can be used to derive the actual detector.
+   */
   public enum DetectorCVs {
     UV_SPECTRUM(cvUVSpectrum), FLUORESCENCE(cvFluorescenceDetector);
 

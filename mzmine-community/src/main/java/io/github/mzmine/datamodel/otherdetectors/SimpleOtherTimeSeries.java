@@ -25,68 +25,51 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
-import java.util.List;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface OtherDataFile {
+public class SimpleOtherTimeSeries implements OtherTimeSeries {
 
-  @NotNull
-  RawDataFile getCorrespondingRawDataFile();
+  protected final DoubleBuffer intensityBuffer;
+  protected final FloatBuffer timeBuffer;
+  protected final String name;
+  private final OtherDataFile file;
 
-  default boolean hasTimeSeries() {
-    return !getTimeSeries().isEmpty();
+  public SimpleOtherTimeSeries(@Nullable MemoryMapStorage storage, @NotNull float[] rtValues,
+      @NotNull double[] intensityValues, String name, OtherDataFile file) {
+    this.file = file;
+    intensityBuffer = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
+    timeBuffer = StorageUtils.storeValuesToFloatBuffer(storage, rtValues);
+    this.name = name;
   }
 
-  default boolean hasSpectra() {
-    return !getSpectra().isEmpty();
+  @Override
+  public DoubleBuffer getIntensityValueBuffer() {
+    return intensityBuffer;
   }
 
-  default int getNumberOfSpectra() {
-    return getSpectra().size();
+  @Override
+  public float getRetentionTime(int index) {
+    assert index < timeBuffer.limit();
+    return timeBuffer.get(index);
   }
 
-  default int getNumberOfTimeSeries() {
-    return getTimeSeries().size();
+  public String getName() {
+    return name;
   }
 
-  @NotNull
-  List<@NotNull OtherSpectrum> getSpectra();
+  @Override
+  public ChromatogramType getChromatoogramType() {
+    return file.getChromatogramType();
+  }
 
-  RawDataFile getRawDataFile();
-
-  @NotNull
-  IntensityTimeSeries getTimeSeries(int index);
-
-  @NotNull
-  List<@NotNull IntensityTimeSeries> getTimeSeries();
-
-  String getSpectraDomainLabel();
-
-  String getSpectraDomainUnit();
-
-  String getSpectraRangeLabel();
-
-  String getSpectraRangeUnit();
-
-  String getTimeSeriesDomainLabel();
-
-  String getTimeSeriesDomainUnit();
-
-  String getTimeSeriesRangeLabel();
-
-  String getTimeSeriesRangeUnit();
-
-  @NotNull
-  String getDescription();
-
-  /**
-   * @return The chromatograms in this data file or null if this file does not contain
-   * chromatograms.
-   */
-  @Nullable
-  ChromatogramType getChromatogramType();
+  @Override
+  public OtherDataFile getOtherDataFile() {
+    return file;
+  }
 }

@@ -524,7 +524,6 @@ public class MzMLParser {
     var spectrum = vars.spectrum;
 //    logger.info(STR."Finalizing scan \{spectrum.getScanNumber()}");
     if (spectrum.isUVSpectrum()) {
-      logger.info("This is an uv spectrum");
       if (spectrum.loadProcessMemMapUvData(storage, scanProcessorConfig)) {
         vars.addSpectrumToList(storage, spectrum);
       }

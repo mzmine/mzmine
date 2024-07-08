@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.otherdetectors;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -39,13 +40,12 @@ public class OtherDataFileImpl implements OtherDataFile {
   private final RawDataFile rawDataFile;
   private final List<IntensityTimeSeries> timeSeries = new ArrayList<>();
   private final List<OtherSpectrum> spectra = new ArrayList<>();
-
+  public @Nullable ChromatogramType chromatogramType;
   private @NotNull String description = "Unknown file";
   private @Nullable String spectraDomainLabel = DEFAULT_UNIT;
   private @Nullable String spectraDomainUnit = DEFAULT_UNIT;
   private @Nullable String spectraRangeLabel = DEFAULT_UNIT;
   private @Nullable String spectraRangeUnit = DEFAULT_UNIT;
-
   private @Nullable String timeSeriesDomainLabel = "Retention time";
   private @Nullable String timeSeriesDomainUnit = "min";
   private @Nullable String timeSeriesRangeLabel = DEFAULT_UNIT;
@@ -167,5 +167,14 @@ public class OtherDataFileImpl implements OtherDataFile {
 
   public void setDescription(@NotNull String description) {
     this.description = description;
+  }
+
+  @Override
+  public @Nullable ChromatogramType getChromatogramType() {
+    return chromatogramType;
+  }
+
+  public void setChromatogramType(@Nullable ChromatogramType chromatogramType) {
+    this.chromatogramType = chromatogramType;
   }
 }

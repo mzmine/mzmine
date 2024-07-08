@@ -26,38 +26,11 @@
 package io.github.mzmine.datamodel.otherdetectors;
 
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
-import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.nio.DoubleBuffer;
-import java.nio.FloatBuffer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 
-public class OtherTimeSeries implements IntensityTimeSeries {
+public interface OtherTimeSeries extends IntensityTimeSeries {
 
-  protected final DoubleBuffer intensityBuffer;
-  protected final FloatBuffer timeBuffer;
-  protected final String name;
+  ChromatogramType getChromatoogramType();
 
-  public OtherTimeSeries(@Nullable MemoryMapStorage storage, @NotNull float[] rtValues,
-      @NotNull double[] intensityValues, String name) {
-    intensityBuffer = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
-    timeBuffer = StorageUtils.storeValuesToFloatBuffer(storage, rtValues);
-    this.name = name;
-  }
-
-  @Override
-  public DoubleBuffer getIntensityValueBuffer() {
-    return intensityBuffer;
-  }
-
-  @Override
-  public float getRetentionTime(int index) {
-    assert index < timeBuffer.limit();
-    return timeBuffer.get(index);
-  }
-
-  public String getName() {
-    return name;
-  }
+  OtherDataFile getOtherDataFile();
 }
