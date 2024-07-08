@@ -38,7 +38,7 @@ public class OtherDataFileImpl implements OtherDataFile {
   public static final String DEFAULT_UNIT = "N/A";
 
   private final RawDataFile rawDataFile;
-  private final List<IntensityTimeSeries> timeSeries = new ArrayList<>();
+  private final List<OtherTimeSeries> timeSeries = new ArrayList<>();
   private final List<OtherSpectrum> spectra = new ArrayList<>();
   public @Nullable ChromatogramType chromatogramType;
   private @NotNull String description = "Unknown file";
@@ -76,7 +76,7 @@ public class OtherDataFileImpl implements OtherDataFile {
   }
 
   @Override
-  public @NotNull List<IntensityTimeSeries> getTimeSeries() {
+  public @NotNull List<OtherTimeSeries> getTimeSeries() {
     return timeSeries;
   }
 
@@ -84,7 +84,7 @@ public class OtherDataFileImpl implements OtherDataFile {
     spectra.add(spectrum);
   }
 
-  public void addTimeSeries(@NotNull IntensityTimeSeries series) {
+  public void addTimeSeries(@NotNull OtherTimeSeries series) {
     this.timeSeries.add(series);
   }
 
