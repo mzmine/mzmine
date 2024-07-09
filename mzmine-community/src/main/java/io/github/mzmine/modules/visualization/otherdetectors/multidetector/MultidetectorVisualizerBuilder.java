@@ -25,10 +25,14 @@
 
 package io.github.mzmine.modules.visualization.otherdetectors.multidetector;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIcons;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.project.ProjectService;
+import java.util.Optional;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
@@ -40,6 +44,7 @@ import javafx.scene.layout.VBox;
 public class MultidetectorVisualizerBuilder extends FxViewBuilder<MultidetectorVisualizerModel> {
 
   private VBox content;
+  private ScrollPane scrollPane;
 
   protected MultidetectorVisualizerBuilder(MultidetectorVisualizerModel model) {
     super(model);
@@ -47,7 +52,7 @@ public class MultidetectorVisualizerBuilder extends FxViewBuilder<MultidetectorV
 
   @Override
   public Region build() {
-    final ScrollPane scrollPane = new ScrollPane();
+    scrollPane = new ScrollPane();
     content = FxLayout.newVBox();
     scrollPane.setFitToWidth(true);
     scrollPane.setFitToHeight(true);
@@ -61,6 +66,15 @@ public class MultidetectorVisualizerBuilder extends FxViewBuilder<MultidetectorV
   }
 
   private void addNewDetector() {
-    content.getChildren().add(new DetectorPane());
+    final Optional<RawDataFile> file = ProjectService.getProject().getCurrentRawDataFiles().stream()
+        .filter(f -> f.getOtherDataFiles().stream().anyMatch(o -> o.hasTimeSeries())).findFirst();
+    if (!file.isPresent()) {
+      MZmineCore.getDesktop().displayErrorMessage("No raw file contains other detector traces.");
+      return;
+    }
+
+    final DetectorPane pane = new DetectorPane(file.get());
+    pane.minHeightProperty().bind(scrollPane.heightProperty().divide(4));
+    content.getChildren().add(pane);
   }
 }

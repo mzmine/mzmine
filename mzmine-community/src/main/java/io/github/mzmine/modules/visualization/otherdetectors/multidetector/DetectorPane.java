@@ -60,10 +60,11 @@ public class DetectorPane extends BorderPane {
   private ObjectProperty<@Nullable OtherTimeSeries> timeSeries = new SimpleObjectProperty<>();
   private ChromatogramPlotController plot;
 
-  public DetectorPane() {
+  private DetectorPane() {
     final ComboBox<RawDataFile> rawFileCombo = FxComboBox.createComboBox(
-        "Select an MS raw data file.", ProjectService.getProject().getCurrentRawDataFiles(),
-        rawFileProperty());
+        "Select an MS raw data file.", ProjectService.getProject().getCurrentRawDataFiles().stream()
+            .filter(f -> f.getOtherDataFiles().stream().anyMatch(OtherDataFile::hasTimeSeries))
+            .toList(), rawFileProperty());
     final ComboBox<@Nullable OtherDataFile> otherFileCombo = createOtherFileCombo();
 
     final ComboBox<@Nullable OtherTimeSeries> timeSeriesCombo = createTimeSeriesCombo();
@@ -73,13 +74,19 @@ public class DetectorPane extends BorderPane {
     initializeListeners(otherFileCombo, timeSeriesCombo);
 
     final VBox vbox = FxLayout.newVBox(rawFileCombo, otherFileCombo, timeSeriesCombo);
-//    rawFileCombo.prefWidthProperty().bind(vbox.widthProperty());
-//    otherFileCombo.prefWidthProperty().bind(vbox.widthProperty());
-//    timeSeriesCombo.prefWidthProperty().bind(vbox.widthProperty());
+//    rawFileCombo.prefWidthProperty().bind(vbox.widthProperty().subtract(15));
+//    otherFileCombo.prefWidthProperty().bind(vbox.widthProperty().subtract(15));
+//    timeSeriesCombo.prefWidthProperty().bind(vbox.widthProperty().subtract(15));
+
+    vbox.minWidth(250);
+    vbox.maxWidth(250);
 
     final Region plotView = plot.buildView();
     setCenter(plotView);
     setRight(vbox);
+
+    maxHeight(400);
+    minHeight(200);
   }
 
   private @NotNull ComboBox<@Nullable OtherDataFile> createOtherFileCombo() {
@@ -105,7 +112,7 @@ public class DetectorPane extends BorderPane {
   private @NotNull ComboBox<@Nullable OtherTimeSeries> createTimeSeriesCombo() {
     final ComboBox<@Nullable OtherTimeSeries> timeSeriesCombo = FxComboBox.createComboBox(
         "Select a chromatogram.", List.of(), timeSeries);
-    timeSeriesCombo.setConverter(new StringConverter<OtherTimeSeries>() {
+    timeSeriesCombo.setConverter(new StringConverter<>() {
       @Override
       public String toString(OtherTimeSeries object) {
         if (object == null) {
@@ -141,7 +148,8 @@ public class DetectorPane extends BorderPane {
       ComboBox<@Nullable OtherTimeSeries> timeSeriesCombo) {
     rawFile.addListener((_, _, file) -> {
       if (file != null) {
-        otherFileCombo.setItems(FXCollections.observableList(file.getOtherDataFiles()));
+        otherFileCombo.setItems(FXCollections.observableList(
+            file.getOtherDataFiles().stream().filter(OtherDataFile::hasTimeSeries).toList()));
         if (!otherFileCombo.getItems().isEmpty()) {
           otherFileCombo.getSelectionModel().selectFirst();
         }
@@ -197,6 +205,10 @@ public class DetectorPane extends BorderPane {
   }
 
   public void setRawFile(@Nullable RawDataFile rawFile) {
+    if (!rawFile.getOtherDataFiles().stream().anyMatch(OtherDataFile::hasTimeSeries)) {
+      throw new RuntimeException(
+          "Selected file does not have any associated other detector time series.");
+    }
     this.rawFile.set(rawFile);
   }
 

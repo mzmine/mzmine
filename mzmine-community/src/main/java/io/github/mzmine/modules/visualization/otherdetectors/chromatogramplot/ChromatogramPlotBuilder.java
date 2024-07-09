@@ -54,6 +54,7 @@ public class ChromatogramPlotBuilder extends FxViewBuilder<ChromatogramPlotModel
 
     chart.setMinHeight(100);
     chart.setMinWidth(100);
+    chart.setStickyZeroRangeAxis(false);
 
     initializeDatasetRendererListener(chart);
     initializeAnnotationListener(chart);
