@@ -25,6 +25,7 @@
 
 package io.github.mzmine.main;
 
+import com.sun.jna.Platform;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.util.logging.Logger;
@@ -63,12 +64,20 @@ public enum ExternalTool {
     String toolPath = this.getFolderName();
 
     // try if it exists otherwise jump into parent dir
-    File combined = new File(directory, "external_tools/" + toolPath);
+    File combined = resolveOsDependent(directory, toolPath);
     if (combined.exists()) {
       return combined;
     } else {
       combined = new File(directory.getParentFile(), "external_tools/" + toolPath);
       return combined.exists() ? combined : null;
+    }
+  }
+
+  private static File resolveOsDependent(File workingDir, String toolPath) {
+    if (Platform.isMac()) {
+      return new File(workingDir, "external_tools/" + toolPath);
+    } else {
+      return new File(workingDir, "external_tools/" + toolPath);
     }
   }
 }
