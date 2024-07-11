@@ -435,9 +435,9 @@
     </Menu>
 
     <Menu text="Normalization">
-      <MenuItem text="Retention time calibration"
+      <MenuItem text="Retention time correction"
         onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule"/>
       <MenuItem text="Linear normalizer" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule"/>
       <MenuItem text="Standard compound normalizer"
