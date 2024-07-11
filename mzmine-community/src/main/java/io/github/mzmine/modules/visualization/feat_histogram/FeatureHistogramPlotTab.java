@@ -33,17 +33,17 @@ import java.util.List;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
-public class FeatHistPlotTab extends MZmineTab {
+public class FeatureHistogramPlotTab extends MZmineTab {
 
-  private final FeatHistPlotController controller;
+  private final FeatureHistogramPlotController controller;
 
-  public FeatHistPlotTab() {
+  public FeatureHistogramPlotTab() {
     this(null);
   }
 
-  public FeatHistPlotTab(FeatureList flist) {
+  public FeatureHistogramPlotTab(FeatureList flist) {
     super("Feature histogram plot", true, false);
-    controller = new FeatHistPlotController(flist);
+    controller = new FeatureHistogramPlotController(flist);
     final Region plot = controller.buildView();
     setContent(plot);
   }

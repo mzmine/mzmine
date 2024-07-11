@@ -25,29 +25,27 @@
 
 package io.github.mzmine.modules.visualization.feat_histogram;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberFormatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
-import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import java.util.Collection;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
-public class FeatHistPlotModel {
+public class FeatureHistogramPlotModel {
 
-  private final ObjectProperty<List<FeatureList>> flists = new SimpleObjectProperty<>();
+  private final ObservableList<FeatureList> featureLists = FXCollections.observableArrayList();
 
   private final ObservableList<NumberType> typeChoices = FXCollections.observableArrayList();
 
   private final ObjectProperty<NumberType> dataType = new SimpleObjectProperty<>();
-//  private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>(
+  //  private final ObjectProperty<AbundanceMeasure> abundanceMeasure = new SimpleObjectProperty<>(
 //      AbundanceMeasure.Height);
   private final ObjectProperty<Collection<DatasetAndRenderer>> datasets = new SimpleObjectProperty<>(
       List.of());
@@ -57,22 +55,47 @@ public class FeatHistPlotModel {
 
   private final ObjectProperty<List<FeatureListRow>> selectedRows = new SimpleObjectProperty<>();
 
-  public List<FeatureList> getFlists() {
-    return flists.get();
+  public FeatureHistogramPlotModel(@NotNull final List<FeatureList> featureLists) {
+    // first listen for changes to typeChoices
+    this.typeChoices.addListener((ListChangeListener<NumberType>) c -> {
+      var selectedType = dataType.get();
+      if (selectedType == null) {
+        return;
+      }
+      if (!typeChoices.contains(selectedType)) {
+        dataType.set(null); // remove as its not present
+      }
+    });
+
+    // listen to changes to featureLists
+    this.featureLists.addListener((ListChangeListener<? super FeatureList>) change -> {
+      List<NumberType> types = this.featureLists.stream().map(FeatureList::getFeatureTypes)
+          .flatMap(Collection::stream).filter(NumberType.class::isInstance)
+          .map(NumberType.class::cast).toList();
+      typeChoices.setAll(types);
+    });
+
+    this.featureLists.setAll(featureLists);
+
+    model.getTypeChoices().setAll(
+        featureLists.getFeatureTypes().stream().filter(NumberType.class::isInstance)
+            .map(NumberType.class::cast).toList());
   }
 
-  public ObjectProperty<List<FeatureList>> flistsProperty() {
-    return flists;
+  public ObservableList<FeatureList> getFeatureLists() {
+    return featureLists;
   }
 
-  public void setFlists(List<FeatureList> flists) {
-    this.flists.set(flists);
+  public void setFeatureLists(List<FeatureList> featureLists) {
+    this.featureLists.setAll(featureLists);
   }
 
-//  public void setTypeChoices(FeatureList flist) {
+  //  public void setTypeChoices(FeatureList flist) {
 //    this.typeChoices = flist.getFeatureTypes().stream();
 //  }
-  public ObservableList<NumberType> getTypeChoices() { return this.typeChoices; }
+  public ObservableList<NumberType> getTypeChoices() {
+    return this.typeChoices;
+  }
 
 //  public AbundanceMeasure getAbundanceMeasure() {
 //    return abundanceMeasure.get();
@@ -98,12 +121,18 @@ public class FeatHistPlotModel {
     return datasets;
   }
 
-  public NumberType getDataType() { return dataType.get(); }
+  public NumberType getDataType() {
+    return dataType.get();
+  }
 
   //todo rename into selectedDataType
-  public ObjectProperty<NumberType> dataTypeProperty() { return dataType; }
+  public ObjectProperty<NumberType> dataTypeProperty() {
+    return dataType;
+  }
 
-  public void setDataType(NumberType type) { this.dataType.set(type); }
+  public void setDataType(NumberType type) {
+    this.dataType.set(type);
+  }
 
 //  public @Nullable RowSignificanceTest getTest() {
 //    return test.get();

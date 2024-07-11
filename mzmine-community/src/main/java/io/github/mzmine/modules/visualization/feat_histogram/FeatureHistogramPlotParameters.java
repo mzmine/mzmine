@@ -25,36 +25,21 @@
 
 package io.github.mzmine.modules.visualization.feat_histogram;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.impl.AbstractRunnableModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.ExitCode;
-import java.time.Instant;
-import java.util.Collection;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import org.jetbrains.annotations.NotNull;
 
-public class FeatHistPlotModule extends AbstractRunnableModule {
+public class FeatureHistogramPlotParameters extends SimpleParameterSet {
 
-  public FeatHistPlotModule() {
-    super("Feature histogram plot", FeatHistPlotParameters.class, MZmineModuleCategory.DATAANALYSIS,
-        "Interactive feature histogram visualization");
+  public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1, true);
+
+  public FeatureHistogramPlotParameters() {
+    super(flist);
   }
 
   @Override
-  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
-      @NotNull Instant moduleCallDate) {
-
-    final ModularFeatureList flist = parameters.getValue(FeatHistPlotParameters.flist)
-        .getMatchingFeatureLists()[0];
-    final FeatHistPlotTab tab = new FeatHistPlotTab(flist);
-    MZmineCore.getDesktop().addTab(tab);
-
-    return ExitCode.OK;
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
-
 }

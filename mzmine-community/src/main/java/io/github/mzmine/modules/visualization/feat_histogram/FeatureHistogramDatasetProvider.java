@@ -25,35 +25,22 @@
 
 package io.github.mzmine.modules.visualization.feat_histogram;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
-import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberFormatType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.XYItemObjectProvider;
-import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
-import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureUtils;
 import java.awt.Color;
 import java.text.DecimalFormat;
-import java.util.List;
-import javafx.beans.property.Property;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatHistDatasetProvider extends SimpleXYProvider {
+public class FeatureHistogramDatasetProvider extends SimpleXYProvider {
 //    implements XYItemObjectProvider<RowSignificanceTestResult> {
 
 //  private final StudentTTest<?> test;
 //  private final List<RowSignificanceTestResult> results;
 
-//  private final AbundanceMeasure abundanceMeasure;
+  //  private final AbundanceMeasure abundanceMeasure;
   private final NumberFormatType dataType;
 
-  public FeatHistDatasetProvider(
+  public FeatureHistogramDatasetProvider(
 //      StudentTTest<?> test, List<RowSignificanceTestResult> results,
 //      Color color, String key, AbundanceMeasure abundanceMeasure) {
       Color color, String key, NumberFormatType dataType) {

@@ -25,10 +25,8 @@
 
 package io.github.mzmine.modules.visualization.feat_histogram;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
@@ -43,45 +41,37 @@ import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestModules;
 import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
 import io.github.mzmine.parameters.ValuePropertyComponent;
-import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import java.awt.Stroke;
-import java.text.DecimalFormat;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
-import javafx.scene.control.Accordion;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.math.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jfree.chart.plot.ValueMarker;
-import org.jfree.chart.ui.Layer;
 import org.jfree.data.xy.XYDataset;
 
-public class FeatHistPlotViewBuilder extends FxViewBuilder<FeatHistPlotModel> {
+public class FeatureHistogramPlotViewBuilder extends FxViewBuilder<FeatureHistogramPlotModel> {
 
-  private static final Logger logger = Logger.getLogger(FeatHistPlotViewBuilder.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      FeatureHistogramPlotViewBuilder.class.getName());
 
   private final int space = 5;
   private final Stroke annotationStroke = EStandardChartTheme.DEFAULT_MARKER_STROKE;
   private SimpleXYChart<PlotXYDataProvider> chart;
 
-  public FeatHistPlotViewBuilder(FeatHistPlotModel model) {
+  public FeatureHistogramPlotViewBuilder(FeatureHistogramPlotModel model) {
     super(model);
   }
 
@@ -144,22 +134,20 @@ public class FeatHistPlotViewBuilder extends FxViewBuilder<FeatHistPlotModel> {
   private HBox createDataTypeBox() {
     final HBox dataTypeBox = new HBox(space);
     Label label = new Label("Data type: ");
-    final ComboBox<NumberType> dataTypeCombo = new ComboBox<>(
-        model.getTypeChoices()
-    );
+    final ComboBox<NumberType> dataTypeCombo = new ComboBox<>(model.getTypeChoices());
     dataTypeCombo.setValue(model.getDataType());
     model.dataTypeProperty().bindBidirectional(dataTypeCombo.valueProperty());
     dataTypeBox.getChildren().addAll(label, dataTypeCombo);
     return dataTypeBox;
   }
+
   @NotNull
   private HBox createFeatureListsBox() {
     final HBox dataTypeBox = new HBox(space);
     Label label = new Label("Feature list: ");
     final ComboBox<List<FeatureList>> featureListCombo = new ComboBox<>(
-        FXCollections.observableList(model.getFlists())
-    );
-    featureListCombo.setValue(model.getFlists().getFirst());
+        FXCollections.observableList(model.getFeatureLists()));
+    featureListCombo.setValue(model.getFeatureLists().getFirst());
     model.selectedRowsProperty().bindBidirectional(featureListCombo.valueProperty());
     dataTypeBox.getChildren().addAll(label, featureListCombo);
     return dataTypeBox;

@@ -37,25 +37,25 @@ import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class FeatHistPlotController extends FxController<FeatHistPlotModel> implements
-    SelectedRowsBinding, SelectedFeatureListsBinding {
+/**
+ * A histogram for features of one or multiple feature lists
+ */
+public class FeatureHistogramPlotController extends
+    FxController<FeatureHistogramPlotModel> implements SelectedRowsBinding,
+    SelectedFeatureListsBinding {
 
-  private final FeatHistPlotViewBuilder viewBuilder;
+  private final FeatureHistogramPlotViewBuilder viewBuilder;
   private final Region view;
 
-  public FeatHistPlotController() {
-    this(null);
+  public FeatureHistogramPlotController() {
+    this(List.of());
   }
 
-  public FeatHistPlotController(@Nullable FeatureList flist) {
-    super(new FeatHistPlotModel());
+  public FeatureHistogramPlotController(@NotNull List<FeatureList> featureLists) {
+    super(new FeatureHistogramPlotModel(featureLists));
 
-    model.setFlists(flist != null ? List.of(flist) : null);
-    model.getTypeChoices().setAll(flist.getFeatureTypes().stream()
-        .filter(NumberType.class::isInstance).map(NumberType.class::cast).toList());
-    viewBuilder = new FeatHistPlotViewBuilder(model);
+    viewBuilder = new FeatureHistogramPlotViewBuilder(model);
     view = viewBuilder.build();
 
     initializeListeners();
@@ -64,8 +64,9 @@ public class FeatHistPlotController extends FxController<FeatHistPlotModel> impl
   private void initializeListeners() {
 //    PropertyUtils.onChange(this::computeDataset, model.testProperty(), model.flistsProperty(),
 //        model.abundanceMeasureProperty(), model.pValueProperty());
-    PropertyUtils.onChange(this::computeDataset, model.dataTypeProperty(), model.flistsProperty());
-    model.flistsProperty().subscribe((featureLists) -> {
+    PropertyUtils.onChange(this::computeDataset, model.dataTypeProperty(),
+        model.featureListsProperty());
+    model.featureListsProperty().subscribe((featureLists) -> {
       if (featureLists == null) {
         //todo remove all choices from model
         return;
@@ -80,12 +81,12 @@ public class FeatHistPlotController extends FxController<FeatHistPlotModel> impl
 
   private void computeDataset() {
     // wait and update
-    onTaskThreadDelayed(new FeatHistPlotUpdateTask(model, model.getDataType()));
+    onTaskThreadDelayed(new FeatureHistogramPlotUpdateTask(model, model.getDataType()));
   }
 
   @Override
   public ObjectProperty<List<FeatureList>> selectedFeatureListsProperty() {
-    return model.flistsProperty();
+    return model.featureListsProperty();
   }
 
   public Region getView() {
@@ -93,7 +94,7 @@ public class FeatHistPlotController extends FxController<FeatHistPlotModel> impl
   }
 
   @Override
-  protected @NotNull FxViewBuilder<FeatHistPlotModel> getViewBuilder() {
+  protected @NotNull FxViewBuilder<FeatureHistogramPlotModel> getViewBuilder() {
     return viewBuilder;
   }
 

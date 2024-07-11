@@ -25,39 +25,26 @@
 
 package io.github.mzmine.modules.visualization.feat_histogram;
 
-import io.github.mzmine.datamodel.AbundanceMeasure;
-import io.github.mzmine.datamodel.features.FeatureAnnotationPriority;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.annotations.MissingValueType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberFormatType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.javafx.mvci.FxUpdateTask;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTest;
-import io.github.mzmine.modules.dataanalysis.significance.RowSignificanceTestResult;
-import io.github.mzmine.modules.dataanalysis.significance.ttest.StudentTTest;
 import io.github.mzmine.taskcontrol.progress.TotalFinishedItemsProgress;
-import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Creates new datasets and updates the data model on FX thread, only if still the latest scheduled
  * task
  */
-class FeatHistPlotUpdateTask extends FxUpdateTask<FeatHistPlotModel> {
+class FeatureHistogramPlotUpdateTask extends FxUpdateTask<FeatureHistogramPlotModel> {
 
   private final FeatureList flist;
 //  private final RowSignificanceTest test;
@@ -70,12 +57,12 @@ class FeatHistPlotUpdateTask extends FxUpdateTask<FeatHistPlotModel> {
   private @Nullable List<DatasetAndRenderer> temporaryDatasets;
 
 
-  FeatHistPlotUpdateTask(FeatHistPlotModel model, NumberFormatType<?> dataType) {
+  FeatureHistogramPlotUpdateTask(FeatureHistogramPlotModel model, NumberFormatType<?> dataType) {
     super("feathistogram_update", model);
     this.dataType = dataType;
 
-    final List<FeatureList> flists = model.getFlists();
-    if(flists != null && !flists.isEmpty()) {
+    final List<FeatureList> flists = model.getFeatureLists();
+    if (flists != null && !flists.isEmpty()) {
       flist = flists.getFirst();
     } else {
       flist = null;
@@ -137,16 +124,14 @@ class FeatHistPlotUpdateTask extends FxUpdateTask<FeatHistPlotModel> {
 //      final List<RowSignificanceTestResult> insignificantRows = testResults.stream()
 //          .filter(result -> result.pValue() >= pValue).toList();
 
-      final Color color = colors.getNextColorAWT();
+    final Color color = colors.getNextColorAWT();
 
-      if (data != null) {
-        var provider = new FeatHistDatasetProvider(color,
-            dataType.toString(),
-            dataType);
-        temporaryDatasets.add(new DatasetAndRenderer(new ColoredXYDataset(
-            provider, RunOption.THIS_THREAD),
-            new ColoredXYShapeRenderer(false)));
-      }
+    if (data != null) {
+      var provider = new FeatureHistogramDatasetProvider(color, dataType.toString(), dataType);
+      temporaryDatasets.add(
+          new DatasetAndRenderer(new ColoredXYDataset(provider, RunOption.THIS_THREAD),
+              new ColoredXYShapeRenderer(false)));
+    }
 //      if (!significantRows.isEmpty()) {
 //        var provider = new FeatHistDatasetProvider(ttest, significantRows, color,
 //            STR."\{type.equals(DataTypes.get(MissingValueType.class)) ? "not annotated"
