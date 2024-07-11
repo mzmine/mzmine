@@ -31,6 +31,21 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This class represents the absolute retention time (RT) correction type. It extends
+ * {@link FloatType} to format and manage RT correction values.
+ *
+ * <p>The corrected RT value is calculated as follows:
+ * <pre>
+ * float correctedRt = (float) (correctedRT - originalRT);
+ * correctedFeature.set(RtAbsoluteCorrectionType.class, correctedRt);
+ * </pre>
+ * Where:
+ * <ul>
+ *   <li><code>correctedRTdRT</code> is the corrected retention time.</li>
+ *   <li><code>originalRT</code> is the original retention time.</li>
+ * </ul>
+ */
 public class RtAbsoluteCorrectionType extends FloatType {
 
   public RtAbsoluteCorrectionType() {

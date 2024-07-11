@@ -45,7 +45,9 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import javafx.collections.ObservableList;
@@ -101,6 +103,8 @@ class RTCalibrationTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Running retention time normalizer");
+    Arrays.sort(originalFeatureLists,
+        Comparator.comparingInt(featureList -> featureList.getRows().size()));
     totalRows = originalFeatureLists[0].getNumberOfRows();
     normalizedFeatureLists = new ModularFeatureList[originalFeatureLists.length];
 
@@ -174,8 +178,8 @@ class RTCalibrationTask extends AbstractTask {
           ModularFeatureListRow[] matchingRows = originalFeatureLists[i].getRowsInsideScanAndMZRange(
               rtRange, mzRange).toArray(new ModularFeatureListRow[0]);
 
-          if (matchingRows.length != 1 || matchingRows[0].getFeatures().stream()
-              .anyMatch(p -> p.getHeight() < minHeight)) {
+          if (matchingRows.length != 1
+              || Objects.requireNonNull(matchingRows[0].getBestFeature()).getHeight() < minHeight) {
             isGoodStandard = false;
             break;
           }
@@ -215,6 +219,14 @@ class RTCalibrationTask extends AbstractTask {
     }
   }
 
+  /**
+   * Normalize retention time of given row using selected standards
+   *
+   * @param originalRow      Feature list row to be normalized
+   * @param standards        Standard rows in same feature list
+   * @param normalizedStdRTs Normalized retention times of standard rows
+   * @return New feature list row with normalized retention time
+   */
   private ModularFeatureListRow normalizeRow(ModularFeatureList targetFeatureList,
       ModularFeatureListRow originalRow, ModularFeatureListRow[] standards,
       double[] normalizedStdRTs) {
