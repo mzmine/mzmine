@@ -1,10 +1,10 @@
 [versions]
-jdk = { strictly = "21" }
-javafx = { strictly = "21.0.1" }
+jdk = { strictly = "22" }
+javafx = { strictly = "22.0.1" }
 javafx-plugin = "0.0.13"
 log4j-core = { strictly = "[2.23.0, 2.23.0[", prefer = "2.23.0" }
 
-licenseplugin = "2.6"
+licenseplugin = "2.8"
 beryx-runtime = "1.12.7"
 semver = "1.0.4"
 msdk = "0.0.27"

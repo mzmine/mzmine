@@ -236,9 +236,14 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     RangeMap<Double, ADAPChromatogram> rangeToChromMap = TreeRangeMap.create();
 
     // make a list of all the data points
-
-    final int totalDps = Arrays.stream(scans).map(Scan::getMassList)
-        .mapToInt(MassSpectrum::getNumberOfDataPoints).sum();
+    final int totalDps = Arrays.stream(scans).map(s -> {
+      if (s.getMassList() != null) {
+        return s.getMassList();
+      }
+      final MissingMassListException ex = new MissingMassListException(s);
+      DesktopService.getDesktop().displayErrorMessage(ex.getMessage());
+      throw ex;
+    }).mapToInt(MassSpectrum::getNumberOfDataPoints).sum();
     int dpCounter = 0;
 
     ExpandedDataPoint[] allMzValues = new ExpandedDataPoint[totalDps];
