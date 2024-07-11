@@ -287,7 +287,9 @@ application {
     ]
 }
 
-def EXTERNAL_TOOLS_DESTINATION = getLayout().getBuildDirectory().dir("jpackage/mzmine/external_tools").get()
+def EXTERNAL_TOOLS_DESTINATION =
+        !OperatingSystem.current().isMacOsX() ? getLayout().getBuildDirectory().dir("jpackage/mzmine/external_tools").get()
+                : getLayout().getBuildDirectory().dir("jpackage/mzmine.app/Contents/external_tools").get()
 def EXTERNAL_TOOLS_SRC = getLayout().getProjectDirectory().dir("../external_tools")
 tasks.jpackage.doFirst {
     copy {
