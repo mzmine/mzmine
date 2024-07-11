@@ -43,5 +43,8 @@ public enum RawDataFileType {
   ICPMSMS_CSV, //
   BRUKER_TDF, //
   BRUKER_TSF, //
-  AIRD //
+  AIRD, //
+  SCIEX_WIFF, //
+  SCIEX_WIFF2, //
+  AGILENT_D;
 }

@@ -38,13 +38,22 @@ public enum ExternalTool {
   /**
    * Thermo raw parser is used to import raw files
    */
-  THERMO_RAW_PARSER;
+  THERMO_RAW_PARSER, MSCONVERT;
 
   private static final Logger logger = Logger.getLogger(ExternalTool.class.getName());
+
+  private static File resolveOsDependent(File workingDir, String toolPath) {
+    if (Platform.isMac()) {
+      return new File(workingDir, "external_tools/" + toolPath);
+    } else {
+      return new File(workingDir, "external_tools/" + toolPath);
+    }
+  }
 
   private String getFolderName() {
     return switch (this) {
       case THERMO_RAW_PARSER -> "thermo_raw_file_parser";
+      case MSCONVERT -> "msconvert";
     };
   }
 
@@ -70,14 +79,6 @@ public enum ExternalTool {
     } else {
       combined = new File(directory.getParentFile(), "external_tools/" + toolPath);
       return combined.exists() ? combined : null;
-    }
-  }
-
-  private static File resolveOsDependent(File workingDir, String toolPath) {
-    if (Platform.isMac()) {
-      return new File(workingDir, "external_tools/" + toolPath);
-    } else {
-      return new File(workingDir, "external_tools/" + toolPath);
     }
   }
 }

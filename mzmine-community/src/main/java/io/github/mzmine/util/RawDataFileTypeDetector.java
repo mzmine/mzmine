@@ -69,6 +69,9 @@ public class RawDataFileTypeDetector {
   private static final String AIRD_SUFFIX = ".aird";
   private static final String MZML_SUFFIX = ".mzml";
   private static final String IMZML_SUFFIX = ".imzml";
+  private static final String SCIEX_WIFF_SUFFIX = ".wiff";
+  private static final String SCIEX_WIFF2_SUFFIX = ".wiff2";
+  private static final String AGILENT_ACQDATATA_FOLDER = "AcqData";
 
   private static final Logger logger = Logger.getLogger(RawDataFileTypeDetector.class.getName());
 
@@ -78,10 +81,6 @@ public class RawDataFileTypeDetector {
   public static RawDataFileType detectDataFileType(File fileName) {
 
     if (fileName.isDirectory()) {
-      /*if (fileName.getName().endsWith(BRUKER_FOLDER_SUFFIX)) {
-        return RawDataFileType.BRUKER_TDF;
-      }*/
-
       // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
       for (File f : fileName.listFiles()) {
         /*if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT")) {
@@ -94,6 +93,9 @@ public class RawDataFileTypeDetector {
         if (f.isFile() && (f.getName().contains(TSF_SUFFIX) || f.getName()
             .contains(TSF_BIN_SUFFIX))) {
           return RawDataFileType.BRUKER_TSF;
+        }
+        if (f.isDirectory() && f.getName().equals(AGILENT_ACQDATATA_FOLDER)) {
+          return RawDataFileType.AGILENT_D;
         }
       }
       // We don't recognize any other directory type than Waters and Bruker
