@@ -38,7 +38,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
-public class RTCalibrationParameters extends SimpleParameterSet {
+public class RTCorrectionParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(2);
 
@@ -60,7 +60,7 @@ public class RTCalibrationParameters extends SimpleParameterSet {
           "Defines the processing.\nKEEP is to keep the original feature list and create a new"
               + "processed list.\nREMOVE saves memory.", false);
 
-  public RTCalibrationParameters() {
+  public RTCorrectionParameters() {
     super(
         new Parameter[]{featureLists, suffix, MZTolerance, RTTolerance, minHeight, handleOriginal},
         "https://mzmine.github.io/mzmine_documentation/module_docs/norm_rt_calibration/norm_rt_calibration.html");

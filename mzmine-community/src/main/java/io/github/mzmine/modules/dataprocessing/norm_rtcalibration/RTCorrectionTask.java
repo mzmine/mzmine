@@ -54,7 +54,7 @@ import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class RTCalibrationTask extends AbstractTask {
+class RTCorrectionTask extends AbstractTask {
 
   private final OriginalFeatureListOption handleOriginal;
   private final MZmineProject project;
@@ -70,20 +70,20 @@ class RTCalibrationTask extends AbstractTask {
   private final double minHeight;
   private final ParameterSet parameters;
 
-  public RTCalibrationTask(MZmineProject project, ParameterSet parameters,
+  public RTCorrectionTask(MZmineProject project, ParameterSet parameters,
       @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;
-    this.originalFeatureLists = parameters.getParameter(
-        RTCalibrationParameters.featureLists).getValue().getMatchingFeatureLists();
+    this.originalFeatureLists = parameters.getParameter(RTCorrectionParameters.featureLists)
+        .getValue().getMatchingFeatureLists();
     this.parameters = parameters;
 
-    suffix = parameters.getParameter(RTCalibrationParameters.suffix).getValue();
-    mzTolerance = parameters.getParameter(RTCalibrationParameters.MZTolerance).getValue();
-    rtTolerance = parameters.getParameter(RTCalibrationParameters.RTTolerance).getValue();
-    minHeight = parameters.getParameter(RTCalibrationParameters.minHeight).getValue();
-    handleOriginal = parameters.getParameter(RTCalibrationParameters.handleOriginal).getValue();
+    suffix = parameters.getParameter(RTCorrectionParameters.suffix).getValue();
+    mzTolerance = parameters.getParameter(RTCorrectionParameters.MZTolerance).getValue();
+    rtTolerance = parameters.getParameter(RTCorrectionParameters.RTTolerance).getValue();
+    minHeight = parameters.getParameter(RTCorrectionParameters.minHeight).getValue();
+    handleOriginal = parameters.getParameter(RTCorrectionParameters.handleOriginal).getValue();
   }
 
   @Override
@@ -137,7 +137,7 @@ class RTCalibrationTask extends AbstractTask {
 
       normalizedFeatureLists[i].addDescriptionOfAppliedTask(
           new SimpleFeatureListAppliedMethod("Retention time normalization",
-              RTCalibrationModule.class, parameters, getModuleCallDate()));
+              RTCorrectionModule.class, parameters, getModuleCallDate()));
 
       handleOriginal.reflectNewFeatureListToProject(suffix, project, normalizedFeatureLists[i],
           originalFeatureLists[i]);

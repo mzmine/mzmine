@@ -39,11 +39,10 @@ import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public class RTCalibrationModule implements MZmineProcessingModule {
+public class RTCorrectionModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Retention time calibration";
-  private static final String MODULE_DESCRIPTION =
-      "The retention time calibration attempts to reduce the deviation of retention times between feature lists, by searching for common features in these lists and using them as calibration standards.";
+  private static final String MODULE_NAME = "Retention time correction";
+  private static final String MODULE_DESCRIPTION = "The retention time correction module attempts to reduce the deviation of retention times between feature lists, by searching for common features in these lists and using them as correction standards.";
 
   @Override
   public @NotNull String getName() {
@@ -64,7 +63,7 @@ public class RTCalibrationModule implements MZmineProcessingModule {
       String msg = MODULE_NAME + "\nPlease check parameter values:\n" + String.join("\n", errors);
       MZmineCore.getDesktop().displayErrorMessage(msg);
     } else {
-      RTCalibrationTask newTask = new RTCalibrationTask(project, parameters,
+      RTCorrectionTask newTask = new RTCorrectionTask(project, parameters,
           MemoryMapStorage.forFeatureList(), moduleCallDate);
       tasks.add(newTask);
     }
@@ -78,7 +77,7 @@ public class RTCalibrationModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return RTCalibrationParameters.class;
+    return RTCorrectionParameters.class;
   }
 
 }
