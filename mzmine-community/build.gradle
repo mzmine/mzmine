@@ -287,12 +287,12 @@ application {
     ]
 }
 
-def JLINK_DIR = "${getLayout().getBuildDirectory().dir("/jpackage/mzmine").get()}"
-
+def EXTERNAL_TOOLS_DESTINATION = getLayout().getBuildDirectory().dir("jpackage/mzmine/external_tools").get()
+def EXTERNAL_TOOLS_SRC = getLayout().getProjectDirectory().dir("../external_tools")
 tasks.jpackage.doFirst {
     copy {
-        from "${projectDir}/../external_tools"
-        into JLINK_DIR + "/external_tools"
+        from EXTERNAL_TOOLS_SRC
+        into EXTERNAL_TOOLS_DESTINATION
     }
 }
 
