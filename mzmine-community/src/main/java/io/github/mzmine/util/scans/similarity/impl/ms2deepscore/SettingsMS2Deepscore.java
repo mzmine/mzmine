@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,8 +34,6 @@ public record SettingsMS2Deepscore(@JsonProperty("embedding_dim") Integer embedd
                                    String ionisationMode, @JsonProperty("min_mz") int minimumMZ,
                                    @JsonProperty("max_mz") int maximumMZ,
                                    @JsonProperty("mz_bin_width") Double binWidth,
-                                   Object[][] additionalMetadata, float intensityScaling
-
-) {
+                                   Object[][] additionalMetadata, float intensityScaling) {
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,14 +44,14 @@ public abstract class EmbeddingBasedSimilarity {
   }
 
   public float[][] predictMatrixSymmetric(Scan[] scans) throws TranslateException {
-    NDArray embeddings1 = this.predictEmbedding(scans);
+    NDArray embeddings1 = predictEmbedding(scans);
 
     return this.dotProduct(embeddings1, embeddings1);
   }
 
   public float[][] predictMatrix(Scan[] scan1, Scan[] scan2) throws TranslateException {
-    NDArray embeddings1 = this.predictEmbedding(scan1);
-    NDArray embeddings2 = this.predictEmbedding(scan2);
+    NDArray embeddings1 = predictEmbedding(scan1);
+    NDArray embeddings2 = predictEmbedding(scan2);
 
     return this.dotProduct(embeddings1, embeddings2);
   }

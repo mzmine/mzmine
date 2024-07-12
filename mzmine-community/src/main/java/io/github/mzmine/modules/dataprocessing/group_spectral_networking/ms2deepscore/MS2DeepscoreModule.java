@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,19 +37,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A Module creates tasks which are then added queue
- * <p>
- * 1. add your module to the io.github.mzmine.gui.mainwindow.MainMenu.fmxl
- * <p>
- * 2. for access in batch mode, put your module in the BatchModeModulesList in the package:
- * io.github.mzmine.main
+ * Downloads a MS2Deepscore model and runs molecular networking
  */
 public class MS2DeepscoreModule extends SingleTaskFeatureListsModule {
 
   public MS2DeepscoreModule() {
     super("MS/MS Spectral networking (MS2Deepscore)", MS2DeepscoreParameters.class,
         MZmineModuleCategory.FEATURE_GROUPING,
-        "Calculating MS2Deepscores similarity scores for spectral networking");
+        "Calculating MS2Deepscores similarity for spectral networking");
   }
 
   @Override

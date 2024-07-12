@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -41,17 +41,16 @@ import io.github.mzmine.datamodel.Scan;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
 
-  /**
-   * Predicts the MS2Deepscore embedding
-   */
-  private final ZooModel<NDList, NDList> model;
-  private final SettingsMS2Deepscore settings;
+  private static final Logger logger = Logger.getLogger(MS2DeepscoreModel.class.getName());
   private final SpectrumTensorizer spectrumTensorizer;
   private final NDManager ndManager;
   private final Predictor<NDList, NDList> predictor;
+  private final ZooModel<NDList, NDList> model;
 
   public MS2DeepscoreModel(Path modelFilePath, Path settingsFilePath)
       throws ModelNotFoundException, MalformedModelException, IOException {
@@ -60,8 +59,13 @@ public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
         .optModelPath(modelFilePath)
         .optOption("mapLocation", "true") // this model requires mapLocation for GPU
         .optProgress(new ProgressBar()).build();
-    this.model = criteria.loadModel();
-    this.settings = loadSettings(settingsFilePath);
+    /**
+     * Predicts the MS2Deepscore embedding
+     */
+    // TODO try with resources
+    model = criteria.loadModel();
+    SettingsMS2Deepscore settings = loadSettings(settingsFilePath);
+    // TODO just read json to record and compare those
     if (!Arrays.deepToString(settings.additionalMetadata()).equals(
         "[[StandardScaler, {metadata_field=precursor_mz, mean=0.0, standard_deviation=1000.0}], [CategoricalToBinary, {metadata_field=ionmode, entries_becoming_one=positive, entries_becoming_zero=negative}]]")) {
       throw new RuntimeException(
@@ -74,7 +78,21 @@ public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
   }
 
   public void closeNdManager() {
-    ndManager.close();
+    try {
+      ndManager.close();
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Could not close ND manager: " + ex.getMessage(), ex);
+    }
+    try {
+      predictor.close();
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Could not close predictor: " + ex.getMessage(), ex);
+    }
+    try {
+      model.close();
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Could not close model: " + ex.getMessage(), ex);
+    }
   }
 
   private SettingsMS2Deepscore loadSettings(Path settingsFilePath) throws IOException {
@@ -94,7 +112,6 @@ public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
         new NDList(ndManager.create(tensorizedSpectra.tensorizedFragments()),
             ndManager.create(tensorizedSpectra.tensorizedMetadata())));
     return predictions.getFirst();
-
   }
 
   public NDArray predictEmbedding(Scan[] scans) throws TranslateException {

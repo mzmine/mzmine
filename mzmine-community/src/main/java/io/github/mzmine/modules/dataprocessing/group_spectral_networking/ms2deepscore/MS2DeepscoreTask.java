@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -56,8 +56,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The task will be scheduled by the TaskController. Progress is calculated from the
- * finishedItems/totalItems
+ * @author niekdejonge
  */
 class MS2DeepscoreTask extends AbstractFeatureListTask {
 
@@ -67,7 +66,7 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
   private final double minScore;
   private Path ms2deepscoreModelFile;
   private Path ms2deepscoreSettingsFile;
-  private final Boolean downloadModel;
+  private final boolean downloadModel;
   private final File downloadDirectory;
 
   private String description;

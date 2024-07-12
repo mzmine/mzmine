@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,7 +28,9 @@ package io.github.mzmine.util.scans.similarity.impl.ms2deepscore;
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
+import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Bins spectra and returns two tensors, one for metadata and one for fragments
@@ -63,28 +65,39 @@ public class SpectrumTensorizer {
     if (!(polarity == PolarityType.POSITIVE || polarity == PolarityType.NEGATIVE)) {
       throw new RuntimeException("The polarity has to be positive or negative");
     }
-    if (polarity == PolarityType.POSITIVE) {
-      return 1;
-    } else {
-      return 0;
-    }
+    return polarity != PolarityType.POSITIVE ? 0 : 1;
   }
 
-  private float scalePrecursorMZ(Scan scan, float mean, float standardDeviation) {
-//    @robin what happens if this is null, does that throw an exception?
+  /**
+   * @return scaled precursor mz or null if there was no precursor mz
+   */
+  @Nullable
+  private Float scalePrecursorMZ(Scan scan, float mean, float standardDeviation) {
     Double precursorMZ = scan.getPrecursorMz();
     if (precursorMZ == null) {
-      throw new RuntimeException("The precursor mz cannot be null to run ms2deepscore");
+      return null;
     }
-    return (float) (precursorMZ - mean) / standardDeviation;
+    return (precursorMZ.floatValue() - mean) / standardDeviation;
   }
 
-
-  public float[] tensorizeMetadata(Scan scan) {
-    return new float[]{scalePrecursorMZ(scan, 0, 1000), binarizePolarity(scan)};
+  /**
+   * @return vector or null if the scan has no precursor mz
+   */
+  public float @Nullable [] tensorizeMetadata(@NotNull Scan scan) {
+    Float scaledMz = scalePrecursorMZ(scan, 0, 1000);
+    if (scaledMz == null) {
+      return null;
+    }
+    return new float[]{scaledMz, binarizePolarity(scan)};
   }
 
-  public TensorizedSpectra tensorizeSpectra(Scan[] scans) {
+  /**
+   * Only works on scans with precursor mz
+   */
+  @NotNull
+  public TensorizedSpectra tensorizeSpectra(@NotNull Scan[] scans) {
+    // requires precursor mz
+    scans = Arrays.stream(scans).filter(scan -> scan.getPrecursorMz() != null).toArray(Scan[]::new);
 
     float[][] metadataVectors = new float[scans.length][numBins];
     float[][] fragmentVectors = new float[scans.length][numBins];
@@ -95,6 +108,5 @@ public class SpectrumTensorizer {
     }
 
     return new TensorizedSpectra(fragmentVectors, metadataVectors);
-
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -25,6 +25,10 @@
 
 package io.github.mzmine.util.scans.similarity.impl.ms2deepscore;
 
+/**
+ * @param tensorizedFragments [spectra][vector] of fragment data
+ * @param tensorizedMetadata  [spectra][vector] of scan metadata
+ */
 public record TensorizedSpectra(float[][] tensorizedFragments, float[][] tensorizedMetadata) {
 
 }
