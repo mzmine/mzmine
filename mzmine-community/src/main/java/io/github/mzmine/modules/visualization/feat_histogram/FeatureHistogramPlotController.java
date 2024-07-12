@@ -25,63 +25,87 @@
 
 package io.github.mzmine.modules.visualization.feat_histogram;
 
+import static java.util.Objects.requireNonNullElse;
+
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import io.github.mzmine.gui.framework.fx.SelectedFeatureListsBinding;
-import io.github.mzmine.gui.framework.fx.SelectedRowsBinding;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.properties.PropertyUtils;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
+import javafx.collections.ListChangeListener;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.LoggerFactory;
 
 /**
  * A histogram for features of one or multiple feature lists
  */
 public class FeatureHistogramPlotController extends
-    FxController<FeatureHistogramPlotModel> implements SelectedRowsBinding,
-    SelectedFeatureListsBinding {
+    FxController<FeatureHistogramPlotModel> implements SelectedFeatureListsBinding {
+
+  private static final Logger logger = Logger.getLogger(
+      FeatureHistogramPlotController.class.getName());
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(
+      FeatureHistogramPlotController.class);
 
   private final FeatureHistogramPlotViewBuilder viewBuilder;
-  private final Region view;
 
   public FeatureHistogramPlotController() {
     this(List.of());
   }
 
   public FeatureHistogramPlotController(@NotNull List<FeatureList> featureLists) {
-    super(new FeatureHistogramPlotModel(featureLists));
+    super(new FeatureHistogramPlotModel());
 
     viewBuilder = new FeatureHistogramPlotViewBuilder(model);
-    view = viewBuilder.build();
-
     initializeListeners();
+
+    // after initializing everything
+    model.setFeatureLists(featureLists);
   }
 
   private void initializeListeners() {
-//    PropertyUtils.onChange(this::computeDataset, model.testProperty(), model.flistsProperty(),
-//        model.abundanceMeasureProperty(), model.pValueProperty());
-    PropertyUtils.onChange(this::computeDataset, model.dataTypeProperty(),
-        model.featureListsProperty());
-    model.featureListsProperty().subscribe((featureLists) -> {
-      if (featureLists == null) {
-        //todo remove all choices from model
+    logger.info("Initializing feature histogram plot listeners.");
+    PropertyUtils.onChange(this::computeDataset, model.featureListsProperty(),
+        model.selectedTypeProperty());
+
+    // first listen for changes to typeChoices
+    model.getTypeChoices().addListener((ListChangeListener<NumberType>) _ -> {
+      logger.info(() -> "Type choices changed");
+      var selectedType = model.getSelectedType();
+      if (selectedType == null) {
+        logger.info("Selected type was null");
         return;
       }
-      List<NumberType> types = featureLists.stream()
-          .flatMap(featureList -> featureList.getFeatureTypes().stream())
-          .filter(NumberType.class::isInstance).map(NumberType.class::cast).toList();
+      if (!model.getTypeChoices().contains(selectedType)) {
+        logger.info("Selected type removed due to unavailability");
+        model.setSelectedType(null); // remove as its not present
+      }
+    });
+
+    // listen to changes to featureLists - extract all number types
+    model.featureListsProperty().subscribe((_) -> {
+      logger.info(() -> "Feature lists changed");
+      List<NumberType> types = requireNonNullElse(model.getFeatureLists(),
+          new ArrayList<FeatureList>()).stream().map(FeatureList::getFeatureTypes)
+          .flatMap(Collection::stream).filter(NumberType.class::isInstance)
+          .map(NumberType.class::cast)
+          .sorted(Comparator.comparing(dt -> dt.getHeaderString().toLowerCase())).toList();
       model.getTypeChoices().setAll(types);
-      model.dataTypeProperty().set(types.getFirst());
     });
   }
 
   private void computeDataset() {
+    logger.info(() -> "Computing dataset");
     // wait and update
-    onTaskThreadDelayed(new FeatureHistogramPlotUpdateTask(model, model.getDataType()));
+    onTaskThreadDelayed(new FeatureHistogramPlotUpdateTask(model));
   }
 
   @Override
@@ -90,7 +114,7 @@ public class FeatureHistogramPlotController extends
   }
 
   public Region getView() {
-    return view;
+    return viewBuilder.build();
   }
 
   @Override
@@ -98,8 +122,4 @@ public class FeatureHistogramPlotController extends
     return viewBuilder;
   }
 
-  @Override
-  public ObjectProperty<List<FeatureListRow>> selectedRowsProperty() {
-    return model.selectedRowsProperty();
-  }
 }

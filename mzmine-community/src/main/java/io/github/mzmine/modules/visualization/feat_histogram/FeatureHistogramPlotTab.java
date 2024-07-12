@@ -28,9 +28,9 @@ package io.github.mzmine.modules.visualization.feat_histogram;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureHistogramPlotTab extends MZmineTab {
@@ -38,14 +38,13 @@ public class FeatureHistogramPlotTab extends MZmineTab {
   private final FeatureHistogramPlotController controller;
 
   public FeatureHistogramPlotTab() {
-    this(null);
+    this(List.of());
   }
 
-  public FeatureHistogramPlotTab(FeatureList flist) {
-    super("Feature histogram plot", true, false);
-    controller = new FeatureHistogramPlotController(flist);
-    final Region plot = controller.buildView();
-    setContent(plot);
+  public FeatureHistogramPlotTab(List<FeatureList> featureLists) {
+    super("Feature histograms", true, false);
+    controller = new FeatureHistogramPlotController(featureLists);
+    setContent(controller.buildView());
   }
 
 
@@ -75,8 +74,7 @@ public class FeatureHistogramPlotTab extends MZmineTab {
       return;
     }
 
-    controller.selectedFeatureListsProperty().set((List<FeatureList>) featureLists.stream()
-        .filter(flist -> flist.getNumberOfRawDataFiles() > 1).findFirst().stream().toList());
+    controller.selectedFeatureListsProperty().set(new ArrayList<>(featureLists));
   }
 
   @Override
@@ -84,7 +82,6 @@ public class FeatureHistogramPlotTab extends MZmineTab {
     if (featureLists.isEmpty()) {
       return;
     }
-
-    controller.selectedFeatureListsProperty().set(List.of(featureLists.stream().findFirst().get()));
+    controller.selectedFeatureListsProperty().set(new ArrayList<>(featureLists));
   }
 }

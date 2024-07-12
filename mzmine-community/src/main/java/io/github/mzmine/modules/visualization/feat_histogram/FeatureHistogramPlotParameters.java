@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class FeatureHistogramPlotParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1, true);
+  public static final FeatureListsParameter flist = new FeatureListsParameter();
 
   public FeatureHistogramPlotParameters() {
     super(flist);

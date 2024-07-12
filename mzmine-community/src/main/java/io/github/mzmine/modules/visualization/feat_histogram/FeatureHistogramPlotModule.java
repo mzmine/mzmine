@@ -26,7 +26,6 @@
 package io.github.mzmine.modules.visualization.feat_histogram;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.impl.AbstractRunnableModule;
@@ -35,12 +34,13 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureHistogramPlotModule extends AbstractRunnableModule {
 
   public FeatureHistogramPlotModule() {
-    super("Feature histogram plot", FeatureHistogramPlotParameters.class,
+    super("Feature histograms", FeatureHistogramPlotParameters.class,
         MZmineModuleCategory.DATAANALYSIS, "Interactive feature histogram visualization");
   }
 
@@ -49,9 +49,8 @@ public class FeatureHistogramPlotModule extends AbstractRunnableModule {
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
 
-    final ModularFeatureList flist = parameters.getValue(FeatureHistogramPlotParameters.flist)
-        .getMatchingFeatureLists()[0];
-    final FeatureHistogramPlotTab tab = new FeatureHistogramPlotTab(flist);
+    var flist = parameters.getValue(FeatureHistogramPlotParameters.flist).getMatchingFeatureLists();
+    final FeatureHistogramPlotTab tab = new FeatureHistogramPlotTab(List.of(flist));
     MZmineCore.getDesktop().addTab(tab);
 
     return ExitCode.OK;

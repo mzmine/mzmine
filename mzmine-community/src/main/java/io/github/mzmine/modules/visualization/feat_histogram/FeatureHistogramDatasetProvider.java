@@ -25,29 +25,18 @@
 
 package io.github.mzmine.modules.visualization.feat_histogram;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberFormatType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SimpleXYProvider;
 import java.awt.Color;
 import java.text.DecimalFormat;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureHistogramDatasetProvider extends SimpleXYProvider {
-//    implements XYItemObjectProvider<RowSignificanceTestResult> {
 
-//  private final StudentTTest<?> test;
-//  private final List<RowSignificanceTestResult> results;
+  private final NumberType dataType;
 
-  //  private final AbundanceMeasure abundanceMeasure;
-  private final NumberFormatType dataType;
-
-  public FeatureHistogramDatasetProvider(
-//      StudentTTest<?> test, List<RowSignificanceTestResult> results,
-//      Color color, String key, AbundanceMeasure abundanceMeasure) {
-      Color color, String key, NumberFormatType dataType) {
-    super(key, color, new DecimalFormat("0.0"), new DecimalFormat("0.0"));
-//    this.test = test;
-//    this.results = results;
-//    this.abundanceMeasure = abundanceMeasure;
+  public FeatureHistogramDatasetProvider(Color color, String key, NumberType dataType) {
+    super(key, color, dataType.getFormat(), new DecimalFormat("0"));
     this.dataType = dataType;
   }
 
@@ -58,24 +47,9 @@ public class FeatureHistogramDatasetProvider extends SimpleXYProvider {
 
   @Override
   public @Nullable String getToolTipText(int index) {
-//    RowSignificanceTestResult result = results.get(index);
-//    final FeatureAnnotation bestAnnotation = FeatureUtils.getBestFeatureAnnotation(result.row());
-//    String name = result.row().toString();
     String name = dataType.getUniqueID();
-//    if (bestAnnotation != null) {
-//      name += STR.", \{bestAnnotation.getCompoundName()}";
-//    }
-//    return String.format("""
-//        %s
-//        Fold change: %.3f
-//        p-Value: %.3f""", name, Math.pow(2, getDomainValue(index)), result.pValue());
     return name;
   }
-
-//  @Override
-//  public RowSignificanceTestResult getItemObject(int item) {
-//    return results.get(item);
-//  }
 
 //  @Override
 //  public void computeValues(Property<TaskStatus> status) {
