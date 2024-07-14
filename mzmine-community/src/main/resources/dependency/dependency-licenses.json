@@ -1212,7 +1212,7 @@
         },
         {
             "moduleName": "net.csibio.aird:aird-sdk",
-            "moduleVersion": "2.4.5",
+            "moduleVersion": "2.4.6",
             "moduleUrls": [
                 "https://github.com/CSi-Studio/Aird-SDK"
             ],

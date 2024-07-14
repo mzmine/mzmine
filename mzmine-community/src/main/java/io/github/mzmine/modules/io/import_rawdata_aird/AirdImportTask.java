@@ -50,9 +50,7 @@ import net.csibio.aird.constant.SuffixConst;
 import net.csibio.aird.enums.AirdType;
 import net.csibio.aird.parser.BaseParser;
 import net.csibio.aird.parser.DDAParser;
-import net.csibio.aird.parser.DDAPasefParser;
 import net.csibio.aird.parser.DIAParser;
-import net.csibio.aird.parser.DIAPasefParser;
 import net.csibio.aird.util.AirdScanUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -99,6 +97,7 @@ public class AirdImportTask extends AbstractTask {
    */
   @Override
   public void run() {
+    long start = System.currentTimeMillis();
     setStatus(TaskStatus.PROCESSING);
     BaseParser parser = null;
     try {
@@ -108,11 +107,11 @@ public class AirdImportTask extends AbstractTask {
       if (airdInfo == null) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
-            "Parsing Cancelled, The aird index file(.json, metadata) not exists or the json file is broken.");
+            "Parsing Cancelled, The aird index file(.json or .index, metadata) not exists or the index file is broken.");
         return;
       }
 
-      if (airdInfo.getMobiInfo() != null && airdInfo.getMobiInfo().getType() != null) {
+      if (airdInfo.getMobiInfo() != null && airdInfo.getMobiInfo().getType() != null && !airdInfo.getMobiInfo().getType().isEmpty()) {
         newMZmineFile = new IMSRawDataFileImpl(this.file.getName(), file.getAbsolutePath(),
             storage);
       } else {
@@ -154,13 +153,11 @@ public class AirdImportTask extends AbstractTask {
         .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
     project.addFile(newMZmineFile);
     setStatus(TaskStatus.FINISHED);
-
+    System.out.println(file.getName() + ":" + (System.currentTimeMillis() - start));
   }
 
   @Override
   public String getTaskDescription() {
     return "Opening file " + file;
   }
-
-
 }

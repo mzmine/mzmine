@@ -13,8 +13,13 @@ public class BaseLoader {
       Scan parentScan) {
     Double precursorMz = range.getMz();
     Integer charge = range.getCharge() == 0 ? null : range.getCharge();
-//    Float energy = airdInfo.getEnergy() == -1 ? null : airdInfo.getEnergy();
-    ActivationMethod method = ActivationMethod.valueOf(activator);
+    ActivationMethod method = ActivationMethod.UNKNOWN;
+    try {
+      method = ActivationMethod.valueOf(activator);
+    } catch (Exception e) {
+      method = ActivationMethod.UNKNOWN;
+    }
+
     if (precursorMz == null) {
       return null;
     }

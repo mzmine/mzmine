@@ -147,7 +147,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
   @Override
   public void run() {
-
+    long start = System.currentTimeMillis();
     setStatus(TaskStatus.PROCESSING);
 
     RawDataFile dataFile = importStreamOrFile();
@@ -165,6 +165,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
     }
 
     setStatus(TaskStatus.FINISHED);
+    System.out.println(dataFile.getName() + ":" + (System.currentTimeMillis() - start));
   }
 
   public void addAppliedMethodAndAddToProject(final RawDataFile dataFile) {
@@ -337,11 +338,10 @@ public class MSDKmzMLImportTask extends AbstractTask {
       int storageOffset = frameStorage.getStorageOffset(scanIndex);
       int basePeakIndex = frameStorage.getBasePeakIndex(scanIndex);
 
-
       // fill in missing scans
       // I'm not proud of this piece of code, but some manufactures or conversion tools leave out
       // empty scans. Looking at you, Agilent. however, we need that info for proper processing ~SteffenHeu
-      Integer newScanId = mappedMobilities.get( mzMLScan.mobility());
+      Integer newScanId = mappedMobilities.get(mzMLScan.mobility());
       final int missingScans = newScanId - mobilityScanNumberCounter;
       // might be negative in case of tims, but for now we assume that no scans missing for tims
       for (int i = 0; i < missingScans; i++) {
@@ -351,8 +351,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
         mobilityScanNumberCounter++;
       }
 
-      ConversionUtils.extractImsMsMsInfo(mzMLScan.precursorList(), buildingImsMsMsInfos, frameNumber,
-          mobilityScanNumberCounter);
+      ConversionUtils.extractImsMsMsInfo(mzMLScan.precursorList(), buildingImsMsMsInfos,
+          frameNumber, mobilityScanNumberCounter);
       storageOffsets[mobilityScanNumberCounter] = storageOffset;
       basePeakIndices[mobilityScanNumberCounter] = basePeakIndex;
       mobilityScanNumberCounter++;

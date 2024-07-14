@@ -88,11 +88,21 @@ public class AirdImportModule implements MZmineProcessingModule {
 
     for (int i = 0; i < files.length; i++) {
       File airdFile = files[i];
-      String indexFilePath = AirdScanUtil.getIndexPathByAirdPath(airdFile.getPath());
-      if (indexFilePath == null) {
+      String airdPath = airdFile.getAbsolutePath();
+      String protoIndexPath = (airdPath.endsWith(".aird") ?
+          airdPath.substring(0, airdPath.lastIndexOf(".")) + ".index" : null);
+      File protoIndexFile = new File(protoIndexPath);
+      String finalIndexPath = null;
+      if (protoIndexFile.exists()) {
+        finalIndexPath = protoIndexPath;
+      } else {
+        finalIndexPath = AirdScanUtil.getIndexPathByAirdPath(airdFile.getPath());
+      }
+
+      if (finalIndexPath == null) {
         return ExitCode.ERROR;
       }
-      File indexFile = new File(indexFilePath);
+      File indexFile = new File(finalIndexPath);
       if ((!airdFile.exists()) || (!airdFile.canRead())) {
         MZmineCore.getDesktop().displayErrorMessage("Cannot read file " + airdFile);
         logger.warning("Cannot read aird file " + airdFile);
@@ -113,5 +123,6 @@ public class AirdImportModule implements MZmineProcessingModule {
 
     return ExitCode.OK;
   }
+
 
 }
