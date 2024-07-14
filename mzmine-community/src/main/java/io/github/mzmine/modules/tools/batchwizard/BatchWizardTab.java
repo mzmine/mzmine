@@ -48,7 +48,6 @@ import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.filenames.LastFilesButton;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.javafx.LightAndDarkModeIcon;
 import java.io.File;
 import java.text.MessageFormat;
 import java.time.LocalDate;
@@ -107,8 +106,8 @@ public class BatchWizardTab extends SimpleTab {
   private HBox schemaPane;
 
   public BatchWizardTab() {
-    super("");
-    setGraphic(LightAndDarkModeIcon.mzwizardImage(200, 18));
+    super("mzwizard");
+//    setGraphic(LightAndDarkModeIcon.mzwizardImageTab(200, 18));
     ALL_PRESETS = WizardStepParameters.createAllPresets();
     localPresetsButton = new LastFilesButton("Local presets", true,
         file -> applyLocalPartialSequence(localPresets.get(file)));

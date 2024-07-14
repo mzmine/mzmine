@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleImagingScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
-import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
@@ -62,11 +61,7 @@ import org.jetbrains.annotations.Nullable;
 public class TSFUtils {
 
   public static final int BUFFER_SIZE_INCREMENT = 50_000;
-
-  private static int DEFAULT_NUMTHREADS = MZmineCore.getConfiguration().getPreferences()
-      .getParameter(MZminePreferences.numOfThreads).getValue();
   private static final Logger logger = Logger.getLogger(TSFUtils.class.getName());
-  private final int numThreads;
   private TSFLibrary tsfdata = null;
   private int BUFFER_SIZE = 50_000;
   // centroid
@@ -82,11 +77,6 @@ public class TSFUtils {
   private double[] profileDeletedZeroIntensities;
 
   public TSFUtils() throws IOException {
-    this(DEFAULT_NUMTHREADS);
-  }
-
-  public TSFUtils(int numThreads) throws UnsupportedOperationException {
-    this.numThreads = numThreads;
     loadLibrary();
   }
 
@@ -284,8 +274,8 @@ public class TSFUtils {
           .displayErrorMessage("Cannot load tsf library. Is VC++ 2017 Redist installed?");
       return false;
     }
-    logger.info("Native TDF library initialised " + tsfdata.toString());
-    setNumThreads(numThreads);
+    logger.info("Native TSF library initialised " + tsfdata.toString());
+    setNumThreads(1);
 
     return true;
   }
@@ -321,6 +311,10 @@ public class TSFUtils {
     }
   }
 
+  // ---------------------------------------------------------------------------------------------
+  // UTILITY FUNCTIONS
+  // -----------------------------------------------------------------------------------------------
+
   /**
    * Opens the tdf_bin file.
    * <p>
@@ -333,10 +327,6 @@ public class TSFUtils {
   public long openFile(final File path) {
     return openFile(path, 1);
   }
-
-  // ---------------------------------------------------------------------------------------------
-  // UTILITY FUNCTIONS
-  // -----------------------------------------------------------------------------------------------
 
   public void close(final long handle) {
     tsfdata.tsf_close(handle);
@@ -412,20 +402,7 @@ public class TSFUtils {
     }
   }
 
-  /**
-   * Sets the default number of threads to use for each raw file across all {@link TDFUtils}
-   * instances.
-   *
-   * @param numThreads
-   */
-  public static void setDefaultNumThreads(int numThreads) {
-    numThreads = Math.max(numThreads, 1);
-    final int finalNumThreads = numThreads;
-    logger.finest(() -> "Setting number of threads per file to " + finalNumThreads);
-    DEFAULT_NUMTHREADS = numThreads;
-  }
-
-  public void setNumThreads(int numThreads) {
+  private void setNumThreads(int numThreads) {
     if (tsfdata == null) {
       if (!loadLibrary()) {
         return;

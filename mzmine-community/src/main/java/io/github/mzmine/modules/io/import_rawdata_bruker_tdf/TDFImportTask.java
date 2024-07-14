@@ -63,12 +63,13 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import org.jetbrains.annotations.NotNull;
@@ -81,7 +82,9 @@ public class TDFImportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(TDFImportTask.class.getName());
   private final MZmineProject project;
-
+  private final ScanImportProcessorConfig scanProcessorConfig;
+  private final Class<? extends MZmineModule> module;
+  private final ParameterSet parameters;
   private File fileNameToOpen;
   private File tdf, tdfBin;
   private String rawDataFileName;
@@ -95,9 +98,6 @@ public class TDFImportTask extends AbstractTask {
   private TDFMaldiFrameInfoTable maldiFrameInfoTable;
   private TDFMaldiFrameLaserInfoTable maldiFrameLaserInfoTable;
   private IMSRawDataFile newMZmineFile;
-  private final ScanImportProcessorConfig scanProcessorConfig;
-  private final Class<? extends MZmineModule> module;
-  private final ParameterSet parameters;
   private boolean isMaldi;
   private String description;
   private double finishedPercentage;
@@ -244,16 +244,16 @@ public class TDFImportTask extends AbstractTask {
 
     loadedFrames = 0;
     // collect average spectra for each frame
-    Set<SimpleFrame> frames = new LinkedHashSet<>();
+    List<SimpleFrame> frames = new ArrayList<>();
 
     final boolean importProfile = MZmineCore.getInstance().isTdfPseudoProfile();
 
     try {
       for (int i = 0; i < numFrames; i++) {
         int frameId = frameTable.getFrameIdColumn().get(i).intValue();
-        setFinishedPercentage(0.1 * (loadedFrames) / numFrames);
+        setFinishedPercentage((double) (loadedFrames) / numFrames);
         setDescription(
-            "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
+            "Importing " + rawDataFileName + ": Importing Frame " + frameId + "/" + numFrames);
         final SimpleFrame frame;
         if (!importProfile) {
           frame = tdfUtils.extractCentroidScanForTimsFrame(newMZmineFile, frameId, metaDataTable,
@@ -279,6 +279,8 @@ public class TDFImportTask extends AbstractTask {
           imgFrame.setMaldiSpotInfo(maldiSpotInfo);
         }
 
+        loadMobilityScansForFrame(tdfUtils, frameTable, frame);
+
         newMZmineFile.addScan(frame);
         frames.add(frame);
         loadedFrames++;
@@ -288,12 +290,7 @@ public class TDFImportTask extends AbstractTask {
         }
       }
     } catch (IOException e) {
-      e.printStackTrace();
-    }
-
-    // extract mobility scans
-    try {
-      appendScansFromTimsSegment(tdfUtils, frameTable, frames);
+      logger.log(Level.SEVERE, e.getMessage(), e);
     } catch (IndexOutOfBoundsException e) {
       // happens on corrupt data
       logger.warning("Cannot import raw data from " + tdf.getName() + ", data is corrupt.");
@@ -316,7 +313,7 @@ public class TDFImportTask extends AbstractTask {
     setFinishedPercentage(1.0);
     logger.info(
         "Imported " + rawDataFileName + ". Loaded " + newMZmineFile.getNumOfScans() + " scans and "
-        + newMZmineFile.getNumberOfFrames() + " frames.");
+            + newMZmineFile.getNumberOfFrames() + " frames.");
     project.addFile(newMZmineFile);
 
     setStatus(TaskStatus.FINISHED);
@@ -394,7 +391,7 @@ public class TDFImportTask extends AbstractTask {
    * @param frames        the frames to load mobility spectra for
    */
   private void appendScansFromTimsSegment(@Nonnull final TDFUtils tdfUtils,
-      @NotNull final TDFFrameTable tdfFrameTable, Set<SimpleFrame> frames) {
+      @NotNull final TDFFrameTable tdfFrameTable, List<SimpleFrame> frames) {
 
     loadedFrames = 0;
     final long numFrames = tdfFrameTable.lastFrameId();
@@ -402,7 +399,7 @@ public class TDFImportTask extends AbstractTask {
     for (SimpleFrame frame : frames) {
       setDescription(
           "Loading mobility scans of " + rawDataFileName + ": Frame " + frame.getFrameId() + "/"
-          + numFrames);
+              + numFrames);
       setFinishedPercentage(0.1 + (0.9 * ((double) loadedFrames / numFrames)));
 
       final List<BuildingMobilityScan> spectra = tdfUtils.loadSpectraForTIMSFrame(frame, frameTable,
@@ -419,7 +416,19 @@ public class TDFImportTask extends AbstractTask {
       }
       loadedFrames++;
     }
+  }
 
+  private void loadMobilityScansForFrame(@Nonnull final TDFUtils tdfUtils,
+      @NotNull final TDFFrameTable tdfFrameTable, SimpleFrame frame) {
+
+    final List<BuildingMobilityScan> spectra = tdfUtils.loadSpectraForTIMSFrame(frame, frameTable,
+        scanProcessorConfig);
+    if (spectra.isEmpty()) {
+      spectra.add(new BuildingMobilityScan(0, new double[]{}, new double[]{}));
+    }
+
+    boolean useAsMassList = scanProcessorConfig.isMassDetectActive(frame.getMSLevel());
+    frame.setMobilityScans(spectra, useAsMassList);
   }
 
   private File[] getDataFilesFromDir(File dir) {

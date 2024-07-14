@@ -26,6 +26,7 @@
 package io.github.mzmine.modules.dataprocessing.align_gc;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
@@ -64,7 +65,8 @@ public class GCAlignerParameters extends SimpleParameterSet {
       false);
 
   public GCAlignerParameters() {
-    super(FEATURE_LISTS, MZ_TOLERANCE, RT_TOLERANCE, RT_WEIGHT, SIMILARITY_FUNCTION,
-        FEATURE_LIST_NAME, handleOriginal);
+    super(new Parameter[]{FEATURE_LISTS, MZ_TOLERANCE, RT_TOLERANCE, RT_WEIGHT, SIMILARITY_FUNCTION,
+            FEATURE_LIST_NAME, handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/align_gcei/align_gc_ei.html");
   }
 }
