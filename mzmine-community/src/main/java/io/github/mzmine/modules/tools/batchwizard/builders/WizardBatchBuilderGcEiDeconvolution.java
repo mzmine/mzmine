@@ -39,6 +39,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.S
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCModule;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.SpectralDeconvolutionGCParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_spectraldeconvolutiongc.rtgroupingandsharecorrelation.RtGroupingAndShapeCorrelationParameters;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.AdvancedSpectralLibrarySearchParameters;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
@@ -100,8 +102,12 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
 
     // special workflow parameter are extracted here
     // chromatography
-    recalibrateRetentionTime = getValue(params,
-        IonInterfaceGcElectronImpactWizardParameters.RECALIBRATE_RETENTION_TIMES);
+    if (dataFiles.length > 1) {
+      recalibrateRetentionTime = getValue(params,
+          IonInterfaceGcElectronImpactWizardParameters.RECALIBRATE_RETENTION_TIMES);
+    } else {
+      recalibrateRetentionTime = false;
+    }
     rtSmoothing = getValue(params, IonInterfaceGcElectronImpactWizardParameters.smoothing);
     cropRtRange = getValue(params, IonInterfaceGcElectronImpactWizardParameters.cropRtRange);
     intraSampleRtTol = getValue(params,
@@ -155,6 +161,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     }
     makeSpectralDeconvolutionStep(q);
     makeAndAddAlignmentStep(q);
+    makeAndAddRowFilterStep(q);
     makeAndAddDuplicateRowFilterStep(q, handleOriginalFeatureLists, mzTolFeaturesIntraSample,
         rtFwhm, imsInstrumentType);
     makeAndAddSpectralNetworkingSteps(q, isExportActive, exportPath);
@@ -200,7 +207,7 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
         MZmineCore.getModuleInstance(SpectralDeconvolutionGCModule.class), param));
   }
 
-  protected void makeAndAddAlignmentStep(final BatchQueue q) {
+  private void makeAndAddAlignmentStep(final BatchQueue q) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(GCAlignerModule.class).cloneParameterSet();
     param.setParameter(GCAlignerParameters.FEATURE_LISTS,
@@ -323,4 +330,18 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
     return new MZmineProcessingStepImpl<>(detect, param);
   }
 
+  @Override
+  protected void makeAndAddRowFilterStep(BatchQueue q) {
+    super.makeAndAddRowFilterStep(q);
+    // dont change if the step was not created
+    final MZmineProcessingStep<MZmineProcessingModule> filterStep = q.getLast();
+    if (!filter13C && !minAlignedSamples.isGreaterZero() || !filterStep.getModule()
+        .equals(MZmineCore.getModuleInstance(RowsFilterModule.class))) {
+      return;
+    }
+
+    // deactivate for gc-ei, everything has a spectrum
+    final ParameterSet param = filterStep.getParameterSet();
+    param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, false);
+  }
 }

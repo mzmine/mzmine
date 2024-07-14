@@ -19,7 +19,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 21,
+        "org.gradle.jvm.version": 22,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-api"
       },
@@ -28,10 +28,10 @@
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
           "size": 10081,
-          "sha512": "aa6fcf3615a35e61b4733136b39604a6f041e3809a8339f9fb10985f0f95e8bcc6944d266462598866dd941a6e888b7da20bfa032ca818b07452fa00ffe834a8",
-          "sha256": "474b642a41a93261683db0beb9bc68a19961eb48cbabaa9192e3660d4f3032f9",
-          "sha1": "66167b9b176b655706884a0dc20b1e812a95b787",
-          "md5": "da5f2b8304309ddc53c139997f417e0d"
+          "sha512": "a7d6e3903a0c28c76dc34bdf183033877f93f1a09e4169cc13e7720574777420afb1430fe0a44813665aceb455a3aa9384f1a3fd13c1e116841a2b896a4b961a",
+          "sha256": "21092ce853a5701e36b1c07529f0cef0acb730deca826dc767668b66be5c2b29",
+          "sha1": "86ef3031b0c66d2418ceac3efda62fcb03c62ad3",
+          "md5": "9b4659458b7f951839bc979ff8b21a0c"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 21,
+        "org.gradle.jvm.version": 22,
         "org.gradle.libraryelements": "jar",
         "org.gradle.usage": "java-runtime"
       },
@@ -90,10 +90,10 @@
           "name": "mzmine-core-1.0.0.jar",
           "url": "mzmine-core-1.0.0.jar",
           "size": 10081,
-          "sha512": "aa6fcf3615a35e61b4733136b39604a6f041e3809a8339f9fb10985f0f95e8bcc6944d266462598866dd941a6e888b7da20bfa032ca818b07452fa00ffe834a8",
-          "sha256": "474b642a41a93261683db0beb9bc68a19961eb48cbabaa9192e3660d4f3032f9",
-          "sha1": "66167b9b176b655706884a0dc20b1e812a95b787",
-          "md5": "da5f2b8304309ddc53c139997f417e0d"
+          "sha512": "a7d6e3903a0c28c76dc34bdf183033877f93f1a09e4169cc13e7720574777420afb1430fe0a44813665aceb455a3aa9384f1a3fd13c1e116841a2b896a4b961a",
+          "sha256": "21092ce853a5701e36b1c07529f0cef0acb730deca826dc767668b66be5c2b29",
+          "sha1": "86ef3031b0c66d2418ceac3efda62fcb03c62ad3",
+          "md5": "9b4659458b7f951839bc979ff8b21a0c"
         }
       ]
     }
