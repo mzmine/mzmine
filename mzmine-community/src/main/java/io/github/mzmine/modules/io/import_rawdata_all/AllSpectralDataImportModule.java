@@ -446,6 +446,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case BRUKER_TDF -> MZmineCore.createNewIMSFile(newName, absPath, storage);
       case BRUKER_TSF ->
           null; // TSF can be anything: Single shot maldi, imaging, or LC-MS (non ims)
+      case SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D -> null;
     };
   }
 

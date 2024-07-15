@@ -78,13 +78,13 @@ public class MSConvertImportTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     final File msConvertPath = ExternalTool.MSCONVERT.getExternalToolPath();
-    List<String> cmdLine = List.of(new File(msConvertPath, "msconvert.exe"), path.getAbsolutePath(),
-        "-o", "-", // to stdout
+    List<String> cmdLine = List.of(new File(msConvertPath, "msconvert.exe").toString(),
+        path.getAbsolutePath(), "-o", "-", // to stdout
         "--filter", "\"peakPicking true 1-\""); // vendor peak-picking
 
-    Process dumper;
+    Process dumper = null;
     try {
-      dumper = Runtime.getRuntime().exec(cmdLine, null, msConvertPath);
+      //dumper = Runtime.getRuntime().exec(cmdLine, null, msConvertPath);
 
       // Get the stdout of ThermoRawFileParser process as InputStream
       RawDataFile dataFile = null;
@@ -93,7 +93,8 @@ public class MSConvertImportTask extends AbstractTask {
 //          BufferedInputStream bufStream = new BufferedInputStream(mzMLStream))//
       {
 
-        msdkTask = new MSDKmzMLImportTask(project, path, mzMLStream, config, module, parameters,
+        msdkTask = new MSDKmzMLImportTask(project, path, mzMLStream, config,
+            MSConvertImportModule.class, parameters,
             moduleCallDate, storage);
 
         this.addTaskStatusListener((task, newStatus, oldStatus) -> {
@@ -138,8 +139,8 @@ public class MSConvertImportTask extends AbstractTask {
       return;
     }
 
-    logger.info(
-        STR."Finished parsing \{fileToOpen}, parsed \{parsedScans} scans and after filtering remained \{convertedScans}");
+//    logger.info(
+//        STR."Finished parsing \{fileToOpen}, parsed \{parsedScans} scans and after filtering remained \{convertedScans}");
     setStatus(TaskStatus.FINISHED);
   }
 }

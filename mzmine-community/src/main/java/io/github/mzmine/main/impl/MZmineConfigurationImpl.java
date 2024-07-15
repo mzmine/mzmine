@@ -37,6 +37,7 @@ import io.github.mzmine.javafx.util.color.Vision;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvert;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
@@ -135,13 +136,13 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
         } catch (Exception e) {
           logger.log(Level.SEVERE,
               "Could not create an instance of parameter set class " + parameterSetClass + " "
-              + e.getMessage(), e);
+                  + e.getMessage(), e);
           return null;
         }
       } catch (NoClassDefFoundError | Exception e) {
         logger.log(Level.WARNING,
             "Could not find the module or parameter class " + moduleClass.toString() + " "
-            + e.getMessage(), e);
+                + e.getMessage(), e);
         return null;
       }
 
@@ -166,7 +167,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     if (!parametersClass.isInstance(parameters)) {
       throw new IllegalArgumentException(
           "Given parameter set is an instance of " + parameters.getClass() + " instead of "
-          + parametersClass);
+              + parametersClass);
     }
     moduleParameters.put(moduleClass.getName(), parameters);
 
@@ -429,7 +430,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     if (!p.isValid()) {
       logger.warning(
           "Current default color palette set in preferences is invalid. Returning standard "
-          + "colors.");
+              + "colors.");
       p = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
       p.setName("default-deuternopia");
     }
@@ -442,7 +443,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     if (!p.isValid()) {
       logger.warning(
           "Current default paint scale set in preferences is invalid. Returning standard "
-          + "colors.");
+              + "colors.");
       p = new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, true));
       p.setName("default-deuternopia");
     }
@@ -483,5 +484,16 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     final PaintScaleTransform transformation = preferences.getParameter(
         MZminePreferences.imageTransformation).getValue();
     return transformation != null ? transformation : PaintScaleTransform.LINEAR;
+  }
+
+  public File getMsConvertPath() {
+    File path = preferences.getValue(MZminePreferences.msConvertPath);
+    if (path != null || !path.exists()) {
+      synchronized (MSConvert.class) {
+        path = MSConvert.getMsConvertPath();
+        preferences.setParameter(MZminePreferences.msConvertPath, path);
+      }
+    }
+    return path;
   }
 }

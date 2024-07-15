@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,8 +26,11 @@
 import com.vdurmont.semver4j.Semver;
 import com.vdurmont.semver4j.Semver.SemverType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvert;
+import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -35,6 +38,8 @@ import org.junit.jupiter.api.Test;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public class VersionTest {
+
+  private static final Logger logger = Logger.getLogger(VersionTest.class.getName());
 
   @Test
   public void testVersion() throws IOException {
@@ -51,5 +56,11 @@ public class VersionTest {
     properties.load(myClassLoader.getResourceAsStream("mzmineversion.properties"));
     final Semver semver2 = new Semver(properties.getProperty("version.semver"), SemverType.LOOSE);
     System.out.println(semver2.toString());
+  }
+
+  @Test
+  public void testMsConvert() {
+    final File file = MSConvert.autoDiscoverInAppFolder();
+    logger.finest(file.getAbsolutePath());
   }
 }
