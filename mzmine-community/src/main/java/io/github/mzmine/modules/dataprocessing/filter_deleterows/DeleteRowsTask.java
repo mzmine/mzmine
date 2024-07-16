@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
-import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.mzio.users.user.CurrentUserService;
 import java.time.Instant;
@@ -62,7 +62,7 @@ public class DeleteRowsTask extends AbstractFeatureListTask {
 
   @Override
   protected void process() {
-    final List<FeatureListRow> rows = FeatureUtils.idStringToRows(flist, rowIdStr);
+    final List<FeatureListRow> rows = FeatureListUtils.idStringToRows(flist, rowIdStr);
     rows.forEach(flist::removeRow);
   }
 

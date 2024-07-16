@@ -59,7 +59,9 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import org.jetbrains.annotations.NotNull;
@@ -637,5 +639,17 @@ public class FeatureListUtils {
       @NotNull final PolarityType defaultValue) {
     return featureList.stream().findFirst().map(FeatureListRow::getBestFeature)
         .map(Feature::getRepresentativeScan).map(Scan::getPolarity).orElse(defaultValue);
+  }
+
+  public static String rowsToIdString(List<? extends FeatureListRow> rows) {
+    return rows.stream().map(FeatureListRow::getID).map(Object::toString)
+        .collect(Collectors.joining(";"));
+  }
+
+  public static List<FeatureListRow> idStringToRows(ModularFeatureList flist, String str) {
+    final Set<Integer> ids = Arrays.stream(str.split(";")).map(Integer::valueOf)
+        .collect(Collectors.toSet());
+    return flist.stream().filter(row -> ids.contains(row.getID()))
+        .sorted(Comparator.comparingInt(FeatureListRow::getID)).toList();
   }
 }
