@@ -42,7 +42,7 @@ public enum RawDataFileType {
   MZDATA(ExtensionFilters.MZDATA, false), //
   NETCDF(ExtensionFilters.NETCDF, false), //
   THERMO_RAW(ExtensionFilters.THERMO_RAW, false), //
-  WATERS_RAW(ExtensionFilters.WATERS_RAW, true), //
+//  WATERS_RAW(ExtensionFilters.WATERS_RAW, true), //
   MZML_ZIP(ExtensionFilters.MZML_ZIP_GZIP, false), //
   MZML_GZIP(ExtensionFilters.MZML_ZIP_GZIP, false), //
   ICPMSMS_CSV(ExtensionFilters.CSV, false), //

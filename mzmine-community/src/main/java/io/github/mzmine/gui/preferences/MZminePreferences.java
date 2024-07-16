@@ -206,6 +206,12 @@ public class MZminePreferences extends SimpleParameterSet {
           + "This will reduce the import time when re-processing, but require more disc space.",
       false);
 
+  public static final BooleanParameter applyPeakPicking = new BooleanParameter(
+      "Apply peak picking (recommended)",
+      "Apply vendor peak picking during import of native vendor files with MSConvert.\n"
+          + "Using the vendor peak picking during conversion usually leads to better results that using a generic algorithm.",
+      true);
+
   public MZminePreferences() {
     super(// start with performance
         numOfThreads, memoryOption, tempDirectory, proxySettings,
@@ -223,7 +229,7 @@ public class MZminePreferences extends SimpleParameterSet {
         // silent parameters without controls
         showTempFolderAlert, username,
         //
-        msConvertPath, keepConvertedFile);
+        msConvertPath, keepConvertedFile, applyPeakPicking);
 
     darkModeProperty.subscribe(state -> {
       var oldTheme = getValue(theme);
@@ -254,7 +260,7 @@ public class MZminePreferences extends SimpleParameterSet {
         intensityFormat, ppmFormat, scoreFormat, unitFormat);
     dialog.addParameterGroup("Visuals", defaultColorPalette, defaultPaintScale, chartParam, theme,
         presentationMode, showPrecursorWindow, imageTransformation, imageNormalization);
-    dialog.addParameterGroup("MS data import", msConvertPath, keepConvertedFile);
+    dialog.addParameterGroup("MS data import", msConvertPath, keepConvertedFile, applyPeakPicking);
 //    dialog.addParameterGroup("Other", new Parameter[]{
     // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
 //    });
