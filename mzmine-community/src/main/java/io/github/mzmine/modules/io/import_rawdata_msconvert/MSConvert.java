@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_msconvert;
 
+import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.util.files.ExtensionFilters;
@@ -45,7 +46,14 @@ public class MSConvert {
   private static final Pattern FOLDER_PATTERN = Pattern.compile(
       "(ProteoWizard)\\s(3).([0-9]+).([0-9]+)(.+)");
 
-  public static synchronized File getMsConvertPath() {
+  private MSConvert() {
+  }
+
+  public static File getMsConvertPath() {
+    return ConfigService.getConfiguration().getMsConvertPath();
+  }
+
+  public static synchronized File discoverMsConvertPath() {
     final File file = autoDiscover();
     if (file != null && file.exists()) {
       return file;

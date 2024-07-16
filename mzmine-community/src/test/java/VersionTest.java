@@ -26,8 +26,6 @@
 import com.vdurmont.semver4j.Semver;
 import com.vdurmont.semver4j.Semver.SemverType;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvert;
-import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -58,9 +56,4 @@ public class VersionTest {
     System.out.println(semver2.toString());
   }
 
-  @Test
-  public void testMsConvert() {
-    final File file = MSConvert.autoDiscoverInAppFolder();
-    logger.finest(file.getAbsolutePath());
-  }
 }

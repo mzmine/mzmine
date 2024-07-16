@@ -47,6 +47,7 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportTask;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportTask;
+import io.github.mzmine.modules.io.import_rawdata_msconvert.MSConvertImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
@@ -371,8 +372,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new MzDataImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
       case NETCDF ->
           new NetCDFImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
-//      case WATERS_RAW ->
-//          new WatersRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
       case THERMO_RAW ->
           new ThermoRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate,
               scanProcessorConfig);
@@ -381,7 +380,9 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case MZML_GZIP, MZML_ZIP ->
           new ZipImportTask(project, file, scanProcessorConfig, module, parameters, moduleCallDate,
               storage);
-      default -> throw new IllegalStateException("Unexpected value: " + fileType);
+      case WATERS_RAW, SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D ->
+          new MSConvertImportTask(moduleCallDate, file, scanProcessorConfig, project, module,
+              parameters);
     };
   }
 
@@ -415,7 +416,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           new ThermoRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate,
               scanProcessorConfig);
       // all unsupported tasks are wrapped to apply import and mass detection separately
-      case AIRD, MZDATA,/* WATERS_RAW,*/ NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV ->
+      case MZDATA,/* WATERS_RAW,*/ NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV ->
           createWrappedAdvancedTask(fileType, project, file, newMZmineFile, scanProcessorConfig,
               module, parameters, moduleCallDate, storage);
       default -> throw new IllegalStateException("Unexpected data type: " + fileType);
@@ -439,14 +440,14 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   private RawDataFile createDataFile(RawDataFileType fileType, String absPath, String newName,
       MemoryMapStorage storage) throws IOException {
     return switch (fileType) {
-      case MZXML, MZDATA, THERMO_RAW, /*WATERS_RAW,*/ NETCDF, ICPMSMS_CSV, AIRD ->
+      case MZXML, MZDATA, THERMO_RAW, /*WATERS_RAW,*/ NETCDF, ICPMSMS_CSV ->
           MZmineCore.createNewFile(newName, absPath, storage);
       case MZML, MZML_IMS, MZML_ZIP, MZML_GZIP -> null; // created in Mzml import task
       case IMZML -> MZmineCore.createNewImagingFile(newName, absPath, storage);
       case BRUKER_TDF -> MZmineCore.createNewIMSFile(newName, absPath, storage);
       case BRUKER_TSF ->
           null; // TSF can be anything: Single shot maldi, imaging, or LC-MS (non ims)
-      case SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D -> null;
+      case WATERS_RAW, SCIEX_WIFF, SCIEX_WIFF2, AGILENT_D -> null;
     };
   }
 

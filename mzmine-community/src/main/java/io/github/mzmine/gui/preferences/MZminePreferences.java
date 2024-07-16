@@ -30,7 +30,6 @@ import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransfo
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.main.KeepInMemory;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.GroupedParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -153,10 +152,6 @@ public class MZminePreferences extends SimpleParameterSet {
       + "overrides this parameter, if set: --temp D:\\your_tmp_dir\\)",
       System.getProperty("java.io.tmpdir"));
 
-  public static final FileNameParameter msConvertPath = new FileNameParameter("MSConvert path",
-      "Set a path to MSConvert to automatically convert unknown vendor formats to mzML while importing.",
-      List.of(ExtensionFilters.EXE, ExtensionFilters.ALL_FILES), FileSelectionType.OPEN, true);
-
   public static final ComboParameter<KeepInMemory> memoryOption = new ComboParameter<>(
       "Keep in memory", String.format(
       "Specifies the objects that are kept in memory rather than memory mapping "
@@ -201,9 +196,19 @@ public class MZminePreferences extends SimpleParameterSet {
   private final BooleanProperty darkModeProperty = new SimpleBooleanProperty(false);
   private NumberFormats guiFormat = exportFormat; // default value
 
+  public static final FileNameParameter msConvertPath = new FileNameParameter("MSConvert path",
+      "Set a path to MSConvert to automatically convert unknown vendor formats to mzML while importing.",
+      List.of(ExtensionFilters.EXE, ExtensionFilters.ALL_FILES), FileSelectionType.OPEN, true);
+
+  public static final BooleanParameter keepConvertedFile = new BooleanParameter(
+      "Keep files converted by MSConvert",
+      "Store the files after conversion by MSConvert to an mzML file.\n"
+          + "This will reduce the import time when re-processing, but require more disc space.",
+      false);
+
   public MZminePreferences() {
     super(// start with performance
-        numOfThreads, memoryOption, tempDirectory, proxySettings, msConvertPath,
+        numOfThreads, memoryOption, tempDirectory, proxySettings,
         /*applyTimsPressureCompensation,*/
         // visuals
         // number formats
@@ -216,7 +221,9 @@ public class MZminePreferences extends SimpleParameterSet {
         imageNormalization, imageTransformation, showPrecursorWindow, imsModuleWarnings,
         windowSetttings,
         // silent parameters without controls
-        showTempFolderAlert, username);
+        showTempFolderAlert, username,
+        //
+        msConvertPath, keepConvertedFile);
 
     darkModeProperty.subscribe(state -> {
       var oldTheme = getValue(theme);
@@ -240,15 +247,14 @@ public class MZminePreferences extends SimpleParameterSet {
     GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this);
 
     // add groups
-    dialog.addParameterGroup("General",
-        new Parameter[]{numOfThreads, memoryOption, tempDirectory, proxySettings, msConvertPath,
-            /*, applyTimsPressureCompensation*/});
-    dialog.addParameterGroup("Formats",
-        new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,
-            scoreFormat, unitFormat});
-    dialog.addParameterGroup("Visuals",
-        new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, theme, presentationMode,
-            showPrecursorWindow, imageTransformation, imageNormalization});
+    dialog.addParameterGroup("General", numOfThreads, memoryOption, tempDirectory, proxySettings,
+        msConvertPath
+        /*, applyTimsPressureCompensation*/);
+    dialog.addParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
+        intensityFormat, ppmFormat, scoreFormat, unitFormat);
+    dialog.addParameterGroup("Visuals", defaultColorPalette, defaultPaintScale, chartParam, theme,
+        presentationMode, showPrecursorWindow, imageTransformation, imageNormalization);
+    dialog.addParameterGroup("MS data import", msConvertPath, keepConvertedFile);
 //    dialog.addParameterGroup("Other", new Parameter[]{
     // imsModuleWarnings, showTempFolderAlert, windowSetttings  are hidden parameters
 //    });

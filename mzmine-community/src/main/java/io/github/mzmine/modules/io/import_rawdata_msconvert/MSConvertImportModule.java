@@ -31,6 +31,7 @@ import io.github.mzmine.modules.impl.AbstractProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.io.File;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -57,6 +58,17 @@ public class MSConvertImportModule extends AbstractProcessingModule {
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    return null;
+
+    final File[] files = parameters.getValue(MSConvertImportParameters.fileNames);
+    if (files == null || files.length == 0) {
+      return ExitCode.ERROR;
+    }
+
+    for (File file : files) {
+      tasks.add(new MSConvertImportTask(moduleCallDate, file, null, project, this.getClass(),
+          parameters));
+    }
+
+    return ExitCode.OK;
   }
 }

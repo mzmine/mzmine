@@ -486,14 +486,15 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     return transformation != null ? transformation : PaintScaleTransform.LINEAR;
   }
 
+  @Override
   public File getMsConvertPath() {
-    File path = preferences.getValue(MZminePreferences.msConvertPath);
-    if (path != null || !path.exists()) {
-      synchronized (MSConvert.class) {
-        path = MSConvert.getMsConvertPath();
+    synchronized (MSConvert.class) {
+      File path = preferences.getValue(MZminePreferences.msConvertPath);
+      if (path == null || !path.exists()) {
+        path = MSConvert.discoverMsConvertPath();
         preferences.setParameter(MZminePreferences.msConvertPath, path);
       }
+      return path;
     }
-    return path;
   }
 }
