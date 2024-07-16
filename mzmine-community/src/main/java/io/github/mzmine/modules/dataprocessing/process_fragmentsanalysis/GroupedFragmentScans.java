@@ -25,32 +25,8 @@
 
 package io.github.mzmine.modules.dataprocessing.process_fragmentsanalysis;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.impl.TaskPerFeatureListModule;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.time.Instant;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-public class FragmentsAnalysisModule extends TaskPerFeatureListModule {
-
-  public FragmentsAnalysisModule() {
-    super("Fragments analysis", FragmentsAnalysisParameters.class,
-        MZmineModuleCategory.FEATURELISTEXPORT, false,
-        "This is a description of the amazing quest we have...");
-  }
-
-  @Override
-  public @NotNull Task createTask(final @NotNull MZmineProject project,
-      final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
-      final @Nullable MemoryMapStorage storage, final @NotNull FeatureList featureList) {
-    return new FragmentsAnalysisTask(project, List.of(featureList), parameters, storage,
-        moduleCallDate, this.getClass());
-  }
+public record GroupedFragmentScans(io.github.mzmine.datamodel.features.FeatureListRow row,
+                                   java.util.List<io.github.mzmine.datamodel.Scan> ms1Scans,
+                                   java.util.List<io.github.mzmine.datamodel.Scan> ms2Scans) {
 
 }
