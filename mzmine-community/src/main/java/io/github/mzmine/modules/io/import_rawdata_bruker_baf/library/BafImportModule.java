@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
 public class BafImportModule extends AbstractProcessingModule {
 
   public BafImportModule() {
-    super("Baf import", BafImportParameters.class, MZmineModuleCategory.RAWDATAIMPORT,
+    super("Bruker .baf import", BafImportParameters.class, MZmineModuleCategory.RAWDATAIMPORT,
         "Import Bruker .d (.baf) files.");
   }
 

@@ -38,7 +38,7 @@ import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
-import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafUtils;
+import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafDataAccess;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.BafPropertiesTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.BafPropertiesTable.Values;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.Ms2Table;
@@ -102,8 +102,8 @@ public class BafImportTask extends AbstractTask {
     final RawDataFileImpl file = new RawDataFileImpl(folderPath.getName(),
         folderPath.getAbsolutePath(), getMemoryMapStorage());
 
-    try (Arena arena = Arena.ofShared()) {
-      final BafUtils baf = new BafUtils(arena);
+    try (Arena arena = Arena.ofConfined()) {
+      final BafDataAccess baf = new BafDataAccess(arena);
       final boolean b = baf.openBafFile(folderPath);
       if (!b) {
         setErrorMessage(baf.getLastErrorString());
@@ -125,10 +125,10 @@ public class BafImportTask extends AbstractTask {
 
         if (scanProcessorConfig.scanFilter().matches(metadataScan)) {
           try {
-            final double[][] mzIntensities = baf.loadPeakData(i);
+            final SimpleSpectralArrays mzIntensities = baf.loadPeakData(i);
             final SimpleSpectralArrays arrays = scanProcessorConfig.processor()
                 .processScan(metadataScan,
-                    new SimpleSpectralArrays(mzIntensities[0], mzIntensities[1]));
+                    new SimpleSpectralArrays(mzIntensities.mzs(), mzIntensities.intensities()));
 
             final MassSpectrumType spectrumType =
                 metadataScan.getSpectrumType() == MassSpectrumType.CENTROIDED

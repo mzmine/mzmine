@@ -33,6 +33,7 @@ import static io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2
 import static io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafLib.baf2sql_get_last_error_string;
 import static io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafLib.baf2sql_get_sqlite_cache_filename_v2;
 
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.BafPropertiesTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.Ms2Table;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.tables.SpectraAcquisitionStepsTable;
@@ -44,16 +45,15 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.LoggerFactory;
 import org.sqlite.JDBC;
 
-public class BafUtils {
+public class BafDataAccess {
 
-  private static final Logger logger = Logger.getLogger(BafUtils.class.getName());
-  private static final org.slf4j.Logger log = LoggerFactory.getLogger(BafUtils.class);
+  private static final Logger logger = Logger.getLogger(BafDataAccess.class.getName());
   private long handle;
   private final SpectraAcquisitionStepsTable spectraTable = new SpectraAcquisitionStepsTable();
   private final BafPropertiesTable metadata = new BafPropertiesTable();
@@ -66,7 +66,7 @@ public class BafUtils {
   private MemorySegment mzBufferSegment;
   private MemorySegment intensityBufferSegment;
 
-  public BafUtils(Arena arena) {
+  public BafDataAccess(Arena arena) {
     this.arena = arena;
     mzSizeBuffer = arena.allocate(BafLib.uint64_t);
     intensitySizeBuffer = arena.allocate(BafLib.uint64_t);
@@ -104,7 +104,6 @@ public class BafUtils {
       logger.severe(getLastErrorString());
       return null;
     }
-    final char[] pathBuffer = new char[errorCodeOrPathLength];
 
     final MemorySegment outputBuffer = arena.allocate(errorCodeOrPathLength);
 
@@ -161,8 +160,7 @@ public class BafUtils {
     try {
       Class.forName("org.sqlite.JDBC");
     } catch (ClassNotFoundException e) {
-      e.printStackTrace();
-      logger.info("Could not load sqlite.JDBC.");
+      logger.log(Level.SEVERE, "Could not load sqlite.JDBC.", e);
       return false;
     }
     logger.finest(() -> "SQL initialised.");
@@ -188,7 +186,7 @@ public class BafUtils {
     return handle != 0;
   }
 
-  public double[][] loadPeakData(int index) {
+  public SimpleSpectralArrays loadPeakData(int index) {
     assert valid();
 
     final long mzIds = spectraTable.getMzIds(index);
@@ -232,7 +230,7 @@ public class BafUtils {
     double[] intensities = intensityBufferSegment.asSlice(0, numIntensities * Double.BYTES)
         .toArray(ValueLayout.JAVA_DOUBLE);
 
-    return new double[][]{mzs, intensities};
+    return new SimpleSpectralArrays(mzs, intensities);
   }
 
   public SpectraAcquisitionStepsTable getSpectraTable() {
