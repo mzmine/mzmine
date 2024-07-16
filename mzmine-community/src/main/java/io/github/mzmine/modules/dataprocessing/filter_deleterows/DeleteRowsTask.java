@@ -85,8 +85,5 @@ public class DeleteRowsTask extends AbstractFeatureListTask {
     for (final var flist : getProcessedFeatureLists()) {
       flist.addDescriptionOfAppliedTask(appliedMethod);
     }
-    for (final var raw : getProcessedDataFiles()) {
-      raw.getAppliedMethods().add(appliedMethod);
-    }
   }
 }

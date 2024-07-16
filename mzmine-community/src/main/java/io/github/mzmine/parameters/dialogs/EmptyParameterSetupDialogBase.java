@@ -134,7 +134,7 @@ public class EmptyParameterSetupDialogBase extends Stage {
         event.consume();
         closeDialog(ExitCode.CANCEL);
       }
-      if (event.getCode() == KeyCode.ENTER && event.isControlDown()) {
+      if (event.getCode() == KeyCode.ENTER && event.isShortcutDown()) {
         event.consume();
         closeDialog(ExitCode.OK);
       }

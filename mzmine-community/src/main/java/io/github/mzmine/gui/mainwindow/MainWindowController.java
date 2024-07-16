@@ -260,12 +260,12 @@ public class MainWindowController {
       if (event.getCode().isArrowKey() && event.getTarget() == mainTabPane) {
         event.consume();
       }
-      if (event.getCode() == KeyCode.PAGE_UP && event.isControlDown()) {
+      if (event.getCode() == KeyCode.PAGE_UP && event.isShortcutDown()) {
         mainTabPane.getSelectionModel()
             .select(Math.max(mainTabPane.getSelectionModel().getSelectedIndex() - 1, 0));
         event.consume();
       }
-      if (event.getCode() == KeyCode.PAGE_DOWN && event.isControlDown()) {
+      if (event.getCode() == KeyCode.PAGE_DOWN && event.isShortcutDown()) {
         mainTabPane.getSelectionModel().select(
             Math.min(mainTabPane.getSelectionModel().getSelectedIndex() + 1,
                 mainTabPane.getTabs().size() - 1));

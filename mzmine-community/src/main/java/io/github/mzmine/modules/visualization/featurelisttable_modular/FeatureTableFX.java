@@ -472,6 +472,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   /**
    * Listens to update the table if a row is added/removed to/from the feature list.
    */
+  @Override
   public void onChanged(final Change<? extends FeatureListRow> c) {
     c.next();
     if (!(c.wasAdded() || c.wasRemoved())) {
