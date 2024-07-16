@@ -66,11 +66,7 @@ import org.jetbrains.annotations.Nullable;
 public class TSFUtils {
 
   public static final int BUFFER_SIZE_INCREMENT = 50_000;
-
-  private static int DEFAULT_NUMTHREADS = MZmineCore.getConfiguration().getPreferences()
-      .getParameter(MZminePreferences.numOfThreads).getValue();
   private static final Logger logger = Logger.getLogger(TSFUtils.class.getName());
-  private final int numThreads;
   private TSFLibrary tsfdata = null;
   private int BUFFER_SIZE = 50_000;
   // centroid
@@ -86,11 +82,6 @@ public class TSFUtils {
   private double[] profileDeletedZeroIntensities;
 
   public TSFUtils() throws IOException {
-    this(DEFAULT_NUMTHREADS);
-  }
-
-  public TSFUtils(int numThreads) throws UnsupportedOperationException {
-    this.numThreads = numThreads;
     loadLibrary();
   }
 
@@ -310,8 +301,8 @@ public class TSFUtils {
           .displayErrorMessage("Cannot load tsf library. Is VC++ 2017 Redist installed?");
       return false;
     }
-    logger.info("Native TDF library initialised " + tsfdata.toString());
-    setNumThreads(numThreads);
+    logger.info("Native TSF library initialised " + tsfdata.toString());
+    setNumThreads(1);
 
     return true;
   }
@@ -346,6 +337,7 @@ public class TSFUtils {
       return handle;
     }
   }
+
 
   /**
    * Opens the tdf_bin file.
@@ -438,20 +430,7 @@ public class TSFUtils {
     }
   }
 
-  /**
-   * Sets the default number of threads to use for each raw file across all {@link TDFUtils}
-   * instances.
-   *
-   * @param numThreads
-   */
-  public static void setDefaultNumThreads(int numThreads) {
-    numThreads = Math.max(numThreads, 1);
-    final int finalNumThreads = numThreads;
-    logger.finest(() -> "Setting number of threads per file to " + finalNumThreads);
-    DEFAULT_NUMTHREADS = numThreads;
-  }
-
-  public void setNumThreads(int numThreads) {
+  private void setNumThreads(int numThreads) {
     if (tsfdata == null) {
       if (!loadLibrary()) {
         return;

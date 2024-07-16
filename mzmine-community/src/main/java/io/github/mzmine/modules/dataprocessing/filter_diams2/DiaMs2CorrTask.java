@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -157,12 +157,28 @@ public class DiaMs2CorrTask extends AbstractTask {
 
     final RawDataFile file = flist.getRawDataFile(0);
     final List<Scan> ms2Scans = List.of(ms2ScanSelection.getMatchingScans(file));
+    if(ms2Scans.isEmpty()) {
+      flist.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(DiaMs2CorrModule.class, parameters,
+              getModuleCallDate()));
+      setStatus(TaskStatus.FINISHED);
+      return;
+    }
+
     final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.MASS_LIST,
         ms2ScanSelection);
 
     // build chromatograms
     final MZmineProject dummyProject = new MZmineProjectImpl();
     var ms2Flist = buildChromatograms(dummyProject, file);
+
+    if(ms2Flist == null) {
+      flist.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(DiaMs2CorrModule.class, parameters,
+              getModuleCallDate()));
+      setStatus(TaskStatus.FINISHED);
+      return;
+    }
 
     // store feature data in TreeRangeMap, to query by m/z in ms2 spectra
     final RangeMap<Double, IonTimeSeries<?>> ms2Eics = TreeRangeMap.create();
@@ -364,11 +380,11 @@ public class DiaMs2CorrTask extends AbstractTask {
     adapTask = new FinishedTask(adapTask);
     currentTaksIndex++;
 
-    var ms2Flist = dummyProject.getCurrentFeatureLists().get(0);
     if (dummyProject.getCurrentFeatureLists().isEmpty()) {
       logger.warning("Cannot find ms2 feature list.");
       return null;
     }
+    var ms2Flist = dummyProject.getCurrentFeatureLists().get(0);
 //    final FeatureListAppliedMethod removed = file.getAppliedMethods()
 //        .remove(file.getAppliedMethods().size() - 1);
 //    assert removed.getModule().getClass().equals(ModularADAPChromatogramBuilderModule.class);

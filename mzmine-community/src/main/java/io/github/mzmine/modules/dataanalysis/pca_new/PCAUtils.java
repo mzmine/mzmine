@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.dataanalysis.utils.StatisticUtils;
 import io.github.mzmine.modules.dataanalysis.utils.imputation.ImputationFunction;
 import io.github.mzmine.modules.dataanalysis.utils.scaling.ScalingFunction;
+import io.github.mzmine.modules.visualization.projectmetadata.SampleTypeFilter;
 import java.util.List;
 import java.util.logging.Logger;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -74,14 +75,28 @@ public class PCAUtils {
   /**
    * Performs a PCA on a list of feature list rows. Imputes missing values as 0s.
    *
+   * @param rows               The rows.
+   * @param measure            The abundance to use.
+   * @return A pca result that can be mapped to the used rows.
+   */
+  public static PCARowsResult performPCAOnRows(List<FeatureListRow> rows, AbundanceMeasure measure,
+      ScalingFunction scalingFunction, ImputationFunction imputationFunction) {
+    return performPCAOnRows(rows, measure, scalingFunction, imputationFunction,
+        SampleTypeFilter.all());
+  }
+
+  /**
+   * Performs a PCA on a list of feature list rows. Imputes missing values as 0s.
+   *
    * @param rows    The rows.
    * @param measure The abundance to use.
    * @return A pca result that can be mapped to the used rows.
    */
   public static PCARowsResult performPCAOnRows(List<FeatureListRow> rows, AbundanceMeasure measure,
-      ScalingFunction scalingFunction, ImputationFunction imputationFunction) {
+      ScalingFunction scalingFunction, ImputationFunction imputationFunction,
+      SampleTypeFilter sampleTypeFilter) {
     final List<RawDataFile> files = rows.stream().flatMap(row -> row.getRawDataFiles().stream())
-        .distinct().toList();
+        .distinct().filter(sampleTypeFilter::matches).toList();
     final RealMatrix data = StatisticUtils.createDatasetFromRows(rows, files, measure);
     StatisticUtils.imputeMissingValues(data, true, imputationFunction);
     final PCAResult pcaResult = quickPCA(data, scalingFunction);

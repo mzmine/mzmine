@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -45,11 +44,8 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.process
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.processors.MassDetectorMsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.processors.SortByMzMsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.BafImportTask;
-import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.baf2sql.BafLib;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFImportTask;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFUtils;
 import io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportTask;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportTask;
@@ -63,7 +59,6 @@ import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImport
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileType;
@@ -182,7 +177,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     }
   }
 
-
   /**
    * @return true if duplciates found in import list and already loaded files
    */
@@ -294,25 +288,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       return ExitCode.ERROR;
     }
 
-    final long numTdf = fileTypes.stream().filter(type -> type.equals(RawDataFileType.BRUKER_TDF))
-        .count();
-    final long numTsf = fileTypes.stream().filter(type -> type.equals(RawDataFileType.BRUKER_TSF))
-        .count();
-    final long numBaf = fileTypes.stream().filter(type -> type.equals(RawDataFileType.BRUKER_BAF))
-        .count();
-    if (numTdf > 0) {
-      TDFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.numOfThreads).getValue() / numTdf));
-    }
-    if (numTsf > 0) {
-      TSFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.numOfThreads).getValue() / numTsf));
-    }
-    if(numBaf > 0) {
-      BafLib.baf2sql_set_num_threads(Math.max((int) (MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.numOfThreads).getValue() / numBaf), 1));
-    }
-
     for (int i = 0; i < fileNames.length; i++) {
       final File fileName = fileNames[i];
 
@@ -344,18 +319,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         if (newTask != null) {
           tasks.add(newTask);
           dataImportTasks.add(newTask);
-
-          if (i == fileName.length() - 1) {
-            newTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
-              if (newStatus == TaskStatus.CANCELED || newStatus == TaskStatus.FINISHED
-                  || newStatus == TaskStatus.ERROR) {
-                final Integer threads = MZmineCore.getConfiguration().getPreferences()
-                    .getParameter(MZminePreferences.numOfThreads).getValue();
-                TDFUtils.setDefaultNumThreads(threads);
-                TSFUtils.setDefaultNumThreads(threads);
-              }
-            });
-          }
         }
 
       } catch (IOException e) {
