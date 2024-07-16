@@ -116,6 +116,7 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
+import io.github.mzmine.modules.dataprocessing.process_fragmentsanalysis.FragmentsAnalysisModule;
 import io.github.mzmine.modules.io.export_ccsbase.CcsBaseExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_features_all_speclib_matches.ExportAllIdsGraphicalModule;
@@ -317,6 +318,7 @@ public class BatchModeModulesList {
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_PROCESSING}
        */
       ClearFeatureAnnotationsModule.class, //
+      FragmentsAnalysisModule.class, //
       LinearNormalizerModule.class, //
       RTCorrectionModule.class, //
       StandardCompoundNormalizerModule.class, //
