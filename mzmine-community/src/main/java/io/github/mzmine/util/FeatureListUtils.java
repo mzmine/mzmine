@@ -643,11 +643,11 @@ public class FeatureListUtils {
 
   public static String rowsToIdString(List<? extends FeatureListRow> rows) {
     return rows.stream().map(FeatureListRow::getID).map(Object::toString)
-        .collect(Collectors.joining(";"));
+        .collect(Collectors.joining(","));
   }
 
   public static List<FeatureListRow> idStringToRows(ModularFeatureList flist, String str) {
-    final Set<Integer> ids = Arrays.stream(str.split(";")).map(Integer::valueOf)
+    final Set<Integer> ids = Arrays.stream(str.split(",")).map(Integer::valueOf)
         .collect(Collectors.toSet());
     return flist.stream().filter(row -> ids.contains(row.getID()))
         .sorted(Comparator.comparingInt(FeatureListRow::getID)).toList();
