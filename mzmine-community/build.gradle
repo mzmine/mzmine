@@ -451,7 +451,7 @@ task signApp(dependsOn: jpackage) {
 
             // Define native libraries nested in jars that are to be signed
             ArrayList<Path> jarNestedLibs = [
-                    FileSystems.newFileSystem(jarsDir.resolve("jna-inchi-darwin-x86-64-1.2.jar")).getPath("darwin-x86-64/libjnainchi.dylib"),
+                    /*FileSystems.newFileSystem(jarsDir.resolve("jna-inchi-darwin-x86-64-1.2.jar")).getPath("darwin-x86-64/libjnainchi.dylib"),*/
                     FileSystems.newFileSystem(jarsDir.resolve("jna-inchi-darwin-aarch64-1.2.jar")).getPath("darwin-aarch64/libjnainchi.dylib"),
                     /*FileSystems.newFileSystem(jarsDir.resolve("adap-4.1.10.jar")).getPath("lib/macosx-x86_64/libadapwavelet.so"),*/
             ]
