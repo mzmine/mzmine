@@ -478,7 +478,7 @@ task signApp(dependsOn: jpackage) {
             }
 
             // delete duplicated libs
-            jarsDir.resolveSibling('runtime/Contents/MacOS').resolve("libjli.dylib").toFile().delete()
+            //jarsDir.resolveSibling('runtime/Contents/MacOS').resolve("libjli.dylib").toFile().delete()
 
             // Sign .app directory
             getLogger().lifecycle("Signing .app directory...")
@@ -495,7 +495,7 @@ task signApp(dependsOn: jpackage) {
 
 task notarizeApp(dependsOn: signApp) {
 
-    if (OperatingSystem.current().isMacOsX() && macSigning) {
+    if (OperatingSystem.current().isMacOsX() && macSigning && false) {
 
         doLast {
 
