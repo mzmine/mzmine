@@ -157,19 +157,6 @@
             ]
         },
         {
-            "moduleName": "com.github.jbytecode:RCaller",
-            "moduleVersion": "4.0.2",
-            "moduleUrls": [
-                "https://github.com/jbytecode/rcaller"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 3",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-3.0"
-                }
-            ]
-        },
-        {
             "moduleName": "com.github.librepdf:openpdf",
             "moduleVersion": "2.0.0",
             "moduleLicenses": [
@@ -436,19 +423,6 @@
                 {
                     "moduleLicense": "CDDL+GPL License",
                     "moduleLicenseUrl": "http://glassfish.java.net/public/CDDL+GPL_1_1.html"
-                }
-            ]
-        },
-        {
-            "moduleName": "com.thoughtworks.qdox:qdox",
-            "moduleVersion": "1.12",
-            "moduleUrls": [
-                "http://qdox.codehaus.org"
-            ],
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
                 }
             ]
         },
@@ -1527,7 +1501,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-anim",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1537,7 +1511,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-awt-util",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1547,7 +1521,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-bridge",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1567,7 +1541,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-constants",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1577,7 +1551,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-css",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1587,7 +1561,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-dom",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1597,7 +1571,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-ext",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1607,7 +1581,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-extension",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1627,7 +1601,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-gvt",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1637,7 +1611,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-i18n",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1647,7 +1621,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-parser",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1677,7 +1651,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-script",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1687,7 +1661,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-shared-resources",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1727,7 +1701,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-svg-dom",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1747,7 +1721,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-svggen",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1787,7 +1761,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-transcoder",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1807,7 +1781,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-util",
-            "moduleVersion": "1.14",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1817,47 +1791,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:batik-xml",
-            "moduleVersion": "1.14",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:fop",
-            "moduleVersion": "2.6",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:fop-core",
-            "moduleVersion": "2.6",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:fop-events",
-            "moduleVersion": "2.6",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "Apache License, Version 2.0",
-                    "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.apache.xmlgraphics:fop-util",
-            "moduleVersion": "2.6",
+            "moduleVersion": "1.13",
             "moduleLicenses": [
                 {
                     "moduleLicense": "Apache License, Version 2.0",
@@ -1867,7 +1801,7 @@
         },
         {
             "moduleName": "org.apache.xmlgraphics:xmlgraphics-commons",
-            "moduleVersion": "2.6",
+            "moduleVersion": "2.4",
             "moduleUrls": [
                 "http://xmlgraphics.apache.org/commons/"
             ],
@@ -2591,7 +2525,7 @@
             ]
         },
         {
-            "moduleName": "org.kordamp.ikonli:ikonli-hawcons-pack",
+            "moduleName": "org.kordamp.ikonli:ikonli-javafx",
             "moduleVersion": "12.3.1",
             "moduleUrls": [
                 "https://github.com/kordamp/ikonli"
@@ -2604,7 +2538,7 @@
             ]
         },
         {
-            "moduleName": "org.kordamp.ikonli:ikonli-javafx",
+            "moduleName": "org.kordamp.ikonli:ikonli-lineawesome-pack",
             "moduleVersion": "12.3.1",
             "moduleUrls": [
                 "https://github.com/kordamp/ikonli"
@@ -2626,26 +2560,6 @@
                 {
                     "moduleLicense": "Apache License, Version 2.0",
                     "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.nuiton.thirdparty:REngine",
-            "moduleVersion": "1.8-5",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
-                }
-            ]
-        },
-        {
-            "moduleName": "org.nuiton.thirdparty:Rserve",
-            "moduleVersion": "1.8-5",
-            "moduleLicenses": [
-                {
-                    "moduleLicense": "GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1",
-                    "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
                 }
             ]
         },

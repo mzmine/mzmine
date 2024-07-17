@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
@@ -70,6 +71,7 @@ public class TSFImportTask extends AbstractTask {
   private final String rawDataFileName;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
+  private final ScanImportProcessorConfig config;
   private boolean isMaldi = false;
   private String description;
   private File tsf;
@@ -79,7 +81,7 @@ public class TSFImportTask extends AbstractTask {
 
   public TSFImportTask(MZmineProject project, File fileName, @Nullable MemoryMapStorage storage,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+      @NotNull Instant moduleCallDate, ScanImportProcessorConfig config) {
     super(storage, moduleCallDate);
 
     this.project = project;
@@ -87,6 +89,7 @@ public class TSFImportTask extends AbstractTask {
     rawDataFileName = fileName.getName();
     this.parameters = parameters;
     this.module = module;
+    this.config = config;
 
     metaDataTable = new TDFMetaDataTable();
     maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
@@ -189,7 +192,7 @@ public class TSFImportTask extends AbstractTask {
       setDescription("Importing " + rawDataFileName + ": Scan " + frameId + "/" + numScans);
 
       final Scan scan = tsfUtils.loadScan(newMZmineFile, handle, frameId, metaDataTable, frameTable,
-          frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType);
+          frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType, config);
 
       try {
         newMZmineFile.addScan(scan);
