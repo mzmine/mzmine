@@ -218,7 +218,6 @@ public class RawDataFileSaveHandler extends AbstractTask {
                   "Required file %s for raw file %s does not exist.".formatted(
                       additional.getAbsolutePath(), file.getAbsolutePath()));
             }
-//            zipStream.putNextEntry(new ZipEntry(getZipPath(additional)));
             copyToZip(additional, getZipPath(additional));
           }
         } catch (ZipException e) {
