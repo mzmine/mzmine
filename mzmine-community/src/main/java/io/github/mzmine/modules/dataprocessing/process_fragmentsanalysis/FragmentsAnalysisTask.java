@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -51,11 +52,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,6 +72,7 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
   private final List<FeatureList> featureLists;
   private final File outFile;
   private final boolean useMassList;
+  private final MZTolerance tolerance;
 
   /**
    * Constructor is used to extract all parameters
@@ -89,8 +91,7 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
     outFile = parameters.getValue(FragmentsAnalysisParameters.outFile);
     var scanDataType = parameters.getValue(FragmentsAnalysisParameters.scanDataType);
     useMassList = scanDataType == ScanDataType.MASS_LIST;
-    // TODO
-    // tolerance = ...
+    tolerance = parameters.getValue(FragmentsAnalysisParameters.tolerance);
   }
 
   @Override
@@ -118,9 +119,9 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
 
     int frequencyOfMz200 = ms1MzFrequency.getBinFrequency(200);
 
-    // TODO count signals in MS1 scans that are filtered out due to
-    //  1. common contamination
-    //  2. in source fragment found in corresponding MS2
+    // Count unique common fragments in between MS1 and MS2 scans
+    int commonFragmentsCount = countUniqueFragmentsBetweenMs1AndMs2(groupedScans);
+    logger.info("Total number of unique common fragments between MS1 and MS2 scans: " + commonFragmentsCount);
 
   }
 
@@ -256,23 +257,36 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
     return featureLists;
   }
 
-// TODO
-//    private int countCommonFragments(Scan ms1, Scan ms2, double tolerance) {
-//        DoubleStream ms1Fragments = DoubleStream.of(ScanUtils.getMzValues(ms1));
-//        DoubleStream ms2Fragments = DoubleStream.of(ScanUtils.getMzValues(ms2));
-//
-//        List<Double> ms1FragmentList = ms1Fragments.boxed().collect(Collectors.toList());
-//        List<Double> ms2FragmentList = ms2Fragments.boxed().collect(Collectors.toList());
-//
-//        int commonFragments = 0;
-//        for (Double fragment : ms1FragmentList) {
-//            for (Double ms2Fragment : ms2FragmentList) {
-//                if (Math.abs(fragment - ms2Fragment) <= tolerance) {
-//                    commonFragments++;
-//                    break; // move to next fragment in ms1FragmentList
-//                }
-//            }
-//        }
-//        return commonFragments;
-//    }
+  // TODO: Sanitize the spectra by removing everything above the precursor - tolerance? And more?
+  private int countUniqueFragmentsBetweenMs1AndMs2(List<GroupedFragmentScans> groupedScans) {
+    Set<Double> uniqueFragments = new HashSet<>();
+
+    for (GroupedFragmentScans group : groupedScans) {
+      List<Scan> ms1Scans = group.ms1Scans();
+      List<Scan> ms2Scans = group.ms2Scans();
+
+      for (Scan ms1 : ms1Scans) {
+        for (Scan ms2 : ms2Scans) {
+          countUniqueFragments(ms1, ms2, tolerance, uniqueFragments);
+        }
+      }
+    }
+
+    return uniqueFragments.size();
+  }
+
+  private void countUniqueFragments(Scan ms1, Scan ms2, MZTolerance tolerance, Set<Double> uniqueFragments) {
+    DataPoint[] ms1DataPoints = ScanUtils.extractDataPoints(ms1, useMassList);
+    DataPoint[] ms2DataPoints = ScanUtils.extractDataPoints(ms2, useMassList);
+
+    for (DataPoint dp1 : ms1DataPoints) {
+      for (DataPoint dp2 : ms2DataPoints) {
+        if (tolerance.checkWithinTolerance(dp1.getMZ(), dp2.getMZ())) {
+          uniqueFragments.add(dp1.getMZ());
+          break; // Move to the next dp1 as we've already counted this fragment
+        }
+      }
+    }
+  }
+
 }

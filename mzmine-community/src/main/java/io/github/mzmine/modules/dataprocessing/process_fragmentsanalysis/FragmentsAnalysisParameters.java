@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -42,6 +43,8 @@ import javafx.stage.FileChooser.ExtensionFilter;
 public class FragmentsAnalysisParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
+
+  public static final MZToleranceParameter tolerance = new MZToleranceParameter();
 
   public static final ComboParameter<ScanDataType> scanDataType = new ComboParameter<>(
       "MS data selection",
@@ -64,7 +67,7 @@ public class FragmentsAnalysisParameters extends SimpleParameterSet {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */
-    super(featureLists, scanDataType, outFile);
+    super(featureLists, scanDataType, outFile, tolerance);
   }
 
 }
