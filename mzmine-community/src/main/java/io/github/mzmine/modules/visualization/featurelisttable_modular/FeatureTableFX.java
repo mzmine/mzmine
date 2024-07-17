@@ -990,7 +990,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * Repopulates the feature table. Also re-creates columns, eg. after a new data type was added
    * from the gui.
    */
-  public void refresh() {
+  public void rebuild() {
     final ModularFeatureList flist = getFeatureList();
     setFeatureList(null);
     setFeatureList(flist);
