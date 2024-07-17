@@ -95,6 +95,7 @@ if (OperatingSystem.current().isMacOsX()) {
 
     getLogger().info("imageDir " + imageDir)
     getLogger().info("jarsDir " + jarsDir)
+
 }
 println "OS detected as " + project.ext.osSuffix
 
@@ -446,8 +447,6 @@ task signApp(dependsOn: jpackage) {
                 codesign(nativeLib.toAbsolutePath())
             }
 
-            getLogger().lifecycle("libjli.dylib")
-            codesign(jarsDir.resolveSibling('runtime/Contents/MacOS').resolve("libjli.dylib"))
 
             getLogger().lifecycle("Signing libraires nested in jars...")
 
@@ -477,6 +476,10 @@ task signApp(dependsOn: jpackage) {
                 getLogger().lifecycle("Signing jar '${jar}'")
                 codesign(jar.toAbsolutePath())
             }
+
+            // sign after all other jars
+            getLogger().lifecycle("libjli.dylib")
+            codesign(jarsDir.resolveSibling('runtime/Contents/MacOS').resolve("libjli.dylib"))
 
             // Sign .app directory
             getLogger().lifecycle("Signing .app directory...")
