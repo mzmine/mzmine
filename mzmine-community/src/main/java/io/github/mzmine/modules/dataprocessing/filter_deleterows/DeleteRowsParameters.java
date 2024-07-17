@@ -40,7 +40,7 @@ public class DeleteRowsParameters extends SimpleParameterSet {
   public static final FeatureListsParameter flist = new FeatureListsParameter(1, 1);
 
   public static final StringParameter rowIds = new StringParameter("Row IDs",
-      "Row ID from the specific feature list, separated by , with no spaces.");
+      "Row ID from the specific feature list, separated by ',' (comma).");
 
   public DeleteRowsParameters() {
     super(flist, rowIds);
