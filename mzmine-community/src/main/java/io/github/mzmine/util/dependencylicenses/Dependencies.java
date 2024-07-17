@@ -38,6 +38,20 @@ import javafx.scene.control.ListView;
 
 public record Dependencies(List<Dependency> dependencies) {
 
+  private static final List<Dependency> other = List.of(
+      new Dependency("TDF Software Development Kit, Bruker Daltonics GmbH & Co.KG",
+          "2.8.7.1-win32-vc141", List.of(),
+          List.of(new ModuleLicense(STR."EULA TDF-SDK (Bruker Daltonics GmbH & Co.KG)", null))),
+      new Dependency(STR."Baf2Sql Software Development Kit, Bruker Daltonics GmbH & Co.KG", "2.9.0",
+          List.of(),
+          List.of(new ModuleLicense("EULA BAF-SDK (Bruker Daltonics GmbH & Co.KG)", null))),
+      new Dependency("ThermoRawFileParser", "1.4.3",
+          List.of("https://github.com/compomics/ThermoRawFileParser"), List.of(
+          new ModuleLicense("Apache License, Version 2.0",
+              "https://github.com/compomics/ThermoRawFileParser?tab=Apache-2.0-1-ov-file#readme"))),
+      new Dependency("MassLynxRaw library", "2014", List.of(),
+          List.of(new ModuleLicense("Copyright © 2014 Waters, Inc.", null))));
+
   public static List<Dependency> of(String resourcePath) {
     final ObjectMapper mapper = new ObjectMapper();
     try (InputStream dps = Dependencies.class.getClassLoader().getResourceAsStream(resourcePath)) {
@@ -73,15 +87,4 @@ public record Dependencies(List<Dependency> dependencies) {
     dependencies.addAll(other);
     return asListView(dependencies);
   }
-
-  private static final List<Dependency> other = List.of(
-      new Dependency("TDF Software Development Kit, Bruker Daltonics GmbH & Co.KG",
-          "2.8.7.1-win32-vc141", List.of(),
-          List.of(new ModuleLicense("EULA TDF-SDK (Bruker Daltonics GmbH & Co.KG)", null))),
-      new Dependency("ThermoRawFileParser", "1.4.3",
-          List.of("https://github.com/compomics/ThermoRawFileParser"), List.of(
-          new ModuleLicense("Apache License, Version 2.0",
-              "https://github.com/compomics/ThermoRawFileParser?tab=Apache-2.0-1-ov-file#readme"))),
-      new Dependency("MassLynxRaw library", "2014", List.of(),
-          List.of(new ModuleLicense("Copyright © 2014 Waters, Inc.", null))));
 }
