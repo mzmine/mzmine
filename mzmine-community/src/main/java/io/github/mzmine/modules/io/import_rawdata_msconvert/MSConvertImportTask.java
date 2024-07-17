@@ -34,6 +34,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.ParameterUtils;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
@@ -111,7 +112,7 @@ public class MSConvertImportTask extends AbstractTask {
       try {
         final Process process = builder.start();
         while (process.isAlive()) { // wait for conversion to finish
-          if(isCanceled()) {
+          if (isCanceled()) {
             process.destroy();
           }
           TimeUnit.MILLISECONDS.sleep(100);
@@ -142,17 +143,16 @@ public class MSConvertImportTask extends AbstractTask {
 
   private void importFromMzML(File mzMLFile) {
     RawDataFile dataFile = null;
-    {
-      msdkTask = new MSDKmzMLImportTask(project, mzMLFile, config, module, parameters,
-          moduleCallDate, storage);
+    ParameterUtils.replaceRawFileName(parameters, rawFilePath, mzMLFile);
+    msdkTask = new MSDKmzMLImportTask(project, mzMLFile, config, module, parameters, moduleCallDate,
+        storage);
 
-      this.addTaskStatusListener((_, _, _) -> {
-        if (isCanceled()) {
-          msdkTask.cancel();
-        }
-      });
-      dataFile = msdkTask.importStreamOrFile();
-    }
+    this.addTaskStatusListener((_, _, _) -> {
+      if (isCanceled()) {
+        msdkTask.cancel();
+      }
+    });
+    dataFile = msdkTask.importStreamOrFile();
 
     if (dataFile == null || isCanceled()) {
       return;
@@ -171,7 +171,6 @@ public class MSConvertImportTask extends AbstractTask {
           "MSConvert process crashed before all scans were extracted (" + parsedScans + " out of "
               + totalScans + ")"));
     }
-
     msdkTask.addAppliedMethodAndAddToProject(dataFile);
   }
 
@@ -240,7 +239,7 @@ public class MSConvertImportTask extends AbstractTask {
         "-o", !convertToFile ? "-" /* to stdout */ : "\"" + filePath.getParent() + "\"" //
     )); // vendor peak-picking
 
-    if(convertToFile) {
+    if (convertToFile) {
       cmdLine.add("--zlib");
     }
 

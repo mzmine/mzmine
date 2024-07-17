@@ -25,7 +25,10 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.util.files.ExtensionFilters;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -42,7 +45,7 @@ public enum RawDataFileType {
   MZDATA(ExtensionFilters.MZDATA, false), //
   NETCDF(ExtensionFilters.NETCDF, false), //
   THERMO_RAW(ExtensionFilters.THERMO_RAW, false), //
-//  WATERS_RAW(ExtensionFilters.WATERS_RAW, true), //
+  //  WATERS_RAW(ExtensionFilters.WATERS_RAW, true), //
   MZML_ZIP(ExtensionFilters.MZML_ZIP_GZIP, false), //
   MZML_GZIP(ExtensionFilters.MZML_ZIP_GZIP, false), //
   ICPMSMS_CSV(ExtensionFilters.CSV, false), //
@@ -76,5 +79,23 @@ public enum RawDataFileType {
 
   public static List<RawDataFileType> getAllNonFolderTypes() {
     return Arrays.stream(values()).filter(rawDataFileType -> !rawDataFileType.isFolder()).toList();
+  }
+
+  public static List<File> getAdditionalRequiredFiles(RawDataFile raw) {
+    final File file = raw.getAbsoluteFilePath();
+    final RawDataFileType type = RawDataFileTypeDetector.detectDataFileType(file);
+
+    return switch (type) {
+      case MZML, MZXML, MZML_IMS, MZDATA, NETCDF, THERMO_RAW, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV,
+           BRUKER_TDF, BRUKER_TSF, AGILENT_D -> List.of();
+      case IMZML -> {
+        final String extension = FileAndPathUtil.getExtension(file.getName());
+        yield List.of(new File(file.getParent(), file.getName().replace(extension, "ibd")));
+      }
+      case SCIEX_WIFF, SCIEX_WIFF2 -> {
+        final String extension = FileAndPathUtil.getExtension(file.getName());
+        yield List.of(new File(file.getParent(), file.getName().replace(extension, "wiff.scan")));
+      }
+    };
   }
 }
