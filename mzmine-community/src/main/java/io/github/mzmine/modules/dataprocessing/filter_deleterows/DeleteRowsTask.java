@@ -80,8 +80,8 @@ public class DeleteRowsTask extends AbstractFeatureListTask {
   protected void addAppliedMethod() {
     SimpleFeatureListAppliedMethod appliedMethod = new SimpleFeatureListAppliedMethod(
         "Manually deleted by user %s".formatted(
-            CurrentUserService.getUser() != null ? CurrentUserService.getUser().getNickname()
-                : "NOT LOGGED IN"), getModuleClass(), getParameters(), moduleCallDate);
+            CurrentUserService.getUserName().orElse("NOT LOGGED IN")), getModuleClass(),
+        getParameters(), moduleCallDate);
     for (final var flist : getProcessedFeatureLists()) {
       flist.addDescriptionOfAppliedTask(appliedMethod);
     }

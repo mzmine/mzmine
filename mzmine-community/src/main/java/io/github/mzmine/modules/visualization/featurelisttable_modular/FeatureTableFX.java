@@ -986,6 +986,10 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     });
   }
 
+  /**
+   * Repopulates the feature table. Also re-creates columns, eg. after a new data type was added
+   * from the gui.
+   */
   public void refresh() {
     final ModularFeatureList flist = getFeatureList();
     setFeatureList(null);
@@ -1046,7 +1050,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       @Nullable Class<? extends DataType<?>> subtype, boolean visible) {
     final DataType<?> subType = subtype != null ? DataTypes.get(subtype) : null;
     final DataType<?> parentType = DataTypes.get(parentClass);
-    setVisible(columnType, parentType.getUniqueID(), subType != null ? subType.getUniqueID() : null, visible);
+    setVisible(columnType, parentType.getUniqueID(), subType != null ? subType.getUniqueID() : null,
+        visible);
   }
 
   public void closeTable() {
