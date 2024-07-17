@@ -25,17 +25,19 @@
 
 package io.github.mzmine.modules.io.import_rawdata_msconvert;
 
+import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.util.files.ExtensionFilters;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javafx.stage.FileChooser.ExtensionFilter;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,18 +55,35 @@ public class MSConvert {
     return ConfigService.getConfiguration().getMsConvertPath();
   }
 
+  public static boolean validateMsConvertPath(File path) {
+    if(!path.exists()) {
+      return false;
+    }
+
+     if(!path.getName().equals("msconvert.exe")) {
+       return false;
+     }
+
+     return true;
+  }
+
+  @Nullable
   public static synchronized File discoverMsConvertPath() {
     final File file = autoDiscover();
     if (file != null && file.exists()) {
       return file;
     }
 
-    final FileNameComponent component = new FileNameComponent(List.of(), FileSelectionType.OPEN,
-        List.of(ExtensionFilters.EXE, ExtensionFilters.ALL_FILES));
-    final File selected = component.openSelectDialog(List.of(), FileSelectionType.OPEN,
-        List.of(ExtensionFilters.EXE, ExtensionFilters.ALL_FILES));
+    final AtomicReference<File> selected = new AtomicReference<>();
+    FxThread.runOnFxThreadAndWait(() -> {
+      final ExtensionFilter filter = new ExtensionFilter("MSConvert", "msconvert.exe");
+      final FileNameComponent component = new FileNameComponent(List.of(), FileSelectionType.OPEN,
+          List.of(filter));
+      selected.set(component.openSelectDialog(List.of(), FileSelectionType.OPEN,
+          List.of(filter)));
+    });
 
-    return selected;
+    return selected.get();
   }
 
   private static File autoDiscover() {

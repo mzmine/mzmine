@@ -490,7 +490,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   public File getMsConvertPath() {
     synchronized (MSConvert.class) {
       File path = preferences.getValue(MZminePreferences.msConvertPath);
-      if (path == null || !path.exists()) {
+      if (path == null || !MSConvert.validateMsConvertPath(path)) {
         path = MSConvert.discoverMsConvertPath();
         preferences.setParameter(MZminePreferences.msConvertPath, path);
       }

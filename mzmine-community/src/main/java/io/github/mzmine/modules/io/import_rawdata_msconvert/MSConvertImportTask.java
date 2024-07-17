@@ -94,6 +94,10 @@ public class MSConvertImportTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     final File msConvertPath = MSConvert.getMsConvertPath();
+    if(msConvertPath == null) {
+      setErrorMessage("MSConvert not found. Please install MSConvert.");
+      setStatus(TaskStatus.ERROR);
+    }
     final File mzMLFile = getMzMLFileName(rawFilePath);
 
     if (mzMLFile.exists()) {
