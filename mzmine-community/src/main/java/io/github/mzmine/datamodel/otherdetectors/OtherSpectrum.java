@@ -44,24 +44,28 @@ public interface OtherSpectrum {
   float getRetentionTime();
 
   default String getDomainUnit() {
-    return getOtherSpectraFile().getSpectraDomainUnit();
+    return getOtherSpectralData().getSpectraDomainUnit();
   }
 
   default String getRangeUnit() {
-    return getOtherSpectraFile().getSpectraRangeUnit();
+    return getOtherSpectralData().getSpectraRangeUnit();
   }
 
   default String getRangeLabel() {
-    return getOtherSpectraFile().getSpectraRangeLabel();
+    return getOtherSpectralData().getSpectraRangeLabel();
   }
 
   default String getDomainLabel() {
-    return getOtherSpectraFile().getSpectraDomainLabel();
+    return getOtherSpectralData().getSpectraDomainLabel();
   }
 
   default RawDataFile getMsRawDataFile() {
-    return getOtherSpectraFile().getRawDataFile();
+    return getOtherDataFile().getCorrespondingRawDataFile();
   }
 
-  OtherDataFile getOtherSpectraFile();
+  default OtherDataFile getOtherDataFile() {
+    return getOtherSpectralData().getOtherDataFile();
+  }
+
+  OtherSpectralData getOtherSpectralData();
 }

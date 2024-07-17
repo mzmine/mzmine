@@ -59,6 +59,22 @@ public class OtherDataFileImpl implements OtherDataFile {
     return spectralData;
   }
 
+  public void setOtherSpectralData(OtherSpectralData spectralData) {
+    if (timeSeriesData != null) {
+      throw new IllegalStateException(
+          "Cannot set spectral data to a file that already has time series data");
+    }
+    this.spectralData = spectralData;
+  }
+
+  public void setOtherTimeSeriesData(OtherTimeSeriesData timeSeriesData) {
+    if (spectralData != null) {
+      throw new IllegalStateException(
+          "Cannot set time series data to a file that already has spectral data");
+    }
+    this.timeSeriesData = timeSeriesData;
+  }
+
   @Override
   public @NotNull String getDescription() {
     return description;
