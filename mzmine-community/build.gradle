@@ -477,9 +477,8 @@ task signApp(dependsOn: jpackage) {
                 codesign(jar.toAbsolutePath())
             }
 
-            // sign after all other jars
-            getLogger().lifecycle("libjli.dylib")
-            codesign(jarsDir.resolveSibling('runtime/Contents/MacOS').resolve("libjli.dylib"))
+            // delete duplicated libs
+            jarsDir.resolveSibling('runtime/Contents/MacOS').resolve("libjli.dylib").toFile().delete()
 
             // Sign .app directory
             getLogger().lifecycle("Signing .app directory...")
