@@ -94,7 +94,6 @@ public class ThermoRawImportTask extends AbstractTask {
 
   @Override
   public void run() {
-    long start = System.currentTimeMillis();
     setStatus(TaskStatus.PROCESSING);
     logger.info("Opening file " + fileToOpen);
 
@@ -187,7 +186,6 @@ public class ThermoRawImportTask extends AbstractTask {
     logger.info(
         STR."Finished parsing \{fileToOpen}, parsed \{parsedScans} scans and after filtering remained \{convertedScans}");
     setStatus(TaskStatus.FINISHED);
-    System.out.println(fileToOpen.getName() + ":" + (System.currentTimeMillis() - start));
   }
 
   @Override
