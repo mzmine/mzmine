@@ -660,4 +660,5 @@ public class FeatureUtils {
 
     return absCharge * pol.getSign();
   }
+
 }
