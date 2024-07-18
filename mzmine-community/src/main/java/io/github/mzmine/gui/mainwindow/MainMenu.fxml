@@ -333,7 +333,7 @@
     <Menu text="Isotopes">
       <MenuItem onAction="#runModule" text="13C isotope filter (formerly: isotope grouper)"
         userData="io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule"/>
-      <MenuItem onAction="#runModule" text="Isotope pattern finder"
+      <MenuItem onAction="#runModule" text="Isotopic peaks finder"
         userData="io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule"/>
       <MenuItem text="Isotope peak scanner" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule"/>
