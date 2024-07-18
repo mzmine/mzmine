@@ -46,10 +46,10 @@ public class DataImportTestGenerator {
 
     List<AbstractDataImportTest> tests = List.of( //
         new AirdImportTest()
-//        , new MzMLImportTest() //
-//        , new ImzMLImportTest() //
-//        , new ThermoRawImportTest() //
-//        , new TimsTofImportTest() //
+        , new MzMLImportTest() //
+        , new ImzMLImportTest() //
+        , new ThermoRawImportTest() //
+        , new TimsTofImportTest() //
     );
 //    tests = List.of(new MzMLImportTest());
 
