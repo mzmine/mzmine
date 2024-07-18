@@ -479,6 +479,8 @@ task signApp(dependsOn: jpackage) {
             // delete duplicated libs
             //jarsDir.resolveSibling('runtime/Contents/MacOS').resolve("libjli.dylib").toFile().delete()
 
+            exec { commandLine(['xattr', '-cr', "${layout.buildDirectory.dir("jpackage/mzmine.app").get()}"]) }
+
             // Manually sign files here
             def libjliPath = jarsDir.resolveSibling('runtime/Contents/MacOS').resolve("libjli.dylib")
             codesign(libjliPath.toAbsolutePath())
@@ -489,8 +491,6 @@ task signApp(dependsOn: jpackage) {
             // Sign .app directory
             getLogger().lifecycle("Signing .app directory...")
             codesign(imageDir)
-            
-            exec { commandLine(['xattr', '-cr', "${layout.buildDirectory.dir("jpackage/mzmine.app").get()}"]) }
 
             getLogger().lifecycle("Zipping .app directory...")
             exec {
