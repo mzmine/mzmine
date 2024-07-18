@@ -119,10 +119,6 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
 
     int frequencyOfMz200 = ms1MzFrequency.getBinFrequency(200);
 
-    // Count unique common fragments in between MS1 and MS2 scans
-    int commonFragmentsCount = countUniqueFragmentsBetweenMs1AndMs2(groupedScans);
-    logger.info("Total number of unique common fragments between MS1 and MS2 scans: " + commonFragmentsCount);
-
   }
 
   private static @NotNull Stream<Scan> streamMs1Scans(
@@ -180,6 +176,14 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
         logger.log(Level.WARNING, ex.getMessage(), ex);
       }
     }
+
+    // Count unique common fragments for this row and log it
+    int commonFragmentsCount = countUniqueFragmentsBetweenMs1AndMs2(ms1Scans, ms2Scans, tolerance);
+    logger.info(String.format("Row %d: Total number of unique common fragments between MS1 and MS2 scans: %d",
+            row.getID(), commonFragmentsCount));
+
+    row.set(CommonFragmentsType.class, commonFragmentsCount);
+
     return new GroupedFragmentScans(row, ms1Scans, ms2Scans);
   }
 
