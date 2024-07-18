@@ -9,9 +9,7 @@ import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.modules.io.import_rawdata_aird.AirdImportTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.List;
-import net.csibio.aird.bean.CV;
 import net.csibio.aird.bean.DDAMs;
-import net.csibio.aird.constant.PSI;
 import net.csibio.aird.enums.MsLevel;
 import net.csibio.aird.parser.DDAParser;
 
@@ -60,8 +58,9 @@ public class DDALoader {
     }
 
     Range mzRange = null;
-    if (ddaMs.getSpectrum() != null && ddaMs.getSpectrum().getMzs().length != 0){
-      mzRange = Range.closed(ddaMs.getSpectrum().getMzs()[0], ddaMs.getSpectrum().getMzs()[ddaMs.getSpectrum().getMzs().length - 1]);
+    if (ddaMs.getSpectrum() != null && ddaMs.getSpectrum().getMzs().length != 0) {
+      mzRange = Range.closed(ddaMs.getSpectrum().getMzs()[0],
+          ddaMs.getSpectrum().getMzs()[ddaMs.getSpectrum().getMzs().length - 1]);
     }
 
     DDAMsMsInfoImpl msMsInfo = null;

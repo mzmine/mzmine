@@ -38,11 +38,10 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.date.DateTimeUtils;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import java.io.File;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.csibio.aird.bean.AirdInfo;
@@ -50,9 +49,7 @@ import net.csibio.aird.constant.SuffixConst;
 import net.csibio.aird.enums.AirdType;
 import net.csibio.aird.parser.BaseParser;
 import net.csibio.aird.parser.DDAParser;
-import net.csibio.aird.parser.DDAPasefParser;
 import net.csibio.aird.parser.DIAParser;
-import net.csibio.aird.parser.DIAPasefParser;
 import net.csibio.aird.util.AirdScanUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -99,6 +96,7 @@ public class AirdImportTask extends AbstractTask {
    */
   @Override
   public void run() {
+    long start = System.currentTimeMillis();
     setStatus(TaskStatus.PROCESSING);
     BaseParser parser = null;
     try {
@@ -108,19 +106,20 @@ public class AirdImportTask extends AbstractTask {
       if (airdInfo == null) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
-            "Parsing Cancelled, The aird index file(.json, metadata) not exists or the json file is broken.");
+            "Parsing Cancelled, The aird index file(.json or .index, metadata) not exists or the index file is broken.");
         return;
       }
 
-      if (airdInfo.getMobiInfo() != null && airdInfo.getMobiInfo().getType() != null) {
+      if (airdInfo.getMobiInfo() != null && airdInfo.getMobiInfo().getType() != null
+          && !airdInfo.getMobiInfo().getType().isEmpty()) {
         newMZmineFile = new IMSRawDataFileImpl(this.file.getName(), file.getAbsolutePath(),
             storage);
       } else {
         newMZmineFile = new RawDataFileImpl(this.file.getName(), file.getAbsolutePath(), storage);
       }
-      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
-      LocalDateTime localDateTime = LocalDateTime.parse(airdInfo.getStartTimeStamp(), formatter);
-      newMZmineFile.setStartTimeStamp(localDateTime);
+
+      newMZmineFile.setStartTimeStamp(
+          DateTimeUtils.parseOrElse(airdInfo.getStartTimeStamp(), null));
       totalScans = airdInfo.getTotalCount().intValue();
       switch (AirdType.getType(airdInfo.getType())) {
         case DDA -> DDALoader.load(this, (DDAParser) parser);
@@ -154,13 +153,11 @@ public class AirdImportTask extends AbstractTask {
         .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
     project.addFile(newMZmineFile);
     setStatus(TaskStatus.FINISHED);
-
+    System.out.println(file.getName() + ":" + (System.currentTimeMillis() - start));
   }
 
   @Override
   public String getTaskDescription() {
     return "Opening file " + file;
   }
-
-
 }

@@ -210,7 +210,7 @@ dependencies {
     implementation group: 'com.alanmrace', name: 'jimzmlparser', version: '1.0.3'
     implementation "com.github.yannrichet:JMathPlot:1.0.1"
     implementation "de.jensd:fontawesomefx-fontawesome:4.7.0-9.1.2"
-    implementation "net.csibio.aird:aird-sdk:2.4.5"
+    implementation "net.csibio.aird:aird-sdk:2.4.6"
     // jackson for json parsing
     implementation(libs.bundles.jackson)
     // the defacto standard parser in jackson?
