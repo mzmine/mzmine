@@ -102,8 +102,12 @@ public class WizardBatchBuilderGcEiDeconvolution extends BaseWizardBatchBuilder 
 
     // special workflow parameter are extracted here
     // chromatography
-    recalibrateRetentionTime = getValue(params,
-        IonInterfaceGcElectronImpactWizardParameters.RECALIBRATE_RETENTION_TIMES);
+    if (dataFiles.length > 1) {
+      recalibrateRetentionTime = getValue(params,
+          IonInterfaceGcElectronImpactWizardParameters.RECALIBRATE_RETENTION_TIMES);
+    } else {
+      recalibrateRetentionTime = false;
+    }
     rtSmoothing = getValue(params, IonInterfaceGcElectronImpactWizardParameters.smoothing);
     cropRtRange = getValue(params, IonInterfaceGcElectronImpactWizardParameters.cropRtRange);
     intraSampleRtTol = getValue(params,

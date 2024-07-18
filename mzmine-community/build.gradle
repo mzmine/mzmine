@@ -95,6 +95,7 @@ if (OperatingSystem.current().isMacOsX()) {
 
     getLogger().info("imageDir " + imageDir)
     getLogger().info("jarsDir " + jarsDir)
+
 }
 println "OS detected as " + project.ext.osSuffix
 
@@ -395,7 +396,6 @@ task signApp(dependsOn: jpackage) {
     if (OperatingSystem.current().isMacOsX() && macSigning) {
 
         doLast {
-
             Path entitlementsPth = layout.projectDirectory.dir('gradle/macos.entitlements').asFile.toPath()
             getLogger().info("imageDir " + imageDir)
             getLogger().info("jarsDir " + jarsDir)
@@ -459,6 +459,7 @@ task signApp(dependsOn: jpackage) {
                 codesign(nativeLib.toAbsolutePath())
             }
 
+
             getLogger().lifecycle("Signing libraires nested in jars...")
 
             // Define native libraries nested in jars that are to be signed
@@ -488,6 +489,9 @@ task signApp(dependsOn: jpackage) {
                 codesign(jar.toAbsolutePath())
             }
 
+            // delete duplicated libs
+            //jarsDir.resolveSibling('runtime/Contents/MacOS').resolve("libjli.dylib").toFile().delete()
+
             // Sign .app directory
             getLogger().lifecycle("Signing .app directory...")
             codesign(imageDir)
@@ -503,7 +507,7 @@ task signApp(dependsOn: jpackage) {
 
 task notarizeApp(dependsOn: signApp) {
 
-    if (OperatingSystem.current().isMacOsX() && macSigning) {
+    if (OperatingSystem.current().isMacOsX() && macSigning && false) {
 
         doLast {
 

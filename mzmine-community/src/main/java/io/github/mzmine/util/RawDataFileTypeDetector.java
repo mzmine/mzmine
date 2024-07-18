@@ -65,6 +65,7 @@ public class RawDataFileTypeDetector {
   private static final String TDF_BIN_SUFFIX = ".tdf_bin";
   private static final String TSF_BIN_SUFFIX = ".tsf_bin";
   private static final String TSF_SUFFIX = ".tsf_bin";
+  private static final String BAF_SUFFIX = ".baf";
   private static final String BRUKER_FOLDER_SUFFIX = ".d";
   private static final String AIRD_SUFFIX = ".aird";
   private static final String MZML_SUFFIX = ".mzml";
@@ -93,6 +94,9 @@ public class RawDataFileTypeDetector {
         if (f.isFile() && (f.getName().contains(TSF_SUFFIX) || f.getName()
             .contains(TSF_BIN_SUFFIX))) {
           return RawDataFileType.BRUKER_TSF;
+        }
+        if (f.isFile() && (f.getName().contains(BAF_SUFFIX))) {
+          return RawDataFileType.BRUKER_BAF;
         }
         if (f.isDirectory() && f.getName().equals(AGILENT_ACQDATATA_FOLDER)) {
           return RawDataFileType.AGILENT_D;

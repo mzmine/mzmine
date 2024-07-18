@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "8.5"
+      "version": "8.9"
     }
   },
   "variants": [
@@ -27,11 +27,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 39404,
-          "sha512": "1995a1ff971c64a11a4fdc068e2231f43c506d5719e8a88ceebc4db328abcf6b0c4cd039eeb0d66ab9534b4093de583d0d78bd1c2c97a2583438b4540572e6c5",
-          "sha256": "a5d2f4cd41213207a21dd5474ea2b4892b3faf33382c93dab47d9aced37eb85f",
-          "sha1": "8cd0b1c0ad9a438fab9536d8a23681863773adea",
-          "md5": "8e84b2d035ee7ef733473457743105c8"
+          "size": 39603,
+          "sha512": "1455bdc03439839e784fc447e7ff21333244f8371b633ac48735c47a6c3321b2996135528d035bf1006593c8780821b8657725a187a285136df8c6dcd25d3b42",
+          "sha256": "c154311ba183f7ada6dc79522356e346e1ec31dd973a0623a2ade768386700e3",
+          "sha1": "d167083698f5a2594b8b72edfb278607f09b4337",
+          "md5": "06b6ca23aac45bd3952b0f6ba7f76b14"
         }
       ]
     },
@@ -230,11 +230,11 @@
         {
           "name": "user-management-fx-1.0.0.jar",
           "url": "user-management-fx-1.0.0.jar",
-          "size": 39404,
-          "sha512": "1995a1ff971c64a11a4fdc068e2231f43c506d5719e8a88ceebc4db328abcf6b0c4cd039eeb0d66ab9534b4093de583d0d78bd1c2c97a2583438b4540572e6c5",
-          "sha256": "a5d2f4cd41213207a21dd5474ea2b4892b3faf33382c93dab47d9aced37eb85f",
-          "sha1": "8cd0b1c0ad9a438fab9536d8a23681863773adea",
-          "md5": "8e84b2d035ee7ef733473457743105c8"
+          "size": 39603,
+          "sha512": "1455bdc03439839e784fc447e7ff21333244f8371b633ac48735c47a6c3321b2996135528d035bf1006593c8780821b8657725a187a285136df8c6dcd25d3b42",
+          "sha256": "c154311ba183f7ada6dc79522356e346e1ec31dd973a0623a2ade768386700e3",
+          "sha1": "d167083698f5a2594b8b72edfb278607f09b4337",
+          "md5": "06b6ca23aac45bd3952b0f6ba7f76b14"
         }
       ]
     }

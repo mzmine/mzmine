@@ -132,4 +132,12 @@ public abstract class AbstractSimpleTask extends AbstractTask {
       raw.getAppliedMethods().add(appliedMethod);
     }
   }
+
+  public ParameterSet getParameters() {
+    return parameters;
+  }
+
+  public Class<? extends MZmineModule> getModuleClass() {
+    return moduleClass;
+  }
 }

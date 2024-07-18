@@ -51,6 +51,7 @@ public enum RawDataFileType {
   ICPMSMS_CSV(ExtensionFilters.CSV, false), //
   BRUKER_TDF(ExtensionFilters.BRUKER_D, true), //
   BRUKER_TSF(ExtensionFilters.BRUKER_D, true), //
+  BRUKER_BAF(ExtensionFilters.BRUKER_D, true), //
   //  AIRD, //
   SCIEX_WIFF(ExtensionFilters.WIFF, false), //
   SCIEX_WIFF2(ExtensionFilters.WIFF2, false), //
@@ -87,7 +88,7 @@ public enum RawDataFileType {
 
     return switch (type) {
       case MZML, MZXML, MZML_IMS, MZDATA, NETCDF, THERMO_RAW, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV,
-           BRUKER_TDF, BRUKER_TSF, AGILENT_D -> List.of();
+           BRUKER_TDF, BRUKER_TSF, BRUKER_BAF, AGILENT_D -> List.of();
       case IMZML -> {
         final String extension = FileAndPathUtil.getExtension(file.getName());
         yield List.of(new File(file.getParent(), file.getName().replace(extension, "ibd")));
