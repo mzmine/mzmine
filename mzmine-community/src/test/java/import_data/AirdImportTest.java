@@ -36,7 +36,7 @@ import org.junit.jupiter.api.condition.OS;
  * in sequence. As we are using data import, chromatogram building, ... Only with this option the
  * init (@BeforeAll) and tearDown method are not static.
  *
- * @author Robin Schmid (https://github.com/robinschmid)
+ * @author miaoshan lu
  */
 @TestInstance(Lifecycle.PER_CLASS)
 @DisabledOnOs(OS.MAC)
