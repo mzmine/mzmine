@@ -44,7 +44,6 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
     // do data import and library import directly and import metadata after all is completed.
     // this ensures that data files are already loaded
     mainImportTask.run();
-
     if (mainImportTask.isCanceled()) {
       setStatus(mainImportTask.getStatus());
       setErrorMessage(mainImportTask.getErrorMessage());

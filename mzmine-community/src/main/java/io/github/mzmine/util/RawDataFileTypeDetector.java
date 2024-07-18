@@ -114,7 +114,7 @@ public class RawDataFileTypeDetector {
         if (fileName.getName().toLowerCase().endsWith(IMZML_SUFFIX)) {
           return RawDataFileType.IMZML;
         }
-        //the suffix is json and have a .aird file with same name
+        //the suffix is json or protocol buffer file and have a .aird file with same name
         if (fileName.getName().toLowerCase().endsWith(AIRD_SUFFIX)) {
           String airdIndexFilePath = AirdScanUtil.getIndexPathByAirdPath(fileName.getPath());
           if (airdIndexFilePath != null) {
