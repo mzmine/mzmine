@@ -428,6 +428,9 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case BRUKER_BAF ->
           new BafImportTask(storage, moduleCallDate, file, module, parameters, project,
               scanProcessorConfig);
+      case AGILENT_D, SCIEX_WIFF, SCIEX_WIFF2 ->
+          new MSConvertImportTask(moduleCallDate, file, scanProcessorConfig, project, module,
+              parameters);
       // all unsupported tasks are wrapped to apply import and mass detection separately
       case MZDATA,/* WATERS_RAW,*/ NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV ->
           createWrappedAdvancedTask(fileType, project, file, newMZmineFile, scanProcessorConfig,
