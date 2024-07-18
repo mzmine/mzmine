@@ -267,7 +267,8 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
   }
 
   // TODO: Sanitize the spectra by removing everything above the precursor - tolerance? And more?
-  private int countUniqueFragmentsBetweenMs1AndMs2(List<Scan> ms1Scans, List<Scan> ms2Scans, MZTolerance tolerance) {
+  private int countUniqueFragmentsBetweenMs1AndMs2(List<Scan> ms1Scans, List<Scan> ms2Scans,
+      MZTolerance tolerance) {
     Set<Double> uniqueMs1 = collectUniqueFragments(ms1Scans, tolerance);
     Set<Double> uniqueMs2 = collectUniqueFragments(ms2Scans, tolerance);
 
@@ -305,7 +306,8 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
     return uniqueFragments;
   }
 
-  private int countUniquePairs(Set<Double> uniqueMs1, Set<Double> uniqueMs2, MZTolerance tolerance) {
+  private int countUniquePairs(Set<Double> uniqueMs1, Set<Double> uniqueMs2,
+      MZTolerance tolerance) {
     int uniqueCount = 0;
 
     for (double mz1 : uniqueMs1) {
