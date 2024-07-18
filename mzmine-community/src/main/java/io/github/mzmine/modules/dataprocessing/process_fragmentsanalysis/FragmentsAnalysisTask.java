@@ -69,9 +69,7 @@ import org.jetbrains.annotations.Nullable;
 class FragmentsAnalysisTask extends AbstractFeatureListTask {
 
   private static final Logger logger = Logger.getLogger(FragmentsAnalysisTask.class.getName());
-
   private final List<FeatureList> featureLists;
-  private final File outFile;
   private final boolean useMassList;
   private final MZTolerance tolerance;
 
@@ -86,7 +84,6 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
       @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.featureLists = featureLists;
-    // important to track progress with totalItems and finishedItems
     totalItems = featureLists.stream().mapToInt(FeatureList::getNumberOfRows).sum();
     // Get parameter values for easier use
     outFile = parameters.getValue(FragmentsAnalysisParameters.outFile);
@@ -161,7 +158,6 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
     // collect all MS1 and MS2 for this row
     List<Scan> ms1Scans = new ArrayList<>();
     List<Scan> ms2Scans = new ArrayList<>();
-
     for (final ModularFeature feature : row.getFeatures()) {
       try {
         List<Scan> exportedScans = processFeature(writer, row, feature);
@@ -177,14 +173,8 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
         logger.log(Level.WARNING, ex.getMessage(), ex);
       }
     }
-
-    // Count unique common fragments for this row and log it
     int commonFragmentsCount = countUniqueFragmentsBetweenMs1AndMs2(ms1Scans, ms2Scans, tolerance);
-    logger.info(String.format("Row %d: Total number of unique common fragments between MS1 and MS2 scans: %d",
-            row.getID(), commonFragmentsCount));
-
     row.set(CommonFragmentsType.class, commonFragmentsCount);
-
     return new GroupedFragmentScans(row, ms1Scans, ms2Scans);
   }
 
@@ -200,13 +190,10 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
     if (fragmentScans.isEmpty()) {
       return List.of(); // return empty list
     }
-
     RawDataFile raw = feature.getRawDataFile();
     String rawFileName = raw.getFileName();
-
     // collect all scans to export
     List<Scan> scansToExport = new ArrayList<>();
-
     Scan bestMs1 = feature.getRepresentativeScan();
     if (bestMs1 != null) {
       scansToExport.add(bestMs1);
@@ -219,7 +206,6 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
       if (ms2 != null) {
         scansToExport.add(ms2);
       }
-
       Scan previousScan = ScanUtils.findPrecursorScan(ms2);
       if (previousScan != null) {
         scansToExport.add(previousScan);
@@ -271,15 +257,12 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
       MZTolerance tolerance) {
     Set<Double> uniqueMs1 = collectUniqueFragments(ms1Scans, tolerance);
     Set<Double> uniqueMs2 = collectUniqueFragments(ms2Scans, tolerance);
-
     int uniqueCount = countUniquePairs(uniqueMs1, uniqueMs2, tolerance);
-
     return uniqueCount;
   }
 
   private Set<Double> collectUniqueFragments(List<Scan> scans, MZTolerance tolerance) {
     Set<Double> uniqueFragments = new HashSet<>();
-
     for (Scan scan : scans) {
       DataPoint[] dataPoints = ScanUtils.extractDataPoints(scan, useMassList);
       if (scan.getMSLevel() > 1) {
@@ -302,14 +285,12 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
         }
       }
     }
-
     return uniqueFragments;
   }
 
   private int countUniquePairs(Set<Double> uniqueMs1, Set<Double> uniqueMs2,
       MZTolerance tolerance) {
     int uniqueCount = 0;
-
     for (double mz1 : uniqueMs1) {
       for (double mz2 : uniqueMs2) {
         if (tolerance.checkWithinTolerance(mz1, mz2)) {
@@ -318,8 +299,6 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
         }
       }
     }
-
     return uniqueCount;
   }
-
 }
