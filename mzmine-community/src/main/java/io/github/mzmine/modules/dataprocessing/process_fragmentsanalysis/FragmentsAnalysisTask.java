@@ -25,6 +25,10 @@
 
 package io.github.mzmine.modules.dataprocessing.process_fragmentsanalysis;
 
+import static io.github.mzmine.util.DataPointUtils.removePrecursorMz;
+import static io.github.mzmine.util.scans.ScanUtils.findAllMS2FragmentScans;
+
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -34,30 +38,21 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.numbers.CommonFragmentsType;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.scans.ScanUtils;
-import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -85,8 +80,6 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.featureLists = featureLists;
     totalItems = featureLists.stream().mapToInt(FeatureList::getNumberOfRows).sum();
-    // Get parameter values for easier use
-    outFile = parameters.getValue(FragmentsAnalysisParameters.outFile);
     var scanDataType = parameters.getValue(FragmentsAnalysisParameters.scanDataType);
     useMassList = scanDataType == ScanDataType.MASS_LIST;
     tolerance = parameters.getValue(FragmentsAnalysisParameters.tolerance);
@@ -124,43 +117,32 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
     return groupedScans.stream().map(GroupedFragmentScans::ms1Scans).flatMap(Collection::stream);
   }
 
-  private List<GroupedFragmentScans> collectAndWriteSpectraToMgf() {
-    logger.info("mgf export of grouped scans started");
+  @Override
+  protected void process() {
+    List<GroupedFragmentScans> groupedScans = collectSpectra();
+    logger.info("collected spectra - now starting to analyze the grouped scans");
+  }
 
+  private List<GroupedFragmentScans> collectSpectra() {
     List<GroupedFragmentScans> groupingResults = new ArrayList<>();
-    // Open file
-    try (BufferedWriter writer = Files.newBufferedWriter(outFile.toPath(),
-        StandardCharsets.UTF_8)) {
-      logger.fine(() -> String.format("Exporting GDebunk mgf for feature list: to file %s",
-          outFile.getAbsolutePath()));
-      for (FeatureList featureList : featureLists) {
-        for (var row : featureList.getRows()) {
-          GroupedFragmentScans result = processRow(writer, row);
-          if (!result.ms2Scans().isEmpty()) {
-            groupingResults.add(result);
-          }
+    for (FeatureList featureList : featureLists) {
+      for (var row : featureList.getRows()) {
+        GroupedFragmentScans result = processRow(row);
+        if (!result.ms2Scans().isEmpty()) {
+          groupingResults.add(result);
         }
       }
-    } catch (IOException e) {
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage("Could not open file " + outFile + " for writing.");
-      logger.log(Level.WARNING,
-          String.format("Error writing GDebunk mgf format to file: %s. Message: %s",
-              outFile.getAbsolutePath(), e.getMessage()), e);
-      // on error return empty list
-      return List.of();
     }
     return groupingResults;
   }
 
-  private GroupedFragmentScans processRow(BufferedWriter writer, FeatureListRow row)
-      throws IOException {
+  private GroupedFragmentScans processRow(FeatureListRow row) {
     // collect all MS1 and MS2 for this row
     List<Scan> ms1Scans = new ArrayList<>();
     List<Scan> ms2Scans = new ArrayList<>();
     for (final ModularFeature feature : row.getFeatures()) {
       try {
-        List<Scan> exportedScans = processFeature(writer, row, feature);
+        List<Scan> exportedScans = processFeature(row, feature);
         for (Scan scan : exportedScans) {
           if (scan.getMSLevel() == 1) {
             ms1Scans.add(scan);
@@ -183,8 +165,7 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
    *
    * @return all exported scans
    */
-  private List<Scan> processFeature(final BufferedWriter writer, final FeatureListRow row,
-      final Feature feature) throws IOException {
+  private List<Scan> processFeature(final FeatureListRow row, final Feature feature) {
     // skip if there are no MS2
     List<Scan> fragmentScans = feature.getAllMS2FragmentScans();
     if (fragmentScans.isEmpty()) {
@@ -215,31 +196,7 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
         scansToExport.add(nextScan);
       }
     }
-
-    for (final Scan scan : scansToExport) {
-      exportScanToMgf(writer, row, rawFileName, scan);
-    }
-
     return scansToExport;
-  }
-
-  private void exportScanToMgf(BufferedWriter writer, FeatureListRow row, final String rawFileName,
-      Scan scan) throws IOException {
-    String id = String.format("%s_id%d", rawFileName, row.getID());
-    String usi = String.format("%s:%d", rawFileName, scan.getScanNumber());
-
-    FeatureAnnotation annotation = CompoundAnnotationUtils.streamFeatureAnnotations(row).findFirst()
-        .orElse(null);
-    DataPoint[] data = ScanUtils.extractDataPoints(scan, useMassList);
-    // create entry
-    var entry = SpectralLibraryEntry.create(row, null, scan, annotation, data);
-    // add additional information
-    entry.putIfNotNull(DBEntryField.ENTRY_ID, id);
-    entry.putIfNotNull(DBEntryField.USI, usi);
-    // export
-    final String mgfEntry = MGFEntryGenerator.createMGFEntry(entry);
-    writer.write(mgfEntry);
-    writer.newLine();
   }
 
   @Override
