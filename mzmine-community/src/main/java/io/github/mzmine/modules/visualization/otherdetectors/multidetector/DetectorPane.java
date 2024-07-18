@@ -161,7 +161,8 @@ public class DetectorPane extends BorderPane {
 
     otherFile.addListener((_, _, otherFile) -> {
       if (otherFile != null) {
-        timeSeriesCombo.setItems(FXCollections.observableList(otherFile.getTimeSeries()));
+        timeSeriesCombo.setItems(
+            FXCollections.observableList(otherFile.getOtherTimeSeries().getTimeSeries()));
         if (!timeSeriesCombo.getItems().isEmpty()) {
           timeSeriesCombo.getSelectionModel().selectFirst();
         }
@@ -172,8 +173,8 @@ public class DetectorPane extends BorderPane {
     });
 
     otherFile.addListener((_, _, newOtherFile) -> {
-      if (newOtherFile != null && newOtherFile.getRawDataFile() != rawFile.get()) {
-        setRawFile(newOtherFile.getRawDataFile());
+      if (newOtherFile != null && newOtherFile.getCorrespondingRawDataFile() != rawFile.get()) {
+        setRawFile(newOtherFile.getCorrespondingRawDataFile());
       }
     });
 
@@ -190,12 +191,14 @@ public class DetectorPane extends BorderPane {
       }
       plot.setDataset(new ColoredXYDataset(new OtherTimeSeriesToXYProvider(ts)),
           new ColoredXYLineRenderer());
-      plot.setDomainAxisLabel(uf.format(ts.getOtherDataFile().getTimeSeriesDomainLabel(),
-          ts.getOtherDataFile().getTimeSeriesDomainUnit()));
+      plot.setDomainAxisLabel(
+          uf.format(ts.getOtherDataFile().getOtherTimeSeries().getTimeSeriesDomainLabel(),
+              ts.getOtherDataFile().getOtherTimeSeries().getTimeSeriesDomainUnit()));
       plot.setDomainAxisFormat(formats.rtFormat());
 
-      plot.setRangeAxisLabel(uf.format(ts.getOtherDataFile().getTimeSeriesRangeLabel(),
-          ts.getOtherDataFile().getTimeSeriesRangeUnit()));
+      plot.setRangeAxisLabel(
+          uf.format(ts.getOtherDataFile().getOtherTimeSeries().getTimeSeriesRangeLabel(),
+              ts.getOtherDataFile().getOtherTimeSeries().getTimeSeriesRangeUnit()));
       plot.setRangeAxisFormat(formats.intensityFormat());
     });
   }

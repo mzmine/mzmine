@@ -44,8 +44,8 @@ public class OtherTimeSeriesToXYProvider implements PlotXYDataProvider {
   private final NumberFormats formats;
 
   public OtherTimeSeriesToXYProvider(OtherTimeSeries series) {
-    colorFx = series.getOtherDataFile().getRawDataFile().getColor();
-    colorAwt = series.getOtherDataFile().getRawDataFile().getColorAWT();
+    colorFx = series.getOtherDataFile().getCorrespondingRawDataFile().getColor();
+    colorAwt = series.getOtherDataFile().getCorrespondingRawDataFile().getColorAWT();
     this.series = series;
     formats = ConfigService.getGuiFormats();
   }
