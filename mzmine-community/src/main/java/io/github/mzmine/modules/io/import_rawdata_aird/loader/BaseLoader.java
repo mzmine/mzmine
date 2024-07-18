@@ -17,7 +17,7 @@ public class BaseLoader {
     try {
       method = ActivationMethod.valueOf(activator);
     } catch (Exception e) {
-      method = ActivationMethod.UNKNOWN;
+      e.printStackTrace();
     }
 
     if (precursorMz == null) {

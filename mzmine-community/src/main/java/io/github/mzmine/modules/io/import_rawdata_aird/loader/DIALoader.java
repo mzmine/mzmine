@@ -12,10 +12,8 @@ import java.util.List;
 import java.util.TreeMap;
 import net.csibio.aird.bean.AirdInfo;
 import net.csibio.aird.bean.BlockIndex;
-import net.csibio.aird.bean.CV;
 import net.csibio.aird.bean.WindowRange;
 import net.csibio.aird.bean.common.Spectrum;
-import net.csibio.aird.constant.PSI;
 import net.csibio.aird.enums.MsLevel;
 import net.csibio.aird.parser.DIAParser;
 
