@@ -77,6 +77,7 @@ import io.github.mzmine.datamodel.features.types.numbers.scores.SimilarityType;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
 import java.util.ArrayList;
@@ -196,7 +197,13 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       }
     });
 
-
+    addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+      if (event.getCode() == KeyCode.DELETE) {
+        final List<ModularFeatureListRow> rows = getSelectedRows();
+        getSelectionModel().clearSelection();
+        DeleteRowsModule.deleteWithConfirmation(featureListProperty.get(), rows);
+      }
+    });
   }
 
   /**
@@ -465,6 +472,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   /**
    * Listens to update the table if a row is added/removed to/from the feature list.
    */
+  @Override
   public void onChanged(final Change<? extends FeatureListRow> c) {
     c.next();
     if (!(c.wasAdded() || c.wasRemoved())) {
@@ -979,6 +987,16 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   }
 
   /**
+   * Repopulates the feature table. Also re-creates columns, eg. after a new data type was added
+   * from the gui.
+   */
+  public void rebuild() {
+    final ModularFeatureList flist = getFeatureList();
+    setFeatureList(null);
+    setFeatureList(flist);
+  }
+
+  /**
    * Apply default visibility to all columns
    */
   private void applyDefaultColumnVisibilities() {
@@ -1032,7 +1050,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       @Nullable Class<? extends DataType<?>> subtype, boolean visible) {
     final DataType<?> subType = subtype != null ? DataTypes.get(subtype) : null;
     final DataType<?> parentType = DataTypes.get(parentClass);
-    setVisible(columnType, parentType.getUniqueID(), subType != null ? subType.getUniqueID() : null, visible);
+    setVisible(columnType, parentType.getUniqueID(), subType != null ? subType.getUniqueID() : null,
+        visible);
   }
 
   public void closeTable() {
