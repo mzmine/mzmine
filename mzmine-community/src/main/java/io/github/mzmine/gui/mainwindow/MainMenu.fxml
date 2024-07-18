@@ -331,11 +331,11 @@
     </Menu>
 
     <Menu text="Isotopes">
-      <MenuItem onAction="#runModule" text="13C isotope filter (formerly: isotope grouper)"
+      <MenuItem onAction="#runModule" text="13C isotope feature filter (formerly: isotope grouper)"
         userData="io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule"/>
-      <MenuItem onAction="#runModule" text="Isotopic peaks finder"
+      <MenuItem onAction="#runModule" text="Isotopic signal finder (In scans)"
         userData="io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule"/>
-      <MenuItem text="Isotope peak scanner" onAction="#runModule"
+      <MenuItem text="Isotope feature scanner" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule"/>
     </Menu>
 
