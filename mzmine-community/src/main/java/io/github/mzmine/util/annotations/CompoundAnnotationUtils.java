@@ -165,6 +165,6 @@ public class CompoundAnnotationUtils {
   }
 
   public static void calculateBoundTypes(CompoundDBAnnotation annotation, FeatureListRow row) {
-
+    ConnectedTypeCalculation.LIST.forEach(calc -> calc.calculateIfAbsent(row, annotation));
   }
 }

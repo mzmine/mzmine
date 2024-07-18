@@ -47,10 +47,21 @@ public class ManualCompoundAnnotationModule extends AbstractProcessingModule {
   }
 
   public static void annotate(ModularFeatureListRow row, List<FeatureAnnotation> annotations) {
+    annotate(row, annotations, false);
+  }
+
+  public static void annotate(ModularFeatureListRow row, List<FeatureAnnotation> annotations,
+      boolean runNow) {
     final ManualCompoundAnnotationParameters param = ManualCompoundAnnotationParameters.of(
         row.getFeatureList(), row, annotations);
-    MZmineCore.runMZmineModule(ManualCompoundAnnotationModule.class, param);
+    if (runNow) {
+      new ManualCompoundAnnotationTask(null, Instant.now(), param,
+          ManualCompoundAnnotationModule.class).run();
+    } else {
+      MZmineCore.runMZmineModule(ManualCompoundAnnotationModule.class, param);
+    }
   }
+
 
   @Override
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,

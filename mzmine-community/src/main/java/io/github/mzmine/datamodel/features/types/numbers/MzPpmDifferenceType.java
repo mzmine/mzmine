@@ -82,8 +82,8 @@ public class MzPpmDifferenceType extends FloatType {
    * @param accurateMass the measured mass.
    * @return the ppm difference or null if either of the parameters is null.
    */
-  public @Nullable
-  static Double calculate(@Nullable Double exactMass, @Nullable Double accurateMass) {
+  public static @Nullable Double calculate(@Nullable Double exactMass,
+      @Nullable Double accurateMass) {
     if (exactMass == null || accurateMass == null) {
       return null;
     }

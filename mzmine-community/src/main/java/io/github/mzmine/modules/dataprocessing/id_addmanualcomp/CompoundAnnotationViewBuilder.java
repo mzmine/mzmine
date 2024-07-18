@@ -90,15 +90,16 @@ import javafx.scene.text.TextFlow;
 import javafx.util.StringConverter;
 import org.jetbrains.annotations.Nullable;
 
-public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationModel> {
+public class CompoundAnnotationViewBuilder extends FxViewBuilder<CompoundAnnotationModel> {
 
-  private static final Logger logger = Logger.getLogger(CompoundAnnotationBuilder.class.getName());
+  private static final Logger logger = Logger.getLogger(CompoundAnnotationViewBuilder.class.getName());
   private final Runnable onSave;
   private final Runnable onCancel;
   private final Set<DataType<?>> excludedTypes = new HashSet<>();
   private BooleanProperty valid = new SimpleBooleanProperty(false);
+  private final List<DataType<?>> userTypes = List.of();
 
-  protected CompoundAnnotationBuilder(CompoundAnnotationModel model, Runnable onSave,
+  protected CompoundAnnotationViewBuilder(CompoundAnnotationModel model, Runnable onSave,
       Runnable onCancel) {
     super(model);
     this.onSave = onSave;
@@ -165,11 +166,13 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
         boldText("\"Compound\""), text(" and either of: "), boldText("\"Precursor m/z\""),
         text(", "), boldText(" \"SMILES\" and \"Adduct\""), text(", or "),
         boldText("\"Formula\" and \"Adduct\""), text(" must be defined."));
-    final VBox vBox = FxLayout.newVBox(Pos.TOP_RIGHT, buttons, required);
+    final HBox textWrapper = FxLayout.newHBox(Pos.TOP_RIGHT, required);
+    final VBox vBox = FxLayout.newVBox(Pos.TOP_RIGHT, buttons, textWrapper);
     main.setBottom(vBox);
 
     valid.bind(Bindings.createBooleanBinding(this::validate, model.getDataModel()));
     required.disableProperty().bind(valid);
+    textWrapper.disableProperty().bind(valid);
     save.disableProperty().bind(valid.not());
 
     return main;
@@ -334,7 +337,6 @@ public class CompoundAnnotationBuilder extends FxViewBuilder<CompoundAnnotationM
   }
 
   private boolean validate() {
-
     return ((model.getDataModel().get(DataTypes.get(PrecursorMZType.class)) != null
         // calc from formula + adduct
         || (model.getDataModel().get(DataTypes.get(FormulaType.class)) != null

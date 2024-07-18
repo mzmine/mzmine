@@ -80,15 +80,13 @@ public interface FeatureAnnotation {
   }
 
   /**
+   * Translates a list of annotations to an XML so it can be saved outside of the project load/save
+   * operations. Useful if a annotation was done/edited manually and it has to be saved in a
+   * parameter set.
+   * <p></p>
    * Can be used in conjuction with the
    * {@link io.github.mzmine.parameters.parametertypes.EmbeddedXMLParameter} to store annotations in
    * a parameter set.
-   *
-   * @param annotations
-   * @param flist
-   * @param row
-   * @return
-   * @throws XMLStreamException
    */
   static String toXMLString(List<FeatureAnnotation> annotations, ModularFeatureList flist,
       ModularFeatureListRow row) {
@@ -114,6 +112,13 @@ public interface FeatureAnnotation {
     }
   }
 
+  /**
+   * Translates an XML string to a list of feature annotations. Can be used to load an annotation
+   * from an applied method, e.g., after storing it in a string parameter. Requires the same
+   * parameters as
+   * {@link #loadFromXML(XMLStreamReader, MZmineProject, ModularFeatureList,
+   * ModularFeatureListRow)}
+   */
   static List<FeatureAnnotation> parseFromXMLString(@NotNull String xml, MZmineProject project,
       ModularFeatureList flist, ModularFeatureListRow row) {
     try (ByteArrayInputStream inputStream = new ByteArrayInputStream(

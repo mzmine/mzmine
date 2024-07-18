@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
-import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
@@ -42,6 +41,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.RtAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.datamodel.structures.MolecularStructure;
 import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MathUtils;
@@ -67,9 +67,11 @@ public record ConnectedTypeCalculation<T>(@NotNull DataType<T> typeToCalculate,
   public static final List<ConnectedTypeCalculation<?>> LIST = List.of(
 
       new ConnectedTypeCalculation<>(DataTypes.get(FormulaType.class), (row, db) -> {
-        final String s = db.get(SmilesStructureType.class);
-        final IMolecularFormula formulaFromSmiles = FormulaUtils.getFormulaFromSmiles(s);
-        return MolecularFormulaManipulator.getString(formulaFromSmiles);
+        final MolecularStructure structure = db.getStructure();
+        if(structure != null) {
+          return MolecularFormulaManipulator.getString(structure.formula());
+        }
+        return null;
       }),
 
       new ConnectedTypeCalculation<>(DataTypes.get(PrecursorMZType.class), (row, db) -> {

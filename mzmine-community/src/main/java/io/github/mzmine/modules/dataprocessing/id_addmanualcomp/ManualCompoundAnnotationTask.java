@@ -36,7 +36,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectService;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
-import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.time.Instant;
@@ -70,7 +70,7 @@ public class ManualCompoundAnnotationTask extends AbstractFeatureListTask {
 
   @Override
   protected void process() {
-    final List<FeatureListRow> rows = FeatureUtils.idStringToRows(flist, rowIdStr);
+    final List<FeatureListRow> rows = FeatureListUtils.idStringToRows(flist, rowIdStr);
     rows.forEach(row -> {
       final List<FeatureAnnotation> annotations = FeatureAnnotation.parseFromXMLString(
           annotationStr, ProjectService.getProject(), flist, (ModularFeatureListRow) row);

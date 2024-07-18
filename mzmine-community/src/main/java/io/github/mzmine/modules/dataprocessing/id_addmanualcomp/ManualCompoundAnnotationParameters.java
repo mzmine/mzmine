@@ -34,7 +34,7 @@ import io.github.mzmine.parameters.parametertypes.EmbeddedXMLParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
-import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.FeatureListUtils;
 import java.util.List;
 
 public class ManualCompoundAnnotationParameters extends SimpleParameterSet {
@@ -58,7 +58,7 @@ public class ManualCompoundAnnotationParameters extends SimpleParameterSet {
     final ParameterSet parameterSet = new ManualCompoundAnnotationParameters().cloneParameterSet();
     parameterSet.setParameter(ManualCompoundAnnotationParameters.flist,
         new FeatureListsSelection(flist));
-    parameterSet.setParameter(rowIds, FeatureUtils.rowsToIdString(List.of(row)));
+    parameterSet.setParameter(rowIds, FeatureListUtils.rowsToIdString(List.of(row)));
     parameterSet.setParameter(ManualCompoundAnnotationParameters.annotations, xmlString);
     return (ManualCompoundAnnotationParameters) parameterSet;
   }

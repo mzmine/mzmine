@@ -45,7 +45,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class CompoundAnnotationController extends FxController<CompoundAnnotationModel> {
 
-  private final CompoundAnnotationBuilder builder;
+  private final CompoundAnnotationViewBuilder builder;
   private final FeatureTableFX featureTable;
   private Stage stage = new Stage();
 
@@ -53,7 +53,7 @@ public class CompoundAnnotationController extends FxController<CompoundAnnotatio
     super(new CompoundAnnotationModel());
     this.featureTable = featureTable;
     model.setRow(row);
-    builder = new CompoundAnnotationBuilder(model, this::onSave, this::onCancel);
+    builder = new CompoundAnnotationViewBuilder(model, this::onSave, this::onCancel);
     stage.setOnCloseRequest(e -> onCancel());
   }
 
@@ -88,9 +88,9 @@ public class CompoundAnnotationController extends FxController<CompoundAnnotatio
         CurrentUserService.getUser() != null ? CurrentUserService.getUser().getNickname()
             : "unknown user."));
 
-    ManualCompoundAnnotationModule.annotate(row, List.of(annotation));
+    ManualCompoundAnnotationModule.annotate(row, List.of(annotation), true);
     if (featureTable != null) {
-      featureTable.refresh();
+      featureTable.rebuild();
     }
     stage.hide();
   }
