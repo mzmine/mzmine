@@ -38,11 +38,10 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.date.DateTimeUtils;
 import io.github.mzmine.util.exceptions.ExceptionUtils;
 import java.io.File;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.csibio.aird.bean.AirdInfo;
@@ -117,9 +116,8 @@ public class AirdImportTask extends AbstractTask {
       } else {
         newMZmineFile = new RawDataFileImpl(this.file.getName(), file.getAbsolutePath(), storage);
       }
-      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
-      LocalDateTime localDateTime = LocalDateTime.parse(airdInfo.getStartTimeStamp(), formatter);
-      newMZmineFile.setStartTimeStamp(localDateTime);
+
+      newMZmineFile.setStartTimeStamp(DateTimeUtils.parseOrElse(airdInfo.getStartTimeStamp(), null));
       totalScans = airdInfo.getTotalCount().intValue();
       switch (AirdType.getType(airdInfo.getType())) {
         case DDA -> DDALoader.load(this, (DDAParser) parser);

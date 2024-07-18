@@ -47,20 +47,6 @@ public class AllSpectralDataImportMainTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    //LMS 破解代码
-//    try {
-//      MZmineUser user = CurrentUserService.getUser();
-//      Class<?> cls = Class.forName("io.mzio.users.user.MZmineUser");
-//      Field activeState = cls.getDeclaredField("activeState");
-//      Field userType = cls.getDeclaredField("userType");
-//      activeState.setAccessible(true);
-//      userType.setAccessible(true);
-//      activeState.set(user, UserActiveState.ACTIVE);
-//      userType.set(user, UserType.ACADEMIC);
-//    } catch (Exception e) {
-//      throw new RuntimeException(e);
-//    }
-
     // do data import and library import directly and import metadata after all is completed.
     // this ensures that data files are already loaded
     mainImportTask.run();
