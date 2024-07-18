@@ -25,6 +25,7 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.gui.DesktopService;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -84,9 +85,14 @@ public class RawDataFileTypeDetector {
     if (fileName.isDirectory()) {
       // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
       for (File f : fileName.listFiles()) {
-//        if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT")) {
+        if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT")) {
+          DesktopService.getDesktop().displayMessage("Waters raw data detected",
+              "Waters raw data is currently not supported in mzmine. Please use their tool DataConnect to convert zo mzML (see documentation).",
+              "https://mzmine.github.io/mzmine_documentation/data_conversion.html#waters");
+          throw new RuntimeException(
+              "Waters raw data detected. Please download Waters DataConnect(R) and convert to mzML.");
 //          return RawDataFileType.WATERS_RAW;
-//        }
+        }
         if (f.isFile() && (f.getName().contains(TDF_SUFFIX) || f.getName()
             .contains(TDF_BIN_SUFFIX))) {
           return RawDataFileType.BRUKER_TDF;

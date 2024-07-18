@@ -684,7 +684,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       stage.getIcons().add(mzMineIcon);
       dialog.setTitle(title);
 
-      TextFlow flow = new TextFlow(new Text(msg));
+      TextFlow flow = new TextFlow(new Text(msg + " "));
       if (url != null) {
         Hyperlink href = new Hyperlink(url);
         flow.getChildren().add(href);

@@ -283,7 +283,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       String files = IntStream.range(0, fileTypes.size()).filter(i -> fileTypes.get(i) == null)
           .mapToObj(i -> fileNames[i].getAbsolutePath()).collect(Collectors.joining(",\n"));
       String msg = STR."Could not identify the data type needed for import of n files=\{fileTypes.stream()
-          .filter(Objects::isNull).count()}. The file/path might not exist.\n.\{files}";
+          .filter(Objects::isNull).count()}. The file/path might not exist.\n\{files}";
       MZmineCore.getDesktop().displayErrorMessage(msg);
       logger.log(Level.SEVERE, STR."\{msg}.  \{files}");
       return ExitCode.ERROR;
