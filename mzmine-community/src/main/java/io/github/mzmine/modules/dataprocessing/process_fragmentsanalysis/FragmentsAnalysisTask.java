@@ -85,33 +85,6 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
     tolerance = parameters.getValue(FragmentsAnalysisParameters.tolerance);
   }
 
-  @Override
-  protected void process() {
-    // write all spectra to mgf and also put them into
-    List<GroupedFragmentScans> groupedScans = collectAndWriteSpectraToMgf();
-    logger.info("mgf export finished - now starting to analyze the grouped scans");
-
-    // TODO find signals that are common in all MS1 scans
-
-    // flatMap is used to unwrap a List into its individual elements in a stream
-    streamMs1Scans(groupedScans).forEach(ms1 -> {
-      // this streams through all MS1 scans in all groupings... just in case you want to create a histogram or similar things
-      // for example
-    });
-
-    // this could be used to bin the MS1 signal frequency in mz range x-z
-    var ms1MzFrequency = new DataHistogramBinner(0.001, 25, 2000);
-    streamMs1Scans(groupedScans).forEach(ms1 -> {
-      DataPoint[] data = ScanUtils.extractDataPoints(ms1, useMassList);
-      for (DataPoint dp : data) {
-        ms1MzFrequency.addValue(dp.getMZ());
-      }
-    });
-
-    int frequencyOfMz200 = ms1MzFrequency.getBinFrequency(200);
-
-  }
-
   private static @NotNull Stream<Scan> streamMs1Scans(
       final List<GroupedFragmentScans> groupedScans) {
     return groupedScans.stream().map(GroupedFragmentScans::ms1Scans).flatMap(Collection::stream);
