@@ -25,39 +25,21 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
-import io.github.mzmine.datamodel.RawDataFile;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public interface OtherDataFile {
+public interface OtherSpectralData {
 
-  @NotNull
-  RawDataFile getCorrespondingRawDataFile();
+  OtherDataFile getOtherDataFile();
 
-  default boolean hasTimeSeries() {
-    return getNumberOfTimeSeries() != 0;
-  }
+  String getSpectraDomainLabel();
 
-  default boolean hasSpectra() {
-    return getNumberOfSpectra() != 0;
-  }
+  String getSpectraDomainUnit();
 
-  default int getNumberOfSpectra() {
-    return getOtherSpectralData() != null ? getOtherSpectralData().getOtherDataFile()
-        .getNumberOfSpectra() : 0;
-  }
+  String getSpectraRangeLabel();
 
-  default int getNumberOfTimeSeries() {
-    return getOtherTimeSeries() != null ? getOtherTimeSeries().getNumberOfTimeSeries() : 0;
-  }
-
-  @Nullable
-  OtherTimeSeriesData getOtherTimeSeries();
-
-  @Nullable
-  OtherSpectralData getOtherSpectralData();
+  String getSpectraRangeUnit();
 
   @NotNull
-  String getDescription();
-
+  List<@NotNull OtherSpectrum> getSpectra();
 }

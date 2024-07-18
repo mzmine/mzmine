@@ -35,4 +35,6 @@ public interface OtherTimeSeries extends IntensityTimeSeries {
   ChromatogramType getChromatoogramType();
 
   OtherDataFile getOtherDataFile();
+
+  OtherTimeSeriesData getTimeSeriesData();
 }

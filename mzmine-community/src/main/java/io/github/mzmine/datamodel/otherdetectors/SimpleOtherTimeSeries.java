@@ -38,11 +38,11 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
   protected final DoubleBuffer intensityBuffer;
   protected final FloatBuffer timeBuffer;
   protected final String name;
-  private final OtherDataFile file;
+  private final OtherTimeSeriesData timeSeriesData;
 
   public SimpleOtherTimeSeries(@Nullable MemoryMapStorage storage, @NotNull float[] rtValues,
-      @NotNull double[] intensityValues, String name, OtherDataFile file) {
-    this.file = file;
+      @NotNull double[] intensityValues, String name, OtherTimeSeriesData timeSeriesData) {
+    this.timeSeriesData = timeSeriesData;
     intensityBuffer = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
     timeBuffer = StorageUtils.storeValuesToFloatBuffer(storage, rtValues);
     this.name = name;
@@ -66,11 +66,16 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
 
   @Override
   public ChromatogramType getChromatoogramType() {
-    return file.getChromatogramType();
+    return getTimeSeriesData().getChromatogramType();
   }
 
   @Override
   public OtherDataFile getOtherDataFile() {
-    return file;
+    return timeSeriesData.getOtherDataFile();
+  }
+
+  @Override
+  public OtherTimeSeriesData getTimeSeriesData() {
+    return timeSeriesData;
   }
 }

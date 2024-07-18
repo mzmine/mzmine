@@ -39,7 +39,10 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
+import io.github.mzmine.datamodel.otherdetectors.OtherSpectralData;
+import io.github.mzmine.datamodel.otherdetectors.OtherSpectralDataImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherSpectrum;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeriesDataImpl;
 import io.github.mzmine.datamodel.otherdetectors.SimpleOtherTimeSeries;
 import io.github.mzmine.datamodel.otherdetectors.WavelengthSpectrum;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
@@ -202,9 +205,10 @@ public class ConversionUtils {
         MzMLCV.cvLowestObservedWavelength);
     final Boolean isNanometer = cvLowestWavelength.map(
         p -> p.getUnitAccession().orElse("").equals(MzMLCV.cvUnitsNanometer)).orElse(false);
-    otherDataFile.setSpectraDomainLabel("Wavelength");
+    final OtherSpectralDataImpl spectralData = new OtherSpectralDataImpl(otherDataFile);
+    spectralData.setSpectraDomainLabel("Wavelength");
     if (isNanometer) {
-      otherDataFile.setSpectraDomainUnit("nm");
+      spectralData.setSpectraDomainUnit("nm");
     }
 
     final Optional<MzMLCVParam> highestWavelength = scan.getCVParam(
@@ -215,12 +219,14 @@ public class ConversionUtils {
               highestWavelength.get().getValue(), isNanometer ? "nm" : ""));
     }
 
-    scans.stream().map(s -> toWavelengthSpectrum(otherDataFile, s)).filter(Objects::nonNull)
-        .forEach(otherDataFile::addSpectrum);
+    scans.stream().map(s -> toWavelengthSpectrum(spectralData, s)).filter(Objects::nonNull)
+        .forEach(spectralData::addSpectrum);
+    otherDataFile.setOtherSpectralData(spectralData);
     return otherDataFile;
   }
 
-  public static OtherSpectrum toWavelengthSpectrum(OtherDataFile file, BuildingMzMLMsScan scan) {
+  public static OtherSpectrum toWavelengthSpectrum(OtherSpectralData spectralData,
+      BuildingMzMLMsScan scan) {
     if (!scan.isUVSpectrum()) {
       throw new RuntimeException("Spectrum is not an UV spectrum");
     }
@@ -234,7 +240,7 @@ public class ConversionUtils {
     final DoubleBuffer wavelengthValues = scan.getWavelengthValues();
     final DoubleBuffer intensityValues = scan.getDoubleBufferIntensityValues();
 
-    final WavelengthSpectrum spectrum = new WavelengthSpectrum(file, wavelengthValues,
+    final WavelengthSpectrum spectrum = new WavelengthSpectrum(spectralData, wavelengthValues,
         intensityValues, spectrumType, scan.getRetentionTime());
 
     return spectrum;
@@ -375,27 +381,31 @@ public class ConversionUtils {
 
     for (Entry<ChromatogramType, List<MzMLChromatogram>> grouped : groupedChromatograms.entrySet()) {
       final OtherDataFileImpl otherFile = new OtherDataFileImpl(file);
+      final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherFile);
+
+      timeSeriesData.setChromatogramType(grouped.getKey());
       otherFile.setDescription(grouped.getKey().getDescription());
 
       for (MzMLChromatogram chrom : grouped.getValue()) {
         final SimpleOtherTimeSeries timeSeries = new SimpleOtherTimeSeries(
             file.getMemoryMapStorage(), chrom.getRetentionTimes(), chrom.getIntensities(),
-            chrom.getId(), otherFile);
+            chrom.getId(), timeSeriesData);
 
-        otherFile.addTimeSeries(timeSeries);
+        timeSeriesData.addTimeSeries(timeSeries);
 
         final String unitAccession = chrom.getIntensityBinaryDataInfo().getUnitAccession();
         final MzMLUnits unit = MzMLUnits.ofAccession(unitAccession);
-        final String currentUnit = otherFile.getTimeSeriesRangeUnit();
+        final String currentUnit = timeSeriesData.getTimeSeriesRangeUnit();
         if (!currentUnit.equals(OtherDataFileImpl.DEFAULT_UNIT) && !currentUnit.equals(
             unit.getSign())) {
           logger.severe(
               () -> "Chromatogram units in file %s do not match.".formatted(file.getName()));
         } else {
-          otherFile.setTimeSeriesRangeUnit(unit.getSign());
-          otherFile.setTimeSeriesRangeLabel(unit.getLabel());
+          timeSeriesData.setTimeSeriesRangeUnit(unit.getSign());
+          timeSeriesData.setTimeSeriesRangeLabel(unit.getLabel());
         }
       }
+      otherFile.setOtherTimeSeriesData(timeSeriesData);
       otherFiles.add(otherFile);
     }
 

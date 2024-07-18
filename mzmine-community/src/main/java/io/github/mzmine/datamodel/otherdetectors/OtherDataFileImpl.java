@@ -26,10 +26,6 @@
 package io.github.mzmine.datamodel.otherdetectors;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,18 +34,9 @@ public class OtherDataFileImpl implements OtherDataFile {
   public static final String DEFAULT_UNIT = "N/A";
 
   private final RawDataFile rawDataFile;
-  private final List<OtherTimeSeries> timeSeries = new ArrayList<>();
-  private final List<OtherSpectrum> spectra = new ArrayList<>();
-  public @Nullable ChromatogramType chromatogramType;
   private @NotNull String description = "Unknown file";
-  private @Nullable String spectraDomainLabel = DEFAULT_UNIT;
-  private @Nullable String spectraDomainUnit = DEFAULT_UNIT;
-  private @Nullable String spectraRangeLabel = DEFAULT_UNIT;
-  private @Nullable String spectraRangeUnit = DEFAULT_UNIT;
-  private @Nullable String timeSeriesDomainLabel = "Retention time";
-  private @Nullable String timeSeriesDomainUnit = "min";
-  private @Nullable String timeSeriesRangeLabel = DEFAULT_UNIT;
-  private @Nullable String timeSeriesRangeUnit = DEFAULT_UNIT;
+  private OtherSpectralData spectralData = null;
+  private OtherTimeSeriesData timeSeriesData = null;
 
   public OtherDataFileImpl(RawDataFile rawDataFile) {
     this.rawDataFile = rawDataFile;
@@ -61,103 +48,31 @@ public class OtherDataFileImpl implements OtherDataFile {
   }
 
   @Override
-  public @NotNull List<@NotNull OtherSpectrum> getSpectra() {
-    return spectra;
+  @Nullable
+  public OtherTimeSeriesData getOtherTimeSeries() {
+    return timeSeriesData;
   }
 
   @Override
-  public @NotNull IntensityTimeSeries getTimeSeries(int index) {
-    return timeSeries.get(index);
+  @Nullable
+  public OtherSpectralData getOtherSpectralData() {
+    return spectralData;
   }
 
-  @Override
-  public RawDataFile getRawDataFile() {
-    return rawDataFile;
+  public void setOtherSpectralData(OtherSpectralData spectralData) {
+    if (timeSeriesData != null) {
+      throw new IllegalStateException(
+          "Cannot set spectral data to a file that already has time series data");
+    }
+    this.spectralData = spectralData;
   }
 
-  @Override
-  public @NotNull List<OtherTimeSeries> getTimeSeries() {
-    return timeSeries;
-  }
-
-  public void addSpectrum(@NotNull OtherSpectrum spectrum) {
-    spectra.add(spectrum);
-  }
-
-  public void addTimeSeries(@NotNull OtherTimeSeries series) {
-    this.timeSeries.add(series);
-  }
-
-  @Override
-  public @Nullable String getSpectraDomainLabel() {
-    return spectraDomainLabel;
-  }
-
-  public void setSpectraDomainLabel(@Nullable String spectraDomainLabel) {
-    this.spectraDomainLabel = spectraDomainLabel;
-  }
-
-  @Override
-  public @Nullable String getSpectraDomainUnit() {
-    return spectraDomainUnit;
-  }
-
-  public void setSpectraDomainUnit(@Nullable String spectraDomainUnit) {
-    this.spectraDomainUnit = spectraDomainUnit;
-  }
-
-  @Override
-  public @Nullable String getSpectraRangeLabel() {
-    return spectraRangeLabel;
-  }
-
-  public void setSpectraRangeLabel(@Nullable String spectraRangeLabel) {
-    this.spectraRangeLabel = spectraRangeLabel;
-  }
-
-  @Override
-  public @Nullable String getSpectraRangeUnit() {
-    return spectraRangeUnit;
-  }
-
-  public void setSpectraRangeUnit(@Nullable String spectraRangeUnit) {
-    this.spectraRangeUnit = spectraRangeUnit;
-  }
-
-  @Override
-  public @Nullable String getTimeSeriesDomainLabel() {
-    return timeSeriesDomainLabel;
-  }
-
-  public void setTimeSeriesDomainLabel(@Nullable String timeSeriesDomainLabel) {
-    this.timeSeriesDomainLabel = timeSeriesDomainLabel;
-  }
-
-  @Override
-  public @Nullable String getTimeSeriesDomainUnit() {
-    return timeSeriesDomainUnit;
-  }
-
-  public void setTimeSeriesDomainUnit(@Nullable String timeSeriesDomainUnit) {
-    this.timeSeriesDomainUnit = timeSeriesDomainUnit;
-  }
-
-  @Override
-  public @Nullable String getTimeSeriesRangeLabel() {
-    return timeSeriesRangeLabel;
-  }
-
-  public void setTimeSeriesRangeLabel(@Nullable String timeSeriesRangeLabel) {
-    this.timeSeriesRangeLabel = timeSeriesRangeLabel;
-  }
-
-  @Override
-  public @Nullable String getTimeSeriesRangeUnit() {
-    return timeSeriesRangeUnit;
-  }
-
-  public void setTimeSeriesRangeUnit(@Nullable String timeSeriesRangeUnit) {
-    this.timeSeriesRangeUnit = timeSeriesRangeUnit;
+  public void setOtherTimeSeriesData(OtherTimeSeriesData timeSeriesData) {
+    if (spectralData != null) {
+      throw new IllegalStateException(
+          "Cannot set time series data to a file that already has spectral data");
+    }
+    this.timeSeriesData = timeSeriesData;
   }
 
   @Override
@@ -169,12 +84,4 @@ public class OtherDataFileImpl implements OtherDataFile {
     this.description = description;
   }
 
-  @Override
-  public @Nullable ChromatogramType getChromatogramType() {
-    return chromatogramType;
-  }
-
-  public void setChromatogramType(@Nullable ChromatogramType chromatogramType) {
-    this.chromatogramType = chromatogramType;
-  }
 }

@@ -25,39 +25,37 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
-import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public interface OtherDataFile {
+public interface OtherTimeSeriesData {
+
+  OtherDataFile getOtherDataFile();
+
+  String getTimeSeriesDomainLabel();
+
+  String getTimeSeriesDomainUnit();
+
+  String getTimeSeriesRangeLabel();
+
+  String getTimeSeriesRangeUnit();
 
   @NotNull
-  RawDataFile getCorrespondingRawDataFile();
-
-  default boolean hasTimeSeries() {
-    return getNumberOfTimeSeries() != 0;
-  }
-
-  default boolean hasSpectra() {
-    return getNumberOfSpectra() != 0;
-  }
-
-  default int getNumberOfSpectra() {
-    return getOtherSpectralData() != null ? getOtherSpectralData().getOtherDataFile()
-        .getNumberOfSpectra() : 0;
-  }
+  List<@NotNull OtherTimeSeries> getTimeSeries();
 
   default int getNumberOfTimeSeries() {
-    return getOtherTimeSeries() != null ? getOtherTimeSeries().getNumberOfTimeSeries() : 0;
+    return getTimeSeries().size();
   }
 
-  @Nullable
-  OtherTimeSeriesData getOtherTimeSeries();
-
-  @Nullable
-  OtherSpectralData getOtherSpectralData();
-
   @NotNull
-  String getDescription();
+  IntensityTimeSeries getTimeSeries(int index);
 
+  /**
+   * @return The chromatograms in this data file or null if this file does not contain
+   * chromatograms.
+   */
+  @NotNull
+  ChromatogramType getChromatogramType();
 }

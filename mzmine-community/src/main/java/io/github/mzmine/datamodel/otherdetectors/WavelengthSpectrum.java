@@ -32,24 +32,24 @@ import java.nio.DoubleBuffer;
 
 public class WavelengthSpectrum implements OtherSpectrum {
 
-  private final OtherDataFile file;
+  private final OtherSpectralData spectralData;
   private final DoubleBuffer wavelengths;
   private final DoubleBuffer intensities;
   private final MassSpectrumType spectrumType;
   private final float rt;
 
-  public WavelengthSpectrum(final OtherDataFile file, DoubleBuffer wavelengths,
+  public WavelengthSpectrum(final OtherSpectralData spectralData, DoubleBuffer wavelengths,
       DoubleBuffer intensities, MassSpectrumType spectrumType, float rt) {
-    this.file = file;
+    this.spectralData = spectralData;
     this.wavelengths = wavelengths;
     this.intensities = intensities;
     this.spectrumType = spectrumType;
     this.rt = rt;
   }
 
-  public WavelengthSpectrum(OtherDataFile file, MemoryMapStorage storage, double[] wavelengths,
-      double[] intensities, MassSpectrumType spectrumType, float rt) {
-    this.file = file;
+  public WavelengthSpectrum(OtherSpectralData spectralData, MemoryMapStorage storage,
+      double[] wavelengths, double[] intensities, MassSpectrumType spectrumType, float rt) {
+    this.spectralData = spectralData;
     this.spectrumType = spectrumType;
     this.rt = rt;
 
@@ -87,7 +87,12 @@ public class WavelengthSpectrum implements OtherSpectrum {
   }
 
   @Override
-  public OtherDataFile getOtherSpectraFile() {
-    return file;
+  public OtherDataFile getOtherDataFile() {
+    return getOtherSpectralData().getOtherDataFile();
+  }
+
+  @Override
+  public OtherSpectralData getOtherSpectralData() {
+    return spectralData;
   }
 }
