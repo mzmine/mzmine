@@ -300,4 +300,27 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
     }
   }
 
+  private void removeDuplicatesWithinTolerance(Set<Double> uniqueFragments, MZTolerance tolerance) {
+    List<Double> fragmentList = new ArrayList<>(uniqueFragments);
+    uniqueFragments.clear(); // Clear existing set to rebuild it without duplicates
+
+    for (int i = 0; i < fragmentList.size(); i++) {
+      double mz1 = fragmentList.get(i);
+      boolean isUnique = true;
+
+      for (int j = i + 1; j < fragmentList.size(); j++) {
+        double mz2 = fragmentList.get(j);
+
+        if (tolerance.checkWithinTolerance(mz1, mz2)) {
+          isUnique = false;
+          break;
+        }
+      }
+
+      if (isUnique) {
+        uniqueFragments.add(mz1);
+      }
+    }
+  }
+
 }
