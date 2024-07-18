@@ -281,6 +281,9 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
 
     for (Scan scan : scans) {
       DataPoint[] dataPoints = ScanUtils.extractDataPoints(scan, useMassList);
+      if (scan.getMSLevel() > 1) {
+        dataPoints = removePrecursorMz(dataPoints, scan.getPrecursorMz(), 1);
+      }
       for (DataPoint dp : dataPoints) {
         double mz = dp.getMZ();
         boolean isUnique = true;
