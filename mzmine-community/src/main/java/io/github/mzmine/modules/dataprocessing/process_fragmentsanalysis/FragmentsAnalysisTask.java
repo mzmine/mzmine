@@ -264,63 +264,53 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
 
   // TODO: Sanitize the spectra by removing everything above the precursor - tolerance? And more?
   private int countUniqueFragmentsBetweenMs1AndMs2(List<Scan> ms1Scans, List<Scan> ms2Scans, MZTolerance tolerance) {
+    Set<Double> uniqueMs1 = collectUniqueFragments(ms1Scans, tolerance);
+    Set<Double> uniqueMs2 = collectUniqueFragments(ms2Scans, tolerance);
+
+    int uniqueCount = countUniquePairs(uniqueMs1, uniqueMs2, tolerance);
+
+    return uniqueCount;
+  }
+
+  private Set<Double> collectUniqueFragments(List<Scan> scans, MZTolerance tolerance) {
     Set<Double> uniqueFragments = new HashSet<>();
 
-    for (Scan ms1 : ms1Scans) {
-      for (Scan ms2 : ms2Scans) {
-        countUniqueFragments(ms1, ms2, tolerance, uniqueFragments);
-      }
-    }
+    for (Scan scan : scans) {
+      DataPoint[] dataPoints = ScanUtils.extractDataPoints(scan, useMassList);
+      for (DataPoint dp : dataPoints) {
+        double mz = dp.getMZ();
+        boolean isUnique = true;
 
-    // Sanitize uniqueFragments by removing duplicates within tolerance
-    removeDuplicatesWithinTolerance(uniqueFragments, tolerance);
+        // Check against existing uniqueFragments
+        for (double uniqueMz : uniqueFragments) {
+          if (tolerance.checkWithinTolerance(mz, uniqueMz)) {
+            isUnique = false;
+            break;
+          }
+        }
 
-    return uniqueFragments.size();
-  }
-
-  // TODO: Sanitize the spectra by removing everything above the precursor - tolerance? And more?
-  private void countUniqueFragments(Scan ms1, Scan ms2, MZTolerance tolerance, Set<Double> uniqueFragments) {
-    DataPoint[] ms1DataPoints = ScanUtils.extractDataPoints(ms1, useMassList);
-    DataPoint[] ms2DataPoints = ScanUtils.extractDataPoints(ms2, useMassList);
-
-    // Store ms2 m/z values in a HashSet for quick lookups
-    Set<Double> ms2MzSet = new HashSet<>();
-    for (DataPoint dp2 : ms2DataPoints) {
-      ms2MzSet.add(dp2.getMZ());
-    }
-
-    for (DataPoint dp1 : ms1DataPoints) {
-      double mz1 = dp1.getMZ();
-      for (Double mz2 : ms2MzSet) {
-        if (tolerance.checkWithinTolerance(mz1, mz2)) {
-          uniqueFragments.add(mz1);
-          break; // Move to the next dp1 as we've already counted this fragment
+        if (isUnique) {
+          uniqueFragments.add(mz);
         }
       }
     }
+
+    return uniqueFragments;
   }
 
-  private void removeDuplicatesWithinTolerance(Set<Double> uniqueFragments, MZTolerance tolerance) {
-    List<Double> fragmentList = new ArrayList<>(uniqueFragments);
-    uniqueFragments.clear(); // Clear existing set to rebuild it without duplicates
+  private int countUniquePairs(Set<Double> uniqueMs1, Set<Double> uniqueMs2, MZTolerance tolerance) {
+    int uniqueCount = 0;
 
-    for (int i = 0; i < fragmentList.size(); i++) {
-      double mz1 = fragmentList.get(i);
-      boolean isUnique = true;
-
-      for (int j = i + 1; j < fragmentList.size(); j++) {
-        double mz2 = fragmentList.get(j);
-
+    for (double mz1 : uniqueMs1) {
+      for (double mz2 : uniqueMs2) {
         if (tolerance.checkWithinTolerance(mz1, mz2)) {
-          isUnique = false;
-          break;
+          uniqueCount++;
+          break; // Move to next mz1
         }
       }
-
-      if (isUnique) {
-        uniqueFragments.add(mz1);
-      }
     }
+
+    return uniqueCount;
   }
 
 }
