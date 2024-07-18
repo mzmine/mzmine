@@ -447,7 +447,6 @@ task signApp(dependsOn: jpackage) {
                 codesign(nativeLib.toAbsolutePath())
             }
 
-
             getLogger().lifecycle("Signing libraires nested in jars...")
 
             // Define native libraries nested in jars that are to be signed
@@ -480,17 +479,18 @@ task signApp(dependsOn: jpackage) {
             // delete duplicated libs
             //jarsDir.resolveSibling('runtime/Contents/MacOS').resolve("libjli.dylib").toFile().delete()
 
-
-            // Sign .app directory
-            getLogger().lifecycle("Signing .app directory...")
-            codesign(imageDir)
-
             // Manually sign files here
             def libjliPath = jarsDir.resolveSibling('runtime/Contents/MacOS').resolve("libjli.dylib")
             codesign(libjliPath.toAbsolutePath())
 
             def mzminePath = jarsDir.resolveSibling('MacOS').resolve("mzmine")
             codesign(mzminePath.toAbsolutePath())
+
+            // Sign .app directory
+            getLogger().lifecycle("Signing .app directory...")
+            codesign(imageDir)
+            
+            exec { commandLine(['xattr', '-cr', "${layout.buildDirectory.dir("jpackage/mzmine.app").get()}"]) }
 
             getLogger().lifecycle("Zipping .app directory...")
             exec {
