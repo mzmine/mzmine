@@ -110,14 +110,16 @@ public class AirdImportTask extends AbstractTask {
         return;
       }
 
-      if (airdInfo.getMobiInfo() != null && airdInfo.getMobiInfo().getType() != null && !airdInfo.getMobiInfo().getType().isEmpty()) {
+      if (airdInfo.getMobiInfo() != null && airdInfo.getMobiInfo().getType() != null
+          && !airdInfo.getMobiInfo().getType().isEmpty()) {
         newMZmineFile = new IMSRawDataFileImpl(this.file.getName(), file.getAbsolutePath(),
             storage);
       } else {
         newMZmineFile = new RawDataFileImpl(this.file.getName(), file.getAbsolutePath(), storage);
       }
 
-      newMZmineFile.setStartTimeStamp(DateTimeUtils.parseOrElse(airdInfo.getStartTimeStamp(), null));
+      newMZmineFile.setStartTimeStamp(
+          DateTimeUtils.parseOrElse(airdInfo.getStartTimeStamp(), null));
       totalScans = airdInfo.getTotalCount().intValue();
       switch (AirdType.getType(airdInfo.getType())) {
         case DDA -> DDALoader.load(this, (DDAParser) parser);
