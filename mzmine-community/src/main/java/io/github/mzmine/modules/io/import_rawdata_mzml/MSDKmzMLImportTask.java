@@ -147,7 +147,6 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
   @Override
   public void run() {
-    long start = System.currentTimeMillis();
     setStatus(TaskStatus.PROCESSING);
 
     RawDataFile dataFile = importStreamOrFile();
@@ -165,7 +164,6 @@ public class MSDKmzMLImportTask extends AbstractTask {
     }
 
     setStatus(TaskStatus.FINISHED);
-    System.out.println(dataFile.getName() + ":" + (System.currentTimeMillis() - start));
   }
 
   public void addAppliedMethodAndAddToProject(final RawDataFile dataFile) {
