@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.types.numbers.CommonFragmentsType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.MGFEntryGenerator;
 import io.github.mzmine.parameters.ParameterSet;
@@ -262,19 +263,17 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
   }
 
   // TODO: Sanitize the spectra by removing everything above the precursor - tolerance? And more?
-  private int countUniqueFragmentsBetweenMs1AndMs2(List<GroupedFragmentScans> groupedScans) {
+  private int countUniqueFragmentsBetweenMs1AndMs2(List<Scan> ms1Scans, List<Scan> ms2Scans, MZTolerance tolerance) {
     Set<Double> uniqueFragments = new HashSet<>();
 
-    for (GroupedFragmentScans group : groupedScans) {
-      List<Scan> ms1Scans = group.ms1Scans();
-      List<Scan> ms2Scans = group.ms2Scans();
-
-      for (Scan ms1 : ms1Scans) {
-        for (Scan ms2 : ms2Scans) {
-          countUniqueFragments(ms1, ms2, tolerance, uniqueFragments);
-        }
+    for (Scan ms1 : ms1Scans) {
+      for (Scan ms2 : ms2Scans) {
+        countUniqueFragments(ms1, ms2, tolerance, uniqueFragments);
       }
     }
+
+    // Sanitize uniqueFragments by removing duplicates within tolerance
+    removeDuplicatesWithinTolerance(uniqueFragments, tolerance);
 
     return uniqueFragments.size();
   }
