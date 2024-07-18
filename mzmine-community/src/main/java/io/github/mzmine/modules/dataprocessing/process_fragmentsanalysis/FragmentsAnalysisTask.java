@@ -208,13 +208,17 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
     List<Scan> scansToExport = new ArrayList<>();
 
     Scan bestMs1 = feature.getRepresentativeScan();
-    scansToExport.add(bestMs1);
+    if (bestMs1 != null) {
+      scansToExport.add(bestMs1);
+    }
 
     for (Scan ms2 : fragmentScans) {
       if (ms2.getMSLevel() != 2) {
         continue; // skip MSn
       }
-      scansToExport.add(ms2);
+      if (ms2 != null) {
+        scansToExport.add(ms2);
+      }
 
       Scan previousScan = ScanUtils.findPrecursorScan(ms2);
       if (previousScan != null) {
