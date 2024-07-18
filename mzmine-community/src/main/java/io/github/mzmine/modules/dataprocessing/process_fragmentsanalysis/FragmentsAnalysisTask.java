@@ -151,8 +151,19 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
     Scan bestMs1 = feature.getRepresentativeScan();
     if (bestMs1 != null) {
       scansToExport.add(bestMs1);
+      DataPoint[] dataPoints = ScanUtils.extractDataPoints(bestMs1, useMassList);
+      for (DataPoint dp : dataPoints) {
+        double ms1Signal = dp.getMZ();
+        // TODO this is dirty for now, will become an option to output both assigned MS2s and MS2s of all present signals
+        Scan[] ms2Scans = findAllMS2FragmentScans(raw, Range.closed(0f, 100f),
+            Range.closed(ms1Signal - 0.1, ms1Signal + 0.1));
+        for (Scan ms2 : ms2Scans) {
+          if (ms2 != null) {
+            scansToExport.add(ms2);
+          }
+        }
+      }
     }
-
     for (Scan ms2 : fragmentScans) {
       if (ms2.getMSLevel() != 2) {
         continue; // skip MSn
@@ -196,6 +207,7 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
     for (Scan scan : scans) {
       DataPoint[] dataPoints = ScanUtils.extractDataPoints(scan, useMassList);
       if (scan.getMSLevel() > 1) {
+        // TODO arbitrarily removing 1 around precursor for now
         dataPoints = removePrecursorMz(dataPoints, scan.getPrecursorMz(), 1);
       }
       for (DataPoint dp : dataPoints) {
