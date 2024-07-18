@@ -60,6 +60,7 @@ import io.github.mzmine.javafx.concurrent.threading.FxThread;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
 import io.github.mzmine.modules.dataprocessing.id_addmanualcomp.CompoundAnnotationController;
+import io.github.mzmine.modules.dataprocessing.filter_deleterows.DeleteRowsModule;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
 import io.github.mzmine.modules.dataprocessing.id_lipidid.common.identification.matched_levels.MatchedLipid;
@@ -165,8 +166,15 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem deleteRowsItem = new ConditionalMenuItem("Delete row(s)",
         () -> !selectedRows.isEmpty());
-    deleteRowsItem.setOnAction(
-        e -> selectedRows.forEach(row -> table.getFeatureList().removeRow(row)));
+    deleteRowsItem.setOnAction(_ -> {
+      if (selectedRows.size() == 1) {
+        table.getSelectionModel().clearSelection();
+        DeleteRowsModule.deleteRows(table.getFeatureList(), selectedRows);
+      } else {
+        table.getSelectionModel().clearSelection();
+        DeleteRowsModule.deleteWithConfirmation(table.getFeatureList(), selectedRows);
+      }
+    });
 
     // final MenuItem addNewRowItem;
     final MenuItem manuallyDefineItem = new ConditionalMenuItem("Define manually",

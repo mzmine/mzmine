@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -44,10 +43,9 @@ import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.process
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.processors.DenormalizeInjectTimeMsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.processors.MassDetectorMsProcessor;
 import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.processors.SortByMzMsProcessor;
+import io.github.mzmine.modules.io.import_rawdata_bruker_baf.library.BafImportTask;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFImportTask;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFUtils;
 import io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportTask;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportTask;
@@ -61,7 +59,6 @@ import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImport
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileType;
@@ -173,13 +170,12 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    */
   public static File validateBrukerPath(File f) {
     if (f.getParent().endsWith(".d") && (f.getName().endsWith(".d") || f.getName().endsWith(".tdf")
-                                         || f.getName().endsWith(".tsf"))) {
+        || f.getName().endsWith(".tsf") || f.getName().endsWith(".baf"))) {
       return f.getParentFile();
     } else {
       return f;
     }
   }
-
 
   /**
    * @return true if duplciates found in import list and already loaded files
@@ -292,26 +288,12 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       return ExitCode.ERROR;
     }
 
-    final long numTdf = fileTypes.stream().filter(type -> type.equals(RawDataFileType.BRUKER_TDF))
-        .count();
-    final long numTsf = fileTypes.stream().filter(type -> type.equals(RawDataFileType.BRUKER_TSF))
-        .count();
-    if (numTdf > 0) {
-      TDFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
-                                               .getParameter(MZminePreferences.numOfThreads)
-                                               .getValue() / numTdf));
-    }
-    if (numTsf > 0) {
-      TSFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
-                                               .getParameter(MZminePreferences.numOfThreads)
-                                               .getValue() / numTsf));
-    }
-
     for (int i = 0; i < fileNames.length; i++) {
       final File fileName = fileNames[i];
 
       if ((!fileName.exists()) || (!fileName.canRead())) {
-        MZmineCore.getDesktop().displayErrorMessage(STR."Cannot read file \{fileName}. The file/path might not exist.");
+        MZmineCore.getDesktop().displayErrorMessage(
+            STR."Cannot read file \{fileName}. The file/path might not exist.");
         logger.warning(STR."Cannot read file \{fileName}. The file/path might not exist.");
         return ExitCode.ERROR;
       }
@@ -337,18 +319,6 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         if (newTask != null) {
           tasks.add(newTask);
           dataImportTasks.add(newTask);
-
-          if (i == fileName.length() - 1) {
-            newTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
-              if (newStatus == TaskStatus.CANCELED || newStatus == TaskStatus.FINISHED
-                  || newStatus == TaskStatus.ERROR) {
-                final Integer threads = MZmineCore.getConfiguration().getPreferences()
-                    .getParameter(MZminePreferences.numOfThreads).getValue();
-                TDFUtils.setDefaultNumThreads(threads);
-                TSFUtils.setDefaultNumThreads(threads);
-              }
-            });
-          }
         }
 
       } catch (IOException e) {
@@ -387,7 +357,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           (ImagingRawDataFile) newMZmineFile, module, parameters, moduleCallDate);
       // imaging, maldi, or LC-MS
       case BRUKER_TSF ->
-          new TSFImportTask(project, file, storage, module, parameters, moduleCallDate);
+          new TSFImportTask(project, file, storage, module, parameters, moduleCallDate,
+              scanProcessorConfig);
       // IMS
       case BRUKER_TDF ->
           new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile, module, parameters,
@@ -413,7 +384,10 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case MZML_GZIP, MZML_ZIP ->
           new ZipImportTask(project, file, scanProcessorConfig, module, parameters, moduleCallDate,
               storage);
-      default -> throw new IllegalStateException("Unexpected value: " + fileType);
+      case BRUKER_BAF ->
+          new BafImportTask(storage, moduleCallDate, file, module, parameters, project,
+              scanProcessorConfig);
+      case AIRD -> throw new IllegalStateException("Unexpected value: " + fileType);
     };
   }
 
@@ -446,11 +420,16 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case THERMO_RAW ->
           new ThermoRawImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate,
               scanProcessorConfig);
+      case BRUKER_TSF ->
+          new TSFImportTask(project, file, storage, module, parameters, moduleCallDate,
+              scanProcessorConfig);
+      case BRUKER_BAF ->
+          new BafImportTask(storage, moduleCallDate, file, module, parameters, project,
+              scanProcessorConfig);
       // all unsupported tasks are wrapped to apply import and mass detection separately
       case AIRD, MZDATA,/* WATERS_RAW,*/ NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV ->
           createWrappedAdvancedTask(fileType, project, file, newMZmineFile, scanProcessorConfig,
               module, parameters, moduleCallDate, storage);
-      default -> throw new IllegalStateException("Unexpected data type: " + fileType);
     };
   }
 
@@ -460,7 +439,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
     // log
     logger.warning("Advanced processing is not available for MS data type: " + fileType.toString()
-                   + " and file " + file.getAbsolutePath());
+        + " and file " + file.getAbsolutePath());
     // create wrapped task to apply import and mass detection
     return new MsDataImportAndMassDetectWrapperTask(getMassListStorage(), newMZmineFile,
         createTask(fileType, project, file, newMZmineFile, scanProcessorConfig, module, parameters,
@@ -476,7 +455,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case MZML, MZML_IMS, MZML_ZIP, MZML_GZIP -> null; // created in Mzml import task
       case IMZML -> MZmineCore.createNewImagingFile(newName, absPath, storage);
       case BRUKER_TDF -> MZmineCore.createNewIMSFile(newName, absPath, storage);
-      case BRUKER_TSF ->
+      case BRUKER_TSF, BRUKER_BAF ->
           null; // TSF can be anything: Single shot maldi, imaging, or LC-MS (non ims)
     };
   }
