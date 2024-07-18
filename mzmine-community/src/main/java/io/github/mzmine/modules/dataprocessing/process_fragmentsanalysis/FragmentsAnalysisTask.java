@@ -278,14 +278,22 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
     return uniqueFragments.size();
   }
 
+  // TODO: Sanitize the spectra by removing everything above the precursor - tolerance? And more?
   private void countUniqueFragments(Scan ms1, Scan ms2, MZTolerance tolerance, Set<Double> uniqueFragments) {
     DataPoint[] ms1DataPoints = ScanUtils.extractDataPoints(ms1, useMassList);
     DataPoint[] ms2DataPoints = ScanUtils.extractDataPoints(ms2, useMassList);
 
+    // Store ms2 m/z values in a HashSet for quick lookups
+    Set<Double> ms2MzSet = new HashSet<>();
+    for (DataPoint dp2 : ms2DataPoints) {
+      ms2MzSet.add(dp2.getMZ());
+    }
+
     for (DataPoint dp1 : ms1DataPoints) {
-      for (DataPoint dp2 : ms2DataPoints) {
-        if (tolerance.checkWithinTolerance(dp1.getMZ(), dp2.getMZ())) {
-          uniqueFragments.add(dp1.getMZ());
+      double mz1 = dp1.getMZ();
+      for (Double mz2 : ms2MzSet) {
+        if (tolerance.checkWithinTolerance(mz1, mz2)) {
+          uniqueFragments.add(mz1);
           break; // Move to the next dp1 as we've already counted this fragment
         }
       }
