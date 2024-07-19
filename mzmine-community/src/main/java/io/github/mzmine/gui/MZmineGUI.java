@@ -62,6 +62,7 @@ import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.io.SemverVersionReader;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
@@ -309,8 +310,8 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
     if (dragboard.hasFiles()) {
       hasFileDropped = true;
 
-      final List<String> rawExtensions = List.of("mzml", "mzxml", "raw", "cdf", "netcdf", "nc",
-          "mzdata", "imzml", "tdf", "d", "tsf", "zip", "gz");
+      final List<String> rawExtensions = ExtensionFilters.ALL_MS_DATA_FILTER.getExtensions()
+          .stream().map(e -> e.replaceAll("\\*\\.", "")).toList();
       final List<String> libraryExtensions = List.of("json", "mgf", "msp", "jdx");
 
       final List<File> rawDataFiles = new ArrayList<>();
@@ -369,13 +370,11 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
         if (!rawDataFiles.isEmpty()) {
           logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
-                              + rawDataFiles.stream().map(File::getAbsolutePath)
-                                  .collect(Collectors.joining(", ")));
+              + rawDataFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
         }
         if (!libraryFiles.isEmpty()) {
           logger.finest(() -> "Importing " + libraryFiles.size() + " raw files via drag and drop: "
-                              + libraryFiles.stream().map(File::getAbsolutePath)
-                                  .collect(Collectors.joining(", ")));
+              + libraryFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
         }
 
         // set raw and library files to parameter
@@ -685,7 +684,7 @@ public class MZmineGUI extends Application implements MZmineDesktop, JavaFxDeskt
       stage.getIcons().add(mzMineIcon);
       dialog.setTitle(title);
 
-      TextFlow flow = new TextFlow(new Text(msg));
+      TextFlow flow = new TextFlow(new Text(msg + " "));
       if (url != null) {
         Hyperlink href = new Hyperlink(url);
         flow.getChildren().add(href);

@@ -33,10 +33,13 @@ import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -45,6 +48,8 @@ import org.jetbrains.annotations.NotNull;
 public class ParameterUtils {
 
   private static final Logger logger = Logger.getLogger(ParameterUtils.class.getName());
+
+  private static final ReentrantReadWriteLock parameterEditLock = new ReentrantReadWriteLock();
 
 
   /**
@@ -184,8 +189,8 @@ public class ParameterUtils {
         if (param1.getClass() != param2.getClass()) {
           logger.finest(
               () -> "Parameters " + param1.getName() + "(" + param1.getClass().getName() + ") and "
-                    + param2.getName() + " (" + param2.getClass().getName()
-                    + ") are not of the same class.");
+                  + param2.getName() + " (" + param2.getClass().getName()
+                  + ") are not of the same class.");
           return false;
         }
 
@@ -210,7 +215,7 @@ public class ParameterUtils {
           logger.finest(
               () -> "Parameter \"" + param1.getName() + "\" of parameter set " + a.getClass()
                   .getName() + " has different values: " + param1.getValue() + " and "
-                    + param2.getValue());
+                  + param2.getValue());
           return false;
         }
 
@@ -233,5 +238,31 @@ public class ParameterUtils {
         .filter(appliedMethod -> appliedMethod.getParameters().getClass().equals(parameterClass))
         .findFirst().map(FeatureListAppliedMethod::getParameters)
         .map(parameterSet -> parameterSet.getValue(mzTolParameter));
+  }
+
+  /**
+   * Replaces a file in the first FileNamesParameter of the parameter set. Synchronized method in
+   * case multiple tasks want to edit the same parameter set.
+   */
+  public static boolean replaceRawFileName(ParameterSet parameterSet, File oldPath, File newPath) {
+    final WriteLock writeLock = parameterEditLock.writeLock();
+    writeLock.lock();
+
+    for (Parameter<?> parameter : parameterSet.getParameters()) {
+      if (!(parameter instanceof FileNamesParameter fnp)) {
+        continue;
+      }
+      final File[] files = fnp.getValue();
+      for (int i = 0; i < files.length; i++) {
+        File file = files[i];
+        if (file.equals(oldPath)) {
+          files[i] = newPath;
+          writeLock.unlock();
+          return true;
+        }
+      }
+    }
+    writeLock.unlock();
+    return false;
   }
 }

@@ -137,4 +137,6 @@ public interface MZmineConfiguration {
   ImageNormalization getImageNormalization();
 
   PaintScaleTransform getImageTransformation();
+
+  File getMsConvertPath();
 }
