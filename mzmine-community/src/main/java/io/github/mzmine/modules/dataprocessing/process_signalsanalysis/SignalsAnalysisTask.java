@@ -103,9 +103,7 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     for (FeatureList featureList : featureLists) {
       for (var row : featureList.getRows()) {
         GroupedSignalScans result = processRow(row);
-        if (!result.ms2Scans().isEmpty()) {
-          groupingResults.add(result);
-        }
+        groupingResults.add(result);
       }
     }
     return groupingResults;
@@ -147,21 +145,18 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
   private List<Scan> processFeature(final FeatureListRow row, final Feature feature) {
     // skip if there are no MS2
     List<Scan> fragmentScans = feature.getAllMS2FragmentScans();
-    if (fragmentScans.isEmpty()) {
-      return List.of(); // return empty list
-    }
-    RawDataFile raw = feature.getRawDataFile();
-    String rawFileName = raw.getFileName();
     List<Scan> scansToExport = new ArrayList<>();
     Scan bestMs1 = feature.getRepresentativeScan();
     if (bestMs1 != null) {
       scansToExport.add(bestMs1);
+      // TODO: This could be a parameter to get it over the whole file instead
+      Range<Float> rawRtRange = feature.getRawDataPointsRTRange();
+      RawDataFile raw = feature.getRawDataFile();
       DataPoint[] dataPoints = ScanUtils.extractDataPoints(bestMs1, useMassList);
       for (DataPoint dp : dataPoints) {
         double ms1Signal = dp.getMZ();
-        // TODO this is dirty for now, will become an option to output both assigned MS2s and MS2s of all present signals
-        Scan[] fragmentScansBroad = findAllMS2FragmentScans(raw, Range.closed(0f, 9999f),
-            Range.closed(ms1Signal - 0.1, ms1Signal + 0.1));
+        Scan[] fragmentScansBroad = findAllMS2FragmentScans(raw, rawRtRange,
+            tolerance.getToleranceRange(ms1Signal));
         for (Scan ms2 : fragmentScansBroad) {
           if (ms2 != null) {
             scansToExport.add(ms2);
