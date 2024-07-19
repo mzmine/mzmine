@@ -39,9 +39,8 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.CommonSignalsType;
+import io.github.mzmine.datamodel.features.types.numbers.TotalSignalsType;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.dataprocessing.process_signalsanalysis.GroupedSignalScans;
-import io.github.mzmine.modules.dataprocessing.process_signalsanalysis.SignalsAnalysisParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -131,6 +130,7 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     }
     int commonSignalsCount = countUniqueSignalsBetweenMs1AndMs2(ms1Scans, ms2Scans, tolerance);
     row.set(CommonSignalsType.class, commonSignalsCount);
+    row.set(TotalSignalsType.class, collectUniqueSignals(ms1Scans, tolerance).size());
     return new GroupedSignalScans(row, ms1Scans, ms2Scans);
   }
 
