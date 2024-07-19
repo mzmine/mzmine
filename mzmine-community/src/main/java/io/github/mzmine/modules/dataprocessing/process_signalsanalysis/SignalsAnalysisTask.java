@@ -61,8 +61,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The task will be scheduled by the TaskController. Progress is calculated from the
- * finishedItems/totalItems
+ * The SignalsAnalysisTask is responsible for analyzing the signals from feature lists. The task
+ * will be scheduled by the TaskController and progress is calculated from the
+ * finishedItems/totalItems. It compares all MS1 signals present in the feature mass spectrum to the
+ * MS2 signals present in all the fragment scans corresponding to precursors corresponding to MS1
+ * signals.
  */
 class SignalsAnalysisTask extends AbstractFeatureListTask {
 
@@ -72,22 +75,32 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
   private final MZTolerance tolerance;
 
   /**
-   * Constructor is used to extract all parameters
+   * Constructor to initialize the task with necessary parameters.
    *
-   * @param featureLists data source is featureLists
-   * @param parameters   user parameters
+   * @param project        The MZmine project.
+   * @param featureLists   The feature lists to process.
+   * @param parameters     User parameters.
+   * @param storage        Optional memory map storage.
+   * @param moduleCallDate The date the module was called.
+   * @param moduleClass    The class of the calling module.
    */
   public SignalsAnalysisTask(MZmineProject project, List<FeatureList> featureLists,
       ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.featureLists = featureLists;
-    totalItems = featureLists.stream().mapToInt(FeatureList::getNumberOfRows).sum();
+    this.totalItems = featureLists.stream().mapToInt(FeatureList::getNumberOfRows).sum();
     var scanDataType = parameters.getValue(SignalsAnalysisParameters.scanDataType);
-    useMassList = scanDataType == ScanDataType.MASS_LIST;
-    tolerance = parameters.getValue(SignalsAnalysisParameters.tolerance);
+    this.useMassList = scanDataType == ScanDataType.MASS_LIST;
+    this.tolerance = parameters.getValue(SignalsAnalysisParameters.tolerance);
   }
 
+  /**
+   * Streams MS1 scans from the grouped scans.
+   *
+   * @param groupedScans The grouped scans.
+   * @return A stream of MS1 scans.
+   */
   private static @NotNull Stream<Scan> streamMs1Scans(final List<GroupedSignalScans> groupedScans) {
     return groupedScans.stream().map(GroupedSignalScans::ms1Scans).flatMap(Collection::stream);
   }
@@ -95,9 +108,14 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
   @Override
   protected void process() {
     List<GroupedSignalScans> groupedScans = collectSpectra();
-    logger.info("collected spectra - now starting to analyze the grouped scans");
+    logger.info("Collected spectra - now starting to analyze the grouped scans.");
   }
 
+  /**
+   * Collects spectra from feature lists.
+   *
+   * @return A list of grouped signal scans.
+   */
   private List<GroupedSignalScans> collectSpectra() {
     List<GroupedSignalScans> groupingResults = new ArrayList<>();
     for (FeatureList featureList : featureLists) {
@@ -109,18 +127,22 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     return groupingResults;
   }
 
+  /**
+   * Processes a single row from the feature list.
+   *
+   * @param row The feature list row.
+   * @return The grouped signal scans.
+   */
   private GroupedSignalScans processRow(FeatureListRow row) {
-    // collect all MS1 and MS2 for this row
     List<Scan> ms1Scans = new ArrayList<>();
     List<Scan> ms2Scans = new ArrayList<>();
     for (final ModularFeature feature : row.getFeatures()) {
       try {
-        List<Scan> exportedScans = processFeature(row, feature);
+        List<Scan> exportedScans = processFeature(feature);
         for (Scan scan : exportedScans) {
           if (scan.getMSLevel() == 1) {
             ms1Scans.add(scan);
-          }
-          if (scan.getMSLevel() == 2) {
+          } else if (scan.getMSLevel() == 2) {
             ms2Scans.add(scan);
           }
         }
@@ -138,13 +160,12 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
   }
 
   /**
-   * For each feature (individual sample)
+   * Processes a single feature.
    *
-   * @return all exported scans
+   * @param feature The feature to process.
+   * @return The list of exported scans.
    */
-  private List<Scan> processFeature(final FeatureListRow row, final Feature feature) {
-    // skip if there are no MS2
-    List<Scan> fragmentScans = feature.getAllMS2FragmentScans();
+  private List<Scan> processFeature(final Feature feature) {
     List<Scan> scansToExport = new ArrayList<>();
     Scan bestMs1 = feature.getRepresentativeScan();
     if (bestMs1 != null) {
@@ -164,29 +185,14 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
         }
       }
     }
-    for (Scan ms2 : fragmentScans) {
-      if (ms2.getMSLevel() != 2) {
-        continue; // skip MSn
-      }
-      if (ms2 != null) {
-        scansToExport.add(ms2);
-      }
-      // COMMENT: removed for now
-//      Scan previousScan = ScanUtils.findPrecursorScan(ms2);
-//      if (previousScan != null) {
-//        scansToExport.add(previousScan);
-//      }
-//      Scan nextScan = ScanUtils.findSucceedingPrecursorScan(ms2);
-//      if (nextScan != null) {
-//        scansToExport.add(nextScan);
-//      }
-    }
+    feature.getAllMS2FragmentScans().stream().filter(scan -> scan.getMSLevel() == 2)
+        .forEach(scansToExport::add);
     return scansToExport;
   }
 
   @Override
   public String getTaskDescription() {
-    return STR."Signals analysis task runs on \{featureLists}";
+    return "Signals analysis task running on " + featureLists;
   }
 
   @Override
@@ -194,6 +200,14 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     return featureLists;
   }
 
+  /**
+   * Counts unique signals between MS1 and MS2 scans.
+   *
+   * @param ms1Scans  The MS1 scans.
+   * @param ms2Scans  The MS2 scans.
+   * @param tolerance The MZ tolerance.
+   * @return The results of the signal count.
+   */
   private SignalsResults countUniqueSignalsBetweenMs1AndMs2(List<Scan> ms1Scans,
       List<Scan> ms2Scans, MZTolerance tolerance) {
     Set<Double> uniqueMs1 = collectUniqueSignalsFromScans(ms1Scans, tolerance);
@@ -210,6 +224,13 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     return new SignalsResults(commonCount, ms1Count, ms2Count, precursorsCount);
   }
 
+  /**
+   * Collects unique signals from scans.
+   *
+   * @param scans     The scans.
+   * @param tolerance The MZ tolerance.
+   * @return A set of unique signals.
+   */
   private Set<Double> collectUniqueSignalsFromScans(List<Scan> scans, MZTolerance tolerance) {
     Set<Double> uniqueSignals = new HashSet<>();
     for (Scan scan : scans) {
@@ -228,6 +249,13 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     return uniqueSignals;
   }
 
+  /**
+   * Collects unique signals from a list of MZ values.
+   *
+   * @param mzValues  The MZ values.
+   * @param tolerance The MZ tolerance.
+   * @return A set of unique signals.
+   */
   private Set<Double> collectUniqueSignals(List<Double> mzValues, MZTolerance tolerance) {
     Set<Double> uniqueSignals = new HashSet<>();
     for (double mz : mzValues) {
@@ -245,6 +273,14 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     return uniqueSignals;
   }
 
+  /**
+   * Counts unique pairs between two sets of MZ values.
+   *
+   * @param uniqueMs1 The unique MS1 signals.
+   * @param uniqueMs2 The unique MS2 signals.
+   * @param tolerance The MZ tolerance.
+   * @return The count of unique pairs.
+   */
   private int countUniquePairs(Set<Double> uniqueMs1, Set<Double> uniqueMs2,
       MZTolerance tolerance) {
     int uniqueCount = 0;
@@ -259,7 +295,10 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     return uniqueCount;
   }
 
-  private class SignalsResults {
+  /**
+   * A container for the results of the signal counting.
+   */
+  private static class SignalsResults {
 
     private final int commonCount;
     private final int ms1Count;
