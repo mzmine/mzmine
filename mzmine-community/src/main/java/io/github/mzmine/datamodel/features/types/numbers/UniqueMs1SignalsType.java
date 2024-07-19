@@ -31,9 +31,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The number of common signals, e.g., comparing MS1 and MS2
  */
-public class TotalSignalsType extends IntegerType {
+public class UniqueMs1SignalsType extends IntegerType {
 
-  public TotalSignalsType() {
+  public UniqueMs1SignalsType() {
     super();
   }
 
@@ -41,12 +41,12 @@ public class TotalSignalsType extends IntegerType {
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "n_total_signals";
+    return "n_unique_ms1_signals";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Total signals";
+    return "Unique MS1 signals";
   }
 
 }

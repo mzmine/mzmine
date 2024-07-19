@@ -39,7 +39,9 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.CommonSignalsType;
-import io.github.mzmine.datamodel.features.types.numbers.TotalSignalsType;
+import io.github.mzmine.datamodel.features.types.numbers.UniqueFragmentedPrecursorsType;
+import io.github.mzmine.datamodel.features.types.numbers.UniqueMs1SignalsType;
+import io.github.mzmine.datamodel.features.types.numbers.UniqueMs2SignalsType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -128,9 +130,12 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
         logger.log(Level.WARNING, ex.getMessage(), ex);
       }
     }
-    int commonSignalsCount = countUniqueSignalsBetweenMs1AndMs2(ms1Scans, ms2Scans, tolerance);
-    row.set(CommonSignalsType.class, commonSignalsCount);
-    row.set(TotalSignalsType.class, collectUniqueSignals(ms1Scans, tolerance).size());
+    SignalsResults results = countUniqueSignalsBetweenMs1AndMs2(ms1Scans, ms2Scans, tolerance);
+    row.set(UniqueFragmentedPrecursorsType.class, results.precursorsCount);
+    row.set(UniqueMs1SignalsType.class, results.ms1Count);
+    row.set(UniqueMs2SignalsType.class, results.ms2Count);
+    row.set(CommonSignalsType.class, results.commonCount);
+
     return new GroupedSignalScans(row, ms1Scans, ms2Scans);
   }
 
@@ -194,15 +199,23 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     return featureLists;
   }
 
-  private int countUniqueSignalsBetweenMs1AndMs2(List<Scan> ms1Scans, List<Scan> ms2Scans,
-      MZTolerance tolerance) {
-    Set<Double> uniqueMs1 = collectUniqueSignals(ms1Scans, tolerance);
-    Set<Double> uniqueMs2 = collectUniqueSignals(ms2Scans, tolerance);
-    int uniqueCount = countUniquePairs(uniqueMs1, uniqueMs2, tolerance);
-    return uniqueCount;
+  private SignalsResults countUniqueSignalsBetweenMs1AndMs2(List<Scan> ms1Scans,
+      List<Scan> ms2Scans, MZTolerance tolerance) {
+    Set<Double> uniqueMs1 = collectUniqueSignalsFromScans(ms1Scans, tolerance);
+    Set<Double> uniqueMs2 = collectUniqueSignalsFromScans(ms2Scans, tolerance);
+    List<Double> precursors = new ArrayList<>();
+    for (Scan scan : ms2Scans) {
+      precursors.add(scan.getPrecursorMz());
+    }
+    int precursorsCount = collectUniqueSignals(precursors, tolerance).size();
+    int commonCount = countUniquePairs(uniqueMs1, uniqueMs2, tolerance);
+    int ms1Count = uniqueMs1.size();
+    int ms2Count = uniqueMs2.size();
+
+    return new SignalsResults(commonCount, ms1Count, ms2Count, precursorsCount);
   }
 
-  private Set<Double> collectUniqueSignals(List<Scan> scans, MZTolerance tolerance) {
+  private Set<Double> collectUniqueSignalsFromScans(List<Scan> scans, MZTolerance tolerance) {
     Set<Double> uniqueSignals = new HashSet<>();
     for (Scan scan : scans) {
       DataPoint[] dataPoints = ScanUtils.extractDataPoints(scan, useMassList);
@@ -210,21 +223,28 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
         // TODO arbitrarily removing 1 around precursor for now
         dataPoints = removePrecursorMz(dataPoints, scan.getPrecursorMz(), 1);
       }
+      List<Double> mzs = new ArrayList<>();
       for (DataPoint dp : dataPoints) {
         double mz = dp.getMZ();
-        boolean isUnique = true;
+        mzs.add(mz);
+      }
+      uniqueSignals.addAll(collectUniqueSignals(mzs, tolerance));
+    }
+    return uniqueSignals;
+  }
 
-        // Check against existing uniqueSignals
-        for (double uniqueMz : uniqueSignals) {
-          if (tolerance.checkWithinTolerance(mz, uniqueMz)) {
-            isUnique = false;
-            break;
-          }
+  private Set<Double> collectUniqueSignals(List<Double> mzValues, MZTolerance tolerance) {
+    Set<Double> uniqueSignals = new HashSet<>();
+    for (double mz : mzValues) {
+      boolean isUnique = true;
+      for (double uniqueMz : uniqueSignals) {
+        if (tolerance.checkWithinTolerance(mz, uniqueMz)) {
+          isUnique = false;
+          break;
         }
-
-        if (isUnique) {
-          uniqueSignals.add(mz);
-        }
+      }
+      if (isUnique) {
+        uniqueSignals.add(mz);
       }
     }
     return uniqueSignals;
@@ -242,5 +262,36 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
       }
     }
     return uniqueCount;
+  }
+
+  private class SignalsResults {
+
+    private final int commonCount;
+    private final int ms1Count;
+    private final int ms2Count;
+    private final int precursorsCount;
+
+    private SignalsResults(int commonCount, int ms1Count, int ms2Count, int precursorsCount) {
+      this.commonCount = commonCount;
+      this.ms1Count = ms1Count;
+      this.ms2Count = ms2Count;
+      this.precursorsCount = precursorsCount;
+    }
+
+    public int getCommonCount() {
+      return commonCount;
+    }
+
+    public int getMs1Count() {
+      return ms1Count;
+    }
+
+    public int getMs2Count() {
+      return ms2Count;
+    }
+
+    public int getPrecursorsCount() {
+      return precursorsCount;
+    }
   }
 }
