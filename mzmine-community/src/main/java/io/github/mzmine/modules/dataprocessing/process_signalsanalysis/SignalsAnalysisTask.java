@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.process_fragmentsanalysis;
+package io.github.mzmine.modules.dataprocessing.process_signalsanalysis;
 
 import static io.github.mzmine.util.DataPointUtils.removePrecursorMz;
 import static io.github.mzmine.util.scans.ScanUtils.findAllMS2FragmentScans;
@@ -38,8 +38,10 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.types.numbers.CommonFragmentsType;
+import io.github.mzmine.datamodel.features.types.numbers.CommonSignalsType;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.process_signalsanalysis.GroupedSignalScans;
+import io.github.mzmine.modules.dataprocessing.process_signalsanalysis.SignalsAnalysisParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
@@ -61,9 +63,9 @@ import org.jetbrains.annotations.Nullable;
  * The task will be scheduled by the TaskController. Progress is calculated from the
  * finishedItems/totalItems
  */
-class FragmentsAnalysisTask extends AbstractFeatureListTask {
+class SignalsAnalysisTask extends AbstractFeatureListTask {
 
-  private static final Logger logger = Logger.getLogger(FragmentsAnalysisTask.class.getName());
+  private static final Logger logger = Logger.getLogger(SignalsAnalysisTask.class.getName());
   private final List<FeatureList> featureLists;
   private final boolean useMassList;
   private final MZTolerance tolerance;
@@ -74,33 +76,32 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
    * @param featureLists data source is featureLists
    * @param parameters   user parameters
    */
-  public FragmentsAnalysisTask(MZmineProject project, List<FeatureList> featureLists,
+  public SignalsAnalysisTask(MZmineProject project, List<FeatureList> featureLists,
       ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.featureLists = featureLists;
     totalItems = featureLists.stream().mapToInt(FeatureList::getNumberOfRows).sum();
-    var scanDataType = parameters.getValue(FragmentsAnalysisParameters.scanDataType);
+    var scanDataType = parameters.getValue(SignalsAnalysisParameters.scanDataType);
     useMassList = scanDataType == ScanDataType.MASS_LIST;
-    tolerance = parameters.getValue(FragmentsAnalysisParameters.tolerance);
+    tolerance = parameters.getValue(SignalsAnalysisParameters.tolerance);
   }
 
-  private static @NotNull Stream<Scan> streamMs1Scans(
-      final List<GroupedFragmentScans> groupedScans) {
-    return groupedScans.stream().map(GroupedFragmentScans::ms1Scans).flatMap(Collection::stream);
+  private static @NotNull Stream<Scan> streamMs1Scans(final List<GroupedSignalScans> groupedScans) {
+    return groupedScans.stream().map(GroupedSignalScans::ms1Scans).flatMap(Collection::stream);
   }
 
   @Override
   protected void process() {
-    List<GroupedFragmentScans> groupedScans = collectSpectra();
+    List<GroupedSignalScans> groupedScans = collectSpectra();
     logger.info("collected spectra - now starting to analyze the grouped scans");
   }
 
-  private List<GroupedFragmentScans> collectSpectra() {
-    List<GroupedFragmentScans> groupingResults = new ArrayList<>();
+  private List<GroupedSignalScans> collectSpectra() {
+    List<GroupedSignalScans> groupingResults = new ArrayList<>();
     for (FeatureList featureList : featureLists) {
       for (var row : featureList.getRows()) {
-        GroupedFragmentScans result = processRow(row);
+        GroupedSignalScans result = processRow(row);
         if (!result.ms2Scans().isEmpty()) {
           groupingResults.add(result);
         }
@@ -109,7 +110,7 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
     return groupingResults;
   }
 
-  private GroupedFragmentScans processRow(FeatureListRow row) {
+  private GroupedSignalScans processRow(FeatureListRow row) {
     // collect all MS1 and MS2 for this row
     List<Scan> ms1Scans = new ArrayList<>();
     List<Scan> ms2Scans = new ArrayList<>();
@@ -128,9 +129,9 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
         logger.log(Level.WARNING, ex.getMessage(), ex);
       }
     }
-    int commonFragmentsCount = countUniqueFragmentsBetweenMs1AndMs2(ms1Scans, ms2Scans, tolerance);
-    row.set(CommonFragmentsType.class, commonFragmentsCount);
-    return new GroupedFragmentScans(row, ms1Scans, ms2Scans);
+    int commonSignalsCount = countUniqueSignalsBetweenMs1AndMs2(ms1Scans, ms2Scans, tolerance);
+    row.set(CommonSignalsType.class, commonSignalsCount);
+    return new GroupedSignalScans(row, ms1Scans, ms2Scans);
   }
 
   /**
@@ -146,7 +147,6 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
     }
     RawDataFile raw = feature.getRawDataFile();
     String rawFileName = raw.getFileName();
-    // collect all scans to export
     List<Scan> scansToExport = new ArrayList<>();
     Scan bestMs1 = feature.getRepresentativeScan();
     if (bestMs1 != null) {
@@ -155,9 +155,9 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
       for (DataPoint dp : dataPoints) {
         double ms1Signal = dp.getMZ();
         // TODO this is dirty for now, will become an option to output both assigned MS2s and MS2s of all present signals
-        Scan[] ms2Scans = findAllMS2FragmentScans(raw, Range.closed(0f, 100f),
+        Scan[] fragmentScansBroad = findAllMS2FragmentScans(raw, Range.closed(0f, 9999f),
             Range.closed(ms1Signal - 0.1, ms1Signal + 0.1));
-        for (Scan ms2 : ms2Scans) {
+        for (Scan ms2 : fragmentScansBroad) {
           if (ms2 != null) {
             scansToExport.add(ms2);
           }
@@ -171,21 +171,22 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
       if (ms2 != null) {
         scansToExport.add(ms2);
       }
-      Scan previousScan = ScanUtils.findPrecursorScan(ms2);
-      if (previousScan != null) {
-        scansToExport.add(previousScan);
-      }
-      Scan nextScan = ScanUtils.findSucceedingPrecursorScan(ms2);
-      if (nextScan != null) {
-        scansToExport.add(nextScan);
-      }
+      // COMMENT: removed for now
+//      Scan previousScan = ScanUtils.findPrecursorScan(ms2);
+//      if (previousScan != null) {
+//        scansToExport.add(previousScan);
+//      }
+//      Scan nextScan = ScanUtils.findSucceedingPrecursorScan(ms2);
+//      if (nextScan != null) {
+//        scansToExport.add(nextScan);
+//      }
     }
     return scansToExport;
   }
 
   @Override
   public String getTaskDescription() {
-    return STR."Fragments analysis task runs on \{featureLists}";
+    return STR."Signals analysis task runs on \{featureLists}";
   }
 
   @Override
@@ -193,17 +194,16 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
     return featureLists;
   }
 
-  // TODO: Sanitize the spectra by removing everything above the precursor - tolerance? And more?
-  private int countUniqueFragmentsBetweenMs1AndMs2(List<Scan> ms1Scans, List<Scan> ms2Scans,
+  private int countUniqueSignalsBetweenMs1AndMs2(List<Scan> ms1Scans, List<Scan> ms2Scans,
       MZTolerance tolerance) {
-    Set<Double> uniqueMs1 = collectUniqueFragments(ms1Scans, tolerance);
-    Set<Double> uniqueMs2 = collectUniqueFragments(ms2Scans, tolerance);
+    Set<Double> uniqueMs1 = collectUniqueSignals(ms1Scans, tolerance);
+    Set<Double> uniqueMs2 = collectUniqueSignals(ms2Scans, tolerance);
     int uniqueCount = countUniquePairs(uniqueMs1, uniqueMs2, tolerance);
     return uniqueCount;
   }
 
-  private Set<Double> collectUniqueFragments(List<Scan> scans, MZTolerance tolerance) {
-    Set<Double> uniqueFragments = new HashSet<>();
+  private Set<Double> collectUniqueSignals(List<Scan> scans, MZTolerance tolerance) {
+    Set<Double> uniqueSignals = new HashSet<>();
     for (Scan scan : scans) {
       DataPoint[] dataPoints = ScanUtils.extractDataPoints(scan, useMassList);
       if (scan.getMSLevel() > 1) {
@@ -214,8 +214,8 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
         double mz = dp.getMZ();
         boolean isUnique = true;
 
-        // Check against existing uniqueFragments
-        for (double uniqueMz : uniqueFragments) {
+        // Check against existing uniqueSignals
+        for (double uniqueMz : uniqueSignals) {
           if (tolerance.checkWithinTolerance(mz, uniqueMz)) {
             isUnique = false;
             break;
@@ -223,11 +223,11 @@ class FragmentsAnalysisTask extends AbstractFeatureListTask {
         }
 
         if (isUnique) {
-          uniqueFragments.add(mz);
+          uniqueSignals.add(mz);
         }
       }
     }
-    return uniqueFragments;
+    return uniqueSignals;
   }
 
   private int countUniquePairs(Set<Double> uniqueMs1, Set<Double> uniqueMs2,

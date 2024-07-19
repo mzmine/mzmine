@@ -23,10 +23,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.process_fragmentsanalysis;
+package io.github.mzmine.modules.dataprocessing.process_signalsanalysis;
 
-public record GroupedFragmentScans(io.github.mzmine.datamodel.features.FeatureListRow row,
-                                   java.util.List<io.github.mzmine.datamodel.Scan> ms1Scans,
-                                   java.util.List<io.github.mzmine.datamodel.Scan> ms2Scans) {
+public record GroupedSignalScans(io.github.mzmine.datamodel.features.FeatureListRow row,
+                                 java.util.List<io.github.mzmine.datamodel.Scan> ms1Scans,
+                                 java.util.List<io.github.mzmine.datamodel.Scan> ms2Scans) {
 
 }

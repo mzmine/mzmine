@@ -23,16 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.process_fragmentsanalysis;
+package io.github.mzmine.modules.dataprocessing.process_signalsanalysis;
 
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameSuffixExportParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import java.util.List;
-import javafx.stage.FileChooser.ExtensionFilter;
 
 /**
  * Define any parameters here (see io.github.mzmine.parameters for parameter types) static is needed
@@ -40,7 +37,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
  * <p>
  * var flists = parameters.getValue(EmptyFeatureListParameters.featureLists);
  */
-public class FragmentsAnalysisParameters extends SimpleParameterSet {
+public class SignalsAnalysisParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
@@ -49,25 +46,14 @@ public class FragmentsAnalysisParameters extends SimpleParameterSet {
   public static final ComboParameter<ScanDataType> scanDataType = new ComboParameter<>(
       "MS data selection",
       "Show either raw data or filtered centroid data (after mass detection and other filters).\n"
-      + "RAW on profile mode spectra may result in unwanted results, apply mass detection and choose centroid instead. ",
+          + "RAW on profile mode spectra may result in unwanted results, apply mass detection and choose centroid instead. ",
       ScanDataType.values(), ScanDataType.MASS_LIST);
 
-  private static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("mgf format that contains MS1 and MS2 data", "*.mgf")); //
-
-  // those are just example parameters and should be exchanged
-  public static final FileNameSuffixExportParameter outFile = new FileNameSuffixExportParameter(
-      "Filename", "Name of the output MGF file. "
-                  + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-                  + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
-                  + "If the file already exists, it will be overwritten.", extensions,
-      "fragments_analysis");
-
-  public FragmentsAnalysisParameters() {
+  public SignalsAnalysisParameters() {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */
-    super(featureLists, scanDataType, outFile, tolerance);
+    super(featureLists, scanDataType, tolerance);
   }
 
 }

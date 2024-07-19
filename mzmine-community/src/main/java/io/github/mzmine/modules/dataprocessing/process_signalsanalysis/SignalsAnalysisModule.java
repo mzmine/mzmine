@@ -23,7 +23,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.process_fragmentsanalysis;
+package io.github.mzmine.modules.dataprocessing.process_signalsanalysis;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -37,10 +37,10 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FragmentsAnalysisModule extends TaskPerFeatureListModule {
+public class SignalsAnalysisModule extends TaskPerFeatureListModule {
 
-  public FragmentsAnalysisModule() {
-    super("Fragments analysis", FragmentsAnalysisParameters.class,
+  public SignalsAnalysisModule() {
+    super("Signals analysis", SignalsAnalysisParameters.class,
         MZmineModuleCategory.FEATURELISTEXPORT, false,
         "This is a description of the amazing quest we have...");
   }
@@ -49,8 +49,8 @@ public class FragmentsAnalysisModule extends TaskPerFeatureListModule {
   public @NotNull Task createTask(final @NotNull MZmineProject project,
       final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
       final @Nullable MemoryMapStorage storage, final @NotNull FeatureList featureList) {
-    return new FragmentsAnalysisTask(project, List.of(featureList), parameters, storage,
-        moduleCallDate, this.getClass());
+    return new io.github.mzmine.modules.dataprocessing.process_signalsanalysis.SignalsAnalysisTask(
+        project, List.of(featureList), parameters, storage, moduleCallDate, this.getClass());
   }
 
 }

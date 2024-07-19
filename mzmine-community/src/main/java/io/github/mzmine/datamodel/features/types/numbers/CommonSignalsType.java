@@ -29,11 +29,11 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The number of matched signals, e.g., during spectral library matching
+ * The number of common signals, e.g., comparing MS1 and MS2
  */
-public class CommonFragmentsType extends IntegerType {
+public class CommonSignalsType extends IntegerType {
 
-  public CommonFragmentsType() {
+  public CommonSignalsType() {
     super();
   }
 
@@ -41,12 +41,12 @@ public class CommonFragmentsType extends IntegerType {
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "n_common_fragments";
+    return "n_common_signals";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Common fragments";
+    return "Common signals";
   }
 
 }
