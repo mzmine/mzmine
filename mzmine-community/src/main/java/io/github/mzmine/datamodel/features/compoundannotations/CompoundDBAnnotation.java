@@ -167,7 +167,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     final String smiles = annotation.getSmiles();
     final IMolecularFormula neutralFormula =
         formulaString != null ? FormulaUtils.neutralizeFormulaWithHydrogen(formulaString)
-            : FormulaUtils.neutralizeFormulaWithHydrogen(FormulaUtils.getFomulaFromSmiles(smiles));
+            : FormulaUtils.neutralizeFormulaWithHydrogen(FormulaUtils.getFormulaFromSmiles(smiles));
 
     if (neutralFormula != null) {
       return MolecularFormulaManipulator.getMass(neutralFormula,
@@ -314,14 +314,14 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation,
     return get(CompoundAnnotationScoreType.class);
   }
 
+  default void setScore(Float score) {
+    put(CompoundAnnotationScoreType.class, score);
+  }
+
   @Override
   @Nullable
   default String getDatabase() {
     return get(DatabaseNameType.class);
-  }
-
-  default void setScore(Float score) {
-    put(CompoundAnnotationScoreType.class, score);
   }
 
   boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,

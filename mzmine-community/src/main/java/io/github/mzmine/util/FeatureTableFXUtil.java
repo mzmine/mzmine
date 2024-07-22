@@ -26,13 +26,16 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXMLTabAnchorPaneController;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
+import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.scene.control.IndexedCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.skin.VirtualFlow;
@@ -80,5 +83,13 @@ public class FeatureTableFXUtil {
       }
     }
     table.getSelectionModel().clearAndSelect(table.getRoot().getChildren().indexOf(rowItem));
+  }
+
+  public static void selectAndScrollTo(@Nullable FeatureListRow row,
+      @NotNull FeatureTableFX table) {
+    final ObservableList<TreeItem<ModularFeatureListRow>> children = table.getRoot().getChildren();
+    final Optional<TreeItem<ModularFeatureListRow>> selected = children.stream()
+        .filter(item -> item.getValue().equals(row)).findAny();
+    selectAndScrollTo(selected.orElse(null), table);
   }
 }

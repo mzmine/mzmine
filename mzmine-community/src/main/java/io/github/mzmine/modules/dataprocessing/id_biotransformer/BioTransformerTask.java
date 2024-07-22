@@ -160,7 +160,7 @@ public class BioTransformerTask extends AbstractTask {
       @NotNull String bestSmiles, @Nullable String prefix, @NotNull File bioTransformerPath,
       @NotNull ParameterSet parameters, @NotNull IonNetworkLibrary ionLibrary) throws IOException {
 
-    final IMolecularFormula fomulaFromSmiles = FormulaUtils.getFomulaFromSmiles(bestSmiles);
+    final IMolecularFormula fomulaFromSmiles = FormulaUtils.getFormulaFromSmiles(bestSmiles);
     if (FormulaUtils.getMonoisotopicMass(fomulaFromSmiles) > molecularMassCutoff) {
       return List.of();
     }
