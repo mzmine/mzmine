@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,6 +38,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -143,8 +144,11 @@ public class BioTransformerSingleRowTask extends AbstractTask {
           }
 
           r.addCompoundAnnotation(clone);
-          row.getCompoundAnnotations()
-              .sort(Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
+          final List<CompoundDBAnnotation> annotations = new ArrayList<>(
+              row.getCompoundAnnotations());
+          annotations.sort(
+              Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
+          row.setCompoundAnnotations(annotations);
         }
       });
     }
