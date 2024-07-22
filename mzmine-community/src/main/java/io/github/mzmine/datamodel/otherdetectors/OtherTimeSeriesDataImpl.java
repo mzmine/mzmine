@@ -27,7 +27,6 @@ package io.github.mzmine.datamodel.otherdetectors;
 
 import static io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl.DEFAULT_UNIT;
 
-import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +48,7 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
   }
 
   @Override
-  public @NotNull IntensityTimeSeries getTimeSeries(int index) {
+  public @NotNull OtherTimeSeries getTimeSeries(int index) {
     return timeSeries.get(index);
   }
 

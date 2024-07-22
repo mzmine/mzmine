@@ -25,7 +25,6 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
-import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +49,7 @@ public interface OtherTimeSeriesData {
   }
 
   @NotNull
-  IntensityTimeSeries getTimeSeries(int index);
+  OtherTimeSeries getTimeSeries(int index);
 
   /**
    * @return The chromatograms in this data file or null if this file does not contain
