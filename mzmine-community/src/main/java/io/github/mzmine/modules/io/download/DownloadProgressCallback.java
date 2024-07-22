@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.download;
 
-public class Downloader {
+public interface DownloadProgressCallback {
 
+  void onProgress(final long totalBytes, final long bytesRead, double progress);
 }

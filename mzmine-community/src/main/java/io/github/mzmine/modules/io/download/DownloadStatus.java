@@ -25,33 +25,13 @@
 
 package io.github.mzmine.modules.io.download;
 
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import java.time.Instant;
-import org.jetbrains.annotations.NotNull;
+public enum DownloadStatus {
+  WAITING, DOWNLOADING, CANCEL_REMOVE, ERROR_REMOVE, SUCCESS;
 
-public class DownloadTask extends AbstractTask {
-
-  public String description = "Waiting for download";
-
-  protected DownloadTask(@NotNull final Instant moduleCallDate) {
-    super(moduleCallDate);
-  }
-
-  @Override
-  public String getTaskDescription() {
-    return description;
-  }
-
-  @Override
-  public double getFinishedPercentage() {
-    return 0;
-  }
-
-  @Override
-  public void run() {
-    setStatus(TaskStatus.PROCESSING);
-
-    setStatus(TaskStatus.FINISHED);
+  public boolean isRemove() {
+    return switch (this) {
+      case SUCCESS, WAITING, DOWNLOADING -> false;
+      case ERROR_REMOVE, CANCEL_REMOVE -> true;
+    };
   }
 }
