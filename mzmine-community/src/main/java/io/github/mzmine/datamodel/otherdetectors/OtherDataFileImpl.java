@@ -37,6 +37,7 @@ public class OtherDataFileImpl implements OtherDataFile {
   private @NotNull String description = "Unknown file";
   private OtherSpectralData spectralData = null;
   private OtherTimeSeriesData timeSeriesData = null;
+  private DetectorType detectorType = null;
 
   public OtherDataFileImpl(RawDataFile rawDataFile) {
     this.rawDataFile = rawDataFile;
@@ -84,4 +85,12 @@ public class OtherDataFileImpl implements OtherDataFile {
     this.description = description;
   }
 
+  @Override
+  public DetectorType getDetectorType() {
+    return detectorType;
+  }
+
+  public void setDetectorType(DetectorType detectorType) {
+    this.detectorType = detectorType;
+  }
 }
