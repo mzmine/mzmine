@@ -38,10 +38,13 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.types.numbers.CommonSignalsTotalIntensityType;
 import io.github.mzmine.datamodel.features.types.numbers.CommonSignalsType;
 import io.github.mzmine.datamodel.features.types.numbers.UniqueFragmentedPrecursorsType;
 import io.github.mzmine.datamodel.features.types.numbers.UniqueMs1SignalsType;
+import io.github.mzmine.datamodel.features.types.numbers.UniqueMs1TotalIntensityType;
 import io.github.mzmine.datamodel.features.types.numbers.UniqueMs2SignalsType;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -50,6 +53,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -119,7 +123,7 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
   private List<GroupedSignalScans> collectSpectra() {
     List<GroupedSignalScans> groupingResults = new ArrayList<>();
     for (FeatureList featureList : featureLists) {
-      for (var row : featureList.getRows()) {
+      for (FeatureListRow row : featureList.getRows()) {
         GroupedSignalScans result = processRow(row);
         groupingResults.add(result);
       }
@@ -155,6 +159,8 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     row.set(UniqueMs1SignalsType.class, results.ms1Count);
     row.set(UniqueMs2SignalsType.class, results.ms2Count);
     row.set(CommonSignalsType.class, results.commonCount);
+    row.set(UniqueMs1TotalIntensityType.class, results.ms1Intensity);
+    row.set(CommonSignalsTotalIntensityType.class, results.commonIntensity);
 
     return new GroupedSignalScans(row, ms1Scans, ms2Scans);
   }
@@ -210,64 +216,67 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
    */
   private SignalsResults countUniqueSignalsBetweenMs1AndMs2(List<Scan> ms1Scans,
       List<Scan> ms2Scans, MZTolerance tolerance) {
-    Set<Double> uniqueMs1 = collectUniqueSignalsFromScans(ms1Scans, tolerance);
-    Set<Double> uniqueMs2 = collectUniqueSignalsFromScans(ms2Scans, tolerance);
-    List<Double> precursors = new ArrayList<>();
+    Set<DataPoint> uniqueMs1 = collectUniqueSignalsFromScans(ms1Scans, tolerance);
+    Set<DataPoint> uniqueMs2 = collectUniqueSignalsFromScans(ms2Scans, tolerance);
+    List<DataPoint> precursors = new ArrayList<>();
     for (Scan scan : ms2Scans) {
-      precursors.add(scan.getPrecursorMz());
+      DataPoint precursorDataPoint = new SimpleDataPoint(scan.getPrecursorMz(), 0.0);
+      precursors.add(precursorDataPoint);
     }
     int precursorsCount = collectUniqueSignals(precursors, tolerance).size();
     int commonCount = countUniquePairs(uniqueMs1, uniqueMs2, tolerance);
     int ms1Count = uniqueMs1.size();
     int ms2Count = uniqueMs2.size();
 
-    return new SignalsResults(commonCount, ms1Count, ms2Count, precursorsCount);
+    double ms1Intensity = uniqueMs1.stream().mapToDouble(DataPoint::getIntensity).sum();
+    double commonIntensity = uniqueMs1.stream().filter(dp1 -> uniqueMs2.stream()
+            .anyMatch(dp2 -> tolerance.checkWithinTolerance(dp1.getMZ(), dp2.getMZ())))
+        .mapToDouble(DataPoint::getIntensity).sum();
+
+    return new SignalsResults(commonCount, ms1Count, ms2Count, precursorsCount, ms1Intensity,
+        commonIntensity);
   }
 
   /**
-   * Collects unique signals from scans.
+   * Collects unique dataPoints from scans.
    *
    * @param scans     The scans.
    * @param tolerance The MZ tolerance.
-   * @return A set of unique signals.
+   * @return A set of unique dataPoints.
    */
-  private Set<Double> collectUniqueSignalsFromScans(List<Scan> scans, MZTolerance tolerance) {
-    Set<Double> uniqueSignals = new HashSet<>();
+  private Set<DataPoint> collectUniqueSignalsFromScans(List<Scan> scans, MZTolerance tolerance) {
+    Set<DataPoint> uniqueSignals = new HashSet<>();
     for (Scan scan : scans) {
       DataPoint[] dataPoints = ScanUtils.extractDataPoints(scan, useMassList);
       if (scan.getMSLevel() > 1) {
         // TODO arbitrarily removing 1 around precursor for now
         dataPoints = removePrecursorMz(dataPoints, scan.getPrecursorMz(), 1);
       }
-      List<Double> mzs = new ArrayList<>();
-      for (DataPoint dp : dataPoints) {
-        double mz = dp.getMZ();
-        mzs.add(mz);
-      }
-      uniqueSignals.addAll(collectUniqueSignals(mzs, tolerance));
+      List<DataPoint> dps = Arrays.asList(dataPoints);
+      uniqueSignals.addAll(collectUniqueSignals(dps, tolerance));
     }
     return uniqueSignals;
   }
 
   /**
-   * Collects unique signals from a list of MZ values.
+   * Collects unique signals from a list of dataPoints.
    *
-   * @param mzValues  The MZ values.
-   * @param tolerance The MZ tolerance.
+   * @param dataPoints The dataPoints.
+   * @param tolerance  The MZ tolerance.
    * @return A set of unique signals.
    */
-  private Set<Double> collectUniqueSignals(List<Double> mzValues, MZTolerance tolerance) {
-    Set<Double> uniqueSignals = new HashSet<>();
-    for (double mz : mzValues) {
+  private Set<DataPoint> collectUniqueSignals(List<DataPoint> dataPoints, MZTolerance tolerance) {
+    Set<DataPoint> uniqueSignals = new HashSet<>();
+    for (DataPoint dp : dataPoints) {
       boolean isUnique = true;
-      for (double uniqueMz : uniqueSignals) {
-        if (tolerance.checkWithinTolerance(mz, uniqueMz)) {
+      for (DataPoint uniqueDp : uniqueSignals) {
+        if (tolerance.checkWithinTolerance(dp.getMZ(), uniqueDp.getMZ())) {
           isUnique = false;
           break;
         }
       }
       if (isUnique) {
-        uniqueSignals.add(mz);
+        uniqueSignals.add(dp);
       }
     }
     return uniqueSignals;
@@ -281,14 +290,14 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
    * @param tolerance The MZ tolerance.
    * @return The count of unique pairs.
    */
-  private int countUniquePairs(Set<Double> uniqueMs1, Set<Double> uniqueMs2,
+  private int countUniquePairs(Set<DataPoint> uniqueMs1, Set<DataPoint> uniqueMs2,
       MZTolerance tolerance) {
     int uniqueCount = 0;
-    for (double mz1 : uniqueMs1) {
-      for (double mz2 : uniqueMs2) {
-        if (tolerance.checkWithinTolerance(mz1, mz2)) {
+    for (DataPoint dp1 : uniqueMs1) {
+      for (DataPoint dp2 : uniqueMs2) {
+        if (tolerance.checkWithinTolerance(dp1.getMZ(), dp2.getMZ())) {
           uniqueCount++;
-          break; // Move to next mz1
+          break; // Move to next dp1
         }
       }
     }
@@ -304,12 +313,17 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     private final int ms1Count;
     private final int ms2Count;
     private final int precursorsCount;
+    private final double ms1Intensity;
+    private final double commonIntensity;
 
-    private SignalsResults(int commonCount, int ms1Count, int ms2Count, int precursorsCount) {
+    private SignalsResults(int commonCount, int ms1Count, int ms2Count, int precursorsCount,
+        double ms1Intensity, double commonIntensity) {
       this.commonCount = commonCount;
       this.ms1Count = ms1Count;
       this.ms2Count = ms2Count;
       this.precursorsCount = precursorsCount;
+      this.ms1Intensity = ms1Intensity;
+      this.commonIntensity = commonIntensity;
     }
 
     public int getCommonCount() {
@@ -326,6 +340,14 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
 
     public int getPrecursorsCount() {
       return precursorsCount;
+    }
+
+    public double getMs1Intensity() {
+      return ms1Intensity;
+    }
+
+    public double getCommonIntensity() {
+      return commonIntensity;
     }
   }
 }
