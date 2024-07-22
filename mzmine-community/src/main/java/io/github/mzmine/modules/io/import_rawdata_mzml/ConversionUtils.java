@@ -390,6 +390,7 @@ public class ConversionUtils {
     for (Entry<ChromatogramType, List<MzMLChromatogram>> grouped : groupedChromatograms.entrySet()) {
       final OtherDataFileImpl otherFile = new OtherDataFileImpl(file);
       final OtherTimeSeriesDataImpl timeSeriesData = new OtherTimeSeriesDataImpl(otherFile);
+      otherFile.setDetectorType(DetectorType.OTHER);
 
       timeSeriesData.setChromatogramType(grouped.getKey());
       otherFile.setDescription(grouped.getKey().getDescription());
