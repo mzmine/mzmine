@@ -31,22 +31,22 @@ import static io.github.mzmine.javafx.components.factories.FxTexts.text;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIKeyStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.MolecularStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.LongType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.identities.iontype.IonTypeParser;
 import io.github.mzmine.datamodel.structures.StructureParser;
@@ -55,13 +55,11 @@ import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
-import io.github.mzmine.util.annotations.ConnectedTypeCalculation;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.logging.Logger;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -92,30 +90,23 @@ import org.jetbrains.annotations.Nullable;
 
 public class CompoundAnnotationViewBuilder extends FxViewBuilder<CompoundAnnotationModel> {
 
-  private static final Logger logger = Logger.getLogger(CompoundAnnotationViewBuilder.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      CompoundAnnotationViewBuilder.class.getName());
   private final Runnable onSave;
   private final Runnable onCancel;
-  private final Set<DataType<?>> excludedTypes = new HashSet<>();
+  //  private final Set<DataType<?>> excludedTypes = new HashSet<>();
   private BooleanProperty valid = new SimpleBooleanProperty(false);
-  private final List<DataType<?>> userTypes = List.of();
+  private final List<DataType<?>> userTypes = Arrays.stream(
+          new DataType<?>[]{new CompoundNameType(), new FormulaType(), new IonTypeType(),
+              new SmilesStructureType(), new InChIStructureType(), new InChIKeyStructureType(),
+              new PrecursorMZType(), new RTType(), new CCSType(), new CommentType()})
+      .sorted(Comparator.comparing(DataType::getUniqueID)).toList();
 
   protected CompoundAnnotationViewBuilder(CompoundAnnotationModel model, Runnable onSave,
       Runnable onCancel) {
     super(model);
     this.onSave = onSave;
     this.onCancel = onCancel;
-
-    excludedTypes.addAll(ConnectedTypeCalculation.MAP.keySet());
-    excludedTypes.add(DataTypes.get(CompoundDatabaseMatchesType.class));
-    excludedTypes.add(DataTypes.get(CompoundAnnotationScoreType.class));
-    excludedTypes.add(DataTypes.get(MolecularStructureType.class));
-    excludedTypes.add(DataTypes.get(DatabaseMatchInfoType.class));
-    excludedTypes.add(DataTypes.get(IsotopePatternScoreType.class));
-
-    // added as possibly calculated type, but should be present in the gui
-    excludedTypes.remove(DataTypes.get(IonTypeType.class));
-    excludedTypes.remove(DataTypes.get(PrecursorMZType.class));
-    excludedTypes.remove(DataTypes.get(FormulaType.class));
   }
 
   @Override
@@ -131,11 +122,8 @@ public class CompoundAnnotationViewBuilder extends FxViewBuilder<CompoundAnnotat
     final HBox structWrapper = new HBox();
     main.setTop(structWrapper);
     int rowCounter = 0;
-    for (int i = 0; i < subDataTypes.size(); i++) {
-      DataType type = subDataTypes.get(i);
-      if (excludedTypes.contains(type)) {
-        continue;
-      }
+    for (int i = 0; i < userTypes.size(); i++) {
+      DataType type = userTypes.get(i);
       final TextField tf = createTextField(type, structWrapper);
       if (tf == null) {
         continue;
