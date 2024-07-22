@@ -701,10 +701,6 @@ public class BuildingMzMLMsScan extends MetadataOnlyScan {
         return false;
       }
 
-      // process and filter - needs metadata so wrap
-//      specData = config.processor().processScan(this, specData);
-
-      // memory map regular scan data but not mobility scans
       this.wavelengthValues = StorageUtils.storeValuesToDoubleBuffer(storage, specData.mzs());
       this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage,
           specData.intensities());

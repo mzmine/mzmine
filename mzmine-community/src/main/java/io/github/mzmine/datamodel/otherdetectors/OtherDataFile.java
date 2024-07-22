@@ -60,4 +60,5 @@ public interface OtherDataFile {
   @NotNull
   String getDescription();
 
+  DetectorType getDetectorType();
 }

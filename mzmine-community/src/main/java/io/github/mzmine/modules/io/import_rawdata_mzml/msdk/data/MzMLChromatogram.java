@@ -58,7 +58,7 @@ public class MzMLChromatogram implements Chromatogram {
   private final @NotNull String chromatogramId;
   private final @NotNull Integer chromatogramNumber;
   private final @NotNull Integer numOfDataPoints;
-  private final Logger logger = Logger.getLogger(getClass().getName());
+  private static final Logger logger = Logger.getLogger(MzMLChromatogram.class.getName());
   private MzMLCVGroup cvParams;
   private MzMLPrecursorElement precursor;
   private MzMLProduct product;

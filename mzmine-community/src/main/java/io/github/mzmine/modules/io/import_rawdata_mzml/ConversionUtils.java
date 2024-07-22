@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.datamodel.otherdetectors.DetectorType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherSpectralData;
@@ -147,7 +148,8 @@ public class ConversionUtils {
   }
 
   /**
-   * Convert other spectra to {@link OtherDataFile}s.
+   * Convert other spectra to {@link OtherDataFile}s, creating one {@link OtherDataFile} per
+   * detector type. Currently, only absorption spectra are supported.
    */
   public static List<OtherDataFile> convertOtherSpectra(RawDataFile file,
       List<BuildingMzMLMsScan> scans) {
@@ -199,6 +201,7 @@ public class ConversionUtils {
 
     final OtherDataFileImpl otherDataFile = new OtherDataFileImpl(file);
     otherDataFile.setDescription("UV spectra");
+    otherDataFile.setDetectorType(DetectorType.PDA);
 
     final BuildingMzMLMsScan scan = scans.getFirst();
     final Optional<MzMLCVParam> cvLowestWavelength = scan.getCVParam(
@@ -370,6 +373,11 @@ public class ConversionUtils {
     }
   }
 
+  /**
+   * Converts chromatograms from the MZML and groups them into one {@link OtherDataFile} per
+   * chromatogram type. E.g. all pressure, all PDA or all UV chromatograms will be in one file.
+   *
+   */
   public static List<OtherDataFile> convertOtherTraces(RawDataFile file,
       List<Chromatogram> chromatograms) {
 

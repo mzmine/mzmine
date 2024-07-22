@@ -27,8 +27,12 @@ package io.github.mzmine.datamodel.otherdetectors;
 
 public enum DetectorType {
 
-  OTHER("Other", "Other"), PDA("PDA", "Photo diode array detector"), UV_VIS("UV/VIS",
-      "UV/VIS"), PUMP_PRESSURE("p", "pressure"), COMPOSITION("composition", "composition");
+  OTHER("Other", "Other"), //
+  PDA("PDA", "Photo diode array detector"), //
+  UV_VIS("UV/VIS", "UV/VIS"), //
+  PUMP_PRESSURE("p", "pressure"),//
+  COMPOSITION("composition", "composition"),
+  MS("MS", "Mass spectrometry");//
 
   String abbreviation;
   String fullName;
