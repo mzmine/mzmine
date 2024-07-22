@@ -35,13 +35,12 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -146,8 +145,7 @@ public class BioTransformerSingleRowTask extends AbstractTask {
           r.addCompoundAnnotation(clone);
           final List<CompoundDBAnnotation> annotations = new ArrayList<>(
               row.getCompoundAnnotations());
-          annotations.sort(
-              Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
+          annotations.sort(CompoundAnnotationUtils.getSorterMaxScoreFirst());
           row.setCompoundAnnotations(annotations);
         }
       });

@@ -42,13 +42,13 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.annotations.CompoundAnnotationUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
@@ -115,8 +115,8 @@ public class BioTransformerTask extends AbstractTask {
     final boolean enableAdvancedFilters = parameters.getValue(BioTransformerParameters.advanced);
     final ParameterSet filterParams = parameters.getEmbeddedParameterValue(
         BioTransformerParameters.advanced);
-    rowCorrelationFilter =
-        enableAdvancedFilters && filterParams.getValue(RtClusterFilterParameters.rowCorrelationFilter);
+    rowCorrelationFilter = enableAdvancedFilters && filterParams.getValue(
+        RtClusterFilterParameters.rowCorrelationFilter);
     rtTolerance = enableAdvancedFilters ? filterParams.getEmbeddedParameterValueIfSelectedOrElse(
         RtClusterFilterParameters.rtTolerance, null) : null;
 
@@ -270,8 +270,7 @@ public class BioTransformerTask extends AbstractTask {
               r.addCompoundAnnotation(clone);
               final List<CompoundDBAnnotation> annotations = new ArrayList<>(
                   row.getCompoundAnnotations());
-              annotations.sort(
-                  Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
+              annotations.sort(CompoundAnnotationUtils.getSorterMaxScoreFirst());
               row.setCompoundAnnotations(annotations);
               numAnnotations.getAndIncrement();
             }
