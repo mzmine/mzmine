@@ -47,6 +47,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
@@ -267,8 +268,11 @@ public class BioTransformerTask extends AbstractTask {
               }
 
               r.addCompoundAnnotation(clone);
-              row.getCompoundAnnotations().sort(
+              final List<CompoundDBAnnotation> annotations = new ArrayList<>(
+                  row.getCompoundAnnotations());
+              annotations.sort(
                   Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
+              row.setCompoundAnnotations(annotations);
               numAnnotations.getAndIncrement();
             }
           });
