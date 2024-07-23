@@ -69,6 +69,7 @@ public class RawDataFileTypeDetector {
   private static final String AIRD_SUFFIX = ".aird";
   private static final String MZML_SUFFIX = ".mzml";
   private static final String IMZML_SUFFIX = ".imzml";
+  private static final String BAF_SUFFIX = ".baf";
 
   private static final Logger logger = Logger.getLogger(RawDataFileTypeDetector.class.getName());
 
@@ -94,6 +95,9 @@ public class RawDataFileTypeDetector {
         if (f.isFile() && (f.getName().contains(TSF_SUFFIX) || f.getName()
             .contains(TSF_BIN_SUFFIX))) {
           return RawDataFileType.BRUKER_TSF;
+        }
+        if (f.isFile() && (f.getName().contains(BAF_SUFFIX))) {
+          return RawDataFileType.BRUKER_BAF;
         }
       }
       // We don't recognize any other directory type than Waters and Bruker

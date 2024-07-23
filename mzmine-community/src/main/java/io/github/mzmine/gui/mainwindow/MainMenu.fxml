@@ -331,11 +331,11 @@
     </Menu>
 
     <Menu text="Isotopes">
-      <MenuItem onAction="#runModule" text="13C isotope filter (formerly: isotope grouper)"
+      <MenuItem onAction="#runModule" text="13C isotope feature filter (formerly: isotope grouper)"
         userData="io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule"/>
-      <MenuItem onAction="#runModule" text="Isotope pattern finder"
+      <MenuItem onAction="#runModule" text="Isotopic signal finder (In scans)"
         userData="io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule"/>
-      <MenuItem text="Isotope peak scanner" onAction="#runModule"
+      <MenuItem text="Isotope feature scanner" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule"/>
     </Menu>
 
@@ -433,9 +433,9 @@
     </Menu>
 
     <Menu text="Normalization">
-      <MenuItem text="Retention time calibration"
+      <MenuItem text="Retention time correction"
         onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule"/>
       <MenuItem text="Linear normalizer" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule"/>
       <MenuItem text="Standard compound normalizer"
@@ -510,6 +510,9 @@
         userData="io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule"/>
       <MenuItem onAction="#runModule" text="Image viewer"
         userData="io.github.mzmine.modules.visualization.image.ImageVisualizerModule"/>
+      <MenuItem onAction="#runModule" text="Multi detector visualizer"
+        userData="io.github.mzmine.modules.visualization.otherdetectors.multidetector.MultidetectorVisualizerModule"/>
+
 
       <SeparatorMenuItem/>
 

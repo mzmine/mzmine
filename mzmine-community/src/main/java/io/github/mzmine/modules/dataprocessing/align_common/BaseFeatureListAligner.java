@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.align_common;
 
+import static java.util.Comparator.comparing;
 import static java.util.Comparator.comparingInt;
 
 import io.github.mzmine.datamodel.RawDataFile;
@@ -185,9 +186,11 @@ public class BaseFeatureListAligner {
     // list all rows for each feature list
     final List<List<FeatureListRow>> allRows = new ArrayList<>(featureLists.size());
 
-    for (var flist : featureLists) {
+    // sort feature lists by name to make reproducible
+    // this is needed if 2 feature lists have the same number of rows, which will lead to different results
+    featureLists.stream().sorted(comparing(FeatureList::getName)).forEach(flist -> {
       allRows.add(new ArrayList<>(flist.getRows()));
-    }
+    });
 
     // still contains rows from unaligned feature lists
     while (!allRows.isEmpty()) {

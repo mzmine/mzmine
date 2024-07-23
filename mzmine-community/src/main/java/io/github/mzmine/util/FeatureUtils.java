@@ -60,6 +60,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -660,4 +661,5 @@ public class FeatureUtils {
 
     return absCharge * pol.getSign();
   }
+
 }

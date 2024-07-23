@@ -17,10 +17,8 @@ Getting started with the [Documentation](https://mzmine.github.io/mzmine_documen
 
 ## License
 
-mzmine is a free software; you can redistribute it and/or modify it under the terms of the MIT license.
+mzmine source codes are distributed under the [MIT license](LICENSE.txt).
 
-mzmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 ## Releases
 

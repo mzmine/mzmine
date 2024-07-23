@@ -30,7 +30,7 @@ public enum FxIcons implements IconCodeSupplier {
   CHECK_CIRCLE, X_CIRCLE, EXCLAMATION_TRIANGLE,
 
   // control flow
-  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN,
+  ARROW_LEFT, ARROW_RIGHT, ARROW_UP, ARROW_DOWN, ADD,
 
   // UI
   DARK_MODE_SWITCH, BATCH,
@@ -72,6 +72,7 @@ public enum FxIcons implements IconCodeSupplier {
       case STOP -> "bi-stop-circle";
       case DRAW_REGION -> "bi-bounding-box";
       case BATCH -> "bi-layout-split";
+      case ADD -> "bi-plus";
     };
   }
 }

@@ -99,8 +99,8 @@ import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.Spectra
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters.ScanMatchingSelection;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.library_to_featurelist.SpectralLibraryToFeatureListParameters;
-import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
-import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationParameters;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionModule;
+import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCorrectionParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportModule;
 import io.github.mzmine.modules.io.export_compoundAnnotations_csv.CompoundAnnotationsCSVExportParameters;
@@ -1015,17 +1015,17 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
       RTTolerance interSampleRtTol, OriginalFeatureListOption handleOriginalFeatureLists) {
 
     final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(RTCalibrationModule.class).cloneParameterSet();
-    param.setParameter(RTCalibrationParameters.featureLists,
+        .getModuleParameters(RTCorrectionModule.class).cloneParameterSet();
+    param.setParameter(RTCorrectionParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(RTCalibrationParameters.MZTolerance, mzTolInterSample);
-    param.setParameter(RTCalibrationParameters.RTTolerance, interSampleRtTol);
-    param.setParameter(RTCalibrationParameters.minHeight, minFeatureHeight);
-    param.setParameter(RTCalibrationParameters.handleOriginal, handleOriginalFeatureLists);
-    param.setParameter(RTCalibrationParameters.suffix, "rt_cal");
+    param.setParameter(RTCorrectionParameters.MZTolerance, mzTolInterSample);
+    param.setParameter(RTCorrectionParameters.RTTolerance, interSampleRtTol);
+    param.setParameter(RTCorrectionParameters.minHeight, minFeatureHeight);
+    param.setParameter(RTCorrectionParameters.handleOriginal, handleOriginalFeatureLists);
+    param.setParameter(RTCorrectionParameters.suffix, "rt_cal");
 
     MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(RTCalibrationModule.class), param);
+        MZmineCore.getModuleInstance(RTCorrectionModule.class), param);
     q.add(step);
   }
 

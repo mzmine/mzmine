@@ -31,6 +31,7 @@ import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransfo
 import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.gui.preferences.Themes;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.javafx.util.color.ColorsFX;
 import io.github.mzmine.javafx.util.color.Vision;
@@ -463,6 +464,11 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     scp.applyToChartTheme(standardChartTheme);
 
     return standardChartTheme;
+  }
+
+  @Override
+  public Themes getTheme() {
+    return getPreferences().getValue(MZminePreferences.theme);
   }
 
   @Override
