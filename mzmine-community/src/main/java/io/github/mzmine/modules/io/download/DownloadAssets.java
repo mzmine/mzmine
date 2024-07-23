@@ -42,8 +42,12 @@ public class DownloadAssets {
       new DownloadAsset(ExternalAsset.ThermoRawFileParser, "1.4.4", true, "ThermoRawFileParser.exe",
           "https://github.com/compomics/ThermoRawFileParser/releases/download/v1.4.4/ThermoRawFileParser1.4.4.zip"),
       // libraries
-      new DownloadAsset(ExternalAsset.MSnLib, "20240411", true,
-          "https://zenodo.org/api/records/11163381/files-archive")
+      new DownloadAsset(ExternalAsset.MSnLib, "20240411-full", true,
+          "https://zenodo.org/api/records/11163381/files-archive"),
+      new DownloadAsset(ExternalAsset.MSnLib, "20240411-ms2", true,
+          "https://zenodo.org/records/11163381/files/20231031_nihnp_library_neg_all_lib_MS2.mgf?download=1"),
+      new DownloadAsset(ExternalAsset.MSnLib, "20240411-msn", true,
+          "https://zenodo.org/records/11163381/files/20231031_nihnp_library_neg_all_lib_MSn.mgf?download=1")
       // models
 
       //
