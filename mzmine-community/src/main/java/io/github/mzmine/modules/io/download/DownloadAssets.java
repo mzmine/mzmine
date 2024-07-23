@@ -29,7 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Definition of hard coded download assets
+ * Definition of hard coded download assets. The list of assets may be extended by additional assets
+ * from an external list of assets in the future.
  */
 public class DownloadAssets {
 

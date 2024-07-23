@@ -27,6 +27,16 @@ package io.github.mzmine.modules.io.download;
 
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Assets that can be downloaded by {@link FileDownloadTask}. Usually defined in
+ * {@link DownloadAssets}
+ *
+ * @param extAsset      the external asset that defines additional fixed properties of this asset
+ * @param version       the version
+ * @param requiresUnzip unzip after download
+ * @param mainFileName  the main file that is selected after unziping. Otherwise the first file
+ * @param url           the download URL
+ */
 public record DownloadAsset(ExternalAsset extAsset, String version, boolean requiresUnzip,
                             @Nullable String mainFileName, String url) {
 

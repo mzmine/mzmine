@@ -31,6 +31,9 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Fixed details on external assets. See also {@link DownloadAsset} to define new downloads.
+ */
 public enum ExternalAsset {
   ThermoRawFileParser, MSCONVERT,
 

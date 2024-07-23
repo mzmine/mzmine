@@ -40,7 +40,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Task to download a single file. If task is cancelled or on error - file download is stopped and
- * already downloaded parts are discarded
+ * already downloaded parts are discarded. Optionally unzips file and deletes the zip as defined in
+ * {@link DownloadAsset}
  */
 public class FileDownloadTask extends AbstractTask implements DownloadProgressCallback {
 

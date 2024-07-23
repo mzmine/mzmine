@@ -43,7 +43,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.slf4j.LoggerFactory;
 
 /**
- * Download a single file. If stopped then removes downloaded file
+ * Download a single file. If stopped then removes downloaded file. Preferred use by
+ * {@link FileDownloadTask}
  */
 public class FileDownloader {
 
