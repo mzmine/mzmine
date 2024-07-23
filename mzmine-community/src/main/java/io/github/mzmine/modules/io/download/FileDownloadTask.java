@@ -27,7 +27,10 @@ package io.github.mzmine.modules.io.download;
 
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.io.File;
 import java.time.Instant;
+import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Task to download a single file. If task is cancelled or on error - file download is stopped and
@@ -46,7 +49,15 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
    * @param downloadUrl    URL defines file to download
    * @param localDirectory this is the local path, a directory.
    */
-  protected FileDownloadTask(String downloadUrl, String localDirectory) {
+  public FileDownloadTask(String downloadUrl, File localDirectory) {
+    this(downloadUrl, localDirectory.getAbsolutePath());
+  }
+
+  /**
+   * @param downloadUrl    URL defines file to download
+   * @param localDirectory this is the local path, a directory.
+   */
+  public FileDownloadTask(String downloadUrl, String localDirectory) {
     super(Instant.now());
     this.downloadUrl = downloadUrl;
     this.localFile = localDirectory;
@@ -89,7 +100,7 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
 
     if (fileDownloader.getStatus() == DownloadStatus.SUCCESS) {
       setStatus(TaskStatus.FINISHED);
-    } else {
+    } else if (fileDownloader.getStatus() == DownloadStatus.ERROR_REMOVE) {
       error("Error while downloading file " + localFile + " from " + downloadUrl);
     }
   }
@@ -108,5 +119,14 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
     return bytesRead / 1000000f;
   }
 
-
+  /**
+   * @return the downloaded file
+   */
+  @NotNull
+  public Optional<String> getDownloadedFile() {
+    if (fileDownloader == null) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(fileDownloader.getLocalFile());
+  }
 }

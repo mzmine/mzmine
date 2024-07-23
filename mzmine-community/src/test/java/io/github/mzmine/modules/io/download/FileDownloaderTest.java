@@ -41,12 +41,13 @@ class FileDownloaderTest {
 
   @Test
   void testDownload() {
-    var fileDownloader = new FileDownloader(
-        "https://raw.githubusercontent.com/mzmine/mzmine/master/mzmine-community/src/test/resources/rawdatafiles/additional/gc_orbi_a.mzML",
+//    var url = "https://raw.githubusercontent.com/mzmine/mzmine/master/mzmine-community/src/test/resources/rawdatafiles/additional/gc_orbi_a.mzML";
+    var url = "https://zenodo.org/records/11163381/files/20231031_nihnp_library_neg_all_lib_MS2.mgf?download=1";
+    var fileDownloader = new FileDownloader(url,
         // change output folder
         "testdownload/folder/", (totalBytes, bytesRead, progress) -> {
-      String description = "Downloading to %s (%.1f / %.1f MB done)".formatted("test",
-          bytesRead / 1000000f, totalBytes / 1000000f);
+      String description = "Downloading %.3f to %s (%.1f / %.1f MB done)".formatted(progress,
+          "test", bytesRead / 1000000f, totalBytes / 1000000f);
       System.out.println(description);
     });
 

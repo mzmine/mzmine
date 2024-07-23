@@ -25,10 +25,11 @@
 
 package io.github.mzmine.modules.io.download;
 
-public interface DownloadProgressCallback {
+public enum AssetGroup {
+  TOOLS, SPECTRAL_LIBRARIES;
 
-  /**
-   * @param progress 0-1 on progress, -1 if progress cannot be determined
-   */
-  void onProgress(final long totalBytes, final long bytesRead, double progress);
+  @Override
+  public String toString() {
+    return super.toString().toLowerCase();
+  }
 }

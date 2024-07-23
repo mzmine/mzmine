@@ -34,9 +34,18 @@ public class ExtensionFilters {
    * mzmine specific
    */
   public static final ExtensionFilter MZ_USER = new ExtensionFilter("mzmine user", "*.mzuser");
-  public static final ExtensionFilter MZ_CONFIG = new ExtensionFilter("mzmine config", "*.mzconfig");
+  public static final ExtensionFilter MZ_CONFIG = new ExtensionFilter("mzmine config",
+      "*.mzconfig");
   public static final ExtensionFilter MZ_BATCH = new ExtensionFilter("mzmine batch", "*.mzbatch");
-  public static final ExtensionFilter MZ_WIZARD = new ExtensionFilter("mzmine mzwizard", "*.mzmwizard");
+  public static final ExtensionFilter MZ_WIZARD = new ExtensionFilter("mzmine mzwizard",
+      "*.mzmwizard");
+
+  /*
+   * General
+   */
+  public static final ExtensionFilter ZIP = new ExtensionFilter("zip compressed", "*.zip");
+  public static final ExtensionFilter EXE = new ExtensionFilter("Microsoft Windows executable",
+      "*.exe");
 
   /*
    * CSV and TSV import export
@@ -84,7 +93,7 @@ public class ExtensionFilters {
   private static final ExtensionFilter BRUKER_D = new ExtensionFilter("Bruker tdf files", "*.d");
   private static final ExtensionFilter THERMO_RAW = new ExtensionFilter("Thermo RAW files", "*.raw",
       "*.RAW");
-//  private static final ExtensionFilter WATERS_RAW = new ExtensionFilter("Waters RAW folders",
+  //  private static final ExtensionFilter WATERS_RAW = new ExtensionFilter("Waters RAW folders",
 //      "*.raw", "*.RAW");
   private static final ExtensionFilter MZDATA = new ExtensionFilter("mzData MS data", "*.mzData",
       "*.mzdata");

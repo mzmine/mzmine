@@ -25,10 +25,26 @@
 
 package io.github.mzmine.modules.io.download;
 
-public interface DownloadProgressCallback {
+public record DownloadAsset(ExternalAsset name, String version, String url) {
 
-  /**
-   * @param progress 0-1 on progress, -1 if progress cannot be determined
-   */
-  void onProgress(final long totalBytes, final long bytesRead, double progress);
+  public String getDownloadDescription() {
+    if (version == null) {
+      return "Download %s from %s".formatted(name, url);
+    }
+    return "Download %s version %s from %s".formatted(name, version, url);
+  }
+
+  public String getLabel(boolean includeUrl) {
+    if (!includeUrl) {
+      if (version == null) {
+        return name.toString();
+      }
+      return "%s (%s)".formatted(name, version);
+    }
+
+    if (version == null) {
+      return "%s, %s".formatted(name, url);
+    }
+    return "%s (%s), %s".formatted(name, version, url);
+  }
 }

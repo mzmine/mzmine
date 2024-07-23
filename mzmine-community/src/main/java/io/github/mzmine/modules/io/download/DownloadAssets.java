@@ -25,10 +25,27 @@
 
 package io.github.mzmine.modules.io.download;
 
-public interface DownloadProgressCallback {
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Definition of hard coded download assets
+ */
+public class DownloadAssets {
 
   /**
-   * @param progress 0-1 on progress, -1 if progress cannot be determined
+   * May be changed from outside to account for more downloadable assets
    */
-  void onProgress(final long totalBytes, final long bytesRead, double progress);
+  public static final List<DownloadAsset> ASSETS = new ArrayList<>(List.of(
+      // tools
+      new DownloadAsset(ExternalAsset.ThermoRawFileParser, "1.4.4",
+          "https://github.com/compomics/ThermoRawFileParser/releases/download/v1.4.4/ThermoRawFileParser1.4.4.zip"),
+      // libraries
+      new DownloadAsset(ExternalAsset.MSnLib, "20240411",
+          "https://zenodo.org/api/records/11163381/files-archive")
+      // models
+
+      //
+  ));
+
 }

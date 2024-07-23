@@ -560,12 +560,17 @@ public class FileAndPathUtil {
   }
 
 
-  @Nullable
   public static File getMzmineDir() {
     return USER_MZMINE_DIR;
   }
 
-  @Nullable
+  /**
+   * Directory for external resources
+   */
+  public static File resolveInDownloadResourcesDir(String name) {
+    return new File(resolveInMzmineDir("external_resources"), name);
+  }
+
   public static File resolveInMzmineDir(String name) {
     return new File(USER_MZMINE_DIR, name);
   }

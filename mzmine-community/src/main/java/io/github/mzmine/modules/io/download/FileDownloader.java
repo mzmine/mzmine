@@ -64,7 +64,8 @@ public class FileDownloader {
       DownloadProgressCallback progressCallback) {
     this.downloadUrl = downloadUrl;
 
-    String fileName = FilenameUtils.getName(downloadUrl);
+    // strip query parameters from URL with split at ?
+    String fileName = FilenameUtils.getName(downloadUrl).split("\\?")[0];
     this.localFile = Path.of(localDirectory, fileName).toString();
     this.progressCallback = progressCallback;
   }
@@ -184,7 +185,7 @@ public class FileDownloader {
       double progress;
       if ((n = rbc.read(bb)) > 0) {
         sizeRead += n;
-        progress = size > 0 ? (double) sizeRead / (double) size * 100.0 : -1.0;
+        progress = size > 0 ? (double) sizeRead / (double) size : -1.0;
         delegate.onProgress(size, sizeRead, progress);
       }
       return n;
