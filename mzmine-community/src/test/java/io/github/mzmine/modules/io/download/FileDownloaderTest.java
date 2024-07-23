@@ -25,6 +25,7 @@
 
 package io.github.mzmine.modules.io.download;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.logging.Level;
@@ -60,6 +61,27 @@ class FileDownloaderTest {
     } catch (IOException e) {
       logger.log(Level.WARNING,
           "Failed to delete local file " + localFile.getAbsolutePath() + "\n" + e.getMessage(), e);
+    }
+  }
+
+  @Test
+  void testDownloadTask() {
+    var asset = ExternalAsset.ThermoRawFileParser.getDownloadAssets().getFirst();
+
+    var task = new FileDownloadTask(asset);
+    task.run();
+
+    var files = task.getDownloadedFiles();
+
+    for (final File file : files) {
+      logger.info("Downloaded file: " + file.getAbsolutePath());
+      Assertions.assertTrue(file.exists());
+      try {
+        FileUtils.delete(file);
+      } catch (IOException e) {
+        logger.log(Level.WARNING,
+            "Failed to delete local file " + file.getAbsolutePath() + "\n" + e.getMessage(), e);
+      }
     }
   }
 

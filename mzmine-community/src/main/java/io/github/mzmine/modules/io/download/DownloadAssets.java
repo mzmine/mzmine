@@ -38,10 +38,10 @@ public class DownloadAssets {
    */
   public static final List<DownloadAsset> ASSETS = new ArrayList<>(List.of(
       // tools
-      new DownloadAsset(ExternalAsset.ThermoRawFileParser, "1.4.4",
+      new DownloadAsset(ExternalAsset.ThermoRawFileParser, "1.4.4", true, "ThermoRawFileParser.exe",
           "https://github.com/compomics/ThermoRawFileParser/releases/download/v1.4.4/ThermoRawFileParser1.4.4.zip"),
       // libraries
-      new DownloadAsset(ExternalAsset.MSnLib, "20240411",
+      new DownloadAsset(ExternalAsset.MSnLib, "20240411", true,
           "https://zenodo.org/api/records/11163381/files-archive")
       // models
 

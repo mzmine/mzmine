@@ -25,26 +25,34 @@
 
 package io.github.mzmine.modules.io.download;
 
-public record DownloadAsset(ExternalAsset name, String version, String url) {
+import org.jetbrains.annotations.Nullable;
+
+public record DownloadAsset(ExternalAsset extAsset, String version, boolean requiresUnzip,
+                            @Nullable String mainFileName, String url) {
+
+  public DownloadAsset(final ExternalAsset extAsset, final String version,
+      final boolean requiresUnzip, final String url) {
+    this(extAsset, version, requiresUnzip, null, url);
+  }
 
   public String getDownloadDescription() {
     if (version == null) {
-      return "Download %s from %s".formatted(name, url);
+      return "Download %s from %s".formatted(extAsset, url);
     }
-    return "Download %s version %s from %s".formatted(name, version, url);
+    return "Download %s version %s from %s".formatted(extAsset, version, url);
   }
 
   public String getLabel(boolean includeUrl) {
     if (!includeUrl) {
       if (version == null) {
-        return name.toString();
+        return extAsset.toString();
       }
-      return "%s (%s)".formatted(name, version);
+      return "%s (%s)".formatted(extAsset, version);
     }
 
     if (version == null) {
-      return "%s, %s".formatted(name, url);
+      return "%s, %s".formatted(extAsset, url);
     }
-    return "%s (%s), %s".formatted(name, version, url);
+    return "%s (%s), %s".formatted(extAsset, version, url);
   }
 }

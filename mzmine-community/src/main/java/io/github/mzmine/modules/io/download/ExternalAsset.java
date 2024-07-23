@@ -68,7 +68,7 @@ public enum ExternalAsset {
 
   @NotNull
   public List<DownloadAsset> getDownloadAssets() {
-    return DownloadAssets.ASSETS.stream().filter(a -> a.name() == this).toList();
+    return DownloadAssets.ASSETS.stream().filter(a -> a.extAsset() == this).toList();
   }
 
 }

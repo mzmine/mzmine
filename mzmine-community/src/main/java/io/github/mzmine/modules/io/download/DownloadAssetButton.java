@@ -34,7 +34,6 @@ import io.github.mzmine.javafx.util.FxIconUtil;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskService;
-import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -133,14 +132,17 @@ public class DownloadAssetButton extends HBox {
       return;
     }
     isDownloading.set(true);
-    File downloadDir = asset.name().getDownloadToDir();
-    task = new FileDownloadTask(asset.url(), downloadDir);
+    task = new FileDownloadTask(asset);
     task.addTaskStatusListener((_, _, _) -> {
       if (task.isFinished() || task.isCanceled()) {
         FxThread.runLater(() -> isDownloading.set(false));
       }
       if (task.isFinished() && onDownloadFinished != null) {
-        task.getDownloadedFile().ifPresent(file -> onDownloadFinished.accept(file));
+        // search for main file and set it to parameter
+        task.getDownloadedFiles().stream().filter(
+                file -> asset.mainFileName() == null || file.getName()
+                    .equalsIgnoreCase(asset.mainFileName())).findFirst()
+            .ifPresent(file -> onDownloadFinished.accept(file.getAbsolutePath()));
       }
     });
     TaskService.getController().addTask(task, TaskPriority.HIGH);

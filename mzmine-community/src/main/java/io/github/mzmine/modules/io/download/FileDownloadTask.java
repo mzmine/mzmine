@@ -27,10 +27,16 @@ package io.github.mzmine.modules.io.download;
 
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ZipUtils;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.time.Instant;
-import java.util.Optional;
+import java.util.List;
+import java.util.zip.ZipInputStream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Task to download a single file. If task is cancelled or on error - file download is stopped and
@@ -39,11 +45,23 @@ import org.jetbrains.annotations.NotNull;
 public class FileDownloadTask extends AbstractTask implements DownloadProgressCallback {
 
   private final String downloadUrl;
-  private final String localFile;
+  private final String localDirectory;
+  @Nullable
+  private DownloadAsset asset;
+
   public volatile DownloadStatus downloadStatus = DownloadStatus.WAITING;
   public String description = "Waiting for download";
   private double progress;
   private FileDownloader fileDownloader;
+
+  // resulting file after download and optional unzip
+  private List<File> downloadedFiles;
+
+
+  public FileDownloadTask(final DownloadAsset asset) {
+    this(asset.url(), asset.extAsset().getDownloadToDir());
+    this.asset = asset;
+  }
 
   /**
    * @param downloadUrl    URL defines file to download
@@ -60,7 +78,7 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
   public FileDownloadTask(String downloadUrl, String localDirectory) {
     super(Instant.now());
     this.downloadUrl = downloadUrl;
-    this.localFile = localDirectory;
+    this.localDirectory = localDirectory;
     addTaskStatusListener((_, _, _) -> {
       if (downloadStatus == DownloadStatus.CANCEL_REMOVE) {
         // already removing
@@ -95,24 +113,57 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
     setStatus(TaskStatus.PROCESSING);
 
     // download file and block thread. Still reacts to task status changes
-    fileDownloader = new FileDownloader(downloadUrl, localFile, this);
+    fileDownloader = new FileDownloader(downloadUrl, localDirectory, this);
     fileDownloader.downloadFileBlocking();
 
     if (fileDownloader.getStatus() == DownloadStatus.SUCCESS) {
+      downloadedFiles = List.of(new File(fileDownloader.getLocalFile()));
+
+      // requires unzip?
+      if (asset != null && asset.requiresUnzip()) {
+        unzipFile();
+      }
+
       setStatus(TaskStatus.FINISHED);
     } else if (fileDownloader.getStatus() == DownloadStatus.ERROR_REMOVE) {
-      error("Error while downloading file " + localFile + " from " + downloadUrl);
+      error("Error while downloading file " + localDirectory + " from " + downloadUrl);
     }
+  }
+
+  private void unzipFile() {
+    String fileName = fileDownloader.getLocalFile();
+    if (fileName == null) {
+      return;
+    }
+
+    description = "Unzipping file " + fileName;
+
+    File zipFile = new File(fileName);
+    File directory = zipFile.getParentFile();
+
+    try (var zis = new ZipInputStream(new FileInputStream(fileName))) {
+      downloadedFiles = ZipUtils.unzipStream(zis, directory);
+    } catch (FileNotFoundException e) {
+      error("File not found Error while unzipping file " + fileName + " from " + downloadUrl, e);
+      return;
+    } catch (IOException e) {
+      error("IOError while unzipping file " + fileName + " from " + downloadUrl, e);
+      return;
+    }
+
+    // remove original file
+    zipFile.delete();
   }
 
   @Override
   public void onProgress(final long totalBytes, final long bytesRead, final double progress) {
     this.progress = progress;
     if (totalBytes <= 0) {
-      description = "Downloading to %s (%.1f MB done)".formatted(localFile, toMB(bytesRead));
+      description = "Downloading to %s (%.1f MB done)".formatted(localDirectory, toMB(bytesRead));
+    } else {
+      description = "Downloading to %s (%.1f / %.1f MB)".formatted(localDirectory, toMB(bytesRead),
+          toMB(totalBytes));
     }
-    description = "Downloading to %s (%.1f / %.1f MB)".formatted(localFile, toMB(bytesRead),
-        toMB(totalBytes));
   }
 
   private static float toMB(final long bytesRead) {
@@ -120,13 +171,10 @@ public class FileDownloadTask extends AbstractTask implements DownloadProgressCa
   }
 
   /**
-   * @return the downloaded file
+   * @return List of downloaded files. After unzipping this may be multiple files
    */
   @NotNull
-  public Optional<String> getDownloadedFile() {
-    if (fileDownloader == null) {
-      return Optional.empty();
-    }
-    return Optional.ofNullable(fileDownloader.getLocalFile());
+  public List<File> getDownloadedFiles() {
+    return downloadedFiles;
   }
 }
