@@ -23,26 +23,38 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.otherdetectors;
+package io.github.mzmine.datamodel.features.types.otherdectectors;
 
-import io.github.mzmine.datamodel.features.types.DataType;
-import java.util.Map;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import org.jetbrains.annotations.NotNull;
 
-public class OtherFeatureRowImpl implements OtherFeatureRow {
+public class WavelengthType extends DoubleType {
 
-  private final ObservableMap<DataType, Object> map = FXCollections.observableHashMap();
-  private final ObservableMap<OtherTimeSeries, OtherFeature> features = FXCollections.observableHashMap();
+  private static NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0");
 
-  @Override
-  public @NotNull Map<OtherTimeSeries, OtherFeature> getFeatures() {
-    return Map.copyOf(features);
+  protected WavelengthType() {
+    super(DEFAULT_FORMAT);
   }
 
   @Override
-  public ObservableMap<DataType, Object> getMap() {
-    return map;
+  public NumberFormat getFormat() {
+    return DEFAULT_FORMAT;
+  }
+
+  @Override
+  public NumberFormat getExportFormat() {
+    return DEFAULT_FORMAT;
+  }
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return "wavelength";
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Wavelength / nm";
   }
 }

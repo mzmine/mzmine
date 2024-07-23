@@ -33,6 +33,9 @@ public class OtherFeatureImpl implements OtherFeature {
 
   public static final ObservableMap<DataType, Object> map = FXCollections.observableHashMap();
 
+  public OtherFeatureImpl() {
+  }
+
   @Override
   public ObservableMap<DataType, Object> getMap() {
     return map;

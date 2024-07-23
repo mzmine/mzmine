@@ -27,6 +27,7 @@ package io.github.mzmine.datamodel.otherdetectors;
 
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import java.util.List;
+import javafx.beans.property.ReadOnlyListProperty;
 import org.jetbrains.annotations.NotNull;
 
 public interface OtherTimeSeriesData {
@@ -57,4 +58,16 @@ public interface OtherTimeSeriesData {
    */
   @NotNull
   ChromatogramType getChromatogramType();
+
+  List<OtherFeature> getProcessedFeatures();
+
+  void setProcessedFeatures(@NotNull List<OtherFeature> processedFeatures);
+
+  void addProcessedFeature(@NotNull OtherFeature otherFeature);
+
+  void clearProcessedFeatures();
+
+  ReadOnlyListProperty<OtherFeature> processedFeatures();
+
+  boolean removeProcessedFeature(@NotNull OtherFeature otherFeature);
 }

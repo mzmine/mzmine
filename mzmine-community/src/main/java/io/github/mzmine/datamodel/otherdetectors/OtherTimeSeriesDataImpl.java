@@ -30,18 +30,22 @@ import static io.github.mzmine.datamodel.otherdetectors.OtherDataFileImpl.DEFAUL
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.beans.property.ReadOnlyListProperty;
+import javafx.beans.property.ReadOnlyListWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
 
+  private final OtherDataFile otherDataFile;
   private final List<OtherTimeSeries> timeSeries = new ArrayList<>();
+  private final ReadOnlyListWrapper<OtherFeature> processedFeatures = new ReadOnlyListWrapper<>();
+
   public @Nullable ChromatogramType chromatogramType = ChromatogramType.UNKNOWN;
   private @Nullable String timeSeriesDomainLabel = "Retention time";
   private @Nullable String timeSeriesDomainUnit = "min";
   private @Nullable String timeSeriesRangeLabel = DEFAULT_UNIT;
   private @Nullable String timeSeriesRangeUnit = DEFAULT_UNIT;
-  private final OtherDataFile otherDataFile;
 
   public OtherTimeSeriesDataImpl(OtherDataFile otherDataFile) {
     this.otherDataFile = otherDataFile;
@@ -109,5 +113,38 @@ public class OtherTimeSeriesDataImpl implements OtherTimeSeriesData {
 
   public void setChromatogramType(@Nullable ChromatogramType chromatogramType) {
     this.chromatogramType = chromatogramType;
+  }
+
+  /**
+   * @return A read only list of results.
+   */
+  @Override
+  public List<OtherFeature> getProcessedFeatures() {
+    return processedFeatures.getReadOnlyProperty();
+  }
+
+  @Override
+  public void setProcessedFeatures(@NotNull List<OtherFeature> processedFeatures) {
+    this.processedFeatures.setAll(processedFeatures);
+  }
+
+  @Override
+  public void addProcessedFeature(@NotNull OtherFeature otherFeature) {
+    processedFeatures.add(otherFeature);
+  }
+
+  @Override
+  public void clearProcessedFeatures() {
+    processedFeatures.clear();
+  }
+
+  @Override
+  public ReadOnlyListProperty<OtherFeature> processedFeatures() {
+    return processedFeatures.getReadOnlyProperty();
+  }
+
+  @Override
+  public boolean removeProcessedFeature(@NotNull OtherFeature otherFeature) {
+    return processedFeatures.remove(otherFeature);
   }
 }
