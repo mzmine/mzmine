@@ -105,4 +105,13 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
    *                 io.github.mzmine.datamodel.features.ModularFeatureList#getSeletedScans(RawDataFile)}.
    */
   void saveValueToXML(XMLStreamWriter writer, List<T> allScans) throws XMLStreamException;
+
+  @Override
+  default @Nullable MemoryMapStorage getStorage() {
+    if (getSpectra().isEmpty() || !(getSpectrum(0) instanceof Scan scan)) {
+      return null;
+    }
+
+    return scan.getDataFile().getMemoryMapStorage();
+  }
 }

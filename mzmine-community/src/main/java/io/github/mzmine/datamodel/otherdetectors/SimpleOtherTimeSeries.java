@@ -102,4 +102,10 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
 
     return new SimpleOtherTimeSeries(storage, rts, intensities, name, timeSeriesData);
   }
+
+  @Override
+  public @Nullable MemoryMapStorage getStorage() {
+    return getTimeSeriesData().getOtherDataFile().getCorrespondingRawDataFile()
+        .getMemoryMapStorage();
+  }
 }
