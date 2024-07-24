@@ -31,6 +31,8 @@ import io.github.mzmine.datamodel.features.ModularDataRecord;
 import io.github.mzmine.datamodel.features.SimpleModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.analysis.Ms1FragmentedSignalsPercentType;
+import io.github.mzmine.datamodel.features.types.analysis.Ms1FragmentedSignalsType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1MatchedIntensityPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1MatchedSignalsPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms1MatchedSignalsType;
@@ -39,45 +41,45 @@ import io.github.mzmine.datamodel.features.types.analysis.Ms2MatchedIntensityPer
 import io.github.mzmine.datamodel.features.types.analysis.Ms2MatchedSignalsPercentType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms2MatchedSignalsType;
 import io.github.mzmine.datamodel.features.types.analysis.Ms2SignalsType;
-import io.github.mzmine.datamodel.features.types.numbers.UniqueFragmentedPrecursorsType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public record SignalsResults(int ms1Matched, int ms1Count, double ms1MatchedPercent,
-                             double ms1IntensityMatchedPercent, int ms2Matched, int ms2Count,
-                             double ms2MatchedPercent, double ms2IntensityMatchedPercent,
-                             int precursorsCount) implements ModularDataRecord {
+public record SignalsResults(int ms1Count, int ms1Fragmented, double ms1FragmentedPercent,
+                             double ms1IntensityMatchedPercent, int ms1Matched,
+                             double ms1MatchedPercent, int ms2Count,
+                             double ms2IntensityMatchedPercent, int ms2Matched,
+                             double ms2MatchedPercent) implements ModularDataRecord {
 
   @SuppressWarnings("rawtypes")
   public static List<DataType> getSubTypes() {
-    return DataTypes.getAll(Ms1MatchedSignalsType.class, //
-        Ms1SignalsType.class, //
-        Ms1MatchedSignalsPercentType.class, //
+    return DataTypes.getAll(Ms1FragmentedSignalsPercentType.class, //
+        Ms1FragmentedSignalsType.class, //
         Ms1MatchedIntensityPercentType.class, //
+        Ms1MatchedSignalsPercentType.class, //
+        Ms1MatchedSignalsType.class, //
+        Ms1SignalsType.class, //
         //MS2
-        Ms2MatchedSignalsType.class, //
-        Ms2SignalsType.class, //
-        Ms2MatchedSignalsPercentType.class, //
         Ms2MatchedIntensityPercentType.class, //
-        // other
-        UniqueFragmentedPrecursorsType.class//
+        Ms2MatchedSignalsPercentType.class, //
+        Ms2MatchedSignalsType.class, //
+        Ms2SignalsType.class //
     );
 
   }
 
   public static SignalsResults create(final @NotNull SimpleModularDataModel values) {
     return new SignalsResults( //
-        requireNonNullElse(values.get(Ms1MatchedSignalsType.class), -1),
         requireNonNullElse(values.get(Ms1SignalsType.class), -1),
-        requireNonNullElse(values.get(Ms1MatchedSignalsPercentType.class), -1f),
+        requireNonNullElse(values.get(Ms1FragmentedSignalsType.class), -1),
+        requireNonNullElse(values.get(Ms1FragmentedSignalsPercentType.class), -1f),
         requireNonNullElse(values.get(Ms1MatchedIntensityPercentType.class), -1f),
+        requireNonNullElse(values.get(Ms1MatchedSignalsType.class), -1),
+        requireNonNullElse(values.get(Ms1MatchedSignalsPercentType.class), -1f),
         // MS2
-        requireNonNullElse(values.get(Ms2MatchedSignalsType.class), -1),
         requireNonNullElse(values.get(Ms2SignalsType.class), -1),
-        requireNonNullElse(values.get(Ms2MatchedSignalsPercentType.class), -1f),
         requireNonNullElse(values.get(Ms2MatchedIntensityPercentType.class), -1f),
-        // other
-        requireNonNullElse(values.get(UniqueFragmentedPrecursorsType.class), -1));
+        requireNonNullElse(values.get(Ms2MatchedSignalsType.class), -1),
+        requireNonNullElse(values.get(Ms2MatchedSignalsPercentType.class), -1f));
   }
 
 
@@ -90,17 +92,17 @@ public record SignalsResults(int ms1Matched, int ms1Count, double ms1MatchedPerc
   @Override
   public Object getValue(final DataType sub) {
     return switch (sub) {
-      case Ms1MatchedSignalsType _ -> ms1Matched;
       case Ms1SignalsType _ -> ms1Count;
-      case Ms1MatchedSignalsPercentType _ -> ms1MatchedPercent;
+      case Ms1FragmentedSignalsType _ -> ms1Fragmented;
+      case Ms1FragmentedSignalsPercentType _ -> ms1FragmentedPercent;
       case Ms1MatchedIntensityPercentType _ -> ms1IntensityMatchedPercent;
+      case Ms1MatchedSignalsType _ -> ms1Matched;
+      case Ms1MatchedSignalsPercentType _ -> ms1MatchedPercent;
       //MS2
-      case Ms2MatchedSignalsType _ -> ms2Matched;
       case Ms2SignalsType _ -> ms2Count;
-      case Ms2MatchedSignalsPercentType _ -> ms2MatchedPercent;
       case Ms2MatchedIntensityPercentType _ -> ms2IntensityMatchedPercent;
-      // other
-      case UniqueFragmentedPrecursorsType _ -> precursorsCount;
+      case Ms2MatchedSignalsType _ -> ms2Matched;
+      case Ms2MatchedSignalsPercentType _ -> ms2MatchedPercent;
       default -> throw new IllegalStateException("Unexpected value: " + sub);
     };
   }

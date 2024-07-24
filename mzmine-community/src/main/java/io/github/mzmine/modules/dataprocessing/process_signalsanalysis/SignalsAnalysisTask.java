@@ -156,8 +156,7 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
       }
     }
 
-    SignalsResults results = countUniqueSignalsBetweenMs1AndMs2(ms1Scans, ms2Scans,
-        tolerance);
+    SignalsResults results = countUniqueSignalsBetweenMs1AndMs2(ms1Scans, ms2Scans, tolerance);
     row.set(InSourceFragmentsAnalysisType.class, results);
 
     return new GroupedSignalScans(row, ms1Scans, ms2Scans);
@@ -216,8 +215,7 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
       List<Scan> ms2Scans, MZTolerance tolerance) {
     // require signal to be in 90% of MS1 scans
     int minMs1Scans = (int) Math.ceil(ms1Scans.size() * 0.9);
-    var ms1SignalMap = filterMap(collectUniqueSignalsFromScans(ms1Scans, tolerance),
-        minMs1Scans);
+    var ms1SignalMap = filterMap(collectUniqueSignalsFromScans(ms1Scans, tolerance), minMs1Scans);
 
     // in MS2 this may not be true if different energies used, so apply no filter
     var ms2SignalMap = collectUniqueSignalsFromScans(ms2Scans, tolerance);
@@ -239,15 +237,17 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     double ms2IntensityMatchedPercent = ms2IntensityMatched / ms2IntensityTotal;
 
     int ms1SignalsTotal = ms1Signals.size();
+    int ms1SignalsFragmented = countUniquePrecursors(ms2Scans, tolerance);
+    double ms1SignalsFragmentedPercent = ms1SignalsFragmented / (double) ms1SignalsTotal;
     int ms1SignalsMatched = ms1SignalMatchesMs2.size();
     double ms1SignalsMatchedPercent = ms1SignalsMatched / (double) ms1SignalsTotal;
     int ms2SignalsTotal = ms2Signals.size();
     int ms2SignalsMatched = ms2SignalMatchesMs1.size();
     double ms2SignalsMatchedPercent = ms2SignalsMatched / (double) ms2SignalsTotal;
 
-    return new SignalsResults(ms1SignalsMatched, ms1SignalsTotal, ms1SignalsMatchedPercent,
-        ms1IntensityMatchedPercent, ms2SignalsMatched, ms2SignalsTotal, ms2SignalsMatchedPercent,
-        ms2IntensityMatchedPercent, 0);
+    return new SignalsResults(ms1SignalsTotal, ms1SignalsFragmented, ms1SignalsFragmentedPercent,
+        ms1IntensityMatchedPercent, ms1SignalsMatched, ms1SignalsMatchedPercent, ms2SignalsTotal,
+        ms2IntensityMatchedPercent, ms2SignalsMatched, ms2SignalsMatchedPercent);
   }
 
   private List<UniqueSignal> mapToList(final RangeMap<Double, UniqueSignal> map) {
@@ -299,49 +299,23 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
   }
 
   /**
-   * Collects unique signals from a list of dataPoints.
+   * Counts unique precursors.
    *
-   * @param dataPoints The dataPoints.
-   * @param tolerance  The MZ tolerance.
-   * @return A set of unique signals.
-   */
-  private Set<DataPoint> collectUniqueSignals(List<DataPoint> dataPoints, MZTolerance tolerance) {
-    Set<DataPoint> uniqueSignals = new HashSet<>();
-    for (DataPoint dp : dataPoints) {
-      boolean isUnique = true;
-      for (DataPoint uniqueDp : uniqueSignals) {
-        if (tolerance.checkWithinTolerance(dp.getMZ(), uniqueDp.getMZ())) {
-          isUnique = false;
-          break;
-        }
-      }
-      if (isUnique) {
-        uniqueSignals.add(dp);
-      }
-    }
-    return uniqueSignals;
-  }
-
-  /**
-   * Counts unique pairs between two sets of MZ values.
-   *
-   * @param uniqueMs1 The unique MS1 signals.
-   * @param uniqueMs2 The unique MS2 signals.
+   * @param ms2Scans MS2 scans.
    * @param tolerance The MZ tolerance.
-   * @return The count of unique pairs.
+   * @return The count of unique precursors.
    */
-  private int countUniquePairs(Set<DataPoint> uniqueMs1, Set<DataPoint> uniqueMs2,
-      MZTolerance tolerance) {
-    int uniqueCount = 0;
-    for (DataPoint dp1 : uniqueMs1) {
-      for (DataPoint dp2 : uniqueMs2) {
-        if (tolerance.checkWithinTolerance(dp1.getMZ(), dp2.getMZ())) {
-          uniqueCount++;
-          break; // Move to next dp1
-        }
+  private int countUniquePrecursors(List<Scan> ms2Scans, MZTolerance tolerance) {
+    Set<Double> uniquePrecursors = new HashSet<>();
+    for (Scan scan : ms2Scans) {
+      double precursorMz = scan.getPrecursorMz();
+      boolean isUnique = uniquePrecursors.stream()
+          .noneMatch(existingMz -> tolerance.checkWithinTolerance(existingMz, precursorMz));
+      if (isUnique) {
+        uniquePrecursors.add(precursorMz);
       }
     }
-    return uniqueCount;
+    return uniquePrecursors.size();
   }
 
 }
