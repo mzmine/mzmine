@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -297,7 +297,7 @@ public class SpectralNetworkingTask extends AbstractTask {
    */
   public static CosinePairContributions calculateModifiedCosineSimilarityContributions(
       MZTolerance mzTol, Weights weights, DataPoint[] sortedA, DataPoint[] sortedB,
-      double precursorMzA, double precursorMzB) {
+      Double precursorMzA, Double precursorMzB) {
     // align
     final List<DataPoint[]> aligned = alignDataPoints(precursorMzA, precursorMzB, mzTol, sortedB,
         sortedA);
@@ -331,10 +331,10 @@ public class SpectralNetworkingTask extends AbstractTask {
   }
 
   @NotNull
-  private static List<DataPoint[]> alignDataPoints(double precursorMzA, double precursorMzB,
+  private static List<DataPoint[]> alignDataPoints(Double precursorMzA, Double precursorMzB,
       MZTolerance mzTol, DataPoint[] sortedB, DataPoint[] sortedA) {
     final List<DataPoint[]> aligned;
-    if (precursorMzA > 0 && precursorMzB > 0) {
+    if (precursorMzA != null && precursorMzA > 0 && precursorMzB != 0 && precursorMzB > 0) {
       aligned = ScanAlignment.alignOfSortedModAware(mzTol, sortedB, sortedA, precursorMzB,
           precursorMzA);
     } else {
