@@ -108,6 +108,10 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     return groupedScans.stream().map(GroupedSignalScans::ms1Scans).flatMap(Collection::stream);
   }
 
+  private static double calcSumIntensity(final List<UniqueSignal> ms1SignalMatchesMs2) {
+    return ms1SignalMatchesMs2.stream().mapToDouble(UniqueSignal::sumIntensity).sum();
+  }
+
   @Override
   protected void process() {
     List<GroupedSignalScans> groupedScans = collectSpectra();
@@ -206,7 +210,6 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     return featureLists;
   }
 
-
   /**
    * Counts unique signals between MS1 and MS2 scans.
    *
@@ -251,10 +254,6 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     return new SignalsResults(ms1SignalsMatched, ms1SignalsTotal, ms1SignalsMatchedPercent,
         ms1IntensityMatchedPercent, ms2SignalsMatched, ms2SignalsTotal, ms2SignalsMatchedPercent,
         ms2IntensityMatchedPercent, 0);
-  }
-
-  private static double calcSumIntensity(final List<UniqueSignal> ms1SignalMatchesMs2) {
-    return ms1SignalMatchesMs2.stream().mapToDouble(UniqueSignal::sumIntensity).sum();
   }
 
   private List<UniqueSignal> mapToList(final RangeMap<Double, UniqueSignal> map) {
