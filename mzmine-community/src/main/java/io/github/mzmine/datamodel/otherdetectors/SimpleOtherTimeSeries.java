@@ -88,7 +88,7 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
     // todo does this work with float to double?
     final IndexRange indexRange = BinarySearch.indexRange(start, end, getNumberOfValues(),
         this::getRetentionTime);
-    return subSeries(storage, indexRange.min(), indexRange.maxInclusive());
+    return subSeries(storage, indexRange.min(), indexRange.maxExclusive());
   }
 
   @Override
@@ -97,8 +97,8 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
     final double[] intensities = new double[endIndexExclusive - startIndexInclusive];
     final float[] rts = new float[endIndexExclusive - startIndexInclusive];
 
-    intensityBuffer.get(0, intensities, startIndexInclusive, intensities.length);
-    timeBuffer.get(0, rts, startIndexInclusive, intensities.length);
+    intensityBuffer.get(startIndexInclusive, intensities, 0, intensities.length);
+    timeBuffer.get(startIndexInclusive, rts, 0, rts.length);
 
     return new SimpleOtherTimeSeries(storage, rts, intensities, name, timeSeriesData);
   }

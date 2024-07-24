@@ -179,9 +179,10 @@ public class IntegrationPane extends BorderPane {
     });
 
     timeSeries.addListener((_, _, ts) -> {
-      plot.setFeatures(ts.getTimeSeriesData().processedFeatures());
+      plot.setFeatures(List.of());
       if (ts != null) {
         plot.setOtherTimeSeries(ts);
+        plot.setFeatures(ts.getTimeSeriesData().processedFeatures());
       }
     });
   }

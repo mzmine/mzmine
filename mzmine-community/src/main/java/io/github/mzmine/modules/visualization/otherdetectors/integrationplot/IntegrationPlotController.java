@@ -34,6 +34,7 @@ import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import java.awt.BasicStroke;
 import java.util.List;
 import javafx.beans.binding.Bindings;
 import org.jetbrains.annotations.NotNull;
@@ -55,11 +56,13 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
         model.currentStartTimeProperty(), model.currentEndTimeProperty()));
 
     model.currentStartMarkerProperty().bind(Bindings.createObjectBinding(
-        () -> model.getCurrentStartTime() != null ? new ValueMarker(model.getCurrentStartTime())
+        () -> model.getCurrentStartTime() != null ? new ValueMarker(model.getCurrentStartTime(),
+            ConfigService.getDefaultColorPalette().getPositiveColorAWT(), new BasicStroke(2f))
             : null, model.currentStartTimeProperty()));
     model.currentEndMarkerProperty().bind(Bindings.createObjectBinding(
-        () -> model.getCurrentEndTime() != null ? new ValueMarker(model.getCurrentEndTime()) : null,
-        model.currentEndTimeProperty()));
+        () -> model.getCurrentEndTime() != null ? new ValueMarker(model.getCurrentEndTime(),
+            ConfigService.getDefaultColorPalette().getNegativeColorAWT(), new BasicStroke(2f))
+            : null, model.currentEndTimeProperty()));
   }
 
   @Override

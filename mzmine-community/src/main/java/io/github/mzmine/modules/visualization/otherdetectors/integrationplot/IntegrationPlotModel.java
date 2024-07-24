@@ -35,6 +35,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +46,8 @@ public class IntegrationPlotModel {
   private BooleanProperty currentIntegrationValid = new SimpleBooleanProperty(false);
   private ObjectProperty<ChromatogramPlotController> chromatogramPlot = new SimpleObjectProperty<>(
       new ChromatogramPlotController());
-  private ListProperty<OtherFeature> otherFeatures = new SimpleListProperty<>();
+  private ListProperty<OtherFeature> otherFeatures = new SimpleListProperty<>(
+      FXCollections.observableArrayList());
   private ObjectProperty<@Nullable OtherFeature> selectedFeature = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable OtherTimeSeries> currentTimeSeries = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable Double> currentStartTime = new SimpleObjectProperty<>();
