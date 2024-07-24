@@ -31,7 +31,7 @@ import javafx.collections.ObservableMap;
 
 public class OtherFeatureImpl implements OtherFeature {
 
-  public static final ObservableMap<DataType, Object> map = FXCollections.observableHashMap();
+  public final ObservableMap<DataType, Object> map = FXCollections.observableHashMap();
 
   public OtherFeatureImpl() {
   }
@@ -40,6 +40,4 @@ public class OtherFeatureImpl implements OtherFeature {
   public ObservableMap<DataType, Object> getMap() {
     return map;
   }
-
-
 }
