@@ -49,8 +49,8 @@ public class SignalsAnalysisModule extends TaskPerFeatureListModule {
   public @NotNull Task createTask(final @NotNull MZmineProject project,
       final @NotNull ParameterSet parameters, final @NotNull Instant moduleCallDate,
       final @Nullable MemoryMapStorage storage, final @NotNull FeatureList featureList) {
-    return new io.github.mzmine.modules.dataprocessing.process_signalsanalysis.SignalsAnalysisTask(
-        project, List.of(featureList), parameters, storage, moduleCallDate, this.getClass());
+    return new SignalsAnalysisTask(project, List.of(featureList), parameters, storage,
+        moduleCallDate, this.getClass());
   }
 
 }
