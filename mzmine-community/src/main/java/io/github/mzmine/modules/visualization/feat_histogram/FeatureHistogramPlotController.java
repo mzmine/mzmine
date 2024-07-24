@@ -42,7 +42,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.LoggerFactory;
 
 /**
  * A histogram for features of one or multiple feature lists
@@ -52,8 +51,6 @@ public class FeatureHistogramPlotController extends
 
   private static final Logger logger = Logger.getLogger(
       FeatureHistogramPlotController.class.getName());
-  private static final org.slf4j.Logger log = LoggerFactory.getLogger(
-      FeatureHistogramPlotController.class);
 
   private final FeatureHistogramPlotViewBuilder viewBuilder;
 
@@ -78,7 +75,7 @@ public class FeatureHistogramPlotController extends
 
     // first listen for changes to typeChoices
     model.getTypeChoices().addListener((ListChangeListener<NumberType>) _ -> {
-      logger.info(() -> "Type choices changed");
+      logger.fine(() -> "Type choices changed in feature histogram");
       var selectedType = model.getSelectedType();
       if (selectedType == null) {
         logger.info("Selected type was null");
