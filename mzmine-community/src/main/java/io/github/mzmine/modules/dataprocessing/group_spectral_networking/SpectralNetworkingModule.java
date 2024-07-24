@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -38,9 +38,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class SpectralNetworkingModule implements MZmineProcessingModule {
 
-  private static final String NAME = "MS/MS spectral networking (Molecular networking)";
+  private static final String NAME = "Spectral / Molecular Networking";
 
-  private static final String DESCRIPTION = "Checks MS2 similarity of all rows within the groups or on all networks and between networks";
+  private static final String DESCRIPTION = "Checks fragmentation spectra similarity of all feature list rows";
 
   @Override
   public @NotNull String getName() {
