@@ -42,7 +42,7 @@ public class SignalsAnalysisModule extends TaskPerFeatureListModule {
   public SignalsAnalysisModule() {
     super("Signals analysis", SignalsAnalysisParameters.class,
         MZmineModuleCategory.FEATURELISTEXPORT, false,
-        "This is a description of the amazing quest we have...");
+        "This is a module performing signals analysis. It compares signals found in MS1 scans and related MS2 scans.");
   }
 
   @Override
