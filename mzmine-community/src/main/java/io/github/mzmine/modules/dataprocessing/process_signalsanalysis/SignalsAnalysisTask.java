@@ -40,9 +40,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.types.analysis.InsourceFragmentAnalysisType;
-import io.github.mzmine.datamodel.features.types.analysis.InsourceFragmentsAnalysisRobinType;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.features.types.analysis.InSourceFragmentsAnalysisType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -157,14 +155,10 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
         logger.log(Level.WARNING, ex.getMessage(), ex);
       }
     }
-    // adriano
-    SignalsResults results = countUniqueSignalsBetweenMs1AndMs2Adriano(ms1Scans, ms2Scans,
+
+    SignalsResults results = countUniqueSignalsBetweenMs1AndMs2(ms1Scans, ms2Scans,
         tolerance);
-    row.set(InsourceFragmentAnalysisType.class, results);
-    // robin
-    SignalsResults resultsRobin = countUniqueSignalsBetweenMs1AndMs2Robin(ms1Scans, ms2Scans,
-        tolerance);
-    row.set(InsourceFragmentsAnalysisRobinType.class, resultsRobin);
+    row.set(InSourceFragmentsAnalysisType.class, results);
 
     return new GroupedSignalScans(row, ms1Scans, ms2Scans);
   }
@@ -218,15 +212,15 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
    * @param tolerance The MZ tolerance.
    * @return The results of the signal count.
    */
-  private SignalsResults countUniqueSignalsBetweenMs1AndMs2Robin(List<Scan> ms1Scans,
+  private SignalsResults countUniqueSignalsBetweenMs1AndMs2(List<Scan> ms1Scans,
       List<Scan> ms2Scans, MZTolerance tolerance) {
     // require signal to be in 90% of MS1 scans
     int minMs1Scans = (int) Math.ceil(ms1Scans.size() * 0.9);
-    var ms1SignalMap = filterMap(collectUniqueSignalsFromScansRobin(ms1Scans, tolerance),
+    var ms1SignalMap = filterMap(collectUniqueSignalsFromScans(ms1Scans, tolerance),
         minMs1Scans);
 
     // in MS2 this may not be true if different energies used, so apply no filter
-    var ms2SignalMap = collectUniqueSignalsFromScansRobin(ms2Scans, tolerance);
+    var ms2SignalMap = collectUniqueSignalsFromScans(ms2Scans, tolerance);
 
     List<UniqueSignal> ms1Signals = mapToList(ms1SignalMap);
     List<UniqueSignal> ms2Signals = mapToList(ms2SignalMap);
@@ -279,7 +273,7 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
    * @param tolerance The MZ tolerance.
    * @return A set of unique dataPoints.
    */
-  private RangeMap<Double, UniqueSignal> collectUniqueSignalsFromScansRobin(List<Scan> scans,
+  private RangeMap<Double, UniqueSignal> collectUniqueSignalsFromScans(List<Scan> scans,
       MZTolerance tolerance) {
     RangeMap<Double, UniqueSignal> unique = TreeRangeMap.create();
 
@@ -302,60 +296,6 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     }
 
     return unique;
-  }
-
-  /**
-   * Counts unique signals between MS1 and MS2 scans.
-   *
-   * @param ms1Scans  The MS1 scans.
-   * @param ms2Scans  The MS2 scans.
-   * @param tolerance The MZ tolerance.
-   * @return The results of the signal count.
-   */
-  private SignalsResults countUniqueSignalsBetweenMs1AndMs2Adriano(List<Scan> ms1Scans,
-      List<Scan> ms2Scans, MZTolerance tolerance) {
-    var uniqueMs1 = collectUniqueSignalsFromScansAdriano(ms1Scans, tolerance);
-    var uniqueMs2 = collectUniqueSignalsFromScansAdriano(ms2Scans, tolerance);
-
-    List<DataPoint> precursors = new ArrayList<>();
-    for (Scan scan : ms2Scans) {
-      DataPoint precursorDataPoint = new SimpleDataPoint(scan.getPrecursorMz(), 0.0);
-      precursors.add(precursorDataPoint);
-    }
-    int precursorsCount = collectUniqueSignals(precursors, tolerance).size();
-    int commonCount = countUniquePairs(uniqueMs1, uniqueMs2, tolerance);
-    int ms1Count = uniqueMs1.size();
-    int ms2Count = uniqueMs2.size();
-
-    double ms1Intensity = uniqueMs1.stream().mapToDouble(DataPoint::getIntensity).sum();
-    double commonIntensity = uniqueMs1.stream().filter(dp1 -> uniqueMs2.stream()
-            .anyMatch(dp2 -> tolerance.checkWithinTolerance(dp1.getMZ(), dp2.getMZ())))
-        .mapToDouble(DataPoint::getIntensity).sum();
-
-    return new SignalsResults(commonCount, ms1Count, commonCount / (double) ms1Count,
-        commonIntensity / ms1Intensity, -1, ms2Count, -1, -1d, precursorsCount);
-  }
-
-  /**
-   * Collects unique dataPoints from scans.
-   *
-   * @param scans     The scans.
-   * @param tolerance The MZ tolerance.
-   * @return A set of unique dataPoints.
-   */
-  private Set<DataPoint> collectUniqueSignalsFromScansAdriano(List<Scan> scans,
-      MZTolerance tolerance) {
-    Set<DataPoint> uniqueSignals = new HashSet<>();
-    for (Scan scan : scans) {
-      DataPoint[] dataPoints = ScanUtils.extractDataPoints(scan, useMassList);
-      if (scan.getMSLevel() > 1) {
-        // TODO arbitrarily removing 1 around precursor for now
-        dataPoints = removePrecursorMz(dataPoints, scan.getPrecursorMz(), 1);
-      }
-      List<DataPoint> dps = Arrays.asList(dataPoints);
-      uniqueSignals.addAll(collectUniqueSignals(dps, tolerance));
-    }
-    return uniqueSignals;
   }
 
   /**
