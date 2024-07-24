@@ -40,4 +40,6 @@ public class OtherFeatureImpl implements OtherFeature {
   public ObservableMap<DataType, Object> getMap() {
     return map;
   }
+
+
 }

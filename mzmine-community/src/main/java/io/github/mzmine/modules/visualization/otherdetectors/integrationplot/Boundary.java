@@ -23,14 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.datamodel.featuredata;
+package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
-import io.github.mzmine.util.MemoryMapStorage;
-
-public interface IntensityTimeSeries extends IntensitySeries, TimeSeries {
-
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end);
-
-  IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
-      int endIndexExclusive);
+enum Boundary {
+  LEFT, RIGHT
 }

@@ -25,9 +25,12 @@
 
 package io.github.mzmine.datamodel.otherdetectors;
 
+import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.ChromatogramType;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.IndexRange;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import org.jetbrains.annotations.NotNull;
@@ -38,10 +41,10 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
   protected final DoubleBuffer intensityBuffer;
   protected final FloatBuffer timeBuffer;
   protected final String name;
-  private final OtherTimeSeriesData timeSeriesData;
+  private final @NotNull OtherTimeSeriesData timeSeriesData;
 
   public SimpleOtherTimeSeries(@Nullable MemoryMapStorage storage, @NotNull float[] rtValues,
-      @NotNull double[] intensityValues, String name, OtherTimeSeriesData timeSeriesData) {
+      @NotNull double[] intensityValues, String name, @NotNull OtherTimeSeriesData timeSeriesData) {
     this.timeSeriesData = timeSeriesData;
     intensityBuffer = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
     timeBuffer = StorageUtils.storeValuesToFloatBuffer(storage, rtValues);
@@ -70,12 +73,33 @@ public class SimpleOtherTimeSeries implements OtherTimeSeries {
   }
 
   @Override
-  public OtherDataFile getOtherDataFile() {
+  public @NotNull OtherDataFile getOtherDataFile() {
     return timeSeriesData.getOtherDataFile();
   }
 
   @Override
+  @NotNull
   public OtherTimeSeriesData getTimeSeriesData() {
     return timeSeriesData;
+  }
+
+  @Override
+  public IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end) {
+    // todo does this work with float to double?
+    final IndexRange indexRange = BinarySearch.indexRange(start, end, getNumberOfValues(),
+        this::getRetentionTime);
+    return subSeries(storage, indexRange.min(), indexRange.maxInclusive());
+  }
+
+  @Override
+  public IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
+      int endIndexExclusive) {
+    final double[] intensities = new double[endIndexExclusive - startIndexInclusive];
+    final float[] rts = new float[endIndexExclusive - startIndexInclusive];
+
+    intensityBuffer.get(0, intensities, startIndexInclusive, intensities.length);
+    timeBuffer.get(0, rts, startIndexInclusive, intensities.length);
+
+    return new SimpleOtherTimeSeries(storage, rts, intensities, name, timeSeriesData);
   }
 }

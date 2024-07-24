@@ -31,6 +31,7 @@ import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.otherdetectors.integrationplot.IntegrationPane;
 import io.github.mzmine.project.ProjectService;
 import java.util.Optional;
 import javafx.geometry.Pos;
@@ -73,8 +74,8 @@ public class MultidetectorVisualizerBuilder extends FxViewBuilder<MultidetectorV
       return;
     }
 
-    final DetectorPane pane = new DetectorPane(file.get());
-    pane.minHeightProperty().bind(scrollPane.heightProperty().divide(4));
+    final IntegrationPane pane = new IntegrationPane(file.get());
+    pane.minHeightProperty().bind(scrollPane.heightProperty().subtract(10).divide(4));
     content.getChildren().add(pane);
   }
 }

@@ -25,10 +25,13 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.collections.BinarySearch;
+import io.github.mzmine.util.collections.IndexRange;
 import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -71,6 +74,20 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Int
       return getMZ(index);
     }
     return 0;
+  }
+
+  @Override
+  default IntensityTimeSeries subSeries(MemoryMapStorage storage, float start, float end) {
+    final IndexRange indexRange = BinarySearch.indexRange(Range.closed(start, end), getSpectra(),
+        Scan::getRetentionTime);
+
+    return subSeries(storage, getSpectra().subList(indexRange.min(), indexRange.maxExclusive()));
+  }
+
+  @Override
+  default IntensityTimeSeries subSeries(MemoryMapStorage storage, int startIndexInclusive,
+      int endIndexExclusive) {
+    return subSeries(storage, getSpectra().subList(startIndexInclusive, endIndexExclusive));
   }
 
   @Override

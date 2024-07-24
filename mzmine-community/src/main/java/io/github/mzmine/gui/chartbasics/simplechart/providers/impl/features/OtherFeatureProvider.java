@@ -23,8 +23,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
+package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features;
 
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.preferences.NumberFormats;
@@ -36,35 +37,38 @@ import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OtherTimeSeriesToXYProvider implements PlotXYDataProvider {
+public class OtherFeatureProvider implements PlotXYDataProvider {
 
-  private final javafx.scene.paint.Color colorFx;
-  private final Color colorAwt;
-  @NotNull
-  private final OtherTimeSeries series;
-  private final NumberFormats formats;
+  private final OtherFeature feature;
+  private final String seriesKey;
+  private final Color awt;
 
-  public OtherTimeSeriesToXYProvider(OtherTimeSeries series) {
-    this(series, series.getOtherDataFile().getCorrespondingRawDataFile().getColorAWT());
+  public OtherFeatureProvider(OtherFeature feature, Color awt) {
+    this.feature = feature;
+    final OtherTimeSeries timeSeries = feature.getFeatureData();
+    final String name = timeSeries.getName();
+    final NumberFormats formats = ConfigService.getGuiFormats();
+    seriesKey = "%s %s-%s".formatted(name, formats.rt(timeSeries.getRetentionTime(0)),
+        formats.rt(timeSeries.getRetentionTime(timeSeries.getNumberOfValues() - 1)));
+    this.awt = awt;
   }
 
-  public OtherTimeSeriesToXYProvider(OtherTimeSeries series, Color colorAwt) {
-    colorFx = FxColorUtil.awtColorToFX(colorAwt);
-    this.colorAwt = colorAwt;
-    this.series = series;
-    formats = ConfigService.getGuiFormats();
+  public OtherFeatureProvider(OtherFeature feature, String seriesKey, Color awt) {
+    this.feature = feature;
+    this.seriesKey = seriesKey;
+    this.awt = awt;
   }
 
   @NotNull
   @Override
   public Color getAWTColor() {
-    return colorAwt;
+    return awt;
   }
 
   @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
-    return colorFx;
+    return FxColorUtil.awtColorToFX(awt);
   }
 
   @Override
@@ -74,37 +78,48 @@ public class OtherTimeSeriesToXYProvider implements PlotXYDataProvider {
 
   @Override
   public @NotNull Comparable<?> getSeriesKey() {
-    return STR."\{series.getChromatoogramType()} \{series.getName()}";
+    return seriesKey;
   }
 
   @Override
   public @Nullable String getToolTipText(int itemIndex) {
-    return "Intensity: " + formats.intensity(getDomainValue(itemIndex)) + "\nRT: " + formats.rt(
-        getRangeValue(itemIndex));
+    final OtherTimeSeries timeSeries = feature.getFeatureData();
+    final NumberFormats formats = ConfigService.getGuiFormats();
+    return "%s: %s %s\n%s: %s %s".formatted(
+        timeSeries.getTimeSeriesData().getTimeSeriesRangeLabel(),
+        formats.intensity(timeSeries.getIntensity(itemIndex)),
+        timeSeries.getTimeSeriesData().getTimeSeriesRangeUnit(),
+        timeSeries.getTimeSeriesData().getTimeSeriesDomainLabel(),
+        formats.rt(timeSeries.getRetentionTime(itemIndex)),
+        timeSeries.getTimeSeriesData().getTimeSeriesDomainUnit());
   }
 
   @Override
   public void computeValues(Property<TaskStatus> status) {
-    return;
+    // nothing to do
   }
 
   @Override
   public double getDomainValue(int index) {
-    return series.getRetentionTime(index);
+    return feature.getFeatureData().getRetentionTime(index);
   }
 
   @Override
   public double getRangeValue(int index) {
-    return series.getIntensity(index);
+    return feature.getFeatureData().getIntensity(index);
   }
 
   @Override
   public int getValueCount() {
-    return series.getNumberOfValues();
+    return feature.getFeatureData().getNumberOfValues();
   }
 
   @Override
   public double getComputationFinishedPercentage() {
-    return 1d;
+    return 1;
+  }
+
+  public OtherFeature getFeature() {
+    return feature;
   }
 }
