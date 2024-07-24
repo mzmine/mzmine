@@ -25,8 +25,10 @@
 
 package io.github.mzmine.modules.dataprocessing.process_signalsanalysis;
 
-public record GroupedSignalScans(io.github.mzmine.datamodel.features.FeatureListRow row,
-                                 java.util.List<io.github.mzmine.datamodel.Scan> ms1Scans,
-                                 java.util.List<io.github.mzmine.datamodel.Scan> ms2Scans) {
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import java.util.List;
+
+public record GroupedSignalScans(FeatureListRow row, List<Scan> ms1Scans, List<Scan> ms2Scans) {
 
 }
