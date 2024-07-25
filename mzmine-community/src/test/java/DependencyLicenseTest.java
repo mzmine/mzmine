@@ -27,6 +27,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.util.dependencylicenses.Dependencies;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Test;
 
@@ -37,11 +42,13 @@ public class DependencyLicenseTest {
   @Test
   void test() {
     final ObjectMapper mapper = new ObjectMapper();
-    try (InputStream dps = this.getClass().getClassLoader()
-        .getResourceAsStream("dependency/dependency-licenses.json")) {
+    final URL resource = this.getClass().getClassLoader()
+        .getResource("dependency/dependency-licenses.json");
+    try (InputStream dps = (Files.newInputStream(Paths.get(resource.toURI()),
+        StandardOpenOption.READ))) {
       final Dependencies dependency = mapper.readValue(dps, Dependencies.class);
-//      logger.info(dependency.toString());
-    } catch (IOException e) {
+      logger.info(dependency.toString());
+    } catch (IOException | URISyntaxException e) {
       throw new RuntimeException(e);
     }
   }

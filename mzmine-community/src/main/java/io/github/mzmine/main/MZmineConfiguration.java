@@ -31,6 +31,7 @@ import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransfo
 import io.github.mzmine.gui.preferences.ImageNormalization;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumberFormats;
+import io.github.mzmine.gui.preferences.Themes;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -129,6 +130,8 @@ public interface MZmineConfiguration {
   ChartThemeParameters getDefaultChartThemeParameters();
 
   EStandardChartTheme getDefaultChartTheme();
+
+  Themes getTheme();
 
   StringCrypter getEncrypter();
 

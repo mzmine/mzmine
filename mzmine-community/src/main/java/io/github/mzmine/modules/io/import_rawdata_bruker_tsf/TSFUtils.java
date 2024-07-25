@@ -35,7 +35,12 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleImagingScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.impl.builders.SimpleBuildingScan;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.SimpleSpectralArrays;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
@@ -194,7 +199,7 @@ public class TSFUtils {
   public Scan loadScan(RawDataFile file, final long handle, final long frameId,
       @NotNull TDFMetaDataTable metaDataTable, @NotNull TSFFrameTable frameTable,
       @NotNull TDFFrameMsMsInfoTable msMsInfoTable, @Nullable TDFMaldiFrameInfoTable maldiTable,
-      @NotNull final MassSpectrumType spectrumType) {
+      @NotNull final MassSpectrumType spectrumType, ScanImportProcessorConfig config) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final String scanDefinition =
@@ -207,9 +212,22 @@ public class TSFUtils {
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
     final Range<Double> mzRange = metaDataTable.getMzRange();
 
+    final SimpleBuildingScan metadata = new SimpleBuildingScan(frameIndex, msLevel, polarity,
+        spectrumType, rt, 0d, 0);
+    if (!config.scanFilter().matches(metadata)) {
+      return null;
+    }
+
     double[][] mzIntensities =
         spectrumType == MassSpectrumType.CENTROIDED ? loadCentroidSpectrum(handle, frameId)
             : loadProfileSpectrum(handle, frameId);
+
+    final SimpleSpectralArrays arrays = config.processor()
+        .processScan(metadata, new SimpleSpectralArrays(mzIntensities[0], mzIntensities[1]));
+
+    MassSpectrumType spectrumTypeAfterProcessing =
+        config.isMassDetectActive(msLevel) || spectrumType == MassSpectrumType.CENTROIDED
+            ? MassSpectrumType.CENTROIDED : spectrumType;
 
     /*if (msLevel > 1) {
       ce = (double) Objects.requireNonNullElse(
@@ -221,15 +239,24 @@ public class TSFUtils {
     }*/
 
     if (maldiTable == null || maldiTable.getFrameIdColumn().isEmpty()) {
-      return new SimpleScan(file, (int) frameId, msLevel, rt, null, mzIntensities[0],
-          mzIntensities[1], spectrumType, polarity, scanDefinition, mzRange);
+      final SimpleScan scan = new SimpleScan(file, (int) frameId, msLevel, rt, null, arrays.mzs(),
+          arrays.intensities(), spectrumTypeAfterProcessing, polarity, scanDefinition, mzRange);
+      if(config.isMassDetectActive(msLevel)) {
+        scan.addMassList(new ScanPointerMassList(scan));
+      }
+      return scan;
     } else {
       final Coordinates coords = new Coordinates(maldiTable.getTransformedXIndexPos(frameIndex),
           maldiTable.getTransformedYIndexPos(frameIndex), 0);
 
-      return new SimpleImagingScan(file, Math.toIntExact(frameId), msLevel,
-          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), 0, 0, mzIntensities[0],
-          mzIntensities[1], spectrumType, polarity, scanDefinition, mzRange, coords);
+      final SimpleImagingScan scan = new SimpleImagingScan(file, Math.toIntExact(frameId),
+          msLevel, (float) (frameTable.getTimeColumn().get(frameIndex) / 60), 0, 0, arrays.mzs(),
+          arrays.intensities(), spectrumTypeAfterProcessing, polarity, scanDefinition, mzRange,
+          coords);
+      if(config.isMassDetectActive(msLevel)) {
+        scan.addMassList(new ScanPointerMassList(scan));
+      }
+      return scan;
     }
   }
 
@@ -311,9 +338,6 @@ public class TSFUtils {
     }
   }
 
-  // ---------------------------------------------------------------------------------------------
-  // UTILITY FUNCTIONS
-  // -----------------------------------------------------------------------------------------------
 
   /**
    * Opens the tdf_bin file.
@@ -327,6 +351,10 @@ public class TSFUtils {
   public long openFile(final File path) {
     return openFile(path, 1);
   }
+
+  // ---------------------------------------------------------------------------------------------
+  // UTILITY FUNCTIONS
+  // -----------------------------------------------------------------------------------------------
 
   public void close(final long handle) {
     tsfdata.tsf_close(handle);

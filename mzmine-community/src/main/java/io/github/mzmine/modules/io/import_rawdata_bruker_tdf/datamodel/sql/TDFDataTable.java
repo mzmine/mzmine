@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -82,8 +82,8 @@ public abstract class TDFDataTable<EntryKeyType> {
 
   public boolean isValid() {
     long numKeys = keyList.size();
-    for(TDFDataColumn<?> col : columns) {
-      if(numKeys != col.size()) {
+    for (TDFDataColumn<?> col : columns) {
+      if (numKeys != col.size()) {
         return false;
       }
     }
@@ -104,7 +104,9 @@ public abstract class TDFDataTable<EntryKeyType> {
       ResultSet rs = statement.executeQuery(request);
       int types[] = new int[rs.getMetaData().getColumnCount()];
       if (types.length != columns.size()) {
-        logger.info("Number of retrieved columns does not match number of queried columns.");
+        logger.info(
+            "Number of retrieved columns does not match number of queried columns for table %s.".formatted(
+                this.table));
         return false;
       }
       for (int i = 0; i < types.length; i++) {
@@ -191,6 +193,10 @@ public abstract class TDFDataTable<EntryKeyType> {
     }*/
   }
 
+  public List<TDFDataColumn<?>> columns() {
+    return columns;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -200,10 +206,8 @@ public abstract class TDFDataTable<EntryKeyType> {
       return false;
     }
     TDFDataTable<?> that = (TDFDataTable<?>) o;
-    return table.equals(that.table) &&
-        entryHeader.equals(that.entryHeader) &&
-        columns.equals(that.columns) &&
-        keyList.equals(that.keyList);
+    return table.equals(that.table) && entryHeader.equals(that.entryHeader) && columns.equals(
+        that.columns) && keyList.equals(that.keyList);
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -206,7 +206,9 @@ public abstract class DataType<T> implements Comparable<DataType> {
     } else if (getValueClass().isInstance(value)) {
       return getFormattedString(getValueClass().cast(value));
     } else {
-      throw new IllegalArgumentException("value is not ValueClass: " + getValueClass().toString());
+      throw new IllegalArgumentException(
+          "value %s (type ) is not of class: %s".formatted(value.toString(),
+              value.getClass().getName(), getValueClass().toString()));
     }
   }
 

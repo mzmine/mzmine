@@ -37,7 +37,6 @@ import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.collections.CollectionUtils;
 import io.github.mzmine.util.collections.SortOrder;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -163,5 +162,9 @@ public class CompoundAnnotationUtils {
   public static Stream<FeatureAnnotation> streamFeatureAnnotations(final FeatureListRow row) {
     return row.streamAllFeatureAnnotations().filter(ann -> ann instanceof FeatureAnnotation)
         .map(FeatureAnnotation.class::cast);
+  }
+
+  public static void calculateBoundTypes(CompoundDBAnnotation annotation, FeatureListRow row) {
+    ConnectedTypeCalculation.LIST.forEach(calc -> calc.calculateIfAbsent(row, annotation));
   }
 }

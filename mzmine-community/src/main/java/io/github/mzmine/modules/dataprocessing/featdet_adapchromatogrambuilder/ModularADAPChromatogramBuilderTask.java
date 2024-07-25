@@ -173,7 +173,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     if (scans.length == 0) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("There are no scans satisfying filtering values. Consider updating filters "
-          + "with \"Set filters\" in the \"Scans\" parameter.");
+                      + "with \"Set filters\" in the \"Scans\" parameter.");
       return;
     }
 
@@ -192,9 +192,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       if (s.getRetentionTime() < prevRT) {
         setStatus(TaskStatus.ERROR);
         final String msg = "Retention time of scan #" + s.getScanNumber()
-            + " is smaller then the retention time of the previous scan."
-            + " Please make sure you only use scans with increasing retention times."
-            + " You can restrict the scan numbers in the parameters, or you can use the Crop filter module";
+                           + " is smaller then the retention time of the previous scan."
+                           + " Please make sure you only use scans with increasing retention times."
+                           + " You can restrict the scan numbers in the parameters, or you can use the Crop filter module";
         setErrorMessage(msg);
         return;
       }
@@ -212,8 +212,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       if (level != scans[i].getMSLevel()) {
         DesktopService.getDesktop().displayMessage(null,
             "mzmine thinks that you are running ADAP Chromatogram builder on both MS1- and MS2-scans. "
-                + "This will likely produce wrong results. "
-                + "Please, set the scan filter parameter to a specific MS level");
+            + "This will likely produce wrong results. "
+            + "Please, set the scan filter parameter to a specific MS level");
         break;
       }
       if (pol != scans[i].getPolarity()) {
@@ -354,7 +354,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
         // add to list
         ModularFeature modular = FeatureConvertors.ADAPChromatogramToModularFeature(newFeatureList,
-            dataFile, chromatogram);
+            dataFile, chromatogram, mzTolerance);
         ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, newFeatureID,
             modular);
         newFeatureList.addRow(newRow);

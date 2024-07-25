@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -178,21 +178,21 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
         XML_PRECURSOR_CHARGE_ATTR, null, Integer::parseInt);
 
     final Integer scanIndex = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_FRAGMENT_SCAN_ATTR, null, Integer::parseInt);
+        MsMsInfo.XML_FRAGMENT_SCAN_ATTR, null, Integer::parseInt);
 
     final Integer parentScanIndex = ParsingUtils.readAttributeValueOrDefault(reader,
         XML_PARENT_SCAN_ATTR, null, Integer::parseInt);
 
     final Float activationEnergy = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_ACTIVATION_ENERGY_ATTR, null, Float::parseFloat);
+        MsMsInfo.XML_ACTIVATION_ENERGY_ATTR, null, Float::parseFloat);
 
-    final int msLevel = Integer.parseInt(reader.getAttributeValue(null, XML_MSLEVEL_ATTR));
+    final int msLevel = Integer.parseInt(reader.getAttributeValue(null, MsMsInfo.XML_MSLEVEL_ATTR));
 
     final ActivationMethod method = ActivationMethod.valueOf(
-        reader.getAttributeValue(null, XML_ACTIVATION_TYPE_ATTR));
+        reader.getAttributeValue(null, MsMsInfo.XML_ACTIVATION_TYPE_ATTR));
 
     final Range<Double> isolationWindow = ParsingUtils.readAttributeValueOrDefault(reader,
-        XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
+        MsMsInfo.XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
 
     final String rawFileName = ParsingUtils.readAttributeValueOrDefault(reader,
         CONST.XML_RAW_FILE_ELEMENT, null, s -> s);
@@ -276,7 +276,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     }
 
     if (getMsMsScan() != null) {
-      writer.writeAttribute(XML_FRAGMENT_SCAN_ATTR,
+      writer.writeAttribute(MsMsInfo.XML_FRAGMENT_SCAN_ATTR,
           String.valueOf(getMsMsScan().getDataFile().getScans().indexOf(getMsMsScan())));
       writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getMsMsScan().getDataFile().getName());
     }
@@ -287,13 +287,14 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     }
 
     if (getActivationEnergy() != null) {
-      writer.writeAttribute(XML_ACTIVATION_ENERGY_ATTR, String.valueOf(this.getActivationEnergy()));
+      writer.writeAttribute(MsMsInfo.XML_ACTIVATION_ENERGY_ATTR,
+          String.valueOf(this.getActivationEnergy()));
     }
-    writer.writeAttribute(XML_ACTIVATION_TYPE_ATTR, this.getActivationMethod().name());
-    writer.writeAttribute(XML_MSLEVEL_ATTR, String.valueOf(getMsLevel()));
+    writer.writeAttribute(MsMsInfo.XML_ACTIVATION_TYPE_ATTR, this.getActivationMethod().name());
+    writer.writeAttribute(MsMsInfo.XML_MSLEVEL_ATTR, String.valueOf(getMsLevel()));
 
     if (getIsolationWindow() != null) {
-      writer.writeAttribute(XML_ISOLATION_WINDOW_ATTR,
+      writer.writeAttribute(MsMsInfo.XML_ISOLATION_WINDOW_ATTR,
           ParsingUtils.rangeToString((Range) getIsolationWindow()));
     }
 
