@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -218,6 +219,13 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
 
     List<UniqueSignal> ms1SignalMatchesMs2Precursors = filterUniquePrecursors(ms1Signals, ms2Scans,
         tolerance);
+    Set<Double> precursorMzSet = ms1SignalMatchesMs2Precursors.stream().map(UniqueSignal::mz)
+        .collect(Collectors.toSet());
+    List<UniqueSignal> ms1FragmentedSignalMatchesMs2 = ms1Signals.stream()
+        .filter(signal -> precursorMzSet.contains(signal.mz())).filter(
+            signal -> ms2SignalMap.asMapOfRanges().values().stream()
+                .anyMatch(ms2Signal -> tolerance.checkWithinTolerance(signal.mz(), ms2Signal.mz())))
+        .toList();
 
     double ms1IntensityTotal = calcSumIntensity(ms1Signals);
     double ms1IntensityFragmentedPercent =
@@ -237,10 +245,17 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     int ms2SignalsMatched = ms2SignalMatchesMs1.size();
     double ms2SignalsMatchedPercent = ms2SignalsMatched / (double) ms2SignalsTotal;
 
-    return new SignalsResults(ms1SignalsTotal, ms1SignalsFragmented, ms1SignalsFragmentedPercent,
-        ms1IntensityFragmentedPercent, ms1SignalsMatched, ms1SignalsMatchedPercent,
-        ms1IntensityMatchedPercent, ms2SignalsTotal, ms2SignalsMatched, ms2SignalsMatchedPercent,
-        ms2IntensityMatchedPercent);
+    /*
+     * The precursor with the highest m/z will never be recognized as ISF.
+     * Same if there is only one MS2 scan over the whole range.
+     */
+    double ms1SignalsFragmentedLikelyISFPercent =
+        ms1FragmentedSignalMatchesMs2.size() / (double) ms1SignalsFragmented;
+
+    return new SignalsResults(ms1SignalsFragmentedLikelyISFPercent, ms1SignalsTotal,
+        ms1SignalsFragmented, ms1SignalsFragmentedPercent, ms1IntensityFragmentedPercent,
+        ms1SignalsMatched, ms1SignalsMatchedPercent, ms1IntensityMatchedPercent, ms2SignalsTotal,
+        ms2SignalsMatched, ms2SignalsMatchedPercent, ms2IntensityMatchedPercent);
   }
 
   private List<UniqueSignal> mapToList(final RangeMap<Double, UniqueSignal> map) {
