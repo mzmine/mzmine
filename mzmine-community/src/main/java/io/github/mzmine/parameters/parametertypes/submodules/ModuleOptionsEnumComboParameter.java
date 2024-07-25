@@ -168,7 +168,7 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
         if (parameters == null) {
           return;
         }
-        parameters.loadValuesFromXML(xmlElement);
+        parameters.loadValuesFromXML(nextElement);
       });
     }
 
