@@ -251,9 +251,10 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
     boolean hasPrecursorMz = precursorMZA != null && precursorMZB != null;
 
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    String precursorString = !hasPrecursorMz ? ""
-        : MessageFormat.format(": m/z {0}↔{1}; top↔bottom", mzFormat.format(precursorMZA) + labelA,
-            mzFormat.format(precursorMZB) + labelB);
+    String precursorString =
+        !hasPrecursorMz ? MessageFormat.format(": m/z {0}↔{1}; top↔bottom", labelA, labelB)
+            : MessageFormat.format(": m/z {0}↔{1}; top↔bottom",
+                mzFormat.format(precursorMZA) + labelA, mzFormat.format(precursorMZB) + labelB);
 
     pnMirror.setCenter(null);
     pnNLMirror.setCenter(null);

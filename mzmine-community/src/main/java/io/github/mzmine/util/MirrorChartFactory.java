@@ -217,7 +217,8 @@ public class MirrorChartFactory {
   }
 
   public static EChartViewer createMirrorPlotFromAligned(MZTolerance mzTol, boolean modified,
-      DataPoint[] dpa, Double precursorMZA, DataPoint[] dpb, Double precursorMZB) {
+      DataPoint[] dpa, @Nullable Double precursorMZA, DataPoint[] dpb,
+      @Nullable Double precursorMZB) {
     List<DataPoint[]> aligned;
 
     if (modified && precursorMZA != null && precursorMZB != null) {
@@ -230,7 +231,7 @@ public class MirrorChartFactory {
   }
 
   public static EChartViewer createMirrorPlotFromAligned(MZTolerance mzTol, boolean modified,
-      DataPoint[][] aligned, Double precursorMZA, Double precursorMZB) {
+      DataPoint[][] aligned, @Nullable Double precursorMZA, @Nullable Double precursorMZB) {
 
     final DataPointsTag[] tags = new DataPointsTag[]{DataPointsTag.UNALIGNED,
         DataPointsTag.ALIGNED_MODIFIED, DataPointsTag.ALIGNED};
@@ -442,7 +443,7 @@ public class MirrorChartFactory {
     }
   }
 
-  public static PseudoSpectrumDataSet createMSMSDataSet(Double precursorMZ, double rt,
+  public static PseudoSpectrumDataSet createMSMSDataSet(@Nullable Double precursorMZ, double rt,
       DataPoint[] dps, String label) {
     NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat rtForm = MZmineCore.getConfiguration().getRTFormat();
@@ -580,9 +581,9 @@ public class MirrorChartFactory {
         showTitle, showLegend));
   }
 
-  public static EChartViewer createMirrorChartViewer(String labelA, Double precursorMZA, double rtA,
-      DataPoint[] dpsA, String labelB, Double precursorMZB, double rtB, DataPoint[] dpsB,
-      boolean showTitle, boolean showLegend) {
+  public static EChartViewer createMirrorChartViewer(String labelA, @Nullable Double precursorMZA,
+      double rtA, DataPoint[] dpsA, String labelB, @Nullable Double precursorMZB, double rtB,
+      DataPoint[] dpsB, boolean showTitle, boolean showLegend) {
     return new EChartViewer(
         createMirrorChart(labelA, precursorMZA, rtA, dpsA, labelB, precursorMZB, rtB, dpsB,
             showTitle, showLegend));
@@ -593,9 +594,9 @@ public class MirrorChartFactory {
     return createMirrorChart(labelA, -1d, -1, dpsA, labelB, -1d, -1, dpsB, showTitle, showLegend);
   }
 
-  private static JFreeChart createMirrorChart(String labelA, Double precursorMZA, double rtA,
-      DataPoint[] dpsA, String labelB, Double precursorMZB, double rtB, DataPoint[] dpsB,
-      boolean showTitle, boolean showLegend) {
+  private static JFreeChart createMirrorChart(String labelA, @Nullable Double precursorMZA,
+      double rtA, DataPoint[] dpsA, String labelB, @Nullable Double precursorMZB, double rtB,
+      DataPoint[] dpsB, boolean showTitle, boolean showLegend) {
     PseudoSpectrumDataSet data =
         dpsA == null ? null : createMSMSDataSet(precursorMZA, rtA, dpsA, labelA);
     PseudoSpectrumDataSet dataMirror =
