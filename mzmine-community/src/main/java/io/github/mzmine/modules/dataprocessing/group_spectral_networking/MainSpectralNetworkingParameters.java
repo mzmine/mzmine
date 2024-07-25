@@ -25,10 +25,20 @@
 
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
+import static io.github.mzmine.javafx.components.factories.FxTexts.fbmnPaper;
+import static io.github.mzmine.javafx.components.factories.FxTexts.iimnPaper;
+import static io.github.mzmine.javafx.components.factories.FxTexts.linebreak;
+import static io.github.mzmine.javafx.components.factories.FxTexts.ms2deepscorePaper;
+import static io.github.mzmine.javafx.components.factories.FxTexts.text;
+
+import io.github.mzmine.javafx.components.factories.FxTextFlows;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ModuleOptionsEnumComboParameter;
+import io.github.mzmine.util.ExitCode;
+import javafx.scene.layout.Region;
 import org.jetbrains.annotations.NotNull;
 
 public class MainSpectralNetworkingParameters extends SimpleParameterSet {
@@ -48,4 +58,18 @@ public class MainSpectralNetworkingParameters extends SimpleParameterSet {
     return IonMobilitySupport.SUPPORTED;
   }
 
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    final Region message = FxTextFlows.newTextFlowInAccordion("How to cite",
+        text("When applying Feature-Based Molecular Networking (FBMN) please cite:"), linebreak(),
+        fbmnPaper, linebreak(),
+        text("When applying Ion Identity Molecular Networking (IIMN) please cite:"), linebreak(),
+        iimnPaper, linebreak(), text("When using MS2Deepscore please cite:"), linebreak(),
+        ms2deepscorePaper);
+
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
 }

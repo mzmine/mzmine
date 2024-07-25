@@ -39,14 +39,13 @@ import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.R2RSimpleSimilarity;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.MainSpectralNetworkingParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.similarity.impl.ms2deepscore.MS2DeepscoreModel;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,51 +63,36 @@ public class MS2DeepscoreNetworkingTask extends AbstractFeatureListTask {
   private final @NotNull FeatureList[] featureLists;
   private final int minSignals;
   private final double minScore;
-  private Path ms2deepscoreModelFile;
-  private Path ms2deepscoreSettingsFile;
-  private final boolean downloadModel;
-  private final File downloadDirectory;
-
+  private final File ms2deepscoreModelFile;
+  private final File ms2deepscoreSettingsFile;
   private String description;
 
   /**
    * Constructor is used to extract all parameters
    *
-   * @param featureLists data source is featureList
-   * @param parameters   user parameters
+   * @param featureLists   data source is featureList
+   * @param mainParameters user parameters {@link MainSpectralNetworkingParameters}
    */
   public MS2DeepscoreNetworkingTask(MZmineProject project, @NotNull FeatureList[] featureLists,
-      ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
-      @NotNull Class<? extends MZmineModule> moduleClass) {
-    super(storage, moduleCallDate, parameters, moduleClass);
+      ParameterSet mainParameters, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate, @NotNull Class<? extends MZmineModule> moduleClass) {
+    super(storage, moduleCallDate, mainParameters, moduleClass);
+    var subParams = mainParameters.getEmbeddedParameterValue(
+        MainSpectralNetworkingParameters.algorithms);
+
     this.featureLists = featureLists;
     // Get parameter values for easier use
-    minSignals = parameters.getValue(MS2DeepscoreNetworkingParameters.minSignals);
-    minScore = parameters.getValue(MS2DeepscoreNetworkingParameters.minScore);
-    ms2deepscoreModelFile = parameters.getValue(
-        MS2DeepscoreNetworkingParameters.ms2deepscoreModelFile).toPath();
-    ms2deepscoreSettingsFile = parameters.getValue(
-        MS2DeepscoreNetworkingParameters.ms2deepscoreSettingsFile).toPath();
-    downloadModel = parameters.getValue(MS2DeepscoreNetworkingParameters.downloadDirectory);
-    if (downloadModel) {
-      final DirectoryParameter directoryParameter = parameters.getParameter(
-          MS2DeepscoreNetworkingParameters.downloadDirectory).getEmbeddedParameter();
-      downloadDirectory = directoryParameter.getValue();
-    } else {
-      downloadDirectory = null;
-    }
+    minSignals = subParams.getValue(MS2DeepscoreNetworkingParameters.minSignals);
+    minScore = subParams.getValue(MS2DeepscoreNetworkingParameters.minScore);
+    ms2deepscoreModelFile = subParams.getValue(
+        MS2DeepscoreNetworkingParameters.ms2deepscoreModelFile);
+    // same folder - same name
+    ms2deepscoreSettingsFile = MS2DeepscoreNetworkingParameters.findModelSettingsFile(
+        ms2deepscoreModelFile);
   }
 
   @Override
   protected void process() {
-    description = "Downloading model";
-    if (downloadModel) {
-      logger.info("Downloading MS2Deepscore model");
-      ms2deepscoreSettingsFile = DownloadMS2DeepscoreModel.downloadSettings(downloadDirectory)
-          .toPath();
-
-      ms2deepscoreModelFile = DownloadMS2DeepscoreModel.downloadModel(downloadDirectory).toPath();
-    }
     // init model
     description = "Loading model";
     MS2DeepscoreModel model;

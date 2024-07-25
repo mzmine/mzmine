@@ -26,21 +26,21 @@
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingTask;
-import io.github.mzmine.modules.impl.SingleTaskFeatureListsModule;
+import io.github.mzmine.modules.impl.AbstractProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Downloads a MS2Deepscore model and runs molecular networking
  */
-public class MainSpectralNetworkingModule extends SingleTaskFeatureListsModule {
+public class MainSpectralNetworkingModule extends AbstractProcessingModule {
 
   public MainSpectralNetworkingModule() {
     super("Spectral / Molecular Networking", MainSpectralNetworkingParameters.class,
@@ -49,10 +49,30 @@ public class MainSpectralNetworkingModule extends SingleTaskFeatureListsModule {
   }
 
   @Override
-  public @NotNull Task createTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage,
-      @NotNull FeatureList[] featureList) {
-    return new MS2DeepscoreNetworkingTask(project, featureList, parameters, storage, moduleCallDate,
-        this.getClass());
+  public @NotNull ExitCode runModule(@NotNull final MZmineProject project,
+      @NotNull final ParameterSet parameters, @NotNull final Collection<Task> tasks,
+      @NotNull final Instant moduleCallDate) {
+
+    SpectralNetworkingOptions algorithm = parameters.getValue(
+        MainSpectralNetworkingParameters.algorithms);
+    var featureLists = parameters.getValue(MainSpectralNetworkingParameters.featureLists)
+        .getMatchingFeatureLists();
+    switch (algorithm) {
+      case MODIFIED_COSINE -> {
+        // one task for each feature list
+        for (final ModularFeatureList featureList : featureLists) {
+          var task = new ModifiedCosineSpectralNetworkingTask(parameters, featureList,
+              moduleCallDate, this.getClass());
+          tasks.add(task);
+        }
+      }
+      case MS2_DEEPSCORE -> {
+        // one task for all
+        var task = new MS2DeepscoreNetworkingTask(project, featureLists, parameters, null,
+            moduleCallDate, this.getClass());
+        tasks.add(task);
+      }
+    }
+    return ExitCode.OK;
   }
 }

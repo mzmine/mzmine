@@ -33,16 +33,17 @@ import io.github.mzmine.javafx.components.factories.FxTextFlows;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.files.ExtensionFilters;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import java.util.Objects;
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
 import javafx.scene.layout.Region;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Define any parameters here (see io.github.mzmine.parameters for parameter types) static is needed
@@ -52,34 +53,57 @@ import javafx.scene.layout.Region;
  */
 public class MS2DeepscoreNetworkingParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
-
   public static final IntegerParameter minSignals = new IntegerParameter("Minimum signals",
       "The minimum number of fragments for using a spectrum (minimum = 3)", 4, 3, null);
 
   public static final PercentParameter minScore = new PercentParameter("Min similarity",
       "The minimum similarity score to store the MS2Deepscore prediction", 0.9, 0.0, 1.0);
 
-  public static final OptionalParameter<DirectoryParameter> downloadDirectory = new OptionalParameter<>(
-      new DirectoryParameter("Download model directory",
-          "The directory in which the model is stored",
-          Objects.requireNonNull(FileAndPathUtil.resolveInMzmineDir("models")).toString()));
   public static final FileNameParameter ms2deepscoreModelFile = new FileNameParameter(
       "MS2Deepscore model",
       "The file location of the MS2Deepscore model, click download to download the model.",
-      FileSelectionType.OPEN, true);
+      List.of(ExtensionFilters.PT), FileSelectionType.OPEN);
 
-  public static final FileNameParameter ms2deepscoreSettingsFile = new FileNameParameter(
-      "MS2Deepscore model settings file",
-      "The file location of the settings.json file, click download to download the model and settings.",
-      FileSelectionType.OPEN, true);
 
   public MS2DeepscoreNetworkingParameters() {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */
-    super(featureLists, minSignals, minScore, downloadDirectory, ms2deepscoreModelFile,
-        ms2deepscoreSettingsFile);
+    super(ms2deepscoreModelFile, minSignals, minScore);
+  }
+
+  /**
+   * Settings file is always in the same folder and has a suffix of _settings.json instead of .pt
+   * format.
+   *
+   * @param modelFile the model.pt file
+   * @return the derived settings file
+   */
+  @NotNull
+  public static File findModelSettingsFile(final File modelFile) {
+    return FileAndPathUtil.getRealFilePathWithSuffix(modelFile, "_settings", "json");
+  }
+
+  @Override
+  public boolean checkParameterValues(final Collection<String> errorMessages,
+      final boolean skipRawDataAndFeatureListParameters) {
+    boolean result = super.checkParameterValues(errorMessages, skipRawDataAndFeatureListParameters);
+
+    var modelFile = getValue(ms2deepscoreModelFile);
+    if (modelFile == null || !modelFile.exists()) {
+      errorMessages.add("Cannot find model file please download the MS2Deepscore model.");
+      return false;
+    }
+
+    File settingsFile = findModelSettingsFile(modelFile);
+    if (!settingsFile.exists()) {
+      errorMessages.add("""
+          Cannot find model settings file. It should be located in the folder together with the model file and follow this naming pattern:
+          Model: ms2deepscore_mode.pt; Settings: ms2deepscore_mode_settings.json.""");
+      return false;
+    }
+
+    return result;
   }
 
   @Override

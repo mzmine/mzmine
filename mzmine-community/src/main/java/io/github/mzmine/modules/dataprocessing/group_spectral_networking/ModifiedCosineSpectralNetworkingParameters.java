@@ -33,7 +33,6 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -46,10 +45,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ModifiedCosineSpectralNetworkingParameters extends SimpleParameterSet {
 
-  // NOT INCLUDED in sub
-  // General parameters
-  public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
-  // INCLUDED in sub
   // MZ-tolerance: deisotoping, adducts
   public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter(
       "m/z tolerance (MS2)",
@@ -82,8 +77,8 @@ public class ModifiedCosineSpectralNetworkingParameters extends SimpleParameterS
       """, new SignalFiltersParameters());
 
   public ModifiedCosineSpectralNetworkingParameters() {
-    super(FEATURE_LISTS, MZ_TOLERANCE, ONLY_BEST_MS2_SCAN, MAX_MZ_DELTA, MIN_MATCH,
-        MIN_COSINE_SIMILARITY, CHECK_NEUTRAL_LOSS_SIMILARITY, signalFilters);
+    super(MZ_TOLERANCE, ONLY_BEST_MS2_SCAN, MAX_MZ_DELTA, MIN_MATCH, MIN_COSINE_SIMILARITY,
+        CHECK_NEUTRAL_LOSS_SIMILARITY, signalFilters);
   }
 
   @Override

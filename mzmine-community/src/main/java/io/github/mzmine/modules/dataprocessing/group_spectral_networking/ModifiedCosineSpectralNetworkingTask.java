@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.R2RNetworkingMaps;
 import io.github.mzmine.datamodel.features.correlation.R2RSpectralSimilarity;
@@ -46,11 +45,12 @@ import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStats;
 import io.github.mzmine.datamodel.features.types.networking.NetworkStatsType;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.networking.visual.FeatureNetworkGenerator;
 import io.github.mzmine.modules.visualization.networking.visual.enums.NodeAtt;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.AbstractFeatureListTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.FeatureListRowSorter;
@@ -80,7 +80,7 @@ import org.graphstream.algorithm.community.Community;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ModifiedCosineSpectralNetworkingTask extends AbstractTask {
+public class ModifiedCosineSpectralNetworkingTask extends AbstractFeatureListTask {
 
   public final static Function<List<DataPoint[]>, Integer> DIFF_OVERLAP = list -> ScanMZDiffConverter.getOverlapOfAlignedDiff(
       list, 0, 1);
@@ -94,34 +94,46 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractTask {
   private final double minCosineSimilarity;
   private final int maxDPForDiff;
   private final boolean onlyBestMS2Scan;
-  private final ParameterSet params;
   private final @Nullable ModularFeatureList featureList;
   // target
   private final boolean checkNeutralLoss;
   private final SpectralSignalFilter signalFilter;
   private final double maxMzDelta;
-  private List<FeatureListRow> rows;
+  private final List<FeatureListRow> rows;
   private long totalMaxPairs = 0;
 
-  public ModifiedCosineSpectralNetworkingTask(final ParameterSet params,
-      @Nullable ModularFeatureList featureList, @NotNull Instant moduleCallDate) {
-    super(null, moduleCallDate);
-    this.params = params;
+  public ModifiedCosineSpectralNetworkingTask(final ParameterSet mainParameters,
+      @Nullable ModularFeatureList featureList, @NotNull Instant moduleCallDate,
+      final Class<? extends MZmineModule> moduleClass) {
+    this(mainParameters, featureList, featureList.getRows(), moduleCallDate, moduleClass);
+  }
+
+  /**
+   * Create the task on set of rows
+   */
+  public ModifiedCosineSpectralNetworkingTask(final ParameterSet mainParameters,
+      @Nullable ModularFeatureList featureList, List<FeatureListRow> rows,
+      @NotNull Instant moduleCallDate, final Class<? extends MZmineModule> moduleClass) {
+    super(null, moduleCallDate, mainParameters, moduleClass);
+    this.rows = rows;
+    // get sub parameters of this algorithm
+    var subParams = mainParameters.getEmbeddedParameterValue(
+        MainSpectralNetworkingParameters.algorithms);
     this.featureList = featureList;
-    mzTolerance = params.getValue(ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE);
-    maxMzDelta = params.getEmbeddedParameterValueIfSelectedOrElse(
+    mzTolerance = subParams.getValue(ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE);
+    maxMzDelta = subParams.getEmbeddedParameterValueIfSelectedOrElse(
         ModifiedCosineSpectralNetworkingParameters.MAX_MZ_DELTA, Double.MAX_VALUE);
 
-    minMatch = params.getValue(ModifiedCosineSpectralNetworkingParameters.MIN_MATCH);
-    minCosineSimilarity = params.getValue(
+    minMatch = subParams.getValue(ModifiedCosineSpectralNetworkingParameters.MIN_MATCH);
+    minCosineSimilarity = subParams.getValue(
         ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY);
-    onlyBestMS2Scan = params.getValue(
+    onlyBestMS2Scan = subParams.getValue(
         ModifiedCosineSpectralNetworkingParameters.ONLY_BEST_MS2_SCAN);
     // check neutral loss similarity?
-    checkNeutralLoss = params.getValue(
+    checkNeutralLoss = subParams.getValue(
         ModifiedCosineSpectralNetworkingParameters.CHECK_NEUTRAL_LOSS_SIMILARITY);
     if (checkNeutralLoss) {
-      final NeutralLossSimilarityParameters nlossParam = params.getParameter(
+      final NeutralLossSimilarityParameters nlossParam = subParams.getParameter(
               ModifiedCosineSpectralNetworkingParameters.CHECK_NEUTRAL_LOSS_SIMILARITY)
           .getEmbeddedParameters();
       maxDPForDiff = nlossParam.getValue(NeutralLossSimilarityParameters.MAX_DP_FOR_DIFF);
@@ -129,18 +141,8 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractTask {
       maxDPForDiff = 0;
     }
     // embedded signal filters
-    signalFilter = params.getValue(ModifiedCosineSpectralNetworkingParameters.signalFilters)
+    signalFilter = subParams.getValue(ModifiedCosineSpectralNetworkingParameters.signalFilters)
         .createFilter();
-  }
-
-  /**
-   * Create the task on set of rows
-   */
-  public ModifiedCosineSpectralNetworkingTask(final ParameterSet parameters,
-      @Nullable ModularFeatureList featureList, List<FeatureListRow> rows,
-      @NotNull Instant moduleCallDate) {
-    this(parameters, featureList, moduleCallDate);
-    this.rows = rows;
   }
 
   /**
@@ -362,9 +364,7 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractTask {
 
 
   @Override
-  public void run() {
-    setStatus(TaskStatus.PROCESSING);
-
+  public void process() {
     final R2RMap<RowsRelationship> mapCosineSim = new R2RMap<>();
     final R2RMap<RowsRelationship> mapNeutralLoss = new R2RMap<>();
     try {
@@ -392,21 +392,19 @@ public class ModifiedCosineSpectralNetworkingTask extends AbstractTask {
         logger.info(
             "Added %d edges for %s".formatted(mapNeutralLoss.size(), Type.MS2_NEUTRAL_LOSS_SIM));
       }
-
-      if (featureList != null) {
-        featureList.addDescriptionOfAppliedTask(
-            new SimpleFeatureListAppliedMethod(ModifiedCosineSpectralNetworkingModule.class, params,
-                getModuleCallDate()));
-      }
-
-      setStatus(TaskStatus.FINISHED);
-
     } catch (MissingMassListException e) {
       logger.log(Level.SEVERE, e.getMessage(), e);
       setErrorMessage(e.getMessage());
       setStatus(TaskStatus.ERROR);
-      return;
     }
+  }
+
+  @Override
+  protected @NotNull List<FeatureList> getProcessedFeatureLists() {
+    if (featureList == null) {
+      return List.of();
+    }
+    return List.of(featureList);
   }
 
   public static void addNetworkStatisticsToRows(@Nullable FeatureList featureList,

@@ -1139,7 +1139,7 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
     // NETWORKING
     ParameterSet mainParams = MZmineCore.getConfiguration()
         .getModuleParameters(MainSpectralNetworkingModule.class).cloneParameterSet();
-    mainParams.setParameter(ModifiedCosineSpectralNetworkingParameters.FEATURE_LISTS,
+    mainParams.setParameter(MainSpectralNetworkingParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
 
     mainParams.setParameter(MainSpectralNetworkingParameters.algorithms,

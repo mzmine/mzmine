@@ -27,8 +27,10 @@ package io.github.mzmine.parameters.parametertypes.submodules;
 
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
+import io.github.mzmine.javafx.components.factories.FxLabels;
 import io.github.mzmine.parameters.EstimatedComponentHeightProvider;
 import io.github.mzmine.parameters.EstimatedComponentWidthProvider;
+import io.github.mzmine.parameters.FullColumnComponent;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import java.util.EnumMap;
@@ -38,8 +40,10 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Separator;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -49,7 +53,8 @@ import org.jetbrains.annotations.Nullable;
  *
  */
 public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & ModuleOptionsEnum> extends
-    BorderPane implements EstimatedComponentHeightProvider, EstimatedComponentWidthProvider {
+    BorderPane implements EstimatedComponentHeightProvider, EstimatedComponentWidthProvider,
+    FullColumnComponent {
 
   private final ComboBox<EnumType> combo;
   // null if shown in dialog
@@ -61,8 +66,9 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
   protected final FlowPane topPane;
 
 
-  public ModuleOptionsEnumComponent(final EnumMap<EnumType, ParameterSet> parametersMap,
-      final EnumType startValue, final boolean alwaysOpen) {
+  public ModuleOptionsEnumComponent(String name,
+      final EnumMap<EnumType, ParameterSet> parametersMap, final EnumType startValue,
+      final boolean alwaysOpen) {
     super();
     hidden.set(!alwaysOpen);
     this.selectedValue.set(startValue);
@@ -82,10 +88,12 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
       paramHolder.setCenter(paramPane);
     });
 
+    paramHolder.setBottom(new Separator(Orientation.HORIZONTAL));
+
     Button setButton = FxButtons.createButton("Show", () -> hidden.set(!hidden.get()));
     setButton.textProperty().bind(hidden.map(hidden -> hidden ? "Show" : "Hide"));
     // auto show paramPane
-    bottomProperty().bind(hidden.map(hidden -> hidden ? null : paramHolder));
+    centerProperty().bind(hidden.map(hidden -> hidden ? null : paramHolder));
 
     hidden.subscribe(newValue -> {
       var paramPane = getEmbeddedParameterPane();
@@ -101,7 +109,7 @@ public class ModuleOptionsEnumComponent<EnumType extends Enum<EnumType> & Module
       onViewStateChange(newValue);
     });
 
-    topPane = new FlowPane(5, 5, combo);
+    topPane = new FlowPane(5, 5, FxLabels.newBoldLabel(name), combo);
     if (!alwaysOpen) {
       topPane.getChildren().add(setButton);
     }

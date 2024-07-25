@@ -136,7 +136,7 @@ public class ModuleOptionsEnumComboParameter<EnumType extends Enum<EnumType> & M
 
   @Override
   public ModuleOptionsEnumComponent<EnumType> createEditingComponent() {
-    return new ModuleOptionsEnumComponent<>(parametersMap, selectedValue, true);
+    return new ModuleOptionsEnumComponent<>(name, parametersMap, selectedValue, true);
   }
 
   @Override

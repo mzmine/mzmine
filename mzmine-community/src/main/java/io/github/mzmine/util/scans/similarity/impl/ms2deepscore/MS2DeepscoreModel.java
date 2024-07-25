@@ -38,6 +38,7 @@ import ai.djl.translate.TranslateException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mzmine.datamodel.Scan;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -51,6 +52,11 @@ public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
   private final NDManager ndManager;
   private final Predictor<NDList, NDList> predictor;
   private final ZooModel<NDList, NDList> model;
+
+  public MS2DeepscoreModel(File modelFilePath, File settingsFilePath)
+      throws ModelNotFoundException, MalformedModelException, IOException {
+    this(modelFilePath.toPath(), settingsFilePath.toPath());
+  }
 
   public MS2DeepscoreModel(Path modelFilePath, Path settingsFilePath)
       throws ModelNotFoundException, MalformedModelException, IOException {

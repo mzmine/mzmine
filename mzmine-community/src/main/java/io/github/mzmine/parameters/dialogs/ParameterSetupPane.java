@@ -27,10 +27,10 @@ package io.github.mzmine.parameters.dialogs;
 
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.FullColumnComponent;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.AdvancedParametersComponent;
 import io.github.mzmine.parameters.parametertypes.HiddenParameter;
 import java.net.URL;
 import java.util.HashMap;
@@ -126,7 +126,6 @@ public class ParameterSetupPane extends BorderPane {
 
   /**
    * Method to display setup dialog with a html-formatted footer message at the bottom.
-   *
    */
   public ParameterSetupPane(boolean valueCheckRequired, ParameterSet parameters,
       boolean addOkButton, boolean addCancelButton, Region message, boolean addParamComponents,
@@ -321,9 +320,9 @@ public class ParameterSetupPane extends BorderPane {
 
       RowConstraints rowConstraints = new RowConstraints();
       rowConstraints.setVgrow(up.getComponentVgrowPriority());
-      if (comp instanceof AdvancedParametersComponent) {
+      if (comp instanceof FullColumnComponent) {
         paramsPane.add(comp, 0, rowCounter, 2, 1);
-        rowConstraints.setVgrow(Priority.SOMETIMES);
+//        rowConstraints.setVgrow(Priority.SOMETIMES);
       } else {
         paramsPane.add(label, 0, rowCounter);
         paramsPane.add(comp, 1, rowCounter, 1, 1);
