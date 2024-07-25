@@ -25,6 +25,7 @@
 
 package io.github.mzmine.javafx.components.factories;
 
+import java.util.Collection;
 import java.util.List;
 import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
@@ -48,13 +49,15 @@ public class FxComboBox {
     return hBox;
   }
 
-  public static <T> ComboBox<T> createComboBox(String tooltip, List<T> values,
+  public static <T> ComboBox<T> createComboBox(String tooltip, Collection<T> values,
       Property<T> selectedItem) {
     final ComboBox<T> combo = new ComboBox<>();
     if (values instanceof ObservableList<T> ov) {
       combo.setItems(ov);
+    } else if (values instanceof List<T> list) {
+      combo.setItems(FXCollections.observableList(list));
     } else {
-      combo.setItems(FXCollections.observableList(values));
+      combo.setItems(FXCollections.observableList(List.copyOf(values)));
     }
     combo.valueProperty().bindBidirectional(selectedItem);
     combo.setTooltip(new Tooltip(tooltip));

@@ -28,8 +28,7 @@ package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingParameters;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreTask;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingTask;
 import io.github.mzmine.modules.impl.SingleTaskFeatureListsModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
@@ -44,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
 public class MainSpectralNetworkingModule extends SingleTaskFeatureListsModule {
 
   public MainSpectralNetworkingModule() {
-    super("Spectral / Molecular Networking", MS2DeepscoreNetworkingParameters.class,
+    super("Spectral / Molecular Networking", MainSpectralNetworkingParameters.class,
         MZmineModuleCategory.FEATURE_GROUPING,
         "Spectral Networking (Molecular Networking) of fragmentation data");
   }
@@ -53,7 +52,7 @@ public class MainSpectralNetworkingModule extends SingleTaskFeatureListsModule {
   public @NotNull Task createTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Instant moduleCallDate, @Nullable MemoryMapStorage storage,
       @NotNull FeatureList[] featureList) {
-    return new MS2DeepscoreTask(project, featureList, parameters, storage, moduleCallDate,
+    return new MS2DeepscoreNetworkingTask(project, featureList, parameters, storage, moduleCallDate,
         this.getClass());
   }
 }

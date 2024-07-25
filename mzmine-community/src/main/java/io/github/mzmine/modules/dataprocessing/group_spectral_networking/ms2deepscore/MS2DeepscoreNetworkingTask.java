@@ -58,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author niekdejonge
  */
-class MS2DeepscoreNetworkingTask extends AbstractFeatureListTask {
+public class MS2DeepscoreNetworkingTask extends AbstractFeatureListTask {
 
   private static final Logger logger = Logger.getLogger(MS2DeepscoreNetworkingTask.class.getName());
   private final @NotNull FeatureList[] featureLists;

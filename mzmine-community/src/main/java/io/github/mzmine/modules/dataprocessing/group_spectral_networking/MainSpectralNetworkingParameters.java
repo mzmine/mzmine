@@ -35,7 +35,7 @@ public class MainSpectralNetworkingParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final ModuleOptionsEnumComboParameter algorithms = new ModuleOptionsEnumComboParameter(
+  public static final ModuleOptionsEnumComboParameter<SpectralNetworkingOptions> algorithms = new ModuleOptionsEnumComboParameter<>(
       "Algorithm", "Select the similarity algorithm", SpectralNetworkingOptions.MODIFIED_COSINE);
 
   public MainSpectralNetworkingParameters() {
@@ -47,6 +47,5 @@ public class MainSpectralNetworkingParameters extends SimpleParameterSet {
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
   }
-
 
 }
