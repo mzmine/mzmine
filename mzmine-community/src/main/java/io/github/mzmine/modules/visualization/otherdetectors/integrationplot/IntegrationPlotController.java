@@ -26,10 +26,6 @@
 package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
 import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
-import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
-import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
-import io.github.mzmine.datamodel.otherdetectors.OtherFeatureImpl;
-import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.javafx.mvci.FxController;
 import io.github.mzmine.javafx.mvci.FxViewBuilder;
 import io.github.mzmine.main.ConfigService;
@@ -55,14 +51,14 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
             && model.getCurrentStartTime() < model.getCurrentEndTime(),
         model.currentStartTimeProperty(), model.currentEndTimeProperty()));
 
-    model.currentStartMarkerProperty().bind(Bindings.createObjectBinding(
-        () -> model.getCurrentStartTime() != null ? new ValueMarker(model.getCurrentStartTime(),
+    model.currentStartTimeProperty().addListener((_, _, value) -> model.setCurrentStartMarker(
+        value != null ? new ValueMarker(model.getCurrentStartTime(),
             ConfigService.getDefaultColorPalette().getPositiveColorAWT(), new BasicStroke(2f))
-            : null, model.currentStartTimeProperty()));
-    model.currentEndMarkerProperty().bind(Bindings.createObjectBinding(
-        () -> model.getCurrentEndTime() != null ? new ValueMarker(model.getCurrentEndTime(),
+            : null));
+    model.currentEndTimeProperty().addListener((_, _, value) -> model.setCurrentEndMarker(
+        value != null ? new ValueMarker(model.getCurrentEndTime(),
             ConfigService.getDefaultColorPalette().getNegativeColorAWT(), new BasicStroke(2f))
-            : null, model.currentEndTimeProperty()));
+            : null));
   }
 
   @Override
@@ -87,16 +83,13 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
     final Double end = model.getCurrentEndTime();
 
     if (start != null && end != null) {
-      final OtherTimeSeries currentTimeSeries = model.getCurrentTimeSeries();
+      final IntensityTimeSeries currentTimeSeries = model.getCurrentTimeSeries();
 
       final IntensityTimeSeries integrated = currentTimeSeries.subSeries(
-          currentTimeSeries.getOtherDataFile().getCorrespondingRawDataFile().getMemoryMapStorage(),
-          start.floatValue(), end.floatValue());
-      final OtherFeature feature = new OtherFeatureImpl();
-      feature.set(OtherFeatureDataType.class, (OtherTimeSeries) integrated);
+          currentTimeSeries.getStorage(), start.floatValue(), end.floatValue());
 
-      model.getOtherFeatures().add(feature);
-      model.setSelectedFeature(feature);
+      model.addIntegratedFeature(integrated);
+      model.setSelectedFeature(integrated);
 
     }
     clearIntegration();
@@ -111,28 +104,24 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
     model.setIntegrating(false);
     model.setCurrentStartTime(null);
     model.setCurrentEndTime(null);
-//    model.setCurrentStartMarker(null);
-//    model.setCurrentEndMarker(null);
   }
 
   void onEditPressed() {
-    final OtherFeature feature = model.getSelectedFeature();
+    final IntensityTimeSeries feature = model.getSelectedFeature();
     assert feature != null;
-    model.getOtherFeatures().remove(feature);
+    model.getIntegratedFeatures().remove(feature);
 
-    final OtherTimeSeries timeSeries = feature.getFeatureData();
-    model.setCurrentStartTime((double) timeSeries.getRetentionTime(0));
-    model.setCurrentEndTime(
-        (double) timeSeries.getRetentionTime(timeSeries.getNumberOfValues()) - 1);
+    model.setCurrentStartTime((double) feature.getRetentionTime(0));
+    model.setCurrentEndTime((double) feature.getRetentionTime(feature.getNumberOfValues()) - 1);
     model.setNextBoundary(Boundary.LEFT);
   }
 
-  public OtherTimeSeries getOtherTimeSeries() {
+  public IntensityTimeSeries getOtherTimeSeries() {
     return model.getCurrentTimeSeries();
   }
 
-  public void setOtherTimeSeries(OtherTimeSeries otherTimeSeries) {
-    model.otherFeaturesProperty().clear();
+  public void setOtherTimeSeries(IntensityTimeSeries otherTimeSeries) {
+    model.integratedFeaturesProperty().clear();
     onAbortPressed();
     model.setCurrentTimeSeries(otherTimeSeries);
   }
@@ -140,21 +129,16 @@ public class IntegrationPlotController extends FxController<IntegrationPlotModel
   /**
    * A copy of the current features.
    */
-  public List<OtherFeature> getFeatures() {
-    return List.copyOf(model.getOtherFeatures());
+  public List<IntensityTimeSeries> getIntegratedFeatures() {
+    return List.copyOf(model.getIntegratedFeatures());
   }
 
-  public void setFeatures(List<OtherFeature> otherFeatures) {
-    if (otherFeatures == null || otherFeatures.isEmpty()) {
-      model.otherFeaturesProperty().clear();
+  public void setIntegratedFeatures(List<? extends IntensityTimeSeries> integratedFeatures) {
+    if (integratedFeatures == null || integratedFeatures.isEmpty()) {
+      model.integratedFeaturesProperty().clear();
       return;
     }
-    final boolean sameSeries = otherFeatures.stream()
-        .allMatch(f -> f.getFeatureData().getTimeSeriesData() == model.getCurrentTimeSeries());
-    if (!sameSeries) {
-      throw new IllegalArgumentException("Set features to not match the current time series.");
-    }
 
-    model.setOtherFeatures(otherFeatures);
+    model.setIntegratedFeatures((List<IntensityTimeSeries>) integratedFeatures);
   }
 }

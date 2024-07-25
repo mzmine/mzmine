@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.PlotCursorPosition;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.OtherTimeSeriesToXYProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IntensityTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.UnitFormat;
@@ -189,7 +189,7 @@ public class DetectorPane extends BorderPane {
         plot.clearDatasets();
         return;
       }
-      plot.setDataset(new ColoredXYDataset(new OtherTimeSeriesToXYProvider(ts)),
+      plot.setDataset(new ColoredXYDataset(new IntensityTimeSeriesToXYProvider(ts)),
           new ColoredXYLineRenderer());
       plot.setDomainAxisLabel(
           uf.format(ts.getOtherDataFile().getOtherTimeSeries().getTimeSeriesDomainLabel(),

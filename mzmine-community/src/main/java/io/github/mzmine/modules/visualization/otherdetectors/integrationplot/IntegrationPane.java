@@ -26,10 +26,14 @@
 package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.types.otherdectectors.OtherFeatureDataType;
 import io.github.mzmine.datamodel.otherdetectors.OtherDataFile;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.otherdetectors.OtherFeatureImpl;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.UnitFormat;
+import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.factories.FxComboBox;
 import io.github.mzmine.javafx.components.util.FxLayout;
 import io.github.mzmine.main.ConfigService;
@@ -38,6 +42,7 @@ import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
@@ -62,12 +67,24 @@ public class IntegrationPane extends BorderPane {
             .toList(), rawFileProperty());
     final ComboBox<@Nullable OtherDataFile> otherFileCombo = createOtherFileCombo();
     final ComboBox<@Nullable OtherTimeSeries> timeSeriesCombo = createTimeSeriesCombo();
+    final Button saveButton = FxButtons.createSaveButton("Save", () -> {
+      if (timeSeries.get() != null) {
+        var data = timeSeries.get().getTimeSeriesData();
+        data.setProcessedFeatures(
+            plot.getIntegratedFeatures().stream().filter(ts -> ts instanceof OtherTimeSeries)
+                .map(ts -> {
+                  final OtherFeature f = new OtherFeatureImpl();
+                  f.set(OtherFeatureDataType.class, (OtherTimeSeries) ts);
+                  return f;
+                }).toList());
+      }
+    });
 
     plot = new IntegrationPlotController();
 
     initializeListeners(otherFileCombo, timeSeriesCombo);
 
-    final VBox vbox = FxLayout.newVBox(rawFileCombo, otherFileCombo, timeSeriesCombo);
+    final VBox vbox = FxLayout.newVBox(rawFileCombo, otherFileCombo, timeSeriesCombo, saveButton);
 //    rawFileCombo.prefWidthProperty().bind(vbox.widthProperty().subtract(15));
 //    otherFileCombo.prefWidthProperty().bind(vbox.widthProperty().subtract(15));
 //    timeSeriesCombo.prefWidthProperty().bind(vbox.widthProperty().subtract(15));
@@ -179,10 +196,12 @@ public class IntegrationPane extends BorderPane {
     });
 
     timeSeries.addListener((_, _, ts) -> {
-      plot.setFeatures(List.of());
+      plot.setIntegratedFeatures(List.of());
       if (ts != null) {
         plot.setOtherTimeSeries(ts);
-        plot.setFeatures(ts.getTimeSeriesData().processedFeatures());
+        plot.setIntegratedFeatures(
+            ts.getTimeSeriesData().processedFeatures().stream().map(OtherFeature::getFeatureData)
+                .toList());
       }
     });
   }

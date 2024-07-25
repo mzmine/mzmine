@@ -25,8 +25,7 @@
 
 package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
-import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
-import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import java.util.List;
 import javafx.beans.property.BooleanProperty;
@@ -46,10 +45,10 @@ public class IntegrationPlotModel {
   private BooleanProperty currentIntegrationValid = new SimpleBooleanProperty(false);
   private ObjectProperty<ChromatogramPlotController> chromatogramPlot = new SimpleObjectProperty<>(
       new ChromatogramPlotController());
-  private ListProperty<OtherFeature> otherFeatures = new SimpleListProperty<>(
+  private ListProperty<IntensityTimeSeries> integratedFeatures = new SimpleListProperty<>(
       FXCollections.observableArrayList());
-  private ObjectProperty<@Nullable OtherFeature> selectedFeature = new SimpleObjectProperty<>();
-  private ObjectProperty<@Nullable OtherTimeSeries> currentTimeSeries = new SimpleObjectProperty<>();
+  private ObjectProperty<@Nullable IntensityTimeSeries> selectedFeature = new SimpleObjectProperty<>();
+  private ObjectProperty<@Nullable IntensityTimeSeries> currentTimeSeries = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable Double> currentStartTime = new SimpleObjectProperty<>();
   private ObjectProperty<@Nullable Double> currentEndTime = new SimpleObjectProperty<>();
   private ObjectProperty<@NotNull Boundary> nextBoundary = new SimpleObjectProperty<>(
@@ -70,27 +69,15 @@ public class IntegrationPlotModel {
     return chromatogramPlot;
   }
 
-  public ObservableList<OtherFeature> getOtherFeatures() {
-    return otherFeatures.get();
-  }
-
-  public void setOtherFeatures(List<OtherFeature> otherFeatures) {
-    this.otherFeatures.setAll(otherFeatures);
-  }
-
-  public ListProperty<OtherFeature> otherFeaturesProperty() {
-    return otherFeatures;
-  }
-
-  public @Nullable OtherTimeSeries getCurrentTimeSeries() {
+  public @Nullable IntensityTimeSeries getCurrentTimeSeries() {
     return currentTimeSeries.get();
   }
 
-  public void setCurrentTimeSeries(@Nullable OtherTimeSeries currentTimeSeries) {
+  public void setCurrentTimeSeries(@Nullable IntensityTimeSeries currentTimeSeries) {
     this.currentTimeSeries.set(currentTimeSeries);
   }
 
-  public ObjectProperty<@Nullable OtherTimeSeries> currentTimeSeriesProperty() {
+  public ObjectProperty<@Nullable IntensityTimeSeries> currentTimeSeriesProperty() {
     return currentTimeSeries;
   }
 
@@ -130,15 +117,31 @@ public class IntegrationPlotModel {
     return nextBoundary;
   }
 
-  public @Nullable OtherFeature getSelectedFeature() {
+  public ObservableList<IntensityTimeSeries> getIntegratedFeatures() {
+    return integratedFeatures.get();
+  }
+
+  public ListProperty<IntensityTimeSeries> integratedFeaturesProperty() {
+    return integratedFeatures;
+  }
+
+  public void setIntegratedFeatures(List<IntensityTimeSeries> integratedFeatures) {
+    this.integratedFeatures.setAll(integratedFeatures);
+  }
+
+  public void addIntegratedFeature(IntensityTimeSeries integratedFeatures) {
+    this.integratedFeatures.add(integratedFeatures);
+  }
+
+  public @Nullable IntensityTimeSeries getSelectedFeature() {
     return selectedFeature.get();
   }
 
-  public void setSelectedFeature(@Nullable OtherFeature selectedFeature) {
+  public void setSelectedFeature(@Nullable IntensityTimeSeries selectedFeature) {
     this.selectedFeature.set(selectedFeature);
   }
 
-  public ObjectProperty<@Nullable OtherFeature> selectedFeatureProperty() {
+  public ObjectProperty<@Nullable IntensityTimeSeries> selectedFeatureProperty() {
     return selectedFeature;
   }
 

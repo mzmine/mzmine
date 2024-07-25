@@ -25,6 +25,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
 
+import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
 import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.preferences.NumberFormats;
@@ -36,19 +37,19 @@ import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OtherTimeSeriesToXYProvider implements PlotXYDataProvider {
+public class IntensityTimeSeriesToXYProvider implements PlotXYDataProvider {
 
   private final javafx.scene.paint.Color colorFx;
   private final Color colorAwt;
   @NotNull
-  private final OtherTimeSeries series;
+  private final IntensityTimeSeries series;
   private final NumberFormats formats;
 
-  public OtherTimeSeriesToXYProvider(OtherTimeSeries series) {
+  public IntensityTimeSeriesToXYProvider(OtherTimeSeries series) {
     this(series, series.getOtherDataFile().getCorrespondingRawDataFile().getColorAWT());
   }
 
-  public OtherTimeSeriesToXYProvider(OtherTimeSeries series, Color colorAwt) {
+  public IntensityTimeSeriesToXYProvider(IntensityTimeSeries series, Color colorAwt) {
     colorFx = FxColorUtil.awtColorToFX(colorAwt);
     this.colorAwt = colorAwt;
     this.series = series;
@@ -74,7 +75,12 @@ public class OtherTimeSeriesToXYProvider implements PlotXYDataProvider {
 
   @Override
   public @NotNull Comparable<?> getSeriesKey() {
-    return STR."\{series.getChromatoogramType()} \{series.getName()}";
+    if (series instanceof OtherTimeSeries other) {
+      return STR."\{other.getChromatoogramType()} \{other.getName()}";
+    } else {
+      return "%s-%s".formatted(formats.rt(series.getRetentionTime(0)),
+          formats.rt(series.getRetentionTime(series.getNumberOfValues()) - 1));
+    }
   }
 
   @Override
@@ -106,5 +112,9 @@ public class OtherTimeSeriesToXYProvider implements PlotXYDataProvider {
   @Override
   public double getComputationFinishedPercentage() {
     return 1d;
+  }
+
+  public IntensityTimeSeries getTimeSeries() {
+    return series;
   }
 }

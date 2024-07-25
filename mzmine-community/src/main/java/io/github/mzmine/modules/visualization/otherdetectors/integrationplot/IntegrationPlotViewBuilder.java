@@ -25,14 +25,17 @@
 
 package io.github.mzmine.modules.visualization.otherdetectors.integrationplot;
 
-import io.github.mzmine.datamodel.otherdetectors.OtherFeature;
+import io.github.mzmine.datamodel.featuredata.IntensityTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.otherdetectors.OtherTimeSeries;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.DatasetAndRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.features.OtherFeatureProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.OtherTimeSeriesToXYProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IntensityTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredAreaShapeRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
+import io.github.mzmine.gui.preferences.NumberFormats;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.javafx.components.factories.FxButtons;
 import io.github.mzmine.javafx.components.util.FxLayout;
@@ -41,6 +44,7 @@ import io.github.mzmine.javafx.util.FxIcons;
 import io.github.mzmine.main.ConfigService;
 import io.github.mzmine.modules.visualization.otherdetectors.chromatogramplot.ChromatogramPlotController;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import java.awt.Color;
 import java.util.List;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
@@ -79,19 +83,16 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
       chromPlot.clearDatasets();
 
       if (series != null) {
-        final OtherTimeSeriesToXYProvider provider = new OtherTimeSeriesToXYProvider(series);
+        final IntensityTimeSeriesToXYProvider provider = new IntensityTimeSeriesToXYProvider(series,
+            getColorForSeries(series));
         chromPlot.addDataset(provider, new ColoredXYLineRenderer());
 
         var formats = ConfigService.getGuiFormats();
         final UnitFormat uf = formats.unitFormat();
-        chromPlot.setDomainAxisLabel(
-            uf.format(series.getOtherDataFile().getOtherTimeSeries().getTimeSeriesDomainLabel(),
-                series.getOtherDataFile().getOtherTimeSeries().getTimeSeriesDomainUnit()));
+        chromPlot.setDomainAxisLabel(getSeriesDomainLabel(series));
         chromPlot.setDomainAxisFormat(formats.rtFormat());
 
-        chromPlot.setRangeAxisLabel(
-            uf.format(series.getOtherDataFile().getOtherTimeSeries().getTimeSeriesRangeLabel(),
-                series.getOtherDataFile().getOtherTimeSeries().getTimeSeriesRangeUnit()));
+        chromPlot.setRangeAxisLabel(getSeriesRangeLabel(series));
         chromPlot.setRangeAxisFormat(formats.intensityFormat());
       }
     });
@@ -103,7 +104,6 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
         return;
       }
 
-      // todo soemhow this is not displayed
       if (model.getNextBoundary() == Boundary.LEFT) {
         model.setCurrentStartTime(pos.getDomainValue());
       } else if (model.getNextBoundary() == Boundary.RIGHT) {
@@ -119,25 +119,59 @@ public class IntegrationPlotViewBuilder extends FxViewBuilder<IntegrationPlotMod
     return pane;
   }
 
+  private String getSeriesRangeLabel(IntensityTimeSeries series) {
+    final NumberFormats formats = ConfigService.getGuiFormats();
+    final UnitFormat uf = formats.unitFormat();
+
+    return switch (series) {
+      case OtherTimeSeries other ->
+          uf.format(other.getOtherDataFile().getOtherTimeSeries().getTimeSeriesRangeLabel(),
+              other.getOtherDataFile().getOtherTimeSeries().getTimeSeriesRangeUnit());
+      default -> uf.format("Intensity", "a.u.");
+    };
+  }
+
+  private String getSeriesDomainLabel(IntensityTimeSeries series) {
+    final NumberFormats formats = ConfigService.getGuiFormats();
+    final UnitFormat uf = formats.unitFormat();
+    return switch (series) {
+      case OtherTimeSeries other ->
+          uf.format(other.getOtherDataFile().getOtherTimeSeries().getTimeSeriesDomainLabel(),
+              other.getOtherDataFile().getOtherTimeSeries().getTimeSeriesDomainUnit());
+      default -> uf.format("Retention time", "min");
+    };
+  }
+
+  private Color getColorForSeries(IntensityTimeSeries series) {
+    return switch (series) {
+      case OtherTimeSeries other ->
+          other.getOtherDataFile().getCorrespondingRawDataFile().getColorAWT();
+      case IonTimeSeries<?> ion -> ion.getSpectrum(0).getDataFile().getColorAWT();
+      case IonMobilitySeries mob -> mob.getSpectrum(0).getDataFile().getColorAWT();
+      default -> ConfigService.getDefaultColorPalette().getMainColorAWT();
+    };
+  }
+
   private void addFeatureListeners(ChromatogramPlotController chromPlot) {
-    model.otherFeaturesProperty().addListener((ListChangeListener<OtherFeature>) change -> {
+    model.integratedFeaturesProperty()
+        .addListener((ListChangeListener<IntensityTimeSeries>) change -> {
       while (change.next()) {
         if (change.wasAdded()) {
-          final List<? extends OtherFeature> added = change.getAddedSubList();
+          final List<? extends IntensityTimeSeries> added = change.getAddedSubList();
           final SimpleColorPalette palette = ConfigService.getDefaultColorPalette();
           final List<DatasetAndRenderer> datasets = added.stream().map(
-              feature -> new DatasetAndRenderer(
-                  new ColoredXYDataset(new OtherFeatureProvider(feature, palette.getNextColorAWT()),
+              feature -> new DatasetAndRenderer(new ColoredXYDataset(
+                  new IntensityTimeSeriesToXYProvider(feature, palette.getNextColorAWT()),
                       RunOption.THIS_THREAD), new ColoredAreaShapeRenderer())).toList();
           chromPlot.addDatasets(datasets);
         }
 
         if (change.wasRemoved()) {
-          final List<? extends OtherFeature> removed = change.getRemoved();
+          final List<? extends IntensityTimeSeries> removed = change.getRemoved();
           chromPlot.getDatasetRenderers().keySet().stream().filter(
               ds -> ds instanceof ColoredXYDataset cds
-                  && cds.getValueProvider() instanceof OtherFeatureProvider ofs && removed.contains(
-                  ofs.getFeature())).forEach(chromPlot::removeDataset);
+                  && cds.getValueProvider() instanceof IntensityTimeSeriesToXYProvider its
+                  && removed.contains(its.getTimeSeries())).forEach(chromPlot::removeDataset);
         }
       }
     });
