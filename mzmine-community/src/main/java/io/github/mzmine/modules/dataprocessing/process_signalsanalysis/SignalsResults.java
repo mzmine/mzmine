@@ -45,26 +45,26 @@ import io.github.mzmine.datamodel.features.types.analysis.Ms2SignalsType;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public record SignalsResults(int ms1Count, double ms1IntensityFragmentedPercent, int ms1Fragmented,
-                             double ms1FragmentedPercent, double ms1IntensityMatchedPercent,
-                             int ms1Matched, double ms1MatchedPercent, int ms2Count,
-                             double ms2IntensityMatchedPercent, int ms2Matched,
-                             double ms2MatchedPercent) implements ModularDataRecord {
+public record SignalsResults(int ms1Count, int ms1Fragmented, double ms1FragmentedPercent,
+                             double ms1IntensityFragmentedPercent, int ms1Matched,
+                             double ms1MatchedPercent, double ms1IntensityMatchedPercent,
+                             int ms2Count, int ms2Matched, double ms2MatchedPercent,
+                             double ms2IntensityMatchedPercent) implements ModularDataRecord {
 
   @SuppressWarnings("rawtypes")
   public static List<DataType> getSubTypes() {
-    return DataTypes.getAll(Ms1FragmentedSignalsPercentType.class, //
-        Ms1FragmentedIntensityPercentType.class, //
+    return DataTypes.getAll(Ms1SignalsType.class, //
         Ms1FragmentedSignalsType.class, //
-        Ms1MatchedIntensityPercentType.class, //
-        Ms1MatchedSignalsPercentType.class, //
+        Ms1FragmentedSignalsPercentType.class, //
+        Ms1FragmentedIntensityPercentType.class, //
         Ms1MatchedSignalsType.class, //
-        Ms1SignalsType.class, //
+        Ms1MatchedSignalsPercentType.class, //
+        Ms1MatchedIntensityPercentType.class, //
         //MS2
-        Ms2MatchedIntensityPercentType.class, //
-        Ms2MatchedSignalsPercentType.class, //
+        Ms2SignalsType.class, //
         Ms2MatchedSignalsType.class, //
-        Ms2SignalsType.class //
+        Ms2MatchedSignalsPercentType.class, //
+        Ms2MatchedIntensityPercentType.class //
     );
 
   }
@@ -72,17 +72,17 @@ public record SignalsResults(int ms1Count, double ms1IntensityFragmentedPercent,
   public static SignalsResults create(final @NotNull SimpleModularDataModel values) {
     return new SignalsResults( //
         requireNonNullElse(values.get(Ms1SignalsType.class), -1),
-        requireNonNullElse(values.get(Ms1FragmentedIntensityPercentType.class), -1f),
         requireNonNullElse(values.get(Ms1FragmentedSignalsType.class), -1),
+        requireNonNullElse(values.get(Ms1FragmentedIntensityPercentType.class), -1f),
         requireNonNullElse(values.get(Ms1FragmentedSignalsPercentType.class), -1f),
-        requireNonNullElse(values.get(Ms1MatchedIntensityPercentType.class), -1f),
         requireNonNullElse(values.get(Ms1MatchedSignalsType.class), -1),
         requireNonNullElse(values.get(Ms1MatchedSignalsPercentType.class), -1f),
+        requireNonNullElse(values.get(Ms1MatchedIntensityPercentType.class), -1f),
         // MS2
         requireNonNullElse(values.get(Ms2SignalsType.class), -1),
-        requireNonNullElse(values.get(Ms2MatchedIntensityPercentType.class), -1f),
         requireNonNullElse(values.get(Ms2MatchedSignalsType.class), -1),
-        requireNonNullElse(values.get(Ms2MatchedSignalsPercentType.class), -1f));
+        requireNonNullElse(values.get(Ms2MatchedSignalsPercentType.class), -1f),
+        requireNonNullElse(values.get(Ms2MatchedIntensityPercentType.class), -1f));
   }
 
 

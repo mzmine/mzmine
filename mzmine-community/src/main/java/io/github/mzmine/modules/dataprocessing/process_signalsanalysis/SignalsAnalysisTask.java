@@ -237,10 +237,10 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     int ms2SignalsMatched = ms2SignalMatchesMs1.size();
     double ms2SignalsMatchedPercent = ms2SignalsMatched / (double) ms2SignalsTotal;
 
-    return new SignalsResults(ms1SignalsTotal, ms1IntensityFragmentedPercent, ms1SignalsFragmented,
-        ms1SignalsFragmentedPercent, ms1IntensityMatchedPercent, ms1SignalsMatched,
-        ms1SignalsMatchedPercent, ms2SignalsTotal, ms2IntensityMatchedPercent, ms2SignalsMatched,
-        ms2SignalsMatchedPercent);
+    return new SignalsResults(ms1SignalsTotal, ms1SignalsFragmented, ms1SignalsFragmentedPercent,
+        ms1IntensityFragmentedPercent, ms1SignalsMatched, ms1SignalsMatchedPercent,
+        ms1IntensityMatchedPercent, ms2SignalsTotal, ms2SignalsMatched, ms2SignalsMatchedPercent,
+        ms2IntensityMatchedPercent);
   }
 
   private List<UniqueSignal> mapToList(final RangeMap<Double, UniqueSignal> map) {
