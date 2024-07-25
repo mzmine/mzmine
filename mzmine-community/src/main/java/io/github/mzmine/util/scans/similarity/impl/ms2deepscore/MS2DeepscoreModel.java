@@ -35,9 +35,7 @@ import ai.djl.repository.zoo.ModelNotFoundException;
 import ai.djl.repository.zoo.ZooModel;
 import ai.djl.training.util.ProgressBar;
 import ai.djl.translate.TranslateException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.MassSpectrum;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -45,10 +43,10 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
+public class MS2DeepscoreModel extends EmbeddingBasedSimilarity implements AutoCloseable {
 
   private static final Logger logger = Logger.getLogger(MS2DeepscoreModel.class.getName());
-  private final SpectrumTensorizer spectrumTensorizer;
+  private final MS2DeepscoreSpectrumTensorizer spectrumTensorizer;
   private final NDManager ndManager;
   private final Predictor<NDList, NDList> predictor;
   private final ZooModel<NDList, NDList> model;
@@ -65,25 +63,41 @@ public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
         .optModelPath(modelFilePath)
         .optOption("mapLocation", "true") // this model requires mapLocation for GPU
         .optProgress(new ProgressBar()).build();
-    /**
+
+    /*
      * Predicts the MS2Deepscore embedding
+     * Model is autocloseable
      */
-    // TODO try with resources
     model = criteria.loadModel();
-    SettingsMS2Deepscore settings = loadSettings(settingsFilePath);
+    MS2DeepscoreSettings settings = MS2DeepscoreSettings.load(settingsFilePath.toFile());
     // TODO just read json to record and compare those
     if (!Arrays.deepToString(settings.additionalMetadata()).equals(
         "[[StandardScaler, {metadata_field=precursor_mz, mean=0.0, standard_deviation=1000.0}], [CategoricalToBinary, {metadata_field=ionmode, entries_becoming_one=positive, entries_becoming_zero=negative}]]")) {
       throw new RuntimeException(
           "The model uses an additional metadata format that is not supported. Please use the default MS2Deepscore model or ask the developers for support.");
     }
-    this.spectrumTensorizer = new SpectrumTensorizer(settings);
+    this.spectrumTensorizer = new MS2DeepscoreSpectrumTensorizer(settings);
     this.ndManager = NDManager.newBaseManager();
     this.predictor = model.newPredictor();
-
   }
 
-  public void closeNdManager() {
+
+  public NDArray predictEmbeddingFromTensors(TensorizedSpectra tensorizedSpectra)
+      throws TranslateException {
+    NDList predictions = predictor.predict(
+        new NDList(ndManager.create(tensorizedSpectra.tensorizedFragments()),
+            ndManager.create(tensorizedSpectra.tensorizedMetadata())));
+    return predictions.getFirst();
+  }
+
+  @Override
+  public NDArray predictEmbedding(MassSpectrum[] scans) throws TranslateException {
+    TensorizedSpectra tensorizedSepctra = spectrumTensorizer.tensorizeSpectra(scans);
+    return predictEmbeddingFromTensors(tensorizedSepctra);
+  }
+
+  @Override
+  public void close() {
     try {
       ndManager.close();
     } catch (Exception ex) {
@@ -99,29 +113,5 @@ public class MS2DeepscoreModel extends EmbeddingBasedSimilarity {
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Could not close model: " + ex.getMessage(), ex);
     }
-  }
-
-  private SettingsMS2Deepscore loadSettings(Path settingsFilePath) throws IOException {
-
-    ObjectMapper mapper = new ObjectMapper();
-    //    Allows skipping fields in json which are not in SettingsMS2Deepscore (the for us useless settings)
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    //    Makes sure that all the important settings were in the json (with the expected name)
-    mapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, true);
-    // JSON file to Java object
-    return mapper.readValue(settingsFilePath.toFile(), SettingsMS2Deepscore.class);
-  }
-
-  public NDArray predictEmbeddingFromTensors(TensorizedSpectra tensorizedSpectra)
-      throws TranslateException {
-    NDList predictions = predictor.predict(
-        new NDList(ndManager.create(tensorizedSpectra.tensorizedFragments()),
-            ndManager.create(tensorizedSpectra.tensorizedMetadata())));
-    return predictions.getFirst();
-  }
-
-  public NDArray predictEmbedding(Scan[] scans) throws TranslateException {
-    TensorizedSpectra tensorizedSepctra = spectrumTensorizer.tensorizeSpectra(scans);
-    return predictEmbeddingFromTensors(tensorizedSepctra);
   }
 }

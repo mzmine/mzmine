@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -36,10 +36,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-class SpectrumTensorizerTest {
+class MS2DeepscoreSpectrumTensorizerTest {
 
   private static Scan testSpectrum;
-  private static SettingsMS2Deepscore settingsMS2Deepscore;
+  private static MS2DeepscoreSettings settingsMS2Deepscore;
 
   @BeforeAll
   static void setUp() {
@@ -49,12 +49,13 @@ class SpectrumTensorizerTest {
         new double[]{5, 12, 12.1, 14., 14.3}, new double[]{100, 200, 400, 900, 100},
         MassSpectrumType.ANY, PolarityType.POSITIVE, "Pseudo", null);
 
-    settingsMS2Deepscore = new SettingsMS2Deepscore(50, "positive", 12, 15, 0.5, null, 0.5F);
+    settingsMS2Deepscore = new MS2DeepscoreSettings(50, "positive", 12, 15, 0.5, null, 0.5F);
   }
 
   @Test
   void testTensorizeFragments() {
-    SpectrumTensorizer spectrumTensorizer = new SpectrumTensorizer(settingsMS2Deepscore);
+    MS2DeepscoreSpectrumTensorizer spectrumTensorizer = new MS2DeepscoreSpectrumTensorizer(
+        settingsMS2Deepscore);
     float[] results = spectrumTensorizer.tensorizeFragments(testSpectrum);
     Assertions.assertArrayEquals(new float[]{20.0F, 0.0F, 0.0F, 0.0F, 30.0F, 0.0F}, results,
         0.0001F);
@@ -62,7 +63,8 @@ class SpectrumTensorizerTest {
 
   @Test
   void testTensorizeSMetadata() {
-    SpectrumTensorizer spectrumTensorizer = new SpectrumTensorizer(settingsMS2Deepscore);
+    MS2DeepscoreSpectrumTensorizer spectrumTensorizer = new MS2DeepscoreSpectrumTensorizer(
+        settingsMS2Deepscore);
     float[] results = spectrumTensorizer.tensorizeMetadata(testSpectrum);
     Assertions.assertArrayEquals(new float[]{0.2F, 1.0F}, results, 0.0001F);
   }

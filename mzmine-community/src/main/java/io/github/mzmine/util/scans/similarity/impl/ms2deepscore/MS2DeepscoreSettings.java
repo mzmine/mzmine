@@ -26,14 +26,27 @@
 package io.github.mzmine.util.scans.similarity.impl.ms2deepscore;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import java.io.File;
+import java.io.IOException;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public record SettingsMS2Deepscore(@JsonProperty("embedding_dim") Integer embeddingDimension,
+public record MS2DeepscoreSettings(@JsonProperty("embedding_dim") Integer embeddingDimension,
                                    String ionisationMode, @JsonProperty("min_mz") int minimumMZ,
                                    @JsonProperty("max_mz") int maximumMZ,
                                    @JsonProperty("mz_bin_width") Double binWidth,
                                    Object[][] additionalMetadata, float intensityScaling) {
 
+  public static MS2DeepscoreSettings load(final File settingsFilePath) throws IOException {
+    ObjectMapper mapper = new ObjectMapper();
+    //    Allows skipping fields in json which are not in SettingsMS2Deepscore (the for us useless settings)
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    //    Makes sure that all the important settings were in the json (with the expected name)
+    mapper.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, true);
+    // JSON file to Java object
+    return mapper.readValue(settingsFilePath, MS2DeepscoreSettings.class);
+  }
 }

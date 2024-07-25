@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -78,8 +78,8 @@ class MS2DeepscoreModelTest {
 
 
   @AfterAll
-  static void tearDown() {
-    model.closeNdManager();
+  static void tearDown() throws Exception {
+    model.close();
   }
 
   // Method to generate a list of 1000 random values

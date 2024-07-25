@@ -26,27 +26,35 @@
 package io.github.mzmine.util.scans.similarity.impl.ms2deepscore;
 
 
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibraryEntry;
 import java.util.Arrays;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Bins spectra and returns two tensors, one for metadata and one for fragments
  */
-public class SpectrumTensorizer {
+public class MS2DeepscoreSpectrumTensorizer {
 
-  private final SettingsMS2Deepscore settings;
+  private static final Logger logger = Logger.getLogger(
+      MS2DeepscoreSpectrumTensorizer.class.getName());
+  private final MS2DeepscoreSettings settings;
   private final int numBins;
 
-  public SpectrumTensorizer(SettingsMS2Deepscore settings) {
+  public MS2DeepscoreSpectrumTensorizer(MS2DeepscoreSettings settings) {
     this.settings = settings;
     this.numBins = (int) ((settings.maximumMZ() - settings.minimumMZ()) / settings.binWidth());
   }
 
-  public float[] tensorizeFragments(Scan spectrum) {
+  public float[] tensorizeFragments(MassSpectrum spectrum) {
     float[] vector = new float[numBins];
+
     int numberOfDataPoints = spectrum.getNumberOfDataPoints();
     for (int i = 0; i < numberOfDataPoints; i++) {
       float mz = (float) spectrum.getMzValue(i);
@@ -60,20 +68,16 @@ public class SpectrumTensorizer {
     return vector;
   }
 
-  private float binarizePolarity(Scan scan) {
-    @NotNull PolarityType polarity = scan.getPolarity();
-    if (!(polarity == PolarityType.POSITIVE || polarity == PolarityType.NEGATIVE)) {
-      throw new RuntimeException("The polarity has to be positive or negative");
-    }
-    return polarity != PolarityType.POSITIVE ? 0 : 1;
+  private float binarizePolarity(@Nullable PolarityType polarity) {
+    return polarity == PolarityType.NEGATIVE ? 0 : 1;
   }
 
   /**
    * @return scaled precursor mz or null if there was no precursor mz
    */
   @Nullable
-  private Float scalePrecursorMZ(Scan scan, float mean, float standardDeviation) {
-    Double precursorMZ = scan.getPrecursorMz();
+  private Float scalePrecursorMZ(@Nullable Double precursorMZ, float mean,
+      float standardDeviation) {
     if (precursorMZ == null) {
       return null;
     }
@@ -84,29 +88,59 @@ public class SpectrumTensorizer {
    * @return vector or null if the scan has no precursor mz
    */
   public float @Nullable [] tensorizeMetadata(@NotNull Scan scan) {
-    Float scaledMz = scalePrecursorMZ(scan, 0, 1000);
+    return tensorizeMetadata(scan.getPrecursorMz(), scan.getPolarity());
+  }
+
+
+  private float @Nullable [] tensorizeMetadata(@Nullable final Double precursorMz,
+      @Nullable final PolarityType polarity) {
+    Float scaledMz = scalePrecursorMZ(precursorMz, 0, 1000);
     if (scaledMz == null) {
       return null;
     }
-    return new float[]{scaledMz, binarizePolarity(scan)};
+    return new float[]{scaledMz, binarizePolarity(polarity)};
   }
 
+
   /**
-   * Only works on scans with precursor mz
+   * Only works on scans or {@link SpectralLibraryEntry} with precursor mz
    */
   @NotNull
-  public TensorizedSpectra tensorizeSpectra(@NotNull Scan[] scans) {
+  public TensorizedSpectra tensorizeSpectra(@NotNull MassSpectrum[] scans) {
+    int originalSize = scans.length;
+
     // requires precursor mz
-    scans = Arrays.stream(scans).filter(scan -> scan.getPrecursorMz() != null).toArray(Scan[]::new);
+    scans = Arrays.stream(scans).filter(scan -> ScanUtils.getPrecursorMz(scan) != null)
+        .toArray(MassSpectrum[]::new);
+
+    if (originalSize > scans.length) {
+      logger.info(
+          "List contained spectra without precursor m/z, those were filtered out. Remaining: %d; Total: %d".formatted(
+              scans.length, originalSize));
+    }
 
     float[][] metadataVectors = new float[scans.length][numBins];
     float[][] fragmentVectors = new float[scans.length][numBins];
 
     for (int i = 0; i < scans.length; i++) {
-      metadataVectors[i] = tensorizeMetadata(scans[i]);
-      fragmentVectors[i] = tensorizeFragments(scans[i]);
+      MassSpectrum spectrum = scans[i];
+
+      Double precursorMz = ScanUtils.getPrecursorMz(spectrum);
+      PolarityType polarity = ScanUtils.getPolarity(spectrum);
+      metadataVectors[i] = tensorizeMetadata(precursorMz, polarity);
+
+      // extract masslist if scan otherwise use fragments directly
+      MassSpectrum fragments = spectrum;
+      if (spectrum instanceof Scan scan) {
+        fragments = scan.getMassList();
+        if (fragments == null) {
+          throw new MissingMassListException(scan);
+        }
+      }
+      fragmentVectors[i] = tensorizeFragments(fragments);
     }
 
     return new TensorizedSpectra(fragmentVectors, metadataVectors);
   }
+
 }

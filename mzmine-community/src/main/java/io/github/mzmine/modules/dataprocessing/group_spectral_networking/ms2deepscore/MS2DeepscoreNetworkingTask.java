@@ -89,28 +89,26 @@ public class MS2DeepscoreNetworkingTask extends AbstractFeatureListTask {
     // same folder - same name
     ms2deepscoreSettingsFile = MS2DeepscoreNetworkingParameters.findModelSettingsFile(
         ms2deepscoreModelFile);
+
+    totalItems = Arrays.stream(featureLists).mapToLong(FeatureList::getNumberOfRows).sum();
   }
 
   @Override
   protected void process() {
     // init model
     description = "Loading model";
-    MS2DeepscoreModel model;
-    try {
-      model = new MS2DeepscoreModel(ms2deepscoreModelFile, ms2deepscoreSettingsFile);
+    // auto close model after use
+    try (var model = new MS2DeepscoreModel(ms2deepscoreModelFile, ms2deepscoreSettingsFile)) {
+      description = "Calculating MS2Deepscore similarity";
+      // estimate work load - like how many elements to process
+      totalItems = Arrays.stream(featureLists).mapToLong(FeatureList::getNumberOfRows).sum();
+      // each feature list
+      for (FeatureList featureList : featureLists) {
+        processFeatureList(featureList, model);
+      }
     } catch (ModelNotFoundException | MalformedModelException | IOException e) {
-      throw new RuntimeException(e);
+      error("Error in MS2Deepscore model " + e.getMessage(), e);
     }
-    description = "Calculating MS2Deepscore similarity";
-    // estimate work load - like how many elements to process
-    totalItems = Arrays.stream(featureLists).mapToLong(FeatureList::getNumberOfRows).sum();
-    // each feature list
-    for (FeatureList featureList : featureLists) {
-      processFeatureList(featureList, model);
-    }
-
-    // increment progress
-    incrementFinishedItems();
   }
 
   private void processFeatureList(FeatureList featureList, MS2DeepscoreModel model) {
