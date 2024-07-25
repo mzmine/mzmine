@@ -344,7 +344,7 @@
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule"/>
       <MenuItem text="Ion identity networking" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule"/>
-      <MenuItem text="MS/MS spectral networking" onAction="#runModule"
+      <MenuItem text="Spectral / Molecular Networking" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingModule"/>
       <MenuItem text="Add more ion identities" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations.AddIonNetworkingModule"/>
