@@ -227,4 +227,8 @@ public class StringUtils {
   public static boolean isBlank(@Nullable String str) {
     return str == null || str.isBlank();
   }
+
+  public static String inQuotes(String str) {
+    return "\"" + str + "\"";
+  }
 }

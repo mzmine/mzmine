@@ -28,6 +28,7 @@ package io.github.mzmine.modules.io.import_rawdata_msconvert;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.impl.AbstractProcessingModule;
+import io.github.mzmine.modules.io.import_rawdata_all.spectral_processor.ScanImportProcessorConfig;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -35,24 +36,14 @@ import java.io.File;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MSConvertImportModule extends AbstractProcessingModule {
 
   public MSConvertImportModule() {
-    super("Raw data import (MSConvert)", null, MZmineModuleCategory.RAWDATAIMPORT,
+    super("Raw data import (MSConvert)", MSConvertImportParameters.class, MZmineModuleCategory.RAWDATAIMPORT,
         "Import native raw data using MSConvert as an intermediate step.");
   }
 
-  @Override
-  public @NotNull String getName() {
-    return "";
-  }
-
-  @Override
-  public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return null;
-  }
 
   @Override
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
@@ -65,7 +56,7 @@ public class MSConvertImportModule extends AbstractProcessingModule {
     }
 
     for (File file : files) {
-      tasks.add(new MSConvertImportTask(moduleCallDate, file, null, project, this.getClass(),
+      tasks.add(new MSConvertImportTask(moduleCallDate, file, ScanImportProcessorConfig.createDefault(), project, this.getClass(),
           parameters));
     }
 

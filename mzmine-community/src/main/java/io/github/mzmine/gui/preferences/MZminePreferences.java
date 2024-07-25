@@ -253,8 +253,7 @@ public class MZminePreferences extends SimpleParameterSet {
     GroupedParameterSetupDialog dialog = new GroupedParameterSetupDialog(valueCheckRequired, this);
 
     // add groups
-    dialog.addParameterGroup("General", numOfThreads, memoryOption, tempDirectory, proxySettings,
-        msConvertPath
+    dialog.addParameterGroup("General", numOfThreads, memoryOption, tempDirectory, proxySettings
         /*, applyTimsPressureCompensation*/);
     dialog.addParameterGroup("Formats", mzFormat, rtFormat, mobilityFormat, ccsFormat,
         intensityFormat, ppmFormat, scoreFormat, unitFormat);

@@ -25,10 +25,11 @@
 
 package io.github.mzmine.modules.io.import_rawdata_msconvert;
 
+import com.vdurmont.semver4j.Semver;
 import io.github.mzmine.javafx.concurrent.threading.FxThread;
+import io.github.mzmine.javafx.util.FxFileChooser;
 import io.github.mzmine.main.ConfigService;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameComponent;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.main.MZmineCore;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +47,7 @@ public class MSConvert {
 
   private static final Logger logger = Logger.getLogger(MSConvert.class.getName());
   private static final Pattern FOLDER_PATTERN = Pattern.compile(
-      "(ProteoWizard)\\s(3).([0-9]+).([0-9]+)(.+)");
+      "(ProteoWizard)\\s(3.[0-9]+.[0-9]+.[0-9a-z]+)\\s(.+)");
 
   private MSConvert() {
   }
@@ -75,12 +76,17 @@ public class MSConvert {
     }
 
     final AtomicReference<File> selected = new AtomicReference<>();
-    FxThread.runOnFxThreadAndWait(() -> {
-      final ExtensionFilter filter = new ExtensionFilter("MSConvert", "msconvert.exe");
-      final FileNameComponent component = new FileNameComponent(List.of(), FileSelectionType.OPEN,
-          List.of(filter));
-      selected.set(component.openSelectDialog(List.of(), FileSelectionType.OPEN, List.of(filter)));
-    });
+    if (MZmineCore.isHeadLessMode()) {
+      logger.warning(
+          () -> "Cannot find MSConvert in the regular install directories. Please set the MSConvert path in the config before launching in headless mode.");
+    } else {
+      FxThread.runOnFxThreadAndWait(() -> {
+        final ExtensionFilter filter = new ExtensionFilter("MSConvert", "msconvert.exe");
+        selected.set(
+            FxFileChooser.openSelectDialog(FxFileChooser.FileSelectionType.OPEN, List.of(filter),
+                null));
+      });
+    }
 
     return selected.get();
   }
@@ -94,7 +100,7 @@ public class MSConvert {
         .filter(Objects::nonNull).flatMap(List::stream).toList();
 
     List<File> allVersions = new ArrayList<>();
-    if (!inAppFolder.isEmpty()) {
+    if (inAppFolder != null && !inAppFolder.isEmpty()) {
       allVersions.addAll(inAppFolder);
     }
     allVersions.addAll(paths);
@@ -181,21 +187,12 @@ public class MSConvert {
     final Matcher matcher1 = FOLDER_PATTERN.matcher(o1.getName());
     final Matcher matcher2 = FOLDER_PATTERN.matcher(o2.getName());
 
-    matcher1.matches();
-    matcher2.matches();
 
-    final String m1v2 = matcher1.group(3);
-    final String m2v2 = matcher2.group(3);
-    if (!m1v2.equals(m2v2)) {
-      return Integer.compare(Integer.parseInt(m1v2), Integer.parseInt(m2v2));
-    }
+    assert matcher1.matches();
+    assert matcher2.matches();
 
-    final String m1v3 = matcher1.group(4);
-    final String m2v3 = matcher2.group(4);
-    if (!m1v3.equals(m2v3)) {
-      return Integer.compare(Integer.parseInt(m1v3), Integer.parseInt(m2v3));
-    }
-
-    return 0;
+    Semver v1 = new Semver(matcher1.group(2));
+    Semver v2 = new Semver(matcher2.group(2));
+    return v1.compareTo(v2);
   }
 }

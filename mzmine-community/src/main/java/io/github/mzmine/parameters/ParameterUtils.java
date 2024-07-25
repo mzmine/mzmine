@@ -33,13 +33,12 @@ import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.util.concurrent.CloseableReentrantReadWriteLock;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -49,7 +48,7 @@ public class ParameterUtils {
 
   private static final Logger logger = Logger.getLogger(ParameterUtils.class.getName());
 
-  private static final ReentrantReadWriteLock parameterEditLock = new ReentrantReadWriteLock();
+  private static final CloseableReentrantReadWriteLock parameterEditLock = new CloseableReentrantReadWriteLock();
 
 
   /**
@@ -245,24 +244,22 @@ public class ParameterUtils {
    * case multiple tasks want to edit the same parameter set.
    */
   public static boolean replaceRawFileName(ParameterSet parameterSet, File oldPath, File newPath) {
-    final WriteLock writeLock = parameterEditLock.writeLock();
-    writeLock.lock();
+    try (var lock = parameterEditLock.lockWrite()) {
 
-    for (Parameter<?> parameter : parameterSet.getParameters()) {
-      if (!(parameter instanceof FileNamesParameter fnp)) {
-        continue;
-      }
-      final File[] files = fnp.getValue();
-      for (int i = 0; i < files.length; i++) {
-        File file = files[i];
-        if (file.equals(oldPath)) {
-          files[i] = newPath;
-          writeLock.unlock();
-          return true;
+      for (Parameter<?> parameter : parameterSet.getParameters()) {
+        if (!(parameter instanceof FileNamesParameter fnp)) {
+          continue;
+        }
+        final File[] files = fnp.getValue();
+        for (int i = 0; i < files.length; i++) {
+          File file = files[i];
+          if (file.equals(oldPath)) {
+            files[i] = newPath;
+            return true;
+          }
         }
       }
     }
-    writeLock.unlock();
     return false;
   }
 }

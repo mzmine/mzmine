@@ -25,6 +25,8 @@
 
 package io.github.mzmine.modules.io.import_rawdata_msconvert;
 
+import static io.github.mzmine.util.StringUtils.inQuotes;
+
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -95,8 +97,8 @@ public class MSConvertImportTask extends AbstractTask {
 
     final File msConvertPath = MSConvert.getMsConvertPath();
     if (msConvertPath == null) {
-      setErrorMessage("MSConvert not found. Please install MSConvert.");
-      setStatus(TaskStatus.ERROR);
+      error("MSConvert not found. Please install MSConvert.");
+      return;
     }
     final File mzMLFile = getMzMLFileName(rawFilePath);
 
@@ -105,8 +107,9 @@ public class MSConvertImportTask extends AbstractTask {
           "Discovered mzml file for MS data file %s. Importing mzml file from %s.".formatted(
               rawFilePath, mzMLFile));
       importFromMzML(mzMLFile);
-      setStatus(TaskStatus.FINISHED);
-      return;
+      if (isCanceled()) {
+        return;
+      }
     }
 
     final List<String> cmdLine = buildCommandLine(rawFilePath, msConvertPath);
@@ -132,9 +135,9 @@ public class MSConvertImportTask extends AbstractTask {
       importFromStream(rawFilePath, cmdLine);
     }
 
-//    logger.info(
-//        STR."Finished parsing \{fileToOpen}, parsed \{parsedScans} scans and after filtering remained \{convertedScans}");
-    setStatus(TaskStatus.FINISHED);
+    if (!isCanceled()) {
+      setStatus(TaskStatus.FINISHED);
+    }
   }
 
   private @NotNull File getMzMLFileName(File filePath) {
@@ -156,7 +159,15 @@ public class MSConvertImportTask extends AbstractTask {
         msdkTask.cancel();
       }
     });
+
     dataFile = msdkTask.importStreamOrFile();
+    if (msdkTask.isCanceled()) {
+      setStatus(msdkTask.getStatus());
+      if (msdkTask.getStatus() == TaskStatus.ERROR) {
+        setErrorMessage(msdkTask.getErrorMessage());
+      }
+      return;
+    }
 
     if (dataFile == null || isCanceled()) {
       return;
@@ -238,13 +249,15 @@ public class MSConvertImportTask extends AbstractTask {
   private @NotNull List<String> buildCommandLine(File filePath, File msConvertPath) {
 
     List<String> cmdLine = new ArrayList<>();
-    cmdLine.addAll(List.of("\"" + msConvertPath.toString() + "\"", // MSConvert path
-        "\"" + filePath.getAbsolutePath() + "\"", // raw file path
-        "-o", !convertToFile ? "-" /* to stdout */ : "\"" + filePath.getParent() + "\"" //
+    cmdLine.addAll(List.of(inQuotes(msConvertPath.toString()), // MSConvert path
+        inQuotes(filePath.getAbsolutePath()), // raw file path
+        "-o", !convertToFile ? "-" /* to stdout */ : inQuotes(filePath.getParent()) //
     )); // vendor peak-picking
 
     if (convertToFile) {
       cmdLine.add("--zlib");
+      cmdLine.add("--numpressPic");
+      cmdLine.add("--numpressLinear");
     }
 
     if (ConfigService.getPreferences().getValue(MZminePreferences.applyPeakPicking)) {
