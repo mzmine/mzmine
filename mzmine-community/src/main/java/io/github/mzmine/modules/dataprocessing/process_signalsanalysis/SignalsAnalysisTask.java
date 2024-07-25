@@ -51,13 +51,11 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,16 +92,6 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     var scanDataType = parameters.getValue(SignalsAnalysisParameters.scanDataType);
     this.useMassList = scanDataType == ScanDataType.MASS_LIST;
     this.tolerance = parameters.getValue(SignalsAnalysisParameters.tolerance);
-  }
-
-  /**
-   * Streams MS1 scans from the grouped scans.
-   *
-   * @param groupedScans The grouped scans.
-   * @return A stream of MS1 scans.
-   */
-  private static @NotNull Stream<Scan> streamMs1Scans(final List<GroupedSignalScans> groupedScans) {
-    return groupedScans.stream().map(GroupedSignalScans::ms1Scans).flatMap(Collection::stream);
   }
 
   private static double calcSumIntensity(final List<UniqueSignal> ms1SignalMatchesMs2) {
@@ -227,9 +215,13 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
         .filter(signal -> ms2SignalMap.get(signal.mz()) != null).toList();
     List<UniqueSignal> ms2SignalMatchesMs1 = ms2Signals.stream()
         .filter(signal -> ms1SignalMap.get(signal.mz()) != null).toList();
-//    List<UniqueSignal> uniqueMs1Signals = findUnique(ms1Signals, ms2SignalMap);
+
+    List<UniqueSignal> ms1SignalMatchesMs2Precursors = filterUniquePrecursors(ms1Signals, ms2Scans,
+        tolerance);
 
     double ms1IntensityTotal = calcSumIntensity(ms1Signals);
+    double ms1IntensityFragmentedPercent =
+        calcSumIntensity(ms1SignalMatchesMs2Precursors) / ms1IntensityTotal;
     double ms1IntensityMatched = calcSumIntensity(ms1SignalMatchesMs2);
     double ms1IntensityMatchedPercent = ms1IntensityMatched / ms1IntensityTotal;
     double ms2IntensityTotal = calcSumIntensity(ms2Signals);
@@ -237,7 +229,7 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     double ms2IntensityMatchedPercent = ms2IntensityMatched / ms2IntensityTotal;
 
     int ms1SignalsTotal = ms1Signals.size();
-    int ms1SignalsFragmented = countUniquePrecursors(ms2Scans, tolerance);
+    int ms1SignalsFragmented = ms1SignalMatchesMs2Precursors.size();
     double ms1SignalsFragmentedPercent = ms1SignalsFragmented / (double) ms1SignalsTotal;
     int ms1SignalsMatched = ms1SignalMatchesMs2.size();
     double ms1SignalsMatchedPercent = ms1SignalsMatched / (double) ms1SignalsTotal;
@@ -245,9 +237,10 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     int ms2SignalsMatched = ms2SignalMatchesMs1.size();
     double ms2SignalsMatchedPercent = ms2SignalsMatched / (double) ms2SignalsTotal;
 
-    return new SignalsResults(ms1SignalsTotal, ms1SignalsFragmented, ms1SignalsFragmentedPercent,
-        ms1IntensityMatchedPercent, ms1SignalsMatched, ms1SignalsMatchedPercent, ms2SignalsTotal,
-        ms2IntensityMatchedPercent, ms2SignalsMatched, ms2SignalsMatchedPercent);
+    return new SignalsResults(ms1SignalsTotal, ms1IntensityFragmentedPercent, ms1SignalsFragmented,
+        ms1SignalsFragmentedPercent, ms1IntensityMatchedPercent, ms1SignalsMatched,
+        ms1SignalsMatchedPercent, ms2SignalsTotal, ms2IntensityMatchedPercent, ms2SignalsMatched,
+        ms2SignalsMatchedPercent);
   }
 
   private List<UniqueSignal> mapToList(final RangeMap<Double, UniqueSignal> map) {
@@ -259,9 +252,8 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
     RangeMap<Double, UniqueSignal> unique = TreeRangeMap.create();
 
     uniqueMs1Map.asMapOfRanges().values().stream()
-        .filter(signal -> signal.numberOfScans() >= minSamples).forEach(signal -> {
-          unique.put(tolerance.getToleranceRange(signal.mz()), signal);
-        });
+        .filter(signal -> signal.numberOfScans() >= minSamples)
+        .forEach(signal -> unique.put(tolerance.getToleranceRange(signal.mz()), signal));
 
     return unique;
   }
@@ -299,23 +291,26 @@ class SignalsAnalysisTask extends AbstractFeatureListTask {
   }
 
   /**
-   * Counts unique precursors.
+   * Filters unique precursors.
    *
-   * @param ms2Scans MS2 scans.
-   * @param tolerance The MZ tolerance.
-   * @return The count of unique precursors.
+   * @param ms1Signals The MS1 signals.
+   * @param ms2Scans   The MS2 scans.
+   * @param tolerance  The MZ tolerance.
+   * @return A list of unique MS1 signals that match MS2 precursors.
    */
-  private int countUniquePrecursors(List<Scan> ms2Scans, MZTolerance tolerance) {
-    Set<Double> uniquePrecursors = new HashSet<>();
+  private List<UniqueSignal> filterUniquePrecursors(List<UniqueSignal> ms1Signals,
+      List<Scan> ms2Scans, MZTolerance tolerance) {
+    Set<UniqueSignal> uniquePrecursors = new HashSet<>();
     for (Scan scan : ms2Scans) {
       double precursorMz = scan.getPrecursorMz();
-      boolean isUnique = uniquePrecursors.stream()
-          .noneMatch(existingMz -> tolerance.checkWithinTolerance(existingMz, precursorMz));
-      if (isUnique) {
-        uniquePrecursors.add(precursorMz);
+      for (UniqueSignal signal : ms1Signals) {
+        if (tolerance.checkWithinTolerance(signal.mz(), precursorMz)) {
+          uniquePrecursors.add(signal);
+          break;
+        }
       }
     }
-    return uniquePrecursors.size();
+    return new ArrayList<>(uniquePrecursors);
   }
 
 }
