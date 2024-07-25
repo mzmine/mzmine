@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -87,8 +87,8 @@ import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFil
 import io.github.mzmine.modules.dataprocessing.group_imagecorrelate.ImageCorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingModule;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreModule;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ModifiedCosineSpectralNetworkingModule;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.ExternalCCSCalibrationModule;
@@ -325,8 +325,8 @@ public class BatchModeModulesList {
        */
       CorrelateGroupingModule.class, //
       ImageCorrelateGroupingModule.class, //
-      SpectralNetworkingModule.class, //
-      MS2DeepscoreModule.class, //
+      ModifiedCosineSpectralNetworkingModule.class, //
+      MS2DeepscoreNetworkingModule.class, //
       AnnotateIsomersModule.class, //
 
       /*

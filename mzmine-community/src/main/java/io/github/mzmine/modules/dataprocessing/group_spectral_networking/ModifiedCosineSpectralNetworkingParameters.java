@@ -44,7 +44,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class SpectralNetworkingParameters extends SimpleParameterSet {
+public class ModifiedCosineSpectralNetworkingParameters extends SimpleParameterSet {
 
   // NOT INCLUDED in sub
   // General parameters
@@ -81,7 +81,7 @@ public class SpectralNetworkingParameters extends SimpleParameterSet {
       Signal filters to limit the number of signals etc.
       """, new SignalFiltersParameters());
 
-  public SpectralNetworkingParameters() {
+  public ModifiedCosineSpectralNetworkingParameters() {
     super(FEATURE_LISTS, MZ_TOLERANCE, ONLY_BEST_MS2_SCAN, MAX_MZ_DELTA, MIN_MATCH,
         MIN_COSINE_SIMILARITY, CHECK_NEUTRAL_LOSS_SIMILARITY, signalFilters);
   }
@@ -89,5 +89,10 @@ public class SpectralNetworkingParameters extends SimpleParameterSet {
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  @Override
+  public int getVersion() {
+    return 2;
   }
 }

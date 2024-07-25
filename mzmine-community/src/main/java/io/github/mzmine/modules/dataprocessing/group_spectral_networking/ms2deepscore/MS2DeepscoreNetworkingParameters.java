@@ -50,7 +50,7 @@ import javafx.scene.layout.Region;
  * <p>
  * var flists = parameters.getValue(EmptyFeatureListParameters.featureLists);
  */
-public class MS2DeepscoreParameters extends SimpleParameterSet {
+public class MS2DeepscoreNetworkingParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
@@ -74,7 +74,7 @@ public class MS2DeepscoreParameters extends SimpleParameterSet {
       "The file location of the settings.json file, click download to download the model and settings.",
       FileSelectionType.OPEN, true);
 
-  public MS2DeepscoreParameters() {
+  public MS2DeepscoreNetworkingParameters() {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */

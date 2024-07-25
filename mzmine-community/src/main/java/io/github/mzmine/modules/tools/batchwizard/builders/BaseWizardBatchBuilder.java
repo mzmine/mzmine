@@ -79,8 +79,8 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.F
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.InterSampleHeightCorrParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingParameters;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingModule;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingParameters;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ModifiedCosineSpectralNetworkingModule;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ModifiedCosineSpectralNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralSignalFilter;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
@@ -1136,22 +1136,23 @@ public abstract class BaseWizardBatchBuilder extends WizardBatchBuilder {
       final File exportPath) {
     // NETWORKING
     ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(SpectralNetworkingModule.class).cloneParameterSet();
+        .getModuleParameters(ModifiedCosineSpectralNetworkingModule.class).cloneParameterSet();
 
-    param.setParameter(SpectralNetworkingParameters.FEATURE_LISTS,
+    param.setParameter(ModifiedCosineSpectralNetworkingParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(SpectralNetworkingParameters.MAX_MZ_DELTA, true, 500d);
-    param.setParameter(SpectralNetworkingParameters.MIN_MATCH, 4);
-    param.setParameter(SpectralNetworkingParameters.CHECK_NEUTRAL_LOSS_SIMILARITY, false);
-    param.setParameter(SpectralNetworkingParameters.MIN_COSINE_SIMILARITY, 0.7);
-    param.setParameter(SpectralNetworkingParameters.ONLY_BEST_MS2_SCAN, true);
-    param.setParameter(SpectralNetworkingParameters.MZ_TOLERANCE, mzTolScans);
+    param.setParameter(ModifiedCosineSpectralNetworkingParameters.MAX_MZ_DELTA, true, 500d);
+    param.setParameter(ModifiedCosineSpectralNetworkingParameters.MIN_MATCH, 4);
+    param.setParameter(ModifiedCosineSpectralNetworkingParameters.CHECK_NEUTRAL_LOSS_SIMILARITY,
+        false);
+    param.setParameter(ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY, 0.7);
+    param.setParameter(ModifiedCosineSpectralNetworkingParameters.ONLY_BEST_MS2_SCAN, true);
+    param.setParameter(ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE, mzTolScans);
 
-    param.getParameter(SpectralNetworkingParameters.signalFilters).getEmbeddedParameters()
-        .setValue(SpectralSignalFilter.DEFAULT);
+    param.getParameter(ModifiedCosineSpectralNetworkingParameters.signalFilters)
+        .getEmbeddedParameters().setValue(SpectralSignalFilter.DEFAULT);
 
     MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(SpectralNetworkingModule.class), param);
+        MZmineCore.getModuleInstance(ModifiedCosineSpectralNetworkingModule.class), param);
     q.add(step);
 
     // GRAPHML EXPORT

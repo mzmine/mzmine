@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024 The mzmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -80,12 +80,13 @@ import org.graphstream.algorithm.community.Community;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SpectralNetworkingTask extends AbstractTask {
+public class ModifiedCosineSpectralNetworkingTask extends AbstractTask {
 
   public final static Function<List<DataPoint[]>, Integer> DIFF_OVERLAP = list -> ScanMZDiffConverter.getOverlapOfAlignedDiff(
       list, 0, 1);
-  public final static Function<List<DataPoint[]>, Integer> SIZE_OVERLAP = SpectralNetworkingTask::calcOverlap;
-  private static final Logger logger = Logger.getLogger(SpectralNetworkingTask.class.getName());
+  public final static Function<List<DataPoint[]>, Integer> SIZE_OVERLAP = ModifiedCosineSpectralNetworkingTask::calcOverlap;
+  private static final Logger logger = Logger.getLogger(
+      ModifiedCosineSpectralNetworkingTask.class.getName());
   // Logger.
   private final AtomicLong processedPairs = new AtomicLong(0);
   private final int minMatch;
@@ -102,35 +103,40 @@ public class SpectralNetworkingTask extends AbstractTask {
   private List<FeatureListRow> rows;
   private long totalMaxPairs = 0;
 
-  public SpectralNetworkingTask(final ParameterSet params, @Nullable ModularFeatureList featureList,
-      @NotNull Instant moduleCallDate) {
+  public ModifiedCosineSpectralNetworkingTask(final ParameterSet params,
+      @Nullable ModularFeatureList featureList, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.params = params;
     this.featureList = featureList;
-    mzTolerance = params.getValue(SpectralNetworkingParameters.MZ_TOLERANCE);
+    mzTolerance = params.getValue(ModifiedCosineSpectralNetworkingParameters.MZ_TOLERANCE);
     maxMzDelta = params.getEmbeddedParameterValueIfSelectedOrElse(
-        SpectralNetworkingParameters.MAX_MZ_DELTA, Double.MAX_VALUE);
+        ModifiedCosineSpectralNetworkingParameters.MAX_MZ_DELTA, Double.MAX_VALUE);
 
-    minMatch = params.getValue(SpectralNetworkingParameters.MIN_MATCH);
-    minCosineSimilarity = params.getValue(SpectralNetworkingParameters.MIN_COSINE_SIMILARITY);
-    onlyBestMS2Scan = params.getValue(SpectralNetworkingParameters.ONLY_BEST_MS2_SCAN);
+    minMatch = params.getValue(ModifiedCosineSpectralNetworkingParameters.MIN_MATCH);
+    minCosineSimilarity = params.getValue(
+        ModifiedCosineSpectralNetworkingParameters.MIN_COSINE_SIMILARITY);
+    onlyBestMS2Scan = params.getValue(
+        ModifiedCosineSpectralNetworkingParameters.ONLY_BEST_MS2_SCAN);
     // check neutral loss similarity?
-    checkNeutralLoss = params.getValue(SpectralNetworkingParameters.CHECK_NEUTRAL_LOSS_SIMILARITY);
+    checkNeutralLoss = params.getValue(
+        ModifiedCosineSpectralNetworkingParameters.CHECK_NEUTRAL_LOSS_SIMILARITY);
     if (checkNeutralLoss) {
       final NeutralLossSimilarityParameters nlossParam = params.getParameter(
-          SpectralNetworkingParameters.CHECK_NEUTRAL_LOSS_SIMILARITY).getEmbeddedParameters();
+              ModifiedCosineSpectralNetworkingParameters.CHECK_NEUTRAL_LOSS_SIMILARITY)
+          .getEmbeddedParameters();
       maxDPForDiff = nlossParam.getValue(NeutralLossSimilarityParameters.MAX_DP_FOR_DIFF);
     } else {
       maxDPForDiff = 0;
     }
     // embedded signal filters
-    signalFilter = params.getValue(SpectralNetworkingParameters.signalFilters).createFilter();
+    signalFilter = params.getValue(ModifiedCosineSpectralNetworkingParameters.signalFilters)
+        .createFilter();
   }
 
   /**
    * Create the task on set of rows
    */
-  public SpectralNetworkingTask(final ParameterSet parameters,
+  public ModifiedCosineSpectralNetworkingTask(final ParameterSet parameters,
       @Nullable ModularFeatureList featureList, List<FeatureListRow> rows,
       @NotNull Instant moduleCallDate) {
     this(parameters, featureList, moduleCallDate);
@@ -389,7 +395,7 @@ public class SpectralNetworkingTask extends AbstractTask {
 
       if (featureList != null) {
         featureList.addDescriptionOfAppliedTask(
-            new SimpleFeatureListAppliedMethod(SpectralNetworkingModule.class, params,
+            new SimpleFeatureListAppliedMethod(ModifiedCosineSpectralNetworkingModule.class, params,
                 getModuleCallDate()));
       }
 

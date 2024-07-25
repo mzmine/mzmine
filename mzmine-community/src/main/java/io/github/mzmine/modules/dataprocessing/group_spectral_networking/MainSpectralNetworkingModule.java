@@ -23,11 +23,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore;
+package io.github.mzmine.modules.dataprocessing.group_spectral_networking;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreNetworkingParameters;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore.MS2DeepscoreTask;
 import io.github.mzmine.modules.impl.SingleTaskFeatureListsModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
@@ -39,12 +41,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Downloads a MS2Deepscore model and runs molecular networking
  */
-public class MS2DeepscoreModule extends SingleTaskFeatureListsModule {
+public class MainSpectralNetworkingModule extends SingleTaskFeatureListsModule {
 
-  public MS2DeepscoreModule() {
-    super("MS/MS Spectral networking (MS2Deepscore)", MS2DeepscoreParameters.class,
+  public MainSpectralNetworkingModule() {
+    super("Spectral / Molecular Networking", MS2DeepscoreNetworkingParameters.class,
         MZmineModuleCategory.FEATURE_GROUPING,
-        "Calculating MS2Deepscores similarity for spectral networking");
+        "Spectral Networking (Molecular Networking) of fragmentation data");
   }
 
   @Override

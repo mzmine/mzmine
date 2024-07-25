@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Filter used before spectral matching to reduce number of signals, see
- * {@link SignalFiltersParameters} and {@link SpectralNetworkingTask}
+ * {@link SignalFiltersParameters} and {@link ModifiedCosineSpectralNetworkingTask}
  *
  * @param isRemovePrecursor                        remove precursor signals
  * @param removePrecursorMz                        range to remove around the precursor +-

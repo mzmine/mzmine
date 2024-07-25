@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023 The MZmine Development Team
+ * Copyright (c) 2004-2024 The MZmine Development Team
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -34,8 +34,8 @@ import io.github.mzmine.gui.framework.fx.FeatureRowInterfaceFx;
 import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.CosinePairContributions;
+import io.github.mzmine.modules.dataprocessing.group_spectral_networking.ModifiedCosineSpectralNetworkingTask;
 import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SignalAlignmentAnnotation;
-import io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingTask;
 import io.github.mzmine.modules.io.export_features_gnps.GNPSUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
@@ -262,7 +262,8 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
     if (precursorMZA > 0 && precursorMZB > 0) {
       lbTitleNL.setText("Neutral loss mirror" + precursorString);
       neutralLossMirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromAligned(mzTol, false,
-          ScanUtils.getNeutralLossSpectrum(dpsA, precursorMZA), precursorMZA, ScanUtils.getNeutralLossSpectrum(dpsB, precursorMZB), precursorMZB);
+          ScanUtils.getNeutralLossSpectrum(dpsA, precursorMZA), precursorMZA,
+          ScanUtils.getNeutralLossSpectrum(dpsB, precursorMZB), precursorMZB);
       pnNLMirror.setCenter(neutralLossMirrorSpecrumPlot);
 
       //
@@ -289,7 +290,8 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
     dpsA = signalFilters.applyFilterAndSortByIntensity(dpsA, precursorMZA);
     dpsB = signalFilters.applyFilterAndSortByIntensity(dpsB, precursorMZB);
 
-    SpectralSimilarity cosine = SpectralNetworkingTask.createMS2Sim(mzTol, dpsA, dpsB, 2, weights);
+    SpectralSimilarity cosine = ModifiedCosineSpectralNetworkingTask.createMS2Sim(mzTol, dpsA, dpsB,
+        2, weights);
 
     if (cosine != null) {
       lbMirrorStats.setText(String.format(
@@ -302,8 +304,9 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
     }
 
     //modified cosine
-    cosine = SpectralNetworkingTask.createMS2SimModificationAware(mzTol, weights, dpsA, dpsB, 2,
-        SpectralNetworkingTask.SIZE_OVERLAP, precursorMZA, precursorMZB);
+    cosine = ModifiedCosineSpectralNetworkingTask.createMS2SimModificationAware(mzTol, weights,
+        dpsA, dpsB, 2, ModifiedCosineSpectralNetworkingTask.SIZE_OVERLAP, precursorMZA,
+        precursorMZB);
     if (cosine != null) {
       lbMirrorModifiedStats.setText(String.format(
           "modified=%1.3f; matched signals=%d; top/bottom: explained intensity=%1.3f/%1.3f; matched signals=%1.3f/%1.3f",
@@ -312,7 +315,7 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
           cosine.overlap() / (double) cosine.sizeA()));
 
       // get contributions of all data points
-      final CosinePairContributions contributions = SpectralNetworkingTask.calculateModifiedCosineSimilarityContributions(
+      final CosinePairContributions contributions = ModifiedCosineSpectralNetworkingTask.calculateModifiedCosineSimilarityContributions(
           mzTol, weights, dpsA, dpsB, precursorMZA, precursorMZB);
 
       if (contributions != null) {
@@ -341,7 +344,7 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
     Arrays.sort(nlA, DataPointSorter.DEFAULT_INTENSITY);
     Arrays.sort(nlB, DataPointSorter.DEFAULT_INTENSITY);
 
-    cosine = SpectralNetworkingTask.createMS2Sim(mzTol, nlA, nlB, 2, weights);
+    cosine = ModifiedCosineSpectralNetworkingTask.createMS2Sim(mzTol, nlA, nlB, 2, weights);
     if (cosine != null) {
       lbNeutralLossStats.setText(String.format(
           "cosine=%1.3f; matched signals=%d; top/bottom: explained intensity=%1.3f/%1.3f; matched signals=%1.3f/%1.3f",
@@ -350,7 +353,7 @@ public class MirrorScanWindowController implements FeatureRowInterfaceFx {
           cosine.overlap() / (double) cosine.sizeA()));
 
       // get contributions of all data points
-      final CosinePairContributions contributions = SpectralNetworkingTask.calculateModifiedCosineSimilarityContributions(
+      final CosinePairContributions contributions = ModifiedCosineSpectralNetworkingTask.calculateModifiedCosineSimilarityContributions(
           mzTol, weights, nlA, nlB, -1, -1);
 
       if (contributions != null) {

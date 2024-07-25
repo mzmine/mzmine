@@ -25,7 +25,7 @@
 
 package io.github.mzmine.modules.dataprocessing.group_spectral_networking.ms2deepscore;
 
-import static io.github.mzmine.modules.dataprocessing.group_spectral_networking.SpectralNetworkingTask.addNetworkStatisticsToRows;
+import static io.github.mzmine.modules.dataprocessing.group_spectral_networking.ModifiedCosineSpectralNetworkingTask.addNetworkStatisticsToRows;
 
 import ai.djl.MalformedModelException;
 import ai.djl.repository.zoo.ModelNotFoundException;
@@ -58,9 +58,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author niekdejonge
  */
-class MS2DeepscoreTask extends AbstractFeatureListTask {
+class MS2DeepscoreNetworkingTask extends AbstractFeatureListTask {
 
-  private static final Logger logger = Logger.getLogger(MS2DeepscoreTask.class.getName());
+  private static final Logger logger = Logger.getLogger(MS2DeepscoreNetworkingTask.class.getName());
   private final @NotNull FeatureList[] featureLists;
   private final int minSignals;
   private final double minScore;
@@ -77,22 +77,22 @@ class MS2DeepscoreTask extends AbstractFeatureListTask {
    * @param featureLists data source is featureList
    * @param parameters   user parameters
    */
-  public MS2DeepscoreTask(MZmineProject project, @NotNull FeatureList[] featureLists,
+  public MS2DeepscoreNetworkingTask(MZmineProject project, @NotNull FeatureList[] featureLists,
       ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       @NotNull Class<? extends MZmineModule> moduleClass) {
     super(storage, moduleCallDate, parameters, moduleClass);
     this.featureLists = featureLists;
     // Get parameter values for easier use
-    minSignals = parameters.getValue(MS2DeepscoreParameters.minSignals);
-    minScore = parameters.getValue(MS2DeepscoreParameters.minScore);
-    ms2deepscoreModelFile = parameters.getValue(MS2DeepscoreParameters.ms2deepscoreModelFile)
-        .toPath();
-    ms2deepscoreSettingsFile = parameters.getValue(MS2DeepscoreParameters.ms2deepscoreSettingsFile)
-        .toPath();
-    downloadModel = parameters.getValue(MS2DeepscoreParameters.downloadDirectory);
+    minSignals = parameters.getValue(MS2DeepscoreNetworkingParameters.minSignals);
+    minScore = parameters.getValue(MS2DeepscoreNetworkingParameters.minScore);
+    ms2deepscoreModelFile = parameters.getValue(
+        MS2DeepscoreNetworkingParameters.ms2deepscoreModelFile).toPath();
+    ms2deepscoreSettingsFile = parameters.getValue(
+        MS2DeepscoreNetworkingParameters.ms2deepscoreSettingsFile).toPath();
+    downloadModel = parameters.getValue(MS2DeepscoreNetworkingParameters.downloadDirectory);
     if (downloadModel) {
       final DirectoryParameter directoryParameter = parameters.getParameter(
-          MS2DeepscoreParameters.downloadDirectory).getEmbeddedParameter();
+          MS2DeepscoreNetworkingParameters.downloadDirectory).getEmbeddedParameter();
       downloadDirectory = directoryParameter.getValue();
     } else {
       downloadDirectory = null;
